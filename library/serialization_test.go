@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/masagroup/soft/go/ecore"
+	"github.com/masagroup/soft.go/ecore"
 	"github.com/stretchr/testify/assert"
 )
 

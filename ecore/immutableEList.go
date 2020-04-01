@@ -43,7 +43,7 @@ func (arr *immutableEList) Get(index int) interface{} {
 	return arr.data[index]
 }
 
-func (arr *immutableEList) Set(index int, elem interface{}) {
+func (arr *immutableEList) Set(index int, elem interface{}) interface{} {
 	panic("Immutable list can't be modified")
 }
 

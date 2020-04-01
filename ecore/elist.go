@@ -25,7 +25,7 @@ type EList interface {
 
 	Get(int) interface{}
 
-	Set(int, interface{})
+	Set(int, interface{}) interface{}
 
 	RemoveAt(int) interface{}
 

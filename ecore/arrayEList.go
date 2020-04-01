@@ -70,7 +70,7 @@ func NewUniqueArrayEList(data []interface{}) *arrayEList {
 }
 
 // Remove all elements in list that already are in arr.data
-func (arr *arrayEList) removeDuplicated(list EList) *arrayEList {
+func (arr *arrayEList) getNonDuplicates(list EList) *arrayEList {
 	newArr := NewArrayEList([]interface{}{})
 	for it := list.Iterator(); it.HasNext(); {
 		value := it.Next()
@@ -102,7 +102,7 @@ func (arr *arrayEList) doAdd(e interface{}) {
 // AddAll elements of an array in the current one
 func (arr *arrayEList) AddAll(list EList) bool {
 	if arr.isUnique {
-		list = arr.removeDuplicated(list)
+		list = arr.getNonDuplicates(list)
 		if list.Size() == 0 {
 			return false
 		}
@@ -151,7 +151,7 @@ func (arr *arrayEList) InsertAll(index int, list EList) bool {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
 	}
 	if arr.isUnique {
-		list = arr.removeDuplicated(list)
+		list = arr.getNonDuplicates(list)
 		if list.Size() == 0 {
 			return false
 		}
@@ -244,13 +244,17 @@ func (arr *arrayEList) doSet(index int, elem interface{}) interface{} {
 }
 
 // Set an element of the array
-func (arr *arrayEList) Set(index int, elem interface{}) {
+func (arr *arrayEList) Set(index int, elem interface{}) interface{} {
 	if index < 0 || index >= arr.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
 	}
-	if !arr.Contains(elem) {
-		arr.interfaces.(abstractEList).doSet(index, elem)
+	if arr.isUnique {
+		currIndex := arr.IndexOf(elem)
+		if currIndex >= 0 && currIndex != index {
+			panic("element already in list")
+		}
 	}
+	return arr.interfaces.(abstractEList).doSet(index, elem)
 }
 
 // Size count the number of element in the array

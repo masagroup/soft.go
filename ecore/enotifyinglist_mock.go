@@ -274,8 +274,19 @@ func (_m *MockENotifyingList) RemoveWithNotification(object interface{}, notific
 }
 
 // Set provides a mock function with given fields: _a0, _a1
-func (_m *MockENotifyingList) Set(_a0 int, _a1 interface{}) {
-	_m.Called(_a0, _a1)
+func (_m *MockENotifyingList) Set(_a0 int, _a1 interface{}) interface{} {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 interface{}
+	if rf, ok := ret.Get(0).(func(int, interface{}) interface{}); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(interface{})
+		}
+	}
+
+	return r0
 }
 
 // SetWithNotification provides a mock function with given fields: index, object, notifications

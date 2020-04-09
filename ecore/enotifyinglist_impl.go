@@ -70,10 +70,7 @@ func (list *ENotifyingListImpl) createNotification(eventType EventType, oldValue
 
 func (list *ENotifyingListImpl) isNotificationRequired() bool {
 	notifier := list.interfaces.(ENotifyingList).GetNotifier()
-	if notifier != nil {
-		return notifier.EDeliver() && !notifier.EAdapters().Empty()
-	}
-	return false
+	return notifier != nil && notifier.EDeliver() && !notifier.EAdapters().Empty()
 }
 
 func (list *ENotifyingListImpl) createAndAddNotification(ns ENotificationChain, eventType EventType, oldValue interface{}, newValue interface{}, position int) ENotificationChain {
@@ -101,10 +98,11 @@ func (list *ENotifyingListImpl) createAndDispatchNotificationFn(notifications EN
 		if notifications != nil {
 			notifications.Add(notification)
 			notifications.Dispatch()
-		}
-		notifier := list.interfaces.(ENotifyingList).GetNotifier()
-		if notifier != nil {
-			notifier.ENotify(notification)
+		} else {
+			notifier := list.interfaces.(ENotifyingList).GetNotifier()
+			if notifier != nil {
+				notifier.ENotify(notification)
+			}
 		}
 	} else {
 		if notifications != nil {

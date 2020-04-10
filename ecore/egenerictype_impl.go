@@ -89,11 +89,11 @@ func (eGenericType *eGenericTypeImpl) GetELowerBound() EGenericType {
 func (eGenericType *eGenericTypeImpl) SetELowerBound(newELowerBound EGenericType) {
 	if newELowerBound != eGenericType.eLowerBound {
 		var notifications ENotificationChain
-		if eGenericType.eLowerBound != nil {
-			notifications = eGenericType.eLowerBound.(EObjectInternal).EInverseRemove(eGenericType, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, notifications)
+		if oldELowerBoundInternal, _ := eGenericType.eLowerBound.(EObjectInternal); oldELowerBoundInternal != nil {
+			notifications = oldELowerBoundInternal.EInverseRemove(eGenericType, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, notifications)
 		}
-		if newELowerBound != nil {
-			notifications = newELowerBound.(EObjectInternal).EInverseAdd(eGenericType.AsEObject(), EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, notifications)
+		if newELowerBoundInternal, _ := newELowerBound.(EObjectInternal); newELowerBoundInternal != nil {
+			notifications = newELowerBoundInternal.EInverseAdd(eGenericType.AsEObject(), EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, notifications)
 		}
 		notifications = eGenericType.basicSetELowerBound(newELowerBound, notifications)
 		if notifications != nil {
@@ -167,11 +167,11 @@ func (eGenericType *eGenericTypeImpl) GetEUpperBound() EGenericType {
 func (eGenericType *eGenericTypeImpl) SetEUpperBound(newEUpperBound EGenericType) {
 	if newEUpperBound != eGenericType.eUpperBound {
 		var notifications ENotificationChain
-		if eGenericType.eUpperBound != nil {
-			notifications = eGenericType.eUpperBound.(EObjectInternal).EInverseRemove(eGenericType, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, notifications)
+		if oldEUpperBoundInternal, _ := eGenericType.eUpperBound.(EObjectInternal); oldEUpperBoundInternal != nil {
+			notifications = oldEUpperBoundInternal.EInverseRemove(eGenericType, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, notifications)
 		}
-		if newEUpperBound != nil {
-			notifications = newEUpperBound.(EObjectInternal).EInverseAdd(eGenericType.AsEObject(), EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, notifications)
+		if newEUpperBoundInternal, _ := newEUpperBound.(EObjectInternal); newEUpperBoundInternal != nil {
+			notifications = newEUpperBoundInternal.EInverseAdd(eGenericType.AsEObject(), EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, notifications)
 		}
 		notifications = eGenericType.basicSetEUpperBound(newEUpperBound, notifications)
 		if notifications != nil {
@@ -229,7 +229,7 @@ func (eGenericType *eGenericTypeImpl) ESetFromID(featureID int, newValue interfa
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
 		e := newValue.(EList)
 		eGenericType.GetETypeArguments().Clear()
-		eGenericType.GetETypeArguments().Add(e)
+		eGenericType.GetETypeArguments().AddAll(e)
 	case EGENERIC_TYPE__ETYPE_PARAMETER:
 		e := newValue.(ETypeParameter)
 		eGenericType.SetETypeParameter(e)

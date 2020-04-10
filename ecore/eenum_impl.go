@@ -83,7 +83,7 @@ func (eEnum *eEnumImpl) ESetFromID(featureID int, newValue interface{}) {
 	case EENUM__ELITERALS:
 		e := newValue.(EList)
 		eEnum.GetELiterals().Clear()
-		eEnum.GetELiterals().Add(e)
+		eEnum.GetELiterals().AddAll(e)
 	default:
 		eEnum.eDataTypeImpl.ESetFromID(featureID, newValue)
 	}

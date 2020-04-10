@@ -16,11 +16,9 @@
 package ecore
 
 import (
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 func discardEAttribute() {
@@ -28,55 +26,22 @@ func discardEAttribute() {
 	_ = mock.Anything
 	_ = testing.Coverage
 
-	_ = time.Now()
 }
 
 func TestEAttributeIDGet(t *testing.T) {
+	var newValue bool = true
 	obj := newEAttributeImpl()
-	obj.SetID(true)
-	assert.Equal(t, true, obj.IsID())
+	obj.SetID(newValue)
+	assert.Equal(t, newValue, obj.IsID())
 }
 
 func TestEAttributeIDSet(t *testing.T) {
+	var newValue bool = true
 	obj := newEAttributeImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetID(true)
+	obj.SetID(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEAttributeIDEGet(t *testing.T) {
-	obj := newEAttributeImpl()
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.IsID(), obj.EGetFromID(EATTRIBUTE__ID, false, false))
-	}
-}
-
-func TestEAttributeIDEIsSet(t *testing.T) {
-	obj := newEAttributeImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEAttributeIDEUnset(t *testing.T) {
-	obj := newEAttributeImpl()
-	{
-		_ = obj
-	}
-}
-
-func TestEAttributeIDESet(t *testing.T) {
-	obj := newEAttributeImpl()
-	{
-		_ = obj
-	}
 }

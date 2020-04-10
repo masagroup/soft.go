@@ -73,7 +73,7 @@ func (eModelElement *eModelElementImpl) ESetFromID(featureID int, newValue inter
 	case EMODEL_ELEMENT__EANNOTATIONS:
 		e := newValue.(EList)
 		eModelElement.GetEAnnotations().Clear()
-		eModelElement.GetEAnnotations().Add(e)
+		eModelElement.GetEAnnotations().AddAll(e)
 	default:
 		eModelElement.EObjectImpl.ESetFromID(featureID, newValue)
 	}

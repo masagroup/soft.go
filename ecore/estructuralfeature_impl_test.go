@@ -16,11 +16,9 @@
 package ecore
 
 import (
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 func discardEStructuralFeature() {
@@ -28,1064 +26,132 @@ func discardEStructuralFeature() {
 	_ = mock.Anything
 	_ = testing.Coverage
 
-	_ = time.Now()
 }
 
 func TestEStructuralFeatureChangeableGet(t *testing.T) {
+	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
-	obj.SetChangeable(true)
-	assert.Equal(t, true, obj.IsChangeable())
+	obj.SetChangeable(newValue)
+	assert.Equal(t, newValue, obj.IsChangeable())
 }
 
 func TestEStructuralFeatureChangeableSet(t *testing.T) {
+	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetChangeable(true)
+	obj.SetChangeable(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStructuralFeatureChangeableEGet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Equal(t, obj.IsChangeable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__CHANGEABLE, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.GetDefaultValueLiteral(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsDerived(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DERIVED, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetEContainingClass(), obj.EGetFromID(ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetFeatureID(), obj.EGetFromID(ESTRUCTURAL_FEATURE__FEATURE_ID, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsTransient(), obj.EGetFromID(ESTRUCTURAL_FEATURE__TRANSIENT, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsUnsettable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsVolatile(), obj.EGetFromID(ESTRUCTURAL_FEATURE__VOLATILE, false, false))
-	}
-}
-
-func TestEStructuralFeatureChangeableEInvoke(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ESTRUCTURAL_FEATURE__GET_CONTAINER_CLASS, nil) })
-	}
-}
-
-func TestEStructuralFeatureChangeableEIsSet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureChangeableEUnset(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureChangeableESet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureChangeableEInverseAdd(t *testing.T) {
-	{
-	}
-}
-
-func TestEStructuralFeatureChangeableEInverseRemove(t *testing.T) {
-	{
-	}
 }
 
 func TestEStructuralFeatureVolatileGet(t *testing.T) {
+	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
-	obj.SetVolatile(true)
-	assert.Equal(t, true, obj.IsVolatile())
+	obj.SetVolatile(newValue)
+	assert.Equal(t, newValue, obj.IsVolatile())
 }
 
 func TestEStructuralFeatureVolatileSet(t *testing.T) {
+	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetVolatile(true)
+	obj.SetVolatile(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStructuralFeatureVolatileEGet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Equal(t, obj.IsChangeable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__CHANGEABLE, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.GetDefaultValueLiteral(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsDerived(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DERIVED, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetEContainingClass(), obj.EGetFromID(ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetFeatureID(), obj.EGetFromID(ESTRUCTURAL_FEATURE__FEATURE_ID, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsTransient(), obj.EGetFromID(ESTRUCTURAL_FEATURE__TRANSIENT, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsUnsettable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsVolatile(), obj.EGetFromID(ESTRUCTURAL_FEATURE__VOLATILE, false, false))
-	}
-}
-
-func TestEStructuralFeatureVolatileEInvoke(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ESTRUCTURAL_FEATURE__GET_CONTAINER_CLASS, nil) })
-	}
-}
-
-func TestEStructuralFeatureVolatileEIsSet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureVolatileEUnset(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureVolatileESet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureVolatileEInverseAdd(t *testing.T) {
-	{
-	}
-}
-
-func TestEStructuralFeatureVolatileEInverseRemove(t *testing.T) {
-	{
-	}
 }
 
 func TestEStructuralFeatureTransientGet(t *testing.T) {
+	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
-	obj.SetTransient(true)
-	assert.Equal(t, true, obj.IsTransient())
+	obj.SetTransient(newValue)
+	assert.Equal(t, newValue, obj.IsTransient())
 }
 
 func TestEStructuralFeatureTransientSet(t *testing.T) {
+	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetTransient(true)
+	obj.SetTransient(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStructuralFeatureTransientEGet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Equal(t, obj.IsChangeable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__CHANGEABLE, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.GetDefaultValueLiteral(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsDerived(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DERIVED, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetEContainingClass(), obj.EGetFromID(ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetFeatureID(), obj.EGetFromID(ESTRUCTURAL_FEATURE__FEATURE_ID, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsTransient(), obj.EGetFromID(ESTRUCTURAL_FEATURE__TRANSIENT, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsUnsettable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsVolatile(), obj.EGetFromID(ESTRUCTURAL_FEATURE__VOLATILE, false, false))
-	}
-}
-
-func TestEStructuralFeatureTransientEInvoke(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ESTRUCTURAL_FEATURE__GET_CONTAINER_CLASS, nil) })
-	}
-}
-
-func TestEStructuralFeatureTransientEIsSet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureTransientEUnset(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureTransientESet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureTransientEInverseAdd(t *testing.T) {
-	{
-	}
-}
-
-func TestEStructuralFeatureTransientEInverseRemove(t *testing.T) {
-	{
-	}
 }
 
 func TestEStructuralFeatureDefaultValueLiteralGet(t *testing.T) {
+	var newValue string = "Test String"
 	obj := newEStructuralFeatureImpl()
-	obj.SetDefaultValueLiteral("Test String")
-	assert.Equal(t, "Test String", obj.GetDefaultValueLiteral())
+	obj.SetDefaultValueLiteral(newValue)
+	assert.Equal(t, newValue, obj.GetDefaultValueLiteral())
 }
 
 func TestEStructuralFeatureDefaultValueLiteralSet(t *testing.T) {
+	var newValue string = "Test String"
 	obj := newEStructuralFeatureImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetDefaultValueLiteral("Test String")
+	obj.SetDefaultValueLiteral(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStructuralFeatureDefaultValueLiteralEGet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Equal(t, obj.IsChangeable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__CHANGEABLE, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.GetDefaultValueLiteral(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsDerived(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DERIVED, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetEContainingClass(), obj.EGetFromID(ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetFeatureID(), obj.EGetFromID(ESTRUCTURAL_FEATURE__FEATURE_ID, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsTransient(), obj.EGetFromID(ESTRUCTURAL_FEATURE__TRANSIENT, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsUnsettable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsVolatile(), obj.EGetFromID(ESTRUCTURAL_FEATURE__VOLATILE, false, false))
-	}
-}
-
-func TestEStructuralFeatureDefaultValueLiteralEInvoke(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ESTRUCTURAL_FEATURE__GET_CONTAINER_CLASS, nil) })
-	}
-}
-
-func TestEStructuralFeatureDefaultValueLiteralEIsSet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureDefaultValueLiteralEUnset(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureDefaultValueLiteralESet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureDefaultValueLiteralEInverseAdd(t *testing.T) {
-	{
-	}
-}
-
-func TestEStructuralFeatureDefaultValueLiteralEInverseRemove(t *testing.T) {
-	{
-	}
 }
 
 func TestEStructuralFeatureUnsettableGet(t *testing.T) {
+	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
-	obj.SetUnsettable(true)
-	assert.Equal(t, true, obj.IsUnsettable())
+	obj.SetUnsettable(newValue)
+	assert.Equal(t, newValue, obj.IsUnsettable())
 }
 
 func TestEStructuralFeatureUnsettableSet(t *testing.T) {
+	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetUnsettable(true)
+	obj.SetUnsettable(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStructuralFeatureUnsettableEGet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Equal(t, obj.IsChangeable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__CHANGEABLE, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.GetDefaultValueLiteral(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsDerived(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DERIVED, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetEContainingClass(), obj.EGetFromID(ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetFeatureID(), obj.EGetFromID(ESTRUCTURAL_FEATURE__FEATURE_ID, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsTransient(), obj.EGetFromID(ESTRUCTURAL_FEATURE__TRANSIENT, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsUnsettable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsVolatile(), obj.EGetFromID(ESTRUCTURAL_FEATURE__VOLATILE, false, false))
-	}
-}
-
-func TestEStructuralFeatureUnsettableEInvoke(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ESTRUCTURAL_FEATURE__GET_CONTAINER_CLASS, nil) })
-	}
-}
-
-func TestEStructuralFeatureUnsettableEIsSet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureUnsettableEUnset(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureUnsettableESet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureUnsettableEInverseAdd(t *testing.T) {
-	{
-	}
-}
-
-func TestEStructuralFeatureUnsettableEInverseRemove(t *testing.T) {
-	{
-	}
 }
 
 func TestEStructuralFeatureDerivedGet(t *testing.T) {
+	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
-	obj.SetDerived(true)
-	assert.Equal(t, true, obj.IsDerived())
+	obj.SetDerived(newValue)
+	assert.Equal(t, newValue, obj.IsDerived())
 }
 
 func TestEStructuralFeatureDerivedSet(t *testing.T) {
+	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetDerived(true)
+	obj.SetDerived(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStructuralFeatureDerivedEGet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Equal(t, obj.IsChangeable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__CHANGEABLE, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.GetDefaultValueLiteral(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsDerived(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DERIVED, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetEContainingClass(), obj.EGetFromID(ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetFeatureID(), obj.EGetFromID(ESTRUCTURAL_FEATURE__FEATURE_ID, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsTransient(), obj.EGetFromID(ESTRUCTURAL_FEATURE__TRANSIENT, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsUnsettable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsVolatile(), obj.EGetFromID(ESTRUCTURAL_FEATURE__VOLATILE, false, false))
-	}
-}
-
-func TestEStructuralFeatureDerivedEInvoke(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ESTRUCTURAL_FEATURE__GET_CONTAINER_CLASS, nil) })
-	}
-}
-
-func TestEStructuralFeatureDerivedEIsSet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureDerivedEUnset(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureDerivedESet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureDerivedEInverseAdd(t *testing.T) {
-	{
-	}
-}
-
-func TestEStructuralFeatureDerivedEInverseRemove(t *testing.T) {
-	{
-	}
 }
 
 func TestEStructuralFeatureFeatureIDGet(t *testing.T) {
+	var newValue int = 45
 	obj := newEStructuralFeatureImpl()
-	obj.SetFeatureID(45)
-	assert.Equal(t, 45, obj.GetFeatureID())
+	obj.SetFeatureID(newValue)
+	assert.Equal(t, newValue, obj.GetFeatureID())
 }
 
 func TestEStructuralFeatureFeatureIDSet(t *testing.T) {
+	var newValue int = 45
 	obj := newEStructuralFeatureImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetFeatureID(45)
+	obj.SetFeatureID(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStructuralFeatureFeatureIDEGet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Equal(t, obj.IsChangeable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__CHANGEABLE, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.GetDefaultValueLiteral(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsDerived(), obj.EGetFromID(ESTRUCTURAL_FEATURE__DERIVED, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetEContainingClass(), obj.EGetFromID(ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetFeatureID(), obj.EGetFromID(ESTRUCTURAL_FEATURE__FEATURE_ID, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsTransient(), obj.EGetFromID(ESTRUCTURAL_FEATURE__TRANSIENT, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsUnsettable(), obj.EGetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE, false, false))
-	}
-	{
-		assert.Equal(t, obj.IsVolatile(), obj.EGetFromID(ESTRUCTURAL_FEATURE__VOLATILE, false, false))
-	}
-}
-
-func TestEStructuralFeatureFeatureIDEInvoke(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ESTRUCTURAL_FEATURE__GET_CONTAINER_CLASS, nil) })
-	}
-}
-
-func TestEStructuralFeatureFeatureIDEIsSet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureFeatureIDEUnset(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureFeatureIDESet(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStructuralFeatureFeatureIDEInverseAdd(t *testing.T) {
-	{
-	}
-}
-
-func TestEStructuralFeatureFeatureIDEInverseRemove(t *testing.T) {
-	{
-	}
 }
 
 func TestEStructuralFeatureGetContainerClassOperation(t *testing.T) {

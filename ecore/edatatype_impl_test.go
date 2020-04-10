@@ -16,11 +16,9 @@
 package ecore
 
 import (
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 func discardEDataType() {
@@ -28,49 +26,22 @@ func discardEDataType() {
 	_ = mock.Anything
 	_ = testing.Coverage
 
-	_ = time.Now()
 }
 
 func TestEDataTypeSerializableGet(t *testing.T) {
+	var newValue bool = true
 	obj := newEDataTypeImpl()
-	obj.SetSerializable(true)
-	assert.Equal(t, true, obj.IsSerializable())
+	obj.SetSerializable(newValue)
+	assert.Equal(t, newValue, obj.IsSerializable())
 }
 
 func TestEDataTypeSerializableSet(t *testing.T) {
+	var newValue bool = true
 	obj := newEDataTypeImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetSerializable(true)
+	obj.SetSerializable(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEDataTypeSerializableEGet(t *testing.T) {
-	obj := newEDataTypeImpl()
-	{
-		assert.Equal(t, obj.IsSerializable(), obj.EGetFromID(EDATA_TYPE__SERIALIZABLE, false, false))
-	}
-}
-
-func TestEDataTypeSerializableEIsSet(t *testing.T) {
-	obj := newEDataTypeImpl()
-	{
-		_ = obj
-	}
-}
-
-func TestEDataTypeSerializableEUnset(t *testing.T) {
-	obj := newEDataTypeImpl()
-	{
-		_ = obj
-	}
-}
-
-func TestEDataTypeSerializableESet(t *testing.T) {
-	obj := newEDataTypeImpl()
-	{
-		_ = obj
-	}
 }

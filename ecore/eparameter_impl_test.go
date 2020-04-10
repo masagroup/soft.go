@@ -16,11 +16,9 @@
 package ecore
 
 import (
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 func discardEParameter() {
@@ -28,5 +26,4 @@ func discardEParameter() {
 	_ = mock.Anything
 	_ = testing.Coverage
 
-	_ = time.Now()
 }

@@ -16,11 +16,9 @@
 package ecore
 
 import (
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 func discardETypedElement() {
@@ -28,525 +26,95 @@ func discardETypedElement() {
 	_ = mock.Anything
 	_ = testing.Coverage
 
-	_ = time.Now()
 }
 
 func TestETypedElementOrderedGet(t *testing.T) {
+	var newValue bool = true
 	obj := newETypedElementImpl()
-	obj.SetOrdered(true)
-	assert.Equal(t, true, obj.IsOrdered())
+	obj.SetOrdered(newValue)
+	assert.Equal(t, newValue, obj.IsOrdered())
 }
 
 func TestETypedElementOrderedSet(t *testing.T) {
+	var newValue bool = true
 	obj := newETypedElementImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetOrdered(true)
+	obj.SetOrdered(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestETypedElementOrderedEGet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		assert.Equal(t, obj.GetEType(), obj.EGetFromID(ETYPED_ELEMENT__ETYPE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetLowerBound(), obj.EGetFromID(ETYPED_ELEMENT__LOWER_BOUND, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.IsOrdered(), obj.EGetFromID(ETYPED_ELEMENT__ORDERED, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.IsUnique(), obj.EGetFromID(ETYPED_ELEMENT__UNIQUE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetUpperBound(), obj.EGetFromID(ETYPED_ELEMENT__UPPER_BOUND, false, false))
-	}
-}
-
-func TestETypedElementOrderedEIsSet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestETypedElementOrderedEUnset(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestETypedElementOrderedESet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
 }
 
 func TestETypedElementUniqueGet(t *testing.T) {
+	var newValue bool = true
 	obj := newETypedElementImpl()
-	obj.SetUnique(true)
-	assert.Equal(t, true, obj.IsUnique())
+	obj.SetUnique(newValue)
+	assert.Equal(t, newValue, obj.IsUnique())
 }
 
 func TestETypedElementUniqueSet(t *testing.T) {
+	var newValue bool = true
 	obj := newETypedElementImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetUnique(true)
+	obj.SetUnique(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestETypedElementUniqueEGet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		assert.Equal(t, obj.GetEType(), obj.EGetFromID(ETYPED_ELEMENT__ETYPE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetLowerBound(), obj.EGetFromID(ETYPED_ELEMENT__LOWER_BOUND, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.IsOrdered(), obj.EGetFromID(ETYPED_ELEMENT__ORDERED, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.IsUnique(), obj.EGetFromID(ETYPED_ELEMENT__UNIQUE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetUpperBound(), obj.EGetFromID(ETYPED_ELEMENT__UPPER_BOUND, false, false))
-	}
-}
-
-func TestETypedElementUniqueEIsSet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestETypedElementUniqueEUnset(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestETypedElementUniqueESet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
 }
 
 func TestETypedElementLowerBoundGet(t *testing.T) {
+	var newValue int = 45
 	obj := newETypedElementImpl()
-	obj.SetLowerBound(45)
-	assert.Equal(t, 45, obj.GetLowerBound())
+	obj.SetLowerBound(newValue)
+	assert.Equal(t, newValue, obj.GetLowerBound())
 }
 
 func TestETypedElementLowerBoundSet(t *testing.T) {
+	var newValue int = 45
 	obj := newETypedElementImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetLowerBound(45)
+	obj.SetLowerBound(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestETypedElementLowerBoundEGet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		assert.Equal(t, obj.GetEType(), obj.EGetFromID(ETYPED_ELEMENT__ETYPE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetLowerBound(), obj.EGetFromID(ETYPED_ELEMENT__LOWER_BOUND, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.IsOrdered(), obj.EGetFromID(ETYPED_ELEMENT__ORDERED, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.IsUnique(), obj.EGetFromID(ETYPED_ELEMENT__UNIQUE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetUpperBound(), obj.EGetFromID(ETYPED_ELEMENT__UPPER_BOUND, false, false))
-	}
-}
-
-func TestETypedElementLowerBoundEIsSet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestETypedElementLowerBoundEUnset(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestETypedElementLowerBoundESet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
 }
 
 func TestETypedElementUpperBoundGet(t *testing.T) {
+	var newValue int = 45
 	obj := newETypedElementImpl()
-	obj.SetUpperBound(45)
-	assert.Equal(t, 45, obj.GetUpperBound())
+	obj.SetUpperBound(newValue)
+	assert.Equal(t, newValue, obj.GetUpperBound())
 }
 
 func TestETypedElementUpperBoundSet(t *testing.T) {
+	var newValue int = 45
 	obj := newETypedElementImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetUpperBound(45)
+	obj.SetUpperBound(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestETypedElementUpperBoundEGet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		assert.Equal(t, obj.GetEType(), obj.EGetFromID(ETYPED_ELEMENT__ETYPE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetLowerBound(), obj.EGetFromID(ETYPED_ELEMENT__LOWER_BOUND, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.IsOrdered(), obj.EGetFromID(ETYPED_ELEMENT__ORDERED, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.IsUnique(), obj.EGetFromID(ETYPED_ELEMENT__UNIQUE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetUpperBound(), obj.EGetFromID(ETYPED_ELEMENT__UPPER_BOUND, false, false))
-	}
-}
-
-func TestETypedElementUpperBoundEIsSet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestETypedElementUpperBoundEUnset(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestETypedElementUpperBoundESet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
 }
 
 func TestETypedElementETypeGet(t *testing.T) {
+	var newValue *MockEClassifier = &MockEClassifier{}
+	newValue.On("EIsProxy").Return(false)
 	obj := newETypedElementImpl()
-	obj.SetEType(newEClassifierImpl())
-	assert.Equal(t, newEClassifierImpl(), obj.GetEType())
+	obj.SetEType(newValue)
+	assert.Equal(t, newValue, obj.GetEType())
 }
 
 func TestETypedElementETypeSet(t *testing.T) {
+	var newValue *MockEClassifier = &MockEClassifier{}
 	obj := newETypedElementImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetEType(newEClassifierImpl())
+	obj.SetEType(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestETypedElementETypeEGet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		assert.Equal(t, obj.GetEType(), obj.EGetFromID(ETYPED_ELEMENT__ETYPE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetLowerBound(), obj.EGetFromID(ETYPED_ELEMENT__LOWER_BOUND, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.IsOrdered(), obj.EGetFromID(ETYPED_ELEMENT__ORDERED, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.IsUnique(), obj.EGetFromID(ETYPED_ELEMENT__UNIQUE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetUpperBound(), obj.EGetFromID(ETYPED_ELEMENT__UPPER_BOUND, false, false))
-	}
-}
-
-func TestETypedElementETypeEIsSet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestETypedElementETypeEUnset(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestETypedElementETypeESet(t *testing.T) {
-	obj := newETypedElementImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
 }

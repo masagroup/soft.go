@@ -16,11 +16,9 @@
 package ecore
 
 import (
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 func discardEFactory() {
@@ -28,18 +26,17 @@ func discardEFactory() {
 	_ = mock.Anything
 	_ = testing.Coverage
 
-	_ = time.Now()
 }
 
 func TestEFactoryCreateOperation(t *testing.T) {
 	obj := newEFactoryImpl()
-	assert.Panics(t, func() { obj.Create(newEClassImpl()) })
+	assert.Panics(t, func() { obj.Create(nil) })
 }
 func TestEFactoryCreateFromStringOperation(t *testing.T) {
 	obj := newEFactoryImpl()
-	assert.Panics(t, func() { obj.CreateFromString(newEDataTypeImpl(), "Test String") })
+	assert.Panics(t, func() { obj.CreateFromString(nil, "") })
 }
 func TestEFactoryConvertToStringOperation(t *testing.T) {
 	obj := newEFactoryImpl()
-	assert.Panics(t, func() { obj.ConvertToString(newEDataTypeImpl(), nil) })
+	assert.Panics(t, func() { obj.ConvertToString(nil, nil) })
 }

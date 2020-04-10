@@ -158,7 +158,7 @@ func (eReference *eReferenceImpl) ESetFromID(featureID int, newValue interface{}
 	case EREFERENCE__EKEYS:
 		e := newValue.(EList)
 		eReference.GetEKeys().Clear()
-		eReference.GetEKeys().Add(e)
+		eReference.GetEKeys().AddAll(e)
 	case EREFERENCE__EOPPOSITE:
 		e := newValue.(EReference)
 		eReference.SetEOpposite(e)

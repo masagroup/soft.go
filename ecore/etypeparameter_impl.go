@@ -68,7 +68,7 @@ func (eTypeParameter *eTypeParameterImpl) ESetFromID(featureID int, newValue int
 	case ETYPE_PARAMETER__EBOUNDS:
 		e := newValue.(EList)
 		eTypeParameter.GetEBounds().Clear()
-		eTypeParameter.GetEBounds().Add(e)
+		eTypeParameter.GetEBounds().AddAll(e)
 	default:
 		eTypeParameter.eNamedElementImpl.ESetFromID(featureID, newValue)
 	}

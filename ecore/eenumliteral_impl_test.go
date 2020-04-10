@@ -16,11 +16,9 @@
 package ecore
 
 import (
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 func discardEEnumLiteral() {
@@ -28,257 +26,58 @@ func discardEEnumLiteral() {
 	_ = mock.Anything
 	_ = testing.Coverage
 
-	_ = time.Now()
 }
 
 func TestEEnumLiteralValueGet(t *testing.T) {
+	var newValue int = 45
 	obj := newEEnumLiteralImpl()
-	obj.SetValue(45)
-	assert.Equal(t, 45, obj.GetValue())
+	obj.SetValue(newValue)
+	assert.Equal(t, newValue, obj.GetValue())
 }
 
 func TestEEnumLiteralValueSet(t *testing.T) {
+	var newValue int = 45
 	obj := newEEnumLiteralImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetValue(45)
+	obj.SetValue(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEEnumLiteralValueEGet(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	{
-		assert.Equal(t, obj.GetEEnum(), obj.EGetFromID(EENUM_LITERAL__EENUM, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetInstance(), obj.EGetFromID(EENUM_LITERAL__INSTANCE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetLiteral(), obj.EGetFromID(EENUM_LITERAL__LITERAL, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetValue(), obj.EGetFromID(EENUM_LITERAL__VALUE, false, false))
-	}
-}
-
-func TestEEnumLiteralValueEIsSet(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEEnumLiteralValueEUnset(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEEnumLiteralValueESet(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEEnumLiteralValueEInverseAdd(t *testing.T) {
-	{
-	}
-}
-
-func TestEEnumLiteralValueEInverseRemove(t *testing.T) {
-	{
-	}
 }
 
 func TestEEnumLiteralInstanceGet(t *testing.T) {
+	var newValue interface{} = nil
 	obj := newEEnumLiteralImpl()
-	obj.SetInstance(nil)
-	assert.Equal(t, nil, obj.GetInstance())
+	obj.SetInstance(newValue)
+	assert.Equal(t, newValue, obj.GetInstance())
 }
 
 func TestEEnumLiteralInstanceSet(t *testing.T) {
+	var newValue interface{} = nil
 	obj := newEEnumLiteralImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetInstance(nil)
+	obj.SetInstance(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEEnumLiteralInstanceEGet(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	{
-		assert.Equal(t, obj.GetEEnum(), obj.EGetFromID(EENUM_LITERAL__EENUM, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetInstance(), obj.EGetFromID(EENUM_LITERAL__INSTANCE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetLiteral(), obj.EGetFromID(EENUM_LITERAL__LITERAL, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetValue(), obj.EGetFromID(EENUM_LITERAL__VALUE, false, false))
-	}
-}
-
-func TestEEnumLiteralInstanceEIsSet(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEEnumLiteralInstanceEUnset(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEEnumLiteralInstanceESet(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEEnumLiteralInstanceEInverseAdd(t *testing.T) {
-	{
-	}
-}
-
-func TestEEnumLiteralInstanceEInverseRemove(t *testing.T) {
-	{
-	}
 }
 
 func TestEEnumLiteralLiteralGet(t *testing.T) {
+	var newValue string = "Test String"
 	obj := newEEnumLiteralImpl()
-	obj.SetLiteral("Test String")
-	assert.Equal(t, "Test String", obj.GetLiteral())
+	obj.SetLiteral(newValue)
+	assert.Equal(t, newValue, obj.GetLiteral())
 }
 
 func TestEEnumLiteralLiteralSet(t *testing.T) {
+	var newValue string = "Test String"
 	obj := newEEnumLiteralImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetLiteral("Test String")
+	obj.SetLiteral(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEEnumLiteralLiteralEGet(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	{
-		assert.Equal(t, obj.GetEEnum(), obj.EGetFromID(EENUM_LITERAL__EENUM, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetInstance(), obj.EGetFromID(EENUM_LITERAL__INSTANCE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetLiteral(), obj.EGetFromID(EENUM_LITERAL__LITERAL, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetValue(), obj.EGetFromID(EENUM_LITERAL__VALUE, false, false))
-	}
-}
-
-func TestEEnumLiteralLiteralEIsSet(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEEnumLiteralLiteralEUnset(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEEnumLiteralLiteralESet(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEEnumLiteralLiteralEInverseAdd(t *testing.T) {
-	{
-	}
-}
-
-func TestEEnumLiteralLiteralEInverseRemove(t *testing.T) {
-	{
-	}
 }

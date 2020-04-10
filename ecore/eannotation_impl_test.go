@@ -113,13 +113,13 @@ func TestEAnnotationSourceEUnset(t *testing.T) {
 func TestEAnnotationSourceESet(t *testing.T) {
 	obj := newEAnnotationImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EANNOTATION__CONTENTS, elem)
 		assert.Equal(t, 1, obj.GetContents().Size())
 		assert.Equal(t, elem, obj.GetContents().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EANNOTATION__DETAILS, elem)
 		assert.Equal(t, 1, obj.GetDetails().Size())
 		assert.Equal(t, elem, obj.GetDetails().Get(0))
@@ -128,7 +128,7 @@ func TestEAnnotationSourceESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EANNOTATION__REFERENCES, elem)
 		assert.Equal(t, 1, obj.GetReferences().Size())
 		assert.Equal(t, elem, obj.GetReferences().Get(0))
@@ -233,13 +233,13 @@ func TestEAnnotationDetailsEUnset(t *testing.T) {
 func TestEAnnotationDetailsESet(t *testing.T) {
 	obj := newEAnnotationImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EANNOTATION__CONTENTS, elem)
 		assert.Equal(t, 1, obj.GetContents().Size())
 		assert.Equal(t, elem, obj.GetContents().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EANNOTATION__DETAILS, elem)
 		assert.Equal(t, 1, obj.GetDetails().Size())
 		assert.Equal(t, elem, obj.GetDetails().Get(0))
@@ -248,7 +248,7 @@ func TestEAnnotationDetailsESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EANNOTATION__REFERENCES, elem)
 		assert.Equal(t, 1, obj.GetReferences().Size())
 		assert.Equal(t, elem, obj.GetReferences().Get(0))
@@ -353,13 +353,13 @@ func TestEAnnotationContentsEUnset(t *testing.T) {
 func TestEAnnotationContentsESet(t *testing.T) {
 	obj := newEAnnotationImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EANNOTATION__CONTENTS, elem)
 		assert.Equal(t, 1, obj.GetContents().Size())
 		assert.Equal(t, elem, obj.GetContents().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EANNOTATION__DETAILS, elem)
 		assert.Equal(t, 1, obj.GetDetails().Size())
 		assert.Equal(t, elem, obj.GetDetails().Get(0))
@@ -368,7 +368,7 @@ func TestEAnnotationContentsESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EANNOTATION__REFERENCES, elem)
 		assert.Equal(t, 1, obj.GetReferences().Size())
 		assert.Equal(t, elem, obj.GetReferences().Get(0))
@@ -473,13 +473,13 @@ func TestEAnnotationReferencesEUnset(t *testing.T) {
 func TestEAnnotationReferencesESet(t *testing.T) {
 	obj := newEAnnotationImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EANNOTATION__CONTENTS, elem)
 		assert.Equal(t, 1, obj.GetContents().Size())
 		assert.Equal(t, elem, obj.GetContents().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EANNOTATION__DETAILS, elem)
 		assert.Equal(t, 1, obj.GetDetails().Size())
 		assert.Equal(t, elem, obj.GetDetails().Get(0))
@@ -488,7 +488,7 @@ func TestEAnnotationReferencesESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EANNOTATION__REFERENCES, elem)
 		assert.Equal(t, 1, obj.GetReferences().Size())
 		assert.Equal(t, elem, obj.GetReferences().Get(0))

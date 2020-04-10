@@ -10,20 +10,20 @@ type eNotifyingListInternal interface {
 
 // ENotifyingListImpl ...
 type ENotifyingListImpl struct {
-	*arrayEList
+	*basicEList
 }
 
 // NewENotifyingListImpl ...
 func NewENotifyingListImpl() *ENotifyingListImpl {
 	l := new(ENotifyingListImpl)
-	l.arrayEList = NewUniqueArrayEList([]interface{}{})
+	l.basicEList = NewUniqueBasicEList([]interface{}{})
 	l.interfaces = l
 	return l
 }
 
 func newENotifyingListImplFromData(data []interface{}) *ENotifyingListImpl {
 	l := new(ENotifyingListImpl)
-	l.arrayEList = NewUniqueArrayEList(data)
+	l.basicEList = NewUniqueBasicEList(data)
 	l.interfaces = l
 	return l
 }
@@ -122,7 +122,7 @@ func (list *ENotifyingListImpl) inverseRemove(object interface{}, notifications 
 // AddWithNotification ...
 func (list *ENotifyingListImpl) AddWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain {
 	index := list.Size()
-	list.arrayEList.doAdd(object)
+	list.basicEList.doAdd(object)
 	return list.createAndAddNotification(notifications, ADD, nil, object, index)
 }
 
@@ -130,7 +130,7 @@ func (list *ENotifyingListImpl) AddWithNotification(object interface{}, notifica
 func (list *ENotifyingListImpl) RemoveWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain {
 	index := list.IndexOf(object)
 	if index != -1 {
-		oldObject := list.arrayEList.RemoveAt(index)
+		oldObject := list.basicEList.RemoveAt(index)
 		return list.createAndAddNotification(notifications, REMOVE, oldObject, nil, index)
 	}
 	return notifications
@@ -138,13 +138,13 @@ func (list *ENotifyingListImpl) RemoveWithNotification(object interface{}, notif
 
 // SetWithNotification ...
 func (list *ENotifyingListImpl) SetWithNotification(index int, object interface{}, notifications ENotificationChain) ENotificationChain {
-	oldObject := list.arrayEList.doSet(index, object)
+	oldObject := list.basicEList.doSet(index, object)
 	return list.createAndAddNotification(notifications, SET, oldObject, object, index)
 }
 
 func (list *ENotifyingListImpl) doAdd(object interface{}) {
 	index := list.Size()
-	list.arrayEList.doAdd(object)
+	list.basicEList.doAdd(object)
 	notifications := list.interfaces.(eNotifyingListInternal).inverseAdd(object, nil)
 	list.createAndDispatchNotification(notifications, ADD, nil, object, index)
 }
@@ -154,7 +154,7 @@ func (list *ENotifyingListImpl) doAddAll(l EList) bool {
 }
 
 func (list *ENotifyingListImpl) doInsert(index int, object interface{}) {
-	list.arrayEList.doInsert(index, object)
+	list.basicEList.doInsert(index, object)
 	notifications := list.interfaces.(eNotifyingListInternal).inverseAdd(object, nil)
 	list.createAndDispatchNotification(notifications, ADD, nil, object, index)
 }
@@ -164,7 +164,7 @@ func (list *ENotifyingListImpl) doInsertAll(index int, l EList) bool {
 		return false
 	}
 
-	result := list.arrayEList.doInsertAll(index, l)
+	result := list.basicEList.doInsertAll(index, l)
 	var notifications ENotificationChain = NewNotificationChain()
 	for it := l.Iterator(); it.HasNext(); {
 		notifications = list.interfaces.(eNotifyingListInternal).inverseAdd(it.Next(), notifications)
@@ -180,7 +180,7 @@ func (list *ENotifyingListImpl) doInsertAll(index int, l EList) bool {
 }
 
 func (list *ENotifyingListImpl) doSet(index int, newObject interface{}) interface{} {
-	oldObject := list.arrayEList.doSet(index, newObject)
+	oldObject := list.basicEList.doSet(index, newObject)
 	if newObject != oldObject {
 		var notifications ENotificationChain
 		notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(oldObject, notifications)
@@ -192,7 +192,7 @@ func (list *ENotifyingListImpl) doSet(index int, newObject interface{}) interfac
 
 // RemoveAt ...
 func (list *ENotifyingListImpl) RemoveAt(index int) interface{} {
-	oldObject := list.arrayEList.RemoveAt(index)
+	oldObject := list.basicEList.RemoveAt(index)
 	var notifications ENotificationChain
 	notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(oldObject, notifications)
 	list.createAndDispatchNotification(notifications, REMOVE, oldObject, nil, index)

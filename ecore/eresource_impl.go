@@ -315,14 +315,14 @@ func (r *EResourceImpl) DoSave(rd io.Writer) {
 
 func (r *EResourceImpl) GetErrors() EList {
 	if r.errors == nil {
-		r.errors = NewEmptyArrayEList()
+		r.errors = NewEmptyBasicEList()
 	}
 	return r.errors
 }
 
 func (r *EResourceImpl) GetWarnings() EList {
 	if r.warnings == nil {
-		r.warnings = NewEmptyArrayEList()
+		r.warnings = NewEmptyBasicEList()
 	}
 	return r.warnings
 }

@@ -124,7 +124,7 @@ func TestEPackageNsURIEUnset(t *testing.T) {
 func TestEPackageNsURIESet(t *testing.T) {
 	obj := newEPackageImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EPACKAGE__ECLASSIFIERS, elem)
 		assert.Equal(t, 1, obj.GetEClassifiers().Size())
 		assert.Equal(t, elem, obj.GetEClassifiers().Get(0))
@@ -133,7 +133,7 @@ func TestEPackageNsURIESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EPACKAGE__ESUB_PACKAGES, elem)
 		assert.Equal(t, 1, obj.GetESubPackages().Size())
 		assert.Equal(t, elem, obj.GetESubPackages().Get(0))
@@ -277,7 +277,7 @@ func TestEPackageNsPrefixEUnset(t *testing.T) {
 func TestEPackageNsPrefixESet(t *testing.T) {
 	obj := newEPackageImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EPACKAGE__ECLASSIFIERS, elem)
 		assert.Equal(t, 1, obj.GetEClassifiers().Size())
 		assert.Equal(t, elem, obj.GetEClassifiers().Get(0))
@@ -286,7 +286,7 @@ func TestEPackageNsPrefixESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EPACKAGE__ESUB_PACKAGES, elem)
 		assert.Equal(t, 1, obj.GetESubPackages().Size())
 		assert.Equal(t, elem, obj.GetESubPackages().Get(0))
@@ -424,7 +424,7 @@ func TestEPackageEFactoryInstanceEUnset(t *testing.T) {
 func TestEPackageEFactoryInstanceESet(t *testing.T) {
 	obj := newEPackageImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EPACKAGE__ECLASSIFIERS, elem)
 		assert.Equal(t, 1, obj.GetEClassifiers().Size())
 		assert.Equal(t, elem, obj.GetEClassifiers().Get(0))
@@ -433,7 +433,7 @@ func TestEPackageEFactoryInstanceESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EPACKAGE__ESUB_PACKAGES, elem)
 		assert.Equal(t, 1, obj.GetESubPackages().Size())
 		assert.Equal(t, elem, obj.GetESubPackages().Get(0))
@@ -566,7 +566,7 @@ func TestEPackageEClassifiersEUnset(t *testing.T) {
 func TestEPackageEClassifiersESet(t *testing.T) {
 	obj := newEPackageImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EPACKAGE__ECLASSIFIERS, elem)
 		assert.Equal(t, 1, obj.GetEClassifiers().Size())
 		assert.Equal(t, elem, obj.GetEClassifiers().Get(0))
@@ -575,7 +575,7 @@ func TestEPackageEClassifiersESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EPACKAGE__ESUB_PACKAGES, elem)
 		assert.Equal(t, 1, obj.GetESubPackages().Size())
 		assert.Equal(t, elem, obj.GetESubPackages().Get(0))
@@ -708,7 +708,7 @@ func TestEPackageESubPackagesEUnset(t *testing.T) {
 func TestEPackageESubPackagesESet(t *testing.T) {
 	obj := newEPackageImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EPACKAGE__ECLASSIFIERS, elem)
 		assert.Equal(t, 1, obj.GetEClassifiers().Size())
 		assert.Equal(t, elem, obj.GetEClassifiers().Get(0))
@@ -717,7 +717,7 @@ func TestEPackageESubPackagesESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EPACKAGE__ESUB_PACKAGES, elem)
 		assert.Equal(t, 1, obj.GetESubPackages().Size())
 		assert.Equal(t, elem, obj.GetESubPackages().Get(0))

@@ -93,13 +93,13 @@ func TestEOperationEParametersEUnset(t *testing.T) {
 func TestEOperationEParametersESet(t *testing.T) {
 	obj := newEOperationImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EOPERATION__EEXCEPTIONS, elem)
 		assert.Equal(t, 1, obj.GetEExceptions().Size())
 		assert.Equal(t, elem, obj.GetEExceptions().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EOPERATION__EPARAMETERS, elem)
 		assert.Equal(t, 1, obj.GetEParameters().Size())
 		assert.Equal(t, elem, obj.GetEParameters().Get(0))
@@ -193,13 +193,13 @@ func TestEOperationEExceptionsEUnset(t *testing.T) {
 func TestEOperationEExceptionsESet(t *testing.T) {
 	obj := newEOperationImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EOPERATION__EEXCEPTIONS, elem)
 		assert.Equal(t, 1, obj.GetEExceptions().Size())
 		assert.Equal(t, elem, obj.GetEExceptions().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EOPERATION__EPARAMETERS, elem)
 		assert.Equal(t, 1, obj.GetEParameters().Size())
 		assert.Equal(t, elem, obj.GetEParameters().Get(0))
@@ -304,13 +304,13 @@ func TestEOperationOperationIDEUnset(t *testing.T) {
 func TestEOperationOperationIDESet(t *testing.T) {
 	obj := newEOperationImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EOPERATION__EEXCEPTIONS, elem)
 		assert.Equal(t, 1, obj.GetEExceptions().Size())
 		assert.Equal(t, elem, obj.GetEExceptions().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EOPERATION__EPARAMETERS, elem)
 		assert.Equal(t, 1, obj.GetEParameters().Size())
 		assert.Equal(t, elem, obj.GetEParameters().Get(0))

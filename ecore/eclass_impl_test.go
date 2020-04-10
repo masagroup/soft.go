@@ -105,10 +105,10 @@ func TestEClassAbstractEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -216,19 +216,19 @@ func TestEClassAbstractESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -342,10 +342,10 @@ func TestEClassInterfaceEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -453,19 +453,19 @@ func TestEClassInterfaceESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -568,10 +568,10 @@ func TestEClassEStructuralFeaturesEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -679,19 +679,19 @@ func TestEClassEStructuralFeaturesESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -794,10 +794,10 @@ func TestEClassEAttributesEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -905,19 +905,19 @@ func TestEClassEAttributesESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -1020,10 +1020,10 @@ func TestEClassEReferencesEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -1131,19 +1131,19 @@ func TestEClassEReferencesESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -1246,10 +1246,10 @@ func TestEClassESuperTypesEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -1357,19 +1357,19 @@ func TestEClassESuperTypesESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -1472,10 +1472,10 @@ func TestEClassEOperationsEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -1583,19 +1583,19 @@ func TestEClassEOperationsESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -1698,10 +1698,10 @@ func TestEClassEContainmentsEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -1809,19 +1809,19 @@ func TestEClassEContainmentsESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -1924,10 +1924,10 @@ func TestEClassECrossReferencesEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -2035,19 +2035,19 @@ func TestEClassECrossReferencesESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -2150,10 +2150,10 @@ func TestEClassEAllAttributesEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -2261,19 +2261,19 @@ func TestEClassEAllAttributesESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -2376,10 +2376,10 @@ func TestEClassEAllReferencesEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -2487,19 +2487,19 @@ func TestEClassEAllReferencesESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -2602,10 +2602,10 @@ func TestEClassEAllContainmentsEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -2713,19 +2713,19 @@ func TestEClassEAllContainmentsESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -2828,10 +2828,10 @@ func TestEClassEAllOperationsEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -2939,19 +2939,19 @@ func TestEClassEAllOperationsESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -3054,10 +3054,10 @@ func TestEClassEAllStructuralFeaturesEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -3165,19 +3165,19 @@ func TestEClassEAllStructuralFeaturesESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -3280,10 +3280,10 @@ func TestEClassEAllSuperTypesEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -3391,19 +3391,19 @@ func TestEClassEAllSuperTypesESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))
@@ -3501,10 +3501,10 @@ func TestEClassEIDAttributeEInvoke(t *testing.T) {
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
@@ -3612,19 +3612,19 @@ func TestEClassEIDAttributeESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__EOPERATIONS, elem)
 		assert.Equal(t, 1, obj.GetEOperations().Size())
 		assert.Equal(t, elem, obj.GetEOperations().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, elem)
 		assert.Equal(t, 1, obj.GetEStructuralFeatures().Size())
 		assert.Equal(t, elem, obj.GetEStructuralFeatures().Get(0))
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ECLASS__ESUPER_TYPES, elem)
 		assert.Equal(t, 1, obj.GetESuperTypes().Size())
 		assert.Equal(t, elem, obj.GetESuperTypes().Get(0))

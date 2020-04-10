@@ -62,7 +62,7 @@ func TestETypeParameterEBoundsEUnset(t *testing.T) {
 func TestETypeParameterEBoundsESet(t *testing.T) {
 	obj := newETypeParameterImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(ETYPE_PARAMETER__EBOUNDS, elem)
 		assert.Equal(t, 1, obj.GetEBounds().Size())
 		assert.Equal(t, elem, obj.GetEBounds().Get(0))

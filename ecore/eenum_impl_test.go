@@ -46,10 +46,10 @@ func TestEEnumELiteralsEGet(t *testing.T) {
 func TestEEnumELiteralsEInvoke(t *testing.T) {
 	obj := newEEnumImpl()
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(EENUM__GET_EENUM_LITERAL_EINT, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(EENUM__GET_EENUM_LITERAL_ESTRING, nil) })
 	}
 	{
-		assert.Panics(t, func() { obj.EInvokeFromID(EENUM__GET_EENUM_LITERAL_ESTRING, nil) })
+		assert.Panics(t, func() { obj.EInvokeFromID(EENUM__GET_EENUM_LITERAL_EINT, nil) })
 	}
 	{
 		assert.Panics(t, func() { obj.EInvokeFromID(EENUM__GET_EENUM_LITERAL_BY_LITERAL_ESTRING, nil) })
@@ -75,7 +75,7 @@ func TestEEnumELiteralsEUnset(t *testing.T) {
 func TestEEnumELiteralsESet(t *testing.T) {
 	obj := newEEnumImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EENUM__ELITERALS, elem)
 		assert.Equal(t, 1, obj.GetELiterals().Size())
 		assert.Equal(t, elem, obj.GetELiterals().Get(0))

@@ -115,7 +115,7 @@ func TestEReferenceContainmentESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EREFERENCE__EKEYS, elem)
 		assert.Equal(t, 1, obj.GetEKeys().Size())
 		assert.Equal(t, elem, obj.GetEKeys().Get(0))
@@ -212,7 +212,7 @@ func TestEReferenceResolveProxiesESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EREFERENCE__EKEYS, elem)
 		assert.Equal(t, 1, obj.GetEKeys().Size())
 		assert.Equal(t, elem, obj.GetEKeys().Get(0))
@@ -309,7 +309,7 @@ func TestEReferenceEOppositeESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EREFERENCE__EKEYS, elem)
 		assert.Equal(t, 1, obj.GetEKeys().Size())
 		assert.Equal(t, elem, obj.GetEKeys().Get(0))
@@ -395,7 +395,7 @@ func TestEReferenceEKeysESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EREFERENCE__EKEYS, elem)
 		assert.Equal(t, 1, obj.GetEKeys().Size())
 		assert.Equal(t, elem, obj.GetEKeys().Get(0))

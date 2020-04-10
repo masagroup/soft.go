@@ -122,7 +122,7 @@ func TestEGenericTypeEUpperBoundESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EGENERIC_TYPE__ETYPE_ARGUMENTS, elem)
 		assert.Equal(t, 1, obj.GetETypeArguments().Size())
 		assert.Equal(t, elem, obj.GetETypeArguments().Get(0))
@@ -235,7 +235,7 @@ func TestEGenericTypeETypeArgumentsESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EGENERIC_TYPE__ETYPE_ARGUMENTS, elem)
 		assert.Equal(t, 1, obj.GetETypeArguments().Size())
 		assert.Equal(t, elem, obj.GetETypeArguments().Get(0))
@@ -343,7 +343,7 @@ func TestEGenericTypeERawTypeESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EGENERIC_TYPE__ETYPE_ARGUMENTS, elem)
 		assert.Equal(t, 1, obj.GetETypeArguments().Size())
 		assert.Equal(t, elem, obj.GetETypeArguments().Get(0))
@@ -461,7 +461,7 @@ func TestEGenericTypeELowerBoundESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EGENERIC_TYPE__ETYPE_ARGUMENTS, elem)
 		assert.Equal(t, 1, obj.GetETypeArguments().Size())
 		assert.Equal(t, elem, obj.GetETypeArguments().Get(0))
@@ -585,7 +585,7 @@ func TestEGenericTypeETypeParameterESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EGENERIC_TYPE__ETYPE_ARGUMENTS, elem)
 		assert.Equal(t, 1, obj.GetETypeArguments().Size())
 		assert.Equal(t, elem, obj.GetETypeArguments().Get(0))
@@ -709,7 +709,7 @@ func TestEGenericTypeEClassifierESet(t *testing.T) {
 		_ = obj
 	}
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EGENERIC_TYPE__ETYPE_ARGUMENTS, elem)
 		assert.Equal(t, 1, obj.GetETypeArguments().Size())
 		assert.Equal(t, elem, obj.GetETypeArguments().Get(0))

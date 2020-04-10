@@ -69,7 +69,7 @@ func TestEModelElementEAnnotationsEUnset(t *testing.T) {
 func TestEModelElementEAnnotationsESet(t *testing.T) {
 	obj := newEModelElementImpl()
 	{
-		elem := NewEmptyArrayEList()
+		elem := NewEmptyBasicEList()
 		obj.ESetFromID(EMODEL_ELEMENT__EANNOTATIONS, elem)
 		assert.Equal(t, 1, obj.GetEAnnotations().Size())
 		assert.Equal(t, elem, obj.GetEAnnotations().Get(0))

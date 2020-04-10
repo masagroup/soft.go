@@ -1,13 +1,13 @@
 package ecore
 
 type adapterList struct {
-	*arrayEList
+	*basicEList
 	notifier *Notifier
 }
 
 func newAdapterList(notifier *Notifier) *adapterList {
 	l := new(adapterList)
-	l.arrayEList = NewEmptyArrayEList()
+	l.basicEList = NewEmptyBasicEList()
 	l.notifier = notifier
 	l.interfaces = l
 	return l

@@ -215,22 +215,6 @@ func (_m *MockEObjectInternal) EDerivedOperationID(container EObject, operationI
 	return r0
 }
 
-// EDirectResource provides a mock function with given fields:
-func (_m *MockEObjectInternal) EDirectResource() EResource {
-	ret := _m.Called()
-
-	var r0 EResource
-	if rf, ok := ret.Get(0).(func() EResource); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(EResource)
-		}
-	}
-
-	return r0
-}
-
 // EGet provides a mock function with given fields: _a0
 func (_m *MockEObjectInternal) EGet(_a0 EStructuralFeature) interface{} {
 	ret := _m.Called(_a0)
@@ -273,6 +257,38 @@ func (_m *MockEObjectInternal) EGetResolve(_a0 EStructuralFeature, _a1 bool) int
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(interface{})
+		}
+	}
+
+	return r0
+}
+
+// EInternalContainer provides a mock function with given fields:
+func (_m *MockEObjectInternal) EInternalContainer() EObject {
+	ret := _m.Called()
+
+	var r0 EObject
+	if rf, ok := ret.Get(0).(func() EObject); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(EObject)
+		}
+	}
+
+	return r0
+}
+
+// EInternalResource provides a mock function with given fields:
+func (_m *MockEObjectInternal) EInternalResource() EResource {
+	ret := _m.Called()
+
+	var r0 EResource
+	if rf, ok := ret.Get(0).(func() EResource); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(EResource)
 		}
 	}
 

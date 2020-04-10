@@ -155,17 +155,17 @@ func (r *EResourceImpl) GetURIFragment(eObject EObject) string {
 		return id
 	} else {
 		internalEObject := eObject.(EObjectInternal)
-		if internalEObject.EDirectResource() == r.interfaces {
+		if internalEObject.EInternalResource() == r.interfaces {
 			return "/" + r.getURIFragmentRootSegment(eObject)
 		} else {
 			fragmentPath := []string{}
 			isContained := false
-			for eContainer, _ := internalEObject.EContainer().(EObjectInternal); eContainer != nil; eContainer, _ = internalEObject.EContainer().(EObjectInternal) {
+			for eContainer, _ := internalEObject.EInternalContainer().(EObjectInternal); eContainer != nil; eContainer, _ = internalEObject.EInternalContainer().(EObjectInternal) {
 				if len(id) == 0 {
 					fragmentPath = append([]string{eContainer.EURIFragmentSegment(internalEObject.EContainingFeature(), internalEObject)}, fragmentPath...)
 				}
 				internalEObject = eContainer
-				if eContainer.EDirectResource() == r.interfaces {
+				if eContainer.EInternalResource() == r.interfaces {
 					isContained = true
 					break
 				}

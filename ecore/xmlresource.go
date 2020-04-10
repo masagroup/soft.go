@@ -1222,7 +1222,7 @@ func (s *xmlSaveImpl) saveContainedMany(eObject EObject, eFeature EStructuralFea
 }
 
 func (s *xmlSaveImpl) saveEObjectInternal(o EObjectInternal, f EStructuralFeature) {
-	if o.EDirectResource() != nil || o.EIsProxy() {
+	if o.EInternalResource() != nil || o.EIsProxy() {
 		s.saveHRef(o, f)
 	} else {
 		s.saveEObject(o, f)

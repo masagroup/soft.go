@@ -12,6 +12,10 @@ package ecore
 import "strconv"
 
 type abstractEList interface {
+	doGet(index int) interface{}
+
+	doSet(index int, elem interface{}) interface{}
+
 	doAdd(elem interface{})
 
 	doAddAll(list EList) bool
@@ -19,8 +23,6 @@ type abstractEList interface {
 	doInsert(index int, elem interface{})
 
 	doInsertAll(index int, list EList) bool
-
-	doSet(index int, elem interface{}) interface{}
 
 	didAdd(index int, elem interface{})
 
@@ -230,6 +232,10 @@ func (arr *basicEList) Get(index int) interface{} {
 	if index < 0 || index >= arr.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
 	}
+	return arr.interfaces.(abstractEList).doGet(index)
+}
+
+func (arr *basicEList) doGet(index int) interface{} {
 	return arr.data[index]
 }
 

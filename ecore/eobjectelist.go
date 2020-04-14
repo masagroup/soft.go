@@ -56,7 +56,9 @@ func (list *eObjectEList) resolve(index int, object interface{}) interface{} {
 		var notifications ENotificationChain
 		if list.containment {
 			notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(object, notifications)
-			notifications = list.interfaces.(eNotifyingListInternal).inverseAdd(resolved, notifications)
+			if resolvedInternal, _ := resolved.(EObjectInternal); resolvedInternal != nil && resolvedInternal.EInternalContainer() == nil {
+				notifications = list.interfaces.(eNotifyingListInternal).inverseAdd(resolved, notifications)
+			}
 		}
 		list.createAndDispatchNotification(notifications, RESOLVE, object, resolved, index)
 	}

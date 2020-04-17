@@ -190,6 +190,28 @@ func (list *ENotifyingListImpl) doSet(index int, newObject interface{}) interfac
 	return oldObject
 }
 
+func (list *ENotifyingListImpl) doClear() []interface{} {
+	oldData := list.basicEList.doClear()
+	if len(oldData) == 0 {
+		list.createAndDispatchNotification(nil, REMOVE_MANY, list, nil, -1)
+	} else {
+		var notifications ENotificationChain = NewNotificationChain()
+		for _, e := range oldData {
+			notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(e, notifications)
+		}
+
+		list.createAndDispatchNotificationFn(notifications,
+			func() ENotification {
+				if list.Size() == 1 {
+					return list.createNotification(REMOVE, nil, list.Get(0), 0)
+				} else {
+					return list.createNotification(REMOVE_MANY, nil, list.ToArray(), -1)
+				}
+			})
+	}
+	return oldData
+}
+
 // RemoveAt ...
 func (list *ENotifyingListImpl) RemoveAt(index int) interface{} {
 	oldObject := list.basicEList.RemoveAt(index)

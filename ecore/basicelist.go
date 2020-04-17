@@ -24,6 +24,8 @@ type abstractEList interface {
 
 	doInsertAll(index int, list EList) bool
 
+	doClear() []interface{}
+
 	didAdd(index int, elem interface{})
 
 	didSet(index int, newElem interface{}, oldElem interface{})
@@ -270,7 +272,13 @@ func (arr *basicEList) Size() int {
 
 // Clear remove all elements of the array
 func (arr *basicEList) Clear() {
+	arr.interfaces.(abstractEList).doClear()
+}
+
+func (arr *basicEList) doClear() []interface{} {
+	oldData := arr.data
 	arr.data = make([]interface{}, 0)
+	return oldData
 }
 
 // Empty return true if the array contains 0 element

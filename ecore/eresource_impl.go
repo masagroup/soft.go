@@ -345,7 +345,7 @@ func (r *EResourceImpl) basicSetResourceSet(resourceSet EResourceSet, msgs ENoti
 	oldAbstractResourceSet := r.resourceSet
 	if oldAbstractResourceSet != nil {
 		l := oldAbstractResourceSet.GetResources().(ENotifyingList)
-		notifications = l.AddWithNotification(r.GetInterfaces().(ENotifier), notifications)
+		notifications = l.RemoveWithNotification(r.GetInterfaces().(ENotifier), notifications)
 	}
 	r.resourceSet = resourceSet
 	if r.ENotificationRequired() {

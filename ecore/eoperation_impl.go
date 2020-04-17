@@ -125,11 +125,11 @@ func (eOperation *eOperationImpl) ESetFromID(featureID int, newValue interface{}
 	case EOPERATION__EEXCEPTIONS:
 		e := newValue.(EList)
 		eOperation.GetEExceptions().Clear()
-		eOperation.GetEExceptions().Add(e)
+		eOperation.GetEExceptions().AddAll(e)
 	case EOPERATION__EPARAMETERS:
 		e := newValue.(EList)
 		eOperation.GetEParameters().Clear()
-		eOperation.GetEParameters().Add(e)
+		eOperation.GetEParameters().AddAll(e)
 	case EOPERATION__OPERATION_ID:
 		o := newValue.(int)
 		eOperation.SetOperationID(o)

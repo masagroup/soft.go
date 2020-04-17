@@ -267,9 +267,9 @@ func (o *DynamicEObjectImpl) isProxy(feature EStructuralFeature) bool {
 func (o *DynamicEObjectImpl) createList(feature EStructuralFeature) EList {
 	if attribute, isAttribute := feature.(EAttribute); isAttribute {
 		if attribute.IsUnique() {
-			return NewUniqueArrayEList(nil)
+			return NewUniqueBasicEList(nil)
 		} else {
-			return NewArrayEList(nil)
+			return NewBasicEList(nil)
 		}
 	} else if ref, isRef := feature.(EReference); isRef {
 		inverse := false

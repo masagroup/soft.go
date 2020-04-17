@@ -80,8 +80,8 @@ func (eAnnotation *eAnnotationImpl) SetEModelElement(newEModelElement EModelElem
 		if eAnnotation.EContainer() != nil {
 			notifications = eAnnotation.EBasicRemoveFromContainer(notifications)
 		}
-		if newEModelElement != nil {
-			notifications = newEModelElement.(EObjectInternal).EInverseAdd(eAnnotation.AsEObject(), EANNOTATION__EMODEL_ELEMENT, notifications)
+		if newEModelElementInternal, _ := newEModelElement.(EObjectInternal); newEModelElementInternal != nil {
+			notifications = newEModelElementInternal.EInverseAdd(eAnnotation.AsEObject(), EANNOTATION__EMODEL_ELEMENT, notifications)
 		}
 		notifications = eAnnotation.basicSetEModelElement(newEModelElement, notifications)
 		if notifications != nil {
@@ -152,18 +152,18 @@ func (eAnnotation *eAnnotationImpl) ESetFromID(featureID int, newValue interface
 	case EANNOTATION__CONTENTS:
 		c := newValue.(EList)
 		eAnnotation.GetContents().Clear()
-		eAnnotation.GetContents().Add(c)
+		eAnnotation.GetContents().AddAll(c)
 	case EANNOTATION__DETAILS:
 		d := newValue.(EList)
 		eAnnotation.GetDetails().Clear()
-		eAnnotation.GetDetails().Add(d)
+		eAnnotation.GetDetails().AddAll(d)
 	case EANNOTATION__EMODEL_ELEMENT:
 		e := newValue.(EModelElement)
 		eAnnotation.SetEModelElement(e)
 	case EANNOTATION__REFERENCES:
 		r := newValue.(EList)
 		eAnnotation.GetReferences().Clear()
-		eAnnotation.GetReferences().Add(r)
+		eAnnotation.GetReferences().AddAll(r)
 	case EANNOTATION__SOURCE:
 		s := newValue.(string)
 		eAnnotation.SetSource(s)

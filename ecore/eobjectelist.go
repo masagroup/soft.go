@@ -45,6 +45,33 @@ func (list *eObjectEList) GetFeatureID() int {
 	return list.featureID
 }
 
+func (list *eObjectEList) doGet(index int) interface{} {
+	return list.resolve(index, list.ENotifyingListImpl.doGet(index))
+}
+
+func (list *eObjectEList) resolve(index int, object interface{}) interface{} {
+	resolved := list.resolveProxy(object.(EObject))
+	if resolved != object {
+		list.basicEList.doSet(index, object)
+		var notifications ENotificationChain
+		if list.containment {
+			notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(object, notifications)
+			if resolvedInternal, _ := resolved.(EObjectInternal); resolvedInternal != nil && resolvedInternal.EInternalContainer() == nil {
+				notifications = list.interfaces.(eNotifyingListInternal).inverseAdd(resolved, notifications)
+			}
+		}
+		list.createAndDispatchNotification(notifications, RESOLVE, object, resolved, index)
+	}
+	return resolved
+}
+
+func (list *eObjectEList) resolveProxy(eObject EObject) EObject {
+	if list.proxies && eObject.EIsProxy() {
+		return list.owner.(EObjectInternal).EResolveProxy(eObject)
+	}
+	return eObject
+}
+
 func (list *eObjectEList) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {

@@ -343,15 +343,15 @@ func (eClass *eClassImpl) ESetFromID(featureID int, newValue interface{}) {
 	case ECLASS__EOPERATIONS:
 		e := newValue.(EList)
 		eClass.GetEOperations().Clear()
-		eClass.GetEOperations().Add(e)
+		eClass.GetEOperations().AddAll(e)
 	case ECLASS__ESTRUCTURAL_FEATURES:
 		e := newValue.(EList)
 		eClass.GetEStructuralFeatures().Clear()
-		eClass.GetEStructuralFeatures().Add(e)
+		eClass.GetEStructuralFeatures().AddAll(e)
 	case ECLASS__ESUPER_TYPES:
 		e := newValue.(EList)
 		eClass.GetESuperTypes().Clear()
-		eClass.GetESuperTypes().Add(e)
+		eClass.GetESuperTypes().AddAll(e)
 	case ECLASS__INTERFACE:
 		i := newValue.(bool)
 		eClass.SetInterface(i)

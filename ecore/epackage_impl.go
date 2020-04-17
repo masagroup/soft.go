@@ -72,11 +72,11 @@ func (ePackage *ePackageImpl) GetEFactoryInstance() EFactory {
 func (ePackage *ePackageImpl) SetEFactoryInstance(newEFactoryInstance EFactory) {
 	if newEFactoryInstance != ePackage.eFactoryInstance {
 		var notifications ENotificationChain
-		if ePackage.eFactoryInstance != nil {
-			notifications = ePackage.eFactoryInstance.(EObjectInternal).EInverseRemove(ePackage, EFACTORY__EPACKAGE, notifications)
+		if oldEFactoryInstanceInternal, _ := ePackage.eFactoryInstance.(EObjectInternal); oldEFactoryInstanceInternal != nil {
+			notifications = oldEFactoryInstanceInternal.EInverseRemove(ePackage, EFACTORY__EPACKAGE, notifications)
 		}
-		if newEFactoryInstance != nil {
-			notifications = newEFactoryInstance.(EObjectInternal).EInverseAdd(ePackage.AsEObject(), EFACTORY__EPACKAGE, notifications)
+		if newEFactoryInstanceInternal, _ := newEFactoryInstance.(EObjectInternal); newEFactoryInstanceInternal != nil {
+			notifications = newEFactoryInstanceInternal.EInverseAdd(ePackage.AsEObject(), EFACTORY__EPACKAGE, notifications)
 		}
 		notifications = ePackage.basicSetEFactoryInstance(newEFactoryInstance, notifications)
 		if notifications != nil {
@@ -176,14 +176,14 @@ func (ePackage *ePackageImpl) ESetFromID(featureID int, newValue interface{}) {
 	case EPACKAGE__ECLASSIFIERS:
 		e := newValue.(EList)
 		ePackage.GetEClassifiers().Clear()
-		ePackage.GetEClassifiers().Add(e)
+		ePackage.GetEClassifiers().AddAll(e)
 	case EPACKAGE__EFACTORY_INSTANCE:
 		e := newValue.(EFactory)
 		ePackage.SetEFactoryInstance(e)
 	case EPACKAGE__ESUB_PACKAGES:
 		e := newValue.(EList)
 		ePackage.GetESubPackages().Clear()
-		ePackage.GetESubPackages().Add(e)
+		ePackage.GetESubPackages().AddAll(e)
 	case EPACKAGE__NS_PREFIX:
 		n := newValue.(string)
 		ePackage.SetNsPrefix(n)

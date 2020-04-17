@@ -1,9 +1,10 @@
 package ecore
 
 import (
-	"github.com/stretchr/testify/assert"
 	"net/url"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestBasicEObjectGetInterfaces(t *testing.T) {
@@ -34,6 +35,7 @@ func TestBasicEObjectContainer(t *testing.T) {
 	mockObject := new(MockEObject)
 	mockResource := new(MockEResource)
 	mockObject.On("EResource").Return(mockResource)
+	mockObject.On("EIsProxy").Return(false)
 	mockResource.On("Attached", o)
 	mockNotifications := new(MockENotificationChain)
 	assert.Equal(t, mockNotifications, o.EBasicSetContainer(mockObject, 1, mockNotifications))

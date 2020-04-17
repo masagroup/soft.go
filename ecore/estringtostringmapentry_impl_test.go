@@ -16,11 +16,9 @@
 package ecore
 
 import (
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 func discardEStringToStringMapEntry() {
@@ -28,117 +26,40 @@ func discardEStringToStringMapEntry() {
 	_ = mock.Anything
 	_ = testing.Coverage
 
-	_ = time.Now()
 }
 
 func TestEStringToStringMapEntryKeyGet(t *testing.T) {
+	var newValue string = "Test String"
 	obj := newEStringToStringMapEntryImpl()
-	obj.SetKey("Test String")
-	assert.Equal(t, "Test String", obj.GetKey())
+	obj.SetKey(newValue)
+	assert.Equal(t, newValue, obj.GetKey())
 }
 
 func TestEStringToStringMapEntryKeySet(t *testing.T) {
+	var newValue string = "Test String"
 	obj := newEStringToStringMapEntryImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetKey("Test String")
+	obj.SetKey(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStringToStringMapEntryKeyEGet(t *testing.T) {
-	obj := newEStringToStringMapEntryImpl()
-	{
-		assert.Equal(t, obj.GetKey(), obj.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetValue(), obj.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, false, false))
-	}
-}
-
-func TestEStringToStringMapEntryKeyEIsSet(t *testing.T) {
-	obj := newEStringToStringMapEntryImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStringToStringMapEntryKeyEUnset(t *testing.T) {
-	obj := newEStringToStringMapEntryImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStringToStringMapEntryKeyESet(t *testing.T) {
-	obj := newEStringToStringMapEntryImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
 }
 
 func TestEStringToStringMapEntryValueGet(t *testing.T) {
+	var newValue string = "Test String"
 	obj := newEStringToStringMapEntryImpl()
-	obj.SetValue("Test String")
-	assert.Equal(t, "Test String", obj.GetValue())
+	obj.SetValue(newValue)
+	assert.Equal(t, newValue, obj.GetValue())
 }
 
 func TestEStringToStringMapEntryValueSet(t *testing.T) {
+	var newValue string = "Test String"
 	obj := newEStringToStringMapEntryImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetValue("Test String")
+	obj.SetValue(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStringToStringMapEntryValueEGet(t *testing.T) {
-	obj := newEStringToStringMapEntryImpl()
-	{
-		assert.Equal(t, obj.GetKey(), obj.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetValue(), obj.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, false, false))
-	}
-}
-
-func TestEStringToStringMapEntryValueEIsSet(t *testing.T) {
-	obj := newEStringToStringMapEntryImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStringToStringMapEntryValueEUnset(t *testing.T) {
-	obj := newEStringToStringMapEntryImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEStringToStringMapEntryValueESet(t *testing.T) {
-	obj := newEStringToStringMapEntryImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
 }

@@ -32,8 +32,11 @@ type EObjectInternal interface {
 
 	EStaticClass() EClass
 
-	EDirectResource() EResource
+	EInternalContainer() EObject
+	EInternalResource() EResource
+
 	ESetResource(resource EResource, notifications ENotificationChain) ENotificationChain
+
 	EInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain
 	EInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain
 
@@ -85,6 +88,36 @@ func (o *BasicEObject) EIsProxy() bool {
 	return o.proxyURI != nil
 }
 
+func (o *BasicEObject) EInternalContainer() EObject {
+	return o.container
+}
+
+// EContainer ...
+func (o *BasicEObject) EContainer() EObject {
+	eContainer := o.container
+	if eContainer != nil && eContainer.EIsProxy() {
+		resolved := o.EResolveProxy(eContainer)
+		if resolved != eContainer {
+			notifications := o.EBasicRemoveFromContainer(nil)
+			o.container = resolved
+			if notifications != nil {
+				notifications.Dispatch()
+			}
+
+			if o.ENotificationRequired() && o.containerFeatureID >= EOPPOSITE_FEATURE_BASE {
+				o.ENotify(NewNotificationByFeatureID(o.AsEObject(), RESOLVE, o.containerFeatureID, eContainer, resolved, -1))
+			}
+		}
+		return resolved
+	}
+	return eContainer
+}
+
+// EContainerFeatureID ...
+func (o *BasicEObject) EContainerFeatureID() int {
+	return o.containerFeatureID
+}
+
 // EResource ...
 func (o *BasicEObject) EResource() EResource {
 	resource := o.resource
@@ -96,19 +129,20 @@ func (o *BasicEObject) EResource() EResource {
 	return resource
 }
 
-// EDirectResource ...
-func (o *BasicEObject) EDirectResource() EResource {
+// EInternalResource ...
+func (o *BasicEObject) EInternalResource() EResource {
 	return o.resource
 }
 
-func (o *BasicEObject) ESetDirectResource(resource EResource) {
+// ESetInternalResource ...
+func (o *BasicEObject) ESetInternalResource(resource EResource) {
 	o.resource = resource
 }
 
 // ESetResource ...
 func (o *BasicEObject) ESetResource(newResource EResource, n ENotificationChain) ENotificationChain {
 	notifications := n
-	oldResource := o.EDirectResource()
+	oldResource := o.EInternalResource()
 	if oldResource != nil && newResource != nil {
 		list := oldResource.GetContents().(ENotifyingList)
 		notifications = list.RemoveWithNotification(o.AsEObject(), notifications)
@@ -133,18 +167,8 @@ func (o *BasicEObject) ESetResource(newResource EResource, n ENotificationChain)
 			notifications = o.EBasicSetContainer(nil, -1, notifications)
 		}
 	}
-	o.ESetDirectResource(newResource)
+	o.ESetInternalResource(newResource)
 	return notifications
-}
-
-// EContainer ...
-func (o *BasicEObject) EContainer() EObject {
-	return o.container
-}
-
-// EContainerFeatureID ...
-func (o *BasicEObject) EContainerFeatureID() int {
-	return o.containerFeatureID
 }
 
 // EContainingFeature ...
@@ -390,7 +414,7 @@ func (o *BasicEObject) EBasicInverseRemove(otherEnd EObject, featureID int, noti
 // EBasicSetContainer ...
 func (o *BasicEObject) EBasicSetContainer(newContainer EObject, newContainerFeatureID int, n ENotificationChain) ENotificationChain {
 	notifications := n
-	oldResource := o.EDirectResource()
+	oldResource := o.EInternalResource()
 	oldContainer := o.container
 	oldContainerFeatureID := o.containerFeatureID
 
@@ -400,7 +424,7 @@ func (o *BasicEObject) EBasicSetContainer(newContainer EObject, newContainerFeat
 		if newContainer != nil && !eContainmentFeature(o, newContainer, newContainerFeatureID).IsResolveProxies() {
 			list := oldResource.GetContents().(ENotifyingList)
 			notifications = list.RemoveWithNotification(o.AsEObject(), notifications)
-			o.ESetDirectResource(nil)
+			o.ESetInternalResource(nil)
 			newResource = newContainer.EResource()
 		} else {
 			oldResource = nil

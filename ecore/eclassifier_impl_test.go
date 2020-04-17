@@ -16,11 +16,10 @@
 package ecore
 
 import (
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"reflect"
+	"testing"
 )
 
 func discardEClassifier() {
@@ -28,177 +27,42 @@ func discardEClassifier() {
 	_ = mock.Anything
 	_ = testing.Coverage
 
-	_ = time.Now()
 }
 
 func TestEClassifierInstanceClassGet(t *testing.T) {
+	var newValue reflect.Type = nil
 	obj := newEClassifierImpl()
-	obj.SetInstanceClass(nil)
-	assert.Equal(t, nil, obj.GetInstanceClass())
+	obj.SetInstanceClass(newValue)
+	assert.Equal(t, newValue, obj.GetInstanceClass())
 }
 
 func TestEClassifierInstanceClassSet(t *testing.T) {
+	var newValue reflect.Type = nil
 	obj := newEClassifierImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetInstanceClass(nil)
+	obj.SetInstanceClass(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEClassifierInstanceClassEGet(t *testing.T) {
-	obj := newEClassifierImpl()
-	{
-		assert.Equal(t, obj.GetClassifierID(), obj.EGetFromID(ECLASSIFIER__CLASSIFIER_ID, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.GetEPackage(), obj.EGetFromID(ECLASSIFIER__EPACKAGE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetInstanceClass(), obj.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, false, false))
-	}
-}
-
-func TestEClassifierInstanceClassEInvoke(t *testing.T) {
-	obj := newEClassifierImpl()
-	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASSIFIER__IS_INSTANCE_EJAVAOBJECT, nil) })
-	}
-}
-
-func TestEClassifierInstanceClassEIsSet(t *testing.T) {
-	obj := newEClassifierImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEClassifierInstanceClassEUnset(t *testing.T) {
-	obj := newEClassifierImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEClassifierInstanceClassESet(t *testing.T) {
-	obj := newEClassifierImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEClassifierInstanceClassEInverseAdd(t *testing.T) {
-	{
-	}
-}
-
-func TestEClassifierInstanceClassEInverseRemove(t *testing.T) {
-	{
-	}
 }
 
 func TestEClassifierClassifierIDGet(t *testing.T) {
+	var newValue int = 45
 	obj := newEClassifierImpl()
-	obj.SetClassifierID(45)
-	assert.Equal(t, 45, obj.GetClassifierID())
+	obj.SetClassifierID(newValue)
+	assert.Equal(t, newValue, obj.GetClassifierID())
 }
 
 func TestEClassifierClassifierIDSet(t *testing.T) {
+	var newValue int = 45
 	obj := newEClassifierImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetClassifierID(45)
+	obj.SetClassifierID(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEClassifierClassifierIDEGet(t *testing.T) {
-	obj := newEClassifierImpl()
-	{
-		assert.Equal(t, obj.GetClassifierID(), obj.EGetFromID(ECLASSIFIER__CLASSIFIER_ID, false, false))
-	}
-	{
-		_ = obj
-	}
-	{
-		assert.Equal(t, obj.GetEPackage(), obj.EGetFromID(ECLASSIFIER__EPACKAGE, false, false))
-	}
-	{
-		assert.Equal(t, obj.GetInstanceClass(), obj.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, false, false))
-	}
-}
-
-func TestEClassifierClassifierIDEInvoke(t *testing.T) {
-	obj := newEClassifierImpl()
-	{
-		assert.Panics(t, func() { obj.EInvokeFromID(ECLASSIFIER__IS_INSTANCE_EJAVAOBJECT, nil) })
-	}
-}
-
-func TestEClassifierClassifierIDEIsSet(t *testing.T) {
-	obj := newEClassifierImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEClassifierClassifierIDEUnset(t *testing.T) {
-	obj := newEClassifierImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEClassifierClassifierIDESet(t *testing.T) {
-	obj := newEClassifierImpl()
-	{
-		_ = obj
-	}
-	{
-		_ = obj
-	}
-}
-
-func TestEClassifierClassifierIDEInverseAdd(t *testing.T) {
-	{
-	}
-}
-
-func TestEClassifierClassifierIDEInverseRemove(t *testing.T) {
-	{
-	}
 }
 
 func TestEClassifierIsInstanceOperation(t *testing.T) {

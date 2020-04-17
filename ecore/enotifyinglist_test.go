@@ -88,7 +88,7 @@ func TestNotifyingListAddAll(t *testing.T) {
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ADD_MANY &&
 			n.GetPosition() == 0
-	}))
+	})).Once()
 	l.AddAll(NewImmutableEList([]interface{}{2, 3}))
 	l.assertExpectations(t)
 	assert.Equal(t, []interface{}{2, 3}, l.ToArray())
@@ -100,7 +100,7 @@ func TestNotifyingListAddAll(t *testing.T) {
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ADD &&
 			n.GetPosition() == 2
-	}))
+	})).Once()
 	l.AddAll(NewImmutableEList([]interface{}{4}))
 	l.assertExpectations(t)
 	assert.Equal(t, []interface{}{2, 3, 4}, l.ToArray())
@@ -115,7 +115,7 @@ func TestNotifyingListInsert(t *testing.T) {
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ADD &&
 			n.GetPosition() == 0
-	}))
+	})).Once()
 	l.Insert(0, 1)
 	l.assertExpectations(t)
 	assert.Equal(t, []interface{}{1}, l.ToArray())
@@ -127,7 +127,7 @@ func TestNotifyingListInsert(t *testing.T) {
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ADD &&
 			n.GetPosition() == 0
-	}))
+	})).Once()
 	l.Insert(0, 2)
 	l.assertExpectations(t)
 	assert.Equal(t, []interface{}{2, 1}, l.ToArray())
@@ -139,7 +139,7 @@ func TestNotifyingListInsert(t *testing.T) {
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ADD &&
 			n.GetPosition() == 1
-	}))
+	})).Once()
 	l.Insert(1, 3)
 	l.assertExpectations(t)
 	assert.Equal(t, []interface{}{2, 3, 1}, l.ToArray())
@@ -154,7 +154,7 @@ func TestNotifyingListInsertAll(t *testing.T) {
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ADD_MANY &&
 			n.GetPosition() == 0
-	}))
+	})).Once()
 	l.InsertAll(0, NewImmutableEList([]interface{}{1, 2, 3}))
 	l.assertExpectations(t)
 	assert.Equal(t, []interface{}{1, 2, 3}, l.ToArray())
@@ -166,7 +166,7 @@ func TestNotifyingListInsertAll(t *testing.T) {
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ADD_MANY &&
 			n.GetPosition() == 1
-	}))
+	})).Once()
 	l.InsertAll(1, NewImmutableEList([]interface{}{4, 5}))
 	l.assertExpectations(t)
 	assert.Equal(t, []interface{}{1, 4, 5, 2, 3}, l.ToArray())
@@ -181,7 +181,7 @@ func TestNotifyingListSet(t *testing.T) {
 			n.GetOldValue() == 2 &&
 			n.GetEventType() == SET &&
 			n.GetPosition() == 1
-	}))
+	})).Once()
 	l.Set(1, 3)
 	l.assertExpectations(t)
 	assert.Equal(t, []interface{}{1, 3}, l.ToArray())
@@ -196,7 +196,7 @@ func TestNotifyingListRemoveAt(t *testing.T) {
 			n.GetOldValue() == 2 &&
 			n.GetEventType() == REMOVE &&
 			n.GetPosition() == 1
-	}))
+	})).Once()
 	l.RemoveAt(1)
 	l.assertExpectations(t)
 	assert.Equal(t, []interface{}{1, 3}, l.ToArray())
@@ -212,7 +212,7 @@ func TestNotifyingListAddWithNotification(t *testing.T) {
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ADD &&
 			n.GetPosition() == 0
-	})).Return(true)
+	})).Once().Return(true)
 	l.AddWithNotification(1, mockChain)
 	l.assertExpectations(t)
 	mockChain.AssertExpectations(t)
@@ -228,7 +228,7 @@ func TestNotifyingListRemoveWithNotification(t *testing.T) {
 			n.GetOldValue() == 1 &&
 			n.GetEventType() == REMOVE &&
 			n.GetPosition() == 0
-	})).Return(true)
+	})).Once().Return(true)
 	l.RemoveWithNotification(1, mockChain)
 	l.assertExpectations(t)
 	mockChain.AssertExpectations(t)
@@ -244,7 +244,7 @@ func TestNotifyingListSetWithNotification(t *testing.T) {
 			n.GetOldValue() == 1 &&
 			n.GetEventType() == SET &&
 			n.GetPosition() == 0
-	})).Return(true)
+	})).Once().Return(true)
 	l.SetWithNotification(0, 2, mockChain)
 	l.assertExpectations(t)
 	mockChain.AssertExpectations(t)

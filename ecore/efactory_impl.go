@@ -64,8 +64,8 @@ func (eFactory *eFactoryImpl) SetEPackage(newEPackage EPackage) {
 		if eFactory.EContainer() != nil {
 			notifications = eFactory.EBasicRemoveFromContainer(notifications)
 		}
-		if newEPackage != nil {
-			notifications = newEPackage.(EObjectInternal).EInverseAdd(eFactory.AsEObject(), EFACTORY__EPACKAGE, notifications)
+		if newEPackageInternal, _ := newEPackage.(EObjectInternal); newEPackageInternal != nil {
+			notifications = newEPackageInternal.EInverseAdd(eFactory.AsEObject(), EFACTORY__EPACKAGE, notifications)
 		}
 		notifications = eFactory.basicSetEPackage(newEPackage, notifications)
 		if notifications != nil {

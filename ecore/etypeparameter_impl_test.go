@@ -16,11 +16,9 @@
 package ecore
 
 import (
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 func discardETypeParameter() {
@@ -28,53 +26,9 @@ func discardETypeParameter() {
 	_ = mock.Anything
 	_ = testing.Coverage
 
-	_ = time.Now()
 }
 
 func TestETypeParameterEBoundsGetList(t *testing.T) {
 	obj := newETypeParameterImpl()
 	assert.NotNil(t, obj.GetEBounds())
-}
-
-func TestETypeParameterEBoundsEGet(t *testing.T) {
-	obj := newETypeParameterImpl()
-	{
-		assert.Equal(t, obj.GetEBounds(), obj.EGetFromID(ETYPE_PARAMETER__EBOUNDS, false, false))
-	}
-}
-
-func TestETypeParameterEBoundsEIsSet(t *testing.T) {
-	obj := newETypeParameterImpl()
-	{
-		assert.Equal(t, obj.eBounds != nil && obj.eBounds.Size() != 0, obj.EIsSetFromID(ETYPE_PARAMETER__EBOUNDS))
-	}
-}
-
-func TestETypeParameterEBoundsEUnset(t *testing.T) {
-	obj := newETypeParameterImpl()
-	{
-		obj.EUnsetFromID(ETYPE_PARAMETER__EBOUNDS)
-		obj.GetEBounds().Clear()
-		assert.Equal(t, 0, obj.GetEBounds().Size())
-	}
-}
-
-func TestETypeParameterEBoundsESet(t *testing.T) {
-	obj := newETypeParameterImpl()
-	{
-		elem := NewEmptyArrayEList()
-		obj.ESetFromID(ETYPE_PARAMETER__EBOUNDS, elem)
-		assert.Equal(t, 1, obj.GetEBounds().Size())
-		assert.Equal(t, elem, obj.GetEBounds().Get(0))
-	}
-}
-
-func TestETypeParameterEBoundsEInverseRemove(t *testing.T) {
-	{
-		obj := newETypeParameterImpl()
-		mock := &MockEObject{}
-		obj.GetEBounds().Add(mock)
-		obj.EBasicInverseRemove(mock, ETYPE_PARAMETER__EBOUNDS, &MockENotificationChain{})
-		assert.Equal(t, 0, obj.GetEBounds().Size())
-	}
 }

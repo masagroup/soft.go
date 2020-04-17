@@ -16,11 +16,9 @@
 package ecore
 
 import (
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 func discardENamedElement() {
@@ -28,49 +26,22 @@ func discardENamedElement() {
 	_ = mock.Anything
 	_ = testing.Coverage
 
-	_ = time.Now()
 }
 
 func TestENamedElementNameGet(t *testing.T) {
+	var newValue string = "Test String"
 	obj := newENamedElementImpl()
-	obj.SetName("Test String")
-	assert.Equal(t, "Test String", obj.GetName())
+	obj.SetName(newValue)
+	assert.Equal(t, newValue, obj.GetName())
 }
 
 func TestENamedElementNameSet(t *testing.T) {
+	var newValue string = "Test String"
 	obj := newENamedElementImpl()
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetName("Test String")
+	obj.SetName(newValue)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestENamedElementNameEGet(t *testing.T) {
-	obj := newENamedElementImpl()
-	{
-		assert.Equal(t, obj.GetName(), obj.EGetFromID(ENAMED_ELEMENT__NAME, false, false))
-	}
-}
-
-func TestENamedElementNameEIsSet(t *testing.T) {
-	obj := newENamedElementImpl()
-	{
-		_ = obj
-	}
-}
-
-func TestENamedElementNameEUnset(t *testing.T) {
-	obj := newENamedElementImpl()
-	{
-		_ = obj
-	}
-}
-
-func TestENamedElementNameESet(t *testing.T) {
-	obj := newENamedElementImpl()
-	{
-		_ = obj
-	}
 }

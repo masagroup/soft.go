@@ -155,17 +155,17 @@ func (r *EResourceImpl) GetURIFragment(eObject EObject) string {
 		return id
 	} else {
 		internalEObject := eObject.(EObjectInternal)
-		if internalEObject.EDirectResource() == r.interfaces {
+		if internalEObject.EInternalResource() == r.interfaces {
 			return "/" + r.getURIFragmentRootSegment(eObject)
 		} else {
 			fragmentPath := []string{}
 			isContained := false
-			for eContainer, _ := internalEObject.EContainer().(EObjectInternal); eContainer != nil; eContainer, _ = internalEObject.EContainer().(EObjectInternal) {
+			for eContainer, _ := internalEObject.EInternalContainer().(EObjectInternal); eContainer != nil; eContainer, _ = internalEObject.EInternalContainer().(EObjectInternal) {
 				if len(id) == 0 {
 					fragmentPath = append([]string{eContainer.EURIFragmentSegment(internalEObject.EContainingFeature(), internalEObject)}, fragmentPath...)
 				}
 				internalEObject = eContainer
-				if eContainer.EDirectResource() == r.interfaces {
+				if eContainer.EInternalResource() == r.interfaces {
 					isContained = true
 					break
 				}
@@ -315,14 +315,14 @@ func (r *EResourceImpl) DoSave(rd io.Writer) {
 
 func (r *EResourceImpl) GetErrors() EList {
 	if r.errors == nil {
-		r.errors = NewEmptyArrayEList()
+		r.errors = NewEmptyBasicEList()
 	}
 	return r.errors
 }
 
 func (r *EResourceImpl) GetWarnings() EList {
 	if r.warnings == nil {
-		r.warnings = NewEmptyArrayEList()
+		r.warnings = NewEmptyBasicEList()
 	}
 	return r.warnings
 }
@@ -345,7 +345,7 @@ func (r *EResourceImpl) basicSetResourceSet(resourceSet EResourceSet, msgs ENoti
 	oldAbstractResourceSet := r.resourceSet
 	if oldAbstractResourceSet != nil {
 		l := oldAbstractResourceSet.GetResources().(ENotifyingList)
-		notifications = l.AddWithNotification(r.GetInterfaces().(ENotifier), notifications)
+		notifications = l.RemoveWithNotification(r.GetInterfaces().(ENotifier), notifications)
 	}
 	r.resourceSet = resourceSet
 	if r.ENotificationRequired() {

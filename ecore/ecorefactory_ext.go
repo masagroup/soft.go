@@ -43,13 +43,18 @@ func (factory *ecoreFactoryExt) convertECharToString(dataType EDataType, instanc
 	return fmt.Sprintf("%c", instanceValue)
 }
 
+const (
+	dateFormat string = "2006-01-02T15:04:05.999"
+)
+
 func (factory *ecoreFactoryExt) createEDateFromString(dataType EDataType, literalValue string) interface{} {
-	strTime, _ := strconv.ParseInt(literalValue, 10, 32)
-	return time.Unix(strTime, 0)
+	t, _ := time.Parse(dateFormat, literalValue)
+	return t
 }
 
 func (factory *ecoreFactoryExt) convertEDateToString(dataType EDataType, instanceValue interface{}) string {
-	return fmt.Sprintf("%d", instanceValue.(time.Time).Unix())
+	t := instanceValue.(time.Time)
+	return t.Format(dateFormat)
 }
 
 func (factory *ecoreFactoryExt) createEDoubleFromString(dataType EDataType, literalValue string) interface{} {

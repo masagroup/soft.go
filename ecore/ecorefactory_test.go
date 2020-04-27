@@ -28,7 +28,7 @@ func TestFactoryChar(t *testing.T) {
 
 func TestFactoryDate(t *testing.T) {
 	factory := newEcoreFactoryExt()
-	assert.Equal(t, factory.convertEDateToString(nil, factory.createEDateFromString(nil, "1559826929")), "1559826929")
+	assert.Equal(t, factory.convertEDateToString(nil, factory.createEDateFromString(nil, "1974-06-20T05:22:10.099")), "1974-06-20T05:22:10.099")
 }
 
 func TestFactoryDouble(t *testing.T) {

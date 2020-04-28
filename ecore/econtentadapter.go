@@ -14,12 +14,18 @@ package ecore
 // It can be installed for an {@link EObject}, a {@link Resource}, or a {@link ResourceSet}.
 type EContentAdapter struct {
 	*Adapter
+	interfaces interface{}
 }
 
-func newEContentAdapter() *EContentAdapter {
+func NewEContentAdapter() *EContentAdapter {
 	ca := new(EContentAdapter)
 	ca.Adapter = NewAdapter()
+	ca.interfaces = ca
 	return ca
+}
+
+func (adapter *EContentAdapter) SetInterfaces(interfaces interface{}) {
+	adapter.interfaces = interfaces
 }
 
 func (adapter *EContentAdapter) NotifyChanged(notification ENotification) {
@@ -134,15 +140,15 @@ func (adapter *EContentAdapter) handleContainment(notification ENotification) {
 func (adapter *EContentAdapter) addAdapter(notifier ENotifier) {
 	if notifier != nil {
 		eAdapters := notifier.EAdapters()
-		if !eAdapters.Contains(adapter) {
-			eAdapters.Add(adapter)
+		if !eAdapters.Contains(adapter.interfaces) {
+			eAdapters.Add(adapter.interfaces)
 		}
 	}
 }
 
 func (adapter *EContentAdapter) removeAdapter(notifier ENotifier) {
 	if notifier != nil {
-		notifier.EAdapters().Remove(adapter)
+		notifier.EAdapters().Remove(adapter.interfaces)
 	}
 }
 

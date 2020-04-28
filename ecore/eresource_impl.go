@@ -83,7 +83,7 @@ func (rc *resourceContents) inverseRemove(object interface{}, notifications ENot
 
 //EResource ...
 type EResourceImpl struct {
-	*Notifier
+	*BasicNotifier
 	resourceSet EResourceSet
 	uri         *url.URL
 	contents    EList
@@ -95,7 +95,7 @@ type EResourceImpl struct {
 // NewBasicEObject is BasicEObject constructor
 func NewEResourceImpl() *EResourceImpl {
 	r := new(EResourceImpl)
-	r.Notifier = NewNotifier()
+	r.BasicNotifier = NewBasicNotifier()
 	r.SetInterfaces(r)
 	return r
 }

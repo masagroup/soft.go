@@ -28,3 +28,9 @@ func (adapter *Adapter) GetTarget() ENotifier {
 func (adapter *Adapter) SetTarget(notifier ENotifier) {
 	adapter.target = notifier
 }
+
+func (adapter *Adapter) UnSetTarget(notifier ENotifier) {
+	if notifier == adapter.target {
+		adapter.SetTarget(nil)
+	}
+}

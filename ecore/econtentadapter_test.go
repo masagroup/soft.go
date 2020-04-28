@@ -17,7 +17,7 @@ import (
 )
 
 func TestEContentAdapterSetTarget(t *testing.T) {
-	adapter := newEContentAdapter()
+	adapter := NewEContentAdapter()
 	nb := rand.Intn(10) + 1
 	children := []interface{}{}
 	for i := 0; i < nb; i++ {
@@ -47,7 +47,7 @@ func TestEContentAdapterSetTarget(t *testing.T) {
 }
 
 func TestEContentAdapterNotifyChanged(t *testing.T) {
-	adapter := newEContentAdapter()
+	adapter := NewEContentAdapter()
 	mockNotification := new(MockENotification)
 	mockObject := new(MockEObject)
 
@@ -66,7 +66,7 @@ func TestEContentAdapterNotifyChanged(t *testing.T) {
 }
 
 func TestEContentAdapterNotifyChanged_Resolve(t *testing.T) {
-	adapter := newEContentAdapter()
+	adapter := NewEContentAdapter()
 	mockNotification := new(MockENotification)
 	mockObject := new(MockEObject)
 	mockReference := new(MockEReference)
@@ -88,7 +88,7 @@ func TestEContentAdapterNotifyChanged_Resolve(t *testing.T) {
 }
 
 func TestEContentAdapterNotifyChanged_Resolve_Contains(t *testing.T) {
-	adapter := newEContentAdapter()
+	adapter := NewEContentAdapter()
 	mockNotification := new(MockENotification)
 	mockObject := new(MockEObject)
 	mockReference := new(MockEReference)
@@ -120,7 +120,7 @@ func TestEContentAdapterNotifyChanged_Resolve_Contains(t *testing.T) {
 
 func TestEContentAdapterNotifyChanged_UnSet(t *testing.T) {
 
-	adapter := newEContentAdapter()
+	adapter := NewEContentAdapter()
 	mockNotification := new(MockENotification)
 	mockObject := new(MockEObjectInternal)
 	mockReference := new(MockEReference)
@@ -152,7 +152,7 @@ func TestEContentAdapterNotifyChanged_UnSet(t *testing.T) {
 
 func TestEContentAdapterNotifyChanged_Set(t *testing.T) {
 
-	adapter := newEContentAdapter()
+	adapter := NewEContentAdapter()
 	mockNotification := new(MockENotification)
 	mockObject := new(MockEObjectInternal)
 	mockReference := new(MockEReference)
@@ -185,7 +185,7 @@ func TestEContentAdapterNotifyChanged_Set(t *testing.T) {
 
 func TestEContentAdapterNotifyChanged_Add(t *testing.T) {
 
-	adapter := newEContentAdapter()
+	adapter := NewEContentAdapter()
 	mockNotification := new(MockENotification)
 	mockObject := new(MockEObjectInternal)
 	mockReference := new(MockEReference)
@@ -210,7 +210,7 @@ func TestEContentAdapterNotifyChanged_Add(t *testing.T) {
 
 func TestEContentAdapterNotifyChanged_AddMany(t *testing.T) {
 
-	adapter := newEContentAdapter()
+	adapter := NewEContentAdapter()
 	mockNotification := new(MockENotification)
 	mockObject := new(MockEObjectInternal)
 	mockReference := new(MockEReference)
@@ -242,7 +242,7 @@ func TestEContentAdapterNotifyChanged_AddMany(t *testing.T) {
 
 func TestEContentAdapterNotifyChanged_Remove(t *testing.T) {
 
-	adapter := newEContentAdapter()
+	adapter := NewEContentAdapter()
 	mockNotification := new(MockENotification)
 	mockObject := new(MockEObjectInternal)
 	mockReference := new(MockEReference)
@@ -267,7 +267,7 @@ func TestEContentAdapterNotifyChanged_Remove(t *testing.T) {
 
 func TestEContentAdapterNotifyChanged_RemoveMany(t *testing.T) {
 
-	adapter := newEContentAdapter()
+	adapter := NewEContentAdapter()
 	mockNotification := new(MockENotification)
 	mockObject := new(MockEObjectInternal)
 	mockReference := new(MockEReference)

@@ -93,8 +93,9 @@ func (adapter *EContentAdapter) handleContainment(notification ENotification) {
 		// and also attaching it again as we walk the eContents() later.
 		// Checking here avoids having to check during addAdapter.
 		//
-		oldValue := notification.GetOldValue().(ENotifier)
-		if oldValue.EAdapters().Contains(adapter) {
+		oldNotifier := notification.GetOldValue().(ENotifier)
+		if oldNotifier.EAdapters().Contains(adapter) {
+			adapter.removeAdapter(oldNotifier)
 			adapter.addAdapter(notification.GetNewValue().(ENotifier))
 		}
 	case UNSET:

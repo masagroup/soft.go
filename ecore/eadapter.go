@@ -20,4 +20,7 @@ type EAdapter interface {
 
 	// SetTarget Sets the target from which the adapter will receive notification.
 	SetTarget(ENotifier)
+
+	// UnSetTarget Unsets the target from which the adapter will receive notification.
+	UnSetTarget(ENotifier)
 }

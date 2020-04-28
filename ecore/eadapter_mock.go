@@ -34,3 +34,8 @@ func (_m *MockEAdapter) NotifyChanged(notification ENotification) {
 func (_m *MockEAdapter) SetTarget(_a0 ENotifier) {
 	_m.Called(_a0)
 }
+
+// UnSetTarget provides a mock function with given fields: _a0
+func (_m *MockEAdapter) UnSetTarget(_a0 ENotifier) {
+	_m.Called(_a0)
+}

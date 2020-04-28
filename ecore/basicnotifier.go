@@ -48,11 +48,7 @@ func (l *adapterList) didRemove(index int, elem interface{}) {
 	if notifier.EDeliver() {
 		adapter.NotifyChanged(newAdapterNotification(notifier, REMOVING_ADAPTER, elem, nil, index))
 	}
-	if unsettableAdapter, _ := adapter.(eAdapterInternal); unsettableAdapter != nil {
-		unsettableAdapter.unsetTarget(notifier)
-	} else if adapter.GetTarget() == notifier {
-		adapter.SetTarget(nil)
-	}
+	adapter.UnSetTarget(notifier)
 }
 
 type BasicNotifier struct {

@@ -22,7 +22,7 @@ func TestNotifierAccessors(t *testing.T) {
 	assert.True(t, adapters.Empty())
 }
 
-func TestNotifierWithAdapter(t *testing.T) {
+func TestNotifierAdapter(t *testing.T) {
 	notifier := NewBasicNotifier()
 	mockEAdapter := new(MockEAdapter)
 	mockEAdapter.On("SetTarget", notifier).Once()
@@ -36,8 +36,7 @@ func TestNotifierWithAdapter(t *testing.T) {
 			n.GetEventType() == REMOVING_ADAPTER &&
 			n.GetPosition() == 0
 	})).Once()
-	mockEAdapter.On("GetTarget").Return(notifier).Once()
-	mockEAdapter.On("SetTarget", nil).Once()
+	mockEAdapter.On("UnSetTarget", notifier).Once()
 	notifier.EAdapters().Remove(mockEAdapter)
 	mockEAdapter.AssertExpectations(t)
 }

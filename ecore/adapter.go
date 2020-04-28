@@ -9,11 +9,6 @@
 
 package ecore
 
-type eAdapterInternal interface {
-	EAdapter
-	unsetTarget(notifier ENotifier)
-}
-
 // Adapter is basic implementation of EAdapter interface
 type Adapter struct {
 	target ENotifier
@@ -34,7 +29,7 @@ func (adapter *Adapter) SetTarget(notifier ENotifier) {
 	adapter.target = notifier
 }
 
-func (adapter *Adapter) unsetTarget(notifier ENotifier) {
+func (adapter *Adapter) UnSetTarget(notifier ENotifier) {
 	if notifier == adapter.target {
 		adapter.SetTarget(nil)
 	}

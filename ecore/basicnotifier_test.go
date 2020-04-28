@@ -7,11 +7,11 @@ import (
 )
 
 func TestNotifierConstructor(t *testing.T) {
-	assert.NotNil(t, NewNotifier())
+	assert.NotNil(t, NewBasicNotifier())
 }
 
 func TestNotifierAccessors(t *testing.T) {
-	var n ENotifier = NewNotifier()
+	var n ENotifier = NewBasicNotifier()
 	assert.True(t, n.EDeliver())
 
 	n.ESetDeliver(false)
@@ -22,7 +22,7 @@ func TestNotifierAccessors(t *testing.T) {
 }
 
 func TestNotifierAdapters(t *testing.T) {
-	n := NewNotifier()
+	n := NewBasicNotifier()
 	mockEAdapter := new(MockEAdapter)
 	mockEAdapter.On("SetTarget", n).Once()
 	n.EAdapters().Add(mockEAdapter)

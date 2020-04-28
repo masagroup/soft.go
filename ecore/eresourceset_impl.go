@@ -39,7 +39,7 @@ func (l *resourcesList) inverseRemove(object interface{}, notifications ENotific
 
 //EResourceSetImpl ...
 type EResourceSetImpl struct {
-	*Notifier
+	*BasicNotifier
 	resources               EList
 	uriConverter            EURIConverter
 	uriResourceMap          map[*url.URL]EResource
@@ -49,7 +49,7 @@ type EResourceSetImpl struct {
 
 func NewEResourceSetImpl() *EResourceSetImpl {
 	rs := new(EResourceSetImpl)
-	rs.Notifier = NewNotifier()
+	rs.BasicNotifier = NewBasicNotifier()
 	rs.resources = newResourcesList(rs)
 	rs.uriConverter = NewEURIConverterImpl()
 	rs.resourceFactoryRegistry = GetResourceFactoryRegistry()

@@ -25,65 +25,64 @@ func discardEReference() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEReferenceContainmentGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newEReferenceImpl()
-	obj.SetContainment(newValue)
-	assert.Equal(t, newValue, obj.IsContainment())
+	obj.SetContainment(v)
+	assert.Equal(t, v, obj.IsContainment())
 }
 
 func TestEReferenceContainmentSet(t *testing.T) {
-	var newValue bool = true
 	obj := newEReferenceImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetContainment(newValue)
+	obj.SetContainment(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEReferenceResolveProxiesGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newEReferenceImpl()
-	obj.SetResolveProxies(newValue)
-	assert.Equal(t, newValue, obj.IsResolveProxies())
+	obj.SetResolveProxies(v)
+	assert.Equal(t, v, obj.IsResolveProxies())
 }
 
 func TestEReferenceResolveProxiesSet(t *testing.T) {
-	var newValue bool = true
 	obj := newEReferenceImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetResolveProxies(newValue)
+	obj.SetResolveProxies(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEReferenceEOppositeGet(t *testing.T) {
-	var newValue *MockEReference = &MockEReference{}
-	newValue.On("EIsProxy").Return(false)
+	v := &MockEReference{}
+	v.On("EIsProxy").Return(false)
 	obj := newEReferenceImpl()
-	obj.SetEOpposite(newValue)
-	assert.Equal(t, newValue, obj.GetEOpposite())
+	obj.SetEOpposite(v)
+	assert.Equal(t, v, obj.GetEOpposite())
 }
 
 func TestEReferenceEOppositeSet(t *testing.T) {
-	var newValue *MockEReference = &MockEReference{}
 	obj := newEReferenceImpl()
+	v := &MockEReference{}
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetEOpposite(newValue)
+	obj.SetEOpposite(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEReferenceEKeysGetList(t *testing.T) {
-	obj := newEReferenceImpl()
-	assert.NotNil(t, obj.GetEKeys())
+	o := newEReferenceImpl()
+	assert.NotNil(t, o.GetEKeys())
 }

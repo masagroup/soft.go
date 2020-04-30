@@ -25,23 +25,22 @@ func discardENamedElement() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestENamedElementNameGet(t *testing.T) {
-	var newValue string = "Test String"
+	v := "Test String"
 	obj := newENamedElementImpl()
-	obj.SetName(newValue)
-	assert.Equal(t, newValue, obj.GetName())
+	obj.SetName(v)
+	assert.Equal(t, v, obj.GetName())
 }
 
 func TestENamedElementNameSet(t *testing.T) {
-	var newValue string = "Test String"
 	obj := newENamedElementImpl()
+	v := "Test String"
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetName(newValue)
+	obj.SetName(v)
 	mockAdapter.AssertExpectations(t)
 }

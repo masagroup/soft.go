@@ -25,10 +25,9 @@ func discardETypeParameter() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestETypeParameterEBoundsGetList(t *testing.T) {
-	obj := newETypeParameterImpl()
-	assert.NotNil(t, obj.GetEBounds())
+	o := newETypeParameterImpl()
+	assert.NotNil(t, o.GetEBounds())
 }

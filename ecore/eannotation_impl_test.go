@@ -25,38 +25,37 @@ func discardEAnnotation() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEAnnotationSourceGet(t *testing.T) {
-	var newValue string = "Test String"
+	v := "Test String"
 	obj := newEAnnotationImpl()
-	obj.SetSource(newValue)
-	assert.Equal(t, newValue, obj.GetSource())
+	obj.SetSource(v)
+	assert.Equal(t, v, obj.GetSource())
 }
 
 func TestEAnnotationSourceSet(t *testing.T) {
-	var newValue string = "Test String"
 	obj := newEAnnotationImpl()
+	v := "Test String"
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetSource(newValue)
+	obj.SetSource(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEAnnotationDetailsGetList(t *testing.T) {
-	obj := newEAnnotationImpl()
-	assert.NotNil(t, obj.GetDetails())
+	o := newEAnnotationImpl()
+	assert.NotNil(t, o.GetDetails())
 }
 
 func TestEAnnotationContentsGetList(t *testing.T) {
-	obj := newEAnnotationImpl()
-	assert.NotNil(t, obj.GetContents())
+	o := newEAnnotationImpl()
+	assert.NotNil(t, o.GetContents())
 }
 
 func TestEAnnotationReferencesGetList(t *testing.T) {
-	obj := newEAnnotationImpl()
-	assert.NotNil(t, obj.GetReferences())
+	o := newEAnnotationImpl()
+	assert.NotNil(t, o.GetReferences())
 }

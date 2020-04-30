@@ -17,30 +17,34 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
-func discardEDataType() {
+func discardMockENamedElement() {
 	_ = assert.Equal
-	_ = mock.Anything
 	_ = testing.Coverage
 }
 
-func TestEDataTypeSerializableGet(t *testing.T) {
-	v := true
-	obj := newEDataTypeImpl()
-	obj.SetSerializable(v)
-	assert.Equal(t, v, obj.IsSerializable())
+// TestMockENamedElementGetName tests method GetName
+func TestMockENamedElementGetName(t *testing.T) {
+	o := &MockENamedElement{}
+	r := "Test String"
+	o.On("GetName").Once().Return(r)
+	assert.Equal(t, r, o.GetName())
+
+	o.On("GetName").Once().Return(func() string {
+		return r
+	})
+	assert.Equal(t, r, o.GetName())
+	o.AssertExpectations(t)
 }
 
-func TestEDataTypeSerializableSet(t *testing.T) {
-	obj := newEDataTypeImpl()
-	v := true
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetSerializable(v)
-	mockAdapter.AssertExpectations(t)
+// TestMockENamedElementSetName tests method SetName
+func TestMockENamedElementSetName(t *testing.T) {
+	o := &MockENamedElement{}
+	v := "Test String"
+	o.On("SetName", v).Once()
+
+	o.SetName(v)
+	o.AssertExpectations(t)
 }

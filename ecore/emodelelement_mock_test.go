@@ -17,30 +17,24 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
-func discardEDataType() {
+func discardMockEModelElement() {
 	_ = assert.Equal
-	_ = mock.Anything
 	_ = testing.Coverage
 }
 
-func TestEDataTypeSerializableGet(t *testing.T) {
-	v := true
-	obj := newEDataTypeImpl()
-	obj.SetSerializable(v)
-	assert.Equal(t, v, obj.IsSerializable())
-}
+// TestGetEAnnotations tests method GetEAnnotations
+func TestGetEAnnotations(t *testing.T) {
+	o := &MockEModelElement{}
+	l := &MockEList{}
+	o.On("GetEAnnotations").Once().Return(l)
+	assert.Equal(t, l, o.GetEAnnotations())
 
-func TestEDataTypeSerializableSet(t *testing.T) {
-	obj := newEDataTypeImpl()
-	v := true
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetSerializable(v)
-	mockAdapter.AssertExpectations(t)
+	o.On("GetEAnnotations").Once().Return(func() EList {
+		return l
+	})
+	assert.Equal(t, l, o.GetEAnnotations())
+	o.AssertExpectations(t)
 }

@@ -25,5 +25,4 @@ func discardEObject() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }

@@ -26,46 +26,45 @@ func discardEClassifier() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEClassifierInstanceClassGet(t *testing.T) {
-	var newValue reflect.Type = nil
+	v := reflect.Type(nil)
 	obj := newEClassifierImpl()
-	obj.SetInstanceClass(newValue)
-	assert.Equal(t, newValue, obj.GetInstanceClass())
+	obj.SetInstanceClass(v)
+	assert.Equal(t, v, obj.GetInstanceClass())
 }
 
 func TestEClassifierInstanceClassSet(t *testing.T) {
-	var newValue reflect.Type = nil
 	obj := newEClassifierImpl()
+	v := reflect.Type(nil)
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetInstanceClass(newValue)
+	obj.SetInstanceClass(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEClassifierClassifierIDGet(t *testing.T) {
-	var newValue int = 45
+	v := 45
 	obj := newEClassifierImpl()
-	obj.SetClassifierID(newValue)
-	assert.Equal(t, newValue, obj.GetClassifierID())
+	obj.SetClassifierID(v)
+	assert.Equal(t, v, obj.GetClassifierID())
 }
 
 func TestEClassifierClassifierIDSet(t *testing.T) {
-	var newValue int = 45
 	obj := newEClassifierImpl()
+	v := 45
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetClassifierID(newValue)
+	obj.SetClassifierID(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEClassifierIsInstanceOperation(t *testing.T) {
-	obj := newEClassifierImpl()
-	assert.Panics(t, func() { obj.IsInstance(nil) })
+	o := newEClassifierImpl()
+	assert.Panics(t, func() { o.IsInstance(nil) })
 }

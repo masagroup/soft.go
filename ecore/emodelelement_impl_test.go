@@ -25,15 +25,14 @@ func discardEModelElement() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEModelElementEAnnotationsGetList(t *testing.T) {
-	obj := newEModelElementImpl()
-	assert.NotNil(t, obj.GetEAnnotations())
+	o := newEModelElementImpl()
+	assert.NotNil(t, o.GetEAnnotations())
 }
 
 func TestEModelElementGetEAnnotationOperation(t *testing.T) {
-	obj := newEModelElementImpl()
-	assert.Panics(t, func() { obj.GetEAnnotation("") })
+	o := newEModelElementImpl()
+	assert.Panics(t, func() { o.GetEAnnotation("") })
 }

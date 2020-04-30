@@ -25,23 +25,22 @@ func discardEAttribute() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEAttributeIDGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newEAttributeImpl()
-	obj.SetID(newValue)
-	assert.Equal(t, newValue, obj.IsID())
+	obj.SetID(v)
+	assert.Equal(t, v, obj.IsID())
 }
 
 func TestEAttributeIDSet(t *testing.T) {
-	var newValue bool = true
 	obj := newEAttributeImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetID(newValue)
+	obj.SetID(v)
 	mockAdapter.AssertExpectations(t)
 }

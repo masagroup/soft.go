@@ -25,74 +25,73 @@ func discardEGenericType() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEGenericTypeEUpperBoundSet(t *testing.T) {
-	var newValue *MockEGenericType = &MockEGenericType{}
 	obj := newEGenericTypeImpl()
+	v := &MockEGenericType{}
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetEUpperBound(newValue)
+	obj.SetEUpperBound(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEGenericTypeETypeArgumentsGetList(t *testing.T) {
-	obj := newEGenericTypeImpl()
-	assert.NotNil(t, obj.GetETypeArguments())
+	o := newEGenericTypeImpl()
+	assert.NotNil(t, o.GetETypeArguments())
 }
 
 func TestEGenericTypeELowerBoundSet(t *testing.T) {
-	var newValue *MockEGenericType = &MockEGenericType{}
 	obj := newEGenericTypeImpl()
+	v := &MockEGenericType{}
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetELowerBound(newValue)
+	obj.SetELowerBound(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEGenericTypeETypeParameterGet(t *testing.T) {
-	var newValue *MockETypeParameter = &MockETypeParameter{}
+	v := &MockETypeParameter{}
 	obj := newEGenericTypeImpl()
-	obj.SetETypeParameter(newValue)
-	assert.Equal(t, newValue, obj.GetETypeParameter())
+	obj.SetETypeParameter(v)
+	assert.Equal(t, v, obj.GetETypeParameter())
 }
 
 func TestEGenericTypeETypeParameterSet(t *testing.T) {
-	var newValue *MockETypeParameter = &MockETypeParameter{}
 	obj := newEGenericTypeImpl()
+	v := &MockETypeParameter{}
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetETypeParameter(newValue)
+	obj.SetETypeParameter(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEGenericTypeEClassifierGet(t *testing.T) {
-	var newValue *MockEClassifier = &MockEClassifier{}
-	newValue.On("EIsProxy").Return(false)
+	v := &MockEClassifier{}
+	v.On("EIsProxy").Return(false)
 	obj := newEGenericTypeImpl()
-	obj.SetEClassifier(newValue)
-	assert.Equal(t, newValue, obj.GetEClassifier())
+	obj.SetEClassifier(v)
+	assert.Equal(t, v, obj.GetEClassifier())
 }
 
 func TestEGenericTypeEClassifierSet(t *testing.T) {
-	var newValue *MockEClassifier = &MockEClassifier{}
 	obj := newEGenericTypeImpl()
+	v := &MockEClassifier{}
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetEClassifier(newValue)
+	obj.SetEClassifier(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEGenericTypeIsInstanceOperation(t *testing.T) {
-	obj := newEGenericTypeImpl()
-	assert.Panics(t, func() { obj.IsInstance(nil) })
+	o := newEGenericTypeImpl()
+	assert.Panics(t, func() { o.IsInstance(nil) })
 }

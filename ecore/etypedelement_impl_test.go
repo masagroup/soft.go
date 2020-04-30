@@ -25,96 +25,95 @@ func discardETypedElement() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestETypedElementOrderedGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newETypedElementImpl()
-	obj.SetOrdered(newValue)
-	assert.Equal(t, newValue, obj.IsOrdered())
+	obj.SetOrdered(v)
+	assert.Equal(t, v, obj.IsOrdered())
 }
 
 func TestETypedElementOrderedSet(t *testing.T) {
-	var newValue bool = true
 	obj := newETypedElementImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetOrdered(newValue)
+	obj.SetOrdered(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestETypedElementUniqueGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newETypedElementImpl()
-	obj.SetUnique(newValue)
-	assert.Equal(t, newValue, obj.IsUnique())
+	obj.SetUnique(v)
+	assert.Equal(t, v, obj.IsUnique())
 }
 
 func TestETypedElementUniqueSet(t *testing.T) {
-	var newValue bool = true
 	obj := newETypedElementImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetUnique(newValue)
+	obj.SetUnique(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestETypedElementLowerBoundGet(t *testing.T) {
-	var newValue int = 45
+	v := 45
 	obj := newETypedElementImpl()
-	obj.SetLowerBound(newValue)
-	assert.Equal(t, newValue, obj.GetLowerBound())
+	obj.SetLowerBound(v)
+	assert.Equal(t, v, obj.GetLowerBound())
 }
 
 func TestETypedElementLowerBoundSet(t *testing.T) {
-	var newValue int = 45
 	obj := newETypedElementImpl()
+	v := 45
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetLowerBound(newValue)
+	obj.SetLowerBound(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestETypedElementUpperBoundGet(t *testing.T) {
-	var newValue int = 45
+	v := 45
 	obj := newETypedElementImpl()
-	obj.SetUpperBound(newValue)
-	assert.Equal(t, newValue, obj.GetUpperBound())
+	obj.SetUpperBound(v)
+	assert.Equal(t, v, obj.GetUpperBound())
 }
 
 func TestETypedElementUpperBoundSet(t *testing.T) {
-	var newValue int = 45
 	obj := newETypedElementImpl()
+	v := 45
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetUpperBound(newValue)
+	obj.SetUpperBound(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestETypedElementETypeGet(t *testing.T) {
-	var newValue *MockEClassifier = &MockEClassifier{}
-	newValue.On("EIsProxy").Return(false)
+	v := &MockEClassifier{}
+	v.On("EIsProxy").Return(false)
 	obj := newETypedElementImpl()
-	obj.SetEType(newValue)
-	assert.Equal(t, newValue, obj.GetEType())
+	obj.SetEType(v)
+	assert.Equal(t, v, obj.GetEType())
 }
 
 func TestETypedElementETypeSet(t *testing.T) {
-	var newValue *MockEClassifier = &MockEClassifier{}
 	obj := newETypedElementImpl()
+	v := &MockEClassifier{}
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetEType(newValue)
+	obj.SetEType(v)
 	mockAdapter.AssertExpectations(t)
 }

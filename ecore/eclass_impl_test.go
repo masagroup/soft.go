@@ -25,147 +25,146 @@ func discardEClass() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEClassAbstractGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newEClassImpl()
-	obj.SetAbstract(newValue)
-	assert.Equal(t, newValue, obj.IsAbstract())
+	obj.SetAbstract(v)
+	assert.Equal(t, v, obj.IsAbstract())
 }
 
 func TestEClassAbstractSet(t *testing.T) {
-	var newValue bool = true
 	obj := newEClassImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetAbstract(newValue)
+	obj.SetAbstract(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEClassInterfaceGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newEClassImpl()
-	obj.SetInterface(newValue)
-	assert.Equal(t, newValue, obj.IsInterface())
+	obj.SetInterface(v)
+	assert.Equal(t, v, obj.IsInterface())
 }
 
 func TestEClassInterfaceSet(t *testing.T) {
-	var newValue bool = true
 	obj := newEClassImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetInterface(newValue)
+	obj.SetInterface(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEClassEStructuralFeaturesGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetEStructuralFeatures())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEStructuralFeatures())
 }
 
 func TestEClassEAttributesGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetEAttributes())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAttributes())
 }
 
 func TestEClassEReferencesGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetEReferences())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEReferences())
 }
 
 func TestEClassESuperTypesGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetESuperTypes())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetESuperTypes())
 }
 
 func TestEClassEOperationsGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetEOperations())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEOperations())
 }
 
 func TestEClassEContainmentsGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetEContainments())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEContainments())
 }
 
 func TestEClassECrossReferencesGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetECrossReferences())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetECrossReferences())
 }
 
 func TestEClassEAllAttributesGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetEAllAttributes())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllAttributes())
 }
 
 func TestEClassEAllReferencesGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetEAllReferences())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllReferences())
 }
 
 func TestEClassEAllContainmentsGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetEAllContainments())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllContainments())
 }
 
 func TestEClassEAllOperationsGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetEAllOperations())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllOperations())
 }
 
 func TestEClassEAllStructuralFeaturesGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetEAllStructuralFeatures())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllStructuralFeatures())
 }
 
 func TestEClassEAllSuperTypesGetList(t *testing.T) {
-	obj := newEClassImpl()
-	assert.NotNil(t, obj.GetEAllSuperTypes())
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllSuperTypes())
 }
 
 func TestEClassIsSuperTypeOfOperation(t *testing.T) {
-	obj := newEClassImpl()
-	assert.Panics(t, func() { obj.IsSuperTypeOf(nil) })
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.IsSuperTypeOf(nil) })
 }
 func TestEClassGetFeatureCountOperation(t *testing.T) {
-	obj := newEClassImpl()
-	assert.Panics(t, func() { obj.GetFeatureCount() })
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.GetFeatureCount() })
 }
 func TestEClassGetEStructuralFeatureOperation(t *testing.T) {
-	obj := newEClassImpl()
-	assert.Panics(t, func() { obj.GetEStructuralFeature(0) })
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.GetEStructuralFeature(0) })
 }
 func TestEClassGetEStructuralFeatureFromStringOperation(t *testing.T) {
-	obj := newEClassImpl()
-	assert.Panics(t, func() { obj.GetEStructuralFeatureFromString("") })
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.GetEStructuralFeatureFromString("") })
 }
 func TestEClassGetFeatureIDOperation(t *testing.T) {
-	obj := newEClassImpl()
-	assert.Panics(t, func() { obj.GetFeatureID(nil) })
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.GetFeatureID(nil) })
 }
 func TestEClassGetOperationCountOperation(t *testing.T) {
-	obj := newEClassImpl()
-	assert.Panics(t, func() { obj.GetOperationCount() })
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.GetOperationCount() })
 }
 func TestEClassGetEOperationOperation(t *testing.T) {
-	obj := newEClassImpl()
-	assert.Panics(t, func() { obj.GetEOperation(0) })
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.GetEOperation(0) })
 }
 func TestEClassGetOperationIDOperation(t *testing.T) {
-	obj := newEClassImpl()
-	assert.Panics(t, func() { obj.GetOperationID(nil) })
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.GetOperationID(nil) })
 }
 func TestEClassGetOverrideOperation(t *testing.T) {
-	obj := newEClassImpl()
-	assert.Panics(t, func() { obj.GetOverride(nil) })
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.GetOverride(nil) })
 }
 func TestEClassGetFeatureTypeOperation(t *testing.T) {
-	obj := newEClassImpl()
-	assert.Panics(t, func() { obj.GetFeatureType(nil) })
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.GetFeatureType(nil) })
 }

@@ -25,59 +25,58 @@ func discardEEnumLiteral() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEEnumLiteralValueGet(t *testing.T) {
-	var newValue int = 45
+	v := 45
 	obj := newEEnumLiteralImpl()
-	obj.SetValue(newValue)
-	assert.Equal(t, newValue, obj.GetValue())
+	obj.SetValue(v)
+	assert.Equal(t, v, obj.GetValue())
 }
 
 func TestEEnumLiteralValueSet(t *testing.T) {
-	var newValue int = 45
 	obj := newEEnumLiteralImpl()
+	v := 45
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetValue(newValue)
+	obj.SetValue(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEEnumLiteralInstanceGet(t *testing.T) {
-	var newValue interface{} = nil
+	v := interface{}(nil)
 	obj := newEEnumLiteralImpl()
-	obj.SetInstance(newValue)
-	assert.Equal(t, newValue, obj.GetInstance())
+	obj.SetInstance(v)
+	assert.Equal(t, v, obj.GetInstance())
 }
 
 func TestEEnumLiteralInstanceSet(t *testing.T) {
-	var newValue interface{} = nil
 	obj := newEEnumLiteralImpl()
+	v := interface{}(nil)
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetInstance(newValue)
+	obj.SetInstance(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEEnumLiteralLiteralGet(t *testing.T) {
-	var newValue string = "Test String"
+	v := "Test String"
 	obj := newEEnumLiteralImpl()
-	obj.SetLiteral(newValue)
-	assert.Equal(t, newValue, obj.GetLiteral())
+	obj.SetLiteral(v)
+	assert.Equal(t, v, obj.GetLiteral())
 }
 
 func TestEEnumLiteralLiteralSet(t *testing.T) {
-	var newValue string = "Test String"
 	obj := newEEnumLiteralImpl()
+	v := "Test String"
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetLiteral(newValue)
+	obj.SetLiteral(v)
 	mockAdapter.AssertExpectations(t)
 }

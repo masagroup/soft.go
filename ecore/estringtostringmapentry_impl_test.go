@@ -25,41 +25,40 @@ func discardEStringToStringMapEntry() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEStringToStringMapEntryKeyGet(t *testing.T) {
-	var newValue string = "Test String"
+	v := "Test String"
 	obj := newEStringToStringMapEntryImpl()
-	obj.SetKey(newValue)
-	assert.Equal(t, newValue, obj.GetKey())
+	obj.SetKey(v)
+	assert.Equal(t, v, obj.GetKey())
 }
 
 func TestEStringToStringMapEntryKeySet(t *testing.T) {
-	var newValue string = "Test String"
 	obj := newEStringToStringMapEntryImpl()
+	v := "Test String"
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetKey(newValue)
+	obj.SetKey(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStringToStringMapEntryValueGet(t *testing.T) {
-	var newValue string = "Test String"
+	v := "Test String"
 	obj := newEStringToStringMapEntryImpl()
-	obj.SetValue(newValue)
-	assert.Equal(t, newValue, obj.GetValue())
+	obj.SetValue(v)
+	assert.Equal(t, v, obj.GetValue())
 }
 
 func TestEStringToStringMapEntryValueSet(t *testing.T) {
-	var newValue string = "Test String"
 	obj := newEStringToStringMapEntryImpl()
+	v := "Test String"
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetValue(newValue)
+	obj.SetValue(v)
 	mockAdapter.AssertExpectations(t)
 }

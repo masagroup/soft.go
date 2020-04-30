@@ -17,30 +17,34 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
-func discardEDataType() {
+func discardMockEFactory() {
 	_ = assert.Equal
-	_ = mock.Anything
 	_ = testing.Coverage
 }
 
-func TestEDataTypeSerializableGet(t *testing.T) {
-	v := true
-	obj := newEDataTypeImpl()
-	obj.SetSerializable(v)
-	assert.Equal(t, v, obj.IsSerializable())
+// TestMockEFactoryGetEPackage tests method GetEPackage
+func TestMockEFactoryGetEPackage(t *testing.T) {
+	o := &MockEFactory{}
+	r := &MockEPackage{}
+	o.On("GetEPackage").Once().Return(r)
+	assert.Equal(t, r, o.GetEPackage())
+
+	o.On("GetEPackage").Once().Return(func() EPackage {
+		return r
+	})
+	assert.Equal(t, r, o.GetEPackage())
+	o.AssertExpectations(t)
 }
 
-func TestEDataTypeSerializableSet(t *testing.T) {
-	obj := newEDataTypeImpl()
-	v := true
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetSerializable(v)
-	mockAdapter.AssertExpectations(t)
+// TestMockEFactorySetEPackage tests method SetEPackage
+func TestMockEFactorySetEPackage(t *testing.T) {
+	o := &MockEFactory{}
+	v := &MockEPackage{}
+	o.On("SetEPackage", v).Once()
+
+	o.SetEPackage(v)
+	o.AssertExpectations(t)
 }

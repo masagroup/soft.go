@@ -17,30 +17,24 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
-func discardEDataType() {
+func discardMockEEnum() {
 	_ = assert.Equal
-	_ = mock.Anything
 	_ = testing.Coverage
 }
 
-func TestEDataTypeSerializableGet(t *testing.T) {
-	v := true
-	obj := newEDataTypeImpl()
-	obj.SetSerializable(v)
-	assert.Equal(t, v, obj.IsSerializable())
-}
+// TestGetELiterals tests method GetELiterals
+func TestGetELiterals(t *testing.T) {
+	o := &MockEEnum{}
+	l := &MockEList{}
+	o.On("GetELiterals").Once().Return(l)
+	assert.Equal(t, l, o.GetELiterals())
 
-func TestEDataTypeSerializableSet(t *testing.T) {
-	obj := newEDataTypeImpl()
-	v := true
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetSerializable(v)
-	mockAdapter.AssertExpectations(t)
+	o.On("GetELiterals").Once().Return(func() EList {
+		return l
+	})
+	assert.Equal(t, l, o.GetELiterals())
+	o.AssertExpectations(t)
 }

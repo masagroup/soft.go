@@ -25,5 +25,4 @@ func discardEParameter() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }

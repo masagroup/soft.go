@@ -25,6 +25,19 @@ func discardMockEObject() {
 	_ = testing.Coverage
 }
 
+// TestMockEObjectEAllContents tests method EAllContents
+func TestMockEObjectEAllContents(t *testing.T) {
+	o := &MockEObject{}
+	r := EIterator(nil)
+	o.On("EAllContents").Return(r).Once()
+	o.On("EAllContents").Return(func() EIterator {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.EAllContents())
+	assert.Equal(t, r, o.EAllContents())
+	o.AssertExpectations(t)
+}
+
 // TestMockEObjectEClass tests method EClass
 func TestMockEObjectEClass(t *testing.T) {
 	o := &MockEObject{}
@@ -35,32 +48,6 @@ func TestMockEObjectEClass(t *testing.T) {
 	}).Once()
 	assert.Equal(t, r, o.EClass())
 	assert.Equal(t, r, o.EClass())
-	o.AssertExpectations(t)
-}
-
-// TestMockEObjectEIsProxy tests method EIsProxy
-func TestMockEObjectEIsProxy(t *testing.T) {
-	o := &MockEObject{}
-	r := true
-	o.On("EIsProxy").Return(r).Once()
-	o.On("EIsProxy").Return(func() bool {
-		return r
-	}).Once()
-	assert.Equal(t, r, o.EIsProxy())
-	assert.Equal(t, r, o.EIsProxy())
-	o.AssertExpectations(t)
-}
-
-// TestMockEObjectEResource tests method EResource
-func TestMockEObjectEResource(t *testing.T) {
-	o := &MockEObject{}
-	r := EResource(nil)
-	o.On("EResource").Return(r).Once()
-	o.On("EResource").Return(func() EResource {
-		return r
-	}).Once()
-	assert.Equal(t, r, o.EResource())
-	assert.Equal(t, r, o.EResource())
 	o.AssertExpectations(t)
 }
 
@@ -116,19 +103,6 @@ func TestMockEObjectEContents(t *testing.T) {
 	o.AssertExpectations(t)
 }
 
-// TestMockEObjectEAllContents tests method EAllContents
-func TestMockEObjectEAllContents(t *testing.T) {
-	o := &MockEObject{}
-	r := EIterator(nil)
-	o.On("EAllContents").Return(r).Once()
-	o.On("EAllContents").Return(func() EIterator {
-		return r
-	}).Once()
-	assert.Equal(t, r, o.EAllContents())
-	assert.Equal(t, r, o.EAllContents())
-	o.AssertExpectations(t)
-}
-
 // TestMockEObjectECrossReferences tests method ECrossReferences
 func TestMockEObjectECrossReferences(t *testing.T) {
 	o := &MockEObject{}
@@ -171,13 +145,31 @@ func TestMockEObjectEGetResolve(t *testing.T) {
 	o.AssertExpectations(t)
 }
 
-// TestMockEObjectESet tests method ESet
-func TestMockEObjectESet(t *testing.T) {
+// TestMockEObjectEInvoke tests method EInvoke
+func TestMockEObjectEInvoke(t *testing.T) {
 	o := &MockEObject{}
-	feature := &MockEStructuralFeature{}
-	newValue := interface{}(nil)
-	o.On("ESet", feature, newValue).Once()
-	o.ESet(feature, newValue)
+	operation := &MockEOperation{}
+	arguments := NewEmptyBasicEList()
+	r := interface{}(nil)
+	o.On("EInvoke", operation, arguments).Return(r).Once()
+	o.On("EInvoke", operation, arguments).Return(func() interface{} {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.EInvoke(operation, arguments))
+	assert.Equal(t, r, o.EInvoke(operation, arguments))
+	o.AssertExpectations(t)
+}
+
+// TestMockEObjectEIsProxy tests method EIsProxy
+func TestMockEObjectEIsProxy(t *testing.T) {
+	o := &MockEObject{}
+	r := true
+	o.On("EIsProxy").Return(r).Once()
+	o.On("EIsProxy").Return(func() bool {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.EIsProxy())
+	assert.Equal(t, r, o.EIsProxy())
 	o.AssertExpectations(t)
 }
 
@@ -195,26 +187,34 @@ func TestMockEObjectEIsSet(t *testing.T) {
 	o.AssertExpectations(t)
 }
 
+// TestMockEObjectEResource tests method EResource
+func TestMockEObjectEResource(t *testing.T) {
+	o := &MockEObject{}
+	r := EResource(nil)
+	o.On("EResource").Return(r).Once()
+	o.On("EResource").Return(func() EResource {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.EResource())
+	assert.Equal(t, r, o.EResource())
+	o.AssertExpectations(t)
+}
+
+// TestMockEObjectESet tests method ESet
+func TestMockEObjectESet(t *testing.T) {
+	o := &MockEObject{}
+	feature := &MockEStructuralFeature{}
+	newValue := interface{}(nil)
+	o.On("ESet", feature, newValue).Once()
+	o.ESet(feature, newValue)
+	o.AssertExpectations(t)
+}
+
 // TestMockEObjectEUnset tests method EUnset
 func TestMockEObjectEUnset(t *testing.T) {
 	o := &MockEObject{}
 	feature := &MockEStructuralFeature{}
 	o.On("EUnset", feature).Once()
 	o.EUnset(feature)
-	o.AssertExpectations(t)
-}
-
-// TestMockEObjectEInvoke tests method EInvoke
-func TestMockEObjectEInvoke(t *testing.T) {
-	o := &MockEObject{}
-	operation := &MockEOperation{}
-	arguments := NewEmptyBasicEList()
-	r := interface{}(nil)
-	o.On("EInvoke", operation, arguments).Return(r).Once()
-	o.On("EInvoke", operation, arguments).Return(func() interface{} {
-		return r
-	}).Once()
-	assert.Equal(t, r, o.EInvoke(operation, arguments))
-	assert.Equal(t, r, o.EInvoke(operation, arguments))
 	o.AssertExpectations(t)
 }

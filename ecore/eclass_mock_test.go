@@ -264,76 +264,6 @@ func TestMockEClassSetInterface(t *testing.T) {
 	o.AssertExpectations(t)
 }
 
-// TestMockEClassGetOverride tests method GetOverride
-func TestMockEClassGetOverride(t *testing.T) {
-	o := &MockEClass{}
-	operation := &MockEOperation{}
-	r := &MockEOperation{}
-	o.On("GetOverride", operation).Return(r).Once()
-	o.On("GetOverride", operation).Return(func() EOperation {
-		return r
-	}).Once()
-	assert.Equal(t, r, o.GetOverride(operation))
-	assert.Equal(t, r, o.GetOverride(operation))
-	o.AssertExpectations(t)
-}
-
-// TestMockEClassGetFeatureID tests method GetFeatureID
-func TestMockEClassGetFeatureID(t *testing.T) {
-	o := &MockEClass{}
-	feature := &MockEStructuralFeature{}
-	r := 45
-	o.On("GetFeatureID", feature).Return(r).Once()
-	o.On("GetFeatureID", feature).Return(func() int {
-		return r
-	}).Once()
-	assert.Equal(t, r, o.GetFeatureID(feature))
-	assert.Equal(t, r, o.GetFeatureID(feature))
-	o.AssertExpectations(t)
-}
-
-// TestMockEClassGetOperationID tests method GetOperationID
-func TestMockEClassGetOperationID(t *testing.T) {
-	o := &MockEClass{}
-	operation := &MockEOperation{}
-	r := 45
-	o.On("GetOperationID", operation).Return(r).Once()
-	o.On("GetOperationID", operation).Return(func() int {
-		return r
-	}).Once()
-	assert.Equal(t, r, o.GetOperationID(operation))
-	assert.Equal(t, r, o.GetOperationID(operation))
-	o.AssertExpectations(t)
-}
-
-// TestMockEClassIsSuperTypeOf tests method IsSuperTypeOf
-func TestMockEClassIsSuperTypeOf(t *testing.T) {
-	o := &MockEClass{}
-	someClass := &MockEClass{}
-	r := true
-	o.On("IsSuperTypeOf", someClass).Return(r).Once()
-	o.On("IsSuperTypeOf", someClass).Return(func() bool {
-		return r
-	}).Once()
-	assert.Equal(t, r, o.IsSuperTypeOf(someClass))
-	assert.Equal(t, r, o.IsSuperTypeOf(someClass))
-	o.AssertExpectations(t)
-}
-
-// TestMockEClassGetEStructuralFeature tests method GetEStructuralFeature
-func TestMockEClassGetEStructuralFeature(t *testing.T) {
-	o := &MockEClass{}
-	featureID := 45
-	r := &MockEStructuralFeature{}
-	o.On("GetEStructuralFeature", featureID).Return(r).Once()
-	o.On("GetEStructuralFeature", featureID).Return(func() EStructuralFeature {
-		return r
-	}).Once()
-	assert.Equal(t, r, o.GetEStructuralFeature(featureID))
-	assert.Equal(t, r, o.GetEStructuralFeature(featureID))
-	o.AssertExpectations(t)
-}
-
 // TestMockEClassGetEOperation tests method GetEOperation
 func TestMockEClassGetEOperation(t *testing.T) {
 	o := &MockEClass{}
@@ -348,17 +278,17 @@ func TestMockEClassGetEOperation(t *testing.T) {
 	o.AssertExpectations(t)
 }
 
-// TestMockEClassGetFeatureType tests method GetFeatureType
-func TestMockEClassGetFeatureType(t *testing.T) {
+// TestMockEClassGetEStructuralFeature tests method GetEStructuralFeature
+func TestMockEClassGetEStructuralFeature(t *testing.T) {
 	o := &MockEClass{}
-	feature := &MockEStructuralFeature{}
-	r := &MockEClassifier{}
-	o.On("GetFeatureType", feature).Return(r).Once()
-	o.On("GetFeatureType", feature).Return(func() EClassifier {
+	featureID := 45
+	r := &MockEStructuralFeature{}
+	o.On("GetEStructuralFeature", featureID).Return(r).Once()
+	o.On("GetEStructuralFeature", featureID).Return(func() EStructuralFeature {
 		return r
 	}).Once()
-	assert.Equal(t, r, o.GetFeatureType(feature))
-	assert.Equal(t, r, o.GetFeatureType(feature))
+	assert.Equal(t, r, o.GetEStructuralFeature(featureID))
+	assert.Equal(t, r, o.GetEStructuralFeature(featureID))
 	o.AssertExpectations(t)
 }
 
@@ -389,6 +319,34 @@ func TestMockEClassGetFeatureCount(t *testing.T) {
 	o.AssertExpectations(t)
 }
 
+// TestMockEClassGetFeatureID tests method GetFeatureID
+func TestMockEClassGetFeatureID(t *testing.T) {
+	o := &MockEClass{}
+	feature := &MockEStructuralFeature{}
+	r := 45
+	o.On("GetFeatureID", feature).Return(r).Once()
+	o.On("GetFeatureID", feature).Return(func() int {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.GetFeatureID(feature))
+	assert.Equal(t, r, o.GetFeatureID(feature))
+	o.AssertExpectations(t)
+}
+
+// TestMockEClassGetFeatureType tests method GetFeatureType
+func TestMockEClassGetFeatureType(t *testing.T) {
+	o := &MockEClass{}
+	feature := &MockEStructuralFeature{}
+	r := &MockEClassifier{}
+	o.On("GetFeatureType", feature).Return(r).Once()
+	o.On("GetFeatureType", feature).Return(func() EClassifier {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.GetFeatureType(feature))
+	assert.Equal(t, r, o.GetFeatureType(feature))
+	o.AssertExpectations(t)
+}
+
 // TestMockEClassGetOperationCount tests method GetOperationCount
 func TestMockEClassGetOperationCount(t *testing.T) {
 	o := &MockEClass{}
@@ -399,5 +357,47 @@ func TestMockEClassGetOperationCount(t *testing.T) {
 	}).Once()
 	assert.Equal(t, r, o.GetOperationCount())
 	assert.Equal(t, r, o.GetOperationCount())
+	o.AssertExpectations(t)
+}
+
+// TestMockEClassGetOperationID tests method GetOperationID
+func TestMockEClassGetOperationID(t *testing.T) {
+	o := &MockEClass{}
+	operation := &MockEOperation{}
+	r := 45
+	o.On("GetOperationID", operation).Return(r).Once()
+	o.On("GetOperationID", operation).Return(func() int {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.GetOperationID(operation))
+	assert.Equal(t, r, o.GetOperationID(operation))
+	o.AssertExpectations(t)
+}
+
+// TestMockEClassGetOverride tests method GetOverride
+func TestMockEClassGetOverride(t *testing.T) {
+	o := &MockEClass{}
+	operation := &MockEOperation{}
+	r := &MockEOperation{}
+	o.On("GetOverride", operation).Return(r).Once()
+	o.On("GetOverride", operation).Return(func() EOperation {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.GetOverride(operation))
+	assert.Equal(t, r, o.GetOverride(operation))
+	o.AssertExpectations(t)
+}
+
+// TestMockEClassIsSuperTypeOf tests method IsSuperTypeOf
+func TestMockEClassIsSuperTypeOf(t *testing.T) {
+	o := &MockEClass{}
+	someClass := &MockEClass{}
+	r := true
+	o.On("IsSuperTypeOf", someClass).Return(r).Once()
+	o.On("IsSuperTypeOf", someClass).Return(func() bool {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.IsSuperTypeOf(someClass))
+	assert.Equal(t, r, o.IsSuperTypeOf(someClass))
 	o.AssertExpectations(t)
 }

@@ -285,86 +285,6 @@ func (eClass *MockEClass) SetInterface(newIsInterface bool) {
 	eClass.Called(newIsInterface)
 }
 
-// GetOverride provides mock implementation
-func (eClass *MockEClass) GetOverride(operation EOperation) EOperation {
-	ret := eClass.Called(operation)
-
-	var r EOperation
-	if rf, ok := ret.Get(0).(func() EOperation); ok {
-		r = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r = ret.Get(0).(EOperation)
-		}
-	}
-
-	return r
-}
-
-// GetFeatureID provides mock implementation
-func (eClass *MockEClass) GetFeatureID(feature EStructuralFeature) int {
-	ret := eClass.Called(feature)
-
-	var r int
-	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
-		}
-	}
-
-	return r
-}
-
-// GetOperationID provides mock implementation
-func (eClass *MockEClass) GetOperationID(operation EOperation) int {
-	ret := eClass.Called(operation)
-
-	var r int
-	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
-		}
-	}
-
-	return r
-}
-
-// IsSuperTypeOf provides mock implementation
-func (eClass *MockEClass) IsSuperTypeOf(someClass EClass) bool {
-	ret := eClass.Called(someClass)
-
-	var r bool
-	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
-		}
-	}
-
-	return r
-}
-
-// GetEStructuralFeature provides mock implementation
-func (eClass *MockEClass) GetEStructuralFeature(featureID int) EStructuralFeature {
-	ret := eClass.Called(featureID)
-
-	var r EStructuralFeature
-	if rf, ok := ret.Get(0).(func() EStructuralFeature); ok {
-		r = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r = ret.Get(0).(EStructuralFeature)
-		}
-	}
-
-	return r
-}
-
 // GetEOperation provides mock implementation
 func (eClass *MockEClass) GetEOperation(operationID int) EOperation {
 	ret := eClass.Called(operationID)
@@ -381,16 +301,16 @@ func (eClass *MockEClass) GetEOperation(operationID int) EOperation {
 	return r
 }
 
-// GetFeatureType provides mock implementation
-func (eClass *MockEClass) GetFeatureType(feature EStructuralFeature) EClassifier {
-	ret := eClass.Called(feature)
+// GetEStructuralFeature provides mock implementation
+func (eClass *MockEClass) GetEStructuralFeature(featureID int) EStructuralFeature {
+	ret := eClass.Called(featureID)
 
-	var r EClassifier
-	if rf, ok := ret.Get(0).(func() EClassifier); ok {
+	var r EStructuralFeature
+	if rf, ok := ret.Get(0).(func() EStructuralFeature); ok {
 		r = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EClassifier)
+			r = ret.Get(0).(EStructuralFeature)
 		}
 	}
 
@@ -429,6 +349,38 @@ func (eClass *MockEClass) GetFeatureCount() int {
 	return r
 }
 
+// GetFeatureID provides mock implementation
+func (eClass *MockEClass) GetFeatureID(feature EStructuralFeature) int {
+	ret := eClass.Called(feature)
+
+	var r int
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r = ret.Get(0).(int)
+		}
+	}
+
+	return r
+}
+
+// GetFeatureType provides mock implementation
+func (eClass *MockEClass) GetFeatureType(feature EStructuralFeature) EClassifier {
+	ret := eClass.Called(feature)
+
+	var r EClassifier
+	if rf, ok := ret.Get(0).(func() EClassifier); ok {
+		r = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r = ret.Get(0).(EClassifier)
+		}
+	}
+
+	return r
+}
+
 // GetOperationCount provides mock implementation
 func (eClass *MockEClass) GetOperationCount() int {
 	ret := eClass.Called()
@@ -439,6 +391,54 @@ func (eClass *MockEClass) GetOperationCount() int {
 	} else {
 		if ret.Get(0) != nil {
 			r = ret.Get(0).(int)
+		}
+	}
+
+	return r
+}
+
+// GetOperationID provides mock implementation
+func (eClass *MockEClass) GetOperationID(operation EOperation) int {
+	ret := eClass.Called(operation)
+
+	var r int
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r = ret.Get(0).(int)
+		}
+	}
+
+	return r
+}
+
+// GetOverride provides mock implementation
+func (eClass *MockEClass) GetOverride(operation EOperation) EOperation {
+	ret := eClass.Called(operation)
+
+	var r EOperation
+	if rf, ok := ret.Get(0).(func() EOperation); ok {
+		r = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r = ret.Get(0).(EOperation)
+		}
+	}
+
+	return r
+}
+
+// IsSuperTypeOf provides mock implementation
+func (eClass *MockEClass) IsSuperTypeOf(someClass EClass) bool {
+	ret := eClass.Called(someClass)
+
+	var r bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r = ret.Get(0).(bool)
 		}
 	}
 

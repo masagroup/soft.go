@@ -47,6 +47,21 @@ func TestMockEFactorySetEPackage(t *testing.T) {
 	o.AssertExpectations(t)
 }
 
+// TestMockEFactoryConvertToString tests method ConvertToString
+func TestMockEFactoryConvertToString(t *testing.T) {
+	o := &MockEFactory{}
+	eDataType := &MockEDataType{}
+	instanceValue := interface{}(nil)
+	r := "Test String"
+	o.On("ConvertToString", eDataType, instanceValue).Return(r).Once()
+	o.On("ConvertToString", eDataType, instanceValue).Return(func() string {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.ConvertToString(eDataType, instanceValue))
+	assert.Equal(t, r, o.ConvertToString(eDataType, instanceValue))
+	o.AssertExpectations(t)
+}
+
 // TestMockEFactoryCreate tests method Create
 func TestMockEFactoryCreate(t *testing.T) {
 	o := &MockEFactory{}
@@ -73,20 +88,5 @@ func TestMockEFactoryCreateFromString(t *testing.T) {
 	}).Once()
 	assert.Equal(t, r, o.CreateFromString(eDataType, literalValue))
 	assert.Equal(t, r, o.CreateFromString(eDataType, literalValue))
-	o.AssertExpectations(t)
-}
-
-// TestMockEFactoryConvertToString tests method ConvertToString
-func TestMockEFactoryConvertToString(t *testing.T) {
-	o := &MockEFactory{}
-	eDataType := &MockEDataType{}
-	instanceValue := interface{}(nil)
-	r := "Test String"
-	o.On("ConvertToString", eDataType, instanceValue).Return(r).Once()
-	o.On("ConvertToString", eDataType, instanceValue).Return(func() string {
-		return r
-	}).Once()
-	assert.Equal(t, r, o.ConvertToString(eDataType, instanceValue))
-	assert.Equal(t, r, o.ConvertToString(eDataType, instanceValue))
 	o.AssertExpectations(t)
 }

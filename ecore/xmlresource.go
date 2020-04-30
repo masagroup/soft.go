@@ -12,7 +12,7 @@ import (
 )
 
 type xmlLoad interface {
-	load(resource XMLResource, w io.Reader)
+	load(resource xmlResource, w io.Reader)
 }
 
 type xmlLoadInternal interface {
@@ -21,14 +21,14 @@ type xmlLoadInternal interface {
 }
 
 type xmlSave interface {
-	save(resource XMLResource, w io.Writer)
+	save(resource xmlResource, w io.Writer)
 }
 
 type xmlSaveInternal interface {
 	saveNamespaces()
 }
 
-type XMLResource interface {
+type xmlResource interface {
 	EResourceInternal
 	createLoad() xmlLoad
 	createSave() xmlSave
@@ -131,7 +131,7 @@ type reference struct {
 type xmlLoadImpl struct {
 	interfaces          interface{}
 	decoder             *xml.Decoder
-	resource            XMLResource
+	resource            xmlResource
 	isResolveDeferred   bool
 	elements            []string
 	objects             []EObject
@@ -152,7 +152,7 @@ func newXMLLoadImpl() *xmlLoadImpl {
 	return l
 }
 
-func (l *xmlLoadImpl) load(resource XMLResource, r io.Reader) {
+func (l *xmlLoadImpl) load(resource xmlResource, r io.Reader) {
 	l.decoder = xml.NewDecoder(r)
 	l.decoder.CharsetReader = charset.NewReaderLabel
 	l.resource = resource
@@ -922,7 +922,7 @@ const (
 
 type xmlSaveImpl struct {
 	interfaces    interface{}
-	resource      XMLResource
+	resource      xmlResource
 	str           *xmlString
 	packages      map[EPackage]string
 	uriToPrefixes map[string][]string
@@ -944,7 +944,7 @@ func newXMLSaveImpl() *xmlSaveImpl {
 	return s
 }
 
-func (s *xmlSaveImpl) save(resource XMLResource, w io.Writer) {
+func (s *xmlSaveImpl) save(resource xmlResource, w io.Writer) {
 	s.resource = resource
 	c := s.resource.GetContents()
 	if c.Empty() {
@@ -1544,13 +1544,13 @@ func newXMLResourceImpl() *xmlResourceImpl {
 }
 
 func (r *xmlResourceImpl) DoLoad(rd io.Reader) {
-	resource := r.GetInterfaces().(XMLResource)
+	resource := r.GetInterfaces().(xmlResource)
 	l := resource.createLoad()
 	l.load(resource, rd)
 }
 
 func (r *xmlResourceImpl) DoSave(w io.Writer) {
-	resource := r.GetInterfaces().(XMLResource)
+	resource := r.GetInterfaces().(xmlResource)
 	s := resource.createSave()
 	s.save(resource, w)
 }

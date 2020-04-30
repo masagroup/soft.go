@@ -3,7 +3,7 @@
 // This file is part of a MASA library or program.
 // Refer to the included end-user license agreement for restrictions.
 //
-// Copyright (c) 2019 MASA Group
+// Copyright (c) 2020 MASA Group
 //
 // *****************************************************************************
 
@@ -25,23 +25,22 @@ func discardEDataType() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEDataTypeSerializableGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newEDataTypeImpl()
-	obj.SetSerializable(newValue)
-	assert.Equal(t, newValue, obj.IsSerializable())
+	obj.SetSerializable(v)
+	assert.Equal(t, v, obj.IsSerializable())
 }
 
 func TestEDataTypeSerializableSet(t *testing.T) {
-	var newValue bool = true
 	obj := newEDataTypeImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetSerializable(newValue)
+	obj.SetSerializable(v)
 	mockAdapter.AssertExpectations(t)
 }

@@ -3,7 +3,7 @@
 // This file is part of a MASA library or program.
 // Refer to the included end-user license agreement for restrictions.
 //
-// Copyright (c) 2019 MASA Group
+// Copyright (c) 2020 MASA Group
 //
 // *****************************************************************************
 
@@ -25,18 +25,17 @@ func discardEFactory() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEFactoryCreateOperation(t *testing.T) {
-	obj := newEFactoryImpl()
-	assert.Panics(t, func() { obj.Create(nil) })
+	o := newEFactoryImpl()
+	assert.Panics(t, func() { o.Create(nil) })
 }
 func TestEFactoryCreateFromStringOperation(t *testing.T) {
-	obj := newEFactoryImpl()
-	assert.Panics(t, func() { obj.CreateFromString(nil, "") })
+	o := newEFactoryImpl()
+	assert.Panics(t, func() { o.CreateFromString(nil, "") })
 }
 func TestEFactoryConvertToStringOperation(t *testing.T) {
-	obj := newEFactoryImpl()
-	assert.Panics(t, func() { obj.ConvertToString(nil, nil) })
+	o := newEFactoryImpl()
+	assert.Panics(t, func() { o.ConvertToString(nil, nil) })
 }

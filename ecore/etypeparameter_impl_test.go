@@ -3,7 +3,7 @@
 // This file is part of a MASA library or program.
 // Refer to the included end-user license agreement for restrictions.
 //
-// Copyright (c) 2019 MASA Group
+// Copyright (c) 2020 MASA Group
 //
 // *****************************************************************************
 
@@ -25,10 +25,9 @@ func discardETypeParameter() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestETypeParameterEBoundsGetList(t *testing.T) {
-	obj := newETypeParameterImpl()
-	assert.NotNil(t, obj.GetEBounds())
+	o := newETypeParameterImpl()
+	assert.NotNil(t, o.GetEBounds())
 }

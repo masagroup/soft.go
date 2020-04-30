@@ -3,7 +3,7 @@
 // This file is part of a MASA library or program.
 // Refer to the included end-user license agreement for restrictions.
 //
-// Copyright (c) 2019 MASA Group
+// Copyright (c) 2020 MASA Group
 //
 // *****************************************************************************
 
@@ -25,136 +25,135 @@ func discardEStructuralFeature() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEStructuralFeatureChangeableGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newEStructuralFeatureImpl()
-	obj.SetChangeable(newValue)
-	assert.Equal(t, newValue, obj.IsChangeable())
+	obj.SetChangeable(v)
+	assert.Equal(t, v, obj.IsChangeable())
 }
 
 func TestEStructuralFeatureChangeableSet(t *testing.T) {
-	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetChangeable(newValue)
+	obj.SetChangeable(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStructuralFeatureVolatileGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newEStructuralFeatureImpl()
-	obj.SetVolatile(newValue)
-	assert.Equal(t, newValue, obj.IsVolatile())
+	obj.SetVolatile(v)
+	assert.Equal(t, v, obj.IsVolatile())
 }
 
 func TestEStructuralFeatureVolatileSet(t *testing.T) {
-	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetVolatile(newValue)
+	obj.SetVolatile(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStructuralFeatureTransientGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newEStructuralFeatureImpl()
-	obj.SetTransient(newValue)
-	assert.Equal(t, newValue, obj.IsTransient())
+	obj.SetTransient(v)
+	assert.Equal(t, v, obj.IsTransient())
 }
 
 func TestEStructuralFeatureTransientSet(t *testing.T) {
-	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetTransient(newValue)
+	obj.SetTransient(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStructuralFeatureDefaultValueLiteralGet(t *testing.T) {
-	var newValue string = "Test String"
+	v := "Test String"
 	obj := newEStructuralFeatureImpl()
-	obj.SetDefaultValueLiteral(newValue)
-	assert.Equal(t, newValue, obj.GetDefaultValueLiteral())
+	obj.SetDefaultValueLiteral(v)
+	assert.Equal(t, v, obj.GetDefaultValueLiteral())
 }
 
 func TestEStructuralFeatureDefaultValueLiteralSet(t *testing.T) {
-	var newValue string = "Test String"
 	obj := newEStructuralFeatureImpl()
+	v := "Test String"
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetDefaultValueLiteral(newValue)
+	obj.SetDefaultValueLiteral(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStructuralFeatureUnsettableGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newEStructuralFeatureImpl()
-	obj.SetUnsettable(newValue)
-	assert.Equal(t, newValue, obj.IsUnsettable())
+	obj.SetUnsettable(v)
+	assert.Equal(t, v, obj.IsUnsettable())
 }
 
 func TestEStructuralFeatureUnsettableSet(t *testing.T) {
-	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetUnsettable(newValue)
+	obj.SetUnsettable(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStructuralFeatureDerivedGet(t *testing.T) {
-	var newValue bool = true
+	v := true
 	obj := newEStructuralFeatureImpl()
-	obj.SetDerived(newValue)
-	assert.Equal(t, newValue, obj.IsDerived())
+	obj.SetDerived(v)
+	assert.Equal(t, v, obj.IsDerived())
 }
 
 func TestEStructuralFeatureDerivedSet(t *testing.T) {
-	var newValue bool = true
 	obj := newEStructuralFeatureImpl()
+	v := true
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetDerived(newValue)
+	obj.SetDerived(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStructuralFeatureFeatureIDGet(t *testing.T) {
-	var newValue int = 45
+	v := 45
 	obj := newEStructuralFeatureImpl()
-	obj.SetFeatureID(newValue)
-	assert.Equal(t, newValue, obj.GetFeatureID())
+	obj.SetFeatureID(v)
+	assert.Equal(t, v, obj.GetFeatureID())
 }
 
 func TestEStructuralFeatureFeatureIDSet(t *testing.T) {
-	var newValue int = 45
 	obj := newEStructuralFeatureImpl()
+	v := 45
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetFeatureID(newValue)
+	obj.SetFeatureID(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStructuralFeatureGetContainerClassOperation(t *testing.T) {
-	obj := newEStructuralFeatureImpl()
-	assert.Panics(t, func() { obj.GetContainerClass() })
+	o := newEStructuralFeatureImpl()
+	assert.Panics(t, func() { o.GetContainerClass() })
 }

@@ -3,7 +3,7 @@
 // This file is part of a MASA library or program.
 // Refer to the included end-user license agreement for restrictions.
 //
-// Copyright (c) 2019 MASA Group
+// Copyright (c) 2020 MASA Group
 //
 // *****************************************************************************
 
@@ -25,38 +25,37 @@ func discardEOperation() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEOperationEParametersGetList(t *testing.T) {
-	obj := newEOperationImpl()
-	assert.NotNil(t, obj.GetEParameters())
+	o := newEOperationImpl()
+	assert.NotNil(t, o.GetEParameters())
 }
 
 func TestEOperationEExceptionsGetList(t *testing.T) {
-	obj := newEOperationImpl()
-	assert.NotNil(t, obj.GetEExceptions())
+	o := newEOperationImpl()
+	assert.NotNil(t, o.GetEExceptions())
 }
 
 func TestEOperationOperationIDGet(t *testing.T) {
-	var newValue int = 45
+	v := 45
 	obj := newEOperationImpl()
-	obj.SetOperationID(newValue)
-	assert.Equal(t, newValue, obj.GetOperationID())
+	obj.SetOperationID(v)
+	assert.Equal(t, v, obj.GetOperationID())
 }
 
 func TestEOperationOperationIDSet(t *testing.T) {
-	var newValue int = 45
 	obj := newEOperationImpl()
+	v := 45
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetOperationID(newValue)
+	obj.SetOperationID(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEOperationIsOverrideOfOperation(t *testing.T) {
-	obj := newEOperationImpl()
-	assert.Panics(t, func() { obj.IsOverrideOf(nil) })
+	o := newEOperationImpl()
+	assert.Panics(t, func() { o.IsOverrideOf(nil) })
 }

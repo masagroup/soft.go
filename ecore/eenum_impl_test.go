@@ -3,7 +3,7 @@
 // This file is part of a MASA library or program.
 // Refer to the included end-user license agreement for restrictions.
 //
-// Copyright (c) 2019 MASA Group
+// Copyright (c) 2020 MASA Group
 //
 // *****************************************************************************
 
@@ -25,23 +25,22 @@ func discardEEnum() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEEnumELiteralsGetList(t *testing.T) {
-	obj := newEEnumImpl()
-	assert.NotNil(t, obj.GetELiterals())
+	o := newEEnumImpl()
+	assert.NotNil(t, o.GetELiterals())
 }
 
 func TestEEnumGetEEnumLiteralByNameOperation(t *testing.T) {
-	obj := newEEnumImpl()
-	assert.Panics(t, func() { obj.GetEEnumLiteralByName("") })
+	o := newEEnumImpl()
+	assert.Panics(t, func() { o.GetEEnumLiteralByName("") })
 }
 func TestEEnumGetEEnumLiteralByValueOperation(t *testing.T) {
-	obj := newEEnumImpl()
-	assert.Panics(t, func() { obj.GetEEnumLiteralByValue(0) })
+	o := newEEnumImpl()
+	assert.Panics(t, func() { o.GetEEnumLiteralByValue(0) })
 }
 func TestEEnumGetEEnumLiteralByLiteralOperation(t *testing.T) {
-	obj := newEEnumImpl()
-	assert.Panics(t, func() { obj.GetEEnumLiteralByLiteral("") })
+	o := newEEnumImpl()
+	assert.Panics(t, func() { o.GetEEnumLiteralByLiteral("") })
 }

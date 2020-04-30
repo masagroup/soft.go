@@ -3,7 +3,7 @@
 // This file is part of a MASA library or program.
 // Refer to the included end-user license agreement for restrictions.
 //
-// Copyright (c) 2019 MASA Group
+// Copyright (c) 2020 MASA Group
 //
 // *****************************************************************************
 
@@ -25,67 +25,66 @@ func discardEPackage() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-
 }
 
 func TestEPackageNsURIGet(t *testing.T) {
-	var newValue string = "Test String"
+	v := "Test String"
 	obj := newEPackageImpl()
-	obj.SetNsURI(newValue)
-	assert.Equal(t, newValue, obj.GetNsURI())
+	obj.SetNsURI(v)
+	assert.Equal(t, v, obj.GetNsURI())
 }
 
 func TestEPackageNsURISet(t *testing.T) {
-	var newValue string = "Test String"
 	obj := newEPackageImpl()
+	v := "Test String"
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetNsURI(newValue)
+	obj.SetNsURI(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEPackageNsPrefixGet(t *testing.T) {
-	var newValue string = "Test String"
+	v := "Test String"
 	obj := newEPackageImpl()
-	obj.SetNsPrefix(newValue)
-	assert.Equal(t, newValue, obj.GetNsPrefix())
+	obj.SetNsPrefix(v)
+	assert.Equal(t, v, obj.GetNsPrefix())
 }
 
 func TestEPackageNsPrefixSet(t *testing.T) {
-	var newValue string = "Test String"
 	obj := newEPackageImpl()
+	v := "Test String"
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetNsPrefix(newValue)
+	obj.SetNsPrefix(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEPackageEFactoryInstanceSet(t *testing.T) {
-	var newValue *MockEFactory = &MockEFactory{}
 	obj := newEPackageImpl()
+	v := &MockEFactory{}
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", obj).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	obj.EAdapters().Add(mockAdapter)
-	obj.SetEFactoryInstance(newValue)
+	obj.SetEFactoryInstance(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEPackageEClassifiersGetList(t *testing.T) {
-	obj := newEPackageImpl()
-	assert.NotNil(t, obj.GetEClassifiers())
+	o := newEPackageImpl()
+	assert.NotNil(t, o.GetEClassifiers())
 }
 
 func TestEPackageESubPackagesGetList(t *testing.T) {
-	obj := newEPackageImpl()
-	assert.NotNil(t, obj.GetESubPackages())
+	o := newEPackageImpl()
+	assert.NotNil(t, o.GetESubPackages())
 }
 
 func TestEPackageGetEClassifierOperation(t *testing.T) {
-	obj := newEPackageImpl()
-	assert.Panics(t, func() { obj.GetEClassifier("") })
+	o := newEPackageImpl()
+	assert.Panics(t, func() { o.GetEClassifier("") })
 }

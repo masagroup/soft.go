@@ -25,16 +25,30 @@ func discardMockEModelElement() {
 	_ = testing.Coverage
 }
 
-// TestGetEAnnotations tests method GetEAnnotations
-func TestGetEAnnotations(t *testing.T) {
+// TestMockEModelElementGetEAnnotations tests method GetEAnnotations
+func TestMockEModelElementGetEAnnotations(t *testing.T) {
 	o := &MockEModelElement{}
 	l := &MockEList{}
+	// return a value
 	o.On("GetEAnnotations").Once().Return(l)
-	assert.Equal(t, l, o.GetEAnnotations())
-
 	o.On("GetEAnnotations").Once().Return(func() EList {
 		return l
 	})
 	assert.Equal(t, l, o.GetEAnnotations())
+	assert.Equal(t, l, o.GetEAnnotations())
+	o.AssertExpectations(t)
+}
+
+// TestMockEModelElementGetEAnnotation tests method GetEAnnotation
+func TestMockEModelElementGetEAnnotation(t *testing.T) {
+	o := &MockEModelElement{}
+	source := "Test String"
+	r := &MockEAnnotation{}
+	o.On("GetEAnnotation", source).Return(r).Once()
+	o.On("GetEAnnotation", source).Return(func() EAnnotation {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.GetEAnnotation(source))
+	assert.Equal(t, r, o.GetEAnnotation(source))
 	o.AssertExpectations(t)
 }

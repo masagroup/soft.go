@@ -17,6 +17,7 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
@@ -30,11 +31,10 @@ func TestMockEStructuralFeatureIsChangeable(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	r := true
 	o.On("IsChangeable").Once().Return(r)
-	assert.Equal(t, r, o.IsChangeable())
-
 	o.On("IsChangeable").Once().Return(func() bool {
 		return r
 	})
+	assert.Equal(t, r, o.IsChangeable())
 	assert.Equal(t, r, o.IsChangeable())
 	o.AssertExpectations(t)
 }
@@ -44,7 +44,6 @@ func TestMockEStructuralFeatureSetChangeable(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	v := true
 	o.On("SetChangeable", v).Once()
-
 	o.SetChangeable(v)
 	o.AssertExpectations(t)
 }
@@ -54,11 +53,10 @@ func TestMockEStructuralFeatureGetDefaultValue(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	r := interface{}(nil)
 	o.On("GetDefaultValue").Once().Return(r)
-	assert.Equal(t, r, o.GetDefaultValue())
-
 	o.On("GetDefaultValue").Once().Return(func() interface{} {
 		return r
 	})
+	assert.Equal(t, r, o.GetDefaultValue())
 	assert.Equal(t, r, o.GetDefaultValue())
 	o.AssertExpectations(t)
 }
@@ -68,7 +66,6 @@ func TestMockEStructuralFeatureSetDefaultValue(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	v := interface{}(nil)
 	o.On("SetDefaultValue", v).Once()
-
 	o.SetDefaultValue(v)
 	o.AssertExpectations(t)
 }
@@ -78,11 +75,10 @@ func TestMockEStructuralFeatureGetDefaultValueLiteral(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	r := "Test String"
 	o.On("GetDefaultValueLiteral").Once().Return(r)
-	assert.Equal(t, r, o.GetDefaultValueLiteral())
-
 	o.On("GetDefaultValueLiteral").Once().Return(func() string {
 		return r
 	})
+	assert.Equal(t, r, o.GetDefaultValueLiteral())
 	assert.Equal(t, r, o.GetDefaultValueLiteral())
 	o.AssertExpectations(t)
 }
@@ -92,7 +88,6 @@ func TestMockEStructuralFeatureSetDefaultValueLiteral(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	v := "Test String"
 	o.On("SetDefaultValueLiteral", v).Once()
-
 	o.SetDefaultValueLiteral(v)
 	o.AssertExpectations(t)
 }
@@ -102,11 +97,10 @@ func TestMockEStructuralFeatureIsDerived(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	r := true
 	o.On("IsDerived").Once().Return(r)
-	assert.Equal(t, r, o.IsDerived())
-
 	o.On("IsDerived").Once().Return(func() bool {
 		return r
 	})
+	assert.Equal(t, r, o.IsDerived())
 	assert.Equal(t, r, o.IsDerived())
 	o.AssertExpectations(t)
 }
@@ -116,7 +110,6 @@ func TestMockEStructuralFeatureSetDerived(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	v := true
 	o.On("SetDerived", v).Once()
-
 	o.SetDerived(v)
 	o.AssertExpectations(t)
 }
@@ -126,11 +119,10 @@ func TestMockEStructuralFeatureGetEContainingClass(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	r := &MockEClass{}
 	o.On("GetEContainingClass").Once().Return(r)
-	assert.Equal(t, r, o.GetEContainingClass())
-
 	o.On("GetEContainingClass").Once().Return(func() EClass {
 		return r
 	})
+	assert.Equal(t, r, o.GetEContainingClass())
 	assert.Equal(t, r, o.GetEContainingClass())
 	o.AssertExpectations(t)
 }
@@ -140,11 +132,10 @@ func TestMockEStructuralFeatureGetFeatureID(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	r := 45
 	o.On("GetFeatureID").Once().Return(r)
-	assert.Equal(t, r, o.GetFeatureID())
-
 	o.On("GetFeatureID").Once().Return(func() int {
 		return r
 	})
+	assert.Equal(t, r, o.GetFeatureID())
 	assert.Equal(t, r, o.GetFeatureID())
 	o.AssertExpectations(t)
 }
@@ -154,7 +145,6 @@ func TestMockEStructuralFeatureSetFeatureID(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	v := 45
 	o.On("SetFeatureID", v).Once()
-
 	o.SetFeatureID(v)
 	o.AssertExpectations(t)
 }
@@ -164,11 +154,10 @@ func TestMockEStructuralFeatureIsTransient(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	r := true
 	o.On("IsTransient").Once().Return(r)
-	assert.Equal(t, r, o.IsTransient())
-
 	o.On("IsTransient").Once().Return(func() bool {
 		return r
 	})
+	assert.Equal(t, r, o.IsTransient())
 	assert.Equal(t, r, o.IsTransient())
 	o.AssertExpectations(t)
 }
@@ -178,7 +167,6 @@ func TestMockEStructuralFeatureSetTransient(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	v := true
 	o.On("SetTransient", v).Once()
-
 	o.SetTransient(v)
 	o.AssertExpectations(t)
 }
@@ -188,11 +176,10 @@ func TestMockEStructuralFeatureIsUnsettable(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	r := true
 	o.On("IsUnsettable").Once().Return(r)
-	assert.Equal(t, r, o.IsUnsettable())
-
 	o.On("IsUnsettable").Once().Return(func() bool {
 		return r
 	})
+	assert.Equal(t, r, o.IsUnsettable())
 	assert.Equal(t, r, o.IsUnsettable())
 	o.AssertExpectations(t)
 }
@@ -202,7 +189,6 @@ func TestMockEStructuralFeatureSetUnsettable(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	v := true
 	o.On("SetUnsettable", v).Once()
-
 	o.SetUnsettable(v)
 	o.AssertExpectations(t)
 }
@@ -212,11 +198,10 @@ func TestMockEStructuralFeatureIsVolatile(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	r := true
 	o.On("IsVolatile").Once().Return(r)
-	assert.Equal(t, r, o.IsVolatile())
-
 	o.On("IsVolatile").Once().Return(func() bool {
 		return r
 	})
+	assert.Equal(t, r, o.IsVolatile())
 	assert.Equal(t, r, o.IsVolatile())
 	o.AssertExpectations(t)
 }
@@ -226,7 +211,19 @@ func TestMockEStructuralFeatureSetVolatile(t *testing.T) {
 	o := &MockEStructuralFeature{}
 	v := true
 	o.On("SetVolatile", v).Once()
-
 	o.SetVolatile(v)
+	o.AssertExpectations(t)
+}
+
+// TestMockEStructuralFeatureGetContainerClass tests method GetContainerClass
+func TestMockEStructuralFeatureGetContainerClass(t *testing.T) {
+	o := &MockEStructuralFeature{}
+	r := reflect.Type(nil)
+	o.On("GetContainerClass").Return(r).Once()
+	o.On("GetContainerClass").Return(func() reflect.Type {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.GetContainerClass())
+	assert.Equal(t, r, o.GetContainerClass())
 	o.AssertExpectations(t)
 }

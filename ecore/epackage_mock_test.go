@@ -25,16 +25,16 @@ func discardMockEPackage() {
 	_ = testing.Coverage
 }
 
-// TestGetEClassifiers tests method GetEClassifiers
-func TestGetEClassifiers(t *testing.T) {
+// TestMockEPackageGetEClassifiers tests method GetEClassifiers
+func TestMockEPackageGetEClassifiers(t *testing.T) {
 	o := &MockEPackage{}
 	l := &MockEList{}
+	// return a value
 	o.On("GetEClassifiers").Once().Return(l)
-	assert.Equal(t, l, o.GetEClassifiers())
-
 	o.On("GetEClassifiers").Once().Return(func() EList {
 		return l
 	})
+	assert.Equal(t, l, o.GetEClassifiers())
 	assert.Equal(t, l, o.GetEClassifiers())
 	o.AssertExpectations(t)
 }
@@ -44,11 +44,10 @@ func TestMockEPackageGetEFactoryInstance(t *testing.T) {
 	o := &MockEPackage{}
 	r := &MockEFactory{}
 	o.On("GetEFactoryInstance").Once().Return(r)
-	assert.Equal(t, r, o.GetEFactoryInstance())
-
 	o.On("GetEFactoryInstance").Once().Return(func() EFactory {
 		return r
 	})
+	assert.Equal(t, r, o.GetEFactoryInstance())
 	assert.Equal(t, r, o.GetEFactoryInstance())
 	o.AssertExpectations(t)
 }
@@ -58,21 +57,20 @@ func TestMockEPackageSetEFactoryInstance(t *testing.T) {
 	o := &MockEPackage{}
 	v := &MockEFactory{}
 	o.On("SetEFactoryInstance", v).Once()
-
 	o.SetEFactoryInstance(v)
 	o.AssertExpectations(t)
 }
 
-// TestGetESubPackages tests method GetESubPackages
-func TestGetESubPackages(t *testing.T) {
+// TestMockEPackageGetESubPackages tests method GetESubPackages
+func TestMockEPackageGetESubPackages(t *testing.T) {
 	o := &MockEPackage{}
 	l := &MockEList{}
+	// return a value
 	o.On("GetESubPackages").Once().Return(l)
-	assert.Equal(t, l, o.GetESubPackages())
-
 	o.On("GetESubPackages").Once().Return(func() EList {
 		return l
 	})
+	assert.Equal(t, l, o.GetESubPackages())
 	assert.Equal(t, l, o.GetESubPackages())
 	o.AssertExpectations(t)
 }
@@ -82,11 +80,10 @@ func TestMockEPackageGetESuperPackage(t *testing.T) {
 	o := &MockEPackage{}
 	r := &MockEPackage{}
 	o.On("GetESuperPackage").Once().Return(r)
-	assert.Equal(t, r, o.GetESuperPackage())
-
 	o.On("GetESuperPackage").Once().Return(func() EPackage {
 		return r
 	})
+	assert.Equal(t, r, o.GetESuperPackage())
 	assert.Equal(t, r, o.GetESuperPackage())
 	o.AssertExpectations(t)
 }
@@ -96,11 +93,10 @@ func TestMockEPackageGetNsPrefix(t *testing.T) {
 	o := &MockEPackage{}
 	r := "Test String"
 	o.On("GetNsPrefix").Once().Return(r)
-	assert.Equal(t, r, o.GetNsPrefix())
-
 	o.On("GetNsPrefix").Once().Return(func() string {
 		return r
 	})
+	assert.Equal(t, r, o.GetNsPrefix())
 	assert.Equal(t, r, o.GetNsPrefix())
 	o.AssertExpectations(t)
 }
@@ -110,7 +106,6 @@ func TestMockEPackageSetNsPrefix(t *testing.T) {
 	o := &MockEPackage{}
 	v := "Test String"
 	o.On("SetNsPrefix", v).Once()
-
 	o.SetNsPrefix(v)
 	o.AssertExpectations(t)
 }
@@ -120,11 +115,10 @@ func TestMockEPackageGetNsURI(t *testing.T) {
 	o := &MockEPackage{}
 	r := "Test String"
 	o.On("GetNsURI").Once().Return(r)
-	assert.Equal(t, r, o.GetNsURI())
-
 	o.On("GetNsURI").Once().Return(func() string {
 		return r
 	})
+	assert.Equal(t, r, o.GetNsURI())
 	assert.Equal(t, r, o.GetNsURI())
 	o.AssertExpectations(t)
 }
@@ -134,7 +128,20 @@ func TestMockEPackageSetNsURI(t *testing.T) {
 	o := &MockEPackage{}
 	v := "Test String"
 	o.On("SetNsURI", v).Once()
-
 	o.SetNsURI(v)
+	o.AssertExpectations(t)
+}
+
+// TestMockEPackageGetEClassifier tests method GetEClassifier
+func TestMockEPackageGetEClassifier(t *testing.T) {
+	o := &MockEPackage{}
+	name := "Test String"
+	r := &MockEClassifier{}
+	o.On("GetEClassifier", name).Return(r).Once()
+	o.On("GetEClassifier", name).Return(func() EClassifier {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.GetEClassifier(name))
+	assert.Equal(t, r, o.GetEClassifier(name))
 	o.AssertExpectations(t)
 }

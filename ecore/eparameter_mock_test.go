@@ -30,11 +30,10 @@ func TestMockEParameterGetEOperation(t *testing.T) {
 	o := &MockEParameter{}
 	r := &MockEOperation{}
 	o.On("GetEOperation").Once().Return(r)
-	assert.Equal(t, r, o.GetEOperation())
-
 	o.On("GetEOperation").Once().Return(func() EOperation {
 		return r
 	})
+	assert.Equal(t, r, o.GetEOperation())
 	assert.Equal(t, r, o.GetEOperation())
 	o.AssertExpectations(t)
 }

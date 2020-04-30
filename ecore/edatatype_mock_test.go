@@ -30,11 +30,10 @@ func TestMockEDataTypeIsSerializable(t *testing.T) {
 	o := &MockEDataType{}
 	r := true
 	o.On("IsSerializable").Once().Return(r)
-	assert.Equal(t, r, o.IsSerializable())
-
 	o.On("IsSerializable").Once().Return(func() bool {
 		return r
 	})
+	assert.Equal(t, r, o.IsSerializable())
 	assert.Equal(t, r, o.IsSerializable())
 	o.AssertExpectations(t)
 }
@@ -44,7 +43,6 @@ func TestMockEDataTypeSetSerializable(t *testing.T) {
 	o := &MockEDataType{}
 	v := true
 	o.On("SetSerializable", v).Once()
-
 	o.SetSerializable(v)
 	o.AssertExpectations(t)
 }

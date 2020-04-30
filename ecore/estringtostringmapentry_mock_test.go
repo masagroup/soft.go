@@ -30,11 +30,10 @@ func TestMockEStringToStringMapEntryGetKey(t *testing.T) {
 	o := &MockEStringToStringMapEntry{}
 	r := "Test String"
 	o.On("GetKey").Once().Return(r)
-	assert.Equal(t, r, o.GetKey())
-
 	o.On("GetKey").Once().Return(func() string {
 		return r
 	})
+	assert.Equal(t, r, o.GetKey())
 	assert.Equal(t, r, o.GetKey())
 	o.AssertExpectations(t)
 }
@@ -44,7 +43,6 @@ func TestMockEStringToStringMapEntrySetKey(t *testing.T) {
 	o := &MockEStringToStringMapEntry{}
 	v := "Test String"
 	o.On("SetKey", v).Once()
-
 	o.SetKey(v)
 	o.AssertExpectations(t)
 }
@@ -54,11 +52,10 @@ func TestMockEStringToStringMapEntryGetValue(t *testing.T) {
 	o := &MockEStringToStringMapEntry{}
 	r := "Test String"
 	o.On("GetValue").Once().Return(r)
-	assert.Equal(t, r, o.GetValue())
-
 	o.On("GetValue").Once().Return(func() string {
 		return r
 	})
+	assert.Equal(t, r, o.GetValue())
 	assert.Equal(t, r, o.GetValue())
 	o.AssertExpectations(t)
 }
@@ -68,7 +65,6 @@ func TestMockEStringToStringMapEntrySetValue(t *testing.T) {
 	o := &MockEStringToStringMapEntry{}
 	v := "Test String"
 	o.On("SetValue", v).Once()
-
 	o.SetValue(v)
 	o.AssertExpectations(t)
 }

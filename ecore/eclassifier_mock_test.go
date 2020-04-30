@@ -31,11 +31,10 @@ func TestMockEClassifierGetClassifierID(t *testing.T) {
 	o := &MockEClassifier{}
 	r := 45
 	o.On("GetClassifierID").Once().Return(r)
-	assert.Equal(t, r, o.GetClassifierID())
-
 	o.On("GetClassifierID").Once().Return(func() int {
 		return r
 	})
+	assert.Equal(t, r, o.GetClassifierID())
 	assert.Equal(t, r, o.GetClassifierID())
 	o.AssertExpectations(t)
 }
@@ -45,7 +44,6 @@ func TestMockEClassifierSetClassifierID(t *testing.T) {
 	o := &MockEClassifier{}
 	v := 45
 	o.On("SetClassifierID", v).Once()
-
 	o.SetClassifierID(v)
 	o.AssertExpectations(t)
 }
@@ -55,11 +53,10 @@ func TestMockEClassifierGetDefaultValue(t *testing.T) {
 	o := &MockEClassifier{}
 	r := interface{}(nil)
 	o.On("GetDefaultValue").Once().Return(r)
-	assert.Equal(t, r, o.GetDefaultValue())
-
 	o.On("GetDefaultValue").Once().Return(func() interface{} {
 		return r
 	})
+	assert.Equal(t, r, o.GetDefaultValue())
 	assert.Equal(t, r, o.GetDefaultValue())
 	o.AssertExpectations(t)
 }
@@ -69,11 +66,10 @@ func TestMockEClassifierGetEPackage(t *testing.T) {
 	o := &MockEClassifier{}
 	r := &MockEPackage{}
 	o.On("GetEPackage").Once().Return(r)
-	assert.Equal(t, r, o.GetEPackage())
-
 	o.On("GetEPackage").Once().Return(func() EPackage {
 		return r
 	})
+	assert.Equal(t, r, o.GetEPackage())
 	assert.Equal(t, r, o.GetEPackage())
 	o.AssertExpectations(t)
 }
@@ -83,11 +79,10 @@ func TestMockEClassifierGetInstanceClass(t *testing.T) {
 	o := &MockEClassifier{}
 	r := reflect.Type(nil)
 	o.On("GetInstanceClass").Once().Return(r)
-	assert.Equal(t, r, o.GetInstanceClass())
-
 	o.On("GetInstanceClass").Once().Return(func() reflect.Type {
 		return r
 	})
+	assert.Equal(t, r, o.GetInstanceClass())
 	assert.Equal(t, r, o.GetInstanceClass())
 	o.AssertExpectations(t)
 }
@@ -97,7 +92,20 @@ func TestMockEClassifierSetInstanceClass(t *testing.T) {
 	o := &MockEClassifier{}
 	v := reflect.Type(nil)
 	o.On("SetInstanceClass", v).Once()
-
 	o.SetInstanceClass(v)
+	o.AssertExpectations(t)
+}
+
+// TestMockEClassifierIsInstance tests method IsInstance
+func TestMockEClassifierIsInstance(t *testing.T) {
+	o := &MockEClassifier{}
+	object := interface{}(nil)
+	r := true
+	o.On("IsInstance", object).Return(r).Once()
+	o.On("IsInstance", object).Return(func() bool {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.IsInstance(object))
+	assert.Equal(t, r, o.IsInstance(object))
 	o.AssertExpectations(t)
 }

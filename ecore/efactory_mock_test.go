@@ -30,11 +30,10 @@ func TestMockEFactoryGetEPackage(t *testing.T) {
 	o := &MockEFactory{}
 	r := &MockEPackage{}
 	o.On("GetEPackage").Once().Return(r)
-	assert.Equal(t, r, o.GetEPackage())
-
 	o.On("GetEPackage").Once().Return(func() EPackage {
 		return r
 	})
+	assert.Equal(t, r, o.GetEPackage())
 	assert.Equal(t, r, o.GetEPackage())
 	o.AssertExpectations(t)
 }
@@ -44,7 +43,50 @@ func TestMockEFactorySetEPackage(t *testing.T) {
 	o := &MockEFactory{}
 	v := &MockEPackage{}
 	o.On("SetEPackage", v).Once()
-
 	o.SetEPackage(v)
+	o.AssertExpectations(t)
+}
+
+// TestMockEFactoryCreate tests method Create
+func TestMockEFactoryCreate(t *testing.T) {
+	o := &MockEFactory{}
+	eClass := &MockEClass{}
+	r := &MockEObject{}
+	o.On("Create", eClass).Return(r).Once()
+	o.On("Create", eClass).Return(func() EObject {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.Create(eClass))
+	assert.Equal(t, r, o.Create(eClass))
+	o.AssertExpectations(t)
+}
+
+// TestMockEFactoryCreateFromString tests method CreateFromString
+func TestMockEFactoryCreateFromString(t *testing.T) {
+	o := &MockEFactory{}
+	eDataType := &MockEDataType{}
+	literalValue := "Test String"
+	r := interface{}(nil)
+	o.On("CreateFromString", eDataType, literalValue).Return(r).Once()
+	o.On("CreateFromString", eDataType, literalValue).Return(func() interface{} {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.CreateFromString(eDataType, literalValue))
+	assert.Equal(t, r, o.CreateFromString(eDataType, literalValue))
+	o.AssertExpectations(t)
+}
+
+// TestMockEFactoryConvertToString tests method ConvertToString
+func TestMockEFactoryConvertToString(t *testing.T) {
+	o := &MockEFactory{}
+	eDataType := &MockEDataType{}
+	instanceValue := interface{}(nil)
+	r := "Test String"
+	o.On("ConvertToString", eDataType, instanceValue).Return(r).Once()
+	o.On("ConvertToString", eDataType, instanceValue).Return(func() string {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.ConvertToString(eDataType, instanceValue))
+	assert.Equal(t, r, o.ConvertToString(eDataType, instanceValue))
 	o.AssertExpectations(t)
 }

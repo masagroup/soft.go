@@ -25,16 +25,16 @@ func discardMockETypeParameter() {
 	_ = testing.Coverage
 }
 
-// TestGetEBounds tests method GetEBounds
-func TestGetEBounds(t *testing.T) {
+// TestMockETypeParameterGetEBounds tests method GetEBounds
+func TestMockETypeParameterGetEBounds(t *testing.T) {
 	o := &MockETypeParameter{}
 	l := &MockEList{}
+	// return a value
 	o.On("GetEBounds").Once().Return(l)
-	assert.Equal(t, l, o.GetEBounds())
-
 	o.On("GetEBounds").Once().Return(func() EList {
 		return l
 	})
+	assert.Equal(t, l, o.GetEBounds())
 	assert.Equal(t, l, o.GetEBounds())
 	o.AssertExpectations(t)
 }

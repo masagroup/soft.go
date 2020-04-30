@@ -25,16 +25,58 @@ func discardMockEEnum() {
 	_ = testing.Coverage
 }
 
-// TestGetELiterals tests method GetELiterals
-func TestGetELiterals(t *testing.T) {
+// TestMockEEnumGetELiterals tests method GetELiterals
+func TestMockEEnumGetELiterals(t *testing.T) {
 	o := &MockEEnum{}
 	l := &MockEList{}
+	// return a value
 	o.On("GetELiterals").Once().Return(l)
-	assert.Equal(t, l, o.GetELiterals())
-
 	o.On("GetELiterals").Once().Return(func() EList {
 		return l
 	})
 	assert.Equal(t, l, o.GetELiterals())
+	assert.Equal(t, l, o.GetELiterals())
+	o.AssertExpectations(t)
+}
+
+// TestMockEEnumGetEEnumLiteralByValue tests method GetEEnumLiteralByValue
+func TestMockEEnumGetEEnumLiteralByValue(t *testing.T) {
+	o := &MockEEnum{}
+	value := 45
+	r := &MockEEnumLiteral{}
+	o.On("GetEEnumLiteralByValue", value).Return(r).Once()
+	o.On("GetEEnumLiteralByValue", value).Return(func() EEnumLiteral {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.GetEEnumLiteralByValue(value))
+	assert.Equal(t, r, o.GetEEnumLiteralByValue(value))
+	o.AssertExpectations(t)
+}
+
+// TestMockEEnumGetEEnumLiteralByLiteral tests method GetEEnumLiteralByLiteral
+func TestMockEEnumGetEEnumLiteralByLiteral(t *testing.T) {
+	o := &MockEEnum{}
+	literal := "Test String"
+	r := &MockEEnumLiteral{}
+	o.On("GetEEnumLiteralByLiteral", literal).Return(r).Once()
+	o.On("GetEEnumLiteralByLiteral", literal).Return(func() EEnumLiteral {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.GetEEnumLiteralByLiteral(literal))
+	assert.Equal(t, r, o.GetEEnumLiteralByLiteral(literal))
+	o.AssertExpectations(t)
+}
+
+// TestMockEEnumGetEEnumLiteralByName tests method GetEEnumLiteralByName
+func TestMockEEnumGetEEnumLiteralByName(t *testing.T) {
+	o := &MockEEnum{}
+	name := "Test String"
+	r := &MockEEnumLiteral{}
+	o.On("GetEEnumLiteralByName", name).Return(r).Once()
+	o.On("GetEEnumLiteralByName", name).Return(func() EEnumLiteral {
+		return r
+	}).Once()
+	assert.Equal(t, r, o.GetEEnumLiteralByName(name))
+	assert.Equal(t, r, o.GetEEnumLiteralByName(name))
 	o.AssertExpectations(t)
 }

@@ -22,6 +22,18 @@ func TestSerializationLoadXML(t *testing.T) {
 	assert.True(t, resource.GetWarnings().Empty())
 }
 
+func TestSerializationLoadSaveXML(t *testing.T) {
+	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
+
+	fileURI := &url.URL{Path: "testdata/library.xml"}
+	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
+	resource := resourceFactory.CreateResource(fileURI)
+	resource.Load()
+
+	resource.SetURI(&url.URL{Path: "testdata/library2.xml"})
+	resource.Save()
+}
+
 func TestSerializationSaveXmlFile(t *testing.T) {
 	// create a library model with a single employee
 	library := GetFactory().CreateLibrary()

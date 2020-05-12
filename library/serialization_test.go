@@ -30,8 +30,12 @@ func TestSerializationLoadSaveXML(t *testing.T) {
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()
 
-	resource.SetURI(&url.URL{Path: "testdata/library2.xml"})
-	resource.Save()
+	var strbuff strings.Builder
+	resource.SaveWithWriter(&strbuff)
+
+	bytes, err := ioutil.ReadFile("testdata/library.xml")
+	assert.Nil(t, err)
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
 
 func TestSerializationSaveXmlFile(t *testing.T) {

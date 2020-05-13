@@ -3,13 +3,13 @@ package ecore
 import "net/url"
 
 type resourcesList struct {
-	*ENotifyingListImpl
+	*BasicENotifyingList
 	resourceSet EResourceSet
 }
 
 func newResourcesList(resourceSet EResourceSet) *resourcesList {
 	l := new(resourcesList)
-	l.ENotifyingListImpl = NewENotifyingListImpl()
+	l.BasicENotifyingList = NewBasicENotifyingList()
 	l.resourceSet = resourceSet
 	l.interfaces = l
 	return l

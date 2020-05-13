@@ -1,7 +1,7 @@
 package ecore
 
 type eObjectEList struct {
-	*ENotifyingListImpl
+	*BasicENotifyingList
 	owner            EObjectInternal
 	featureID        int
 	inverseFeatureID int
@@ -14,7 +14,7 @@ type eObjectEList struct {
 
 func NewEObjectEList(owner EObjectInternal, featureID int, inverseFeatureID int, containment, inverse, opposite, proxies, unset bool) *eObjectEList {
 	l := new(eObjectEList)
-	l.ENotifyingListImpl = NewENotifyingListImpl()
+	l.BasicENotifyingList = NewBasicENotifyingList()
 	l.interfaces = l
 	l.owner = owner
 	l.featureID = featureID
@@ -46,7 +46,7 @@ func (list *eObjectEList) GetFeatureID() int {
 }
 
 func (list *eObjectEList) doGet(index int) interface{} {
-	return list.resolve(index, list.ENotifyingListImpl.doGet(index))
+	return list.resolve(index, list.BasicENotifyingList.doGet(index))
 }
 
 func (list *eObjectEList) resolve(index int, object interface{}) interface{} {

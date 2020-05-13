@@ -76,7 +76,7 @@ func (list *basicEObjectList) doGet(index int) interface{} {
 func (list *basicEObjectList) resolve(index int, object interface{}) interface{} {
 	resolved := list.resolveProxy(object.(EObject))
 	if resolved != object {
-		list.basicEList.doSet(index, object)
+		list.basicEList.doSet(index, resolved)
 		var notifications ENotificationChain
 		if list.containment {
 			notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(object, notifications)
@@ -278,4 +278,8 @@ func (l *unResolvedEList) RemoveWithNotification(object interface{}, notificatio
 
 func (l *unResolvedEList) SetWithNotification(index int, object interface{}, notifications ENotificationChain) ENotificationChain {
 	return l.delegate.SetWithNotification(index, object, notifications)
+}
+
+func (l *unResolvedEList) GetUnResolvedList() EList {
+	return l
 }

@@ -147,3 +147,27 @@ func ResolveInResourceSet(proxy EObject, resourceSet EResourceSet) EObject {
 	}
 	return proxy
 }
+
+func Copy(eObject EObject) EObject {
+	dC := &deepCopy{resolve: true, originalReferences: true}
+	c := dC.copy(eObject)
+	dC.copyReferences()
+	return c
+}
+
+func CopyAll(l EList) EList {
+	dC := &deepCopy{resolve: true, originalReferences: true}
+	c := dC.copyAll(l)
+	dC.copyReferences()
+	return c
+}
+
+func Equals(eObj1 EObject, eObj2 EObject) bool {
+	dE := &deepEqual{}
+	return dE.equals(eObj1, eObj2)
+}
+
+func EqualsAll(l1 EList, l2 EList) bool {
+	dE := &deepEqual{}
+	return dE.equalsAll(l1, l2)
+}

@@ -103,3 +103,8 @@ func TestImmutableEListIterate(t *testing.T) {
 	}
 	assert.Equal(t, 8, i)
 }
+
+func TestImmutableEListGetUnResolved(t *testing.T) {
+	l := NewImmutableEList([]interface{}{})
+	assert.Equal(t, l, l.getUnResolvedList())
+}

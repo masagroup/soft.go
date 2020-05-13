@@ -202,11 +202,17 @@ func (eGenericType *eGenericTypeImpl) initETypeArguments() EList {
 func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
-		return eGenericType.GetEClassifier()
+		if resolve {
+			return eGenericType.GetEClassifier()
+		}
+		return eGenericType.basicGetEClassifier()
 	case EGENERIC_TYPE__ELOWER_BOUND:
 		return eGenericType.GetELowerBound()
 	case EGENERIC_TYPE__ERAW_TYPE:
-		return eGenericType.GetERawType()
+		if resolve {
+			return eGenericType.GetERawType()
+		}
+		return eGenericType.basicGetERawType()
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
 		return eGenericType.GetETypeArguments()
 	case EGENERIC_TYPE__ETYPE_PARAMETER:

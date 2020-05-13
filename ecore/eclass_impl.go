@@ -301,33 +301,99 @@ func (eClass *eClassImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	case ECLASS__ABSTRACT:
 		return eClass.IsAbstract()
 	case ECLASS__EALL_ATTRIBUTES:
-		return eClass.GetEAllAttributes()
+		eList := eClass.GetEAllAttributes()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EALL_CONTAINMENTS:
-		return eClass.GetEAllContainments()
+		eList := eClass.GetEAllContainments()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EALL_OPERATIONS:
-		return eClass.GetEAllOperations()
+		eList := eClass.GetEAllOperations()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EALL_REFERENCES:
-		return eClass.GetEAllReferences()
+		eList := eClass.GetEAllReferences()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EALL_STRUCTURAL_FEATURES:
-		return eClass.GetEAllStructuralFeatures()
+		eList := eClass.GetEAllStructuralFeatures()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EALL_SUPER_TYPES:
-		return eClass.GetEAllSuperTypes()
+		eList := eClass.GetEAllSuperTypes()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EATTRIBUTES:
-		return eClass.GetEAttributes()
+		eList := eClass.GetEAttributes()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__ECONTAINMENTS:
-		return eClass.GetEContainments()
+		eList := eClass.GetEContainments()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__ECROSS_REFERENCES:
-		return eClass.GetECrossReferences()
+		eList := eClass.GetECrossReferences()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EID_ATTRIBUTE:
 		return eClass.GetEIDAttribute()
 	case ECLASS__EOPERATIONS:
 		return eClass.GetEOperations()
 	case ECLASS__EREFERENCES:
-		return eClass.GetEReferences()
+		eList := eClass.GetEReferences()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__ESTRUCTURAL_FEATURES:
 		return eClass.GetEStructuralFeatures()
 	case ECLASS__ESUPER_TYPES:
-		return eClass.GetESuperTypes()
+		eList := eClass.GetESuperTypes()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__INTERFACE:
 		return eClass.IsInterface()
 	default:

@@ -139,7 +139,13 @@ func (eAnnotation *eAnnotationImpl) EGetFromID(featureID int, resolve bool) inte
 	case EANNOTATION__EMODEL_ELEMENT:
 		return eAnnotation.GetEModelElement()
 	case EANNOTATION__REFERENCES:
-		return eAnnotation.GetReferences()
+		eList := eAnnotation.GetReferences()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case EANNOTATION__SOURCE:
 		return eAnnotation.GetSource()
 	default:

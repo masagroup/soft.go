@@ -110,7 +110,13 @@ func (eOperation *eOperationImpl) EGetFromID(featureID int, resolve bool) interf
 	case EOPERATION__ECONTAINING_CLASS:
 		return eOperation.GetEContainingClass()
 	case EOPERATION__EEXCEPTIONS:
-		return eOperation.GetEExceptions()
+		eList := eOperation.GetEExceptions()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case EOPERATION__EPARAMETERS:
 		return eOperation.GetEParameters()
 	case EOPERATION__OPERATION_ID:

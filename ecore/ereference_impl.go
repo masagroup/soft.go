@@ -138,11 +138,23 @@ func (eReference *eReferenceImpl) EGetFromID(featureID int, resolve bool) interf
 	case EREFERENCE__CONTAINMENT:
 		return eReference.IsContainment()
 	case EREFERENCE__EKEYS:
-		return eReference.GetEKeys()
+		eList := eReference.GetEKeys()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case EREFERENCE__EOPPOSITE:
-		return eReference.GetEOpposite()
+		if resolve {
+			return eReference.GetEOpposite()
+		}
+		return eReference.basicGetEOpposite()
 	case EREFERENCE__EREFERENCE_TYPE:
-		return eReference.GetEReferenceType()
+		if resolve {
+			return eReference.GetEReferenceType()
+		}
+		return eReference.basicGetEReferenceType()
 	case EREFERENCE__RESOLVE_PROXIES:
 		return eReference.IsResolveProxies()
 	default:

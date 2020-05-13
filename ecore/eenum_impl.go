@@ -38,6 +38,10 @@ func (eEnum *eEnumImpl) getInitializers() eEnumImplInitializers {
 	return eEnum.AsEObject().(eEnumImplInitializers)
 }
 
+func (eEnum *eEnumImpl) asEEnum() EEnum {
+	return eEnum.GetInterfaces().(EEnum)
+}
+
 func (eEnum *eEnumImpl) EStaticClass() EClass {
 	return GetPackage().GetEEnum()
 }
@@ -72,7 +76,7 @@ func (eEnum *eEnumImpl) initELiterals() EList {
 func (eEnum *eEnumImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EENUM__ELITERALS:
-		return eEnum.GetELiterals()
+		return eEnum.asEEnum().GetELiterals()
 	default:
 		return eEnum.eDataTypeImpl.EGetFromID(featureID, resolve)
 	}
@@ -81,9 +85,9 @@ func (eEnum *eEnumImpl) EGetFromID(featureID int, resolve bool) interface{} {
 func (eEnum *eEnumImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case EENUM__ELITERALS:
-		e := newValue.(EList)
-		eEnum.GetELiterals().Clear()
-		eEnum.GetELiterals().AddAll(e)
+		list := eEnum.asEEnum().GetELiterals()
+		list.Clear()
+		list.AddAll(newValue.(EList))
 	default:
 		eEnum.eDataTypeImpl.ESetFromID(featureID, newValue)
 	}
@@ -92,7 +96,7 @@ func (eEnum *eEnumImpl) ESetFromID(featureID int, newValue interface{}) {
 func (eEnum *eEnumImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EENUM__ELITERALS:
-		eEnum.GetELiterals().Clear()
+		eEnum.asEEnum().GetELiterals().Clear()
 	default:
 		eEnum.eDataTypeImpl.EUnsetFromID(featureID)
 	}
@@ -110,11 +114,11 @@ func (eEnum *eEnumImpl) EIsSetFromID(featureID int) bool {
 func (eEnum *eEnumImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
 	switch operationID {
 	case EENUM__GET_EENUM_LITERAL_BY_LITERAL_ESTRING:
-		return eEnum.GetEEnumLiteralByLiteral(arguments.Get(0).(string))
+		return eEnum.asEEnum().GetEEnumLiteralByLiteral(arguments.Get(0).(string))
 	case EENUM__GET_EENUM_LITERAL_ESTRING:
-		return eEnum.GetEEnumLiteralByName(arguments.Get(0).(string))
+		return eEnum.asEEnum().GetEEnumLiteralByName(arguments.Get(0).(string))
 	case EENUM__GET_EENUM_LITERAL_EINT:
-		return eEnum.GetEEnumLiteralByValue(arguments.Get(0).(int))
+		return eEnum.asEEnum().GetEEnumLiteralByValue(arguments.Get(0).(int))
 	default:
 		return eEnum.eDataTypeImpl.EInvokeFromID(operationID, arguments)
 	}

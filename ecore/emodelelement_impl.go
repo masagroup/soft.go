@@ -38,6 +38,10 @@ func (eModelElement *eModelElementImpl) getInitializers() eModelElementImplIniti
 	return eModelElement.AsEObject().(eModelElementImplInitializers)
 }
 
+func (eModelElement *eModelElementImpl) asEModelElement() EModelElement {
+	return eModelElement.GetInterfaces().(EModelElement)
+}
+
 func (eModelElement *eModelElementImpl) EStaticClass() EClass {
 	return GetPackage().GetEModelElement()
 }
@@ -62,7 +66,7 @@ func (eModelElement *eModelElementImpl) initEAnnotations() EList {
 func (eModelElement *eModelElementImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
-		return eModelElement.GetEAnnotations()
+		return eModelElement.asEModelElement().GetEAnnotations()
 	default:
 		return eModelElement.EObjectImpl.EGetFromID(featureID, resolve)
 	}
@@ -71,9 +75,9 @@ func (eModelElement *eModelElementImpl) EGetFromID(featureID int, resolve bool) 
 func (eModelElement *eModelElementImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
-		e := newValue.(EList)
-		eModelElement.GetEAnnotations().Clear()
-		eModelElement.GetEAnnotations().AddAll(e)
+		list := eModelElement.asEModelElement().GetEAnnotations()
+		list.Clear()
+		list.AddAll(newValue.(EList))
 	default:
 		eModelElement.EObjectImpl.ESetFromID(featureID, newValue)
 	}
@@ -82,7 +86,7 @@ func (eModelElement *eModelElementImpl) ESetFromID(featureID int, newValue inter
 func (eModelElement *eModelElementImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
-		eModelElement.GetEAnnotations().Clear()
+		eModelElement.asEModelElement().GetEAnnotations().Clear()
 	default:
 		eModelElement.EObjectImpl.EUnsetFromID(featureID)
 	}
@@ -100,7 +104,7 @@ func (eModelElement *eModelElementImpl) EIsSetFromID(featureID int) bool {
 func (eModelElement *eModelElementImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
 	switch operationID {
 	case EMODEL_ELEMENT__GET_EANNOTATION_ESTRING:
-		return eModelElement.GetEAnnotation(arguments.Get(0).(string))
+		return eModelElement.asEModelElement().GetEAnnotation(arguments.Get(0).(string))
 	default:
 		return eModelElement.EObjectImpl.EInvokeFromID(operationID, arguments)
 	}

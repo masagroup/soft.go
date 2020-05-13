@@ -45,6 +45,10 @@ func (eReference *eReferenceImpl) getInitializers() eReferenceImplInitializers {
 	return eReference.AsEObject().(eReferenceImplInitializers)
 }
 
+func (eReference *eReferenceImpl) asEReference() EReference {
+	return eReference.GetInterfaces().(EReference)
+}
+
 func (eReference *eReferenceImpl) EStaticClass() EClass {
 	return GetPackage().GetEReference()
 }
@@ -134,29 +138,29 @@ func (eReference *eReferenceImpl) initEKeys() EList {
 func (eReference *eReferenceImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EREFERENCE__CONTAINER:
-		return eReference.IsContainer()
+		return eReference.asEReference().IsContainer()
 	case EREFERENCE__CONTAINMENT:
-		return eReference.IsContainment()
+		return eReference.asEReference().IsContainment()
 	case EREFERENCE__EKEYS:
-		eList := eReference.GetEKeys()
+		list := eReference.asEReference().GetEKeys()
 		if !resolve {
-			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
-				return eObjectList.GetUnResolvedList()
+			if objects, _ := list.(EObjectList); objects != nil {
+				return objects.GetUnResolvedList()
 			}
 		}
-		return eList
+		return list
 	case EREFERENCE__EOPPOSITE:
 		if resolve {
-			return eReference.GetEOpposite()
+			return eReference.asEReference().GetEOpposite()
 		}
 		return eReference.basicGetEOpposite()
 	case EREFERENCE__EREFERENCE_TYPE:
 		if resolve {
-			return eReference.GetEReferenceType()
+			return eReference.asEReference().GetEReferenceType()
 		}
 		return eReference.basicGetEReferenceType()
 	case EREFERENCE__RESOLVE_PROXIES:
-		return eReference.IsResolveProxies()
+		return eReference.asEReference().IsResolveProxies()
 	default:
 		return eReference.eStructuralFeatureExt.EGetFromID(featureID, resolve)
 	}
@@ -165,18 +169,15 @@ func (eReference *eReferenceImpl) EGetFromID(featureID int, resolve bool) interf
 func (eReference *eReferenceImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case EREFERENCE__CONTAINMENT:
-		c := newValue.(bool)
-		eReference.SetContainment(c)
+		eReference.asEReference().SetContainment(newValue.(bool))
 	case EREFERENCE__EKEYS:
-		e := newValue.(EList)
-		eReference.GetEKeys().Clear()
-		eReference.GetEKeys().AddAll(e)
+		list := eReference.asEReference().GetEKeys()
+		list.Clear()
+		list.AddAll(newValue.(EList))
 	case EREFERENCE__EOPPOSITE:
-		e := newValue.(EReference)
-		eReference.SetEOpposite(e)
+		eReference.asEReference().SetEOpposite(newValue.(EReference))
 	case EREFERENCE__RESOLVE_PROXIES:
-		r := newValue.(bool)
-		eReference.SetResolveProxies(r)
+		eReference.asEReference().SetResolveProxies(newValue.(bool))
 	default:
 		eReference.eStructuralFeatureExt.ESetFromID(featureID, newValue)
 	}
@@ -185,13 +186,13 @@ func (eReference *eReferenceImpl) ESetFromID(featureID int, newValue interface{}
 func (eReference *eReferenceImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EREFERENCE__CONTAINMENT:
-		eReference.SetContainment(false)
+		eReference.asEReference().SetContainment(false)
 	case EREFERENCE__EKEYS:
-		eReference.GetEKeys().Clear()
+		eReference.asEReference().GetEKeys().Clear()
 	case EREFERENCE__EOPPOSITE:
-		eReference.SetEOpposite(nil)
+		eReference.asEReference().SetEOpposite(nil)
 	case EREFERENCE__RESOLVE_PROXIES:
-		eReference.SetResolveProxies(true)
+		eReference.asEReference().SetResolveProxies(true)
 	default:
 		eReference.eStructuralFeatureExt.EUnsetFromID(featureID)
 	}
@@ -200,7 +201,7 @@ func (eReference *eReferenceImpl) EUnsetFromID(featureID int) {
 func (eReference *eReferenceImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EREFERENCE__CONTAINER:
-		return eReference.IsContainer() != false
+		return eReference.asEReference().IsContainer() != false
 	case EREFERENCE__CONTAINMENT:
 		return eReference.isContainment != false
 	case EREFERENCE__EKEYS:

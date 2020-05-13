@@ -32,6 +32,10 @@ func newEAttributeImpl() *eAttributeImpl {
 	return eAttribute
 }
 
+func (eAttribute *eAttributeImpl) asEAttribute() EAttribute {
+	return eAttribute.GetInterfaces().(EAttribute)
+}
+
 func (eAttribute *eAttributeImpl) EStaticClass() EClass {
 	return GetPackage().GetEAttribute()
 }
@@ -63,11 +67,11 @@ func (eAttribute *eAttributeImpl) EGetFromID(featureID int, resolve bool) interf
 	switch featureID {
 	case EATTRIBUTE__EATTRIBUTE_TYPE:
 		if resolve {
-			return eAttribute.GetEAttributeType()
+			return eAttribute.asEAttribute().GetEAttributeType()
 		}
 		return eAttribute.basicGetEAttributeType()
 	case EATTRIBUTE__ID:
-		return eAttribute.IsID()
+		return eAttribute.asEAttribute().IsID()
 	default:
 		return eAttribute.eStructuralFeatureExt.EGetFromID(featureID, resolve)
 	}
@@ -76,8 +80,7 @@ func (eAttribute *eAttributeImpl) EGetFromID(featureID int, resolve bool) interf
 func (eAttribute *eAttributeImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case EATTRIBUTE__ID:
-		i := newValue.(bool)
-		eAttribute.SetID(i)
+		eAttribute.asEAttribute().SetID(newValue.(bool))
 	default:
 		eAttribute.eStructuralFeatureExt.ESetFromID(featureID, newValue)
 	}
@@ -86,7 +89,7 @@ func (eAttribute *eAttributeImpl) ESetFromID(featureID int, newValue interface{}
 func (eAttribute *eAttributeImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EATTRIBUTE__ID:
-		eAttribute.SetID(false)
+		eAttribute.asEAttribute().SetID(false)
 	default:
 		eAttribute.eStructuralFeatureExt.EUnsetFromID(featureID)
 	}

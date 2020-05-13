@@ -31,6 +31,10 @@ func newENamedElementImpl() *eNamedElementImpl {
 	return eNamedElement
 }
 
+func (eNamedElement *eNamedElementImpl) asENamedElement() ENamedElement {
+	return eNamedElement.GetInterfaces().(ENamedElement)
+}
+
 func (eNamedElement *eNamedElementImpl) EStaticClass() EClass {
 	return GetPackage().GetENamedElement()
 }
@@ -52,7 +56,7 @@ func (eNamedElement *eNamedElementImpl) SetName(newName string) {
 func (eNamedElement *eNamedElementImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case ENAMED_ELEMENT__NAME:
-		return eNamedElement.GetName()
+		return eNamedElement.asENamedElement().GetName()
 	default:
 		return eNamedElement.eModelElementExt.EGetFromID(featureID, resolve)
 	}
@@ -61,8 +65,7 @@ func (eNamedElement *eNamedElementImpl) EGetFromID(featureID int, resolve bool) 
 func (eNamedElement *eNamedElementImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case ENAMED_ELEMENT__NAME:
-		n := newValue.(string)
-		eNamedElement.SetName(n)
+		eNamedElement.asENamedElement().SetName(newValue.(string))
 	default:
 		eNamedElement.eModelElementExt.ESetFromID(featureID, newValue)
 	}
@@ -71,7 +74,7 @@ func (eNamedElement *eNamedElementImpl) ESetFromID(featureID int, newValue inter
 func (eNamedElement *eNamedElementImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case ENAMED_ELEMENT__NAME:
-		eNamedElement.SetName("")
+		eNamedElement.asENamedElement().SetName("")
 	default:
 		eNamedElement.eModelElementExt.EUnsetFromID(featureID)
 	}

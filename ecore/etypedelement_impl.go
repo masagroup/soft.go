@@ -40,6 +40,10 @@ func newETypedElementImpl() *eTypedElementImpl {
 	return eTypedElement
 }
 
+func (eTypedElement *eTypedElementImpl) asETypedElement() ETypedElement {
+	return eTypedElement.GetInterfaces().(ETypedElement)
+}
+
 func (eTypedElement *eTypedElementImpl) EStaticClass() EClass {
 	return GetPackage().GetETypedElement()
 }
@@ -149,21 +153,21 @@ func (eTypedElement *eTypedElementImpl) EGetFromID(featureID int, resolve bool) 
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
 		if resolve {
-			return eTypedElement.GetEType()
+			return eTypedElement.asETypedElement().GetEType()
 		}
 		return eTypedElement.basicGetEType()
 	case ETYPED_ELEMENT__LOWER_BOUND:
-		return eTypedElement.GetLowerBound()
+		return eTypedElement.asETypedElement().GetLowerBound()
 	case ETYPED_ELEMENT__MANY:
-		return eTypedElement.IsMany()
+		return eTypedElement.asETypedElement().IsMany()
 	case ETYPED_ELEMENT__ORDERED:
-		return eTypedElement.IsOrdered()
+		return eTypedElement.asETypedElement().IsOrdered()
 	case ETYPED_ELEMENT__REQUIRED:
-		return eTypedElement.IsRequired()
+		return eTypedElement.asETypedElement().IsRequired()
 	case ETYPED_ELEMENT__UNIQUE:
-		return eTypedElement.IsUnique()
+		return eTypedElement.asETypedElement().IsUnique()
 	case ETYPED_ELEMENT__UPPER_BOUND:
-		return eTypedElement.GetUpperBound()
+		return eTypedElement.asETypedElement().GetUpperBound()
 	default:
 		return eTypedElement.eNamedElementImpl.EGetFromID(featureID, resolve)
 	}
@@ -172,20 +176,15 @@ func (eTypedElement *eTypedElementImpl) EGetFromID(featureID int, resolve bool) 
 func (eTypedElement *eTypedElementImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
-		e := newValue.(EClassifier)
-		eTypedElement.SetEType(e)
+		eTypedElement.asETypedElement().SetEType(newValue.(EClassifier))
 	case ETYPED_ELEMENT__LOWER_BOUND:
-		l := newValue.(int)
-		eTypedElement.SetLowerBound(l)
+		eTypedElement.asETypedElement().SetLowerBound(newValue.(int))
 	case ETYPED_ELEMENT__ORDERED:
-		o := newValue.(bool)
-		eTypedElement.SetOrdered(o)
+		eTypedElement.asETypedElement().SetOrdered(newValue.(bool))
 	case ETYPED_ELEMENT__UNIQUE:
-		u := newValue.(bool)
-		eTypedElement.SetUnique(u)
+		eTypedElement.asETypedElement().SetUnique(newValue.(bool))
 	case ETYPED_ELEMENT__UPPER_BOUND:
-		u := newValue.(int)
-		eTypedElement.SetUpperBound(u)
+		eTypedElement.asETypedElement().SetUpperBound(newValue.(int))
 	default:
 		eTypedElement.eNamedElementImpl.ESetFromID(featureID, newValue)
 	}
@@ -194,15 +193,15 @@ func (eTypedElement *eTypedElementImpl) ESetFromID(featureID int, newValue inter
 func (eTypedElement *eTypedElementImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
-		eTypedElement.UnsetEType()
+		eTypedElement.asETypedElement().UnsetEType()
 	case ETYPED_ELEMENT__LOWER_BOUND:
-		eTypedElement.SetLowerBound(0)
+		eTypedElement.asETypedElement().SetLowerBound(0)
 	case ETYPED_ELEMENT__ORDERED:
-		eTypedElement.SetOrdered(true)
+		eTypedElement.asETypedElement().SetOrdered(true)
 	case ETYPED_ELEMENT__UNIQUE:
-		eTypedElement.SetUnique(true)
+		eTypedElement.asETypedElement().SetUnique(true)
 	case ETYPED_ELEMENT__UPPER_BOUND:
-		eTypedElement.SetUpperBound(1)
+		eTypedElement.asETypedElement().SetUpperBound(1)
 	default:
 		eTypedElement.eNamedElementImpl.EUnsetFromID(featureID)
 	}
@@ -215,11 +214,11 @@ func (eTypedElement *eTypedElementImpl) EIsSetFromID(featureID int) bool {
 	case ETYPED_ELEMENT__LOWER_BOUND:
 		return eTypedElement.lowerBound != 0
 	case ETYPED_ELEMENT__MANY:
-		return eTypedElement.IsMany() != false
+		return eTypedElement.asETypedElement().IsMany() != false
 	case ETYPED_ELEMENT__ORDERED:
 		return eTypedElement.isOrdered != true
 	case ETYPED_ELEMENT__REQUIRED:
-		return eTypedElement.IsRequired() != false
+		return eTypedElement.asETypedElement().IsRequired() != false
 	case ETYPED_ELEMENT__UNIQUE:
 		return eTypedElement.isUnique != true
 	case ETYPED_ELEMENT__UPPER_BOUND:

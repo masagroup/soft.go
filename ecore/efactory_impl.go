@@ -80,12 +80,12 @@ func (eFactory *eFactoryImpl) basicSetEPackage(newEPackage EPackage, msgs ENotif
 	return eFactory.EBasicSetContainer(newEPackage, EFACTORY__EPACKAGE, msgs)
 }
 
-func (eFactory *eFactoryImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eFactory *eFactoryImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		return eFactory.GetEPackage()
 	default:
-		return eFactory.eModelElementExt.EGetFromID(featureID, resolve, coreType)
+		return eFactory.eModelElementExt.EGetFromID(featureID, resolve)
 	}
 }
 

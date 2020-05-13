@@ -199,7 +199,7 @@ func (eGenericType *eGenericTypeImpl) initETypeArguments() EList {
 	return NewBasicEObjectList(eGenericType.AsEObjectInternal(), EGENERIC_TYPE__ETYPE_ARGUMENTS, -1, true, true, false, false, false)
 }
 
-func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
 		return eGenericType.GetEClassifier()
@@ -214,7 +214,7 @@ func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve, coreTyp
 	case EGENERIC_TYPE__EUPPER_BOUND:
 		return eGenericType.GetEUpperBound()
 	default:
-		return eGenericType.EObjectImpl.EGetFromID(featureID, resolve, coreType)
+		return eGenericType.EObjectImpl.EGetFromID(featureID, resolve)
 	}
 }
 

@@ -90,7 +90,7 @@ func (eEnumLiteral *eEnumLiteralImpl) SetValue(newValue int) {
 	}
 }
 
-func (eEnumLiteral *eEnumLiteralImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eEnumLiteral *eEnumLiteralImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EENUM_LITERAL__EENUM:
 		return eEnumLiteral.GetEEnum()
@@ -101,7 +101,7 @@ func (eEnumLiteral *eEnumLiteralImpl) EGetFromID(featureID int, resolve, coreTyp
 	case EENUM_LITERAL__VALUE:
 		return eEnumLiteral.GetValue()
 	default:
-		return eEnumLiteral.eNamedElementImpl.EGetFromID(featureID, resolve, coreType)
+		return eEnumLiteral.eNamedElementImpl.EGetFromID(featureID, resolve)
 	}
 }
 

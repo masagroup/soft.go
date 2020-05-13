@@ -105,7 +105,7 @@ func (eOperation *eOperationImpl) initEParameters() EList {
 	return NewBasicEObjectList(eOperation.AsEObjectInternal(), EOPERATION__EPARAMETERS, EPARAMETER__EOPERATION, true, true, true, false, false)
 }
 
-func (eOperation *eOperationImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eOperation *eOperationImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EOPERATION__ECONTAINING_CLASS:
 		return eOperation.GetEContainingClass()
@@ -116,7 +116,7 @@ func (eOperation *eOperationImpl) EGetFromID(featureID int, resolve, coreType bo
 	case EOPERATION__OPERATION_ID:
 		return eOperation.GetOperationID()
 	default:
-		return eOperation.eTypedElementExt.EGetFromID(featureID, resolve, coreType)
+		return eOperation.eTypedElementExt.EGetFromID(featureID, resolve)
 	}
 }
 

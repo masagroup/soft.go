@@ -296,7 +296,7 @@ func (eClass *eClassImpl) initESuperTypes() EList {
 	return NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__ESUPER_TYPES, -1, false, false, false, true, false)
 }
 
-func (eClass *eClassImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eClass *eClassImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case ECLASS__ABSTRACT:
 		return eClass.IsAbstract()
@@ -331,7 +331,7 @@ func (eClass *eClassImpl) EGetFromID(featureID int, resolve, coreType bool) inte
 	case ECLASS__INTERFACE:
 		return eClass.IsInterface()
 	default:
-		return eClass.eClassifierExt.EGetFromID(featureID, resolve, coreType)
+		return eClass.eClassifierExt.EGetFromID(featureID, resolve)
 	}
 }
 

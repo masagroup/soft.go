@@ -152,7 +152,7 @@ func (ePackage *ePackageImpl) initESubPackages() EList {
 	return NewBasicEObjectList(ePackage.AsEObjectInternal(), EPACKAGE__ESUB_PACKAGES, EPACKAGE__ESUPER_PACKAGE, true, true, true, false, false)
 }
 
-func (ePackage *ePackageImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (ePackage *ePackageImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EPACKAGE__ECLASSIFIERS:
 		return ePackage.GetEClassifiers()
@@ -167,7 +167,7 @@ func (ePackage *ePackageImpl) EGetFromID(featureID int, resolve, coreType bool) 
 	case EPACKAGE__NS_URI:
 		return ePackage.GetNsURI()
 	default:
-		return ePackage.eNamedElementImpl.EGetFromID(featureID, resolve, coreType)
+		return ePackage.eNamedElementImpl.EGetFromID(featureID, resolve)
 	}
 }
 

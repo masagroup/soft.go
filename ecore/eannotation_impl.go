@@ -130,7 +130,7 @@ func (eAnnotation *eAnnotationImpl) initReferences() EList {
 	return NewBasicEObjectList(eAnnotation.AsEObjectInternal(), EANNOTATION__REFERENCES, -1, false, false, false, true, false)
 }
 
-func (eAnnotation *eAnnotationImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eAnnotation *eAnnotationImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EANNOTATION__CONTENTS:
 		return eAnnotation.GetContents()
@@ -143,7 +143,7 @@ func (eAnnotation *eAnnotationImpl) EGetFromID(featureID int, resolve, coreType 
 	case EANNOTATION__SOURCE:
 		return eAnnotation.GetSource()
 	default:
-		return eAnnotation.eModelElementExt.EGetFromID(featureID, resolve, coreType)
+		return eAnnotation.eModelElementExt.EGetFromID(featureID, resolve)
 	}
 }
 

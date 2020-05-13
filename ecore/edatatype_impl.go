@@ -49,12 +49,12 @@ func (eDataType *eDataTypeImpl) SetSerializable(newIsSerializable bool) {
 	}
 }
 
-func (eDataType *eDataTypeImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eDataType *eDataTypeImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EDATA_TYPE__SERIALIZABLE:
 		return eDataType.IsSerializable()
 	default:
-		return eDataType.eClassifierExt.EGetFromID(featureID, resolve, coreType)
+		return eDataType.eClassifierExt.EGetFromID(featureID, resolve)
 	}
 }
 

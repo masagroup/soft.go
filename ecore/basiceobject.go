@@ -42,7 +42,7 @@ type EObjectInternal interface {
 
 	EDerivedFeatureID(container EObject, featureID int) int
 	EDerivedOperationID(container EObject, operationID int) int
-	EGetFromID(featureID int, resolve bool, core bool) interface{}
+	EGetFromID(featureID int, resolve bool) interface{}
 	ESetFromID(featureID int, newValue interface{})
 	EUnsetFromID(featureID int)
 	EIsSetFromID(featureID int) bool
@@ -264,24 +264,24 @@ func (o *BasicEObject) EDerivedOperationID(container EObject, operationID int) i
 
 // EGet ...
 func (o *BasicEObject) EGet(feature EStructuralFeature) interface{} {
-	return o.eGetFromFeature(feature, true, true)
+	return o.eGetFromFeature(feature, true)
 }
 
 // EGetResolve ...
 func (o *BasicEObject) EGetResolve(feature EStructuralFeature, resolve bool) interface{} {
-	return o.eGetFromFeature(feature, resolve, true)
+	return o.eGetFromFeature(feature, resolve)
 }
 
-func (o *BasicEObject) eGetFromFeature(feature EStructuralFeature, resolve bool, core bool) interface{} {
+func (o *BasicEObject) eGetFromFeature(feature EStructuralFeature, resolve bool) interface{} {
 	featureID := o.eFeatureID(feature)
 	if featureID >= 0 {
-		return o.AsEObjectInternal().EGetFromID(featureID, resolve, core)
+		return o.AsEObjectInternal().EGetFromID(featureID, resolve)
 	}
 	panic("The feature '" + feature.GetName() + "' is not a valid feature")
 }
 
 // EGetFromID ...
-func (o *BasicEObject) EGetFromID(featureID int, resolve bool, core bool) interface{} {
+func (o *BasicEObject) EGetFromID(featureID int, resolve bool) interface{} {
 	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
 	if feature == nil {
 		panic("Invalid featureID: " + strconv.Itoa(featureID))

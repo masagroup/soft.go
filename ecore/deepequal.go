@@ -58,9 +58,9 @@ func (dE *deepEqual) equals(eObj1 EObject, eObj2 EObject) bool {
 
 	// If eObject1 is a proxy...
 	if eObj1.EIsProxy() {
-		eObj1Internal := eObj1.(EObjectInternal)
-		eObj2Internal := eObj2.(EObjectInternal)
-		if eObj1Internal.EProxyURI() == eObj2Internal.EProxyURI() {
+		eURI1 := eObj1.(EObjectInternal).EProxyURI()
+		eURI2 := eObj2.(EObjectInternal).EProxyURI()
+		if (eURI1 != nil && eURI2 != nil && *eURI1 == *eURI2) || (eURI1 == nil && eURI2 == nil) {
 			dE.objects[eObj1] = eObj2
 			dE.objects[eObj2] = eObj1
 			return true

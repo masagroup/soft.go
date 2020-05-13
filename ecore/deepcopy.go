@@ -15,6 +15,14 @@ type deepCopy struct {
 	originalReferences bool
 }
 
+func newDeepCopy(resolve bool, originalReferences bool) *deepCopy {
+	return &deepCopy{
+		objects:            make(map[EObject]EObject),
+		resolve:            resolve,
+		originalReferences: originalReferences,
+	}
+}
+
 func (dC *deepCopy) copy(eObject EObject) EObject {
 	if eObject != nil {
 		copyEObject := dC.createCopy(eObject)

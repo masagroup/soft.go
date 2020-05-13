@@ -13,6 +13,12 @@ type deepEqual struct {
 	objects map[EObject]EObject
 }
 
+func newDeepEqual() *deepEqual {
+	return &deepEqual{
+		objects: make(map[EObject]EObject),
+	}
+}
+
 func (dE *deepEqual) equals(eObj1 EObject, eObj2 EObject) bool {
 	// If the first object is null, the second object must be null.
 	if eObj1 == nil {

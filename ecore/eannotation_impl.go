@@ -119,18 +119,18 @@ func (eAnnotation *eAnnotationImpl) SetSource(newSource string) {
 }
 
 func (eAnnotation *eAnnotationImpl) initContents() EList {
-	return NewEObjectEList(eAnnotation.AsEObjectInternal(), EANNOTATION__CONTENTS, -1, true, true, false, false, false)
+	return NewBasicEObjectList(eAnnotation.AsEObjectInternal(), EANNOTATION__CONTENTS, -1, true, true, false, false, false)
 }
 
 func (eAnnotation *eAnnotationImpl) initDetails() EList {
-	return NewEObjectEList(eAnnotation.AsEObjectInternal(), EANNOTATION__DETAILS, -1, true, true, false, false, false)
+	return NewBasicEObjectList(eAnnotation.AsEObjectInternal(), EANNOTATION__DETAILS, -1, true, true, false, false, false)
 }
 
 func (eAnnotation *eAnnotationImpl) initReferences() EList {
-	return NewEObjectEList(eAnnotation.AsEObjectInternal(), EANNOTATION__REFERENCES, -1, false, false, false, true, false)
+	return NewBasicEObjectList(eAnnotation.AsEObjectInternal(), EANNOTATION__REFERENCES, -1, false, false, false, true, false)
 }
 
-func (eAnnotation *eAnnotationImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eAnnotation *eAnnotationImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EANNOTATION__CONTENTS:
 		return eAnnotation.GetContents()
@@ -139,11 +139,17 @@ func (eAnnotation *eAnnotationImpl) EGetFromID(featureID int, resolve, coreType 
 	case EANNOTATION__EMODEL_ELEMENT:
 		return eAnnotation.GetEModelElement()
 	case EANNOTATION__REFERENCES:
-		return eAnnotation.GetReferences()
+		eList := eAnnotation.GetReferences()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case EANNOTATION__SOURCE:
 		return eAnnotation.GetSource()
 	default:
-		return eAnnotation.eModelElementExt.EGetFromID(featureID, resolve, coreType)
+		return eAnnotation.eModelElementExt.EGetFromID(featureID, resolve)
 	}
 }
 

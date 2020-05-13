@@ -145,10 +145,13 @@ func (eTypedElement *eTypedElementImpl) SetUpperBound(newUpperBound int) {
 	}
 }
 
-func (eTypedElement *eTypedElementImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eTypedElement *eTypedElementImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
-		return eTypedElement.GetEType()
+		if resolve {
+			return eTypedElement.GetEType()
+		}
+		return eTypedElement.basicGetEType()
 	case ETYPED_ELEMENT__LOWER_BOUND:
 		return eTypedElement.GetLowerBound()
 	case ETYPED_ELEMENT__MANY:
@@ -162,7 +165,7 @@ func (eTypedElement *eTypedElementImpl) EGetFromID(featureID int, resolve, coreT
 	case ETYPED_ELEMENT__UPPER_BOUND:
 		return eTypedElement.GetUpperBound()
 	default:
-		return eTypedElement.eNamedElementImpl.EGetFromID(featureID, resolve, coreType)
+		return eTypedElement.eNamedElementImpl.EGetFromID(featureID, resolve)
 	}
 }
 

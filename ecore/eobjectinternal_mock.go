@@ -79,12 +79,12 @@ func (_m *MockEObjectInternal) EDerivedOperationID(container EObject, operationI
 }
 
 // EGetFromID provides a mock function with given fields: featureID, resolve, core
-func (_m *MockEObjectInternal) EGetFromID(featureID int, resolve bool, core bool) interface{} {
-	ret := _m.Called(featureID, resolve, core)
+func (_m *MockEObjectInternal) EGetFromID(featureID int, resolve bool) interface{} {
+	ret := _m.Called(featureID, resolve)
 
 	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(int, bool, bool) interface{}); ok {
-		r0 = rf(featureID, resolve, core)
+	if rf, ok := ret.Get(0).(func(int, bool) interface{}); ok {
+		r0 = rf(featureID, resolve)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(interface{})

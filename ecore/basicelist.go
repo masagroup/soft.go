@@ -73,16 +73,16 @@ func NewUniqueBasicEList(data []interface{}) *basicEList {
 	return a
 }
 
-// Remove all elements in list that already are in arr.data
-func (arr *basicEList) getNonDuplicates(list EList) *basicEList {
-	newArr := NewBasicEList([]interface{}{})
+// Remove all elements in list that already are in ref
+func getNonDuplicates(list EList, ref EList) *basicEList {
+	newList := NewBasicEList([]interface{}{})
 	for it := list.Iterator(); it.HasNext(); {
 		value := it.Next()
-		if !newArr.Contains(value) && !arr.Contains(value) {
-			newArr.Add(value)
+		if !newList.Contains(value) && !ref.Contains(value) {
+			newList.Add(value)
 		}
 	}
-	return newArr
+	return newList
 }
 
 func (arr *basicEList) Add(elem interface{}) bool {
@@ -106,7 +106,7 @@ func (arr *basicEList) doAdd(e interface{}) {
 // AddAll elements of an array in the current one
 func (arr *basicEList) AddAll(list EList) bool {
 	if arr.isUnique {
-		list = arr.getNonDuplicates(list)
+		list = getNonDuplicates(list, arr)
 		if list.Size() == 0 {
 			return false
 		}
@@ -155,7 +155,7 @@ func (arr *basicEList) InsertAll(index int, list EList) bool {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
 	}
 	if arr.isUnique {
-		list = arr.getNonDuplicates(list)
+		list = getNonDuplicates(list, arr)
 		if list.Size() == 0 {
 			return false
 		}
@@ -288,7 +288,7 @@ func (arr *basicEList) Empty() bool {
 
 // Contains return if an array contains or not an element
 func (arr *basicEList) Contains(elem interface{}) bool {
-	return arr.IndexOf(elem) != -1
+	return arr.interfaces.(EList).IndexOf(elem) != -1
 }
 
 // IndexOf return the index on an element in an array, else return -1

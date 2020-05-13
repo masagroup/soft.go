@@ -172,7 +172,7 @@ func (eStructuralFeature *eStructuralFeatureImpl) SetVolatile(newIsVolatile bool
 	}
 }
 
-func (eStructuralFeature *eStructuralFeatureImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eStructuralFeature *eStructuralFeatureImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case ESTRUCTURAL_FEATURE__CHANGEABLE:
 		return eStructuralFeature.IsChangeable()
@@ -193,7 +193,7 @@ func (eStructuralFeature *eStructuralFeatureImpl) EGetFromID(featureID int, reso
 	case ESTRUCTURAL_FEATURE__VOLATILE:
 		return eStructuralFeature.IsVolatile()
 	default:
-		return eStructuralFeature.eTypedElementExt.EGetFromID(featureID, resolve, coreType)
+		return eStructuralFeature.eTypedElementExt.EGetFromID(featureID, resolve)
 	}
 }
 

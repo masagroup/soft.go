@@ -59,14 +59,17 @@ func (eAttribute *eAttributeImpl) SetID(newIsID bool) {
 	}
 }
 
-func (eAttribute *eAttributeImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eAttribute *eAttributeImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EATTRIBUTE__EATTRIBUTE_TYPE:
-		return eAttribute.GetEAttributeType()
+		if resolve {
+			return eAttribute.GetEAttributeType()
+		}
+		return eAttribute.basicGetEAttributeType()
 	case EATTRIBUTE__ID:
 		return eAttribute.IsID()
 	default:
-		return eAttribute.eStructuralFeatureExt.EGetFromID(featureID, resolve, coreType)
+		return eAttribute.eStructuralFeatureExt.EGetFromID(featureID, resolve)
 	}
 }
 

@@ -196,17 +196,23 @@ func (eGenericType *eGenericTypeImpl) basicSetEUpperBound(newEUpperBound EGeneri
 }
 
 func (eGenericType *eGenericTypeImpl) initETypeArguments() EList {
-	return NewEObjectEList(eGenericType.AsEObjectInternal(), EGENERIC_TYPE__ETYPE_ARGUMENTS, -1, true, true, false, false, false)
+	return NewBasicEObjectList(eGenericType.AsEObjectInternal(), EGENERIC_TYPE__ETYPE_ARGUMENTS, -1, true, true, false, false, false)
 }
 
-func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
-		return eGenericType.GetEClassifier()
+		if resolve {
+			return eGenericType.GetEClassifier()
+		}
+		return eGenericType.basicGetEClassifier()
 	case EGENERIC_TYPE__ELOWER_BOUND:
 		return eGenericType.GetELowerBound()
 	case EGENERIC_TYPE__ERAW_TYPE:
-		return eGenericType.GetERawType()
+		if resolve {
+			return eGenericType.GetERawType()
+		}
+		return eGenericType.basicGetERawType()
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
 		return eGenericType.GetETypeArguments()
 	case EGENERIC_TYPE__ETYPE_PARAMETER:
@@ -214,7 +220,7 @@ func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve, coreTyp
 	case EGENERIC_TYPE__EUPPER_BOUND:
 		return eGenericType.GetEUpperBound()
 	default:
-		return eGenericType.EObjectImpl.EGetFromID(featureID, resolve, coreType)
+		return eGenericType.EObjectImpl.EGetFromID(featureID, resolve)
 	}
 }
 

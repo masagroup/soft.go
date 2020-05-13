@@ -383,7 +383,7 @@ func (l *xmlLoadImpl) setFeatureValue(eObject EObject,
 		eClassifier := eFeature.GetEType()
 		eDataType := eClassifier.(EDataType)
 		eFactory := eDataType.GetEPackage().GetEFactoryInstance()
-		eList := eObject.EGet(eFeature).(EList)
+		eList := eObject.EGetResolve(eFeature, false).(EList)
 		if position == -2 {
 		} else if value == nil {
 			eList.Add(nil)
@@ -393,7 +393,7 @@ func (l *xmlLoadImpl) setFeatureValue(eObject EObject,
 	case manyAdd:
 		fallthrough
 	case manyMove:
-		eList := eObject.EGet(eFeature).(EList)
+		eList := eObject.EGetResolve(eFeature, false).(EList)
 		if position == -1 {
 			eList.Add(value)
 		} else if position == -2 {
@@ -602,7 +602,7 @@ func (l *xmlLoadImpl) handleReferences() {
 					}
 
 					if eOpposite.IsMany() {
-						value := proxyHolder.EGet(eOpposite)
+						value := proxyHolder.EGetResolve(eOpposite, false)
 						holderContents := value.(EList)
 						resolvedIndex := holderContents.IndexOf(resolvedObject)
 						if resolvedIndex != -1 {
@@ -630,7 +630,7 @@ func (l *xmlLoadImpl) handleReferences() {
 
 					if replace {
 						if eOpposite.IsMany() {
-							value := proxyHolder.EGet(eOpposite)
+							value := proxyHolder.EGetResolve(eOpposite, false)
 							list := value.(EList)
 							ndx := list.IndexOf(eProxy)
 							list.Set(ndx, resolvedObject)
@@ -1132,7 +1132,7 @@ func (s *xmlSaveImpl) saveFeatures(eObject EObject, attributesOnly bool) bool {
 }
 
 func (s *xmlSaveImpl) saveDataTypeSingle(eObject EObject, eFeature EStructuralFeature) {
-	val := eObject.EGet(eFeature)
+	val := eObject.EGetResolve(eFeature, false)
 	str, ok := s.getDataType(val, eFeature, true)
 	if ok {
 		s.str.addAttribute(s.getFeatureQName(eFeature), str)
@@ -1140,7 +1140,7 @@ func (s *xmlSaveImpl) saveDataTypeSingle(eObject EObject, eFeature EStructuralFe
 }
 
 func (s *xmlSaveImpl) saveDataTypeMany(eObject EObject, eFeature EStructuralFeature) {
-	l := eObject.EGet(eFeature).(EList)
+	l := eObject.EGetResolve(eFeature, false).(EList)
 	d := eFeature.GetEType().(EDataType)
 	p := d.GetEPackage()
 	f := p.GetEFactoryInstance()
@@ -1165,7 +1165,7 @@ func (s *xmlSaveImpl) saveManyEmpty(eObject EObject, eFeature EStructuralFeature
 }
 
 func (s *xmlSaveImpl) saveEObjectSingle(eObject EObject, eFeature EStructuralFeature) {
-	value, _ := eObject.EGet(eFeature).(EObject)
+	value, _ := eObject.EGetResolve(eFeature, false).(EObject)
 	if value != nil {
 		id := s.getHRef(value)
 		s.str.addAttribute(s.getFeatureQName(eFeature), id)
@@ -1173,7 +1173,7 @@ func (s *xmlSaveImpl) saveEObjectSingle(eObject EObject, eFeature EStructuralFea
 }
 
 func (s *xmlSaveImpl) saveEObjectMany(eObject EObject, eFeature EStructuralFeature) {
-	l := eObject.EGet(eFeature).(EList)
+	l := eObject.EGetResolve(eFeature, false).(EList)
 	failure := false
 	var buffer strings.Builder
 	for it := l.Iterator(); ; {
@@ -1205,14 +1205,14 @@ func (s *xmlSaveImpl) saveNil(eObject EObject, eFeature EStructuralFeature) {
 }
 
 func (s *xmlSaveImpl) saveContainedSingle(eObject EObject, eFeature EStructuralFeature) {
-	value, _ := eObject.EGet(eFeature).(EObjectInternal)
+	value, _ := eObject.EGetResolve(eFeature, false).(EObjectInternal)
 	if value != nil {
 		s.saveEObjectInternal(value, eFeature)
 	}
 }
 
 func (s *xmlSaveImpl) saveContainedMany(eObject EObject, eFeature EStructuralFeature) {
-	l := eObject.EGet(eFeature).(EList)
+	l := eObject.EGetResolve(eFeature, false).(EList)
 	for it := l.Iterator(); it.HasNext(); {
 		value, _ := it.Next().(EObjectInternal)
 		if value != nil {
@@ -1247,14 +1247,14 @@ func (s *xmlSaveImpl) saveTypeAttribute(eClass EClass) {
 }
 
 func (s *xmlSaveImpl) saveHRefSingle(eObject EObject, eFeature EStructuralFeature) {
-	value, _ := eObject.EGet(eFeature).(EObject)
+	value, _ := eObject.EGetResolve(eFeature, false).(EObject)
 	if value != nil {
 		s.saveHRef(value, eFeature)
 	}
 }
 
 func (s *xmlSaveImpl) saveHRefMany(eObject EObject, eFeature EStructuralFeature) {
-	l := eObject.EGet(eFeature).(EList)
+	l := eObject.EGetResolve(eFeature, false).(EList)
 	for it := l.Iterator(); it.HasNext(); {
 		value, _ := it.Next().(EObject)
 		if value != nil {
@@ -1278,7 +1278,7 @@ func (s *xmlSaveImpl) saveHRef(eObject EObject, eFeature EStructuralFeature) {
 }
 
 func (s *xmlSaveImpl) saveIDRefSingle(eObject EObject, eFeature EStructuralFeature) {
-	value, _ := eObject.EGet(eFeature).(EObject)
+	value, _ := eObject.EGetResolve(eFeature, false).(EObject)
 	if value != nil {
 		id := s.getIDRef(value)
 		if id != "" {
@@ -1288,7 +1288,7 @@ func (s *xmlSaveImpl) saveIDRefSingle(eObject EObject, eFeature EStructuralFeatu
 }
 
 func (s *xmlSaveImpl) saveIDRefMany(eObject EObject, eFeature EStructuralFeature) {
-	l := eObject.EGet(eFeature).(EList)
+	l := eObject.EGetResolve(eFeature, false).(EList)
 	failure := false
 	var buffer strings.Builder
 	for it := l.Iterator(); ; {
@@ -1316,11 +1316,11 @@ func (s *xmlSaveImpl) saveIDRefMany(eObject EObject, eFeature EStructuralFeature
 }
 
 func (s *xmlSaveImpl) isNil(eObject EObject, eFeature EStructuralFeature) bool {
-	return eObject.EGet(eFeature) == nil
+	return eObject.EGetResolve(eFeature, false) == nil
 }
 
 func (s *xmlSaveImpl) isEmpty(eObject EObject, eFeature EStructuralFeature) bool {
-	return eObject.EGet(eFeature).(EList).Empty()
+	return eObject.EGetResolve(eFeature, false).(EList).Empty()
 }
 
 func (s *xmlSaveImpl) shouldSaveFeature(o EObject, f EStructuralFeature) bool {
@@ -1393,7 +1393,7 @@ const (
 )
 
 func (s *xmlSaveImpl) getSaveResourceKindSingle(eObject EObject, eFeature EStructuralFeature) int {
-	value, _ := eObject.EGet(eFeature).(EObjectInternal)
+	value, _ := eObject.EGetResolve(eFeature, false).(EObjectInternal)
 	if value == nil {
 		return skip
 	} else if value.EIsProxy() {
@@ -1408,7 +1408,7 @@ func (s *xmlSaveImpl) getSaveResourceKindSingle(eObject EObject, eFeature EStruc
 }
 
 func (s *xmlSaveImpl) getSaveResourceKindMany(eObject EObject, eFeature EStructuralFeature) int {
-	list, _ := eObject.EGet(eFeature).(EList)
+	list, _ := eObject.EGetResolve(eFeature, false).(EList)
 	if list == nil || list.Empty() {
 		return skip
 	}

@@ -9,15 +9,15 @@ import (
 )
 
 type eNotifyingListTest struct {
-	*ENotifyingListImpl
+	*BasicENotifyingList
 	mockNotifier *MockENotifier
 	mockFeature  *MockEStructuralFeature
 	mockAdapter  *MockEAdapter
 }
 
-func newNotifyingListTestFn(factory func() *ENotifyingListImpl) *eNotifyingListTest {
+func newNotifyingListTestFn(factory func() *BasicENotifyingList) *eNotifyingListTest {
 	l := new(eNotifyingListTest)
-	l.ENotifyingListImpl = factory()
+	l.BasicENotifyingList = factory()
 	l.mockNotifier = new(MockENotifier)
 	l.mockFeature = new(MockEStructuralFeature)
 	l.mockAdapter = new(MockEAdapter)
@@ -28,11 +28,11 @@ func newNotifyingListTestFn(factory func() *ENotifyingListImpl) *eNotifyingListT
 }
 
 func newNotifyingListTest() *eNotifyingListTest {
-	return newNotifyingListTestFn(NewENotifyingListImpl)
+	return newNotifyingListTestFn(NewBasicENotifyingList)
 }
 
 func newNotifyingListTestFromData(data []interface{}) *eNotifyingListTest {
-	return newNotifyingListTestFn(func() *ENotifyingListImpl { return newENotifyingListImplFromData(data) })
+	return newNotifyingListTestFn(func() *BasicENotifyingList { return newBasicENotifyingListFromData(data) })
 }
 
 func (list *eNotifyingListTest) GetNotifier() ENotifier {

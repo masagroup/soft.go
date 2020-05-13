@@ -49,12 +49,12 @@ func (eNamedElement *eNamedElementImpl) SetName(newName string) {
 	}
 }
 
-func (eNamedElement *eNamedElementImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eNamedElement *eNamedElementImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case ENAMED_ELEMENT__NAME:
 		return eNamedElement.GetName()
 	default:
-		return eNamedElement.eModelElementExt.EGetFromID(featureID, resolve, coreType)
+		return eNamedElement.eModelElementExt.EGetFromID(featureID, resolve)
 	}
 }
 

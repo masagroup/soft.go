@@ -128,25 +128,37 @@ func (eReference *eReferenceImpl) SetResolveProxies(newIsResolveProxies bool) {
 }
 
 func (eReference *eReferenceImpl) initEKeys() EList {
-	return NewEObjectEList(eReference.AsEObjectInternal(), EREFERENCE__EKEYS, -1, false, false, false, true, false)
+	return NewBasicEObjectList(eReference.AsEObjectInternal(), EREFERENCE__EKEYS, -1, false, false, false, true, false)
 }
 
-func (eReference *eReferenceImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eReference *eReferenceImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EREFERENCE__CONTAINER:
 		return eReference.IsContainer()
 	case EREFERENCE__CONTAINMENT:
 		return eReference.IsContainment()
 	case EREFERENCE__EKEYS:
-		return eReference.GetEKeys()
+		eList := eReference.GetEKeys()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case EREFERENCE__EOPPOSITE:
-		return eReference.GetEOpposite()
+		if resolve {
+			return eReference.GetEOpposite()
+		}
+		return eReference.basicGetEOpposite()
 	case EREFERENCE__EREFERENCE_TYPE:
-		return eReference.GetEReferenceType()
+		if resolve {
+			return eReference.GetEReferenceType()
+		}
+		return eReference.basicGetEReferenceType()
 	case EREFERENCE__RESOLVE_PROXIES:
 		return eReference.IsResolveProxies()
 	default:
-		return eReference.eStructuralFeatureExt.EGetFromID(featureID, resolve, coreType)
+		return eReference.eStructuralFeatureExt.EGetFromID(featureID, resolve)
 	}
 }
 

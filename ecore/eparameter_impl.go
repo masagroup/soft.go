@@ -42,12 +42,12 @@ func (eParameter *eParameterImpl) GetEOperation() EOperation {
 	return nil
 }
 
-func (eParameter *eParameterImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eParameter *eParameterImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EPARAMETER__EOPERATION:
 		return eParameter.GetEOperation()
 	default:
-		return eParameter.eTypedElementExt.EGetFromID(featureID, resolve, coreType)
+		return eParameter.eTypedElementExt.EGetFromID(featureID, resolve)
 	}
 }
 

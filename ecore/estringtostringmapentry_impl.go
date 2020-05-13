@@ -65,14 +65,14 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetValue(newValue st
 	}
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case ESTRING_TO_STRING_MAP_ENTRY__KEY:
 		return eStringToStringMapEntry.GetKey()
 	case ESTRING_TO_STRING_MAP_ENTRY__VALUE:
 		return eStringToStringMapEntry.GetValue()
 	default:
-		return eStringToStringMapEntry.EObjectImpl.EGetFromID(featureID, resolve, coreType)
+		return eStringToStringMapEntry.EObjectImpl.EGetFromID(featureID, resolve)
 	}
 }
 

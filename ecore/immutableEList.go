@@ -11,72 +11,72 @@ func NewImmutableEList(data []interface{}) *immutableEList {
 	return &immutableEList{data: data}
 }
 
-func (arr *immutableEList) Add(elem interface{}) bool {
+func (l *immutableEList) Add(elem interface{}) bool {
 	panic("Immutable list can't be modified")
 }
 
-func (arr *immutableEList) AddAll(list EList) bool {
+func (l *immutableEList) AddAll(list EList) bool {
 	panic("Immutable list can't be modified")
 }
 
-func (arr *immutableEList) Insert(index int, elem interface{}) bool {
+func (l *immutableEList) Insert(index int, elem interface{}) bool {
 	panic("Immutable list can't be modified")
 }
 
-func (arr *immutableEList) InsertAll(index int, list EList) bool {
+func (l *immutableEList) InsertAll(index int, list EList) bool {
 	panic("Immutable list can't be modified")
 }
 
-func (arr *immutableEList) MoveObject(newIndex int, elem interface{}) {
+func (l *immutableEList) MoveObject(newIndex int, elem interface{}) {
 	panic("Immutable list can't be modified")
 }
 
-func (arr *immutableEList) Move(oldIndex, newIndex int) interface{} {
+func (l *immutableEList) Move(oldIndex, newIndex int) interface{} {
 	panic("Immutable list can't be modified")
 }
 
 // Get an element of the array
-func (arr *immutableEList) Get(index int) interface{} {
-	if index < 0 || index >= arr.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
+func (l *immutableEList) Get(index int) interface{} {
+	if index < 0 || index >= l.Size() {
+		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(l.Size()))
 	}
-	return arr.data[index]
+	return l.data[index]
 }
 
-func (arr *immutableEList) Set(index int, elem interface{}) interface{} {
+func (l *immutableEList) Set(index int, elem interface{}) interface{} {
 	panic("Immutable list can't be modified")
 }
 
-func (arr *immutableEList) RemoveAt(index int) interface{} {
+func (l *immutableEList) RemoveAt(index int) interface{} {
 	panic("Immutable list can't be modified")
 }
 
-func (arr *immutableEList) Remove(elem interface{}) bool {
+func (l *immutableEList) Remove(elem interface{}) bool {
 	panic("Immutable list can't be modified")
 }
 
 // Size count the number of element in the array
-func (arr *immutableEList) Size() int {
-	return len(arr.data)
+func (l *immutableEList) Size() int {
+	return len(l.data)
 }
 
-func (arr *immutableEList) Clear() {
+func (l *immutableEList) Clear() {
 	panic("Immutable list can't be modified")
 }
 
 // Empty return true if the array contains 0 element
-func (arr *immutableEList) Empty() bool {
-	return arr.Size() == 0
+func (l *immutableEList) Empty() bool {
+	return l.Size() == 0
 }
 
 // Contains return if an array contains or not an element
-func (arr *immutableEList) Contains(elem interface{}) bool {
-	return arr.IndexOf(elem) != -1
+func (l *immutableEList) Contains(elem interface{}) bool {
+	return l.IndexOf(elem) != -1
 }
 
 // IndexOf return the index on an element in an array, else return -1
-func (arr *immutableEList) IndexOf(elem interface{}) int {
-	for i, value := range arr.data {
+func (l *immutableEList) IndexOf(elem interface{}) int {
+	for i, value := range l.data {
 		if value == elem {
 			return i
 		}
@@ -85,10 +85,15 @@ func (arr *immutableEList) IndexOf(elem interface{}) int {
 }
 
 // Iterator through the array
-func (arr *immutableEList) Iterator() EIterator {
-	return &listIterator{list: arr}
+func (l *immutableEList) Iterator() EIterator {
+	return &listIterator{list: l}
 }
 
-func (arr *immutableEList) ToArray() []interface{} {
-	return arr.data
+// ToArray convert to array
+func (l *immutableEList) ToArray() []interface{} {
+	return l.data
+}
+
+func (l *immutableEList) getUnResolvedList() EList {
+	return l
 }

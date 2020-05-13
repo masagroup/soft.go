@@ -66,15 +66,15 @@ func (eEnum *eEnumImpl) GetELiterals() EList {
 }
 
 func (eEnum *eEnumImpl) initELiterals() EList {
-	return NewEObjectEList(eEnum.AsEObjectInternal(), EENUM__ELITERALS, EENUM_LITERAL__EENUM, true, true, true, false, false)
+	return NewBasicEObjectList(eEnum.AsEObjectInternal(), EENUM__ELITERALS, EENUM_LITERAL__EENUM, true, true, true, false, false)
 }
 
-func (eEnum *eEnumImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eEnum *eEnumImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EENUM__ELITERALS:
 		return eEnum.GetELiterals()
 	default:
-		return eEnum.eDataTypeImpl.EGetFromID(featureID, resolve, coreType)
+		return eEnum.eDataTypeImpl.EGetFromID(featureID, resolve)
 	}
 }
 

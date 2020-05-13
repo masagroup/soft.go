@@ -241,39 +241,39 @@ func (eClass *eClassImpl) SetInterface(newIsInterface bool) {
 }
 
 func (eClass *eClassImpl) initEAllAttributes() {
-	eClass.eAllAttributes = NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__EALL_ATTRIBUTES, -1, false, false, false, true, false)
+	eClass.eAllAttributes = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EALL_ATTRIBUTES, -1, false, false, false, true, false)
 }
 
 func (eClass *eClassImpl) initEAllContainments() {
-	eClass.eAllContainments = NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__EALL_CONTAINMENTS, -1, false, false, false, true, false)
+	eClass.eAllContainments = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EALL_CONTAINMENTS, -1, false, false, false, true, false)
 }
 
 func (eClass *eClassImpl) initEAllOperations() {
-	eClass.eAllOperations = NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__EALL_OPERATIONS, -1, false, false, false, true, false)
+	eClass.eAllOperations = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EALL_OPERATIONS, -1, false, false, false, true, false)
 }
 
 func (eClass *eClassImpl) initEAllReferences() {
-	eClass.eAllReferences = NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__EALL_REFERENCES, -1, false, false, false, true, false)
+	eClass.eAllReferences = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EALL_REFERENCES, -1, false, false, false, true, false)
 }
 
 func (eClass *eClassImpl) initEAllStructuralFeatures() {
-	eClass.eAllStructuralFeatures = NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__EALL_STRUCTURAL_FEATURES, -1, false, false, false, true, false)
+	eClass.eAllStructuralFeatures = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EALL_STRUCTURAL_FEATURES, -1, false, false, false, true, false)
 }
 
 func (eClass *eClassImpl) initEAllSuperTypes() {
-	eClass.eAllSuperTypes = NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__EALL_SUPER_TYPES, -1, false, false, false, true, false)
+	eClass.eAllSuperTypes = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EALL_SUPER_TYPES, -1, false, false, false, true, false)
 }
 
 func (eClass *eClassImpl) initEAttributes() {
-	eClass.eAttributes = NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__EATTRIBUTES, -1, false, false, false, true, false)
+	eClass.eAttributes = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EATTRIBUTES, -1, false, false, false, true, false)
 }
 
 func (eClass *eClassImpl) initEContainments() {
-	eClass.eContainments = NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__ECONTAINMENTS, -1, false, false, false, true, false)
+	eClass.eContainments = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__ECONTAINMENTS, -1, false, false, false, true, false)
 }
 
 func (eClass *eClassImpl) initECrossReferences() {
-	eClass.eCrossReferences = NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__ECROSS_REFERENCES, -1, false, false, false, true, false)
+	eClass.eCrossReferences = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__ECROSS_REFERENCES, -1, false, false, false, true, false)
 }
 
 func (eClass *eClassImpl) initEIDAttribute() {
@@ -281,57 +281,123 @@ func (eClass *eClassImpl) initEIDAttribute() {
 }
 
 func (eClass *eClassImpl) initEOperations() EList {
-	return NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__EOPERATIONS, EOPERATION__ECONTAINING_CLASS, true, true, true, false, false)
+	return NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EOPERATIONS, EOPERATION__ECONTAINING_CLASS, true, true, true, false, false)
 }
 
 func (eClass *eClassImpl) initEReferences() {
-	eClass.eReferences = NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__EREFERENCES, -1, false, false, false, true, false)
+	eClass.eReferences = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EREFERENCES, -1, false, false, false, true, false)
 }
 
 func (eClass *eClassImpl) initEStructuralFeatures() EList {
-	return NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__ESTRUCTURAL_FEATURES, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, true, true, true, false, false)
+	return NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__ESTRUCTURAL_FEATURES, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, true, true, true, false, false)
 }
 
 func (eClass *eClassImpl) initESuperTypes() EList {
-	return NewEObjectEList(eClass.AsEObjectInternal(), ECLASS__ESUPER_TYPES, -1, false, false, false, true, false)
+	return NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__ESUPER_TYPES, -1, false, false, false, true, false)
 }
 
-func (eClass *eClassImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eClass *eClassImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case ECLASS__ABSTRACT:
 		return eClass.IsAbstract()
 	case ECLASS__EALL_ATTRIBUTES:
-		return eClass.GetEAllAttributes()
+		eList := eClass.GetEAllAttributes()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EALL_CONTAINMENTS:
-		return eClass.GetEAllContainments()
+		eList := eClass.GetEAllContainments()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EALL_OPERATIONS:
-		return eClass.GetEAllOperations()
+		eList := eClass.GetEAllOperations()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EALL_REFERENCES:
-		return eClass.GetEAllReferences()
+		eList := eClass.GetEAllReferences()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EALL_STRUCTURAL_FEATURES:
-		return eClass.GetEAllStructuralFeatures()
+		eList := eClass.GetEAllStructuralFeatures()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EALL_SUPER_TYPES:
-		return eClass.GetEAllSuperTypes()
+		eList := eClass.GetEAllSuperTypes()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EATTRIBUTES:
-		return eClass.GetEAttributes()
+		eList := eClass.GetEAttributes()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__ECONTAINMENTS:
-		return eClass.GetEContainments()
+		eList := eClass.GetEContainments()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__ECROSS_REFERENCES:
-		return eClass.GetECrossReferences()
+		eList := eClass.GetECrossReferences()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__EID_ATTRIBUTE:
 		return eClass.GetEIDAttribute()
 	case ECLASS__EOPERATIONS:
 		return eClass.GetEOperations()
 	case ECLASS__EREFERENCES:
-		return eClass.GetEReferences()
+		eList := eClass.GetEReferences()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__ESTRUCTURAL_FEATURES:
 		return eClass.GetEStructuralFeatures()
 	case ECLASS__ESUPER_TYPES:
-		return eClass.GetESuperTypes()
+		eList := eClass.GetESuperTypes()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case ECLASS__INTERFACE:
 		return eClass.IsInterface()
 	default:
-		return eClass.eClassifierExt.EGetFromID(featureID, resolve, coreType)
+		return eClass.eClassifierExt.EGetFromID(featureID, resolve)
 	}
 }
 

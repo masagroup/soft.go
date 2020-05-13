@@ -87,7 +87,7 @@ func (eClassifier *eClassifierImpl) SetInstanceClass(newInstanceClass reflect.Ty
 	}
 }
 
-func (eClassifier *eClassifierImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eClassifier *eClassifierImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case ECLASSIFIER__CLASSIFIER_ID:
 		return eClassifier.GetClassifierID()
@@ -98,7 +98,7 @@ func (eClassifier *eClassifierImpl) EGetFromID(featureID int, resolve, coreType 
 	case ECLASSIFIER__INSTANCE_CLASS:
 		return eClassifier.GetInstanceClass()
 	default:
-		return eClassifier.eNamedElementImpl.EGetFromID(featureID, resolve, coreType)
+		return eClassifier.eNamedElementImpl.EGetFromID(featureID, resolve)
 	}
 }
 

@@ -17,6 +17,91 @@ import (
 	"unicode/utf8"
 )
 
+func newContentsList(adapter *contentsListAdapter, resolve bool) *immutableEList {
+	data := []interface{}{}
+	o := adapter.obj
+	refs := adapter.getFeaturesFn(o.EClass())
+	for it := refs.Iterator(); it.HasNext(); {
+		ref := it.Next().(EStructuralFeature)
+		if o.EIsSet(ref) {
+			value := o.EGetResolve(ref, resolve)
+			if ref.IsMany() {
+				l := value.(EList)
+				data = append(data, l.ToArray()...)
+			} else if value != nil {
+				data = append(data, value)
+			}
+		}
+	}
+	return NewImmutableEList(data)
+}
+
+// An unresolved content list
+type unResolvedContentsList struct {
+	*immutableEList
+}
+
+func newUnResolvedContentsList(adapter *contentsListAdapter) *unResolvedContentsList {
+	l := new(unResolvedContentsList)
+	l.immutableEList = newContentsList(adapter, false)
+	return l
+}
+
+func (l *unResolvedContentsList) GetUnResolvedList() EList {
+	return l
+}
+
+// An resolved content list
+type resolvedContentsList struct {
+	*immutableEList
+	adapter *contentsListAdapter
+}
+
+func newResolvedContentsList(adapter *contentsListAdapter) *resolvedContentsList {
+	l := new(resolvedContentsList)
+	l.immutableEList = newContentsList(adapter, true)
+	l.adapter = adapter
+	return l
+}
+
+func (l *resolvedContentsList) GetUnResolvedList() EList {
+	return newUnResolvedContentsList(l.adapter)
+}
+
+// listen to object features modifications & maintain a list of object contents
+type contentsListAdapter struct {
+	*Adapter
+	obj           *BasicEObject
+	getFeaturesFn func(EClass) EList
+	list          EList
+}
+
+func newContentsListAdapter(obj *BasicEObject, getFeaturesFn func(EClass) EList) *contentsListAdapter {
+	a := new(contentsListAdapter)
+	a.Adapter = NewAdapter()
+	a.obj = obj
+	a.getFeaturesFn = getFeaturesFn
+	obj.EAdapters().Add(a)
+	return a
+}
+
+func (a *contentsListAdapter) NotifyChanged(notification ENotification) {
+	if a.list != nil {
+		feature := notification.GetFeature()
+		features := a.getFeaturesFn(a.obj.EClass())
+		if features.Contains(feature) {
+			a.list = nil
+		}
+	}
+}
+
+func (a *contentsListAdapter) GetList() EList {
+	if a.list == nil {
+		a.list = newResolvedContentsList(a)
+	}
+	return a.list
+}
+
 // BasicEObject is a basic implementation of an EObject
 type BasicEObject struct {
 	*BasicNotifier
@@ -24,6 +109,8 @@ type BasicEObject struct {
 	container          EObject
 	containerFeatureID int
 	proxyURI           *url.URL
+	contents           *contentsListAdapter
+	crossReferenceS    *contentsListAdapter
 }
 
 // EObjectInternal ...
@@ -42,7 +129,7 @@ type EObjectInternal interface {
 
 	EDerivedFeatureID(container EObject, featureID int) int
 	EDerivedOperationID(container EObject, operationID int) int
-	EGetFromID(featureID int, resolve bool, core bool) interface{}
+	EGetFromID(featureID int, resolve bool) interface{}
 	ESetFromID(featureID int, newValue interface{})
 	EUnsetFromID(featureID int)
 	EIsSetFromID(featureID int) bool
@@ -210,29 +297,18 @@ func eContainmentFeature(o EObject, container EObject, containerFeatureID int) E
 
 // EContents ...
 func (o *BasicEObject) EContents() EList {
-	return o.eContentsList(o.EClass().GetEContainments())
+	if o.contents == nil {
+		o.contents = newContentsListAdapter(o, func(eClass EClass) EList { return eClass.GetEContainments() })
+	}
+	return o.contents.GetList()
 }
 
 // ECrossReferences ...
 func (o *BasicEObject) ECrossReferences() EList {
-	return o.eContentsList(o.EClass().GetECrossReferences())
-}
-
-func (o *BasicEObject) eContentsList(refs EList) EList {
-	data := []interface{}{}
-	for it := refs.Iterator(); it.HasNext(); {
-		ref := it.Next().(EStructuralFeature)
-		if o.EIsSet(ref) {
-			value := o.EGet(ref)
-			if ref.IsMany() {
-				l := value.(EList)
-				data = append(data, l.ToArray()...)
-			} else if value != nil {
-				data = append(data, value)
-			}
-		}
+	if o.crossReferenceS == nil {
+		o.crossReferenceS = newContentsListAdapter(o, func(eClass EClass) EList { return eClass.GetECrossReferences() })
 	}
-	return NewImmutableEList(data)
+	return o.crossReferenceS.GetList()
 }
 
 // EAllContents ...
@@ -264,24 +340,24 @@ func (o *BasicEObject) EDerivedOperationID(container EObject, operationID int) i
 
 // EGet ...
 func (o *BasicEObject) EGet(feature EStructuralFeature) interface{} {
-	return o.eGetFromFeature(feature, true, true)
+	return o.eGetFromFeature(feature, true)
 }
 
 // EGetResolve ...
 func (o *BasicEObject) EGetResolve(feature EStructuralFeature, resolve bool) interface{} {
-	return o.eGetFromFeature(feature, resolve, true)
+	return o.eGetFromFeature(feature, resolve)
 }
 
-func (o *BasicEObject) eGetFromFeature(feature EStructuralFeature, resolve bool, core bool) interface{} {
+func (o *BasicEObject) eGetFromFeature(feature EStructuralFeature, resolve bool) interface{} {
 	featureID := o.eFeatureID(feature)
 	if featureID >= 0 {
-		return o.AsEObjectInternal().EGetFromID(featureID, resolve, core)
+		return o.AsEObjectInternal().EGetFromID(featureID, resolve)
 	}
 	panic("The feature '" + feature.GetName() + "' is not a valid feature")
 }
 
 // EGetFromID ...
-func (o *BasicEObject) EGetFromID(featureID int, resolve bool, core bool) interface{} {
+func (o *BasicEObject) EGetFromID(featureID int, resolve bool) interface{} {
 	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
 	if feature == nil {
 		panic("Invalid featureID: " + strconv.Itoa(featureID))

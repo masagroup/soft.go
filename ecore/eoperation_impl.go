@@ -98,25 +98,31 @@ func (eOperation *eOperationImpl) SetOperationID(newOperationID int) {
 }
 
 func (eOperation *eOperationImpl) initEExceptions() EList {
-	return NewEObjectEList(eOperation.AsEObjectInternal(), EOPERATION__EEXCEPTIONS, -1, false, false, false, true, true)
+	return NewBasicEObjectList(eOperation.AsEObjectInternal(), EOPERATION__EEXCEPTIONS, -1, false, false, false, true, true)
 }
 
 func (eOperation *eOperationImpl) initEParameters() EList {
-	return NewEObjectEList(eOperation.AsEObjectInternal(), EOPERATION__EPARAMETERS, EPARAMETER__EOPERATION, true, true, true, false, false)
+	return NewBasicEObjectList(eOperation.AsEObjectInternal(), EOPERATION__EPARAMETERS, EPARAMETER__EOPERATION, true, true, true, false, false)
 }
 
-func (eOperation *eOperationImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {
+func (eOperation *eOperationImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EOPERATION__ECONTAINING_CLASS:
 		return eOperation.GetEContainingClass()
 	case EOPERATION__EEXCEPTIONS:
-		return eOperation.GetEExceptions()
+		eList := eOperation.GetEExceptions()
+		if !resolve {
+			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
+				return eObjectList.GetUnResolvedList()
+			}
+		}
+		return eList
 	case EOPERATION__EPARAMETERS:
 		return eOperation.GetEParameters()
 	case EOPERATION__OPERATION_ID:
 		return eOperation.GetOperationID()
 	default:
-		return eOperation.eTypedElementExt.EGetFromID(featureID, resolve, coreType)
+		return eOperation.eTypedElementExt.EGetFromID(featureID, resolve)
 	}
 }
 

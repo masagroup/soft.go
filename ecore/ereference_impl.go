@@ -128,7 +128,7 @@ func (eReference *eReferenceImpl) SetResolveProxies(newIsResolveProxies bool) {
 }
 
 func (eReference *eReferenceImpl) initEKeys() EList {
-	return NewEObjectEList(eReference.AsEObjectInternal(), EREFERENCE__EKEYS, -1, false, false, false, true, false)
+	return NewBasicEObjectList(eReference.AsEObjectInternal(), EREFERENCE__EKEYS, -1, false, false, false, true, false)
 }
 
 func (eReference *eReferenceImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {

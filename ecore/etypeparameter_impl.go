@@ -51,7 +51,7 @@ func (eTypeParameter *eTypeParameterImpl) GetEBounds() EList {
 }
 
 func (eTypeParameter *eTypeParameterImpl) initEBounds() EList {
-	return NewEObjectEList(eTypeParameter.AsEObjectInternal(), ETYPE_PARAMETER__EBOUNDS, -1, true, true, false, false, false)
+	return NewBasicEObjectList(eTypeParameter.AsEObjectInternal(), ETYPE_PARAMETER__EBOUNDS, -1, true, true, false, false, false)
 }
 
 func (eTypeParameter *eTypeParameterImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {

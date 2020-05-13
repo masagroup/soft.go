@@ -119,15 +119,15 @@ func (eAnnotation *eAnnotationImpl) SetSource(newSource string) {
 }
 
 func (eAnnotation *eAnnotationImpl) initContents() EList {
-	return NewEObjectEList(eAnnotation.AsEObjectInternal(), EANNOTATION__CONTENTS, -1, true, true, false, false, false)
+	return NewBasicEObjectList(eAnnotation.AsEObjectInternal(), EANNOTATION__CONTENTS, -1, true, true, false, false, false)
 }
 
 func (eAnnotation *eAnnotationImpl) initDetails() EList {
-	return NewEObjectEList(eAnnotation.AsEObjectInternal(), EANNOTATION__DETAILS, -1, true, true, false, false, false)
+	return NewBasicEObjectList(eAnnotation.AsEObjectInternal(), EANNOTATION__DETAILS, -1, true, true, false, false, false)
 }
 
 func (eAnnotation *eAnnotationImpl) initReferences() EList {
-	return NewEObjectEList(eAnnotation.AsEObjectInternal(), EANNOTATION__REFERENCES, -1, false, false, false, true, false)
+	return NewBasicEObjectList(eAnnotation.AsEObjectInternal(), EANNOTATION__REFERENCES, -1, false, false, false, true, false)
 }
 
 func (eAnnotation *eAnnotationImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {

@@ -66,7 +66,7 @@ func (eEnum *eEnumImpl) GetELiterals() EList {
 }
 
 func (eEnum *eEnumImpl) initELiterals() EList {
-	return NewEObjectEList(eEnum.AsEObjectInternal(), EENUM__ELITERALS, EENUM_LITERAL__EENUM, true, true, true, false, false)
+	return NewBasicEObjectList(eEnum.AsEObjectInternal(), EENUM__ELITERALS, EENUM_LITERAL__EENUM, true, true, true, false, false)
 }
 
 func (eEnum *eEnumImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {

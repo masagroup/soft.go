@@ -98,11 +98,11 @@ func (eOperation *eOperationImpl) SetOperationID(newOperationID int) {
 }
 
 func (eOperation *eOperationImpl) initEExceptions() EList {
-	return NewEObjectEList(eOperation.AsEObjectInternal(), EOPERATION__EEXCEPTIONS, -1, false, false, false, true, true)
+	return NewBasicEObjectList(eOperation.AsEObjectInternal(), EOPERATION__EEXCEPTIONS, -1, false, false, false, true, true)
 }
 
 func (eOperation *eOperationImpl) initEParameters() EList {
-	return NewEObjectEList(eOperation.AsEObjectInternal(), EOPERATION__EPARAMETERS, EPARAMETER__EOPERATION, true, true, true, false, false)
+	return NewBasicEObjectList(eOperation.AsEObjectInternal(), EOPERATION__EPARAMETERS, EPARAMETER__EOPERATION, true, true, true, false, false)
 }
 
 func (eOperation *eOperationImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {

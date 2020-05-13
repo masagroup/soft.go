@@ -56,7 +56,7 @@ func (eModelElement *eModelElementImpl) GetEAnnotations() EList {
 }
 
 func (eModelElement *eModelElementImpl) initEAnnotations() EList {
-	return NewEObjectEList(eModelElement.AsEObjectInternal(), EMODEL_ELEMENT__EANNOTATIONS, EANNOTATION__EMODEL_ELEMENT, true, true, true, false, false)
+	return NewBasicEObjectList(eModelElement.AsEObjectInternal(), EMODEL_ELEMENT__EANNOTATIONS, EANNOTATION__EMODEL_ELEMENT, true, true, true, false, false)
 }
 
 func (eModelElement *eModelElementImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {

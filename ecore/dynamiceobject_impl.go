@@ -284,7 +284,7 @@ func (o *DynamicEObjectImpl) createList(feature EStructuralFeature) EList {
 			inverse = true
 			opposite = false
 		}
-		return NewEObjectEList(o.AsEObjectInternal(), ref.GetFeatureID(), reverseID, ref.IsContainment(), inverse, opposite, ref.EIsProxy(), ref.IsUnsettable())
+		return NewBasicEObjectList(o.AsEObjectInternal(), ref.GetFeatureID(), reverseID, ref.IsContainment(), inverse, opposite, ref.EIsProxy(), ref.IsUnsettable())
 	}
 	return nil
 }

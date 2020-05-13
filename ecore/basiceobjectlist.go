@@ -1,6 +1,6 @@
 package ecore
 
-type eObjectEList struct {
+type basicEObjectList struct {
 	*BasicENotifyingList
 	owner            EObjectInternal
 	featureID        int
@@ -12,8 +12,8 @@ type eObjectEList struct {
 	unset            bool
 }
 
-func NewEObjectEList(owner EObjectInternal, featureID int, inverseFeatureID int, containment, inverse, opposite, proxies, unset bool) *eObjectEList {
-	l := new(eObjectEList)
+func NewBasicEObjectList(owner EObjectInternal, featureID int, inverseFeatureID int, containment, inverse, opposite, proxies, unset bool) *basicEObjectList {
+	l := new(basicEObjectList)
 	l.BasicENotifyingList = NewBasicENotifyingList()
 	l.interfaces = l
 	l.owner = owner
@@ -28,12 +28,12 @@ func NewEObjectEList(owner EObjectInternal, featureID int, inverseFeatureID int,
 }
 
 // GetNotifier ...
-func (list *eObjectEList) GetNotifier() ENotifier {
+func (list *basicEObjectList) GetNotifier() ENotifier {
 	return list.owner
 }
 
 // GetFeature ...
-func (list *eObjectEList) GetFeature() EStructuralFeature {
+func (list *basicEObjectList) GetFeature() EStructuralFeature {
 	if list.owner != nil {
 		return list.owner.EClass().GetEStructuralFeature(list.featureID)
 	}
@@ -41,15 +41,15 @@ func (list *eObjectEList) GetFeature() EStructuralFeature {
 }
 
 // GetFeatureID ...
-func (list *eObjectEList) GetFeatureID() int {
+func (list *basicEObjectList) GetFeatureID() int {
 	return list.featureID
 }
 
-func (list *eObjectEList) doGet(index int) interface{} {
+func (list *basicEObjectList) doGet(index int) interface{} {
 	return list.resolve(index, list.BasicENotifyingList.doGet(index))
 }
 
-func (list *eObjectEList) resolve(index int, object interface{}) interface{} {
+func (list *basicEObjectList) resolve(index int, object interface{}) interface{} {
 	resolved := list.resolveProxy(object.(EObject))
 	if resolved != object {
 		list.basicEList.doSet(index, object)
@@ -65,14 +65,14 @@ func (list *eObjectEList) resolve(index int, object interface{}) interface{} {
 	return resolved
 }
 
-func (list *eObjectEList) resolveProxy(eObject EObject) EObject {
+func (list *basicEObjectList) resolveProxy(eObject EObject) EObject {
 	if list.proxies && eObject.EIsProxy() {
 		return list.owner.(EObjectInternal).EResolveProxy(eObject)
 	}
 	return eObject
 }
 
-func (list *eObjectEList) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (list *basicEObjectList) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {
@@ -84,7 +84,7 @@ func (list *eObjectEList) inverseAdd(object interface{}, notifications ENotifica
 	return notifications
 }
 
-func (list *eObjectEList) inverseRemove(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (list *basicEObjectList) inverseRemove(object interface{}, notifications ENotificationChain) ENotificationChain {
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {

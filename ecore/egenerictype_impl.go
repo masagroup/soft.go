@@ -196,7 +196,7 @@ func (eGenericType *eGenericTypeImpl) basicSetEUpperBound(newEUpperBound EGeneri
 }
 
 func (eGenericType *eGenericTypeImpl) initETypeArguments() EList {
-	return NewEObjectEList(eGenericType.AsEObjectInternal(), EGENERIC_TYPE__ETYPE_ARGUMENTS, -1, true, true, false, false, false)
+	return NewBasicEObjectList(eGenericType.AsEObjectInternal(), EGENERIC_TYPE__ETYPE_ARGUMENTS, -1, true, true, false, false, false)
 }
 
 func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {

@@ -145,11 +145,11 @@ func (ePackage *ePackageImpl) SetNsURI(newNsURI string) {
 }
 
 func (ePackage *ePackageImpl) initEClassifiers() EList {
-	return NewEObjectEList(ePackage.AsEObjectInternal(), EPACKAGE__ECLASSIFIERS, ECLASSIFIER__EPACKAGE, true, true, true, false, false)
+	return NewBasicEObjectList(ePackage.AsEObjectInternal(), EPACKAGE__ECLASSIFIERS, ECLASSIFIER__EPACKAGE, true, true, true, false, false)
 }
 
 func (ePackage *ePackageImpl) initESubPackages() EList {
-	return NewEObjectEList(ePackage.AsEObjectInternal(), EPACKAGE__ESUB_PACKAGES, EPACKAGE__ESUPER_PACKAGE, true, true, true, false, false)
+	return NewBasicEObjectList(ePackage.AsEObjectInternal(), EPACKAGE__ESUB_PACKAGES, EPACKAGE__ESUPER_PACKAGE, true, true, true, false, false)
 }
 
 func (ePackage *ePackageImpl) EGetFromID(featureID int, resolve, coreType bool) interface{} {

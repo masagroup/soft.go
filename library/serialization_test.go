@@ -62,3 +62,16 @@ func TestSerializationSaveXmlFile(t *testing.T) {
 	assert.Equal(t, strings.ReplaceAll(string(bytesInput), "\r\n", "\n"), strings.ReplaceAll(string(bytesOutput), "\r\n", "\n"))
 
 }
+
+func TestDeepOperations(t *testing.T) {
+	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
+
+	fileURI := &url.URL{Path: "testdata/library.xml"}
+	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
+	resource := resourceFactory.CreateResource(fileURI)
+	resource.Load()
+
+	eObject := resource.GetContents().Get(0).(ecore.EObject)
+	eCopyObject := ecore.Copy(eObject)
+	assert.True(t, ecore.Equals(eObject, eCopyObject))
+}

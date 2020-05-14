@@ -594,7 +594,7 @@ func (o *BasicEObject) EObjectForFragmentSegment(uriSegment string) EObject {
 			pos, _ := strconv.Atoi(uriSegment[index+1:])
 			eFeatureName := uriSegment[1:index]
 			eFeature := o.eStructuralFeature(eFeatureName)
-			list := o.AsEObject().EGet(eFeature).(EList)
+			list := o.AsEObject().EGetResolve(eFeature, false).(EList)
 			if pos < list.Size() {
 				return list.Get(pos).(EObject)
 			}
@@ -602,7 +602,7 @@ func (o *BasicEObject) EObjectForFragmentSegment(uriSegment string) EObject {
 	}
 	if index == -1 {
 		eFeature := o.eStructuralFeature(uriSegment)
-		return o.AsEObject().EGet(eFeature).(EObject)
+		return o.AsEObject().EGetResolve(eFeature, false).(EObject)
 	}
 	return nil
 }
@@ -611,7 +611,7 @@ func (o *BasicEObject) EURIFragmentSegment(feature EStructuralFeature, object EO
 	s := "@"
 	s += feature.GetName()
 	if feature.IsMany() {
-		v := o.AsEObject().EGet(feature)
+		v := o.AsEObject().EGetResolve(feature, false)
 		i := v.(EList).IndexOf(object)
 		s += "." + strconv.Itoa(i)
 	}

@@ -36,6 +36,10 @@ func newEEnumLiteralImpl() *eEnumLiteralImpl {
 	return eEnumLiteral
 }
 
+func (eEnumLiteral *eEnumLiteralImpl) asEEnumLiteral() EEnumLiteral {
+	return eEnumLiteral.GetInterfaces().(EEnumLiteral)
+}
+
 func (eEnumLiteral *eEnumLiteralImpl) EStaticClass() EClass {
 	return GetPackage().GetEEnumLiteral()
 }
@@ -93,13 +97,13 @@ func (eEnumLiteral *eEnumLiteralImpl) SetValue(newValue int) {
 func (eEnumLiteral *eEnumLiteralImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EENUM_LITERAL__EENUM:
-		return eEnumLiteral.GetEEnum()
+		return eEnumLiteral.asEEnumLiteral().GetEEnum()
 	case EENUM_LITERAL__INSTANCE:
-		return eEnumLiteral.GetInstance()
+		return eEnumLiteral.asEEnumLiteral().GetInstance()
 	case EENUM_LITERAL__LITERAL:
-		return eEnumLiteral.GetLiteral()
+		return eEnumLiteral.asEEnumLiteral().GetLiteral()
 	case EENUM_LITERAL__VALUE:
-		return eEnumLiteral.GetValue()
+		return eEnumLiteral.asEEnumLiteral().GetValue()
 	default:
 		return eEnumLiteral.eNamedElementImpl.EGetFromID(featureID, resolve)
 	}
@@ -108,14 +112,11 @@ func (eEnumLiteral *eEnumLiteralImpl) EGetFromID(featureID int, resolve bool) in
 func (eEnumLiteral *eEnumLiteralImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case EENUM_LITERAL__INSTANCE:
-		i := newValue.(interface{})
-		eEnumLiteral.SetInstance(i)
+		eEnumLiteral.asEEnumLiteral().SetInstance(newValue.(interface{}))
 	case EENUM_LITERAL__LITERAL:
-		l := newValue.(string)
-		eEnumLiteral.SetLiteral(l)
+		eEnumLiteral.asEEnumLiteral().SetLiteral(newValue.(string))
 	case EENUM_LITERAL__VALUE:
-		v := newValue.(int)
-		eEnumLiteral.SetValue(v)
+		eEnumLiteral.asEEnumLiteral().SetValue(newValue.(int))
 	default:
 		eEnumLiteral.eNamedElementImpl.ESetFromID(featureID, newValue)
 	}
@@ -124,11 +125,11 @@ func (eEnumLiteral *eEnumLiteralImpl) ESetFromID(featureID int, newValue interfa
 func (eEnumLiteral *eEnumLiteralImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EENUM_LITERAL__INSTANCE:
-		eEnumLiteral.SetInstance(nil)
+		eEnumLiteral.asEEnumLiteral().SetInstance(nil)
 	case EENUM_LITERAL__LITERAL:
-		eEnumLiteral.SetLiteral("")
+		eEnumLiteral.asEEnumLiteral().SetLiteral("")
 	case EENUM_LITERAL__VALUE:
-		eEnumLiteral.SetValue(0)
+		eEnumLiteral.asEEnumLiteral().SetValue(0)
 	default:
 		eEnumLiteral.eNamedElementImpl.EUnsetFromID(featureID)
 	}

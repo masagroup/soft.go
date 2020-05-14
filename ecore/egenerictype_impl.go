@@ -43,6 +43,10 @@ func (eGenericType *eGenericTypeImpl) getInitializers() eGenericTypeImplInitiali
 	return eGenericType.AsEObject().(eGenericTypeImplInitializers)
 }
 
+func (eGenericType *eGenericTypeImpl) asEGenericType() EGenericType {
+	return eGenericType.GetInterfaces().(EGenericType)
+}
+
 func (eGenericType *eGenericTypeImpl) EStaticClass() EClass {
 	return GetPackage().GetEGenericType()
 }
@@ -203,22 +207,22 @@ func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve bool) in
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
 		if resolve {
-			return eGenericType.GetEClassifier()
+			return eGenericType.asEGenericType().GetEClassifier()
 		}
 		return eGenericType.basicGetEClassifier()
 	case EGENERIC_TYPE__ELOWER_BOUND:
-		return eGenericType.GetELowerBound()
+		return eGenericType.asEGenericType().GetELowerBound()
 	case EGENERIC_TYPE__ERAW_TYPE:
 		if resolve {
-			return eGenericType.GetERawType()
+			return eGenericType.asEGenericType().GetERawType()
 		}
 		return eGenericType.basicGetERawType()
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
-		return eGenericType.GetETypeArguments()
+		return eGenericType.asEGenericType().GetETypeArguments()
 	case EGENERIC_TYPE__ETYPE_PARAMETER:
-		return eGenericType.GetETypeParameter()
+		return eGenericType.asEGenericType().GetETypeParameter()
 	case EGENERIC_TYPE__EUPPER_BOUND:
-		return eGenericType.GetEUpperBound()
+		return eGenericType.asEGenericType().GetEUpperBound()
 	default:
 		return eGenericType.EObjectImpl.EGetFromID(featureID, resolve)
 	}
@@ -227,21 +231,17 @@ func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve bool) in
 func (eGenericType *eGenericTypeImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
-		e := newValue.(EClassifier)
-		eGenericType.SetEClassifier(e)
+		eGenericType.asEGenericType().SetEClassifier(newValue.(EClassifier))
 	case EGENERIC_TYPE__ELOWER_BOUND:
-		e := newValue.(EGenericType)
-		eGenericType.SetELowerBound(e)
+		eGenericType.asEGenericType().SetELowerBound(newValue.(EGenericType))
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
-		e := newValue.(EList)
-		eGenericType.GetETypeArguments().Clear()
-		eGenericType.GetETypeArguments().AddAll(e)
+		list := eGenericType.asEGenericType().GetETypeArguments()
+		list.Clear()
+		list.AddAll(newValue.(EList))
 	case EGENERIC_TYPE__ETYPE_PARAMETER:
-		e := newValue.(ETypeParameter)
-		eGenericType.SetETypeParameter(e)
+		eGenericType.asEGenericType().SetETypeParameter(newValue.(ETypeParameter))
 	case EGENERIC_TYPE__EUPPER_BOUND:
-		e := newValue.(EGenericType)
-		eGenericType.SetEUpperBound(e)
+		eGenericType.asEGenericType().SetEUpperBound(newValue.(EGenericType))
 	default:
 		eGenericType.EObjectImpl.ESetFromID(featureID, newValue)
 	}
@@ -250,15 +250,15 @@ func (eGenericType *eGenericTypeImpl) ESetFromID(featureID int, newValue interfa
 func (eGenericType *eGenericTypeImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
-		eGenericType.SetEClassifier(nil)
+		eGenericType.asEGenericType().SetEClassifier(nil)
 	case EGENERIC_TYPE__ELOWER_BOUND:
-		eGenericType.SetELowerBound(nil)
+		eGenericType.asEGenericType().SetELowerBound(nil)
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
-		eGenericType.GetETypeArguments().Clear()
+		eGenericType.asEGenericType().GetETypeArguments().Clear()
 	case EGENERIC_TYPE__ETYPE_PARAMETER:
-		eGenericType.SetETypeParameter(nil)
+		eGenericType.asEGenericType().SetETypeParameter(nil)
 	case EGENERIC_TYPE__EUPPER_BOUND:
-		eGenericType.SetEUpperBound(nil)
+		eGenericType.asEGenericType().SetEUpperBound(nil)
 	default:
 		eGenericType.EObjectImpl.EUnsetFromID(featureID)
 	}
@@ -286,7 +286,7 @@ func (eGenericType *eGenericTypeImpl) EIsSetFromID(featureID int) bool {
 func (eGenericType *eGenericTypeImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
 	switch operationID {
 	case EGENERIC_TYPE__IS_INSTANCE_EJAVAOBJECT:
-		return eGenericType.IsInstance(arguments.Get(0))
+		return eGenericType.asEGenericType().IsInstance(arguments.Get(0))
 	default:
 		return eGenericType.EObjectImpl.EInvokeFromID(operationID, arguments)
 	}

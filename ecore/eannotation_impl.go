@@ -45,6 +45,10 @@ func (eAnnotation *eAnnotationImpl) getInitializers() eAnnotationImplInitializer
 	return eAnnotation.AsEObject().(eAnnotationImplInitializers)
 }
 
+func (eAnnotation *eAnnotationImpl) asEAnnotation() EAnnotation {
+	return eAnnotation.GetInterfaces().(EAnnotation)
+}
+
 func (eAnnotation *eAnnotationImpl) EStaticClass() EClass {
 	return GetPackage().GetEAnnotationClass()
 }
@@ -133,21 +137,21 @@ func (eAnnotation *eAnnotationImpl) initReferences() EList {
 func (eAnnotation *eAnnotationImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EANNOTATION__CONTENTS:
-		return eAnnotation.GetContents()
+		return eAnnotation.asEAnnotation().GetContents()
 	case EANNOTATION__DETAILS:
-		return eAnnotation.GetDetails()
+		return eAnnotation.asEAnnotation().GetDetails()
 	case EANNOTATION__EMODEL_ELEMENT:
-		return eAnnotation.GetEModelElement()
+		return eAnnotation.asEAnnotation().GetEModelElement()
 	case EANNOTATION__REFERENCES:
-		eList := eAnnotation.GetReferences()
+		list := eAnnotation.asEAnnotation().GetReferences()
 		if !resolve {
-			if eObjectList, _ := eList.(EObjectList); eObjectList != nil {
-				return eObjectList.GetUnResolvedList()
+			if objects, _ := list.(EObjectList); objects != nil {
+				return objects.GetUnResolvedList()
 			}
 		}
-		return eList
+		return list
 	case EANNOTATION__SOURCE:
-		return eAnnotation.GetSource()
+		return eAnnotation.asEAnnotation().GetSource()
 	default:
 		return eAnnotation.eModelElementExt.EGetFromID(featureID, resolve)
 	}
@@ -156,23 +160,21 @@ func (eAnnotation *eAnnotationImpl) EGetFromID(featureID int, resolve bool) inte
 func (eAnnotation *eAnnotationImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case EANNOTATION__CONTENTS:
-		c := newValue.(EList)
-		eAnnotation.GetContents().Clear()
-		eAnnotation.GetContents().AddAll(c)
+		list := eAnnotation.asEAnnotation().GetContents()
+		list.Clear()
+		list.AddAll(newValue.(EList))
 	case EANNOTATION__DETAILS:
-		d := newValue.(EList)
-		eAnnotation.GetDetails().Clear()
-		eAnnotation.GetDetails().AddAll(d)
+		list := eAnnotation.asEAnnotation().GetDetails()
+		list.Clear()
+		list.AddAll(newValue.(EList))
 	case EANNOTATION__EMODEL_ELEMENT:
-		e := newValue.(EModelElement)
-		eAnnotation.SetEModelElement(e)
+		eAnnotation.asEAnnotation().SetEModelElement(newValue.(EModelElement))
 	case EANNOTATION__REFERENCES:
-		r := newValue.(EList)
-		eAnnotation.GetReferences().Clear()
-		eAnnotation.GetReferences().AddAll(r)
+		list := eAnnotation.asEAnnotation().GetReferences()
+		list.Clear()
+		list.AddAll(newValue.(EList))
 	case EANNOTATION__SOURCE:
-		s := newValue.(string)
-		eAnnotation.SetSource(s)
+		eAnnotation.asEAnnotation().SetSource(newValue.(string))
 	default:
 		eAnnotation.eModelElementExt.ESetFromID(featureID, newValue)
 	}
@@ -181,15 +183,15 @@ func (eAnnotation *eAnnotationImpl) ESetFromID(featureID int, newValue interface
 func (eAnnotation *eAnnotationImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EANNOTATION__CONTENTS:
-		eAnnotation.GetContents().Clear()
+		eAnnotation.asEAnnotation().GetContents().Clear()
 	case EANNOTATION__DETAILS:
-		eAnnotation.GetDetails().Clear()
+		eAnnotation.asEAnnotation().GetDetails().Clear()
 	case EANNOTATION__EMODEL_ELEMENT:
-		eAnnotation.SetEModelElement(nil)
+		eAnnotation.asEAnnotation().SetEModelElement(nil)
 	case EANNOTATION__REFERENCES:
-		eAnnotation.GetReferences().Clear()
+		eAnnotation.asEAnnotation().GetReferences().Clear()
 	case EANNOTATION__SOURCE:
-		eAnnotation.SetSource("")
+		eAnnotation.asEAnnotation().SetSource("")
 	default:
 		eAnnotation.eModelElementExt.EUnsetFromID(featureID)
 	}

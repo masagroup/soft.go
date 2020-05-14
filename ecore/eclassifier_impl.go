@@ -37,6 +37,10 @@ func newEClassifierImpl() *eClassifierImpl {
 	return eClassifier
 }
 
+func (eClassifier *eClassifierImpl) asEClassifier() EClassifier {
+	return eClassifier.GetInterfaces().(EClassifier)
+}
+
 func (eClassifier *eClassifierImpl) EStaticClass() EClass {
 	return GetPackage().GetEClassifierClass()
 }
@@ -90,13 +94,13 @@ func (eClassifier *eClassifierImpl) SetInstanceClass(newInstanceClass reflect.Ty
 func (eClassifier *eClassifierImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case ECLASSIFIER__CLASSIFIER_ID:
-		return eClassifier.GetClassifierID()
+		return eClassifier.asEClassifier().GetClassifierID()
 	case ECLASSIFIER__DEFAULT_VALUE:
-		return eClassifier.GetDefaultValue()
+		return eClassifier.asEClassifier().GetDefaultValue()
 	case ECLASSIFIER__EPACKAGE:
-		return eClassifier.GetEPackage()
+		return eClassifier.asEClassifier().GetEPackage()
 	case ECLASSIFIER__INSTANCE_CLASS:
-		return eClassifier.GetInstanceClass()
+		return eClassifier.asEClassifier().GetInstanceClass()
 	default:
 		return eClassifier.eNamedElementImpl.EGetFromID(featureID, resolve)
 	}
@@ -105,11 +109,9 @@ func (eClassifier *eClassifierImpl) EGetFromID(featureID int, resolve bool) inte
 func (eClassifier *eClassifierImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case ECLASSIFIER__CLASSIFIER_ID:
-		c := newValue.(int)
-		eClassifier.SetClassifierID(c)
+		eClassifier.asEClassifier().SetClassifierID(newValue.(int))
 	case ECLASSIFIER__INSTANCE_CLASS:
-		i := newValue.(reflect.Type)
-		eClassifier.SetInstanceClass(i)
+		eClassifier.asEClassifier().SetInstanceClass(newValue.(reflect.Type))
 	default:
 		eClassifier.eNamedElementImpl.ESetFromID(featureID, newValue)
 	}
@@ -118,9 +120,9 @@ func (eClassifier *eClassifierImpl) ESetFromID(featureID int, newValue interface
 func (eClassifier *eClassifierImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case ECLASSIFIER__CLASSIFIER_ID:
-		eClassifier.SetClassifierID(-1)
+		eClassifier.asEClassifier().SetClassifierID(-1)
 	case ECLASSIFIER__INSTANCE_CLASS:
-		eClassifier.SetInstanceClass(nil)
+		eClassifier.asEClassifier().SetInstanceClass(nil)
 	default:
 		eClassifier.eNamedElementImpl.EUnsetFromID(featureID)
 	}
@@ -144,7 +146,7 @@ func (eClassifier *eClassifierImpl) EIsSetFromID(featureID int) bool {
 func (eClassifier *eClassifierImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
 	switch operationID {
 	case ECLASSIFIER__IS_INSTANCE_EJAVAOBJECT:
-		return eClassifier.IsInstance(arguments.Get(0))
+		return eClassifier.asEClassifier().IsInstance(arguments.Get(0))
 	default:
 		return eClassifier.eNamedElementImpl.EInvokeFromID(operationID, arguments)
 	}

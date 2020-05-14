@@ -30,6 +30,10 @@ func newEParameterImpl() *eParameterImpl {
 	return eParameter
 }
 
+func (eParameter *eParameterImpl) asEParameter() EParameter {
+	return eParameter.GetInterfaces().(EParameter)
+}
+
 func (eParameter *eParameterImpl) EStaticClass() EClass {
 	return GetPackage().GetEParameter()
 }
@@ -45,7 +49,7 @@ func (eParameter *eParameterImpl) GetEOperation() EOperation {
 func (eParameter *eParameterImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EPARAMETER__EOPERATION:
-		return eParameter.GetEOperation()
+		return eParameter.asEParameter().GetEOperation()
 	default:
 		return eParameter.eTypedElementExt.EGetFromID(featureID, resolve)
 	}

@@ -30,6 +30,10 @@ func newEFactoryImpl() *eFactoryImpl {
 	return eFactory
 }
 
+func (eFactory *eFactoryImpl) asEFactory() EFactory {
+	return eFactory.GetInterfaces().(EFactory)
+}
+
 func (eFactory *eFactoryImpl) EStaticClass() EClass {
 	return GetPackage().GetEFactory()
 }
@@ -83,7 +87,7 @@ func (eFactory *eFactoryImpl) basicSetEPackage(newEPackage EPackage, msgs ENotif
 func (eFactory *eFactoryImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
-		return eFactory.GetEPackage()
+		return eFactory.asEFactory().GetEPackage()
 	default:
 		return eFactory.eModelElementExt.EGetFromID(featureID, resolve)
 	}
@@ -92,8 +96,7 @@ func (eFactory *eFactoryImpl) EGetFromID(featureID int, resolve bool) interface{
 func (eFactory *eFactoryImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
-		e := newValue.(EPackage)
-		eFactory.SetEPackage(e)
+		eFactory.asEFactory().SetEPackage(newValue.(EPackage))
 	default:
 		eFactory.eModelElementExt.ESetFromID(featureID, newValue)
 	}
@@ -102,7 +105,7 @@ func (eFactory *eFactoryImpl) ESetFromID(featureID int, newValue interface{}) {
 func (eFactory *eFactoryImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
-		eFactory.SetEPackage(nil)
+		eFactory.asEFactory().SetEPackage(nil)
 	default:
 		eFactory.eModelElementExt.EUnsetFromID(featureID)
 	}
@@ -120,11 +123,11 @@ func (eFactory *eFactoryImpl) EIsSetFromID(featureID int) bool {
 func (eFactory *eFactoryImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
 	switch operationID {
 	case EFACTORY__CONVERT_TO_STRING_EDATATYPE_EJAVAOBJECT:
-		return eFactory.ConvertToString(arguments.Get(0).(EDataType), arguments.Get(1))
+		return eFactory.asEFactory().ConvertToString(arguments.Get(0).(EDataType), arguments.Get(1))
 	case EFACTORY__CREATE_ECLASS:
-		return eFactory.Create(arguments.Get(0).(EClass))
+		return eFactory.asEFactory().Create(arguments.Get(0).(EClass))
 	case EFACTORY__CREATE_FROM_STRING_EDATATYPE_ESTRING:
-		return eFactory.CreateFromString(arguments.Get(0).(EDataType), arguments.Get(1).(string))
+		return eFactory.asEFactory().CreateFromString(arguments.Get(0).(EDataType), arguments.Get(1).(string))
 	default:
 		return eFactory.eModelElementExt.EInvokeFromID(operationID, arguments)
 	}

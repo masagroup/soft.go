@@ -2,3 +2,4 @@
 go.sum
 !econtentadapter_test.go
 !serialization_test.go
+!writer_ext*.go

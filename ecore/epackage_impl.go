@@ -46,6 +46,10 @@ func (ePackage *ePackageImpl) getInitializers() ePackageImplInitializers {
 	return ePackage.AsEObject().(ePackageImplInitializers)
 }
 
+func (ePackage *ePackageImpl) asEPackage() EPackage {
+	return ePackage.GetInterfaces().(EPackage)
+}
+
 func (ePackage *ePackageImpl) EStaticClass() EClass {
 	return GetPackage().GetEPackage()
 }
@@ -155,17 +159,17 @@ func (ePackage *ePackageImpl) initESubPackages() EList {
 func (ePackage *ePackageImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case EPACKAGE__ECLASSIFIERS:
-		return ePackage.GetEClassifiers()
+		return ePackage.asEPackage().GetEClassifiers()
 	case EPACKAGE__EFACTORY_INSTANCE:
-		return ePackage.GetEFactoryInstance()
+		return ePackage.asEPackage().GetEFactoryInstance()
 	case EPACKAGE__ESUB_PACKAGES:
-		return ePackage.GetESubPackages()
+		return ePackage.asEPackage().GetESubPackages()
 	case EPACKAGE__ESUPER_PACKAGE:
-		return ePackage.GetESuperPackage()
+		return ePackage.asEPackage().GetESuperPackage()
 	case EPACKAGE__NS_PREFIX:
-		return ePackage.GetNsPrefix()
+		return ePackage.asEPackage().GetNsPrefix()
 	case EPACKAGE__NS_URI:
-		return ePackage.GetNsURI()
+		return ePackage.asEPackage().GetNsURI()
 	default:
 		return ePackage.eNamedElementImpl.EGetFromID(featureID, resolve)
 	}
@@ -174,22 +178,19 @@ func (ePackage *ePackageImpl) EGetFromID(featureID int, resolve bool) interface{
 func (ePackage *ePackageImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case EPACKAGE__ECLASSIFIERS:
-		e := newValue.(EList)
-		ePackage.GetEClassifiers().Clear()
-		ePackage.GetEClassifiers().AddAll(e)
+		list := ePackage.asEPackage().GetEClassifiers()
+		list.Clear()
+		list.AddAll(newValue.(EList))
 	case EPACKAGE__EFACTORY_INSTANCE:
-		e := newValue.(EFactory)
-		ePackage.SetEFactoryInstance(e)
+		ePackage.asEPackage().SetEFactoryInstance(newValue.(EFactory))
 	case EPACKAGE__ESUB_PACKAGES:
-		e := newValue.(EList)
-		ePackage.GetESubPackages().Clear()
-		ePackage.GetESubPackages().AddAll(e)
+		list := ePackage.asEPackage().GetESubPackages()
+		list.Clear()
+		list.AddAll(newValue.(EList))
 	case EPACKAGE__NS_PREFIX:
-		n := newValue.(string)
-		ePackage.SetNsPrefix(n)
+		ePackage.asEPackage().SetNsPrefix(newValue.(string))
 	case EPACKAGE__NS_URI:
-		n := newValue.(string)
-		ePackage.SetNsURI(n)
+		ePackage.asEPackage().SetNsURI(newValue.(string))
 	default:
 		ePackage.eNamedElementImpl.ESetFromID(featureID, newValue)
 	}
@@ -198,15 +199,15 @@ func (ePackage *ePackageImpl) ESetFromID(featureID int, newValue interface{}) {
 func (ePackage *ePackageImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EPACKAGE__ECLASSIFIERS:
-		ePackage.GetEClassifiers().Clear()
+		ePackage.asEPackage().GetEClassifiers().Clear()
 	case EPACKAGE__EFACTORY_INSTANCE:
-		ePackage.SetEFactoryInstance(nil)
+		ePackage.asEPackage().SetEFactoryInstance(nil)
 	case EPACKAGE__ESUB_PACKAGES:
-		ePackage.GetESubPackages().Clear()
+		ePackage.asEPackage().GetESubPackages().Clear()
 	case EPACKAGE__NS_PREFIX:
-		ePackage.SetNsPrefix("")
+		ePackage.asEPackage().SetNsPrefix("")
 	case EPACKAGE__NS_URI:
-		ePackage.SetNsURI("")
+		ePackage.asEPackage().SetNsURI("")
 	default:
 		ePackage.eNamedElementImpl.EUnsetFromID(featureID)
 	}
@@ -234,7 +235,7 @@ func (ePackage *ePackageImpl) EIsSetFromID(featureID int) bool {
 func (ePackage *ePackageImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
 	switch operationID {
 	case EPACKAGE__GET_ECLASSIFIER_ESTRING:
-		return ePackage.GetEClassifier(arguments.Get(0).(string))
+		return ePackage.asEPackage().GetEClassifier(arguments.Get(0).(string))
 	default:
 		return ePackage.eNamedElementImpl.EInvokeFromID(operationID, arguments)
 	}

@@ -26,8 +26,7 @@ func (m *EResourceIDManagerImpl) Register(eObject EObject) {
 }
 
 func (m *EResourceIDManagerImpl) UnRegister(eObject EObject) {
-	id := GetEObjectID(eObject)
-	if len(id) > 0 {
+	if id, isPresent := m.objectToID[eObject]; isPresent {
 		delete(m.idToObject, id)
 		delete(m.objectToID, eObject)
 	}

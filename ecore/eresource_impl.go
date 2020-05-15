@@ -84,12 +84,13 @@ func (rc *resourceContents) inverseRemove(object interface{}, notifications ENot
 //EResource ...
 type EResourceImpl struct {
 	*BasicNotifier
-	resourceSet EResourceSet
-	uri         *url.URL
-	contents    EList
-	errors      EList
-	warnings    EList
-	isLoaded    bool
+	resourceSet       EResourceSet
+	resourceIDManager EResourceIDManager
+	uri               *url.URL
+	contents          EList
+	errors            EList
+	warnings          EList
+	isLoaded          bool
 }
 
 // NewBasicEObject is BasicEObject constructor
@@ -124,11 +125,19 @@ func (r *EResourceImpl) GetContents() EList {
 }
 
 func (r *EResourceImpl) GetAllContents() EIterator {
+	return r.getAllContentsResolve(true)
+}
+
+func (r *EResourceImpl) getAllContentsResolve(resolve bool) EIterator {
 	return newTreeIterator(r, false, func(o interface{}) EIterator {
 		if o == r.GetInterfaces() {
 			return o.(EResource).GetContents().Iterator()
 		}
-		return o.(EObject).EContents().Iterator()
+		contents := o.(EObject).EContents()
+		if !resolve {
+			contents = contents.(EObjectList).GetUnResolvedList()
+		}
+		return contents.Iterator()
 	})
 }
 
@@ -194,7 +203,10 @@ func (r *EResourceImpl) getURIFragmentRootSegment(eObject EObject) string {
 }
 
 func (r *EResourceImpl) getObjectByID(id string) EObject {
-	for it := r.GetAllContents(); it.HasNext(); {
+	if r.resourceIDManager != nil {
+		return r.resourceIDManager.GetEObject(id)
+	}
+	for it := r.getAllContentsResolve(false); it.HasNext(); {
 		eObject := it.Next().(EObject)
 		objectID := GetEObjectID(eObject)
 		if id == objectID {
@@ -233,11 +245,15 @@ func (r *EResourceImpl) getObjectForRootSegment(rootSegment string) EObject {
 }
 
 func (r *EResourceImpl) Attached(object EObject) {
-
+	if r.resourceIDManager != nil {
+		r.resourceIDManager.Register(object)
+	}
 }
 
 func (r *EResourceImpl) Detached(object EObject) {
-
+	if r.resourceIDManager != nil {
+		r.resourceIDManager.UnRegister(object)
+	}
 }
 
 var defaultURIConverter EURIConverter = NewEURIConverterImpl()
@@ -355,4 +371,12 @@ func (r *EResourceImpl) basicSetResourceSet(resourceSet EResourceSet, msgs ENoti
 		notifications.Add(newResourceNotification(r.GetInterfaces().(ENotifier), RESOURCE__RESOURCE_SET, SET, oldAbstractResourceSet, resourceSet, -1))
 	}
 	return notifications
+}
+
+func (r *EResourceImpl) SetIDManager(resourceIDManager EResourceIDManager) {
+	r.resourceIDManager = resourceIDManager
+}
+
+func (r *EResourceImpl) GetIDManager() EResourceIDManager {
+	return r.resourceIDManager
 }

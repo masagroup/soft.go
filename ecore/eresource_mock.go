@@ -84,6 +84,22 @@ func (_m *MockEResource) GetErrors() EList {
 	return r0
 }
 
+// GetIDManager provides a mock function with given fields:
+func (_m *MockEResource) GetIDManager() EResourceIDManager {
+	ret := _m.Called()
+
+	var r0 EResourceIDManager
+	if rf, ok := ret.Get(0).(func() EResourceIDManager); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(EResourceIDManager)
+		}
+	}
+
+	return r0
+}
+
 // GetResourceSet provides a mock function with given fields:
 func (_m *MockEResource) GetResourceSet() EResourceSet {
 	ret := _m.Called()
@@ -178,6 +194,11 @@ func (_m *MockEResource) Save() {
 // SaveWithWriter provides a mock function with given fields: w
 func (_m *MockEResource) SaveWithWriter(w io.Writer) {
 	_m.Called(w)
+}
+
+// SetIDManager provides a mock function with given fields: _a0
+func (_m *MockEResource) SetIDManager(_a0 EResourceIDManager) {
+	_m.Called(_a0)
 }
 
 // SetURI provides a mock function with given fields: _a0

@@ -94,6 +94,6 @@ func (l *immutableEList) ToArray() []interface{} {
 	return l.data
 }
 
-func (l *immutableEList) getUnResolvedList() EList {
+func (l *immutableEList) GetUnResolvedList() EList {
 	return l
 }

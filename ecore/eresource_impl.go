@@ -84,12 +84,13 @@ func (rc *resourceContents) inverseRemove(object interface{}, notifications ENot
 //EResource ...
 type EResourceImpl struct {
 	*BasicNotifier
-	resourceSet EResourceSet
-	uri         *url.URL
-	contents    EList
-	errors      EList
-	warnings    EList
-	isLoaded    bool
+	resourceSet       EResourceSet
+	resourceIDManager EResourceIDManager
+	uri               *url.URL
+	contents          EList
+	errors            EList
+	warnings          EList
+	isLoaded          bool
 }
 
 // NewBasicEObject is BasicEObject constructor
@@ -233,11 +234,15 @@ func (r *EResourceImpl) getObjectForRootSegment(rootSegment string) EObject {
 }
 
 func (r *EResourceImpl) Attached(object EObject) {
-
+	if r.resourceIDManager != nil {
+		r.resourceIDManager.Register(object)
+	}
 }
 
 func (r *EResourceImpl) Detached(object EObject) {
-
+	if r.resourceIDManager != nil {
+		r.resourceIDManager.UnRegister(object)
+	}
 }
 
 var defaultURIConverter EURIConverter = NewEURIConverterImpl()
@@ -355,4 +360,12 @@ func (r *EResourceImpl) basicSetResourceSet(resourceSet EResourceSet, msgs ENoti
 		notifications.Add(newResourceNotification(r.GetInterfaces().(ENotifier), RESOURCE__RESOURCE_SET, SET, oldAbstractResourceSet, resourceSet, -1))
 	}
 	return notifications
+}
+
+func (r *EResourceImpl) SetIDManager(resourceIDManager EResourceIDManager) {
+	r.resourceIDManager = resourceIDManager
+}
+
+func (r *EResourceImpl) GetIDManager() EResourceIDManager {
+	return r.resourceIDManager
 }

@@ -106,5 +106,5 @@ func TestImmutableEListIterate(t *testing.T) {
 
 func TestImmutableEListGetUnResolved(t *testing.T) {
 	l := NewImmutableEList([]interface{}{})
-	assert.Equal(t, l, l.getUnResolvedList())
+	assert.Equal(t, l, l.GetUnResolvedList())
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func createMockEObject(id string) *MockEObject {
+func createMockEObjectWithID(id string) *MockEObject {
 	mockObject := &MockEObject{}
 	mockClass := &MockEClass{}
 	mockAttribute := &MockEAttribute{}
@@ -35,9 +35,9 @@ func TestEResourceIDManagerImplRegisterNoID(t *testing.T) {
 
 	m := NewEResourceIDManagerImpl()
 
-	mockObject := createMockEObject("")
-	mockChild1 := createMockEObject("")
-	mockChild2 := createMockEObject("")
+	mockObject := createMockEObjectWithID("")
+	mockChild1 := createMockEObjectWithID("")
+	mockChild2 := createMockEObjectWithID("")
 	mockChildren := NewImmutableEList([]interface{}{mockChild1, mockChild2})
 	mockObject.On("EContents").Return(mockChildren)
 	mockChild1.On("EContents").Return(NewImmutableEList([]interface{}{}))
@@ -57,9 +57,9 @@ func TestEResourceIDManagerImplRegisterWithID(t *testing.T) {
 
 	m := NewEResourceIDManagerImpl()
 
-	mockObject := createMockEObject("id")
-	mockChild1 := createMockEObject("id1")
-	mockChild2 := createMockEObject("id2")
+	mockObject := createMockEObjectWithID("id")
+	mockChild1 := createMockEObjectWithID("id1")
+	mockChild2 := createMockEObjectWithID("id2")
 	mockChildren := NewImmutableEList([]interface{}{mockChild1, mockChild2})
 	mockObject.On("EContents").Return(mockChildren)
 	mockChild1.On("EContents").Return(NewImmutableEList([]interface{}{}))
@@ -83,9 +83,9 @@ func TestEResourceIDManagerImplUnRegisterWithID(t *testing.T) {
 
 	m := NewEResourceIDManagerImpl()
 
-	mockObject := createMockEObject("id")
-	mockChild1 := createMockEObject("id1")
-	mockChild2 := createMockEObject("id2")
+	mockObject := createMockEObjectWithID("id")
+	mockChild1 := createMockEObjectWithID("id1")
+	mockChild2 := createMockEObjectWithID("id2")
 	mockChildren := NewImmutableEList([]interface{}{mockChild1, mockChild2})
 	mockObject.On("EContents").Return(mockChildren)
 	mockChild1.On("EContents").Return(NewImmutableEList([]interface{}{}))

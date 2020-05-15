@@ -125,11 +125,19 @@ func (r *EResourceImpl) GetContents() EList {
 }
 
 func (r *EResourceImpl) GetAllContents() EIterator {
+	return r.getAllContentsResolve(true)
+}
+
+func (r *EResourceImpl) getAllContentsResolve(resolve bool) EIterator {
 	return newTreeIterator(r, false, func(o interface{}) EIterator {
 		if o == r.GetInterfaces() {
 			return o.(EResource).GetContents().Iterator()
 		}
-		return o.(EObject).EContents().Iterator()
+		contents := o.(EObject).EContents()
+		if !resolve {
+			contents = contents.(EObjectList).GetUnResolvedList()
+		}
+		return contents.Iterator()
 	})
 }
 
@@ -195,7 +203,10 @@ func (r *EResourceImpl) getURIFragmentRootSegment(eObject EObject) string {
 }
 
 func (r *EResourceImpl) getObjectByID(id string) EObject {
-	for it := r.GetAllContents(); it.HasNext(); {
+	if r.resourceIDManager != nil {
+		return r.resourceIDManager.GetEObject(id)
+	}
+	for it := r.getAllContentsResolve(false); it.HasNext(); {
 		eObject := it.Next().(EObject)
 		objectID := GetEObjectID(eObject)
 		if id == objectID {

@@ -657,7 +657,7 @@ func (l *xmlLoadImpl) handleReferences() {
 
 func (l *xmlLoadImpl) getFeature(eObject EObject, name string) EStructuralFeature {
 	eClass := eObject.EClass()
-	eFeature := eClass.GetEStructuralFeatureFromString(name)
+	eFeature := eClass.GetEStructuralFeatureFromName(name)
 	return eFeature
 }
 

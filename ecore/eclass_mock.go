@@ -317,8 +317,8 @@ func (eClass *MockEClass) GetEStructuralFeature(featureID int) EStructuralFeatur
 	return r
 }
 
-// GetEStructuralFeatureFromString provides mock implementation
-func (eClass *MockEClass) GetEStructuralFeatureFromString(featureName string) EStructuralFeature {
+// GetEStructuralFeatureFromName provides mock implementation
+func (eClass *MockEClass) GetEStructuralFeatureFromName(featureName string) EStructuralFeature {
 	ret := eClass.Called(featureName)
 
 	var r EStructuralFeature

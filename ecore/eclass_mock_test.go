@@ -292,17 +292,17 @@ func TestMockEClassGetEStructuralFeature(t *testing.T) {
 	o.AssertExpectations(t)
 }
 
-// TestMockEClassGetEStructuralFeatureFromString tests method GetEStructuralFeatureFromString
-func TestMockEClassGetEStructuralFeatureFromString(t *testing.T) {
+// TestMockEClassGetEStructuralFeatureFromName tests method GetEStructuralFeatureFromName
+func TestMockEClassGetEStructuralFeatureFromName(t *testing.T) {
 	o := &MockEClass{}
 	featureName := "Test String"
 	r := &MockEStructuralFeature{}
-	o.On("GetEStructuralFeatureFromString", featureName).Return(r).Once()
-	o.On("GetEStructuralFeatureFromString", featureName).Return(func() EStructuralFeature {
+	o.On("GetEStructuralFeatureFromName", featureName).Return(r).Once()
+	o.On("GetEStructuralFeatureFromName", featureName).Return(func() EStructuralFeature {
 		return r
 	}).Once()
-	assert.Equal(t, r, o.GetEStructuralFeatureFromString(featureName))
-	assert.Equal(t, r, o.GetEStructuralFeatureFromString(featureName))
+	assert.Equal(t, r, o.GetEStructuralFeatureFromName(featureName))
+	assert.Equal(t, r, o.GetEStructuralFeatureFromName(featureName))
 	o.AssertExpectations(t)
 }
 

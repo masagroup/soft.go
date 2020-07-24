@@ -119,7 +119,7 @@ func (eClass *eClassExt) GetEStructuralFeature(featureID int) EStructuralFeature
 	return nil
 }
 
-func (eClass *eClassExt) GetEStructuralFeatureFromString(featureName string) EStructuralFeature {
+func (eClass *eClassExt) GetEStructuralFeatureFromName(featureName string) EStructuralFeature {
 	eClass.initNameToFeatureMap()
 	return eClass.nameToFeatureMap[featureName]
 }

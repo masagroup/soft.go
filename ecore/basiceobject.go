@@ -578,7 +578,7 @@ func (o *BasicEObject) EBasicRemoveFromContainerFeature(notifications ENotificat
 }
 
 func (o *BasicEObject) eStructuralFeature(featureName string) EStructuralFeature {
-	eFeature := o.AsEObject().EClass().GetEStructuralFeatureFromString(featureName)
+	eFeature := o.AsEObject().EClass().GetEStructuralFeatureFromName(featureName)
 	if eFeature == nil {
 		panic("The feature " + featureName + " is not a valid feature")
 	}

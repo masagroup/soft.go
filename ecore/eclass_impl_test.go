@@ -140,9 +140,9 @@ func TestEClassGetEStructuralFeatureOperation(t *testing.T) {
 	o := newEClassImpl()
 	assert.Panics(t, func() { o.GetEStructuralFeature(0) })
 }
-func TestEClassGetEStructuralFeatureFromStringOperation(t *testing.T) {
+func TestEClassGetEStructuralFeatureFromNameOperation(t *testing.T) {
 	o := newEClassImpl()
-	assert.Panics(t, func() { o.GetEStructuralFeatureFromString("") })
+	assert.Panics(t, func() { o.GetEStructuralFeatureFromName("") })
 }
 func TestEClassGetFeatureIDOperation(t *testing.T) {
 	o := newEClassImpl()

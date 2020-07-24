@@ -22,7 +22,7 @@ type EClass interface {
 	IsSuperTypeOf(EClass) bool
 	GetFeatureCount() int
 	GetEStructuralFeature(int) EStructuralFeature
-	GetEStructuralFeatureFromString(string) EStructuralFeature
+	GetEStructuralFeatureFromName(string) EStructuralFeature
 	GetFeatureID(EStructuralFeature) int
 	GetOperationCount() int
 	GetEOperation(int) EOperation

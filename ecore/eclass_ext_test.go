@@ -174,9 +174,9 @@ func TestEClassFeaturesGetFromName(t *testing.T) {
 	eAttribute2 := newEAttributeExt()
 	eAttribute2.SetName("MyAttribute2")
 	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]interface{}{eAttribute1, eAttribute2}))
-	assert.Equal(t, eAttribute1, eClass.GetEStructuralFeatureFromString("MyAttribute1"))
-	assert.Equal(t, eAttribute2, eClass.GetEStructuralFeatureFromString("MyAttribute2"))
-	assert.Equal(t, nil, eClass.GetEStructuralFeatureFromString("MyAttributeUnknown"))
+	assert.Equal(t, eAttribute1, eClass.GetEStructuralFeatureFromName("MyAttribute1"))
+	assert.Equal(t, eAttribute2, eClass.GetEStructuralFeatureFromName("MyAttribute2"))
+	assert.Equal(t, nil, eClass.GetEStructuralFeatureFromName("MyAttributeUnknown"))
 }
 
 func TestEClassAttributeID(t *testing.T) {

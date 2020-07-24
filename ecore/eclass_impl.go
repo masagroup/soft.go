@@ -18,22 +18,22 @@ package ecore
 // eClassImpl is the implementation of the model object 'EClass'
 type eClassImpl struct {
 	*eClassifierExt
-	eAllAttributes         EList
-	eAllContainments       EList
-	eAllOperations         EList
-	eAllReferences         EList
-	eAllStructuralFeatures EList
-	eAllSuperTypes         EList
-	eAttributes            EList
-	eContainments          EList
-	eCrossReferences       EList
-	eIDAttribute           EAttribute
-	eOperations            EList
-	eReferences            EList
-	eStructuralFeatures    EList
-	eSuperTypes            EList
-	isAbstract             bool
-	isInterface            bool
+	eAllAttributes          EList
+	eAllContainments        EList
+	eAllOperations          EList
+	eAllReferences          EList
+	eAllStructuralFeatures  EList
+	eAllSuperTypes          EList
+	eAttributes             EList
+	eContainmentFeatures    EList
+	eCrossReferenceFeatures EList
+	eIDAttribute            EAttribute
+	eOperations             EList
+	eReferences             EList
+	eStructuralFeatures     EList
+	eSuperTypes             EList
+	isAbstract              bool
+	isInterface             bool
 }
 
 // newEClassImpl is the constructor of a eClassImpl
@@ -55,8 +55,8 @@ type eClassImplInitializers interface {
 	initEAllStructuralFeatures()
 	initEAllSuperTypes()
 	initEAttributes()
-	initEContainments()
-	initECrossReferences()
+	initEContainmentFeatures()
+	initECrossReferenceFeatures()
 	initEIDAttribute()
 	initEOperations() EList
 	initEReferences()
@@ -168,16 +168,16 @@ func (eClass *eClassImpl) GetEAttributes() EList {
 	return eClass.eAttributes
 }
 
-// GetEContainments get the value of eContainments
-func (eClass *eClassImpl) GetEContainments() EList {
-	eClass.getInitializers().initEContainments()
-	return eClass.eContainments
+// GetEContainmentFeatures get the value of eContainmentFeatures
+func (eClass *eClassImpl) GetEContainmentFeatures() EList {
+	eClass.getInitializers().initEContainmentFeatures()
+	return eClass.eContainmentFeatures
 }
 
-// GetECrossReferences get the value of eCrossReferences
-func (eClass *eClassImpl) GetECrossReferences() EList {
-	eClass.getInitializers().initECrossReferences()
-	return eClass.eCrossReferences
+// GetECrossReferenceFeatures get the value of eCrossReferenceFeatures
+func (eClass *eClassImpl) GetECrossReferenceFeatures() EList {
+	eClass.getInitializers().initECrossReferenceFeatures()
+	return eClass.eCrossReferenceFeatures
 }
 
 // GetEIDAttribute get the value of eIDAttribute
@@ -272,12 +272,12 @@ func (eClass *eClassImpl) initEAttributes() {
 	eClass.eAttributes = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EATTRIBUTES, -1, false, false, false, true, false)
 }
 
-func (eClass *eClassImpl) initEContainments() {
-	eClass.eContainments = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__ECONTAINMENTS, -1, false, false, false, true, false)
+func (eClass *eClassImpl) initEContainmentFeatures() {
+	eClass.eContainmentFeatures = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__ECONTAINMENT_FEATURES, -1, false, false, false, true, false)
 }
 
-func (eClass *eClassImpl) initECrossReferences() {
-	eClass.eCrossReferences = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__ECROSS_REFERENCES, -1, false, false, false, true, false)
+func (eClass *eClassImpl) initECrossReferenceFeatures() {
+	eClass.eCrossReferenceFeatures = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__ECROSS_REFERENCE_FEATURES, -1, false, false, false, true, false)
 }
 
 func (eClass *eClassImpl) initEIDAttribute() {
@@ -360,16 +360,16 @@ func (eClass *eClassImpl) EGetFromID(featureID int, resolve bool) interface{} {
 			}
 		}
 		return list
-	case ECLASS__ECONTAINMENTS:
-		list := eClass.asEClass().GetEContainments()
+	case ECLASS__ECONTAINMENT_FEATURES:
+		list := eClass.asEClass().GetEContainmentFeatures()
 		if !resolve {
 			if objects, _ := list.(EObjectList); objects != nil {
 				return objects.GetUnResolvedList()
 			}
 		}
 		return list
-	case ECLASS__ECROSS_REFERENCES:
-		list := eClass.asEClass().GetECrossReferences()
+	case ECLASS__ECROSS_REFERENCE_FEATURES:
+		list := eClass.asEClass().GetECrossReferenceFeatures()
 		if !resolve {
 			if objects, _ := list.(EObjectList); objects != nil {
 				return objects.GetUnResolvedList()
@@ -463,10 +463,10 @@ func (eClass *eClassImpl) EIsSetFromID(featureID int) bool {
 		return eClass.eAllSuperTypes != nil && eClass.eAllSuperTypes.Size() != 0
 	case ECLASS__EATTRIBUTES:
 		return eClass.eAttributes != nil && eClass.eAttributes.Size() != 0
-	case ECLASS__ECONTAINMENTS:
-		return eClass.eContainments != nil && eClass.eContainments.Size() != 0
-	case ECLASS__ECROSS_REFERENCES:
-		return eClass.eCrossReferences != nil && eClass.eCrossReferences.Size() != 0
+	case ECLASS__ECONTAINMENT_FEATURES:
+		return eClass.eContainmentFeatures != nil && eClass.eContainmentFeatures.Size() != 0
+	case ECLASS__ECROSS_REFERENCE_FEATURES:
+		return eClass.eCrossReferenceFeatures != nil && eClass.eCrossReferenceFeatures.Size() != 0
 	case ECLASS__EID_ATTRIBUTE:
 		return eClass.eIDAttribute != nil
 	case ECLASS__EOPERATIONS:

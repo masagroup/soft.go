@@ -343,11 +343,11 @@ const (
 	// ECLASS__EOPERATIONS is the feature id for the EClass 'EOperations' containment reference list.
 	ECLASS__EOPERATIONS = ECLASSIFIER_FEATURE_COUNT + 6
 
-	// ECLASS__ECONTAINMENTS is the feature id for the EClass 'EContainments' reference list.
-	ECLASS__ECONTAINMENTS = ECLASSIFIER_FEATURE_COUNT + 7
+	// ECLASS__ECONTAINMENT_FEATURES is the feature id for the EClass 'EContainmentFeatures' reference list.
+	ECLASS__ECONTAINMENT_FEATURES = ECLASSIFIER_FEATURE_COUNT + 7
 
-	// ECLASS__ECROSS_REFERENCES is the feature id for the EClass 'ECrossReferences' reference list.
-	ECLASS__ECROSS_REFERENCES = ECLASSIFIER_FEATURE_COUNT + 8
+	// ECLASS__ECROSS_REFERENCE_FEATURES is the feature id for the EClass 'ECrossReferenceFeatures' reference list.
+	ECLASS__ECROSS_REFERENCE_FEATURES = ECLASSIFIER_FEATURE_COUNT + 8
 
 	// ECLASS__EALL_ATTRIBUTES is the feature id for the EClass 'EAllAttributes' reference list.
 	ECLASS__EALL_ATTRIBUTES = ECLASSIFIER_FEATURE_COUNT + 9
@@ -979,10 +979,10 @@ type EcorePackage interface {
 	GetEClass_EAllSuperTypes() EReference
 	// Returns the meta object for the EAttributes
 	GetEClass_EAttributes() EReference
-	// Returns the meta object for the EContainments
-	GetEClass_EContainments() EReference
-	// Returns the meta object for the ECrossReferences
-	GetEClass_ECrossReferences() EReference
+	// Returns the meta object for the EContainmentFeatures
+	GetEClass_EContainmentFeatures() EReference
+	// Returns the meta object for the ECrossReferenceFeatures
+	GetEClass_ECrossReferenceFeatures() EReference
 	// Returns the meta object for the EIDAttribute
 	GetEClass_EIDAttribute() EReference
 	// Returns the meta object for the EOperations

@@ -37,8 +37,8 @@ type ecorePackageImpl struct {
 	eClass_EReferences                       EReference
 	eClass_ESuperTypes                       EReference
 	eClass_EOperations                       EReference
-	eClass_EContainments                     EReference
-	eClass_ECrossReferences                  EReference
+	eClass_EContainmentFeatures              EReference
+	eClass_ECrossReferenceFeatures           EReference
 	eClass_EAllAttributes                    EReference
 	eClass_EAllReferences                    EReference
 	eClass_EAllContainments                  EReference
@@ -316,14 +316,14 @@ func (p *ecorePackageImpl) GetEClass_EAttributes() EReference {
 	return p.eClass_EAttributes
 }
 
-// GetEClass_EContainments returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EContainments() EReference {
-	return p.eClass_EContainments
+// GetEClass_EContainmentFeatures returns the meta object corresponding to
+func (p *ecorePackageImpl) GetEClass_EContainmentFeatures() EReference {
+	return p.eClass_EContainmentFeatures
 }
 
-// GetEClass_ECrossReferences returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_ECrossReferences() EReference {
-	return p.eClass_ECrossReferences
+// GetEClass_ECrossReferenceFeatures returns the meta object corresponding to
+func (p *ecorePackageImpl) GetEClass_ECrossReferenceFeatures() EReference {
+	return p.eClass_ECrossReferenceFeatures
 }
 
 // GetEClass_EIDAttribute returns the meta object corresponding to
@@ -1115,8 +1115,8 @@ func (p *ecorePackageImpl) createEClassContent(factory EcoreFactory) {
 	p.eClass_EReferences = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EREFERENCES)
 	p.eClass_ESuperTypes = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ESUPER_TYPES)
 	p.eClass_EOperations = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EOPERATIONS)
-	p.eClass_EContainments = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ECONTAINMENTS)
-	p.eClass_ECrossReferences = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ECROSS_REFERENCES)
+	p.eClass_EContainmentFeatures = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ECONTAINMENT_FEATURES)
+	p.eClass_ECrossReferenceFeatures = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ECROSS_REFERENCE_FEATURES)
 	p.eClass_EAllAttributes = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_ATTRIBUTES)
 	p.eClass_EAllReferences = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_REFERENCES)
 	p.eClass_EAllContainments = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_CONTAINMENTS)
@@ -1662,35 +1662,35 @@ func (p *ecorePackageImpl) initializeEClassContent() {
 	p.eClass_EAttributes.SetResolveProxies(true)
 	p.eClass_EAttributes.SetDefaultValueLiteral("")
 
-	p.eClass_EContainments.SetName("eContainments")
-	p.eClass_EContainments.SetEType(p.GetEReference())
-	p.eClass_EContainments.SetLowerBound(0)
-	p.eClass_EContainments.SetUpperBound(-1)
-	p.eClass_EContainments.SetTransient(true)
-	p.eClass_EContainments.SetVolatile(false)
-	p.eClass_EContainments.SetChangeable(false)
-	p.eClass_EContainments.SetUnsettable(false)
-	p.eClass_EContainments.SetUnique(true)
-	p.eClass_EContainments.SetDerived(true)
-	p.eClass_EContainments.SetOrdered(true)
-	p.eClass_EContainments.SetContainment(false)
-	p.eClass_EContainments.SetResolveProxies(true)
-	p.eClass_EContainments.SetDefaultValueLiteral("")
+	p.eClass_EContainmentFeatures.SetName("eContainmentFeatures")
+	p.eClass_EContainmentFeatures.SetEType(p.GetEStructuralFeature())
+	p.eClass_EContainmentFeatures.SetLowerBound(0)
+	p.eClass_EContainmentFeatures.SetUpperBound(-1)
+	p.eClass_EContainmentFeatures.SetTransient(true)
+	p.eClass_EContainmentFeatures.SetVolatile(false)
+	p.eClass_EContainmentFeatures.SetChangeable(false)
+	p.eClass_EContainmentFeatures.SetUnsettable(false)
+	p.eClass_EContainmentFeatures.SetUnique(true)
+	p.eClass_EContainmentFeatures.SetDerived(true)
+	p.eClass_EContainmentFeatures.SetOrdered(true)
+	p.eClass_EContainmentFeatures.SetContainment(false)
+	p.eClass_EContainmentFeatures.SetResolveProxies(true)
+	p.eClass_EContainmentFeatures.SetDefaultValueLiteral("")
 
-	p.eClass_ECrossReferences.SetName("eCrossReferences")
-	p.eClass_ECrossReferences.SetEType(p.GetEReference())
-	p.eClass_ECrossReferences.SetLowerBound(0)
-	p.eClass_ECrossReferences.SetUpperBound(-1)
-	p.eClass_ECrossReferences.SetTransient(true)
-	p.eClass_ECrossReferences.SetVolatile(false)
-	p.eClass_ECrossReferences.SetChangeable(false)
-	p.eClass_ECrossReferences.SetUnsettable(false)
-	p.eClass_ECrossReferences.SetUnique(true)
-	p.eClass_ECrossReferences.SetDerived(true)
-	p.eClass_ECrossReferences.SetOrdered(true)
-	p.eClass_ECrossReferences.SetContainment(false)
-	p.eClass_ECrossReferences.SetResolveProxies(true)
-	p.eClass_ECrossReferences.SetDefaultValueLiteral("")
+	p.eClass_ECrossReferenceFeatures.SetName("eCrossReferenceFeatures")
+	p.eClass_ECrossReferenceFeatures.SetEType(p.GetEStructuralFeature())
+	p.eClass_ECrossReferenceFeatures.SetLowerBound(0)
+	p.eClass_ECrossReferenceFeatures.SetUpperBound(-1)
+	p.eClass_ECrossReferenceFeatures.SetTransient(true)
+	p.eClass_ECrossReferenceFeatures.SetVolatile(false)
+	p.eClass_ECrossReferenceFeatures.SetChangeable(false)
+	p.eClass_ECrossReferenceFeatures.SetUnsettable(false)
+	p.eClass_ECrossReferenceFeatures.SetUnique(true)
+	p.eClass_ECrossReferenceFeatures.SetDerived(true)
+	p.eClass_ECrossReferenceFeatures.SetOrdered(true)
+	p.eClass_ECrossReferenceFeatures.SetContainment(false)
+	p.eClass_ECrossReferenceFeatures.SetResolveProxies(true)
+	p.eClass_ECrossReferenceFeatures.SetDefaultValueLiteral("")
 
 	p.eClass_EIDAttribute.SetName("eIDAttribute")
 	p.eClass_EIDAttribute.SetEType(p.GetEAttribute())

@@ -46,9 +46,9 @@ type EClass interface {
 
 	GetEOperations() EList
 
-	GetEContainments() EList
+	GetEContainmentFeatures() EList
 
-	GetECrossReferences() EList
+	GetECrossReferenceFeatures() EList
 
 	GetEAllAttributes() EList
 

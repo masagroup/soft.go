@@ -208,18 +208,18 @@ func (eClass *eClassExt) initEReferences() {
 	eClass.initEAllReferences()
 }
 
-func (eClass *eClassExt) initEContainments() {
+func (eClass *eClassExt) initEContainmentFeatures() {
 	eClass.initFeaturesSubSet()
 }
 
-func (eClass *eClassExt) initECrossReferences() {
+func (eClass *eClassExt) initECrossReferenceFeatures() {
 	eClass.initFeaturesSubSet()
 }
 
 func (eClass *eClassExt) initFeaturesSubSet() {
 	eClass.initEAllStructuralFeatures()
 
-	if eClass.eContainments != nil {
+	if eClass.eContainmentFeatures != nil {
 		return
 	}
 
@@ -240,8 +240,8 @@ func (eClass *eClassExt) initFeaturesSubSet() {
 		}
 
 	}
-	eClass.eContainments = NewImmutableEList(containments)
-	eClass.eCrossReferences = NewImmutableEList(crossReferences)
+	eClass.eContainmentFeatures = NewImmutableEList(containments)
+	eClass.eCrossReferenceFeatures = NewImmutableEList(crossReferences)
 }
 
 func (eClass *eClassExt) initEAllAttributes() {
@@ -346,8 +346,8 @@ func (eClass *eClassExt) initEAllStructuralFeatures() {
 		return
 	}
 
-	eClass.eCrossReferences = nil
-	eClass.eContainments = nil
+	eClass.eCrossReferenceFeatures = nil
+	eClass.eContainmentFeatures = nil
 	eClass.nameToFeatureMap = nil
 
 	allFeatures := []interface{}{}

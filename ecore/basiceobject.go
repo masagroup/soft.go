@@ -20,12 +20,12 @@ import (
 func newContentsList(adapter *contentsListAdapter, resolve bool) *immutableEList {
 	data := []interface{}{}
 	o := adapter.obj
-	refs := adapter.getFeaturesFn(o.EClass())
-	for it := refs.Iterator(); it.HasNext(); {
-		ref := it.Next().(EStructuralFeature)
-		if o.EIsSet(ref) {
-			value := o.EGetResolve(ref, resolve)
-			if ref.IsMany() {
+	features := adapter.getFeaturesFn(o.EClass())
+	for it := features.Iterator(); it.HasNext(); {
+		feature := it.Next().(EStructuralFeature)
+		if o.EIsSet(feature) {
+			value := o.EGetResolve(feature, resolve)
+			if feature.IsMany() {
 				l := value.(EList)
 				data = append(data, l.ToArray()...)
 			} else if value != nil {
@@ -298,7 +298,7 @@ func eContainmentFeature(o EObject, container EObject, containerFeatureID int) E
 // EContents ...
 func (o *BasicEObject) EContents() EList {
 	if o.contents == nil {
-		o.contents = newContentsListAdapter(o, func(eClass EClass) EList { return eClass.GetEContainments() })
+		o.contents = newContentsListAdapter(o, func(eClass EClass) EList { return eClass.GetEContainmentFeatures() })
 	}
 	return o.contents.GetList()
 }
@@ -306,7 +306,7 @@ func (o *BasicEObject) EContents() EList {
 // ECrossReferences ...
 func (o *BasicEObject) ECrossReferences() EList {
 	if o.crossReferenceS == nil {
-		o.crossReferenceS = newContentsListAdapter(o, func(eClass EClass) EList { return eClass.GetECrossReferences() })
+		o.crossReferenceS = newContentsListAdapter(o, func(eClass EClass) EList { return eClass.GetECrossReferenceFeatures() })
 	}
 	return o.crossReferenceS.GetList()
 }

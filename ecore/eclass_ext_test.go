@@ -285,8 +285,8 @@ func TestEClassContainments(t *testing.T) {
 
 	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]interface{}{eReference0, eReference1, eReference2}))
 
-	assert.Equal(t, []interface{}{eReference1}, eClass.GetEContainments().ToArray())
-	assert.Equal(t, []interface{}{eReference0, eReference2}, eClass.GetECrossReferences().ToArray())
+	assert.Equal(t, []interface{}{eReference1}, eClass.GetEContainmentFeatures().ToArray())
+	assert.Equal(t, []interface{}{eReference0, eReference2}, eClass.GetECrossReferenceFeatures().ToArray())
 }
 
 func TestEClassIsSuperTypeOf(t *testing.T) {

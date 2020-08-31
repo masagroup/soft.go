@@ -251,13 +251,13 @@ func (eClass *eClassExt) initEAllAttributes() {
 
 	attributes := []interface{}{}
 	allAttributes := []interface{}{}
-	var eIDAttribute EAttribute
+	var eIDAttribute EAttribute = nil
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superAttributes := itClass.Next().(EClass).GetEAllAttributes()
 		for itAttribute := superAttributes.Iterator(); itAttribute.HasNext(); {
 			attribute := itAttribute.Next().(EAttribute)
 			allAttributes = append(allAttributes, attribute)
-			if attribute.IsID() && eClass.eIDAttribute == nil {
+			if attribute.IsID() && eIDAttribute == nil {
 				eIDAttribute = attribute
 			}
 		}
@@ -268,7 +268,7 @@ func (eClass *eClassExt) initEAllAttributes() {
 		if isAttribute {
 			attributes = append(attributes, attribute)
 			allAttributes = append(allAttributes, attribute)
-			if attribute.IsID() && eClass.eIDAttribute == nil {
+			if attribute.IsID() && eIDAttribute == nil {
 				eIDAttribute = attribute
 			}
 		}

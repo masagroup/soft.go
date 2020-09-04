@@ -20,3 +20,10 @@ func newEClassifierExt() *eClassifierExt {
 	eClassifier.interfaces = eClassifier
 	return eClassifier
 }
+
+func (eClassifier *eClassifierExt) initClassifierID() int {
+	if eClassifier.GetEPackage() != nil {
+		return eClassifier.GetEPackage().GetEClassifiers().IndexOf(eClassifier.asEClassifier())
+	}
+	return -1
+}

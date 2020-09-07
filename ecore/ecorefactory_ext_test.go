@@ -22,28 +22,69 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFactoryExtConvert(t *testing.T) {
+func TestFactoryDate(t *testing.T) {
 	factory := newEcoreFactoryExt()
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EDATE)
 		{
 
-			date := factory.CreateFromString(mockEDataType, "2020-05-12T17:33:10.77")
+			date := factory.CreateFromString(mockEDataType, "2020-05-12T17:33:10.77Z")
 			expected := time.Date(2020, time.May, 12, 17, 33, 10, 770000000, time.UTC)
 			assert.Equal(t, expected, date)
 		}
 		{
-			date := factory.CreateFromString(mockEDataType, "2007-06-02T10:26:13.000")
+			date := factory.CreateFromString(mockEDataType, "2007-06-02T10:26:13.000Z")
 			expected := time.Date(2007, time.June, 2, 10, 26, 13, 0, time.UTC)
 			assert.Equal(t, expected, date)
 		}
 		{
 			date := time.Date(2020, time.May, 12, 17, 33, 10, 770000000, time.UTC)
 			dateStr := factory.ConvertToString(mockEDataType, date)
-			expected := "2020-05-12T17:33:10.77"
+			expected := "2020-05-12T17:33:10.77Z"
 			assert.Equal(t, expected, dateStr)
 		}
 	}
 
+}
+
+func TestFactoryBoolean(t *testing.T) {
+	factory := newEcoreFactoryExt()
+	assert.Equal(t, factory.convertEBooleanToString(nil, factory.createEBooleanFromString(nil, "true")), "true")
+	assert.Equal(t, factory.convertEBooleanToString(nil, factory.createEBooleanFromString(nil, "false")), "false")
+}
+
+func TestFactoryChar(t *testing.T) {
+	factory := newEcoreFactoryExt()
+	assert.Equal(t, factory.convertECharToString(nil, factory.createECharFromString(nil, "e")), "e")
+}
+
+func TestFactoryDouble(t *testing.T) {
+	factory := newEcoreFactoryExt()
+	assert.Equal(t, factory.convertEDoubleToString(nil, factory.createEDoubleFromString(nil, "4.987453")), "4.987453")
+}
+
+func TestFactoryFloat(t *testing.T) {
+	factory := newEcoreFactoryExt()
+	assert.Equal(t, factory.convertEFloatToString(nil, factory.createEFloatFromString(nil, "4.987453")), "4.987453")
+}
+
+func TestFactoryInt(t *testing.T) {
+	factory := newEcoreFactoryExt()
+	assert.Equal(t, factory.convertEIntToString(nil, factory.createEIntFromString(nil, "50000000")), "50000000")
+}
+
+func TestFactoryLong(t *testing.T) {
+	factory := newEcoreFactoryExt()
+	assert.Equal(t, factory.convertELongToString(nil, factory.createELongFromString(nil, "5000000000000")), "5000000000000")
+}
+
+func TestFactoryShort(t *testing.T) {
+	factory := newEcoreFactoryExt()
+	assert.Equal(t, factory.convertEShortToString(nil, factory.createEShortFromString(nil, "5000")), "5000")
+}
+
+func TestFactoryString(t *testing.T) {
+	factory := newEcoreFactoryExt()
+	assert.Equal(t, factory.convertEStringToString(nil, factory.createEStringFromString(nil, "Hi I'm a string")), "Hi I'm a string")
 }

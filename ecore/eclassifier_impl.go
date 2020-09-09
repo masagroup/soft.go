@@ -37,6 +37,14 @@ func newEClassifierImpl() *eClassifierImpl {
 	return eClassifier
 }
 
+type eClassifierImplInitializers interface {
+	initClassifierID() int
+}
+
+func (eClassifier *eClassifierImpl) getInitializers() eClassifierImplInitializers {
+	return eClassifier.AsEObject().(eClassifierImplInitializers)
+}
+
 func (eClassifier *eClassifierImpl) asEClassifier() EClassifier {
 	return eClassifier.GetInterfaces().(EClassifier)
 }
@@ -52,6 +60,9 @@ func (eClassifier *eClassifierImpl) IsInstance(interface{}) bool {
 
 // GetClassifierID get the value of classifierID
 func (eClassifier *eClassifierImpl) GetClassifierID() int {
+	if eClassifier.classifierID == -1 {
+		eClassifier.classifierID = eClassifier.getInitializers().initClassifierID()
+	}
 	return eClassifier.classifierID
 }
 
@@ -89,6 +100,10 @@ func (eClassifier *eClassifierImpl) SetInstanceClass(newInstanceClass reflect.Ty
 	if eClassifier.ENotificationRequired() {
 		eClassifier.ENotify(NewNotificationByFeatureID(eClassifier.AsEObject(), SET, ECLASSIFIER__INSTANCE_CLASS, oldInstanceClass, newInstanceClass, NO_INDEX))
 	}
+}
+
+func (eClassifier *eClassifierImpl) initClassifierID() int {
+	return -1
 }
 
 func (eClassifier *eClassifierImpl) EGetFromID(featureID int, resolve bool) interface{} {

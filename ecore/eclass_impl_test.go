@@ -88,14 +88,14 @@ func TestEClassEOperationsGetList(t *testing.T) {
 	assert.NotNil(t, o.GetEOperations())
 }
 
-func TestEClassEContainmentsGetList(t *testing.T) {
+func TestEClassEContainmentFeaturesGetList(t *testing.T) {
 	o := newEClassImpl()
-	assert.NotNil(t, o.GetEContainments())
+	assert.NotNil(t, o.GetEContainmentFeatures())
 }
 
-func TestEClassECrossReferencesGetList(t *testing.T) {
+func TestEClassECrossReferenceFeaturesGetList(t *testing.T) {
 	o := newEClassImpl()
-	assert.NotNil(t, o.GetECrossReferences())
+	assert.NotNil(t, o.GetECrossReferenceFeatures())
 }
 
 func TestEClassEAllAttributesGetList(t *testing.T) {
@@ -140,9 +140,9 @@ func TestEClassGetEStructuralFeatureOperation(t *testing.T) {
 	o := newEClassImpl()
 	assert.Panics(t, func() { o.GetEStructuralFeature(0) })
 }
-func TestEClassGetEStructuralFeatureFromStringOperation(t *testing.T) {
+func TestEClassGetEStructuralFeatureFromNameOperation(t *testing.T) {
 	o := newEClassImpl()
-	assert.Panics(t, func() { o.GetEStructuralFeatureFromString("") })
+	assert.Panics(t, func() { o.GetEStructuralFeatureFromName("") })
 }
 func TestEClassGetFeatureIDOperation(t *testing.T) {
 	o := newEClassImpl()

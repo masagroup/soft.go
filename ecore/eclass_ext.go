@@ -119,7 +119,7 @@ func (eClass *eClassExt) GetEStructuralFeature(featureID int) EStructuralFeature
 	return nil
 }
 
-func (eClass *eClassExt) GetEStructuralFeatureFromString(featureName string) EStructuralFeature {
+func (eClass *eClassExt) GetEStructuralFeatureFromName(featureName string) EStructuralFeature {
 	eClass.initNameToFeatureMap()
 	return eClass.nameToFeatureMap[featureName]
 }
@@ -208,18 +208,18 @@ func (eClass *eClassExt) initEReferences() {
 	eClass.initEAllReferences()
 }
 
-func (eClass *eClassExt) initEContainments() {
+func (eClass *eClassExt) initEContainmentFeatures() {
 	eClass.initFeaturesSubSet()
 }
 
-func (eClass *eClassExt) initECrossReferences() {
+func (eClass *eClassExt) initECrossReferenceFeatures() {
 	eClass.initFeaturesSubSet()
 }
 
 func (eClass *eClassExt) initFeaturesSubSet() {
 	eClass.initEAllStructuralFeatures()
 
-	if eClass.eContainments != nil {
+	if eClass.eContainmentFeatures != nil {
 		return
 	}
 
@@ -240,8 +240,8 @@ func (eClass *eClassExt) initFeaturesSubSet() {
 		}
 
 	}
-	eClass.eContainments = NewImmutableEList(containments)
-	eClass.eCrossReferences = NewImmutableEList(crossReferences)
+	eClass.eContainmentFeatures = NewImmutableEList(containments)
+	eClass.eCrossReferenceFeatures = NewImmutableEList(crossReferences)
 }
 
 func (eClass *eClassExt) initEAllAttributes() {
@@ -251,13 +251,13 @@ func (eClass *eClassExt) initEAllAttributes() {
 
 	attributes := []interface{}{}
 	allAttributes := []interface{}{}
-	var eIDAttribute EAttribute
+	var eIDAttribute EAttribute = nil
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superAttributes := itClass.Next().(EClass).GetEAllAttributes()
 		for itAttribute := superAttributes.Iterator(); itAttribute.HasNext(); {
 			attribute := itAttribute.Next().(EAttribute)
 			allAttributes = append(allAttributes, attribute)
-			if attribute.IsID() && eClass.eIDAttribute == nil {
+			if attribute.IsID() && eIDAttribute == nil {
 				eIDAttribute = attribute
 			}
 		}
@@ -268,7 +268,7 @@ func (eClass *eClassExt) initEAllAttributes() {
 		if isAttribute {
 			attributes = append(attributes, attribute)
 			allAttributes = append(allAttributes, attribute)
-			if attribute.IsID() && eClass.eIDAttribute == nil {
+			if attribute.IsID() && eIDAttribute == nil {
 				eIDAttribute = attribute
 			}
 		}
@@ -346,8 +346,8 @@ func (eClass *eClassExt) initEAllStructuralFeatures() {
 		return
 	}
 
-	eClass.eCrossReferences = nil
-	eClass.eContainments = nil
+	eClass.eCrossReferenceFeatures = nil
+	eClass.eContainmentFeatures = nil
 	eClass.nameToFeatureMap = nil
 
 	allFeatures := []interface{}{}

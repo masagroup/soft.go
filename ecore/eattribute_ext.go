@@ -16,6 +16,10 @@ func (eAttribute *eAttributeExt) GetEAttributeType() EDataType {
 	return eAttribute.GetEType().(EDataType)
 }
 
+func (eAttribute *eAttributeExt) basicGetEAttributeType() EDataType {
+	return eAttribute.basicGetEAttributeType().(EDataType)
+}
+
 func (eAttribute *eAttributeExt) SetID(newIsID bool) {
 	eAttribute.eAttributeImpl.SetID(newIsID)
 	eClass := eAttribute.GetEContainingClass()

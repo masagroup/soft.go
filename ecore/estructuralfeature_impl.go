@@ -20,9 +20,7 @@ import "reflect"
 // eStructuralFeatureImpl is the implementation of the model object 'EStructuralFeature'
 type eStructuralFeatureImpl struct {
 	*eTypedElementExt
-	defaultValue        interface{}
 	defaultValueLiteral string
-	eContainingClass    EClass
 	featureID           int
 	isChangeable        bool
 	isDerived           bool

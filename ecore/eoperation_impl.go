@@ -18,10 +18,9 @@ package ecore
 // eOperationImpl is the implementation of the model object 'EOperation'
 type eOperationImpl struct {
 	*eTypedElementExt
-	eContainingClass EClass
-	eExceptions      EList
-	eParameters      EList
-	operationID      int
+	eExceptions EList
+	eParameters EList
+	operationID int
 }
 
 // newEOperationImpl is the constructor of a eOperationImpl

@@ -20,8 +20,6 @@ type eReferenceImpl struct {
 	*eStructuralFeatureExt
 	eKeys            EList
 	eOpposite        EReference
-	eReferenceType   EClass
-	isContainer      bool
 	isContainment    bool
 	isResolveProxies bool
 }

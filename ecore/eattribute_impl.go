@@ -18,8 +18,7 @@ package ecore
 // eAttributeImpl is the implementation of the model object 'EAttribute'
 type eAttributeImpl struct {
 	*eStructuralFeatureExt
-	eAttributeType EDataType
-	isID           bool
+	isID bool
 }
 
 // newEAttributeImpl is the constructor of a eAttributeImpl

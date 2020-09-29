@@ -12,6 +12,11 @@ func NewEResourceIDManagerImpl() EResourceIDManager {
 	}
 }
 
+func (m *EResourceIDManagerImpl) Clear() {
+	m.objectToID = make(map[EObject]string)
+	m.idToObject = make(map[string]EObject)
+}
+
 func (m *EResourceIDManagerImpl) Register(eObject EObject) {
 	id := GetEObjectID(eObject)
 	if len(id) > 0 {

@@ -53,7 +53,7 @@ func (pack *EPackageExt) GetEClassifier(classifier string) EClassifier {
 	return pack.nameToClassifier[classifier]
 }
 
-func (pack *EPackageExt) EResource() EResource {
+func (pack *EPackageExt) CreateResource() EResource {
 	resource := pack.ePackageImpl.EResource()
 	if resource == nil {
 		uri, _ := url.Parse(pack.GetNsURI())

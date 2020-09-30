@@ -218,6 +218,7 @@ func newEcorePackageImpl() *ecorePackageImpl {
 	p.SetEFactoryInstance(GetFactory())
 	p.createPackageContents()
 	p.initializePackageContents()
+	p.CreateResource()
 	return p
 }
 

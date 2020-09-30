@@ -3381,11 +3381,3 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eTreeIterator.SetSerializable(false)
 
 }
-
-func (p *ecorePackageImpl) EResource() EResource {
-	resource := p.EPackageExt.EResource()
-	if resource == nil {
-		resource = GetPackageResourceRegistry().GetResource(p.GetInterfaces().(EPackage))
-	}
-	return resource
-}

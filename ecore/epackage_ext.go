@@ -9,6 +9,8 @@
 
 package ecore
 
+import "net/url"
+
 type ePackageExtAdapter struct {
 	*Adapter
 	pack *EPackageExt
@@ -49,4 +51,15 @@ func (pack *EPackageExt) GetEClassifier(classifier string) EClassifier {
 		}
 	}
 	return pack.nameToClassifier[classifier]
+}
+
+func (pack *EPackageExt) EResource() EResource {
+	resource := pack.ePackageImpl.EResource()
+	if resource == nil {
+		uri, _ := url.Parse(pack.GetNsURI())
+		resource = NewEResourceImpl()
+		resource.SetURI(uri)
+		resource.GetContents().Add(pack)
+	}
+	return resource
 }

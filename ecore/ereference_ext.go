@@ -28,7 +28,7 @@ func (eReference *eReferenceExt) IsContainer() bool {
 }
 
 func (eReference *eReferenceExt) GetEReferenceType() EClass {
-	if eReference.eReferenceType == nil {
+	if eReference.eReferenceType == nil || eReference.eReferenceType.EIsProxy() {
 		eType := eReference.GetEType()
 		eReferenceType, _ := eType.(EClass)
 		if eReferenceType != nil {

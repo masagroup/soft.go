@@ -21,8 +21,6 @@ import "reflect"
 type eClassifierImpl struct {
 	*eNamedElementImpl
 	classifierID  int
-	defaultValue  interface{}
-	ePackage      EPackage
 	instanceClass reflect.Type
 }
 

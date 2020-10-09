@@ -18,7 +18,6 @@ package ecore
 // eParameterImpl is the implementation of the model object 'EParameter'
 type eParameterImpl struct {
 	*eTypedElementExt
-	eOperation EOperation
 }
 
 // newEParameterImpl is the constructor of a eParameterImpl

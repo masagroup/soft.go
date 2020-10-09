@@ -289,7 +289,6 @@ func (r *EResourceImpl) LoadWithReader(rd io.Reader) {
 }
 
 func (r *EResourceImpl) DoLoad(rd io.Reader) {
-
 }
 
 func (r *EResourceImpl) Unload() {
@@ -303,7 +302,12 @@ func (r *EResourceImpl) Unload() {
 }
 
 func (r *EResourceImpl) DoUnload() {
-
+	r.contents = nil
+	r.errors = nil
+	r.warnings = nil
+	if r.resourceIDManager != nil {
+		r.resourceIDManager.Clear()
+	}
 }
 
 func (r *EResourceImpl) IsLoaded() bool {

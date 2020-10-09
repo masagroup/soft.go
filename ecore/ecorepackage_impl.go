@@ -218,6 +218,7 @@ func newEcorePackageImpl() *ecorePackageImpl {
 	p.SetEFactoryInstance(GetFactory())
 	p.createPackageContents()
 	p.initializePackageContents()
+	p.CreateResource()
 	return p
 }
 
@@ -3380,12 +3381,4 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	//p.eTreeIterator.SetInstanceClass( reflect.TypeOf(org.eclipse.emf.common.util.TreeIterator))
 	p.eTreeIterator.SetSerializable(false)
 
-}
-
-func (p *ecorePackageImpl) EResource() EResource {
-	resource := p.EPackageExt.EResource()
-	if resource == nil {
-		resource = GetPackageResourceRegistry().GetResource(p.GetInterfaces().(EPackage))
-	}
-	return resource
 }

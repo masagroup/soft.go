@@ -21,7 +21,6 @@ type ePackageImpl struct {
 	eClassifiers     EList
 	eFactoryInstance EFactory
 	eSubPackages     EList
-	eSuperPackage    EPackage
 	nsPrefix         string
 	nsURI            string
 }

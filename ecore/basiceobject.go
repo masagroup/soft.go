@@ -587,6 +587,11 @@ func (o *BasicEObject) eStructuralFeature(featureName string) EStructuralFeature
 
 func (o *BasicEObject) EObjectForFragmentSegment(uriSegment string) EObject {
 
+	lastIndex := len(uriSegment) - 1
+	if lastIndex == -1 || uriSegment[0] != '@' {
+		panic("Expecting @ at index 0 of '" + uriSegment + "'")
+	}
+
 	index := -1
 	r, _ := utf8.DecodeLastRuneInString(uriSegment)
 	if unicode.IsDigit(r) {

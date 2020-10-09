@@ -19,9 +19,7 @@ package ecore
 type eTypedElementImpl struct {
 	*eNamedElementImpl
 	eType      EClassifier
-	isMany     bool
 	isOrdered  bool
-	isRequired bool
 	isUnique   bool
 	lowerBound int
 	upperBound int

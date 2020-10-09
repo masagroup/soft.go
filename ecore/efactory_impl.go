@@ -18,7 +18,6 @@ package ecore
 // eFactoryImpl is the implementation of the model object 'EFactory'
 type eFactoryImpl struct {
 	*eModelElementExt
-	ePackage EPackage
 }
 
 // newEFactoryImpl is the constructor of a eFactoryImpl

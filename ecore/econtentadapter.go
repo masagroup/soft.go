@@ -105,11 +105,8 @@ func (adapter *EContentAdapter) handleContainment(notification ENotification) {
 			adapter.addAdapter(notification.GetNewValue().(ENotifier))
 		}
 	case UNSET:
-		oldValue := notification.GetOldValue()
-		if _, isNotifier := oldValue.(ENotifier); isNotifier {
-			adapter.removeAdapterWithChecks(oldValue.(ENotifier), false, true)
-			adapter.addAdapter(notification.GetNewValue().(ENotifier))
-		}
+		adapter.removeAdapterWithChecks(notification.GetOldValue().(ENotifier), false, true)
+		adapter.addAdapter(notification.GetNewValue().(ENotifier))
 	case SET:
 		adapter.removeAdapterWithChecks(notification.GetOldValue().(ENotifier), false, true)
 		adapter.addAdapter(notification.GetNewValue().(ENotifier))

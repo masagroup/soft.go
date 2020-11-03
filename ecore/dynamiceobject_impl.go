@@ -238,6 +238,91 @@ func (o *DynamicEObjectImpl) EInvokeFromID(operationID int, arguments EList) int
 	return nil
 }
 
+// EBasicInverseAdd ...
+func (o *DynamicEObjectImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+	dynamicFeatureID := featureID - o.eStaticFeatureCount()
+	if dynamicFeatureID >= 0 {
+		dynamicFeature := o.eDynamicFeature(featureID)
+		if dynamicFeature.IsMany() {
+			value := o.properties[dynamicFeatureID]
+			if value == nil {
+				value = o.createList(dynamicFeature)
+				o.properties[dynamicFeatureID] = value
+			}
+			list := value.(ENotifyingList)
+			return list.AddWithNotification(otherEnd, notifications)
+		} else if o.isContainer(dynamicFeature) {
+			msgs := notifications
+			if o.EContainer() != nil {
+				msgs = o.EBasicRemoveFromContainer(msgs)
+			}
+			return o.EBasicSetContainer(otherEnd, featureID, msgs)
+		} else if o.isBidirectional(dynamicFeature) || o.isContains(dynamicFeature) {
+			// inverse - opposite
+			oldValue := o.properties[dynamicFeatureID]
+			oldObject, _ := oldValue.(EObject)
+			if oldObject != otherEnd {
+				if !o.isBidirectional(dynamicFeature) {
+					if oldObject != nil {
+						notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
+					}
+				} else {
+					dynamicReference := dynamicFeature.(EReference)
+					reverseFeature := dynamicReference.GetEOpposite()
+					if oldObject != nil {
+						notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), reverseFeature.GetFeatureID(), notifications)
+					}
+				}
+
+				// set current value
+				o.properties[dynamicFeatureID] = otherEnd
+
+				// create notification
+				if o.ENotificationRequired() {
+					notification := NewNotificationByFeatureID(o.AsEObject(), SET, featureID, oldValue, otherEnd, NO_INDEX)
+					if notifications != nil {
+						notifications.Add(notification)
+					} else {
+						notifications = notification
+					}
+				}
+			}
+		}
+	}
+	return notifications
+}
+
+// EBasicInverseRemove ...
+func (o *DynamicEObjectImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+	dynamicFeatureID := featureID - o.eStaticFeatureCount()
+	if dynamicFeatureID >= 0 {
+		dynamicFeature := o.eDynamicFeature(featureID)
+		if dynamicFeature.IsMany() {
+			value := o.properties[dynamicFeatureID]
+			if value != nil {
+				list := value.(ENotifyingList)
+				return list.RemoveWithNotification(otherEnd, notifications)
+			}
+		} else if o.isContainer(dynamicFeature) {
+			return o.EBasicSetContainer(nil, featureID, notifications)
+		} else {
+			oldValue := o.properties[dynamicFeatureID]
+			o.properties[dynamicFeatureID] = nil
+
+			// create notification
+			if o.ENotificationRequired() {
+				notification := NewNotificationByFeatureID(o.AsEObject(), SET, featureID, oldValue, nil, NO_INDEX)
+				if notifications != nil {
+					notifications.Add(notification)
+				} else {
+					notifications = notification
+				}
+			}
+		}
+	}
+	return notifications
+}
+
 func (o *DynamicEObjectImpl) resizeProperties() {
 	newSize := o.EClass().GetFeatureCount() - o.eStaticFeatureCount()
 	newProperties := make([]interface{}, newSize)

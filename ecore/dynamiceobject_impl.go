@@ -212,7 +212,12 @@ func (o *DynamicEObjectImpl) ESetFromID(featureID int, newValue interface{}) {
 func (o *DynamicEObjectImpl) EIsSetFromID(featureID int) bool {
 	dynamicFeatureID := featureID - o.eStaticFeatureCount()
 	if dynamicFeatureID >= 0 {
-		return o.properties[dynamicFeatureID] != nil
+		dynamicFeature := o.eDynamicFeature(featureID)
+		if o.isContainer(dynamicFeature) {
+			return o.EContainerFeatureID() == featureID && o.EInternalContainer() != nil
+		} else {
+			return o.properties[dynamicFeatureID] != nil
+		}
 	}
 	return o.EObjectImpl.EIsSetFromID(featureID)
 }
@@ -221,12 +226,23 @@ func (o *DynamicEObjectImpl) EIsSetFromID(featureID int) bool {
 func (o *DynamicEObjectImpl) EUnsetFromID(featureID int) {
 	dynamicFeatureID := featureID - o.eStaticFeatureCount()
 	if dynamicFeatureID >= 0 {
-		oldValue := o.properties[dynamicFeatureID]
-
-		o.properties[dynamicFeatureID] = nil
-
-		if o.ENotificationRequired() {
-			o.ENotify(NewNotificationByFeatureID(o.AsEObject(), UNSET, featureID, oldValue, nil, NO_INDEX))
+		dynamicFeature := o.eDynamicFeature(featureID)
+		if o.isContainer(dynamicFeature) {
+			if o.EInternalContainer() != nil {
+				notifications := o.EBasicRemoveFromContainer(nil)
+				notifications = o.EBasicSetContainer(nil, featureID, notifications)
+				if notifications != nil {
+					notifications.Dispatch()
+				}
+			} else if o.ENotificationRequired() {
+				o.ENotify(NewNotificationByFeatureID(o.AsEObject(), SET, featureID, nil, nil, NO_INDEX))
+			}
+		} else {
+			oldValue := o.properties[dynamicFeatureID]
+			o.properties[dynamicFeatureID] = nil
+			if o.ENotificationRequired() {
+				o.ENotify(NewNotificationByFeatureID(o.AsEObject(), UNSET, featureID, oldValue, nil, NO_INDEX))
+			}
 		}
 	} else {
 		o.EObjectImpl.EUnsetFromID(featureID)

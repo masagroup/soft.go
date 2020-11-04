@@ -10,6 +10,7 @@
 package ecore
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -95,4 +96,64 @@ func TestDynamicEObject_Container(t *testing.T) {
 	o2.ESet(r2, o1)
 	assert.Equal(t, o1, o2.EGet(r2))
 	assert.Equal(t, o2, o1.EGet(r1))
+}
+
+func TestDynamicEObject_Proxy(t *testing.T) {
+	// meta model
+	c1 := GetFactory().CreateEClass()
+	c2 := GetFactory().CreateEClass()
+	c3 := GetFactory().CreateEClass()
+
+	r1 := GetFactory().CreateEReference()
+	r1.SetContainment(true)
+	r1.SetName("r1")
+	r1.SetLowerBound(0)
+	r1.SetUpperBound(-1)
+	r1.SetEType(c2)
+
+	r3 := GetFactory().CreateEReference()
+	r3.SetName("r3")
+	r3.SetEType(c2)
+	r3.SetResolveProxies(true)
+
+	c1.GetEStructuralFeatures().Add(r1)
+	c1.SetName("c1")
+
+	c2.SetName("c2")
+
+	c3.GetEStructuralFeatures().Add(r3)
+	c3.SetName("c3")
+
+	// model - a container object with two children and another object
+	// with one of these child reference
+	o1 := NewDynamicEObjectImpl()
+	o1.SetEClass(c1)
+
+	o1c1 := NewDynamicEObjectImpl()
+	o1c1.SetEClass(c2)
+
+	o1c2 := NewDynamicEObjectImpl()
+	o1c2.SetEClass(c2)
+
+	o1cs, _ := o1.EGet(r1).(EList)
+	assert.NotNil(t, o1cs)
+	o1cs.AddAll(NewImmutableEList([]interface{}{o1c1, o1c2}))
+
+	o3 := NewDynamicEObjectImpl()
+	o3.SetEClass(c3)
+
+	// add to resource to enable proxy resolution
+	resource := NewEResourceImpl()
+	resource.SetURI(&url.URL{Path: "r"})
+	resource.GetContents().AddAll(NewImmutableEList([]interface{}{o1, o3}))
+
+	resourceSet := NewEResourceSetImpl()
+	resourceSet.GetResources().Add(resource)
+
+	oproxy := NewDynamicEObjectImpl()
+	oproxy.ESetProxyURI(&url.URL{Path: "r", Fragment: "//@r1.1"})
+
+	o3.ESet(r3, oproxy)
+	assert.Equal(t, oproxy, o3.EGetResolve(r3, false))
+	assert.Equal(t, o1c2, o3.EGetResolve(r3, true))
 }

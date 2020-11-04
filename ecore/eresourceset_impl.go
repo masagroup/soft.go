@@ -77,7 +77,7 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 	for it := r.resources.Iterator(); it.HasNext(); {
 		resource := it.Next().(EResource)
 		resourceURI := r.uriConverter.Normalize(resource.GetURI())
-		if resourceURI == normalizedURI {
+		if *resourceURI == *normalizedURI {
 			if loadOnDemand && !resource.IsLoaded() {
 				resource.Load()
 			}

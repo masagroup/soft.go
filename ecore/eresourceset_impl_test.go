@@ -60,6 +60,26 @@ func TestEResourceSetGetResource(t *testing.T) {
 	assert.Equal(t, mockResource, rs.GetResource(uri, true))
 }
 
+func TestEResourceSetGetRegisteredResource(t *testing.T) {
+
+	uri, _ := url.Parse("test://file.t")
+	rs := NewEResourceSetImpl()
+
+	// register resource
+	mockResource := new(MockEResourceInternal)
+	mockResource.On("basicSetResourceSet", rs, nil).Return(nil)
+	rs.GetResources().Add(mockResource)
+
+	// get registered resource - no loading
+	mockResource.On("GetURI").Return(uri)
+	assert.Equal(t, mockResource, rs.GetResource(uri, false))
+
+	// get registered resource - loading
+	mockResource.On("IsLoaded").Once().Return(false)
+	mockResource.On("Load").Once()
+	assert.Equal(t, mockResource, rs.GetResource(uri, true))
+}
+
 func TestEResourceSetGetEObject(t *testing.T) {
 	mockResourceFactoryRegistry := new(MockEResourceFactoryRegistry)
 	mockResourceFactory := new(MockEResourceFactory)

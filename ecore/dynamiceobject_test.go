@@ -176,3 +176,43 @@ func TestDynamicEObject_Proxy(t *testing.T) {
 	assert.False(t, o3.EIsSet(r3))
 	assert.Nil(t, o3.EGet(r3))
 }
+
+func TestDynamicEObject_Bidirectional(t *testing.T) {
+
+	r1 := GetFactory().CreateEReference()
+	r1.SetName("ref")
+
+	r2 := GetFactory().CreateEReference()
+	r2.SetName("parent")
+	r2.SetEOpposite(r1)
+
+	c1 := GetFactory().CreateEClass()
+	c1.GetEStructuralFeatures().Add(r1)
+
+	c2 := GetFactory().CreateEClass()
+	c2.GetEStructuralFeatures().Add(r2)
+
+	o1 := NewDynamicEObjectImpl()
+	o1.SetEClass(c1)
+
+	o2 := NewDynamicEObjectImpl()
+	o2.SetEClass(c2)
+
+	assert.False(t, o2.EIsSet(r2))
+	assert.False(t, o1.EIsSet(r1))
+
+	o2.ESet(r2, o1)
+	assert.Equal(t, o1, o2.EGet(r2))
+	assert.Equal(t, o1, o2.EGetResolve(r2, false))
+	assert.Equal(t, o2, o1.EGet(r1))
+	assert.Equal(t, o2, o1.EGetResolve(r1, false))
+	assert.True(t, o2.EIsSet(r2))
+	assert.True(t, o1.EIsSet(r1))
+
+	o2.EUnset(r2)
+	assert.Equal(t, nil, o2.EGet(r2))
+	assert.Equal(t, nil, o1.EGet(r1))
+	assert.False(t, o2.EIsSet(r2))
+	assert.False(t, o1.EIsSet(r1))
+
+}

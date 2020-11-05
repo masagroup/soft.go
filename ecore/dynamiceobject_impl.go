@@ -429,14 +429,6 @@ func (o *DynamicEObjectImpl) isContains(feature EStructuralFeature) bool {
 	return false
 }
 
-func (o *DynamicEObjectImpl) isBackReference(feature EStructuralFeature) bool {
-	ref, isRef := feature.(EReference)
-	if isRef {
-		return ref.IsContainer()
-	}
-	return false
-}
-
 func (o *DynamicEObjectImpl) isProxy(feature EStructuralFeature) bool {
 	if o.isContainer(feature) || o.isContains(feature) {
 		return false

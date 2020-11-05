@@ -163,8 +163,14 @@ func TestDynamicEObject_Proxy(t *testing.T) {
 
 	oproxy := NewDynamicEObjectImpl()
 	oproxy.ESetProxyURI(&url.URL{Path: "r", Fragment: "//@r1.1"})
+	assert.False(t, o3.EIsSet(r3))
 
 	o3.ESet(r3, oproxy)
 	assert.Equal(t, oproxy, o3.EGetResolve(r3, false))
 	assert.Equal(t, o1c2, o3.EGetResolve(r3, true))
+	assert.True(t, o3.EIsSet(r3))
+
+	o3.EUnset(r3)
+	assert.False(t, o3.EIsSet(r3))
+	assert.Nil(t, o3.EGet(r3))
 }

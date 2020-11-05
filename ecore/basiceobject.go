@@ -571,7 +571,7 @@ func (o *BasicEObject) EBasicRemoveFromContainerFeature(notifications ENotificat
 	if isReference {
 		inverseFeature := reference.GetEOpposite()
 		if o.container != nil && inverseFeature != nil {
-			return o.AsEObjectInternal().EInverseRemove(o.AsEObject(), inverseFeature.GetFeatureID(), notifications)
+			return o.container.(EObjectInternal).EInverseRemove(o.AsEObject(), inverseFeature.GetFeatureID(), notifications)
 		}
 	}
 	return notifications

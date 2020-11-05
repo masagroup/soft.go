@@ -313,34 +313,30 @@ func (o *DynamicEObjectImpl) EBasicInverseAdd(otherEnd EObject, featureID int, n
 				msgs = o.EBasicRemoveFromContainer(msgs)
 			}
 			return o.EBasicSetContainer(otherEnd, featureID, msgs)
-		} else if o.isBidirectional(dynamicFeature) || o.isContains(dynamicFeature) {
+		} else {
 			// inverse - opposite
 			oldValue := o.properties[dynamicFeatureID]
 			oldObject, _ := oldValue.(EObject)
-			if oldObject != otherEnd {
-				if !o.isBidirectional(dynamicFeature) {
-					if oldObject != nil {
-						notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
-					}
-				} else {
+			if oldObject != nil {
+				if o.isContains(dynamicFeature) {
+					notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
+				} else if o.isBidirectional(dynamicFeature) {
 					dynamicReference := dynamicFeature.(EReference)
 					reverseFeature := dynamicReference.GetEOpposite()
-					if oldObject != nil {
-						notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), reverseFeature.GetFeatureID(), notifications)
-					}
+					notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), reverseFeature.GetFeatureID(), notifications)
 				}
+			}
 
-				// set current value
-				o.properties[dynamicFeatureID] = otherEnd
+			// set current value
+			o.properties[dynamicFeatureID] = otherEnd
 
-				// create notification
-				if o.ENotificationRequired() {
-					notification := NewNotificationByFeatureID(o.AsEObject(), SET, featureID, oldValue, otherEnd, NO_INDEX)
-					if notifications != nil {
-						notifications.Add(notification)
-					} else {
-						notifications = notification
-					}
+			// create notification
+			if o.ENotificationRequired() {
+				notification := NewNotificationByFeatureID(o.AsEObject(), SET, featureID, oldValue, otherEnd, NO_INDEX)
+				if notifications != nil {
+					notifications.Add(notification)
+				} else {
+					notifications = notification
 				}
 			}
 		}

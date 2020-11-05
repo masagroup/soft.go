@@ -237,6 +237,46 @@ func (o *DynamicEObjectImpl) EUnsetFromID(featureID int) {
 			} else if o.ENotificationRequired() {
 				o.ENotify(NewNotificationByFeatureID(o.AsEObject(), SET, featureID, nil, nil, NO_INDEX))
 			}
+		} else if o.isBidirectional(dynamicFeature) || o.isContains(dynamicFeature) {
+			// inverse - opposite
+			oldValue := o.properties[dynamicFeatureID]
+			if oldValue != nil {
+				var notifications ENotificationChain
+				oldObject, _ := oldValue.(EObject)
+
+				if !o.isBidirectional(dynamicFeature) {
+					if oldObject != nil {
+						notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
+					}
+				} else {
+					dynamicReference := dynamicFeature.(EReference)
+					reverseFeature := dynamicReference.GetEOpposite()
+					if oldObject != nil {
+						notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), reverseFeature.GetFeatureID(), notifications)
+					}
+				}
+				// basic unset
+				o.properties[dynamicFeatureID] = nil
+
+				// create notification
+				if o.ENotificationRequired() {
+					eventType := SET
+					if dynamicFeature.IsUnsettable() {
+						eventType = UNSET
+					}
+					notification := NewNotificationByFeatureID(o.AsEObject(), eventType, featureID, oldValue, nil, NO_INDEX)
+					if notifications != nil {
+						notifications.Add(notification)
+					} else {
+						notifications = notification
+					}
+				}
+
+				// notify
+				if notifications != nil {
+					notifications.Dispatch()
+				}
+			}
 		} else {
 			oldValue := o.properties[dynamicFeatureID]
 			o.properties[dynamicFeatureID] = nil

@@ -98,7 +98,9 @@ func TestDynamicEObject_Container(t *testing.T) {
 
 	o2.ESet(r2, o1)
 	assert.Equal(t, o1, o2.EGet(r2))
+	assert.Equal(t, o1, o2.EGetResolve(r2, false))
 	assert.Equal(t, o2, o1.EGet(r1))
+	assert.Equal(t, o2, o1.EGetResolve(r1, false))
 	assert.True(t, o2.EIsSet(r2))
 	assert.True(t, o1.EIsSet(r1))
 

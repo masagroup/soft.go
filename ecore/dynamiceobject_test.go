@@ -96,6 +96,10 @@ func TestDynamicEObject_Container(t *testing.T) {
 	o2.ESet(r2, o1)
 	assert.Equal(t, o1, o2.EGet(r2))
 	assert.Equal(t, o2, o1.EGet(r1))
+
+	o2.EUnset(r2)
+	assert.Equal(t, nil, o2.EGet(r2))
+	assert.Equal(t, nil, o1.EGet(r1))
 }
 
 func TestDynamicEObject_Proxy(t *testing.T) {

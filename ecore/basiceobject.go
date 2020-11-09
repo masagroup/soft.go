@@ -113,11 +113,24 @@ type BasicEObject struct {
 	crossReferenceS    *contentsListAdapter
 }
 
+type EDynamicProperties interface {
+	EDynamicAllocate(dynamicMaxFeatureCount int)
+
+	EDynamicGet(dynamicFeatureID int) interface{}
+
+	EDynamicSet(dynamicFeatureID int, newValue interface{})
+
+	EDynamicUnset(dynamicFeatureID int)
+}
+
 // EObjectInternal ...
 type EObjectInternal interface {
 	EObject
 
+	EGetDynamicProperties() EDynamicProperties
+
 	EStaticClass() EClass
+	EStaticFeatureCount() int
 
 	EInternalContainer() EObject
 	EInternalResource() EResource
@@ -168,6 +181,19 @@ func (o *BasicEObject) AsEObjectInternal() EObjectInternal {
 // EClass ...
 func (o *BasicEObject) EClass() EClass {
 	return o.AsEObjectInternal().EStaticClass()
+}
+
+// EStaticClass ...
+func (o *BasicEObject) EStaticClass() EClass {
+	return GetPackage().GetEObject()
+}
+
+func (o *BasicEObject) EStaticFeatureCount() int {
+	return o.AsEObjectInternal().EStaticClass().GetFeatureCount()
+}
+
+func (o *BasicEObject) EGetDynamicProperties() EDynamicProperties {
+	return nil
 }
 
 // EIsProxy ...
@@ -272,7 +298,7 @@ func (o *BasicEObject) EContainingFeature() EStructuralFeature {
 
 // EContainmentFeature ...
 func (o *BasicEObject) EContainmentFeature() EReference {
-	return eContainmentFeature(o, o.container, o.containerFeatureID)
+	return eContainmentFeature(o.AsEObject(), o.container, o.containerFeatureID)
 }
 
 func eContainmentFeature(o EObject, container EObject, containerFeatureID int) EReference {
@@ -362,6 +388,20 @@ func (o *BasicEObject) EGetFromID(featureID int, resolve bool) interface{} {
 	if feature == nil {
 		panic("Invalid featureID: " + strconv.Itoa(featureID))
 	}
+	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
+	if dynamicFeatureID < 0 {
+		return o.AsEObjectInternal().EGetResolve(feature, resolve)
+	} else {
+		properties := o.AsEObjectInternal().EGetDynamicProperties()
+		if properties != nil {
+			return o.eDynamicPropertiesGet(properties, dynamicFeatureID, resolve)
+		} else {
+			panic("EObject doesn't define any dynamic properties")
+		}
+	}
+}
+
+func (o *BasicEObject) eDynamicPropertiesGet(properties EDynamicProperties, dynamicFeatureID int, resolve bool) interface{} {
 	return nil
 }
 
@@ -381,6 +421,21 @@ func (o *BasicEObject) ESetFromID(featureID int, newValue interface{}) {
 	if feature == nil {
 		panic("Invalid featureID: " + strconv.Itoa(featureID))
 	}
+	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
+	if dynamicFeatureID < 0 {
+		o.ESet(feature, newValue)
+	} else {
+		properties := o.AsEObjectInternal().EGetDynamicProperties()
+		if properties != nil {
+			o.eDynamicPropertiesSet(properties, dynamicFeatureID, newValue)
+		} else {
+			panic("EObject doesn't define any dynamic properties")
+		}
+	}
+}
+
+func (o *BasicEObject) eDynamicPropertiesSet(properties EDynamicProperties, dynamicFeatureID int, newValue interface{}) {
+
 }
 
 // EIsSet ...
@@ -398,6 +453,20 @@ func (o *BasicEObject) EIsSetFromID(featureID int) bool {
 	if feature == nil {
 		panic("Invalid featureID: " + strconv.Itoa(featureID))
 	}
+	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
+	if dynamicFeatureID < 0 {
+		return o.EIsSet(feature)
+	} else {
+		properties := o.AsEObjectInternal().EGetDynamicProperties()
+		if properties != nil {
+			return o.eDynamicPropertiesIsSet(properties, dynamicFeatureID)
+		} else {
+			panic("EObject doesn't define any dynamic properties")
+		}
+	}
+}
+
+func (o *BasicEObject) eDynamicPropertiesIsSet(properties EDynamicProperties, dynamicFeatureID int) bool {
 	return false
 }
 
@@ -417,6 +486,21 @@ func (o *BasicEObject) EUnsetFromID(featureID int) {
 	if feature == nil {
 		panic("Invalid featureID: " + strconv.Itoa(featureID))
 	}
+	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
+	if dynamicFeatureID < 0 {
+		o.EUnset(feature)
+	} else {
+		properties := o.AsEObjectInternal().EGetDynamicProperties()
+		if properties != nil {
+			o.eDynamicPropertiesUnset(properties, dynamicFeatureID)
+		} else {
+			panic("EObject doesn't define any dynamic properties")
+		}
+	}
+}
+
+func (o *BasicEObject) eDynamicPropertiesUnset(properties EDynamicProperties, dynamicFeatureID int) {
+
 }
 
 // EInvoke ...
@@ -435,11 +519,6 @@ func (o *BasicEObject) EInvokeFromID(operationID int, arguments EList) interface
 		panic("Invalid operationID: " + strconv.Itoa(operationID))
 	}
 	return nil
-}
-
-// EStaticClass ...
-func (o *BasicEObject) EStaticClass() EClass {
-	return GetPackage().GetEObject()
 }
 
 // EInverseAdd ...
@@ -497,7 +576,7 @@ func (o *BasicEObject) EBasicSetContainer(newContainer EObject, newContainerFeat
 	// resource
 	var newResource EResource
 	if oldResource != nil {
-		if newContainer != nil && !eContainmentFeature(o, newContainer, newContainerFeatureID).IsResolveProxies() {
+		if newContainer != nil && !eContainmentFeature(o.AsEObject(), newContainer, newContainerFeatureID).IsResolveProxies() {
 			list := oldResource.GetContents().(ENotifyingList)
 			notifications = list.RemoveWithNotification(o.AsEObject(), notifications)
 			o.ESetInternalResource(nil)

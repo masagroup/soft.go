@@ -558,11 +558,37 @@ func (o *BasicEObject) EResolveProxy(proxy EObject) EObject {
 
 // EBasicInverseAdd ...
 func (o *BasicEObject) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
+	if dynamicFeatureID >= 0 {
+		properties := o.AsEObjectInternal().EGetDynamicProperties()
+		if properties != nil {
+			return o.eDynamicPropertiesInverseAdd(properties, otherEnd, dynamicFeatureID, notifications)
+		} else {
+			panic("EObject doesn't define any dynamic properties")
+		}
+	}
+	return notifications
+}
+
+func (o *BasicEObject) eDynamicPropertiesInverseAdd(properties EDynamicProperties, otherEnd EObject, dynamicFeatureID int, notifications ENotificationChain) ENotificationChain {
 	return notifications
 }
 
 // EBasicInverseRemove ...
 func (o *BasicEObject) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
+	if dynamicFeatureID >= 0 {
+		properties := o.AsEObjectInternal().EGetDynamicProperties()
+		if properties != nil {
+			return o.eDynamicPropertiesInverseRemove(properties, otherEnd, dynamicFeatureID, notifications)
+		} else {
+			panic("EObject doesn't define any dynamic properties")
+		}
+	}
+	return notifications
+}
+
+func (o *BasicEObject) eDynamicPropertiesInverseRemove(properties EDynamicProperties, otherEnd EObject, dynamicFeatureID int, notifications ENotificationChain) ENotificationChain {
 	return notifications
 }
 

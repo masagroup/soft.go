@@ -37,6 +37,10 @@ func (eObject *EObjectImpl) EStaticClass() EClass {
 	return GetPackage().GetEObject()
 }
 
+func (eObject *EObjectImpl) EStaticFeatureCount() int {
+	return EOBJECT_FEATURE_COUNT
+}
+
 func (eObject *EObjectImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
 	switch operationID {
 	case EOBJECT__EALL_CONTENTS:

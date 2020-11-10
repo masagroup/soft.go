@@ -39,6 +39,10 @@ func (eDataType *eDataTypeImpl) EStaticClass() EClass {
 	return GetPackage().GetEDataType()
 }
 
+func (eDataType *eDataTypeImpl) EStaticFeatureCount() int {
+	return EDATA_TYPE_FEATURE_COUNT
+}
+
 // IsSerializable get the value of isSerializable
 func (eDataType *eDataTypeImpl) IsSerializable() bool {
 	return eDataType.isSerializable

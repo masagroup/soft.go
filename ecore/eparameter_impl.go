@@ -37,6 +37,10 @@ func (eParameter *eParameterImpl) EStaticClass() EClass {
 	return GetPackage().GetEParameter()
 }
 
+func (eParameter *eParameterImpl) EStaticFeatureCount() int {
+	return EPARAMETER_FEATURE_COUNT
+}
+
 // GetEOperation get the value of eOperation
 func (eParameter *eParameterImpl) GetEOperation() EOperation {
 	if eParameter.EContainerFeatureID() == EPARAMETER__EOPERATION {

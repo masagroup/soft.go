@@ -50,6 +50,10 @@ func (eOperation *eOperationImpl) EStaticClass() EClass {
 	return GetPackage().GetEOperation()
 }
 
+func (eOperation *eOperationImpl) EStaticFeatureCount() int {
+	return EOPERATION_FEATURE_COUNT
+}
+
 // IsOverrideOf default implementation
 func (eOperation *eOperationImpl) IsOverrideOf(EOperation) bool {
 	panic("IsOverrideOf not implemented")

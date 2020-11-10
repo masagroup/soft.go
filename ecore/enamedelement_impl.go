@@ -39,6 +39,10 @@ func (eNamedElement *eNamedElementImpl) EStaticClass() EClass {
 	return GetPackage().GetENamedElement()
 }
 
+func (eNamedElement *eNamedElementImpl) EStaticFeatureCount() int {
+	return ENAMED_ELEMENT_FEATURE_COUNT
+}
+
 // GetName get the value of name
 func (eNamedElement *eNamedElementImpl) GetName() string {
 	return eNamedElement.name

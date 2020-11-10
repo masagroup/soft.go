@@ -278,6 +278,34 @@ func (_m *MockEObjectInternal) EStaticClass() EClass {
 	return r0
 }
 
+// EStaticFeatureCount provides a mock function with given fields: featureID
+func (_m *MockEObjectInternal) EStaticFeatureCount() int {
+	ret := _m.Called()
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	return r0
+}
+
+// EProperties provides a mock function with given fields: featureID
+func (_m *MockEObjectInternal) EProperties() EDynamicProperties {
+	ret := _m.Called()
+
+	var r0 EDynamicProperties
+	if rf, ok := ret.Get(0).(func() EDynamicProperties); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(EDynamicProperties)
+	}
+
+	return r0
+}
+
 // EURIFragmentSegment provides a mock function with given fields: _a0, _a1
 func (_m *MockEObjectInternal) EURIFragmentSegment(_a0 EStructuralFeature, _a1 EObject) string {
 	ret := _m.Called(_a0, _a1)

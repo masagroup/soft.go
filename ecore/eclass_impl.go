@@ -76,6 +76,10 @@ func (eClass *eClassImpl) EStaticClass() EClass {
 	return GetPackage().GetEClass()
 }
 
+func (eClass *eClassImpl) EStaticFeatureCount() int {
+	return ECLASS_FEATURE_COUNT
+}
+
 // GetEOperation default implementation
 func (eClass *eClassImpl) GetEOperation(int) EOperation {
 	panic("GetEOperation not implemented")

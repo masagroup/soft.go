@@ -43,6 +43,10 @@ func (eEnumLiteral *eEnumLiteralImpl) EStaticClass() EClass {
 	return GetPackage().GetEEnumLiteral()
 }
 
+func (eEnumLiteral *eEnumLiteralImpl) EStaticFeatureCount() int {
+	return EENUM_LITERAL_FEATURE_COUNT
+}
+
 // GetEEnum get the value of eEnum
 func (eEnumLiteral *eEnumLiteralImpl) GetEEnum() EEnum {
 	if eEnumLiteral.EContainerFeatureID() == EENUM_LITERAL__EENUM {

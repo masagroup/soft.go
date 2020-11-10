@@ -51,6 +51,10 @@ func (eGenericType *eGenericTypeImpl) EStaticClass() EClass {
 	return GetPackage().GetEGenericType()
 }
 
+func (eGenericType *eGenericTypeImpl) EStaticFeatureCount() int {
+	return EGENERIC_TYPE_FEATURE_COUNT
+}
+
 // IsInstance default implementation
 func (eGenericType *eGenericTypeImpl) IsInstance(interface{}) bool {
 	panic("IsInstance not implemented")

@@ -53,6 +53,10 @@ func (eStructuralFeature *eStructuralFeatureImpl) EStaticClass() EClass {
 	return GetPackage().GetEStructuralFeature()
 }
 
+func (eStructuralFeature *eStructuralFeatureImpl) EStaticFeatureCount() int {
+	return ESTRUCTURAL_FEATURE_FEATURE_COUNT
+}
+
 // GetContainerClass default implementation
 func (eStructuralFeature *eStructuralFeatureImpl) GetContainerClass() reflect.Type {
 	panic("GetContainerClass not implemented")

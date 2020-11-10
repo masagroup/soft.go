@@ -52,6 +52,10 @@ func (eAnnotation *eAnnotationImpl) EStaticClass() EClass {
 	return GetPackage().GetEAnnotationClass()
 }
 
+func (eAnnotation *eAnnotationImpl) EStaticFeatureCount() int {
+	return EANNOTATION_FEATURE_COUNT
+}
+
 // GetContents get the value of contents
 func (eAnnotation *eAnnotationImpl) GetContents() EList {
 	if eAnnotation.contents == nil {

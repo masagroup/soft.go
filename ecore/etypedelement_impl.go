@@ -46,6 +46,10 @@ func (eTypedElement *eTypedElementImpl) EStaticClass() EClass {
 	return GetPackage().GetETypedElement()
 }
 
+func (eTypedElement *eTypedElementImpl) EStaticFeatureCount() int {
+	return ETYPED_ELEMENT_FEATURE_COUNT
+}
+
 // GetEType get the value of eType
 func (eTypedElement *eTypedElementImpl) GetEType() EClassifier {
 	if eTypedElement.eType != nil && eTypedElement.eType.EIsProxy() {

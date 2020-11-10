@@ -46,6 +46,10 @@ func (eTypeParameter *eTypeParameterImpl) EStaticClass() EClass {
 	return GetPackage().GetETypeParameter()
 }
 
+func (eTypeParameter *eTypeParameterImpl) EStaticFeatureCount() int {
+	return ETYPE_PARAMETER_FEATURE_COUNT
+}
+
 // GetEBounds get the value of eBounds
 func (eTypeParameter *eTypeParameterImpl) GetEBounds() EList {
 	if eTypeParameter.eBounds == nil {

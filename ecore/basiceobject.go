@@ -127,7 +127,7 @@ type EDynamicProperties interface {
 type EObjectInternal interface {
 	EObject
 
-	EGetDynamicProperties() EDynamicProperties
+	EProperties() EDynamicProperties
 
 	EStaticClass() EClass
 	EStaticFeatureCount() int
@@ -192,7 +192,7 @@ func (o *BasicEObject) EStaticFeatureCount() int {
 	return o.AsEObjectInternal().EStaticClass().GetFeatureCount()
 }
 
-func (o *BasicEObject) EGetDynamicProperties() EDynamicProperties {
+func (o *BasicEObject) EProperties() EDynamicProperties {
 	return nil
 }
 
@@ -392,7 +392,7 @@ func (o *BasicEObject) EGetFromID(featureID int, resolve bool) interface{} {
 	if dynamicFeatureID < 0 {
 		return o.AsEObjectInternal().EGetResolve(feature, resolve)
 	} else {
-		properties := o.AsEObjectInternal().EGetDynamicProperties()
+		properties := o.AsEObjectInternal().EProperties()
 		if properties != nil {
 			return o.eDynamicPropertiesGet(properties, dynamicFeatureID, resolve)
 		} else {
@@ -425,7 +425,7 @@ func (o *BasicEObject) ESetFromID(featureID int, newValue interface{}) {
 	if dynamicFeatureID < 0 {
 		o.ESet(feature, newValue)
 	} else {
-		properties := o.AsEObjectInternal().EGetDynamicProperties()
+		properties := o.AsEObjectInternal().EProperties()
 		if properties != nil {
 			o.eDynamicPropertiesSet(properties, dynamicFeatureID, newValue)
 		} else {
@@ -457,7 +457,7 @@ func (o *BasicEObject) EIsSetFromID(featureID int) bool {
 	if dynamicFeatureID < 0 {
 		return o.EIsSet(feature)
 	} else {
-		properties := o.AsEObjectInternal().EGetDynamicProperties()
+		properties := o.AsEObjectInternal().EProperties()
 		if properties != nil {
 			return o.eDynamicPropertiesIsSet(properties, dynamicFeatureID)
 		} else {
@@ -490,7 +490,7 @@ func (o *BasicEObject) EUnsetFromID(featureID int) {
 	if dynamicFeatureID < 0 {
 		o.EUnset(feature)
 	} else {
-		properties := o.AsEObjectInternal().EGetDynamicProperties()
+		properties := o.AsEObjectInternal().EProperties()
 		if properties != nil {
 			o.eDynamicPropertiesUnset(properties, dynamicFeatureID)
 		} else {
@@ -560,7 +560,7 @@ func (o *BasicEObject) EResolveProxy(proxy EObject) EObject {
 func (o *BasicEObject) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
 	if dynamicFeatureID >= 0 {
-		properties := o.AsEObjectInternal().EGetDynamicProperties()
+		properties := o.AsEObjectInternal().EProperties()
 		if properties != nil {
 			return o.eDynamicPropertiesInverseAdd(properties, otherEnd, dynamicFeatureID, notifications)
 		} else {
@@ -578,7 +578,7 @@ func (o *BasicEObject) eDynamicPropertiesInverseAdd(properties EDynamicPropertie
 func (o *BasicEObject) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
 	if dynamicFeatureID >= 0 {
-		properties := o.AsEObjectInternal().EGetDynamicProperties()
+		properties := o.AsEObjectInternal().EProperties()
 		if properties != nil {
 			return o.eDynamicPropertiesInverseRemove(properties, otherEnd, dynamicFeatureID, notifications)
 		} else {

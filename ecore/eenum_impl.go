@@ -46,6 +46,10 @@ func (eEnum *eEnumImpl) EStaticClass() EClass {
 	return GetPackage().GetEEnum()
 }
 
+func (eEnum *eEnumImpl) EStaticFeatureCount() int {
+	return EENUM_FEATURE_COUNT
+}
+
 // GetEEnumLiteralByLiteral default implementation
 func (eEnum *eEnumImpl) GetEEnumLiteralByLiteral(string) EEnumLiteral {
 	panic("GetEEnumLiteralByLiteral not implemented")

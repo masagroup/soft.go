@@ -41,6 +41,10 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EStaticClass() EClas
 	return GetPackage().GetEStringToStringMapEntry()
 }
 
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EStaticFeatureCount() int {
+	return ESTRING_TO_STRING_MAP_ENTRY_FEATURE_COUNT
+}
+
 // GetKey get the value of key
 func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetKey() string {
 	return eStringToStringMapEntry.key

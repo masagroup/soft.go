@@ -46,6 +46,10 @@ func (eModelElement *eModelElementImpl) EStaticClass() EClass {
 	return GetPackage().GetEModelElement()
 }
 
+func (eModelElement *eModelElementImpl) EStaticFeatureCount() int {
+	return EMODEL_ELEMENT_FEATURE_COUNT
+}
+
 // GetEAnnotation default implementation
 func (eModelElement *eModelElementImpl) GetEAnnotation(string) EAnnotation {
 	panic("GetEAnnotation not implemented")

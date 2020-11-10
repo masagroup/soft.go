@@ -39,6 +39,10 @@ func (eAttribute *eAttributeImpl) EStaticClass() EClass {
 	return GetPackage().GetEAttribute()
 }
 
+func (eAttribute *eAttributeImpl) EStaticFeatureCount() int {
+	return EATTRIBUTE_FEATURE_COUNT
+}
+
 // GetEAttributeType get the value of eAttributeType
 func (eAttribute *eAttributeImpl) GetEAttributeType() EDataType {
 	panic("GetEAttributeType not implemented")

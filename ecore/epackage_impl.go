@@ -53,6 +53,10 @@ func (ePackage *ePackageImpl) EStaticClass() EClass {
 	return GetPackage().GetEPackage()
 }
 
+func (ePackage *ePackageImpl) EStaticFeatureCount() int {
+	return EPACKAGE_FEATURE_COUNT
+}
+
 // GetEClassifier default implementation
 func (ePackage *ePackageImpl) GetEClassifier(string) EClassifier {
 	panic("GetEClassifier not implemented")

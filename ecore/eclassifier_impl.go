@@ -51,6 +51,10 @@ func (eClassifier *eClassifierImpl) EStaticClass() EClass {
 	return GetPackage().GetEClassifierClass()
 }
 
+func (eClassifier *eClassifierImpl) EStaticFeatureCount() int {
+	return ECLASSIFIER_FEATURE_COUNT
+}
+
 // IsInstance default implementation
 func (eClassifier *eClassifierImpl) IsInstance(interface{}) bool {
 	panic("IsInstance not implemented")

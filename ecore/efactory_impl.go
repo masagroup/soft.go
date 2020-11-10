@@ -37,6 +37,10 @@ func (eFactory *eFactoryImpl) EStaticClass() EClass {
 	return GetPackage().GetEFactory()
 }
 
+func (eFactory *eFactoryImpl) EStaticFeatureCount() int {
+	return EFACTORY_FEATURE_COUNT
+}
+
 // ConvertToString default implementation
 func (eFactory *eFactoryImpl) ConvertToString(EDataType, interface{}) string {
 	panic("ConvertToString not implemented")

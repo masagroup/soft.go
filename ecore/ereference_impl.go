@@ -51,6 +51,10 @@ func (eReference *eReferenceImpl) EStaticClass() EClass {
 	return GetPackage().GetEReference()
 }
 
+func (eReference *eReferenceImpl) EStaticFeatureCount() int {
+	return EREFERENCE_FEATURE_COUNT
+}
+
 // GetEKeys get the value of eKeys
 func (eReference *eReferenceImpl) GetEKeys() EList {
 	if eReference.eKeys == nil {

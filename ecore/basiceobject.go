@@ -858,6 +858,29 @@ func (o *BasicEObject) EBasicInverseRemove(otherEnd EObject, featureID int, noti
 }
 
 func (o *BasicEObject) eDynamicPropertiesInverseRemove(properties EDynamicProperties, otherEnd EObject, dynamicFeature EStructuralFeature, dynamicFeatureID int, notifications ENotificationChain) ENotificationChain {
+	if dynamicFeature.IsMany() {
+		value := properties.EDynamicGet(dynamicFeatureID)
+		if value != nil {
+			list := value.(ENotifyingList)
+			return list.RemoveWithNotification(otherEnd, notifications)
+		}
+	} else if isContainer(dynamicFeature) {
+		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
+		return o.EBasicSetContainer(nil, featureID, notifications)
+	} else {
+		oldValue := properties.EDynamicGet(dynamicFeatureID)
+		properties.EDynamicUnset(dynamicFeatureID)
+
+		// create notification
+		if o.ENotificationRequired() {
+			notification := NewNotificationByFeature(o.AsEObject(), SET, dynamicFeature, oldValue, nil, NO_INDEX)
+			if notifications != nil {
+				notifications.Add(notification)
+			} else {
+				notifications = notification
+			}
+		}
+	}
 	return notifications
 }
 

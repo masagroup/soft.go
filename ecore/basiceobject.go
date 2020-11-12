@@ -394,14 +394,14 @@ func (o *BasicEObject) EGetFromID(featureID int, resolve bool) interface{} {
 	} else {
 		properties := o.AsEObjectInternal().EProperties()
 		if properties != nil {
-			return o.eDynamicPropertiesGet(properties, dynamicFeatureID, resolve)
+			return o.eDynamicPropertiesGet(properties, feature, dynamicFeatureID, resolve)
 		} else {
 			panic("EObject doesn't define any dynamic properties")
 		}
 	}
 }
 
-func (o *BasicEObject) eDynamicPropertiesGet(properties EDynamicProperties, dynamicFeatureID int, resolve bool) interface{} {
+func (o *BasicEObject) eDynamicPropertiesGet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, resolve bool) interface{} {
 	return nil
 }
 
@@ -427,14 +427,14 @@ func (o *BasicEObject) ESetFromID(featureID int, newValue interface{}) {
 	} else {
 		properties := o.AsEObjectInternal().EProperties()
 		if properties != nil {
-			o.eDynamicPropertiesSet(properties, dynamicFeatureID, newValue)
+			o.eDynamicPropertiesSet(properties, feature, dynamicFeatureID, newValue)
 		} else {
 			panic("EObject doesn't define any dynamic properties")
 		}
 	}
 }
 
-func (o *BasicEObject) eDynamicPropertiesSet(properties EDynamicProperties, dynamicFeatureID int, newValue interface{}) {
+func (o *BasicEObject) eDynamicPropertiesSet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, newValue interface{}) {
 
 }
 
@@ -459,14 +459,14 @@ func (o *BasicEObject) EIsSetFromID(featureID int) bool {
 	} else {
 		properties := o.AsEObjectInternal().EProperties()
 		if properties != nil {
-			return o.eDynamicPropertiesIsSet(properties, dynamicFeatureID)
+			return o.eDynamicPropertiesIsSet(properties, feature, dynamicFeatureID)
 		} else {
 			panic("EObject doesn't define any dynamic properties")
 		}
 	}
 }
 
-func (o *BasicEObject) eDynamicPropertiesIsSet(properties EDynamicProperties, dynamicFeatureID int) bool {
+func (o *BasicEObject) eDynamicPropertiesIsSet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int) bool {
 	return false
 }
 
@@ -492,14 +492,14 @@ func (o *BasicEObject) EUnsetFromID(featureID int) {
 	} else {
 		properties := o.AsEObjectInternal().EProperties()
 		if properties != nil {
-			o.eDynamicPropertiesUnset(properties, dynamicFeatureID)
+			o.eDynamicPropertiesUnset(properties, feature, dynamicFeatureID)
 		} else {
 			panic("EObject doesn't define any dynamic properties")
 		}
 	}
 }
 
-func (o *BasicEObject) eDynamicPropertiesUnset(properties EDynamicProperties, dynamicFeatureID int) {
+func (o *BasicEObject) eDynamicPropertiesUnset(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int) {
 
 }
 
@@ -558,11 +558,12 @@ func (o *BasicEObject) EResolveProxy(proxy EObject) EObject {
 
 // EBasicInverseAdd ...
 func (o *BasicEObject) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
 	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
 	if dynamicFeatureID >= 0 {
 		properties := o.AsEObjectInternal().EProperties()
 		if properties != nil {
-			return o.eDynamicPropertiesInverseAdd(properties, otherEnd, dynamicFeatureID, notifications)
+			return o.eDynamicPropertiesInverseAdd(properties, otherEnd, feature, dynamicFeatureID, notifications)
 		} else {
 			panic("EObject doesn't define any dynamic properties")
 		}
@@ -570,17 +571,18 @@ func (o *BasicEObject) EBasicInverseAdd(otherEnd EObject, featureID int, notific
 	return notifications
 }
 
-func (o *BasicEObject) eDynamicPropertiesInverseAdd(properties EDynamicProperties, otherEnd EObject, dynamicFeatureID int, notifications ENotificationChain) ENotificationChain {
+func (o *BasicEObject) eDynamicPropertiesInverseAdd(properties EDynamicProperties, otherEnd EObject, dynamicFeature EStructuralFeature, dynamicFeatureID int, notifications ENotificationChain) ENotificationChain {
 	return notifications
 }
 
 // EBasicInverseRemove ...
 func (o *BasicEObject) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
 	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
 	if dynamicFeatureID >= 0 {
 		properties := o.AsEObjectInternal().EProperties()
 		if properties != nil {
-			return o.eDynamicPropertiesInverseRemove(properties, otherEnd, dynamicFeatureID, notifications)
+			return o.eDynamicPropertiesInverseRemove(properties, otherEnd, feature, dynamicFeatureID, notifications)
 		} else {
 			panic("EObject doesn't define any dynamic properties")
 		}
@@ -588,7 +590,7 @@ func (o *BasicEObject) EBasicInverseRemove(otherEnd EObject, featureID int, noti
 	return notifications
 }
 
-func (o *BasicEObject) eDynamicPropertiesInverseRemove(properties EDynamicProperties, otherEnd EObject, dynamicFeatureID int, notifications ENotificationChain) ENotificationChain {
+func (o *BasicEObject) eDynamicPropertiesInverseRemove(properties EDynamicProperties, otherEnd EObject, dynamicFeature EStructuralFeature, dynamicFeatureID int, notifications ENotificationChain) ENotificationChain {
 	return notifications
 }
 

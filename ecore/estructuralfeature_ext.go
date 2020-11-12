@@ -20,3 +20,42 @@ func newEStructuralFeatureExt() *eStructuralFeatureExt {
 	eStructuralFeature.interfaces = eStructuralFeature
 	return eStructuralFeature
 }
+
+func isBidirectional(feature EStructuralFeature) bool {
+	ref, isRef := feature.(EReference)
+	if isRef {
+		return ref.GetEOpposite() != nil
+	}
+	return false
+}
+
+func isContainer(feature EStructuralFeature) bool {
+	ref, isRef := feature.(EReference)
+	if isRef {
+		opposite := ref.GetEOpposite()
+		if opposite != nil {
+			return opposite.IsContainment()
+		}
+	}
+	return false
+}
+
+func isContains(feature EStructuralFeature) bool {
+	ref, isRef := feature.(EReference)
+	if isRef {
+		return ref.IsContainment()
+	}
+	return false
+}
+
+func isProxy(feature EStructuralFeature) bool {
+	if isContainer(feature) || isContains(feature) {
+		return false
+	}
+
+	ref, isRef := feature.(EReference)
+	if isRef {
+		return ref.IsResolveProxies()
+	}
+	return false
+}

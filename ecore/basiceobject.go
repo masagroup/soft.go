@@ -605,7 +605,12 @@ func (o *BasicEObject) EIsSetFromID(featureID int) bool {
 }
 
 func (o *BasicEObject) eDynamicPropertiesIsSet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int) bool {
-	return false
+	if isContainer(dynamicFeature) {
+		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
+		return o.EContainerFeatureID() == featureID && o.EInternalContainer() != nil
+	} else {
+		return properties.EDynamicGet(dynamicFeatureID) != nil
+	}
 }
 
 // EUnset ...

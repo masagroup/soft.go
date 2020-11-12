@@ -121,8 +121,6 @@ type EDynamicProperties interface {
 	EDynamicSet(dynamicFeatureID int, newValue interface{})
 
 	EDynamicUnset(dynamicFeatureID int)
-
-	ECreateList(feature EStructuralFeature) EList
 }
 
 // EObjectInternal ...
@@ -418,7 +416,7 @@ func (o *BasicEObject) eDynamicPropertiesGet(properties EDynamicProperties, dyna
 		result := properties.EDynamicGet(dynamicFeatureID)
 		if result == nil {
 			if dynamicFeature.IsMany() {
-				result = properties.ECreateList(dynamicFeature)
+				result = o.eDynamicPropertiesCreateList(dynamicFeature)
 				properties.EDynamicSet(dynamicFeatureID, result)
 			}
 		} else if resolve && isProxy(dynamicFeature) {
@@ -464,6 +462,31 @@ func (o *BasicEObject) eDynamicPropertiesGet(properties EDynamicProperties, dyna
 			}
 		}
 		return result
+	}
+	return nil
+}
+
+func (o *BasicEObject) eDynamicPropertiesCreateList(feature EStructuralFeature) EList {
+	if attribute, isAttribute := feature.(EAttribute); isAttribute {
+		if attribute.IsUnique() {
+			return NewUniqueBasicEList(nil)
+		} else {
+			return NewBasicEList(nil)
+		}
+	} else if ref, isRef := feature.(EReference); isRef {
+		inverse := false
+		opposite := false
+		reverseID := -1
+		reverseFeature := ref.GetEOpposite()
+		if reverseFeature != nil {
+			reverseID = reverseFeature.GetFeatureID()
+			inverse = true
+			opposite = true
+		} else if ref.IsContainment() {
+			inverse = true
+			opposite = false
+		}
+		return NewBasicEObjectList(o.AsEObjectInternal(), ref.GetFeatureID(), reverseID, ref.IsContainment(), inverse, opposite, ref.EIsProxy(), ref.IsUnsettable())
 	}
 	return nil
 }

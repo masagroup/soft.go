@@ -795,6 +795,50 @@ func (o *BasicEObject) EBasicInverseAdd(otherEnd EObject, featureID int, notific
 }
 
 func (o *BasicEObject) eDynamicPropertiesInverseAdd(properties EDynamicProperties, otherEnd EObject, dynamicFeature EStructuralFeature, dynamicFeatureID int, notifications ENotificationChain) ENotificationChain {
+	if dynamicFeature.IsMany() {
+		value := properties.EDynamicGet(dynamicFeatureID)
+		if value == nil {
+			value = o.eDynamicPropertiesCreateList(dynamicFeature)
+			properties.EDynamicSet(dynamicFeatureID, value)
+		}
+		list := value.(ENotifyingList)
+		return list.AddWithNotification(otherEnd, notifications)
+	} else if isContainer(dynamicFeature) {
+		msgs := notifications
+		if o.EContainer() != nil {
+			msgs = o.EBasicRemoveFromContainer(msgs)
+		}
+		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
+		return o.EBasicSetContainer(otherEnd, featureID, msgs)
+	} else {
+		// inverse - opposite
+		oldValue := properties.EDynamicGet(dynamicFeatureID)
+		oldObject, _ := oldValue.(EObject)
+		if oldObject != nil {
+			if isContains(dynamicFeature) {
+				featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
+				notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
+			} else if isBidirectional(dynamicFeature) {
+				dynamicReference := dynamicFeature.(EReference)
+				reverseFeature := dynamicReference.GetEOpposite()
+				featureID := oldObject.EClass().GetFeatureID(reverseFeature)
+				notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), featureID, notifications)
+			}
+		}
+
+		// set current value
+		properties.EDynamicSet(dynamicFeatureID, otherEnd)
+
+		// create notification
+		if o.ENotificationRequired() {
+			notification := NewNotificationByFeature(o.AsEObject(), SET, dynamicFeature, oldValue, otherEnd, NO_INDEX)
+			if notifications != nil {
+				notifications.Add(notification)
+			} else {
+				notifications = notification
+			}
+		}
+	}
 	return notifications
 }
 

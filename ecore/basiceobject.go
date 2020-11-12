@@ -114,8 +114,6 @@ type BasicEObject struct {
 }
 
 type EDynamicProperties interface {
-	EDynamicAllocate(dynamicMaxFeatureCount int)
-
 	EDynamicGet(dynamicFeatureID int) interface{}
 
 	EDynamicSet(dynamicFeatureID int, newValue interface{})

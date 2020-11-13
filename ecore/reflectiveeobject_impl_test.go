@@ -7,6 +7,36 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+func TestReflectiveEObjectImpl_EGetFromID(t *testing.T) {
+	mockClass := new(MockEClass)
+	o := NewReflectiveEObjectImpl()
+	o.setEClass(mockClass)
+
+	mockClass.On("GetEStructuralFeature", 0).Return(nil).Once()
+	assert.Panics(t, func() { o.EGetFromID(0, false) })
+	mock.AssertExpectationsForObjects(t, mockClass)
+}
+
+func TestReflectiveEObjectImpl_ESetFromID(t *testing.T) {
+	mockClass := new(MockEClass)
+	o := NewReflectiveEObjectImpl()
+	o.setEClass(mockClass)
+
+	mockClass.On("GetEStructuralFeature", 0).Return(nil).Once()
+	assert.Panics(t, func() { o.ESetFromID(0, false) })
+	mock.AssertExpectationsForObjects(t, mockClass)
+}
+
+func TestReflectiveEObjectImpl_EUnSetFromID(t *testing.T) {
+	mockClass := new(MockEClass)
+	o := NewReflectiveEObjectImpl()
+	o.setEClass(mockClass)
+
+	mockClass.On("GetEStructuralFeature", 0).Return(nil).Once()
+	assert.Panics(t, func() { o.EUnsetFromID(0) })
+	mock.AssertExpectationsForObjects(t, mockClass)
+}
+
 func TestReflectiveEObjectImpl_GetAttribute(t *testing.T) {
 	mockAttribute := new(MockEAttribute)
 	mockAttribute.On("IsMany").Return(false).Once()
@@ -22,6 +52,50 @@ func TestReflectiveEObjectImpl_GetAttribute(t *testing.T) {
 	assert.Nil(t, o.EGetFromID(0, true))
 
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute)
+}
+
+func TestReflectiveEObjectImpl_GetAttribute_Many(t *testing.T) {
+	mockAttribute := new(MockEAttribute)
+	mockClass := new(MockEClass)
+	o := NewReflectiveEObjectImpl()
+	o.setEClass(mockClass)
+
+	// get unitialized value
+	mockClass.On("GetFeatureCount").Return(2).Once()
+	mockClass.On("GetEStructuralFeature", 0).Return(mockAttribute).Once()
+	mockAttribute.On("IsMany").Return(true).Once()
+	mockAttribute.On("IsUnique").Return(true).Once()
+	val := o.EGetFromID(0, false)
+	assert.NotNil(t, val)
+	l, _ := val.(EList)
+	assert.NotNil(t, l)
+
+	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute)
+}
+
+func TestReflectiveEObjectImpl_GetReference_Many(t *testing.T) {
+	mockReference := new(MockEReference)
+	mockClass := new(MockEClass)
+	o := NewReflectiveEObjectImpl()
+	o.setEClass(mockClass)
+
+	// get unitialized value
+	mockClass.On("GetFeatureCount").Return(2).Once()
+	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Once()
+	mockReference.On("IsMany").Return(true).Once()
+	mockReference.On("GetEOpposite").Return(nil).Twice()
+	mockReference.On("IsContainment").Return(false).Twice()
+	mockReference.On("GetFeatureID").Return(0).Once()
+	mockReference.On("EIsProxy").Return(false).Once()
+	mockReference.On("IsUnsettable").Return(false).Once()
+	val := o.EGetFromID(0, false)
+	assert.NotNil(t, val)
+
+	// check its is an object list
+	l, _ := val.(EObjectList)
+	assert.NotNil(t, l)
+
+	mock.AssertExpectationsForObjects(t, mockClass, mockReference)
 }
 
 func TestReflectiveEObjectImpl_SetAttribute(t *testing.T) {

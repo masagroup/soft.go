@@ -36,9 +36,13 @@ func TestDynamicEObject_EClass(t *testing.T) {
 
 func TestDynamicEObject_MockEClass(t *testing.T) {
 	o := NewDynamicEObjectImpl()
-	c := GetFactory().CreateEClass()
-	o.SetEClass(c)
-	assert.Equal(t, c, o.EClass())
+	c1 := GetFactory().CreateEClass()
+	c2 := GetFactory().CreateEClass()
+	o.SetEClass(c1)
+	assert.Equal(t, c1, o.EClass())
+
+	o.SetEClass(c2)
+	assert.Equal(t, c2, o.EClass())
 }
 
 func TestDynamicEObject_GetSet(t *testing.T) {

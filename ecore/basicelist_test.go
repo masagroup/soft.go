@@ -201,3 +201,10 @@ func TestArrayEListInsertAllUnique(t *testing.T) {
 	arr3 := NewBasicEList(nil)
 	assert.False(t, arr2.InsertAll(1, arr3))
 }
+
+func TestArrayEListSetUnique(t *testing.T) {
+	arr := NewUniqueBasicEList([]interface{}{1, 2})
+	assert.Panics(t, func() {
+		arr.Set(0, 2)
+	})
+}

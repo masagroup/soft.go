@@ -26,6 +26,7 @@ func TestEcoreUtilsConvertToString(t *testing.T) {
 	mockPackage.On("GetEFactoryInstance").Once().Return(mockFactory)
 	mockFactory.On("ConvertToString", mockDataType, mockObject).Once().Return("test")
 	assert.Equal(t, "test", ConvertToString(mockDataType, mockObject))
+	mock.AssertExpectationsForObjects(t, mockObject, mockDataType, mockPackage, mockFactory)
 }
 
 func TestEcoreUtilsCreateFromString(t *testing.T) {
@@ -37,6 +38,70 @@ func TestEcoreUtilsCreateFromString(t *testing.T) {
 	mockPackage.On("GetEFactoryInstance").Once().Return(mockFactory)
 	mockFactory.On("CreateFromString", mockDataType, "test").Once().Return(mockObject)
 	assert.Equal(t, mockObject, CreateFromString(mockDataType, "test"))
+	mock.AssertExpectationsForObjects(t, mockObject, mockDataType, mockPackage, mockFactory)
+}
+
+func TestEcoreUtilsGetObjectID(t *testing.T) {
+	mockObject := new(MockEObject)
+	mockAttribute := new(MockEAttribute)
+	mockClass := new(MockEClass)
+	mockDataType := new(MockEDataType)
+	mockPackage := new(MockEPackage)
+	mockFactory := new(MockEFactory)
+	mockValue := new(MockEObject)
+
+	mockObject.On("EClass").Return(mockClass).Once()
+	mockClass.On("GetEIDAttribute").Return(nil).Once()
+	assert.Equal(t, "", GetEObjectID(mockObject))
+	mock.AssertExpectationsForObjects(t, mockObject, mockClass)
+
+	mockObject.On("EClass").Return(mockClass).Once()
+	mockObject.On("EIsSet", mockAttribute).Return(false).Once()
+	mockClass.On("GetEIDAttribute").Return(mockAttribute).Once()
+	assert.Equal(t, "", GetEObjectID(mockObject))
+	mock.AssertExpectationsForObjects(t, mockObject, mockClass)
+
+	mockObject.On("EClass").Return(mockClass).Once()
+	mockObject.On("EIsSet", mockAttribute).Return(true).Once()
+	mockObject.On("EGet", mockAttribute).Return(mockValue).Once()
+	mockClass.On("GetEIDAttribute").Return(mockAttribute).Once()
+	mockAttribute.On("GetEAttributeType").Return(mockDataType).Once()
+	mockDataType.On("GetEPackage").Once().Return(mockPackage)
+	mockPackage.On("GetEFactoryInstance").Once().Return(mockFactory)
+	mockFactory.On("ConvertToString", mockDataType, mockValue).Once().Return("test")
+	assert.Equal(t, "test", GetEObjectID(mockObject))
+	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockDataType, mockPackage, mockFactory, mockValue)
+}
+
+func TestEcoreUtilsSetObjectID(t *testing.T) {
+	mockObject := new(MockEObject)
+	mockAttribute := new(MockEAttribute)
+	mockClass := new(MockEClass)
+	mockDataType := new(MockEDataType)
+	mockPackage := new(MockEPackage)
+	mockFactory := new(MockEFactory)
+	mockValue := new(MockEObject)
+
+	mockObject.On("EClass").Return(mockClass).Once()
+	mockClass.On("GetEIDAttribute").Return(nil).Once()
+	assert.Panics(t, func() { SetEObjectID(mockObject, "test") })
+	mock.AssertExpectationsForObjects(t, mockObject, mockClass)
+
+	mockObject.On("EClass").Return(mockClass).Once()
+	mockObject.On("EUnset", mockAttribute).Once()
+	mockClass.On("GetEIDAttribute").Return(mockAttribute).Once()
+	SetEObjectID(mockObject, "")
+	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockAttribute)
+
+	mockObject.On("EClass").Return(mockClass).Once()
+	mockObject.On("ESet", mockAttribute, mockValue).Once()
+	mockClass.On("GetEIDAttribute").Return(mockAttribute).Once()
+	mockAttribute.On("GetEAttributeType").Return(mockDataType).Once()
+	mockDataType.On("GetEPackage").Once().Return(mockPackage)
+	mockPackage.On("GetEFactoryInstance").Once().Return(mockFactory)
+	mockFactory.On("CreateFromString", mockDataType, "test").Once().Return(mockValue)
+	SetEObjectID(mockObject, "test")
+	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockDataType, mockPackage, mockFactory, mockValue)
 }
 
 func TestEcoreUtilsCopyNil(t *testing.T) {

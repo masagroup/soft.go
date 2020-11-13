@@ -12,6 +12,7 @@ package ecore
 // ReflectiveEObjectImpl ...
 type ReflectiveEObjectImpl struct {
 	*EObjectImpl
+	class      EClass
 	properties []interface{}
 }
 
@@ -21,6 +22,18 @@ func NewReflectiveEObjectImpl() *ReflectiveEObjectImpl {
 	o.EObjectImpl = NewEObjectImpl()
 	o.SetInterfaces(o)
 	return o
+}
+
+func (o *ReflectiveEObjectImpl) EClass() EClass {
+	if o.class == nil {
+		return o.EStaticClass()
+	}
+	return o.class
+}
+
+// SetEClass ...
+func (o *ReflectiveEObjectImpl) setEClass(class EClass) {
+	o.class = class
 }
 
 func (o *ReflectiveEObjectImpl) EStaticFeatureCount() int {

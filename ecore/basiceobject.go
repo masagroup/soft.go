@@ -521,10 +521,10 @@ func (o *BasicEObject) eDynamicPropertiesSet(properties EDynamicProperties, dyna
 	if isContainer(dynamicFeature) {
 		// container
 		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
-		newContainer := newValue.(EObject)
-		if newContainer != o.EContainer() || (newContainer != nil && o.EContainerFeatureID() != featureID) {
+		newContainer, _ := newValue.(EObject)
+		if newContainer != o.EInternalContainer() || (newContainer != nil && o.EContainerFeatureID() != featureID) {
 			var notifications ENotificationChain
-			if o.EContainer() != nil {
+			if o.EInternalContainer() != nil {
 				notifications = o.EBasicRemoveFromContainer(notifications)
 			}
 			if newContainer != nil {

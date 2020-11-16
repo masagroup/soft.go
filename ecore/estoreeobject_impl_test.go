@@ -143,6 +143,29 @@ func TestEStoreEObjectImpl_SetAttribute(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
 }
 
+func TestEStoreEObjectImpl_SetAttribute_Caching(t *testing.T) {
+
+	// create object
+	o := newEStoreEObjectTest(true)
+
+	// create mocks
+	mockClass := new(MockEClass)
+	mockAttribute := new(MockEAttribute)
+	mockStore := o.mockStore
+
+	// initialise object with mock class
+	o.setEClass(mockClass)
+
+	mockAttribute.On("IsMany").Return(false).Once()
+	mockAttribute.On("IsTransient").Return(false).Twice()
+	mockClass.On("GetFeatureCount").Return(1).Once()
+	mockClass.On("GetEStructuralFeature", 0).Return(mockAttribute).Times(3)
+	mockStore.On("Get", o, mockAttribute, NO_INDEX).Return(nil).Once()
+	mockStore.On("Set", o, mockAttribute, NO_INDEX, 2).Once()
+	o.ESetFromID(0, 2)
+	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
+}
+
 func TestEStoreEObjectImpl_UnSetAttribute_Transient(t *testing.T) {
 	// create object
 	o := newEStoreEObjectTest(false)

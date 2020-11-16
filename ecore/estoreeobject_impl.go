@@ -54,9 +54,7 @@ func (o *EStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 		o.getProperties()[dynamicFeatureID] = nil
 	} else {
 		o.AsStoreEObject().EStore().UnSet(o.AsEObject(), eFeature)
-		if o.isCaching {
-			o.getProperties()[dynamicFeatureID] = nil
-		}
+		o.getProperties()[dynamicFeatureID] = nil
 	}
 }
 

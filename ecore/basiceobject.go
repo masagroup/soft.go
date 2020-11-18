@@ -115,9 +115,7 @@ type BasicEObject struct {
 
 type EDynamicProperties interface {
 	EDynamicGet(dynamicFeatureID int) interface{}
-
 	EDynamicSet(dynamicFeatureID int, newValue interface{})
-
 	EDynamicUnset(dynamicFeatureID int)
 }
 
@@ -882,11 +880,17 @@ func (o *BasicEObject) eDynamicPropertiesInverseRemove(properties EDynamicProper
 	return notifications
 }
 
+// ESetContainer ...
+func (o *BasicEObject) EInternalSetContainer(newContainer EObject, newContainerFeatureID int) {
+	o.container = newContainer
+	o.containerFeatureID = newContainerFeatureID
+}
+
 // EBasicSetContainer ...
 func (o *BasicEObject) EBasicSetContainer(newContainer EObject, newContainerFeatureID int, n ENotificationChain) ENotificationChain {
 	notifications := n
 	oldResource := o.EInternalResource()
-	oldContainer := o.container
+	oldContainer := o.EInternalContainer()
 	oldContainerFeatureID := o.containerFeatureID
 
 	// resource
@@ -911,16 +915,15 @@ func (o *BasicEObject) EBasicSetContainer(newContainer EObject, newContainerFeat
 	}
 
 	if oldResource != nil && oldResource != newResource {
-		oldResource.Detached(o)
+		oldResource.Detached(o.AsEObject())
 	}
 
 	if newResource != nil && newResource != oldResource {
-		newResource.Attached(o)
+		newResource.Attached(o.AsEObject())
 	}
 
-	// basic set
-	o.container = newContainer
-	o.containerFeatureID = newContainerFeatureID
+	// internal set
+	o.EInternalSetContainer(newContainer, newContainerFeatureID)
 
 	// notification
 	if o.ENotificationRequired() {
@@ -965,8 +968,8 @@ func (o *BasicEObject) EBasicRemoveFromContainerFeature(notifications ENotificat
 	reference, isReference := o.AsEObject().EClass().GetEStructuralFeature(o.containerFeatureID).(EReference)
 	if isReference {
 		inverseFeature := reference.GetEOpposite()
-		if o.container != nil && inverseFeature != nil {
-			return o.container.(EObjectInternal).EInverseRemove(o.AsEObject(), inverseFeature.GetFeatureID(), notifications)
+		if containerInternal, _ := o.container.(EObjectInternal); containerInternal != nil && inverseFeature != nil {
+			return containerInternal.EInverseRemove(o.AsEObject(), inverseFeature.GetFeatureID(), notifications)
 		}
 	}
 	return notifications

@@ -42,3 +42,9 @@ func TestBasicEObjectContainer(t *testing.T) {
 	assert.Equal(t, mockObject, o.EContainer())
 	assert.Equal(t, 1, o.EContainerFeatureID())
 }
+
+func TestEBasicRemoveFromContainer(t *testing.T) {
+	var o EObject = nil
+	i, _ := o.(EObjectInternal)
+	assert.Nil(t, i)
+}

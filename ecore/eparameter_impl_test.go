@@ -26,3 +26,44 @@ func discardEParameter() {
 	_ = mock.Anything
 	_ = testing.Coverage
 }
+
+func TestEParameterAsEParameter(t *testing.T) {
+	o := newEParameterImpl()
+	assert.Equal(t, o, o.asEParameter())
+}
+
+func TestEParameterStaticClass(t *testing.T) {
+	o := newEParameterImpl()
+	assert.Equal(t, GetPackage().GetEParameter(), o.EStaticClass())
+}
+
+func TestEParameterFeatureCount(t *testing.T) {
+	o := newEParameterImpl()
+	assert.Equal(t, EPARAMETER_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
+func TestEParameterEOperationGet(t *testing.T) {
+	// default
+	o := newEParameterImpl()
+	assert.Nil(t, o.GetEOperation())
+
+	// set a mock container
+	v := new(MockEOperation)
+	o.ESetInternalContainer(v, EPARAMETER__EOPERATION)
+
+	// no proxy
+	v.On("EIsProxy").Return(false)
+	assert.Equal(t, v, o.GetEOperation())
+}
+
+func TestEParameterEGetFromID(t *testing.T) {
+	o := newEParameterImpl()
+	assert.Panics(t, func() { o.EGetFromID(-1, true) })
+	assert.Equal(t, o.GetEOperation(), o.EGetFromID(EPARAMETER__EOPERATION, true))
+}
+
+func TestEParameterEIsSetFromID(t *testing.T) {
+	o := newEParameterImpl()
+	assert.Panics(t, func() { o.EIsSetFromID(-1) })
+	assert.False(t, o.EIsSetFromID(EPARAMETER__EOPERATION))
+}

@@ -28,43 +28,139 @@ func discardEClassifier() {
 	_ = testing.Coverage
 }
 
+func TestEClassifierAsEClassifier(t *testing.T) {
+	o := newEClassifierImpl()
+	assert.Equal(t, o, o.asEClassifier())
+}
+
+func TestEClassifierStaticClass(t *testing.T) {
+	o := newEClassifierImpl()
+	assert.Equal(t, GetPackage().GetEClassifierClass(), o.EStaticClass())
+}
+
+func TestEClassifierFeatureCount(t *testing.T) {
+	o := newEClassifierImpl()
+	assert.Equal(t, ECLASSIFIER_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
 func TestEClassifierInstanceClassGet(t *testing.T) {
-	v := reflect.Type(nil)
-	obj := newEClassifierImpl()
-	obj.SetInstanceClass(v)
-	assert.Equal(t, v, obj.GetInstanceClass())
+	o := newEClassifierImpl()
+	// get default value
+	assert.Equal(t, nil, o.GetInstanceClass())
+	// get initialized value
+	v := reflect.TypeOf("")
+	o.instanceClass = v
+	assert.Equal(t, v, o.GetInstanceClass())
 }
 
 func TestEClassifierInstanceClassSet(t *testing.T) {
-	obj := newEClassifierImpl()
-	v := reflect.Type(nil)
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	o := newEClassifierImpl()
+	v := reflect.TypeOf("")
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetInstanceClass(v)
+	o.EAdapters().Add(mockAdapter)
+	o.SetInstanceClass(v)
 	mockAdapter.AssertExpectations(t)
 }
 
+func TestEClassifierDefaultValueGet(t *testing.T) {
+	o := newEClassifierImpl()
+	assert.Panics(t, func() { o.GetDefaultValue() })
+}
+
+func TestEClassifierEPackageGet(t *testing.T) {
+	// default
+	o := newEClassifierImpl()
+	assert.Nil(t, o.GetEPackage())
+
+	// set a mock container
+	v := new(MockEPackage)
+	o.ESetInternalContainer(v, ECLASSIFIER__EPACKAGE)
+
+	// no proxy
+	v.On("EIsProxy").Return(false)
+	assert.Equal(t, v, o.GetEPackage())
+}
+
 func TestEClassifierClassifierIDGet(t *testing.T) {
+	o := newEClassifierImpl()
+	// get default value
+	assert.Equal(t, -1, o.GetClassifierID())
+	// get initialized value
 	v := 45
-	obj := newEClassifierImpl()
-	obj.SetClassifierID(v)
-	assert.Equal(t, v, obj.GetClassifierID())
+	o.classifierID = v
+	assert.Equal(t, v, o.GetClassifierID())
 }
 
 func TestEClassifierClassifierIDSet(t *testing.T) {
-	obj := newEClassifierImpl()
+	o := newEClassifierImpl()
 	v := 45
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetClassifierID(v)
+	o.EAdapters().Add(mockAdapter)
+	o.SetClassifierID(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEClassifierIsInstanceOperation(t *testing.T) {
 	o := newEClassifierImpl()
 	assert.Panics(t, func() { o.IsInstance(nil) })
+}
+
+func TestEClassifierEGetFromID(t *testing.T) {
+	o := newEClassifierImpl()
+	assert.Panics(t, func() { o.EGetFromID(-1, true) })
+	assert.Panics(t, func() { o.EGetFromID(ECLASSIFIER__DEFAULT_VALUE, true) })
+	assert.Panics(t, func() { o.EGetFromID(ECLASSIFIER__DEFAULT_VALUE, false) })
+	assert.Equal(t, o.GetInstanceClass(), o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, true))
+	assert.Equal(t, o.GetClassifierID(), o.EGetFromID(ECLASSIFIER__CLASSIFIER_ID, true))
+	assert.Equal(t, o.GetEPackage(), o.EGetFromID(ECLASSIFIER__EPACKAGE, true))
+}
+
+func TestEClassifierESetFromID(t *testing.T) {
+	o := newEClassifierImpl()
+	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
+	{
+		v := 45
+		o.ESetFromID(ECLASSIFIER__CLASSIFIER_ID, v)
+		assert.Equal(t, v, o.EGetFromID(ECLASSIFIER__CLASSIFIER_ID, false))
+	}
+	{
+		v := reflect.TypeOf("")
+		o.ESetFromID(ECLASSIFIER__INSTANCE_CLASS, v)
+		assert.Equal(t, v, o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, false))
+	}
+
+}
+
+func TestEClassifierEIsSetFromID(t *testing.T) {
+	o := newEClassifierImpl()
+	assert.Panics(t, func() { o.EIsSetFromID(-1) })
+	assert.Panics(t, func() { o.EIsSetFromID(ECLASSIFIER__DEFAULT_VALUE) })
+	assert.False(t, o.EIsSetFromID(ECLASSIFIER__INSTANCE_CLASS))
+	assert.False(t, o.EIsSetFromID(ECLASSIFIER__CLASSIFIER_ID))
+	assert.False(t, o.EIsSetFromID(ECLASSIFIER__EPACKAGE))
+}
+
+func TestEClassifierEUnsetFromID(t *testing.T) {
+	o := newEClassifierImpl()
+	assert.Panics(t, func() { o.EUnsetFromID(-1) })
+	{
+		o.EUnsetFromID(ECLASSIFIER__INSTANCE_CLASS)
+		v := o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, false)
+		assert.Equal(t, nil, v)
+	}
+	{
+		o.EUnsetFromID(ECLASSIFIER__CLASSIFIER_ID)
+		v := o.EGetFromID(ECLASSIFIER__CLASSIFIER_ID, false)
+		assert.Equal(t, -1, v)
+	}
+}
+
+func TestEClassifierEInvokeFromID(t *testing.T) {
+	o := newEClassifierImpl()
+	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
+	assert.Panics(t, func() { o.EInvokeFromID(ECLASSIFIER__IS_INSTANCE_EJAVAOBJECT, nil) })
 }

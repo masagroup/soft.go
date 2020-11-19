@@ -82,13 +82,13 @@ func (eAnnotation *eAnnotationImpl) GetEModelElement() EModelElement {
 
 // SetEModelElement set the value of eModelElement
 func (eAnnotation *eAnnotationImpl) SetEModelElement(newEModelElement EModelElement) {
-	if newEModelElement != eAnnotation.EContainer() || (newEModelElement != nil && eAnnotation.EContainerFeatureID() != EANNOTATION__EMODEL_ELEMENT) {
+	if newEModelElement != eAnnotation.EInternalContainer() || (newEModelElement != nil && eAnnotation.EContainerFeatureID() != EANNOTATION__EMODEL_ELEMENT) {
 		var notifications ENotificationChain
-		if eAnnotation.EContainer() != nil {
+		if eAnnotation.EInternalContainer() != nil {
 			notifications = eAnnotation.EBasicRemoveFromContainer(notifications)
 		}
 		if newEModelElementInternal, _ := newEModelElement.(EObjectInternal); newEModelElementInternal != nil {
-			notifications = newEModelElementInternal.EInverseAdd(eAnnotation.AsEObject(), EANNOTATION__EMODEL_ELEMENT, notifications)
+			notifications = newEModelElementInternal.EInverseAdd(eAnnotation.AsEObject(), EMODEL_ELEMENT__EANNOTATIONS, notifications)
 		}
 		notifications = eAnnotation.basicSetEModelElement(newEModelElement, notifications)
 		if notifications != nil {

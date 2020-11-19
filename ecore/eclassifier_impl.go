@@ -150,7 +150,7 @@ func (eClassifier *eClassifierImpl) EIsSetFromID(featureID int) bool {
 	case ECLASSIFIER__CLASSIFIER_ID:
 		return eClassifier.classifierID != -1
 	case ECLASSIFIER__DEFAULT_VALUE:
-		return eClassifier.GetDefaultValue() != ""
+		return eClassifier.GetDefaultValue() != nil
 	case ECLASSIFIER__EPACKAGE:
 		return eClassifier.GetEPackage() != nil
 	case ECLASSIFIER__INSTANCE_CLASS:

@@ -66,13 +66,13 @@ func (eFactory *eFactoryImpl) GetEPackage() EPackage {
 
 // SetEPackage set the value of ePackage
 func (eFactory *eFactoryImpl) SetEPackage(newEPackage EPackage) {
-	if newEPackage != eFactory.EContainer() || (newEPackage != nil && eFactory.EContainerFeatureID() != EFACTORY__EPACKAGE) {
+	if newEPackage != eFactory.EInternalContainer() || (newEPackage != nil && eFactory.EContainerFeatureID() != EFACTORY__EPACKAGE) {
 		var notifications ENotificationChain
-		if eFactory.EContainer() != nil {
+		if eFactory.EInternalContainer() != nil {
 			notifications = eFactory.EBasicRemoveFromContainer(notifications)
 		}
 		if newEPackageInternal, _ := newEPackage.(EObjectInternal); newEPackageInternal != nil {
-			notifications = newEPackageInternal.EInverseAdd(eFactory.AsEObject(), EFACTORY__EPACKAGE, notifications)
+			notifications = newEPackageInternal.EInverseAdd(eFactory.AsEObject(), EPACKAGE__EFACTORY_INSTANCE, notifications)
 		}
 		notifications = eFactory.basicSetEPackage(newEPackage, notifications)
 		if notifications != nil {

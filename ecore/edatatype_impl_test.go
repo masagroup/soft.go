@@ -27,20 +27,71 @@ func discardEDataType() {
 	_ = testing.Coverage
 }
 
+func TestEDataTypeAsEDataType(t *testing.T) {
+	o := newEDataTypeImpl()
+	assert.Equal(t, o, o.asEDataType())
+}
+
+func TestEDataTypeStaticClass(t *testing.T) {
+	o := newEDataTypeImpl()
+	assert.Equal(t, GetPackage().GetEDataType(), o.EStaticClass())
+}
+
+func TestEDataTypeFeatureCount(t *testing.T) {
+	o := newEDataTypeImpl()
+	assert.Equal(t, EDATA_TYPE_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
 func TestEDataTypeSerializableGet(t *testing.T) {
+	o := newEDataTypeImpl()
+	// get default value
+	assert.Equal(t, true, o.IsSerializable())
+	// get initialized value
 	v := true
-	obj := newEDataTypeImpl()
-	obj.SetSerializable(v)
-	assert.Equal(t, v, obj.IsSerializable())
+	o.isSerializable = v
+	assert.Equal(t, v, o.IsSerializable())
 }
 
 func TestEDataTypeSerializableSet(t *testing.T) {
-	obj := newEDataTypeImpl()
+	o := newEDataTypeImpl()
 	v := true
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetSerializable(v)
+	o.EAdapters().Add(mockAdapter)
+	o.SetSerializable(v)
 	mockAdapter.AssertExpectations(t)
+}
+
+func TestEDataTypeEGetFromID(t *testing.T) {
+	o := newEDataTypeImpl()
+	assert.Panics(t, func() { o.EGetFromID(-1, true) })
+	assert.Equal(t, o.IsSerializable(), o.EGetFromID(EDATA_TYPE__SERIALIZABLE, true))
+}
+
+func TestEDataTypeESetFromID(t *testing.T) {
+	o := newEDataTypeImpl()
+	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
+	{
+		v := true
+		o.ESetFromID(EDATA_TYPE__SERIALIZABLE, v)
+		assert.Equal(t, v, o.EGetFromID(EDATA_TYPE__SERIALIZABLE, false))
+	}
+
+}
+
+func TestEDataTypeEIsSetFromID(t *testing.T) {
+	o := newEDataTypeImpl()
+	assert.Panics(t, func() { o.EIsSetFromID(-1) })
+	assert.False(t, o.EIsSetFromID(EDATA_TYPE__SERIALIZABLE))
+}
+
+func TestEDataTypeEUnsetFromID(t *testing.T) {
+	o := newEDataTypeImpl()
+	assert.Panics(t, func() { o.EUnsetFromID(-1) })
+	{
+		o.EUnsetFromID(EDATA_TYPE__SERIALIZABLE)
+		v := o.EGetFromID(EDATA_TYPE__SERIALIZABLE, false)
+		assert.Equal(t, true, v)
+	}
 }

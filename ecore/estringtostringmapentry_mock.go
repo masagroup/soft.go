@@ -16,7 +16,7 @@
 package ecore
 
 type MockEStringToStringMapEntry struct {
-	MockEObject
+	MockEObjectInternal
 }
 
 // GetKey get the value of key

@@ -27,7 +27,66 @@ func discardETypeParameter() {
 	_ = testing.Coverage
 }
 
-func TestETypeParameterEBoundsGetList(t *testing.T) {
+func TestETypeParameterAsETypeParameter(t *testing.T) {
+	o := newETypeParameterImpl()
+	assert.Equal(t, o, o.asETypeParameter())
+}
+
+func TestETypeParameterStaticClass(t *testing.T) {
+	o := newETypeParameterImpl()
+	assert.Equal(t, GetPackage().GetETypeParameter(), o.EStaticClass())
+}
+
+func TestETypeParameterFeatureCount(t *testing.T) {
+	o := newETypeParameterImpl()
+	assert.Equal(t, ETYPE_PARAMETER_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
+func TestETypeParameterEBoundsGet(t *testing.T) {
 	o := newETypeParameterImpl()
 	assert.NotNil(t, o.GetEBounds())
+}
+
+func TestETypeParameterEGetFromID(t *testing.T) {
+	o := newETypeParameterImpl()
+	assert.Panics(t, func() { o.EGetFromID(-1, true) })
+	assert.Equal(t, o.GetEBounds(), o.EGetFromID(ETYPE_PARAMETER__EBOUNDS, true))
+	assert.Equal(t, o.GetEBounds().(EObjectList).GetUnResolvedList(), o.EGetFromID(ETYPE_PARAMETER__EBOUNDS, false))
+}
+
+func TestETypeParameterESetFromID(t *testing.T) {
+	o := newETypeParameterImpl()
+	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
+	{
+		// list with a value
+		mockValue := new(MockEGenericType)
+		l := NewImmutableEList([]interface{}{mockValue})
+		// expectations
+		mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-ETYPE_PARAMETER__EBOUNDS, mock.Anything).Return(nil).Once()
+		// set list with new contents
+		o.ESetFromID(ETYPE_PARAMETER__EBOUNDS, l)
+		// checks
+		assert.Equal(t, 1, o.GetEBounds().Size())
+		assert.Equal(t, mockValue, o.GetEBounds().Get(0))
+		mock.AssertExpectationsForObjects(t, mockValue)
+	}
+
+}
+
+func TestETypeParameterEIsSetFromID(t *testing.T) {
+	o := newETypeParameterImpl()
+	assert.Panics(t, func() { o.EIsSetFromID(-1) })
+	assert.False(t, o.EIsSetFromID(ETYPE_PARAMETER__EBOUNDS))
+}
+
+func TestETypeParameterEUnsetFromID(t *testing.T) {
+	o := newETypeParameterImpl()
+	assert.Panics(t, func() { o.EUnsetFromID(-1) })
+	{
+		o.EUnsetFromID(ETYPE_PARAMETER__EBOUNDS)
+		v := o.EGetFromID(ETYPE_PARAMETER__EBOUNDS, false)
+		assert.NotNil(t, v)
+		l := v.(EList)
+		assert.True(t, l.Empty())
+	}
 }

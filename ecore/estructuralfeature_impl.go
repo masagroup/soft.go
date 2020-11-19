@@ -208,7 +208,7 @@ func (eStructuralFeature *eStructuralFeatureImpl) ESetFromID(featureID int, newV
 	case ESTRUCTURAL_FEATURE__CHANGEABLE:
 		eStructuralFeature.asEStructuralFeature().SetChangeable(newValue.(bool))
 	case ESTRUCTURAL_FEATURE__DEFAULT_VALUE:
-		eStructuralFeature.asEStructuralFeature().SetDefaultValue(newValue.(interface{}))
+		eStructuralFeature.asEStructuralFeature().SetDefaultValue(newValue)
 	case ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL:
 		eStructuralFeature.asEStructuralFeature().SetDefaultValueLiteral(newValue.(string))
 	case ESTRUCTURAL_FEATURE__DERIVED:
@@ -254,7 +254,7 @@ func (eStructuralFeature *eStructuralFeatureImpl) EIsSetFromID(featureID int) bo
 	case ESTRUCTURAL_FEATURE__CHANGEABLE:
 		return eStructuralFeature.isChangeable != true
 	case ESTRUCTURAL_FEATURE__DEFAULT_VALUE:
-		return eStructuralFeature.GetDefaultValue() != ""
+		return eStructuralFeature.GetDefaultValue() != nil
 	case ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL:
 		return eStructuralFeature.defaultValueLiteral != ""
 	case ESTRUCTURAL_FEATURE__DERIVED:

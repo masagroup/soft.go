@@ -16,7 +16,7 @@
 package ecore
 
 type MockEGenericType struct {
-	MockEObject
+	MockEObjectInternal
 }
 
 // GetEClassifier get the value of eClassifier

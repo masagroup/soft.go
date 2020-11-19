@@ -56,7 +56,7 @@ func TestMockEAnnotationGetDetails(t *testing.T) {
 // TestMockEAnnotationGetEModelElement tests method GetEModelElement
 func TestMockEAnnotationGetEModelElement(t *testing.T) {
 	o := &MockEAnnotation{}
-	r := &MockEModelElement{}
+	r := new(MockEModelElement)
 	o.On("GetEModelElement").Once().Return(r)
 	o.On("GetEModelElement").Once().Return(func() EModelElement {
 		return r
@@ -69,7 +69,7 @@ func TestMockEAnnotationGetEModelElement(t *testing.T) {
 // TestMockEAnnotationSetEModelElement tests method SetEModelElement
 func TestMockEAnnotationSetEModelElement(t *testing.T) {
 	o := &MockEAnnotation{}
-	v := &MockEModelElement{}
+	v := new(MockEModelElement)
 	o.On("SetEModelElement", v).Once()
 	o.SetEModelElement(v)
 	o.AssertExpectations(t)

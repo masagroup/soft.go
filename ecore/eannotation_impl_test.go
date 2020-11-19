@@ -27,35 +27,218 @@ func discardEAnnotation() {
 	_ = testing.Coverage
 }
 
+func TestEAnnotationAsEAnnotation(t *testing.T) {
+	o := newEAnnotationImpl()
+	assert.Equal(t, o, o.asEAnnotation())
+}
+
+func TestEAnnotationStaticClass(t *testing.T) {
+	o := newEAnnotationImpl()
+	assert.Equal(t, GetPackage().GetEAnnotationClass(), o.EStaticClass())
+}
+
+func TestEAnnotationFeatureCount(t *testing.T) {
+	o := newEAnnotationImpl()
+	assert.Equal(t, EANNOTATION_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
 func TestEAnnotationSourceGet(t *testing.T) {
+	o := newEAnnotationImpl()
+	// get default value
+	assert.Equal(t, "", o.GetSource())
+	// get initialized value
 	v := "Test String"
-	obj := newEAnnotationImpl()
-	obj.SetSource(v)
-	assert.Equal(t, v, obj.GetSource())
+	o.source = v
+	assert.Equal(t, v, o.GetSource())
 }
 
 func TestEAnnotationSourceSet(t *testing.T) {
-	obj := newEAnnotationImpl()
+	o := newEAnnotationImpl()
 	v := "Test String"
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetSource(v)
+	o.EAdapters().Add(mockAdapter)
+	o.SetSource(v)
 	mockAdapter.AssertExpectations(t)
 }
 
-func TestEAnnotationDetailsGetList(t *testing.T) {
+func TestEAnnotationDetailsGet(t *testing.T) {
 	o := newEAnnotationImpl()
 	assert.NotNil(t, o.GetDetails())
 }
 
-func TestEAnnotationContentsGetList(t *testing.T) {
+func TestEAnnotationEModelElementGet(t *testing.T) {
+	// default
+	o := newEAnnotationImpl()
+	assert.Nil(t, o.GetEModelElement())
+
+	// set a mock container
+	v := new(MockEModelElement)
+	o.ESetInternalContainer(v, EANNOTATION__EMODEL_ELEMENT)
+
+	// no proxy
+	v.On("EIsProxy").Return(false)
+	assert.Equal(t, v, o.GetEModelElement())
+}
+
+func TestEAnnotationEModelElementSet(t *testing.T) {
+	// object
+	o := newEAnnotationImpl()
+
+	// add listener
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	o.EAdapters().Add(mockAdapter)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	// set with the mock value
+	mockValue := new(MockEModelElement)
+	mockResource := new(MockEResource)
+	mockValue.On("EInverseAdd", o, EMODEL_ELEMENT__EANNOTATIONS, nil).Return(nil).Once()
+	mockValue.On("EInternalResource").Return(mockResource).Once()
+	mockResource.On("Attached", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.SetEModelElement(mockValue)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockResource)
+
+	// another value - in a different resource
+	//mockNotifications := new(MockENotificationChain)
+	mockValue2 := new(MockEModelElement)
+	mockResource2 := new(MockEResource)
+	mockValue.On("EInverseRemove", o, EMODEL_ELEMENT__EANNOTATIONS, nil).Return(nil).Once()
+	mockValue.On("EInternalResource").Return(mockResource).Once()
+	mockValue2.On("EInverseAdd", o, EMODEL_ELEMENT__EANNOTATIONS, nil).Return(nil).Once()
+	mockValue2.On("EInternalResource").Return(mockResource2).Once()
+	mockResource.On("Detached", o).Once()
+	mockResource2.On("Attached", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.SetEModelElement(mockValue2)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockResource, mockValue2, mockResource2)
+}
+
+func TestEAnnotationContentsGet(t *testing.T) {
 	o := newEAnnotationImpl()
 	assert.NotNil(t, o.GetContents())
 }
 
-func TestEAnnotationReferencesGetList(t *testing.T) {
+func TestEAnnotationReferencesGet(t *testing.T) {
 	o := newEAnnotationImpl()
 	assert.NotNil(t, o.GetReferences())
+}
+
+func TestEAnnotationEGetFromID(t *testing.T) {
+	o := newEAnnotationImpl()
+	assert.Panics(t, func() { o.EGetFromID(-1, true) })
+	assert.Equal(t, o.GetEModelElement(), o.EGetFromID(EANNOTATION__EMODEL_ELEMENT, true))
+	assert.Equal(t, o.GetSource(), o.EGetFromID(EANNOTATION__SOURCE, true))
+	assert.Equal(t, o.GetReferences(), o.EGetFromID(EANNOTATION__REFERENCES, true))
+	assert.Equal(t, o.GetReferences().(EObjectList).GetUnResolvedList(), o.EGetFromID(EANNOTATION__REFERENCES, false))
+	assert.Equal(t, o.GetContents(), o.EGetFromID(EANNOTATION__CONTENTS, true))
+	assert.Equal(t, o.GetContents().(EObjectList).GetUnResolvedList(), o.EGetFromID(EANNOTATION__CONTENTS, false))
+	assert.Equal(t, o.GetDetails(), o.EGetFromID(EANNOTATION__DETAILS, true))
+	assert.Equal(t, o.GetDetails().(EObjectList).GetUnResolvedList(), o.EGetFromID(EANNOTATION__DETAILS, false))
+}
+
+func TestEAnnotationESetFromID(t *testing.T) {
+	o := newEAnnotationImpl()
+	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
+	{
+		// list with a value
+		mockValue := new(MockEObject)
+		l := NewImmutableEList([]interface{}{mockValue})
+		// expectations
+		// set list with new contents
+		o.ESetFromID(EANNOTATION__CONTENTS, l)
+		// checks
+		assert.Equal(t, 1, o.GetContents().Size())
+		assert.Equal(t, mockValue, o.GetContents().Get(0))
+		mock.AssertExpectationsForObjects(t, mockValue)
+	}
+	{
+		// list with a value
+		mockValue := new(MockEStringToStringMapEntry)
+		l := NewImmutableEList([]interface{}{mockValue})
+		// expectations
+		mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EANNOTATION__DETAILS, mock.Anything).Return(nil).Once()
+		// set list with new contents
+		o.ESetFromID(EANNOTATION__DETAILS, l)
+		// checks
+		assert.Equal(t, 1, o.GetDetails().Size())
+		assert.Equal(t, mockValue, o.GetDetails().Get(0))
+		mock.AssertExpectationsForObjects(t, mockValue)
+	}
+	{
+		mockValue := new(MockEModelElement)
+		mockValue.On("EIsProxy").Return(false).Once()
+		mockValue.On("EInternalResource").Return(nil).Once()
+		mockValue.On("EInverseAdd", o, EMODEL_ELEMENT__EANNOTATIONS, nil).Return(nil).Once()
+		o.ESetFromID(EANNOTATION__EMODEL_ELEMENT, mockValue)
+		assert.Equal(t, mockValue, o.EGetFromID(EANNOTATION__EMODEL_ELEMENT, false))
+		mock.AssertExpectationsForObjects(t, mockValue)
+	}
+	{
+		// list with a value
+		mockValue := new(MockEObject)
+		l := NewImmutableEList([]interface{}{mockValue})
+		// expectations
+		mockValue.On("EIsProxy").Return(false).Once()
+		// set list with new contents
+		o.ESetFromID(EANNOTATION__REFERENCES, l)
+		// checks
+		assert.Equal(t, 1, o.GetReferences().Size())
+		assert.Equal(t, mockValue, o.GetReferences().Get(0))
+		mock.AssertExpectationsForObjects(t, mockValue)
+	}
+	{
+		v := "Test String"
+		o.ESetFromID(EANNOTATION__SOURCE, v)
+		assert.Equal(t, v, o.EGetFromID(EANNOTATION__SOURCE, false))
+	}
+
+}
+
+func TestEAnnotationEIsSetFromID(t *testing.T) {
+	o := newEAnnotationImpl()
+	assert.Panics(t, func() { o.EIsSetFromID(-1) })
+	assert.False(t, o.EIsSetFromID(EANNOTATION__EMODEL_ELEMENT))
+	assert.False(t, o.EIsSetFromID(EANNOTATION__SOURCE))
+	assert.False(t, o.EIsSetFromID(EANNOTATION__REFERENCES))
+	assert.False(t, o.EIsSetFromID(EANNOTATION__CONTENTS))
+	assert.False(t, o.EIsSetFromID(EANNOTATION__DETAILS))
+}
+
+func TestEAnnotationEUnsetFromID(t *testing.T) {
+	o := newEAnnotationImpl()
+	assert.Panics(t, func() { o.EUnsetFromID(-1) })
+	{
+		o.EUnsetFromID(EANNOTATION__EMODEL_ELEMENT)
+		assert.Nil(t, o.EGetFromID(EANNOTATION__EMODEL_ELEMENT, false))
+	}
+	{
+		o.EUnsetFromID(EANNOTATION__SOURCE)
+		v := o.EGetFromID(EANNOTATION__SOURCE, false)
+		assert.Equal(t, "", v)
+	}
+	{
+		o.EUnsetFromID(EANNOTATION__REFERENCES)
+		v := o.EGetFromID(EANNOTATION__REFERENCES, false)
+		assert.NotNil(t, v)
+		l := v.(EList)
+		assert.True(t, l.Empty())
+	}
+	{
+		o.EUnsetFromID(EANNOTATION__CONTENTS)
+		v := o.EGetFromID(EANNOTATION__CONTENTS, false)
+		assert.NotNil(t, v)
+		l := v.(EList)
+		assert.True(t, l.Empty())
+	}
+	{
+		o.EUnsetFromID(EANNOTATION__DETAILS)
+		v := o.EGetFromID(EANNOTATION__DETAILS, false)
+		assert.NotNil(t, v)
+		l := v.(EList)
+		assert.True(t, l.Empty())
+	}
 }

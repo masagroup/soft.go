@@ -28,7 +28,7 @@ func discardMockEGenericType() {
 // TestMockEGenericTypeGetEClassifier tests method GetEClassifier
 func TestMockEGenericTypeGetEClassifier(t *testing.T) {
 	o := &MockEGenericType{}
-	r := &MockEClassifier{}
+	r := new(MockEClassifier)
 	o.On("GetEClassifier").Once().Return(r)
 	o.On("GetEClassifier").Once().Return(func() EClassifier {
 		return r
@@ -41,7 +41,7 @@ func TestMockEGenericTypeGetEClassifier(t *testing.T) {
 // TestMockEGenericTypeSetEClassifier tests method SetEClassifier
 func TestMockEGenericTypeSetEClassifier(t *testing.T) {
 	o := &MockEGenericType{}
-	v := &MockEClassifier{}
+	v := new(MockEClassifier)
 	o.On("SetEClassifier", v).Once()
 	o.SetEClassifier(v)
 	o.AssertExpectations(t)
@@ -50,7 +50,7 @@ func TestMockEGenericTypeSetEClassifier(t *testing.T) {
 // TestMockEGenericTypeGetELowerBound tests method GetELowerBound
 func TestMockEGenericTypeGetELowerBound(t *testing.T) {
 	o := &MockEGenericType{}
-	r := &MockEGenericType{}
+	r := new(MockEGenericType)
 	o.On("GetELowerBound").Once().Return(r)
 	o.On("GetELowerBound").Once().Return(func() EGenericType {
 		return r
@@ -63,7 +63,7 @@ func TestMockEGenericTypeGetELowerBound(t *testing.T) {
 // TestMockEGenericTypeSetELowerBound tests method SetELowerBound
 func TestMockEGenericTypeSetELowerBound(t *testing.T) {
 	o := &MockEGenericType{}
-	v := &MockEGenericType{}
+	v := new(MockEGenericType)
 	o.On("SetELowerBound", v).Once()
 	o.SetELowerBound(v)
 	o.AssertExpectations(t)
@@ -72,7 +72,7 @@ func TestMockEGenericTypeSetELowerBound(t *testing.T) {
 // TestMockEGenericTypeGetERawType tests method GetERawType
 func TestMockEGenericTypeGetERawType(t *testing.T) {
 	o := &MockEGenericType{}
-	r := &MockEClassifier{}
+	r := new(MockEClassifier)
 	o.On("GetERawType").Once().Return(r)
 	o.On("GetERawType").Once().Return(func() EClassifier {
 		return r
@@ -99,7 +99,7 @@ func TestMockEGenericTypeGetETypeArguments(t *testing.T) {
 // TestMockEGenericTypeGetETypeParameter tests method GetETypeParameter
 func TestMockEGenericTypeGetETypeParameter(t *testing.T) {
 	o := &MockEGenericType{}
-	r := &MockETypeParameter{}
+	r := new(MockETypeParameter)
 	o.On("GetETypeParameter").Once().Return(r)
 	o.On("GetETypeParameter").Once().Return(func() ETypeParameter {
 		return r
@@ -112,7 +112,7 @@ func TestMockEGenericTypeGetETypeParameter(t *testing.T) {
 // TestMockEGenericTypeSetETypeParameter tests method SetETypeParameter
 func TestMockEGenericTypeSetETypeParameter(t *testing.T) {
 	o := &MockEGenericType{}
-	v := &MockETypeParameter{}
+	v := new(MockETypeParameter)
 	o.On("SetETypeParameter", v).Once()
 	o.SetETypeParameter(v)
 	o.AssertExpectations(t)
@@ -121,7 +121,7 @@ func TestMockEGenericTypeSetETypeParameter(t *testing.T) {
 // TestMockEGenericTypeGetEUpperBound tests method GetEUpperBound
 func TestMockEGenericTypeGetEUpperBound(t *testing.T) {
 	o := &MockEGenericType{}
-	r := &MockEGenericType{}
+	r := new(MockEGenericType)
 	o.On("GetEUpperBound").Once().Return(r)
 	o.On("GetEUpperBound").Once().Return(func() EGenericType {
 		return r
@@ -134,7 +134,7 @@ func TestMockEGenericTypeGetEUpperBound(t *testing.T) {
 // TestMockEGenericTypeSetEUpperBound tests method SetEUpperBound
 func TestMockEGenericTypeSetEUpperBound(t *testing.T) {
 	o := &MockEGenericType{}
-	v := &MockEGenericType{}
+	v := new(MockEGenericType)
 	o.On("SetEUpperBound", v).Once()
 	o.SetEUpperBound(v)
 	o.AssertExpectations(t)

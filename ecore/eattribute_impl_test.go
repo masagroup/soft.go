@@ -27,20 +27,79 @@ func discardEAttribute() {
 	_ = testing.Coverage
 }
 
+func TestEAttributeAsEAttribute(t *testing.T) {
+	o := newEAttributeImpl()
+	assert.Equal(t, o, o.asEAttribute())
+}
+
+func TestEAttributeStaticClass(t *testing.T) {
+	o := newEAttributeImpl()
+	assert.Equal(t, GetPackage().GetEAttribute(), o.EStaticClass())
+}
+
+func TestEAttributeFeatureCount(t *testing.T) {
+	o := newEAttributeImpl()
+	assert.Equal(t, EATTRIBUTE_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
 func TestEAttributeIDGet(t *testing.T) {
+	o := newEAttributeImpl()
+	// get default value
+	assert.Equal(t, false, o.IsID())
+	// get initialized value
 	v := true
-	obj := newEAttributeImpl()
-	obj.SetID(v)
-	assert.Equal(t, v, obj.IsID())
+	o.isID = v
+	assert.Equal(t, v, o.IsID())
 }
 
 func TestEAttributeIDSet(t *testing.T) {
-	obj := newEAttributeImpl()
+	o := newEAttributeImpl()
 	v := true
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetID(v)
+	o.EAdapters().Add(mockAdapter)
+	o.SetID(v)
 	mockAdapter.AssertExpectations(t)
+}
+
+func TestEAttributeEAttributeTypeGet(t *testing.T) {
+	o := newEAttributeImpl()
+	assert.Panics(t, func() { o.GetEAttributeType() })
+}
+
+func TestEAttributeEGetFromID(t *testing.T) {
+	o := newEAttributeImpl()
+	assert.Panics(t, func() { o.EGetFromID(-1, true) })
+	assert.Panics(t, func() { o.EGetFromID(EATTRIBUTE__EATTRIBUTE_TYPE, true) })
+	assert.Panics(t, func() { o.EGetFromID(EATTRIBUTE__EATTRIBUTE_TYPE, false) })
+	assert.Equal(t, o.IsID(), o.EGetFromID(EATTRIBUTE__ID, true))
+}
+
+func TestEAttributeESetFromID(t *testing.T) {
+	o := newEAttributeImpl()
+	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
+	{
+		v := true
+		o.ESetFromID(EATTRIBUTE__ID, v)
+		assert.Equal(t, v, o.EGetFromID(EATTRIBUTE__ID, false))
+	}
+
+}
+
+func TestEAttributeEIsSetFromID(t *testing.T) {
+	o := newEAttributeImpl()
+	assert.Panics(t, func() { o.EIsSetFromID(-1) })
+	assert.Panics(t, func() { o.EIsSetFromID(EATTRIBUTE__EATTRIBUTE_TYPE) })
+	assert.False(t, o.EIsSetFromID(EATTRIBUTE__ID))
+}
+
+func TestEAttributeEUnsetFromID(t *testing.T) {
+	o := newEAttributeImpl()
+	assert.Panics(t, func() { o.EUnsetFromID(-1) })
+	{
+		o.EUnsetFromID(EATTRIBUTE__ID)
+		v := o.EGetFromID(EATTRIBUTE__ID, false)
+		assert.Equal(t, false, v)
+	}
 }

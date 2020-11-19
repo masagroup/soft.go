@@ -16,7 +16,7 @@
 package ecore
 
 type MockEModelElement struct {
-	MockEObject
+	MockEObjectInternal
 }
 
 // GetEAnnotations get the value of eAnnotations

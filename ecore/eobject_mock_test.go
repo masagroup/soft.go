@@ -41,7 +41,7 @@ func TestMockEObjectEAllContents(t *testing.T) {
 // TestMockEObjectEClass tests method EClass
 func TestMockEObjectEClass(t *testing.T) {
 	o := &MockEObject{}
-	r := &MockEClass{}
+	r := new(MockEClass)
 	o.On("EClass").Return(r).Once()
 	o.On("EClass").Return(func() EClass {
 		return r
@@ -54,7 +54,7 @@ func TestMockEObjectEClass(t *testing.T) {
 // TestMockEObjectEContainer tests method EContainer
 func TestMockEObjectEContainer(t *testing.T) {
 	o := &MockEObject{}
-	r := &MockEObject{}
+	r := new(MockEObject)
 	o.On("EContainer").Return(r).Once()
 	o.On("EContainer").Return(func() EObject {
 		return r
@@ -67,7 +67,7 @@ func TestMockEObjectEContainer(t *testing.T) {
 // TestMockEObjectEContainingFeature tests method EContainingFeature
 func TestMockEObjectEContainingFeature(t *testing.T) {
 	o := &MockEObject{}
-	r := &MockEStructuralFeature{}
+	r := new(MockEStructuralFeature)
 	o.On("EContainingFeature").Return(r).Once()
 	o.On("EContainingFeature").Return(func() EStructuralFeature {
 		return r
@@ -80,7 +80,7 @@ func TestMockEObjectEContainingFeature(t *testing.T) {
 // TestMockEObjectEContainmentFeature tests method EContainmentFeature
 func TestMockEObjectEContainmentFeature(t *testing.T) {
 	o := &MockEObject{}
-	r := &MockEReference{}
+	r := new(MockEReference)
 	o.On("EContainmentFeature").Return(r).Once()
 	o.On("EContainmentFeature").Return(func() EReference {
 		return r
@@ -119,7 +119,7 @@ func TestMockEObjectECrossReferences(t *testing.T) {
 // TestMockEObjectEGet tests method EGet
 func TestMockEObjectEGet(t *testing.T) {
 	o := &MockEObject{}
-	feature := &MockEStructuralFeature{}
+	feature := new(MockEStructuralFeature)
 	r := interface{}(nil)
 	o.On("EGet", feature).Return(r).Once()
 	o.On("EGet", feature).Return(func() interface{} {
@@ -133,7 +133,7 @@ func TestMockEObjectEGet(t *testing.T) {
 // TestMockEObjectEGetResolve tests method EGetResolve
 func TestMockEObjectEGetResolve(t *testing.T) {
 	o := &MockEObject{}
-	feature := &MockEStructuralFeature{}
+	feature := new(MockEStructuralFeature)
 	resolve := true
 	r := interface{}(nil)
 	o.On("EGetResolve", feature, resolve).Return(r).Once()
@@ -148,7 +148,7 @@ func TestMockEObjectEGetResolve(t *testing.T) {
 // TestMockEObjectEInvoke tests method EInvoke
 func TestMockEObjectEInvoke(t *testing.T) {
 	o := &MockEObject{}
-	operation := &MockEOperation{}
+	operation := new(MockEOperation)
 	arguments := NewEmptyBasicEList()
 	r := interface{}(nil)
 	o.On("EInvoke", operation, arguments).Return(r).Once()
@@ -176,7 +176,7 @@ func TestMockEObjectEIsProxy(t *testing.T) {
 // TestMockEObjectEIsSet tests method EIsSet
 func TestMockEObjectEIsSet(t *testing.T) {
 	o := &MockEObject{}
-	feature := &MockEStructuralFeature{}
+	feature := new(MockEStructuralFeature)
 	r := true
 	o.On("EIsSet", feature).Return(r).Once()
 	o.On("EIsSet", feature).Return(func() bool {
@@ -203,7 +203,7 @@ func TestMockEObjectEResource(t *testing.T) {
 // TestMockEObjectESet tests method ESet
 func TestMockEObjectESet(t *testing.T) {
 	o := &MockEObject{}
-	feature := &MockEStructuralFeature{}
+	feature := new(MockEStructuralFeature)
 	newValue := interface{}(nil)
 	o.On("ESet", feature, newValue).Once()
 	o.ESet(feature, newValue)
@@ -213,7 +213,7 @@ func TestMockEObjectESet(t *testing.T) {
 // TestMockEObjectEUnset tests method EUnset
 func TestMockEObjectEUnset(t *testing.T) {
 	o := &MockEObject{}
-	feature := &MockEStructuralFeature{}
+	feature := new(MockEStructuralFeature)
 	o.On("EUnset", feature).Once()
 	o.EUnset(feature)
 	o.AssertExpectations(t)

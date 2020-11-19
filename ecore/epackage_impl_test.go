@@ -27,64 +27,223 @@ func discardEPackage() {
 	_ = testing.Coverage
 }
 
+func TestEPackageAsEPackage(t *testing.T) {
+	o := newEPackageImpl()
+	assert.Equal(t, o, o.asEPackage())
+}
+
+func TestEPackageStaticClass(t *testing.T) {
+	o := newEPackageImpl()
+	assert.Equal(t, GetPackage().GetEPackage(), o.EStaticClass())
+}
+
+func TestEPackageFeatureCount(t *testing.T) {
+	o := newEPackageImpl()
+	assert.Equal(t, EPACKAGE_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
 func TestEPackageNsURIGet(t *testing.T) {
+	o := newEPackageImpl()
+	// get default value
+	assert.Equal(t, "", o.GetNsURI())
+	// get initialized value
 	v := "Test String"
-	obj := newEPackageImpl()
-	obj.SetNsURI(v)
-	assert.Equal(t, v, obj.GetNsURI())
+	o.nsURI = v
+	assert.Equal(t, v, o.GetNsURI())
 }
 
 func TestEPackageNsURISet(t *testing.T) {
-	obj := newEPackageImpl()
+	o := newEPackageImpl()
 	v := "Test String"
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetNsURI(v)
+	o.EAdapters().Add(mockAdapter)
+	o.SetNsURI(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEPackageNsPrefixGet(t *testing.T) {
+	o := newEPackageImpl()
+	// get default value
+	assert.Equal(t, "", o.GetNsPrefix())
+	// get initialized value
 	v := "Test String"
-	obj := newEPackageImpl()
-	obj.SetNsPrefix(v)
-	assert.Equal(t, v, obj.GetNsPrefix())
+	o.nsPrefix = v
+	assert.Equal(t, v, o.GetNsPrefix())
 }
 
 func TestEPackageNsPrefixSet(t *testing.T) {
-	obj := newEPackageImpl()
+	o := newEPackageImpl()
 	v := "Test String"
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetNsPrefix(v)
+	o.EAdapters().Add(mockAdapter)
+	o.SetNsPrefix(v)
 	mockAdapter.AssertExpectations(t)
+}
+
+func TestEPackageEFactoryInstanceGet(t *testing.T) {
+	o := newEPackageImpl()
+	// get default value
+	assert.Nil(t, o.GetEFactoryInstance())
+
+	// get initialized value
+	v := new(MockEFactory)
+	o.eFactoryInstance = v
+	assert.Equal(t, v, o.GetEFactoryInstance())
 }
 
 func TestEPackageEFactoryInstanceSet(t *testing.T) {
-	obj := newEPackageImpl()
-	v := &MockEFactory{}
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	o := newEPackageImpl()
+	mockValue := new(MockEFactory)
+	mockValue.On("EInverseAdd", o, EFACTORY__EPACKAGE, nil).Return(nil).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetEFactoryInstance(v)
-	mockAdapter.AssertExpectations(t)
+	o.EAdapters().Add(mockAdapter)
+	o.SetEFactoryInstance(mockValue)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue)
 }
 
-func TestEPackageEClassifiersGetList(t *testing.T) {
+func TestEPackageEClassifiersGet(t *testing.T) {
 	o := newEPackageImpl()
 	assert.NotNil(t, o.GetEClassifiers())
 }
 
-func TestEPackageESubPackagesGetList(t *testing.T) {
+func TestEPackageESubPackagesGet(t *testing.T) {
 	o := newEPackageImpl()
 	assert.NotNil(t, o.GetESubPackages())
+}
+
+func TestEPackageESuperPackageGet(t *testing.T) {
+	// default
+	o := newEPackageImpl()
+	assert.Nil(t, o.GetESuperPackage())
+
+	// set a mock container
+	v := new(MockEPackage)
+	o.ESetInternalContainer(v, EPACKAGE__ESUPER_PACKAGE)
+
+	// no proxy
+	v.On("EIsProxy").Return(false)
+	assert.Equal(t, v, o.GetESuperPackage())
 }
 
 func TestEPackageGetEClassifierOperation(t *testing.T) {
 	o := newEPackageImpl()
 	assert.Panics(t, func() { o.GetEClassifier("") })
+}
+
+func TestEPackageEGetFromID(t *testing.T) {
+	o := newEPackageImpl()
+	assert.Panics(t, func() { o.EGetFromID(-1, true) })
+	assert.Equal(t, o.GetEFactoryInstance(), o.EGetFromID(EPACKAGE__EFACTORY_INSTANCE, true))
+	assert.Equal(t, o.GetEClassifiers(), o.EGetFromID(EPACKAGE__ECLASSIFIERS, true))
+	assert.Equal(t, o.GetEClassifiers().(EObjectList).GetUnResolvedList(), o.EGetFromID(EPACKAGE__ECLASSIFIERS, false))
+	assert.Equal(t, o.GetNsPrefix(), o.EGetFromID(EPACKAGE__NS_PREFIX, true))
+	assert.Equal(t, o.GetESubPackages(), o.EGetFromID(EPACKAGE__ESUB_PACKAGES, true))
+	assert.Equal(t, o.GetESubPackages().(EObjectList).GetUnResolvedList(), o.EGetFromID(EPACKAGE__ESUB_PACKAGES, false))
+	assert.Equal(t, o.GetNsURI(), o.EGetFromID(EPACKAGE__NS_URI, true))
+	assert.Equal(t, o.GetESuperPackage(), o.EGetFromID(EPACKAGE__ESUPER_PACKAGE, true))
+}
+
+func TestEPackageESetFromID(t *testing.T) {
+	o := newEPackageImpl()
+	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
+	{
+		// list with a value
+		mockValue := new(MockEClassifier)
+		l := NewImmutableEList([]interface{}{mockValue})
+		// expectations
+		mockValue.On("EInverseAdd", o, ECLASSIFIER__EPACKAGE, mock.Anything).Return(nil).Once()
+		// set list with new contents
+		o.ESetFromID(EPACKAGE__ECLASSIFIERS, l)
+		// checks
+		assert.Equal(t, 1, o.GetEClassifiers().Size())
+		assert.Equal(t, mockValue, o.GetEClassifiers().Get(0))
+		mock.AssertExpectationsForObjects(t, mockValue)
+	}
+	{
+		mockValue := new(MockEFactory)
+		mockValue.On("EInverseAdd", o, EFACTORY__EPACKAGE, nil).Return(nil).Once()
+		o.ESetFromID(EPACKAGE__EFACTORY_INSTANCE, mockValue)
+		assert.Equal(t, mockValue, o.EGetFromID(EPACKAGE__EFACTORY_INSTANCE, false))
+		mock.AssertExpectationsForObjects(t, mockValue)
+	}
+	{
+		// list with a value
+		mockValue := new(MockEPackage)
+		l := NewImmutableEList([]interface{}{mockValue})
+		// expectations
+		mockValue.On("EInverseAdd", o, EPACKAGE__ESUPER_PACKAGE, mock.Anything).Return(nil).Once()
+		// set list with new contents
+		o.ESetFromID(EPACKAGE__ESUB_PACKAGES, l)
+		// checks
+		assert.Equal(t, 1, o.GetESubPackages().Size())
+		assert.Equal(t, mockValue, o.GetESubPackages().Get(0))
+		mock.AssertExpectationsForObjects(t, mockValue)
+	}
+	{
+		v := "Test String"
+		o.ESetFromID(EPACKAGE__NS_PREFIX, v)
+		assert.Equal(t, v, o.EGetFromID(EPACKAGE__NS_PREFIX, false))
+	}
+	{
+		v := "Test String"
+		o.ESetFromID(EPACKAGE__NS_URI, v)
+		assert.Equal(t, v, o.EGetFromID(EPACKAGE__NS_URI, false))
+	}
+
+}
+
+func TestEPackageEIsSetFromID(t *testing.T) {
+	o := newEPackageImpl()
+	assert.Panics(t, func() { o.EIsSetFromID(-1) })
+	assert.False(t, o.EIsSetFromID(EPACKAGE__EFACTORY_INSTANCE))
+	assert.False(t, o.EIsSetFromID(EPACKAGE__ECLASSIFIERS))
+	assert.False(t, o.EIsSetFromID(EPACKAGE__NS_PREFIX))
+	assert.False(t, o.EIsSetFromID(EPACKAGE__ESUB_PACKAGES))
+	assert.False(t, o.EIsSetFromID(EPACKAGE__NS_URI))
+	assert.False(t, o.EIsSetFromID(EPACKAGE__ESUPER_PACKAGE))
+}
+
+func TestEPackageEUnsetFromID(t *testing.T) {
+	o := newEPackageImpl()
+	assert.Panics(t, func() { o.EUnsetFromID(-1) })
+	{
+		o.EUnsetFromID(EPACKAGE__EFACTORY_INSTANCE)
+		assert.Nil(t, o.EGetFromID(EPACKAGE__EFACTORY_INSTANCE, false))
+	}
+	{
+		o.EUnsetFromID(EPACKAGE__ECLASSIFIERS)
+		v := o.EGetFromID(EPACKAGE__ECLASSIFIERS, false)
+		assert.NotNil(t, v)
+		l := v.(EList)
+		assert.True(t, l.Empty())
+	}
+	{
+		o.EUnsetFromID(EPACKAGE__NS_PREFIX)
+		v := o.EGetFromID(EPACKAGE__NS_PREFIX, false)
+		assert.Equal(t, "", v)
+	}
+	{
+		o.EUnsetFromID(EPACKAGE__ESUB_PACKAGES)
+		v := o.EGetFromID(EPACKAGE__ESUB_PACKAGES, false)
+		assert.NotNil(t, v)
+		l := v.(EList)
+		assert.True(t, l.Empty())
+	}
+	{
+		o.EUnsetFromID(EPACKAGE__NS_URI)
+		v := o.EGetFromID(EPACKAGE__NS_URI, false)
+		assert.Equal(t, "", v)
+	}
+}
+
+func TestEPackageEInvokeFromID(t *testing.T) {
+	o := newEPackageImpl()
+	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
+	assert.Panics(t, func() { o.EInvokeFromID(EPACKAGE__GET_ECLASSIFIER_ESTRING, nil) })
 }

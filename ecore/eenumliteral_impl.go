@@ -115,7 +115,7 @@ func (eEnumLiteral *eEnumLiteralImpl) EGetFromID(featureID int, resolve bool) in
 func (eEnumLiteral *eEnumLiteralImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case EENUM_LITERAL__INSTANCE:
-		eEnumLiteral.asEEnumLiteral().SetInstance(newValue.(interface{}))
+		eEnumLiteral.asEEnumLiteral().SetInstance(newValue)
 	case EENUM_LITERAL__LITERAL:
 		eEnumLiteral.asEEnumLiteral().SetLiteral(newValue.(string))
 	case EENUM_LITERAL__VALUE:
@@ -143,7 +143,7 @@ func (eEnumLiteral *eEnumLiteralImpl) EIsSetFromID(featureID int) bool {
 	case EENUM_LITERAL__EENUM:
 		return eEnumLiteral.GetEEnum() != nil
 	case EENUM_LITERAL__INSTANCE:
-		return eEnumLiteral.GetInstance() != ""
+		return eEnumLiteral.GetInstance() != nil
 	case EENUM_LITERAL__LITERAL:
 		return eEnumLiteral.literal != ""
 	case EENUM_LITERAL__VALUE:

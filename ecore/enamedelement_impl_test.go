@@ -27,20 +27,71 @@ func discardENamedElement() {
 	_ = testing.Coverage
 }
 
+func TestENamedElementAsENamedElement(t *testing.T) {
+	o := newENamedElementImpl()
+	assert.Equal(t, o, o.asENamedElement())
+}
+
+func TestENamedElementStaticClass(t *testing.T) {
+	o := newENamedElementImpl()
+	assert.Equal(t, GetPackage().GetENamedElement(), o.EStaticClass())
+}
+
+func TestENamedElementFeatureCount(t *testing.T) {
+	o := newENamedElementImpl()
+	assert.Equal(t, ENAMED_ELEMENT_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
 func TestENamedElementNameGet(t *testing.T) {
+	o := newENamedElementImpl()
+	// get default value
+	assert.Equal(t, "", o.GetName())
+	// get initialized value
 	v := "Test String"
-	obj := newENamedElementImpl()
-	obj.SetName(v)
-	assert.Equal(t, v, obj.GetName())
+	o.name = v
+	assert.Equal(t, v, o.GetName())
 }
 
 func TestENamedElementNameSet(t *testing.T) {
-	obj := newENamedElementImpl()
+	o := newENamedElementImpl()
 	v := "Test String"
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetName(v)
+	o.EAdapters().Add(mockAdapter)
+	o.SetName(v)
 	mockAdapter.AssertExpectations(t)
+}
+
+func TestENamedElementEGetFromID(t *testing.T) {
+	o := newENamedElementImpl()
+	assert.Panics(t, func() { o.EGetFromID(-1, true) })
+	assert.Equal(t, o.GetName(), o.EGetFromID(ENAMED_ELEMENT__NAME, true))
+}
+
+func TestENamedElementESetFromID(t *testing.T) {
+	o := newENamedElementImpl()
+	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
+	{
+		v := "Test String"
+		o.ESetFromID(ENAMED_ELEMENT__NAME, v)
+		assert.Equal(t, v, o.EGetFromID(ENAMED_ELEMENT__NAME, false))
+	}
+
+}
+
+func TestENamedElementEIsSetFromID(t *testing.T) {
+	o := newENamedElementImpl()
+	assert.Panics(t, func() { o.EIsSetFromID(-1) })
+	assert.False(t, o.EIsSetFromID(ENAMED_ELEMENT__NAME))
+}
+
+func TestENamedElementEUnsetFromID(t *testing.T) {
+	o := newENamedElementImpl()
+	assert.Panics(t, func() { o.EUnsetFromID(-1) })
+	{
+		o.EUnsetFromID(ENAMED_ELEMENT__NAME)
+		v := o.EGetFromID(ENAMED_ELEMENT__NAME, false)
+		assert.Equal(t, "", v)
+	}
 }

@@ -26,3 +26,18 @@ func discardEObject() {
 	_ = mock.Anything
 	_ = testing.Coverage
 }
+
+func TestEObjectAsEObject(t *testing.T) {
+	o := NewEObjectImpl()
+	assert.Equal(t, o, o.asEObject())
+}
+
+func TestEObjectStaticClass(t *testing.T) {
+	o := NewEObjectImpl()
+	assert.Equal(t, GetPackage().GetEObject(), o.EStaticClass())
+}
+
+func TestEObjectFeatureCount(t *testing.T) {
+	o := NewEObjectImpl()
+	assert.Equal(t, EOBJECT_FEATURE_COUNT, o.EStaticFeatureCount())
+}

@@ -28,7 +28,7 @@ func discardMockEOperation() {
 // TestMockEOperationGetEContainingClass tests method GetEContainingClass
 func TestMockEOperationGetEContainingClass(t *testing.T) {
 	o := &MockEOperation{}
-	r := &MockEClass{}
+	r := new(MockEClass)
 	o.On("GetEContainingClass").Once().Return(r)
 	o.On("GetEContainingClass").Once().Return(func() EClass {
 		return r
@@ -99,7 +99,7 @@ func TestMockEOperationSetOperationID(t *testing.T) {
 // TestMockEOperationIsOverrideOf tests method IsOverrideOf
 func TestMockEOperationIsOverrideOf(t *testing.T) {
 	o := &MockEOperation{}
-	someOperation := &MockEOperation{}
+	someOperation := new(MockEOperation)
 	r := true
 	o.On("IsOverrideOf", someOperation).Return(r).Once()
 	o.On("IsOverrideOf", someOperation).Return(func() bool {

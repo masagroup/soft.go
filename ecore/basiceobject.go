@@ -471,17 +471,29 @@ func (o *BasicEObject) eDynamicPropertiesCreateList(feature EStructuralFeature) 
 	} else if ref, isRef := feature.(EReference); isRef {
 		inverse := false
 		opposite := false
+		containment := ref.IsContainment()
 		reverseID := -1
 		reverseFeature := ref.GetEOpposite()
-		if reverseFeature != nil {
-			reverseID = reverseFeature.GetFeatureID()
-			inverse = true
-			opposite = true
-		} else if ref.IsContainment() {
-			inverse = true
-			opposite = false
+		if containment {
+			if reverseFeature != nil {
+				reverseID = reverseFeature.GetFeatureID()
+				inverse = true
+				opposite = true
+			} else {
+				inverse = true
+				opposite = false
+			}
+		} else {
+			if reverseFeature != nil {
+				reverseID = reverseFeature.GetFeatureID()
+				inverse = true
+				opposite = true
+			} else {
+				inverse = false
+				opposite = false
+			}
 		}
-		return NewBasicEObjectList(o.AsEObjectInternal(), ref.GetFeatureID(), reverseID, ref.IsContainment(), inverse, opposite, ref.EIsProxy(), ref.IsUnsettable())
+		return NewBasicEObjectList(o.AsEObjectInternal(), ref.GetFeatureID(), reverseID, containment, inverse, opposite, ref.EIsProxy(), ref.IsUnsettable())
 	}
 	return nil
 }

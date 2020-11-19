@@ -84,7 +84,7 @@ func TestReflectiveEObjectImpl_GetReference_Many(t *testing.T) {
 	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Once()
 	mockReference.On("IsMany").Return(true).Once()
 	mockReference.On("GetEOpposite").Return(nil).Twice()
-	mockReference.On("IsContainment").Return(false).Twice()
+	mockReference.On("IsContainment").Return(false).Once()
 	mockReference.On("GetFeatureID").Return(0).Once()
 	mockReference.On("EIsProxy").Return(false).Once()
 	mockReference.On("IsUnsettable").Return(false).Once()
@@ -161,6 +161,7 @@ func TestReflectiveEObjectImpl_GetContainer(t *testing.T) {
 
 func TestReflectiveEObjectImpl_SetContainer(t *testing.T) {
 	mockObject := new(MockEObjectInternal)
+	mockObjectClass := new(MockEClass)
 	mockOpposite := new(MockEReference)
 	mockReference := new(MockEReference)
 	mockClass := new(MockEClass)
@@ -169,14 +170,16 @@ func TestReflectiveEObjectImpl_SetContainer(t *testing.T) {
 	o.setEClass(mockClass)
 
 	// set reference as mockObject
-	mockObject.On("EResource").Return(nil).Once()
-	mockObject.On("EInverseAdd", o.GetInterfaces(), 0, nil).Return(nil).Once()
+	mockObject.On("EInternalResource").Return(nil).Once()
+	mockObject.On("EInverseAdd", o, 0, nil).Return(nil).Once()
+	mockObject.On("EClass").Return(mockObjectClass).Once()
 	mockOpposite.On("IsContainment").Return(true).Once()
-	mockReference.On("GetEOpposite").Return(mockOpposite).Once()
+	mockReference.On("GetEOpposite").Return(mockOpposite).Twice()
 	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Once()
 	mockClass.On("GetFeatureID", mockReference).Return(0).Once()
+	mockObjectClass.On("GetFeatureID", mockOpposite).Return(0).Once()
 	o.ESetFromID(0, mockObject)
-	mock.AssertExpectationsForObjects(t, mockClass, mockReference, mockOpposite, mockObject)
+	mock.AssertExpectationsForObjects(t, mockClass, mockReference, mockOpposite, mockObject, mockObjectClass)
 
 	// get unresolved
 	mockOpposite.On("IsContainment").Return(true).Once()
@@ -197,7 +200,7 @@ func TestReflectiveEObjectImpl_SetContainer(t *testing.T) {
 
 	// set reference as nil
 	mockObject.On("EInverseRemove", o.GetInterfaces(), 0, nil).Return(nil).Once()
-	mockObject.On("EResource").Return(nil).Once()
+	mockObject.On("EInternalResource").Return(nil).Once()
 	mockOpposite.On("IsContainment").Return(true).Once()
 	mockOpposite.On("GetFeatureID").Return(0).Once()
 	mockReference.On("GetEOpposite").Return(mockOpposite).Twice()
@@ -218,6 +221,7 @@ func TestReflectiveEObjectImpl_SetContainer(t *testing.T) {
 func TestReflectiveEObjectImpl_UnSetContainer(t *testing.T) {
 
 	mockObject := new(MockEObjectInternal)
+	mockObjectClass := new(MockEClass)
 	mockOpposite := new(MockEReference)
 	mockReference := new(MockEReference)
 	mockClass := new(MockEClass)
@@ -226,18 +230,20 @@ func TestReflectiveEObjectImpl_UnSetContainer(t *testing.T) {
 	o.setEClass(mockClass)
 
 	// set reference as mockObject
-	mockObject.On("EResource").Return(nil).Once()
-	mockObject.On("EInverseAdd", o.GetInterfaces(), 0, nil).Return(nil).Once()
+	mockObject.On("EInternalResource").Return(nil).Once()
+	mockObject.On("EInverseAdd", o, 0, nil).Return(nil).Once()
+	mockObject.On("EClass").Return(mockObjectClass).Once()
 	mockOpposite.On("IsContainment").Return(true).Once()
-	mockReference.On("GetEOpposite").Return(mockOpposite).Once()
+	mockReference.On("GetEOpposite").Return(mockOpposite).Twice()
 	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Once()
 	mockClass.On("GetFeatureID", mockReference).Return(0).Once()
+	mockObjectClass.On("GetFeatureID", mockOpposite).Return(0).Once()
 	o.ESetFromID(0, mockObject)
-	mock.AssertExpectationsForObjects(t, mockClass, mockReference, mockOpposite, mockObject)
+	mock.AssertExpectationsForObjects(t, mockClass, mockReference, mockOpposite, mockObject, mockObjectClass)
 
 	// unset
 	mockObject.On("EInverseRemove", o.GetInterfaces(), 0, nil).Return(nil).Once()
-	mockObject.On("EResource").Return(nil).Once()
+	mockObject.On("EInternalResource").Return(nil).Once()
 	mockOpposite.On("IsContainment").Return(true).Once()
 	mockOpposite.On("GetFeatureID").Return(0).Once()
 	mockReference.On("GetEOpposite").Return(mockOpposite).Twice()

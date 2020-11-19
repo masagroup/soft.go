@@ -538,6 +538,8 @@ func (o *BasicEObject) eDynamicPropertiesSet(properties EDynamicProperties, dyna
 				notifications = o.EBasicRemoveFromContainer(notifications)
 			}
 			if newContainer != nil {
+				reverseFeature := dynamicFeature.(EReference).GetEOpposite()
+				featureID := newContainer.EClass().GetFeatureID(reverseFeature)
 				notifications = newContainer.(EObjectInternal).EInverseAdd(o.AsEObject(), featureID, notifications)
 			}
 			notifications = o.EBasicSetContainer(newContainer, featureID, notifications)
@@ -893,7 +895,7 @@ func (o *BasicEObject) eDynamicPropertiesInverseRemove(properties EDynamicProper
 }
 
 // ESetContainer ...
-func (o *BasicEObject) EInternalSetContainer(newContainer EObject, newContainerFeatureID int) {
+func (o *BasicEObject) ESetInternalContainer(newContainer EObject, newContainerFeatureID int) {
 	o.container = newContainer
 	o.containerFeatureID = newContainerFeatureID
 }
@@ -904,25 +906,27 @@ func (o *BasicEObject) EBasicSetContainer(newContainer EObject, newContainerFeat
 	oldResource := o.EInternalResource()
 	oldContainer := o.EInternalContainer()
 	oldContainerFeatureID := o.containerFeatureID
+	oldContainerInternal, _ := oldContainer.(EObjectInternal)
+	newContainerInternal, _ := newContainer.(EObjectInternal)
 
 	// resource
 	var newResource EResource
 	if oldResource != nil {
-		if newContainer != nil && !eContainmentFeature(o.AsEObject(), newContainer, newContainerFeatureID).IsResolveProxies() {
+		if newContainerInternal != nil && !eContainmentFeature(o.AsEObject(), newContainerInternal, newContainerFeatureID).IsResolveProxies() {
 			list := oldResource.GetContents().(ENotifyingList)
 			notifications = list.RemoveWithNotification(o.AsEObject(), notifications)
 			o.ESetInternalResource(nil)
-			newResource = newContainer.EResource()
+			newResource = newContainerInternal.EInternalResource()
 		} else {
 			oldResource = nil
 		}
 	} else {
-		if oldContainer != nil {
-			oldResource = oldContainer.EResource()
+		if oldContainerInternal != nil {
+			oldResource = oldContainerInternal.EInternalResource()
 		}
 
-		if newContainer != nil {
-			newResource = newContainer.EResource()
+		if newContainerInternal != nil {
+			newResource = newContainerInternal.EInternalResource()
 		}
 	}
 
@@ -935,7 +939,7 @@ func (o *BasicEObject) EBasicSetContainer(newContainer EObject, newContainerFeat
 	}
 
 	// internal set
-	o.EInternalSetContainer(newContainer, newContainerFeatureID)
+	o.ESetInternalContainer(newContainer, newContainerFeatureID)
 
 	// notification
 	if o.ENotificationRequired() {

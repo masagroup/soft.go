@@ -140,7 +140,7 @@ func (eFactory *eFactoryImpl) EBasicInverseAdd(otherEnd EObject, featureID int, 
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		msgs := notifications
-		if eFactory.EContainer() != nil {
+		if eFactory.EInternalContainer() != nil {
 			msgs = eFactory.EBasicRemoveFromContainer(msgs)
 		}
 		return eFactory.basicSetEPackage(otherEnd.(EPackage), msgs)

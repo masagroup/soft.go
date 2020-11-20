@@ -287,7 +287,7 @@ func (eStructuralFeature *eStructuralFeatureImpl) EBasicInverseAdd(otherEnd EObj
 	switch featureID {
 	case ESTRUCTURAL_FEATURE__ECONTAINING_CLASS:
 		msgs := notifications
-		if eStructuralFeature.EContainer() != nil {
+		if eStructuralFeature.EInternalContainer() != nil {
 			msgs = eStructuralFeature.EBasicRemoveFromContainer(msgs)
 		}
 		return eStructuralFeature.EBasicSetContainer(otherEnd, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, msgs)

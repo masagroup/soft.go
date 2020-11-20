@@ -112,11 +112,11 @@ func TestEClassifierIsInstanceOperation(t *testing.T) {
 func TestEClassifierEGetFromID(t *testing.T) {
 	o := newEClassifierImpl()
 	assert.Panics(t, func() { o.EGetFromID(-1, true) })
+	assert.Equal(t, o.GetClassifierID(), o.EGetFromID(ECLASSIFIER__CLASSIFIER_ID, true))
 	assert.Panics(t, func() { o.EGetFromID(ECLASSIFIER__DEFAULT_VALUE, true) })
 	assert.Panics(t, func() { o.EGetFromID(ECLASSIFIER__DEFAULT_VALUE, false) })
-	assert.Equal(t, o.GetInstanceClass(), o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, true))
-	assert.Equal(t, o.GetClassifierID(), o.EGetFromID(ECLASSIFIER__CLASSIFIER_ID, true))
 	assert.Equal(t, o.GetEPackage(), o.EGetFromID(ECLASSIFIER__EPACKAGE, true))
+	assert.Equal(t, o.GetInstanceClass(), o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, true))
 }
 
 func TestEClassifierESetFromID(t *testing.T) {
@@ -138,24 +138,24 @@ func TestEClassifierESetFromID(t *testing.T) {
 func TestEClassifierEIsSetFromID(t *testing.T) {
 	o := newEClassifierImpl()
 	assert.Panics(t, func() { o.EIsSetFromID(-1) })
-	assert.Panics(t, func() { o.EIsSetFromID(ECLASSIFIER__DEFAULT_VALUE) })
-	assert.False(t, o.EIsSetFromID(ECLASSIFIER__INSTANCE_CLASS))
 	assert.False(t, o.EIsSetFromID(ECLASSIFIER__CLASSIFIER_ID))
+	assert.Panics(t, func() { o.EIsSetFromID(ECLASSIFIER__DEFAULT_VALUE) })
 	assert.False(t, o.EIsSetFromID(ECLASSIFIER__EPACKAGE))
+	assert.False(t, o.EIsSetFromID(ECLASSIFIER__INSTANCE_CLASS))
 }
 
 func TestEClassifierEUnsetFromID(t *testing.T) {
 	o := newEClassifierImpl()
 	assert.Panics(t, func() { o.EUnsetFromID(-1) })
 	{
-		o.EUnsetFromID(ECLASSIFIER__INSTANCE_CLASS)
-		v := o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, false)
-		assert.Equal(t, nil, v)
-	}
-	{
 		o.EUnsetFromID(ECLASSIFIER__CLASSIFIER_ID)
 		v := o.EGetFromID(ECLASSIFIER__CLASSIFIER_ID, false)
 		assert.Equal(t, -1, v)
+	}
+	{
+		o.EUnsetFromID(ECLASSIFIER__INSTANCE_CLASS)
+		v := o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, false)
+		assert.Equal(t, nil, v)
 	}
 }
 
@@ -163,4 +163,22 @@ func TestEClassifierEInvokeFromID(t *testing.T) {
 	o := newEClassifierImpl()
 	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(ECLASSIFIER__IS_INSTANCE_EJAVAOBJECT, nil) })
+}
+
+func TestEClassifierEBasicInverseAdd(t *testing.T) {
+	o := newEClassifierImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEPackage)
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EIsProxy").Return(false).Once()
+		o.EBasicInverseAdd(mockObject, ECLASSIFIER__EPACKAGE, nil)
+		assert.Equal(t, mockObject, o.GetEPackage())
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
 }

@@ -96,10 +96,10 @@ func TestEOperationEGetFromID(t *testing.T) {
 	o := newEOperationImpl()
 	assert.Panics(t, func() { o.EGetFromID(-1, true) })
 	assert.Equal(t, o.GetEContainingClass(), o.EGetFromID(EOPERATION__ECONTAINING_CLASS, true))
-	assert.Equal(t, o.GetEParameters(), o.EGetFromID(EOPERATION__EPARAMETERS, true))
-	assert.Equal(t, o.GetEParameters().(EObjectList).GetUnResolvedList(), o.EGetFromID(EOPERATION__EPARAMETERS, false))
 	assert.Equal(t, o.GetEExceptions(), o.EGetFromID(EOPERATION__EEXCEPTIONS, true))
 	assert.Equal(t, o.GetEExceptions().(EObjectList).GetUnResolvedList(), o.EGetFromID(EOPERATION__EEXCEPTIONS, false))
+	assert.Equal(t, o.GetEParameters(), o.EGetFromID(EOPERATION__EPARAMETERS, true))
+	assert.Equal(t, o.GetEParameters().(EObjectList).GetUnResolvedList(), o.EGetFromID(EOPERATION__EPARAMETERS, false))
 	assert.Equal(t, o.GetOperationID(), o.EGetFromID(EOPERATION__OPERATION_ID, true))
 }
 
@@ -145,8 +145,8 @@ func TestEOperationEIsSetFromID(t *testing.T) {
 	assert.Panics(t, func() { o.EIsSetFromID(-1) })
 	assert.False(t, o.EIsSetFromID(EOPERATION__ECONTAINING_CLASS))
 	assert.False(t, o.EIsSetFromID(EOPERATION__EEXCEPTIONS))
-	assert.False(t, o.EIsSetFromID(EOPERATION__OPERATION_ID))
 	assert.False(t, o.EIsSetFromID(EOPERATION__EPARAMETERS))
+	assert.False(t, o.EIsSetFromID(EOPERATION__OPERATION_ID))
 }
 
 func TestEOperationEUnsetFromID(t *testing.T) {
@@ -160,16 +160,16 @@ func TestEOperationEUnsetFromID(t *testing.T) {
 		assert.True(t, l.Empty())
 	}
 	{
-		o.EUnsetFromID(EOPERATION__OPERATION_ID)
-		v := o.EGetFromID(EOPERATION__OPERATION_ID, false)
-		assert.Equal(t, -1, v)
-	}
-	{
 		o.EUnsetFromID(EOPERATION__EPARAMETERS)
 		v := o.EGetFromID(EOPERATION__EPARAMETERS, false)
 		assert.NotNil(t, v)
 		l := v.(EList)
 		assert.True(t, l.Empty())
+	}
+	{
+		o.EUnsetFromID(EOPERATION__OPERATION_ID)
+		v := o.EGetFromID(EOPERATION__OPERATION_ID, false)
+		assert.Equal(t, -1, v)
 	}
 }
 
@@ -177,4 +177,29 @@ func TestEOperationEInvokeFromID(t *testing.T) {
 	o := newEOperationImpl()
 	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(EOPERATION__IS_OVERRIDE_OF_EOPERATION, nil) })
+}
+
+func TestEOperationEBasicInverseAdd(t *testing.T) {
+	o := newEOperationImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEClass)
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EIsProxy").Return(false).Once()
+		o.EBasicInverseAdd(mockObject, EOPERATION__ECONTAINING_CLASS, nil)
+		assert.Equal(t, mockObject, o.GetEContainingClass())
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+	{
+		mockObject := new(MockEParameter)
+		o.EBasicInverseAdd(mockObject, EOPERATION__EPARAMETERS, nil)
+		l := o.GetEParameters()
+		assert.True(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
 }

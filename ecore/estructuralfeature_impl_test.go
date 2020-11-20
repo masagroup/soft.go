@@ -222,16 +222,16 @@ func TestEStructuralFeatureGetContainerClassOperation(t *testing.T) {
 func TestEStructuralFeatureEGetFromID(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	assert.Panics(t, func() { o.EGetFromID(-1, true) })
-	assert.Equal(t, o.GetDefaultValueLiteral(), o.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL, true))
-	assert.Equal(t, o.GetEContainingClass(), o.EGetFromID(ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, true))
 	assert.Equal(t, o.IsChangeable(), o.EGetFromID(ESTRUCTURAL_FEATURE__CHANGEABLE, true))
-	assert.Equal(t, o.IsTransient(), o.EGetFromID(ESTRUCTURAL_FEATURE__TRANSIENT, true))
 	assert.Panics(t, func() { o.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE, true) })
 	assert.Panics(t, func() { o.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE, false) })
+	assert.Equal(t, o.GetDefaultValueLiteral(), o.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL, true))
+	assert.Equal(t, o.IsDerived(), o.EGetFromID(ESTRUCTURAL_FEATURE__DERIVED, true))
+	assert.Equal(t, o.GetEContainingClass(), o.EGetFromID(ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, true))
+	assert.Equal(t, o.GetFeatureID(), o.EGetFromID(ESTRUCTURAL_FEATURE__FEATURE_ID, true))
+	assert.Equal(t, o.IsTransient(), o.EGetFromID(ESTRUCTURAL_FEATURE__TRANSIENT, true))
 	assert.Equal(t, o.IsUnsettable(), o.EGetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE, true))
 	assert.Equal(t, o.IsVolatile(), o.EGetFromID(ESTRUCTURAL_FEATURE__VOLATILE, true))
-	assert.Equal(t, o.IsDerived(), o.EGetFromID(ESTRUCTURAL_FEATURE__DERIVED, true))
-	assert.Equal(t, o.GetFeatureID(), o.EGetFromID(ESTRUCTURAL_FEATURE__FEATURE_ID, true))
 }
 
 func TestEStructuralFeatureESetFromID(t *testing.T) {
@@ -279,47 +279,32 @@ func TestEStructuralFeatureESetFromID(t *testing.T) {
 func TestEStructuralFeatureEIsSetFromID(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	assert.Panics(t, func() { o.EIsSetFromID(-1) })
-	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__ECONTAINING_CLASS))
-	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL))
 	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__CHANGEABLE))
-	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__TRANSIENT))
 	assert.Panics(t, func() { o.EIsSetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE) })
+	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL))
+	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__DERIVED))
+	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__ECONTAINING_CLASS))
+	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__FEATURE_ID))
+	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__TRANSIENT))
 	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE))
 	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__VOLATILE))
-	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__DERIVED))
-	assert.False(t, o.EIsSetFromID(ESTRUCTURAL_FEATURE__FEATURE_ID))
 }
 
 func TestEStructuralFeatureEUnsetFromID(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	assert.Panics(t, func() { o.EUnsetFromID(-1) })
 	{
-		o.EUnsetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL)
-		v := o.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL, false)
-		assert.Equal(t, "", v)
-	}
-	{
 		o.EUnsetFromID(ESTRUCTURAL_FEATURE__CHANGEABLE)
 		v := o.EGetFromID(ESTRUCTURAL_FEATURE__CHANGEABLE, false)
 		assert.Equal(t, true, v)
 	}
 	{
-		o.EUnsetFromID(ESTRUCTURAL_FEATURE__TRANSIENT)
-		v := o.EGetFromID(ESTRUCTURAL_FEATURE__TRANSIENT, false)
-		assert.Equal(t, false, v)
-	}
-	{
 		assert.Panics(t, func() { o.EUnsetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE) })
 	}
 	{
-		o.EUnsetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE)
-		v := o.EGetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE, false)
-		assert.Equal(t, false, v)
-	}
-	{
-		o.EUnsetFromID(ESTRUCTURAL_FEATURE__VOLATILE)
-		v := o.EGetFromID(ESTRUCTURAL_FEATURE__VOLATILE, false)
-		assert.Equal(t, false, v)
+		o.EUnsetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL)
+		v := o.EGetFromID(ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL, false)
+		assert.Equal(t, "", v)
 	}
 	{
 		o.EUnsetFromID(ESTRUCTURAL_FEATURE__DERIVED)
@@ -331,10 +316,43 @@ func TestEStructuralFeatureEUnsetFromID(t *testing.T) {
 		v := o.EGetFromID(ESTRUCTURAL_FEATURE__FEATURE_ID, false)
 		assert.Equal(t, -1, v)
 	}
+	{
+		o.EUnsetFromID(ESTRUCTURAL_FEATURE__TRANSIENT)
+		v := o.EGetFromID(ESTRUCTURAL_FEATURE__TRANSIENT, false)
+		assert.Equal(t, false, v)
+	}
+	{
+		o.EUnsetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE)
+		v := o.EGetFromID(ESTRUCTURAL_FEATURE__UNSETTABLE, false)
+		assert.Equal(t, false, v)
+	}
+	{
+		o.EUnsetFromID(ESTRUCTURAL_FEATURE__VOLATILE)
+		v := o.EGetFromID(ESTRUCTURAL_FEATURE__VOLATILE, false)
+		assert.Equal(t, false, v)
+	}
 }
 
 func TestEStructuralFeatureEInvokeFromID(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(ESTRUCTURAL_FEATURE__GET_CONTAINER_CLASS, nil) })
+}
+
+func TestEStructuralFeatureEBasicInverseAdd(t *testing.T) {
+	o := newEStructuralFeatureImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEClass)
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EIsProxy").Return(false).Once()
+		o.EBasicInverseAdd(mockObject, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, nil)
+		assert.Equal(t, mockObject, o.GetEContainingClass())
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
 }

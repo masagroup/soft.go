@@ -139,14 +139,14 @@ func TestEPackageGetEClassifierOperation(t *testing.T) {
 func TestEPackageEGetFromID(t *testing.T) {
 	o := newEPackageImpl()
 	assert.Panics(t, func() { o.EGetFromID(-1, true) })
-	assert.Equal(t, o.GetEFactoryInstance(), o.EGetFromID(EPACKAGE__EFACTORY_INSTANCE, true))
 	assert.Equal(t, o.GetEClassifiers(), o.EGetFromID(EPACKAGE__ECLASSIFIERS, true))
 	assert.Equal(t, o.GetEClassifiers().(EObjectList).GetUnResolvedList(), o.EGetFromID(EPACKAGE__ECLASSIFIERS, false))
-	assert.Equal(t, o.GetNsPrefix(), o.EGetFromID(EPACKAGE__NS_PREFIX, true))
+	assert.Equal(t, o.GetEFactoryInstance(), o.EGetFromID(EPACKAGE__EFACTORY_INSTANCE, true))
 	assert.Equal(t, o.GetESubPackages(), o.EGetFromID(EPACKAGE__ESUB_PACKAGES, true))
 	assert.Equal(t, o.GetESubPackages().(EObjectList).GetUnResolvedList(), o.EGetFromID(EPACKAGE__ESUB_PACKAGES, false))
-	assert.Equal(t, o.GetNsURI(), o.EGetFromID(EPACKAGE__NS_URI, true))
 	assert.Equal(t, o.GetESuperPackage(), o.EGetFromID(EPACKAGE__ESUPER_PACKAGE, true))
+	assert.Equal(t, o.GetNsPrefix(), o.EGetFromID(EPACKAGE__NS_PREFIX, true))
+	assert.Equal(t, o.GetNsURI(), o.EGetFromID(EPACKAGE__NS_URI, true))
 }
 
 func TestEPackageESetFromID(t *testing.T) {
@@ -201,21 +201,17 @@ func TestEPackageESetFromID(t *testing.T) {
 func TestEPackageEIsSetFromID(t *testing.T) {
 	o := newEPackageImpl()
 	assert.Panics(t, func() { o.EIsSetFromID(-1) })
-	assert.False(t, o.EIsSetFromID(EPACKAGE__EFACTORY_INSTANCE))
 	assert.False(t, o.EIsSetFromID(EPACKAGE__ECLASSIFIERS))
-	assert.False(t, o.EIsSetFromID(EPACKAGE__NS_PREFIX))
+	assert.False(t, o.EIsSetFromID(EPACKAGE__EFACTORY_INSTANCE))
 	assert.False(t, o.EIsSetFromID(EPACKAGE__ESUB_PACKAGES))
-	assert.False(t, o.EIsSetFromID(EPACKAGE__NS_URI))
 	assert.False(t, o.EIsSetFromID(EPACKAGE__ESUPER_PACKAGE))
+	assert.False(t, o.EIsSetFromID(EPACKAGE__NS_PREFIX))
+	assert.False(t, o.EIsSetFromID(EPACKAGE__NS_URI))
 }
 
 func TestEPackageEUnsetFromID(t *testing.T) {
 	o := newEPackageImpl()
 	assert.Panics(t, func() { o.EUnsetFromID(-1) })
-	{
-		o.EUnsetFromID(EPACKAGE__EFACTORY_INSTANCE)
-		assert.Nil(t, o.EGetFromID(EPACKAGE__EFACTORY_INSTANCE, false))
-	}
 	{
 		o.EUnsetFromID(EPACKAGE__ECLASSIFIERS)
 		v := o.EGetFromID(EPACKAGE__ECLASSIFIERS, false)
@@ -224,9 +220,8 @@ func TestEPackageEUnsetFromID(t *testing.T) {
 		assert.True(t, l.Empty())
 	}
 	{
-		o.EUnsetFromID(EPACKAGE__NS_PREFIX)
-		v := o.EGetFromID(EPACKAGE__NS_PREFIX, false)
-		assert.Equal(t, "", v)
+		o.EUnsetFromID(EPACKAGE__EFACTORY_INSTANCE)
+		assert.Nil(t, o.EGetFromID(EPACKAGE__EFACTORY_INSTANCE, false))
 	}
 	{
 		o.EUnsetFromID(EPACKAGE__ESUB_PACKAGES)
@@ -234,6 +229,11 @@ func TestEPackageEUnsetFromID(t *testing.T) {
 		assert.NotNil(t, v)
 		l := v.(EList)
 		assert.True(t, l.Empty())
+	}
+	{
+		o.EUnsetFromID(EPACKAGE__NS_PREFIX)
+		v := o.EGetFromID(EPACKAGE__NS_PREFIX, false)
+		assert.Equal(t, "", v)
 	}
 	{
 		o.EUnsetFromID(EPACKAGE__NS_URI)
@@ -246,4 +246,48 @@ func TestEPackageEInvokeFromID(t *testing.T) {
 	o := newEPackageImpl()
 	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(EPACKAGE__GET_ECLASSIFIER_ESTRING, nil) })
+}
+
+func TestEPackageEBasicInverseAdd(t *testing.T) {
+	o := newEPackageImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEClassifier)
+		o.EBasicInverseAdd(mockObject, EPACKAGE__ECLASSIFIERS, nil)
+		l := o.GetEClassifiers()
+		assert.True(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+	{
+		mockObject := new(MockEFactory)
+		o.EBasicInverseAdd(mockObject, EPACKAGE__EFACTORY_INSTANCE, nil)
+		assert.Equal(t, mockObject, o.GetEFactoryInstance())
+		mock.AssertExpectationsForObjects(t, mockObject)
+
+		mockObject2 := new(MockEFactory)
+		mockObject.On("EInverseRemove", o, EOPPOSITE_FEATURE_BASE-EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
+		o.EBasicInverseAdd(mockObject2, EPACKAGE__EFACTORY_INSTANCE, nil)
+		assert.Equal(t, mockObject2, o.GetEFactoryInstance())
+		mock.AssertExpectationsForObjects(t, mockObject2)
+	}
+	{
+		mockObject := new(MockEPackage)
+		o.EBasicInverseAdd(mockObject, EPACKAGE__ESUB_PACKAGES, nil)
+		l := o.GetESubPackages()
+		assert.True(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+	{
+		mockObject := new(MockEPackage)
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EIsProxy").Return(false).Once()
+		o.EBasicInverseAdd(mockObject, EPACKAGE__ESUPER_PACKAGE, nil)
+		assert.Equal(t, mockObject, o.GetESuperPackage())
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
 }

@@ -251,8 +251,9 @@ func (ePackage *ePackageImpl) EBasicInverseAdd(otherEnd EObject, featureID int, 
 		return list.AddWithNotification(otherEnd, notifications)
 	case EPACKAGE__EFACTORY_INSTANCE:
 		msgs := notifications
-		if ePackage.eFactoryInstance != nil {
-			msgs = ePackage.eFactoryInstance.(EObjectInternal).EInverseRemove(ePackage.AsEObject(), EOPPOSITE_FEATURE_BASE-EPACKAGE__EFACTORY_INSTANCE, msgs)
+		eFactoryInstance := ePackage.eFactoryInstance
+		if eFactoryInstance != nil {
+			msgs = eFactoryInstance.(EObjectInternal).EInverseRemove(ePackage.AsEObject(), EOPPOSITE_FEATURE_BASE-EPACKAGE__EFACTORY_INSTANCE, msgs)
 		}
 		return ePackage.basicSetEFactoryInstance(otherEnd.(EFactory), msgs)
 	case EPACKAGE__ESUB_PACKAGES:
@@ -260,7 +261,7 @@ func (ePackage *ePackageImpl) EBasicInverseAdd(otherEnd EObject, featureID int, 
 		return list.AddWithNotification(otherEnd, notifications)
 	case EPACKAGE__ESUPER_PACKAGE:
 		msgs := notifications
-		if ePackage.EContainer() != nil {
+		if ePackage.EInternalContainer() != nil {
 			msgs = ePackage.EBasicRemoveFromContainer(msgs)
 		}
 		return ePackage.EBasicSetContainer(otherEnd, EPACKAGE__ESUPER_PACKAGE, msgs)

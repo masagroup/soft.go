@@ -221,7 +221,7 @@ func (eAnnotation *eAnnotationImpl) EBasicInverseAdd(otherEnd EObject, featureID
 	switch featureID {
 	case EANNOTATION__EMODEL_ELEMENT:
 		msgs := notifications
-		if eAnnotation.EContainer() != nil {
+		if eAnnotation.EInternalContainer() != nil {
 			msgs = eAnnotation.EBasicRemoveFromContainer(msgs)
 		}
 		return eAnnotation.basicSetEModelElement(otherEnd.(EModelElement), msgs)

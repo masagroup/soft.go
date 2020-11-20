@@ -191,7 +191,7 @@ func (eOperation *eOperationImpl) EBasicInverseAdd(otherEnd EObject, featureID i
 	switch featureID {
 	case EOPERATION__ECONTAINING_CLASS:
 		msgs := notifications
-		if eOperation.EContainer() != nil {
+		if eOperation.EInternalContainer() != nil {
 			msgs = eOperation.EBasicRemoveFromContainer(msgs)
 		}
 		return eOperation.EBasicSetContainer(otherEnd, EOPERATION__ECONTAINING_CLASS, msgs)

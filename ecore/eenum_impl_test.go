@@ -107,7 +107,24 @@ func TestEEnumEUnsetFromID(t *testing.T) {
 func TestEEnumEInvokeFromID(t *testing.T) {
 	o := newEEnumImpl()
 	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
-	assert.Panics(t, func() { o.EInvokeFromID(EENUM__GET_EENUM_LITERAL_BY_LITERAL_ESTRING, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(EENUM__GET_EENUM_LITERAL_EINT, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(EENUM__GET_EENUM_LITERAL_ESTRING, nil) })
+	assert.Panics(t, func() { o.EInvokeFromID(EENUM__GET_EENUM_LITERAL_BY_LITERAL_ESTRING, nil) })
+}
+
+func TestEEnumEBasicInverseAdd(t *testing.T) {
+	o := newEEnumImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEEnumLiteral)
+		o.EBasicInverseAdd(mockObject, EENUM__ELITERALS, nil)
+		l := o.GetELiterals()
+		assert.True(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
 }

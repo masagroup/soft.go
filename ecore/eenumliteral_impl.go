@@ -157,7 +157,7 @@ func (eEnumLiteral *eEnumLiteralImpl) EBasicInverseAdd(otherEnd EObject, feature
 	switch featureID {
 	case EENUM_LITERAL__EENUM:
 		msgs := notifications
-		if eEnumLiteral.EContainer() != nil {
+		if eEnumLiteral.EInternalContainer() != nil {
 			msgs = eEnumLiteral.EBasicRemoveFromContainer(msgs)
 		}
 		return eEnumLiteral.EBasicSetContainer(otherEnd, EENUM_LITERAL__EENUM, msgs)

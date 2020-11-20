@@ -101,3 +101,20 @@ func TestEModelElementEInvokeFromID(t *testing.T) {
 	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(EMODEL_ELEMENT__GET_EANNOTATION_ESTRING, nil) })
 }
+
+func TestEModelElementEBasicInverseAdd(t *testing.T) {
+	o := newEModelElementImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEAnnotation)
+		o.EBasicInverseAdd(mockObject, EMODEL_ELEMENT__EANNOTATIONS, nil)
+		l := o.GetEAnnotations()
+		assert.True(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
+}

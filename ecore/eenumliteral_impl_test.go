@@ -122,10 +122,10 @@ func TestEEnumLiteralEEnumGet(t *testing.T) {
 func TestEEnumLiteralEGetFromID(t *testing.T) {
 	o := newEEnumLiteralImpl()
 	assert.Panics(t, func() { o.EGetFromID(-1, true) })
-	assert.Equal(t, o.GetValue(), o.EGetFromID(EENUM_LITERAL__VALUE, true))
-	assert.Equal(t, o.GetInstance(), o.EGetFromID(EENUM_LITERAL__INSTANCE, true))
 	assert.Equal(t, o.GetEEnum(), o.EGetFromID(EENUM_LITERAL__EENUM, true))
+	assert.Equal(t, o.GetInstance(), o.EGetFromID(EENUM_LITERAL__INSTANCE, true))
 	assert.Equal(t, o.GetLiteral(), o.EGetFromID(EENUM_LITERAL__LITERAL, true))
+	assert.Equal(t, o.GetValue(), o.EGetFromID(EENUM_LITERAL__VALUE, true))
 }
 
 func TestEEnumLiteralESetFromID(t *testing.T) {
@@ -152,20 +152,15 @@ func TestEEnumLiteralESetFromID(t *testing.T) {
 func TestEEnumLiteralEIsSetFromID(t *testing.T) {
 	o := newEEnumLiteralImpl()
 	assert.Panics(t, func() { o.EIsSetFromID(-1) })
-	assert.False(t, o.EIsSetFromID(EENUM_LITERAL__VALUE))
-	assert.False(t, o.EIsSetFromID(EENUM_LITERAL__INSTANCE))
 	assert.False(t, o.EIsSetFromID(EENUM_LITERAL__EENUM))
+	assert.False(t, o.EIsSetFromID(EENUM_LITERAL__INSTANCE))
 	assert.False(t, o.EIsSetFromID(EENUM_LITERAL__LITERAL))
+	assert.False(t, o.EIsSetFromID(EENUM_LITERAL__VALUE))
 }
 
 func TestEEnumLiteralEUnsetFromID(t *testing.T) {
 	o := newEEnumLiteralImpl()
 	assert.Panics(t, func() { o.EUnsetFromID(-1) })
-	{
-		o.EUnsetFromID(EENUM_LITERAL__VALUE)
-		v := o.EGetFromID(EENUM_LITERAL__VALUE, false)
-		assert.Equal(t, 0, v)
-	}
 	{
 		o.EUnsetFromID(EENUM_LITERAL__INSTANCE)
 		v := o.EGetFromID(EENUM_LITERAL__INSTANCE, false)
@@ -176,4 +171,27 @@ func TestEEnumLiteralEUnsetFromID(t *testing.T) {
 		v := o.EGetFromID(EENUM_LITERAL__LITERAL, false)
 		assert.Equal(t, "", v)
 	}
+	{
+		o.EUnsetFromID(EENUM_LITERAL__VALUE)
+		v := o.EGetFromID(EENUM_LITERAL__VALUE, false)
+		assert.Equal(t, 0, v)
+	}
+}
+
+func TestEEnumLiteralEBasicInverseAdd(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEEnum)
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EIsProxy").Return(false).Once()
+		o.EBasicInverseAdd(mockObject, EENUM_LITERAL__EENUM, nil)
+		assert.Equal(t, mockObject, o.GetEEnum())
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
 }

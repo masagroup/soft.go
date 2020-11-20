@@ -186,13 +186,13 @@ func TestEGenericTypeIsInstanceOperation(t *testing.T) {
 func TestEGenericTypeEGetFromID(t *testing.T) {
 	o := newEGenericTypeImpl()
 	assert.Panics(t, func() { o.EGetFromID(-1, true) })
-	assert.Equal(t, o.GetEUpperBound(), o.EGetFromID(EGENERIC_TYPE__EUPPER_BOUND, true))
+	assert.Equal(t, o.GetEClassifier(), o.EGetFromID(EGENERIC_TYPE__ECLASSIFIER, true))
+	assert.Equal(t, o.GetELowerBound(), o.EGetFromID(EGENERIC_TYPE__ELOWER_BOUND, true))
+	assert.Equal(t, o.GetERawType(), o.EGetFromID(EGENERIC_TYPE__ERAW_TYPE, true))
 	assert.Equal(t, o.GetETypeArguments(), o.EGetFromID(EGENERIC_TYPE__ETYPE_ARGUMENTS, true))
 	assert.Equal(t, o.GetETypeArguments().(EObjectList).GetUnResolvedList(), o.EGetFromID(EGENERIC_TYPE__ETYPE_ARGUMENTS, false))
-	assert.Equal(t, o.GetERawType(), o.EGetFromID(EGENERIC_TYPE__ERAW_TYPE, true))
-	assert.Equal(t, o.GetELowerBound(), o.EGetFromID(EGENERIC_TYPE__ELOWER_BOUND, true))
 	assert.Equal(t, o.GetETypeParameter(), o.EGetFromID(EGENERIC_TYPE__ETYPE_PARAMETER, true))
-	assert.Equal(t, o.GetEClassifier(), o.EGetFromID(EGENERIC_TYPE__ECLASSIFIER, true))
+	assert.Equal(t, o.GetEUpperBound(), o.EGetFromID(EGENERIC_TYPE__EUPPER_BOUND, true))
 }
 
 func TestEGenericTypeESetFromID(t *testing.T) {
@@ -241,8 +241,8 @@ func TestEGenericTypeESetFromID(t *testing.T) {
 func TestEGenericTypeEIsSetFromID(t *testing.T) {
 	o := newEGenericTypeImpl()
 	assert.Panics(t, func() { o.EIsSetFromID(-1) })
-	assert.False(t, o.EIsSetFromID(EGENERIC_TYPE__ELOWER_BOUND))
 	assert.False(t, o.EIsSetFromID(EGENERIC_TYPE__ECLASSIFIER))
+	assert.False(t, o.EIsSetFromID(EGENERIC_TYPE__ELOWER_BOUND))
 	assert.False(t, o.EIsSetFromID(EGENERIC_TYPE__ERAW_TYPE))
 	assert.False(t, o.EIsSetFromID(EGENERIC_TYPE__ETYPE_ARGUMENTS))
 	assert.False(t, o.EIsSetFromID(EGENERIC_TYPE__ETYPE_PARAMETER))
@@ -253,12 +253,12 @@ func TestEGenericTypeEUnsetFromID(t *testing.T) {
 	o := newEGenericTypeImpl()
 	assert.Panics(t, func() { o.EUnsetFromID(-1) })
 	{
-		o.EUnsetFromID(EGENERIC_TYPE__ELOWER_BOUND)
-		assert.Nil(t, o.EGetFromID(EGENERIC_TYPE__ELOWER_BOUND, false))
-	}
-	{
 		o.EUnsetFromID(EGENERIC_TYPE__ECLASSIFIER)
 		assert.Nil(t, o.EGetFromID(EGENERIC_TYPE__ECLASSIFIER, false))
+	}
+	{
+		o.EUnsetFromID(EGENERIC_TYPE__ELOWER_BOUND)
+		assert.Nil(t, o.EGetFromID(EGENERIC_TYPE__ELOWER_BOUND, false))
 	}
 	{
 		o.EUnsetFromID(EGENERIC_TYPE__ETYPE_ARGUMENTS)

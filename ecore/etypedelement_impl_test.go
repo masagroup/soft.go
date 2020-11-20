@@ -176,14 +176,14 @@ func TestETypedElementETypeSet(t *testing.T) {
 func TestETypedElementEGetFromID(t *testing.T) {
 	o := newETypedElementImpl()
 	assert.Panics(t, func() { o.EGetFromID(-1, true) })
-	assert.Equal(t, o.IsOrdered(), o.EGetFromID(ETYPED_ELEMENT__ORDERED, true))
-	assert.Equal(t, o.IsUnique(), o.EGetFromID(ETYPED_ELEMENT__UNIQUE, true))
 	assert.Equal(t, o.GetEType(), o.EGetFromID(ETYPED_ELEMENT__ETYPE, true))
-	assert.Panics(t, func() { o.EGetFromID(ETYPED_ELEMENT__REQUIRED, true) })
-	assert.Panics(t, func() { o.EGetFromID(ETYPED_ELEMENT__REQUIRED, false) })
 	assert.Equal(t, o.GetLowerBound(), o.EGetFromID(ETYPED_ELEMENT__LOWER_BOUND, true))
 	assert.Panics(t, func() { o.EGetFromID(ETYPED_ELEMENT__MANY, true) })
 	assert.Panics(t, func() { o.EGetFromID(ETYPED_ELEMENT__MANY, false) })
+	assert.Equal(t, o.IsOrdered(), o.EGetFromID(ETYPED_ELEMENT__ORDERED, true))
+	assert.Panics(t, func() { o.EGetFromID(ETYPED_ELEMENT__REQUIRED, true) })
+	assert.Panics(t, func() { o.EGetFromID(ETYPED_ELEMENT__REQUIRED, false) })
+	assert.Equal(t, o.IsUnique(), o.EGetFromID(ETYPED_ELEMENT__UNIQUE, true))
 	assert.Equal(t, o.GetUpperBound(), o.EGetFromID(ETYPED_ELEMENT__UPPER_BOUND, true))
 }
 
@@ -221,18 +221,27 @@ func TestETypedElementESetFromID(t *testing.T) {
 func TestETypedElementEIsSetFromID(t *testing.T) {
 	o := newETypedElementImpl()
 	assert.Panics(t, func() { o.EIsSetFromID(-1) })
-	assert.False(t, o.EIsSetFromID(ETYPED_ELEMENT__ORDERED))
-	assert.False(t, o.EIsSetFromID(ETYPED_ELEMENT__UNIQUE))
 	assert.False(t, o.EIsSetFromID(ETYPED_ELEMENT__ETYPE))
-	assert.Panics(t, func() { o.EIsSetFromID(ETYPED_ELEMENT__REQUIRED) })
 	assert.False(t, o.EIsSetFromID(ETYPED_ELEMENT__LOWER_BOUND))
 	assert.Panics(t, func() { o.EIsSetFromID(ETYPED_ELEMENT__MANY) })
+	assert.False(t, o.EIsSetFromID(ETYPED_ELEMENT__ORDERED))
+	assert.Panics(t, func() { o.EIsSetFromID(ETYPED_ELEMENT__REQUIRED) })
+	assert.False(t, o.EIsSetFromID(ETYPED_ELEMENT__UNIQUE))
 	assert.False(t, o.EIsSetFromID(ETYPED_ELEMENT__UPPER_BOUND))
 }
 
 func TestETypedElementEUnsetFromID(t *testing.T) {
 	o := newETypedElementImpl()
 	assert.Panics(t, func() { o.EUnsetFromID(-1) })
+	{
+		o.EUnsetFromID(ETYPED_ELEMENT__ETYPE)
+		assert.Nil(t, o.EGetFromID(ETYPED_ELEMENT__ETYPE, false))
+	}
+	{
+		o.EUnsetFromID(ETYPED_ELEMENT__LOWER_BOUND)
+		v := o.EGetFromID(ETYPED_ELEMENT__LOWER_BOUND, false)
+		assert.Equal(t, 0, v)
+	}
 	{
 		o.EUnsetFromID(ETYPED_ELEMENT__ORDERED)
 		v := o.EGetFromID(ETYPED_ELEMENT__ORDERED, false)
@@ -242,15 +251,6 @@ func TestETypedElementEUnsetFromID(t *testing.T) {
 		o.EUnsetFromID(ETYPED_ELEMENT__UNIQUE)
 		v := o.EGetFromID(ETYPED_ELEMENT__UNIQUE, false)
 		assert.Equal(t, true, v)
-	}
-	{
-		o.EUnsetFromID(ETYPED_ELEMENT__ETYPE)
-		assert.Nil(t, o.EGetFromID(ETYPED_ELEMENT__ETYPE, false))
-	}
-	{
-		o.EUnsetFromID(ETYPED_ELEMENT__LOWER_BOUND)
-		v := o.EGetFromID(ETYPED_ELEMENT__LOWER_BOUND, false)
-		assert.Equal(t, 0, v)
 	}
 	{
 		o.EUnsetFromID(ETYPED_ELEMENT__UPPER_BOUND)

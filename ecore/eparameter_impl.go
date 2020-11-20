@@ -71,7 +71,7 @@ func (eParameter *eParameterImpl) EBasicInverseAdd(otherEnd EObject, featureID i
 	switch featureID {
 	case EPARAMETER__EOPERATION:
 		msgs := notifications
-		if eParameter.EContainer() != nil {
+		if eParameter.EInternalContainer() != nil {
 			msgs = eParameter.EBasicRemoveFromContainer(msgs)
 		}
 		return eParameter.EBasicSetContainer(otherEnd, EPARAMETER__EOPERATION, msgs)

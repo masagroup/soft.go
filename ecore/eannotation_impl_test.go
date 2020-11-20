@@ -130,14 +130,14 @@ func TestEAnnotationReferencesGet(t *testing.T) {
 func TestEAnnotationEGetFromID(t *testing.T) {
 	o := newEAnnotationImpl()
 	assert.Panics(t, func() { o.EGetFromID(-1, true) })
-	assert.Equal(t, o.GetEModelElement(), o.EGetFromID(EANNOTATION__EMODEL_ELEMENT, true))
-	assert.Equal(t, o.GetSource(), o.EGetFromID(EANNOTATION__SOURCE, true))
-	assert.Equal(t, o.GetReferences(), o.EGetFromID(EANNOTATION__REFERENCES, true))
-	assert.Equal(t, o.GetReferences().(EObjectList).GetUnResolvedList(), o.EGetFromID(EANNOTATION__REFERENCES, false))
 	assert.Equal(t, o.GetContents(), o.EGetFromID(EANNOTATION__CONTENTS, true))
 	assert.Equal(t, o.GetContents().(EObjectList).GetUnResolvedList(), o.EGetFromID(EANNOTATION__CONTENTS, false))
 	assert.Equal(t, o.GetDetails(), o.EGetFromID(EANNOTATION__DETAILS, true))
 	assert.Equal(t, o.GetDetails().(EObjectList).GetUnResolvedList(), o.EGetFromID(EANNOTATION__DETAILS, false))
+	assert.Equal(t, o.GetEModelElement(), o.EGetFromID(EANNOTATION__EMODEL_ELEMENT, true))
+	assert.Equal(t, o.GetReferences(), o.EGetFromID(EANNOTATION__REFERENCES, true))
+	assert.Equal(t, o.GetReferences().(EObjectList).GetUnResolvedList(), o.EGetFromID(EANNOTATION__REFERENCES, false))
+	assert.Equal(t, o.GetSource(), o.EGetFromID(EANNOTATION__SOURCE, true))
 }
 
 func TestEAnnotationESetFromID(t *testing.T) {
@@ -201,32 +201,16 @@ func TestEAnnotationESetFromID(t *testing.T) {
 func TestEAnnotationEIsSetFromID(t *testing.T) {
 	o := newEAnnotationImpl()
 	assert.Panics(t, func() { o.EIsSetFromID(-1) })
-	assert.False(t, o.EIsSetFromID(EANNOTATION__EMODEL_ELEMENT))
-	assert.False(t, o.EIsSetFromID(EANNOTATION__SOURCE))
-	assert.False(t, o.EIsSetFromID(EANNOTATION__REFERENCES))
 	assert.False(t, o.EIsSetFromID(EANNOTATION__CONTENTS))
 	assert.False(t, o.EIsSetFromID(EANNOTATION__DETAILS))
+	assert.False(t, o.EIsSetFromID(EANNOTATION__EMODEL_ELEMENT))
+	assert.False(t, o.EIsSetFromID(EANNOTATION__REFERENCES))
+	assert.False(t, o.EIsSetFromID(EANNOTATION__SOURCE))
 }
 
 func TestEAnnotationEUnsetFromID(t *testing.T) {
 	o := newEAnnotationImpl()
 	assert.Panics(t, func() { o.EUnsetFromID(-1) })
-	{
-		o.EUnsetFromID(EANNOTATION__EMODEL_ELEMENT)
-		assert.Nil(t, o.EGetFromID(EANNOTATION__EMODEL_ELEMENT, false))
-	}
-	{
-		o.EUnsetFromID(EANNOTATION__SOURCE)
-		v := o.EGetFromID(EANNOTATION__SOURCE, false)
-		assert.Equal(t, "", v)
-	}
-	{
-		o.EUnsetFromID(EANNOTATION__REFERENCES)
-		v := o.EGetFromID(EANNOTATION__REFERENCES, false)
-		assert.NotNil(t, v)
-		l := v.(EList)
-		assert.True(t, l.Empty())
-	}
 	{
 		o.EUnsetFromID(EANNOTATION__CONTENTS)
 		v := o.EGetFromID(EANNOTATION__CONTENTS, false)
@@ -241,4 +225,38 @@ func TestEAnnotationEUnsetFromID(t *testing.T) {
 		l := v.(EList)
 		assert.True(t, l.Empty())
 	}
+	{
+		o.EUnsetFromID(EANNOTATION__EMODEL_ELEMENT)
+		assert.Nil(t, o.EGetFromID(EANNOTATION__EMODEL_ELEMENT, false))
+	}
+	{
+		o.EUnsetFromID(EANNOTATION__REFERENCES)
+		v := o.EGetFromID(EANNOTATION__REFERENCES, false)
+		assert.NotNil(t, v)
+		l := v.(EList)
+		assert.True(t, l.Empty())
+	}
+	{
+		o.EUnsetFromID(EANNOTATION__SOURCE)
+		v := o.EGetFromID(EANNOTATION__SOURCE, false)
+		assert.Equal(t, "", v)
+	}
+}
+
+func TestEAnnotationEBasicInverseAdd(t *testing.T) {
+	o := newEAnnotationImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEModelElement)
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EIsProxy").Return(false).Once()
+		o.EBasicInverseAdd(mockObject, EANNOTATION__EMODEL_ELEMENT, nil)
+		assert.Equal(t, mockObject, o.GetEModelElement())
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
 }

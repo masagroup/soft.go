@@ -173,7 +173,7 @@ func (eClassifier *eClassifierImpl) EBasicInverseAdd(otherEnd EObject, featureID
 	switch featureID {
 	case ECLASSIFIER__EPACKAGE:
 		msgs := notifications
-		if eClassifier.EContainer() != nil {
+		if eClassifier.EInternalContainer() != nil {
 			msgs = eClassifier.EBasicRemoveFromContainer(msgs)
 		}
 		return eClassifier.EBasicSetContainer(otherEnd, ECLASSIFIER__EPACKAGE, msgs)

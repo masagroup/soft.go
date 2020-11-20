@@ -144,6 +144,24 @@ func TestEFactoryEInvokeFromID(t *testing.T) {
 	o := newEFactoryImpl()
 	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(EFACTORY__CONVERT_TO_STRING_EDATATYPE_EJAVAOBJECT, nil) })
-	assert.Panics(t, func() { o.EInvokeFromID(EFACTORY__CREATE_FROM_STRING_EDATATYPE_ESTRING, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(EFACTORY__CREATE_ECLASS, nil) })
+	assert.Panics(t, func() { o.EInvokeFromID(EFACTORY__CREATE_FROM_STRING_EDATATYPE_ESTRING, nil) })
+}
+
+func TestEFactoryEBasicInverseAdd(t *testing.T) {
+	o := newEFactoryImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEPackage)
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EIsProxy").Return(false).Once()
+		o.EBasicInverseAdd(mockObject, EFACTORY__EPACKAGE, nil)
+		assert.Equal(t, mockObject, o.GetEPackage())
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
 }

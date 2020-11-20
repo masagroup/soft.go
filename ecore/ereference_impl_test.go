@@ -139,15 +139,15 @@ func TestEReferenceEKeysGet(t *testing.T) {
 func TestEReferenceEGetFromID(t *testing.T) {
 	o := newEReferenceImpl()
 	assert.Panics(t, func() { o.EGetFromID(-1, true) })
-	assert.Equal(t, o.IsResolveProxies(), o.EGetFromID(EREFERENCE__RESOLVE_PROXIES, true))
-	assert.Equal(t, o.GetEOpposite(), o.EGetFromID(EREFERENCE__EOPPOSITE, true))
 	assert.Panics(t, func() { o.EGetFromID(EREFERENCE__CONTAINER, true) })
 	assert.Panics(t, func() { o.EGetFromID(EREFERENCE__CONTAINER, false) })
 	assert.Equal(t, o.IsContainment(), o.EGetFromID(EREFERENCE__CONTAINMENT, true))
-	assert.Panics(t, func() { o.EGetFromID(EREFERENCE__EREFERENCE_TYPE, true) })
-	assert.Panics(t, func() { o.EGetFromID(EREFERENCE__EREFERENCE_TYPE, false) })
 	assert.Equal(t, o.GetEKeys(), o.EGetFromID(EREFERENCE__EKEYS, true))
 	assert.Equal(t, o.GetEKeys().(EObjectList).GetUnResolvedList(), o.EGetFromID(EREFERENCE__EKEYS, false))
+	assert.Equal(t, o.GetEOpposite(), o.EGetFromID(EREFERENCE__EOPPOSITE, true))
+	assert.Panics(t, func() { o.EGetFromID(EREFERENCE__EREFERENCE_TYPE, true) })
+	assert.Panics(t, func() { o.EGetFromID(EREFERENCE__EREFERENCE_TYPE, false) })
+	assert.Equal(t, o.IsResolveProxies(), o.EGetFromID(EREFERENCE__RESOLVE_PROXIES, true))
 }
 
 func TestEReferenceESetFromID(t *testing.T) {
@@ -187,30 +187,21 @@ func TestEReferenceESetFromID(t *testing.T) {
 func TestEReferenceEIsSetFromID(t *testing.T) {
 	o := newEReferenceImpl()
 	assert.Panics(t, func() { o.EIsSetFromID(-1) })
-	assert.False(t, o.EIsSetFromID(EREFERENCE__RESOLVE_PROXIES))
-	assert.False(t, o.EIsSetFromID(EREFERENCE__CONTAINMENT))
 	assert.Panics(t, func() { o.EIsSetFromID(EREFERENCE__CONTAINER) })
+	assert.False(t, o.EIsSetFromID(EREFERENCE__CONTAINMENT))
+	assert.False(t, o.EIsSetFromID(EREFERENCE__EKEYS))
 	assert.False(t, o.EIsSetFromID(EREFERENCE__EOPPOSITE))
 	assert.Panics(t, func() { o.EIsSetFromID(EREFERENCE__EREFERENCE_TYPE) })
-	assert.False(t, o.EIsSetFromID(EREFERENCE__EKEYS))
+	assert.False(t, o.EIsSetFromID(EREFERENCE__RESOLVE_PROXIES))
 }
 
 func TestEReferenceEUnsetFromID(t *testing.T) {
 	o := newEReferenceImpl()
 	assert.Panics(t, func() { o.EUnsetFromID(-1) })
 	{
-		o.EUnsetFromID(EREFERENCE__RESOLVE_PROXIES)
-		v := o.EGetFromID(EREFERENCE__RESOLVE_PROXIES, false)
-		assert.Equal(t, true, v)
-	}
-	{
 		o.EUnsetFromID(EREFERENCE__CONTAINMENT)
 		v := o.EGetFromID(EREFERENCE__CONTAINMENT, false)
 		assert.Equal(t, false, v)
-	}
-	{
-		o.EUnsetFromID(EREFERENCE__EOPPOSITE)
-		assert.Nil(t, o.EGetFromID(EREFERENCE__EOPPOSITE, false))
 	}
 	{
 		o.EUnsetFromID(EREFERENCE__EKEYS)
@@ -218,5 +209,14 @@ func TestEReferenceEUnsetFromID(t *testing.T) {
 		assert.NotNil(t, v)
 		l := v.(EList)
 		assert.True(t, l.Empty())
+	}
+	{
+		o.EUnsetFromID(EREFERENCE__EOPPOSITE)
+		assert.Nil(t, o.EGetFromID(EREFERENCE__EOPPOSITE, false))
+	}
+	{
+		o.EUnsetFromID(EREFERENCE__RESOLVE_PROXIES)
+		v := o.EGetFromID(EREFERENCE__RESOLVE_PROXIES, false)
+		assert.Equal(t, true, v)
 	}
 }

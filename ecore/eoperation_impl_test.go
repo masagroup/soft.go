@@ -112,6 +112,7 @@ func TestEOperationESetFromID(t *testing.T) {
 		l := NewImmutableEList([]interface{}{mockValue})
 		// expectations
 		mockValue.On("EIsProxy").Return(false).Once()
+
 		// set list with new contents
 		o.ESetFromID(EOPERATION__EEXCEPTIONS, l)
 		// checks
@@ -125,6 +126,7 @@ func TestEOperationESetFromID(t *testing.T) {
 		l := NewImmutableEList([]interface{}{mockValue})
 		// expectations
 		mockValue.On("EInverseAdd", o, EPARAMETER__EOPERATION, mock.Anything).Return(nil).Once()
+
 		// set list with new contents
 		o.ESetFromID(EOPERATION__EPARAMETERS, l)
 		// checks
@@ -199,6 +201,37 @@ func TestEOperationEBasicInverseAdd(t *testing.T) {
 		o.EBasicInverseAdd(mockObject, EOPERATION__EPARAMETERS, nil)
 		l := o.GetEParameters()
 		assert.True(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
+}
+
+func TestEOperationEBasicInverseRemove(t *testing.T) {
+	o := newEOperationImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEClass)
+		o.EBasicInverseRemove(mockObject, EOPERATION__ECONTAINING_CLASS, nil)
+		mock.AssertExpectationsForObjects(t, mockObject)
+
+	}
+	{
+		// initialize list with a mock object
+		mockObject := new(MockEParameter)
+		mockObject.On("EInverseAdd", o, EPARAMETER__EOPERATION, mock.Anything).Return(nil).Once()
+
+		l := o.GetEParameters()
+		l.Add(mockObject)
+
+		// basic inverse remove
+		o.EBasicInverseRemove(mockObject, EOPERATION__EPARAMETERS, nil)
+
+		// check it was removed
+		assert.False(t, l.Contains(mockObject))
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}
 

@@ -164,6 +164,7 @@ func TestEReferenceESetFromID(t *testing.T) {
 		l := NewImmutableEList([]interface{}{mockValue})
 		// expectations
 		mockValue.On("EIsProxy").Return(false).Once()
+
 		// set list with new contents
 		o.ESetFromID(EREFERENCE__EKEYS, l)
 		// checks

@@ -76,6 +76,7 @@ func TestEEnumESetFromID(t *testing.T) {
 		l := NewImmutableEList([]interface{}{mockValue})
 		// expectations
 		mockValue.On("EInverseAdd", o, EENUM_LITERAL__EENUM, mock.Anything).Return(nil).Once()
+
 		// set list with new contents
 		o.ESetFromID(EENUM__ELITERALS, l)
 		// checks
@@ -124,6 +125,31 @@ func TestEEnumEBasicInverseAdd(t *testing.T) {
 		o.EBasicInverseAdd(mockObject, EENUM__ELITERALS, nil)
 		l := o.GetELiterals()
 		assert.True(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
+}
+
+func TestEEnumEBasicInverseRemove(t *testing.T) {
+	o := newEEnumImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
+	}
+	{
+		// initialize list with a mock object
+		mockObject := new(MockEEnumLiteral)
+		mockObject.On("EInverseAdd", o, EENUM_LITERAL__EENUM, mock.Anything).Return(nil).Once()
+
+		l := o.GetELiterals()
+		l.Add(mockObject)
+
+		// basic inverse remove
+		o.EBasicInverseRemove(mockObject, EENUM__ELITERALS, nil)
+
+		// check it was removed
+		assert.False(t, l.Contains(mockObject))
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}
 

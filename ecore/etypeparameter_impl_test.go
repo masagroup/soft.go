@@ -63,6 +63,7 @@ func TestETypeParameterESetFromID(t *testing.T) {
 		l := NewImmutableEList([]interface{}{mockValue})
 		// expectations
 		mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-ETYPE_PARAMETER__EBOUNDS, mock.Anything).Return(nil).Once()
+
 		// set list with new contents
 		o.ESetFromID(ETYPE_PARAMETER__EBOUNDS, l)
 		// checks
@@ -89,4 +90,29 @@ func TestETypeParameterEUnsetFromID(t *testing.T) {
 		l := v.(EList)
 		assert.True(t, l.Empty())
 	}
+}
+
+func TestETypeParameterEBasicInverseRemove(t *testing.T) {
+	o := newETypeParameterImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
+	}
+	{
+		// initialize list with a mock object
+		mockObject := new(MockEGenericType)
+		mockObject.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-ETYPE_PARAMETER__EBOUNDS, mock.Anything).Return(nil).Once()
+
+		l := o.GetEBounds()
+		l.Add(mockObject)
+
+		// basic inverse remove
+		o.EBasicInverseRemove(mockObject, ETYPE_PARAMETER__EBOUNDS, nil)
+
+		// check it was removed
+		assert.False(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
 }

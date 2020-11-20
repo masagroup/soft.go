@@ -244,6 +244,7 @@ func TestEClassESetFromID(t *testing.T) {
 		l := NewImmutableEList([]interface{}{mockValue})
 		// expectations
 		mockValue.On("EInverseAdd", o, EOPERATION__ECONTAINING_CLASS, mock.Anything).Return(nil).Once()
+
 		// set list with new contents
 		o.ESetFromID(ECLASS__EOPERATIONS, l)
 		// checks
@@ -257,6 +258,7 @@ func TestEClassESetFromID(t *testing.T) {
 		l := NewImmutableEList([]interface{}{mockValue})
 		// expectations
 		mockValue.On("EInverseAdd", o, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, mock.Anything).Return(nil).Once()
+
 		// set list with new contents
 		o.ESetFromID(ECLASS__ESTRUCTURAL_FEATURES, l)
 		// checks
@@ -270,6 +272,7 @@ func TestEClassESetFromID(t *testing.T) {
 		l := NewImmutableEList([]interface{}{mockValue})
 		// expectations
 		mockValue.On("EIsProxy").Return(false).Once()
+
 		// set list with new contents
 		o.ESetFromID(ECLASS__ESUPER_TYPES, l)
 		// checks
@@ -376,6 +379,46 @@ func TestEClassEBasicInverseAdd(t *testing.T) {
 		o.EBasicInverseAdd(mockObject, ECLASS__ESTRUCTURAL_FEATURES, nil)
 		l := o.GetEStructuralFeatures()
 		assert.True(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
+}
+
+func TestEClassEBasicInverseRemove(t *testing.T) {
+	o := newEClassImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
+	}
+	{
+		// initialize list with a mock object
+		mockObject := new(MockEOperation)
+		mockObject.On("EInverseAdd", o, EOPERATION__ECONTAINING_CLASS, mock.Anything).Return(nil).Once()
+
+		l := o.GetEOperations()
+		l.Add(mockObject)
+
+		// basic inverse remove
+		o.EBasicInverseRemove(mockObject, ECLASS__EOPERATIONS, nil)
+
+		// check it was removed
+		assert.False(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+	{
+		// initialize list with a mock object
+		mockObject := new(MockEStructuralFeature)
+		mockObject.On("EInverseAdd", o, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, mock.Anything).Return(nil).Once()
+
+		l := o.GetEStructuralFeatures()
+		l.Add(mockObject)
+
+		// basic inverse remove
+		o.EBasicInverseRemove(mockObject, ECLASS__ESTRUCTURAL_FEATURES, nil)
+
+		// check it was removed
+		assert.False(t, l.Contains(mockObject))
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}
 

@@ -195,3 +195,19 @@ func TestEEnumLiteralEBasicInverseAdd(t *testing.T) {
 	}
 
 }
+
+func TestEEnumLiteralEBasicInverseRemove(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEEnum)
+		o.EBasicInverseRemove(mockObject, EENUM_LITERAL__EENUM, nil)
+		mock.AssertExpectationsForObjects(t, mockObject)
+
+	}
+
+}

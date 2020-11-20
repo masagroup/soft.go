@@ -68,6 +68,7 @@ func TestEModelElementESetFromID(t *testing.T) {
 		l := NewImmutableEList([]interface{}{mockValue})
 		// expectations
 		mockValue.On("EInverseAdd", o, EANNOTATION__EMODEL_ELEMENT, mock.Anything).Return(nil).Once()
+
 		// set list with new contents
 		o.ESetFromID(EMODEL_ELEMENT__EANNOTATIONS, l)
 		// checks
@@ -114,6 +115,31 @@ func TestEModelElementEBasicInverseAdd(t *testing.T) {
 		o.EBasicInverseAdd(mockObject, EMODEL_ELEMENT__EANNOTATIONS, nil)
 		l := o.GetEAnnotations()
 		assert.True(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
+}
+
+func TestEModelElementEBasicInverseRemove(t *testing.T) {
+	o := newEModelElementImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
+	}
+	{
+		// initialize list with a mock object
+		mockObject := new(MockEAnnotation)
+		mockObject.On("EInverseAdd", o, EANNOTATION__EMODEL_ELEMENT, mock.Anything).Return(nil).Once()
+
+		l := o.GetEAnnotations()
+		l.Add(mockObject)
+
+		// basic inverse remove
+		o.EBasicInverseRemove(mockObject, EMODEL_ELEMENT__EANNOTATIONS, nil)
+
+		// check it was removed
+		assert.False(t, l.Contains(mockObject))
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}
 

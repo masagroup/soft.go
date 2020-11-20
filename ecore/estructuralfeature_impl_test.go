@@ -356,3 +356,19 @@ func TestEStructuralFeatureEBasicInverseAdd(t *testing.T) {
 	}
 
 }
+
+func TestEStructuralFeatureEBasicInverseRemove(t *testing.T) {
+	o := newEStructuralFeatureImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEClass)
+		o.EBasicInverseRemove(mockObject, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, nil)
+		mock.AssertExpectationsForObjects(t, mockObject)
+
+	}
+
+}

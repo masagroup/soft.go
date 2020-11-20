@@ -158,6 +158,7 @@ func TestEPackageESetFromID(t *testing.T) {
 		l := NewImmutableEList([]interface{}{mockValue})
 		// expectations
 		mockValue.On("EInverseAdd", o, ECLASSIFIER__EPACKAGE, mock.Anything).Return(nil).Once()
+
 		// set list with new contents
 		o.ESetFromID(EPACKAGE__ECLASSIFIERS, l)
 		// checks
@@ -178,6 +179,7 @@ func TestEPackageESetFromID(t *testing.T) {
 		l := NewImmutableEList([]interface{}{mockValue})
 		// expectations
 		mockValue.On("EInverseAdd", o, EPACKAGE__ESUPER_PACKAGE, mock.Anything).Return(nil).Once()
+
 		// set list with new contents
 		o.ESetFromID(EPACKAGE__ESUB_PACKAGES, l)
 		// checks
@@ -288,6 +290,58 @@ func TestEPackageEBasicInverseAdd(t *testing.T) {
 		o.EBasicInverseAdd(mockObject, EPACKAGE__ESUPER_PACKAGE, nil)
 		assert.Equal(t, mockObject, o.GetESuperPackage())
 		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+
+}
+
+func TestEPackageEBasicInverseRemove(t *testing.T) {
+	o := newEPackageImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
+	}
+	{
+		// initialize list with a mock object
+		mockObject := new(MockEClassifier)
+		mockObject.On("EInverseAdd", o, ECLASSIFIER__EPACKAGE, mock.Anything).Return(nil).Once()
+
+		l := o.GetEClassifiers()
+		l.Add(mockObject)
+
+		// basic inverse remove
+		o.EBasicInverseRemove(mockObject, EPACKAGE__ECLASSIFIERS, nil)
+
+		// check it was removed
+		assert.False(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+	{
+		mockObject := new(MockEFactory)
+		o.EBasicInverseRemove(mockObject, EPACKAGE__EFACTORY_INSTANCE, nil)
+		mock.AssertExpectationsForObjects(t, mockObject)
+
+	}
+	{
+		// initialize list with a mock object
+		mockObject := new(MockEPackage)
+		mockObject.On("EInverseAdd", o, EPACKAGE__ESUPER_PACKAGE, mock.Anything).Return(nil).Once()
+
+		l := o.GetESubPackages()
+		l.Add(mockObject)
+
+		// basic inverse remove
+		o.EBasicInverseRemove(mockObject, EPACKAGE__ESUB_PACKAGES, nil)
+
+		// check it was removed
+		assert.False(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+	{
+		mockObject := new(MockEPackage)
+		o.EBasicInverseRemove(mockObject, EPACKAGE__ESUPER_PACKAGE, nil)
+		mock.AssertExpectationsForObjects(t, mockObject)
+
 	}
 
 }

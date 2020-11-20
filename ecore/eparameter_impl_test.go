@@ -85,3 +85,19 @@ func TestEParameterEBasicInverseAdd(t *testing.T) {
 	}
 
 }
+
+func TestEParameterEBasicInverseRemove(t *testing.T) {
+	o := newEParameterImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEOperation)
+		o.EBasicInverseRemove(mockObject, EPARAMETER__EOPERATION, nil)
+		mock.AssertExpectationsForObjects(t, mockObject)
+
+	}
+
+}

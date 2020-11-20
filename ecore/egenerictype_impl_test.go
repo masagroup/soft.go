@@ -216,6 +216,7 @@ func TestEGenericTypeESetFromID(t *testing.T) {
 		l := NewImmutableEList([]interface{}{mockValue})
 		// expectations
 		mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ETYPE_ARGUMENTS, mock.Anything).Return(nil).Once()
+
 		// set list with new contents
 		o.ESetFromID(EGENERIC_TYPE__ETYPE_ARGUMENTS, l)
 		// checks
@@ -281,4 +282,35 @@ func TestEGenericTypeEInvokeFromID(t *testing.T) {
 	o := newEGenericTypeImpl()
 	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(EGENERIC_TYPE__IS_INSTANCE_EJAVAOBJECT, nil) })
+}
+
+func TestEGenericTypeEBasicInverseRemove(t *testing.T) {
+	o := newEGenericTypeImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
+	}
+	{
+
+	}
+	{
+		// initialize list with a mock object
+		mockObject := new(MockEGenericType)
+		mockObject.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ETYPE_ARGUMENTS, mock.Anything).Return(nil).Once()
+
+		l := o.GetETypeArguments()
+		l.Add(mockObject)
+
+		// basic inverse remove
+		o.EBasicInverseRemove(mockObject, EGENERIC_TYPE__ETYPE_ARGUMENTS, nil)
+
+		// check it was removed
+		assert.False(t, l.Contains(mockObject))
+		mock.AssertExpectationsForObjects(t, mockObject)
+	}
+	{
+
+	}
+
 }

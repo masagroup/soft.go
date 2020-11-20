@@ -165,3 +165,19 @@ func TestEFactoryEBasicInverseAdd(t *testing.T) {
 	}
 
 }
+
+func TestEFactoryEBasicInverseRemove(t *testing.T) {
+	o := newEFactoryImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEPackage)
+		o.EBasicInverseRemove(mockObject, EFACTORY__EPACKAGE, nil)
+		mock.AssertExpectationsForObjects(t, mockObject)
+
+	}
+
+}

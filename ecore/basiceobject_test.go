@@ -68,3 +68,13 @@ func TestBasicEObjectESetResource(t *testing.T) {
 
 	// container - tested with reflective object
 }
+
+func TestBasicEObject_EStaticFeatureCount(t *testing.T) {
+	o := NewBasicEObject()
+	assert.Equal(t, 0, o.EStaticFeatureCount())
+}
+
+func TestBasicEObject_EProperties(t *testing.T) {
+	o := NewBasicEObject()
+	assert.Nil(t, o.EProperties())
+}

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestBasicEObjectGetInterfaces(t *testing.T) {
@@ -43,8 +44,27 @@ func TestBasicEObjectContainer(t *testing.T) {
 	assert.Equal(t, 1, o.EContainerFeatureID())
 }
 
-func TestEBasicRemoveFromContainer(t *testing.T) {
+func TestBasicEObjectEBasicRemoveFromContainer(t *testing.T) {
 	var o EObject = nil
 	i, _ := o.(EObjectInternal)
 	assert.Nil(t, i)
+}
+
+func TestBasicEObjectESetResource(t *testing.T) {
+	// no container
+	o := NewBasicEObject()
+	mockResource := new(MockEResource)
+	mockNotifications := new(MockENotificationChain)
+	o.ESetResource(mockResource, mockNotifications)
+	mock.AssertExpectationsForObjects(t, mockResource, mockNotifications)
+
+	mockResource2 := new(MockEResource)
+	mockContents := new(MockENotifyingList)
+	mockResource.On("GetContents").Return(mockContents).Once()
+	mockResource.On("Detached", o).Once()
+	mockContents.On("RemoveWithNotification", o, mockNotifications).Return(mockNotifications).Once()
+	o.ESetResource(mockResource2, mockNotifications)
+	mock.AssertExpectationsForObjects(t, mockResource, mockResource2, mockNotifications)
+
+	// container - tested with reflective object
 }

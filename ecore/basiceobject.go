@@ -252,6 +252,7 @@ func (o *BasicEObject) ESetInternalResource(resource EResource) {
 func (o *BasicEObject) ESetResource(newResource EResource, n ENotificationChain) ENotificationChain {
 	notifications := n
 	oldResource := o.EInternalResource()
+	// When setting the resource to nil we assume that detach has already been called in the resource implementation
 	if oldResource != nil && newResource != nil {
 		list := oldResource.GetContents().(ENotifyingList)
 		notifications = list.RemoveWithNotification(o.AsEObject(), notifications)
@@ -261,14 +262,16 @@ func (o *BasicEObject) ESetResource(newResource EResource, n ENotificationChain)
 	eContainer := o.container
 	if eContainer != nil {
 		if o.EContainmentFeature().IsResolveProxies() {
-			oldContainerResource := eContainer.EResource()
-			if oldContainerResource != nil {
-				if newResource == nil {
-					// If we're not setting a new resource, attach it to the old container's resource.
-					oldContainerResource.Attached(o.AsEObject())
-				} else if oldResource == nil {
-					// If we didn't detach it from an old resource already, detach it from the old container's resource.
-					oldContainerResource.Detached(o.AsEObject())
+			if eContainerInternal, _ := eContainer.(EObjectInternal); eContainerInternal != nil {
+				oldContainerResource := eContainerInternal.EInternalResource()
+				if oldContainerResource != nil {
+					if newResource == nil {
+						// If we're not setting a new resource, attach it to the old container's resource.
+						oldContainerResource.Attached(o.AsEObject())
+					} else if oldResource == nil {
+						// If we didn't detach it from an old resource already, detach it from the old container's resource.
+						oldContainerResource.Detached(o.AsEObject())
+					}
 				}
 			}
 		} else {

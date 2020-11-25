@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardEClass() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestEClassAsEClass(t *testing.T) {
@@ -40,6 +42,76 @@ func TestEClassStaticClass(t *testing.T) {
 func TestEClassFeatureCount(t *testing.T) {
 	o := newEClassImpl()
 	assert.Equal(t, ECLASS_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
+func TestEClassEAllAttributesGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllAttributes())
+}
+
+func TestEClassEAllContainmentsGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllContainments())
+}
+
+func TestEClassEAllOperationsGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllOperations())
+}
+
+func TestEClassEAllReferencesGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllReferences())
+}
+
+func TestEClassEAllStructuralFeaturesGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllStructuralFeatures())
+}
+
+func TestEClassEAllSuperTypesGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllSuperTypes())
+}
+
+func TestEClassEAttributesGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAttributes())
+}
+
+func TestEClassEContainmentFeaturesGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEContainmentFeatures())
+}
+
+func TestEClassECrossReferenceFeaturesGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetECrossReferenceFeatures())
+}
+
+func TestEClassEIDAttributeGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.GetEIDAttribute() })
+}
+
+func TestEClassEOperationsGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEOperations())
+}
+
+func TestEClassEReferencesGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEReferences())
+}
+
+func TestEClassEStructuralFeaturesGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEStructuralFeatures())
+}
+
+func TestEClassESuperTypesGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetESuperTypes())
 }
 
 func TestEClassAbstractGet(t *testing.T) {
@@ -84,83 +156,9 @@ func TestEClassInterfaceSet(t *testing.T) {
 	mockAdapter.AssertExpectations(t)
 }
 
-func TestEClassEStructuralFeaturesGet(t *testing.T) {
+func TestEClassGetEOperationOperation(t *testing.T) {
 	o := newEClassImpl()
-	assert.NotNil(t, o.GetEStructuralFeatures())
-}
-
-func TestEClassEAttributesGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.NotNil(t, o.GetEAttributes())
-}
-
-func TestEClassEReferencesGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.NotNil(t, o.GetEReferences())
-}
-
-func TestEClassESuperTypesGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.NotNil(t, o.GetESuperTypes())
-}
-
-func TestEClassEOperationsGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.NotNil(t, o.GetEOperations())
-}
-
-func TestEClassEContainmentFeaturesGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.NotNil(t, o.GetEContainmentFeatures())
-}
-
-func TestEClassECrossReferenceFeaturesGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.NotNil(t, o.GetECrossReferenceFeatures())
-}
-
-func TestEClassEAllAttributesGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.NotNil(t, o.GetEAllAttributes())
-}
-
-func TestEClassEAllReferencesGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.NotNil(t, o.GetEAllReferences())
-}
-
-func TestEClassEAllContainmentsGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.NotNil(t, o.GetEAllContainments())
-}
-
-func TestEClassEAllOperationsGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.NotNil(t, o.GetEAllOperations())
-}
-
-func TestEClassEAllStructuralFeaturesGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.NotNil(t, o.GetEAllStructuralFeatures())
-}
-
-func TestEClassEAllSuperTypesGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.NotNil(t, o.GetEAllSuperTypes())
-}
-
-func TestEClassEIDAttributeGet(t *testing.T) {
-	o := newEClassImpl()
-	assert.Panics(t, func() { o.GetEIDAttribute() })
-}
-
-func TestEClassIsSuperTypeOfOperation(t *testing.T) {
-	o := newEClassImpl()
-	assert.Panics(t, func() { o.IsSuperTypeOf(nil) })
-}
-func TestEClassGetFeatureCountOperation(t *testing.T) {
-	o := newEClassImpl()
-	assert.Panics(t, func() { o.GetFeatureCount() })
+	assert.Panics(t, func() { o.GetEOperation(0) })
 }
 func TestEClassGetEStructuralFeatureOperation(t *testing.T) {
 	o := newEClassImpl()
@@ -170,17 +168,21 @@ func TestEClassGetEStructuralFeatureFromNameOperation(t *testing.T) {
 	o := newEClassImpl()
 	assert.Panics(t, func() { o.GetEStructuralFeatureFromName("") })
 }
+func TestEClassGetFeatureCountOperation(t *testing.T) {
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.GetFeatureCount() })
+}
 func TestEClassGetFeatureIDOperation(t *testing.T) {
 	o := newEClassImpl()
 	assert.Panics(t, func() { o.GetFeatureID(nil) })
 }
+func TestEClassGetFeatureTypeOperation(t *testing.T) {
+	o := newEClassImpl()
+	assert.Panics(t, func() { o.GetFeatureType(nil) })
+}
 func TestEClassGetOperationCountOperation(t *testing.T) {
 	o := newEClassImpl()
 	assert.Panics(t, func() { o.GetOperationCount() })
-}
-func TestEClassGetEOperationOperation(t *testing.T) {
-	o := newEClassImpl()
-	assert.Panics(t, func() { o.GetEOperation(0) })
 }
 func TestEClassGetOperationIDOperation(t *testing.T) {
 	o := newEClassImpl()
@@ -190,9 +192,9 @@ func TestEClassGetOverrideOperation(t *testing.T) {
 	o := newEClassImpl()
 	assert.Panics(t, func() { o.GetOverride(nil) })
 }
-func TestEClassGetFeatureTypeOperation(t *testing.T) {
+func TestEClassIsSuperTypeOfOperation(t *testing.T) {
 	o := newEClassImpl()
-	assert.Panics(t, func() { o.GetFeatureType(nil) })
+	assert.Panics(t, func() { o.IsSuperTypeOf(nil) })
 }
 
 func TestEClassEGetFromID(t *testing.T) {
@@ -242,7 +244,6 @@ func TestEClassESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEOperation)
 		l := NewImmutableEList([]interface{}{mockValue})
-		// expectations
 		mockValue.On("EInverseAdd", o, EOPERATION__ECONTAINING_CLASS, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
@@ -256,7 +257,6 @@ func TestEClassESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEStructuralFeature)
 		l := NewImmutableEList([]interface{}{mockValue})
-		// expectations
 		mockValue.On("EInverseAdd", o, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
@@ -270,7 +270,6 @@ func TestEClassESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEClass)
 		l := NewImmutableEList([]interface{}{mockValue})
-		// expectations
 		mockValue.On("EIsProxy").Return(false).Once()
 
 		// set list with new contents
@@ -349,8 +348,8 @@ func TestEClassEInvokeFromID(t *testing.T) {
 	o := newEClassImpl()
 	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(ECLASS__GET_EOPERATION_EINT, nil) })
-	assert.Panics(t, func() { o.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING, nil) })
+	assert.Panics(t, func() { o.EInvokeFromID(ECLASS__GET_ESTRUCTURAL_FEATURE_EINT, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(ECLASS__GET_FEATURE_COUNT, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(ECLASS__GET_FEATURE_ID_ESTRUCTURALFEATURE, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(ECLASS__GET_FEATURE_TYPE_ESTRUCTURALFEATURE, nil) })

@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardEStructuralFeature() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestEStructuralFeatureAsEStructuralFeature(t *testing.T) {
@@ -42,67 +44,15 @@ func TestEStructuralFeatureFeatureCount(t *testing.T) {
 	assert.Equal(t, ESTRUCTURAL_FEATURE_FEATURE_COUNT, o.EStaticFeatureCount())
 }
 
-func TestEStructuralFeatureChangeableGet(t *testing.T) {
+func TestEStructuralFeatureDefaultValueGet(t *testing.T) {
 	o := newEStructuralFeatureImpl()
-	// get default value
-	assert.Equal(t, true, o.IsChangeable())
-	// get initialized value
-	v := true
-	o.isChangeable = v
-	assert.Equal(t, v, o.IsChangeable())
+	assert.Panics(t, func() { o.GetDefaultValue() })
 }
 
-func TestEStructuralFeatureChangeableSet(t *testing.T) {
+func TestEStructuralFeatureDefaultValueSet(t *testing.T) {
 	o := newEStructuralFeatureImpl()
-	v := true
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	o.EAdapters().Add(mockAdapter)
-	o.SetChangeable(v)
-	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStructuralFeatureVolatileGet(t *testing.T) {
-	o := newEStructuralFeatureImpl()
-	// get default value
-	assert.Equal(t, false, o.IsVolatile())
-	// get initialized value
-	v := true
-	o.isVolatile = v
-	assert.Equal(t, v, o.IsVolatile())
-}
-
-func TestEStructuralFeatureVolatileSet(t *testing.T) {
-	o := newEStructuralFeatureImpl()
-	v := true
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	o.EAdapters().Add(mockAdapter)
-	o.SetVolatile(v)
-	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStructuralFeatureTransientGet(t *testing.T) {
-	o := newEStructuralFeatureImpl()
-	// get default value
-	assert.Equal(t, false, o.IsTransient())
-	// get initialized value
-	v := true
-	o.isTransient = v
-	assert.Equal(t, v, o.IsTransient())
-}
-
-func TestEStructuralFeatureTransientSet(t *testing.T) {
-	o := newEStructuralFeatureImpl()
-	v := true
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	o.EAdapters().Add(mockAdapter)
-	o.SetTransient(v)
-	mockAdapter.AssertExpectations(t)
+	v := interface{}(nil)
+	assert.Panics(t, func() { o.SetDefaultValue(v) })
 }
 
 func TestEStructuralFeatureDefaultValueLiteralGet(t *testing.T) {
@@ -123,59 +73,6 @@ func TestEStructuralFeatureDefaultValueLiteralSet(t *testing.T) {
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetDefaultValueLiteral(v)
-	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStructuralFeatureDefaultValueGet(t *testing.T) {
-	o := newEStructuralFeatureImpl()
-	assert.Panics(t, func() { o.GetDefaultValue() })
-}
-
-func TestEStructuralFeatureDefaultValueSet(t *testing.T) {
-	o := newEStructuralFeatureImpl()
-	v := interface{}(nil)
-	assert.Panics(t, func() { o.SetDefaultValue(v) })
-}
-
-func TestEStructuralFeatureUnsettableGet(t *testing.T) {
-	o := newEStructuralFeatureImpl()
-	// get default value
-	assert.Equal(t, false, o.IsUnsettable())
-	// get initialized value
-	v := true
-	o.isUnsettable = v
-	assert.Equal(t, v, o.IsUnsettable())
-}
-
-func TestEStructuralFeatureUnsettableSet(t *testing.T) {
-	o := newEStructuralFeatureImpl()
-	v := true
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	o.EAdapters().Add(mockAdapter)
-	o.SetUnsettable(v)
-	mockAdapter.AssertExpectations(t)
-}
-
-func TestEStructuralFeatureDerivedGet(t *testing.T) {
-	o := newEStructuralFeatureImpl()
-	// get default value
-	assert.Equal(t, false, o.IsDerived())
-	// get initialized value
-	v := true
-	o.isDerived = v
-	assert.Equal(t, v, o.IsDerived())
-}
-
-func TestEStructuralFeatureDerivedSet(t *testing.T) {
-	o := newEStructuralFeatureImpl()
-	v := true
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	o.EAdapters().Add(mockAdapter)
-	o.SetDerived(v)
 	mockAdapter.AssertExpectations(t)
 }
 
@@ -211,6 +108,111 @@ func TestEStructuralFeatureFeatureIDSet(t *testing.T) {
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetFeatureID(v)
+	mockAdapter.AssertExpectations(t)
+}
+
+func TestEStructuralFeatureChangeableGet(t *testing.T) {
+	o := newEStructuralFeatureImpl()
+	// get default value
+	assert.Equal(t, true, o.IsChangeable())
+	// get initialized value
+	v := true
+	o.isChangeable = v
+	assert.Equal(t, v, o.IsChangeable())
+}
+
+func TestEStructuralFeatureChangeableSet(t *testing.T) {
+	o := newEStructuralFeatureImpl()
+	v := true
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.EAdapters().Add(mockAdapter)
+	o.SetChangeable(v)
+	mockAdapter.AssertExpectations(t)
+}
+
+func TestEStructuralFeatureDerivedGet(t *testing.T) {
+	o := newEStructuralFeatureImpl()
+	// get default value
+	assert.Equal(t, false, o.IsDerived())
+	// get initialized value
+	v := true
+	o.isDerived = v
+	assert.Equal(t, v, o.IsDerived())
+}
+
+func TestEStructuralFeatureDerivedSet(t *testing.T) {
+	o := newEStructuralFeatureImpl()
+	v := true
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.EAdapters().Add(mockAdapter)
+	o.SetDerived(v)
+	mockAdapter.AssertExpectations(t)
+}
+
+func TestEStructuralFeatureTransientGet(t *testing.T) {
+	o := newEStructuralFeatureImpl()
+	// get default value
+	assert.Equal(t, false, o.IsTransient())
+	// get initialized value
+	v := true
+	o.isTransient = v
+	assert.Equal(t, v, o.IsTransient())
+}
+
+func TestEStructuralFeatureTransientSet(t *testing.T) {
+	o := newEStructuralFeatureImpl()
+	v := true
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.EAdapters().Add(mockAdapter)
+	o.SetTransient(v)
+	mockAdapter.AssertExpectations(t)
+}
+
+func TestEStructuralFeatureUnsettableGet(t *testing.T) {
+	o := newEStructuralFeatureImpl()
+	// get default value
+	assert.Equal(t, false, o.IsUnsettable())
+	// get initialized value
+	v := true
+	o.isUnsettable = v
+	assert.Equal(t, v, o.IsUnsettable())
+}
+
+func TestEStructuralFeatureUnsettableSet(t *testing.T) {
+	o := newEStructuralFeatureImpl()
+	v := true
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.EAdapters().Add(mockAdapter)
+	o.SetUnsettable(v)
+	mockAdapter.AssertExpectations(t)
+}
+
+func TestEStructuralFeatureVolatileGet(t *testing.T) {
+	o := newEStructuralFeatureImpl()
+	// get default value
+	assert.Equal(t, false, o.IsVolatile())
+	// get initialized value
+	v := true
+	o.isVolatile = v
+	assert.Equal(t, v, o.IsVolatile())
+}
+
+func TestEStructuralFeatureVolatileSet(t *testing.T) {
+	o := newEStructuralFeatureImpl()
+	v := true
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.EAdapters().Add(mockAdapter)
+	o.SetVolatile(v)
 	mockAdapter.AssertExpectations(t)
 }
 
@@ -353,6 +355,15 @@ func TestEStructuralFeatureEBasicInverseAdd(t *testing.T) {
 		o.EBasicInverseAdd(mockObject, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, nil)
 		assert.Equal(t, mockObject, o.GetEContainingClass())
 		mock.AssertExpectationsForObjects(t, mockObject)
+
+		mockOther := new(MockEClass)
+		mockOther.On("EInternalResource").Return(nil).Once()
+		mockOther.On("EIsProxy").Return(false).Once()
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EInverseRemove", o, ECLASS__ESTRUCTURAL_FEATURES, nil).Return(nil).Once()
+		o.EBasicInverseAdd(mockOther, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, nil)
+		assert.Equal(t, mockOther, o.GetEContainingClass())
+		mock.AssertExpectationsForObjects(t, mockObject, mockOther)
 	}
 
 }

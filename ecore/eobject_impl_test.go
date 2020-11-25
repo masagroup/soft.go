@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardEObject() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestEObjectAsEObject(t *testing.T) {

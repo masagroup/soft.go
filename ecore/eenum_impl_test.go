@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardEEnum() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestEEnumAsEEnum(t *testing.T) {
@@ -47,6 +49,10 @@ func TestEEnumELiteralsGet(t *testing.T) {
 	assert.NotNil(t, o.GetELiterals())
 }
 
+func TestEEnumGetEEnumLiteralByLiteralOperation(t *testing.T) {
+	o := newEEnumImpl()
+	assert.Panics(t, func() { o.GetEEnumLiteralByLiteral("") })
+}
 func TestEEnumGetEEnumLiteralByNameOperation(t *testing.T) {
 	o := newEEnumImpl()
 	assert.Panics(t, func() { o.GetEEnumLiteralByName("") })
@@ -54,10 +60,6 @@ func TestEEnumGetEEnumLiteralByNameOperation(t *testing.T) {
 func TestEEnumGetEEnumLiteralByValueOperation(t *testing.T) {
 	o := newEEnumImpl()
 	assert.Panics(t, func() { o.GetEEnumLiteralByValue(0) })
-}
-func TestEEnumGetEEnumLiteralByLiteralOperation(t *testing.T) {
-	o := newEEnumImpl()
-	assert.Panics(t, func() { o.GetEEnumLiteralByLiteral("") })
 }
 
 func TestEEnumEGetFromID(t *testing.T) {
@@ -74,7 +76,6 @@ func TestEEnumESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEEnumLiteral)
 		l := NewImmutableEList([]interface{}{mockValue})
-		// expectations
 		mockValue.On("EInverseAdd", o, EENUM_LITERAL__EENUM, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
@@ -108,8 +109,8 @@ func TestEEnumEUnsetFromID(t *testing.T) {
 func TestEEnumEInvokeFromID(t *testing.T) {
 	o := newEEnumImpl()
 	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
-	assert.Panics(t, func() { o.EInvokeFromID(EENUM__GET_EENUM_LITERAL_EINT, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(EENUM__GET_EENUM_LITERAL_ESTRING, nil) })
+	assert.Panics(t, func() { o.EInvokeFromID(EENUM__GET_EENUM_LITERAL_EINT, nil) })
 	assert.Panics(t, func() { o.EInvokeFromID(EENUM__GET_EENUM_LITERAL_BY_LITERAL_ESTRING, nil) })
 }
 

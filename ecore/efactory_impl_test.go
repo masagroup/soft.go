@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardEFactory() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestEFactoryAsEFactory(t *testing.T) {
@@ -76,8 +78,12 @@ func TestEFactoryEPackageSet(t *testing.T) {
 	o.SetEPackage(mockValue)
 	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockResource)
 
+	// set with the same mock value
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.SetEPackage(mockValue)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockResource)
+
 	// another value - in a different resource
-	//mockNotifications := new(MockENotificationChain)
 	mockValue2 := new(MockEPackage)
 	mockResource2 := new(MockEResource)
 	mockValue.On("EInverseRemove", o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
@@ -91,6 +97,29 @@ func TestEFactoryEPackageSet(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockResource, mockValue2, mockResource2)
 }
 
+func TestEFactoryEPackageBasicSet(t *testing.T) {
+	o := newEFactoryImpl()
+
+	// add listener
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	o.EAdapters().Add(mockAdapter)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	mockValue := new(MockEPackage)
+	mockNotifications := new(MockENotificationChain)
+	mockValue.On("EInternalResource").Return(nil).Once()
+	mockNotifications.On("Add", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == SET && notification.GetFeatureID() == EFACTORY__EPACKAGE
+	})).Return(true).Once()
+	o.basicSetEPackage(mockValue, mockNotifications)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockNotifications)
+}
+
+func TestEFactoryConvertToStringOperation(t *testing.T) {
+	o := newEFactoryImpl()
+	assert.Panics(t, func() { o.ConvertToString(nil, nil) })
+}
 func TestEFactoryCreateOperation(t *testing.T) {
 	o := newEFactoryImpl()
 	assert.Panics(t, func() { o.Create(nil) })
@@ -98,10 +127,6 @@ func TestEFactoryCreateOperation(t *testing.T) {
 func TestEFactoryCreateFromStringOperation(t *testing.T) {
 	o := newEFactoryImpl()
 	assert.Panics(t, func() { o.CreateFromString(nil, "") })
-}
-func TestEFactoryConvertToStringOperation(t *testing.T) {
-	o := newEFactoryImpl()
-	assert.Panics(t, func() { o.ConvertToString(nil, nil) })
 }
 
 func TestEFactoryEGetFromID(t *testing.T) {
@@ -162,6 +187,15 @@ func TestEFactoryEBasicInverseAdd(t *testing.T) {
 		o.EBasicInverseAdd(mockObject, EFACTORY__EPACKAGE, nil)
 		assert.Equal(t, mockObject, o.GetEPackage())
 		mock.AssertExpectationsForObjects(t, mockObject)
+
+		mockOther := new(MockEPackage)
+		mockOther.On("EInternalResource").Return(nil).Once()
+		mockOther.On("EIsProxy").Return(false).Once()
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EInverseRemove", o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
+		o.EBasicInverseAdd(mockOther, EFACTORY__EPACKAGE, nil)
+		assert.Equal(t, mockOther, o.GetEPackage())
+		mock.AssertExpectationsForObjects(t, mockObject, mockOther)
 	}
 
 }

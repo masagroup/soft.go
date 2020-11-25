@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardEModelElement() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestEModelElementAsEModelElement(t *testing.T) {
@@ -66,7 +68,6 @@ func TestEModelElementESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEAnnotation)
 		l := NewImmutableEList([]interface{}{mockValue})
-		// expectations
 		mockValue.On("EInverseAdd", o, EANNOTATION__EMODEL_ELEMENT, mock.Anything).Return(nil).Once()
 
 		// set list with new contents

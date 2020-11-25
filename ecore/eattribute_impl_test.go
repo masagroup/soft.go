@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardEAttribute() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestEAttributeAsEAttribute(t *testing.T) {
@@ -40,6 +42,11 @@ func TestEAttributeStaticClass(t *testing.T) {
 func TestEAttributeFeatureCount(t *testing.T) {
 	o := newEAttributeImpl()
 	assert.Equal(t, EATTRIBUTE_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
+func TestEAttributeEAttributeTypeGet(t *testing.T) {
+	o := newEAttributeImpl()
+	assert.Panics(t, func() { o.GetEAttributeType() })
 }
 
 func TestEAttributeIDGet(t *testing.T) {
@@ -61,11 +68,6 @@ func TestEAttributeIDSet(t *testing.T) {
 	o.EAdapters().Add(mockAdapter)
 	o.SetID(v)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEAttributeEAttributeTypeGet(t *testing.T) {
-	o := newEAttributeImpl()
-	assert.Panics(t, func() { o.GetEAttributeType() })
 }
 
 func TestEAttributeEGetFromID(t *testing.T) {

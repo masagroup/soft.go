@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardETypeParameter() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestETypeParameterAsETypeParameter(t *testing.T) {
@@ -61,7 +63,6 @@ func TestETypeParameterESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEGenericType)
 		l := NewImmutableEList([]interface{}{mockValue})
-		// expectations
 		mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-ETYPE_PARAMETER__EBOUNDS, mock.Anything).Return(nil).Once()
 
 		// set list with new contents

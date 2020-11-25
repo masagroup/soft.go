@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardETypedElement() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestETypedElementAsETypedElement(t *testing.T) {
@@ -40,6 +42,77 @@ func TestETypedElementStaticClass(t *testing.T) {
 func TestETypedElementFeatureCount(t *testing.T) {
 	o := newETypedElementImpl()
 	assert.Equal(t, ETYPED_ELEMENT_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
+func TestETypedElementETypeGet(t *testing.T) {
+	o := newETypedElementImpl()
+
+	// events
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	o.EAdapters().Add(mockAdapter)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	// set object resource
+	mockResourceSet := new(MockEResourceSet)
+	mockResource := new(MockEResource)
+	o.ESetInternalResource(mockResource)
+
+	// get default value
+	assert.Nil(t, o.GetEType())
+
+	// initialize object with a mock value
+	mockValue := new(MockEClassifier)
+	o.eType = mockValue
+
+	// get non resolved value
+	mockValue.On("EIsProxy").Return(false).Once()
+	assert.Equal(t, mockValue, o.GetEType())
+	mock.AssertExpectationsForObjects(t, mockValue, mockAdapter, mockResource, mockResourceSet)
+
+	// get a resolved value
+	mockURI, _ := url.Parse("test://file.t")
+	mockResolved := new(MockEClassifier)
+	mockResolved.On("EProxyURI").Return(nil).Once()
+	mockResource.On("GetResourceSet").Return(mockResourceSet).Once()
+	mockResourceSet.On("GetEObject", mockURI, true).Return(mockResolved).Once()
+	mockValue.On("EIsProxy").Return(true).Once()
+	mockValue.On("EProxyURI").Return(mockURI).Twice()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == RESOLVE && notification.GetFeatureID() == ETYPED_ELEMENT__ETYPE && notification.GetOldValue() == mockValue && notification.GetNewValue() == mockResolved
+	})).Once()
+	assert.Equal(t, mockResolved, o.GetEType())
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockResolved, mockAdapter, mockResource, mockResourceSet)
+}
+
+func TestETypedElementETypeSet(t *testing.T) {
+	o := newETypedElementImpl()
+	v := new(MockEClassifier)
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.EAdapters().Add(mockAdapter)
+	o.SetEType(v)
+	mockAdapter.AssertExpectations(t)
+}
+
+func TestETypedElementETypeUnSet(t *testing.T) {
+	o := newETypedElementImpl()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	o.EAdapters().Add(mockAdapter)
+
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == UNSET && notification.GetFeatureID() == ETYPED_ELEMENT__ETYPE
+	})).Once()
+	o.UnsetEType()
+	assert.Equal(t, nil, o.GetEType())
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+}
+
+func TestETypedElementManyGet(t *testing.T) {
+	o := newETypedElementImpl()
+	assert.Panics(t, func() { o.IsMany() })
 }
 
 func TestETypedElementOrderedGet(t *testing.T) {
@@ -61,6 +134,11 @@ func TestETypedElementOrderedSet(t *testing.T) {
 	o.EAdapters().Add(mockAdapter)
 	o.SetOrdered(v)
 	mockAdapter.AssertExpectations(t)
+}
+
+func TestETypedElementRequiredGet(t *testing.T) {
+	o := newETypedElementImpl()
+	assert.Panics(t, func() { o.IsRequired() })
 }
 
 func TestETypedElementUniqueGet(t *testing.T) {
@@ -123,53 +201,6 @@ func TestETypedElementUpperBoundSet(t *testing.T) {
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetUpperBound(v)
-	mockAdapter.AssertExpectations(t)
-}
-
-func TestETypedElementManyGet(t *testing.T) {
-	o := newETypedElementImpl()
-	assert.Panics(t, func() { o.IsMany() })
-}
-
-func TestETypedElementRequiredGet(t *testing.T) {
-	o := newETypedElementImpl()
-	assert.Panics(t, func() { o.IsRequired() })
-}
-
-func TestETypedElementETypeGet(t *testing.T) {
-	o := newETypedElementImpl()
-	// get default value
-	assert.Nil(t, o.GetEType())
-
-	// initialze object with a mock value
-	mockValue := new(MockEClassifier)
-	o.eType = mockValue
-
-	// get non proxy value
-	mockValue.On("EIsProxy").Return(false).Once()
-	assert.Equal(t, mockValue, o.GetEType())
-	mock.AssertExpectationsForObjects(t, mockValue)
-
-	// get a proxy value
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	o.EAdapters().Add(mockAdapter)
-	mock.AssertExpectationsForObjects(t, mockAdapter)
-
-	mockValue.On("EIsProxy").Return(true).Once()
-	mockValue.On("EProxyURI").Return(nil).Once()
-	assert.Equal(t, mockValue, o.GetEType())
-	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue)
-}
-
-func TestETypedElementETypeSet(t *testing.T) {
-	o := newETypedElementImpl()
-	v := new(MockEClassifier)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	o.EAdapters().Add(mockAdapter)
-	o.SetEType(v)
 	mockAdapter.AssertExpectations(t)
 }
 

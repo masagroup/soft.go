@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardEGenericType() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestEGenericTypeAsEGenericType(t *testing.T) {
@@ -42,58 +44,56 @@ func TestEGenericTypeFeatureCount(t *testing.T) {
 	assert.Equal(t, EGENERIC_TYPE_FEATURE_COUNT, o.EStaticFeatureCount())
 }
 
-func TestEGenericTypeEUpperBoundGet(t *testing.T) {
+func TestEGenericTypeEClassifierGet(t *testing.T) {
 	o := newEGenericTypeImpl()
-	// get default value
-	assert.Nil(t, o.GetEUpperBound())
 
-	// get initialized value
-	v := new(MockEGenericType)
-	o.eUpperBound = v
-	assert.Equal(t, v, o.GetEUpperBound())
-}
-
-func TestEGenericTypeEUpperBoundSet(t *testing.T) {
-	o := newEGenericTypeImpl()
-	mockValue := new(MockEGenericType)
-	mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, mock.Anything).Return(nil).Once()
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	o.EAdapters().Add(mockAdapter)
-	o.SetEUpperBound(mockValue)
-	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue)
-}
-
-func TestEGenericTypeETypeArgumentsGet(t *testing.T) {
-	o := newEGenericTypeImpl()
-	assert.NotNil(t, o.GetETypeArguments())
-}
-
-func TestEGenericTypeERawTypeGet(t *testing.T) {
-	o := newEGenericTypeImpl()
-	// get default value
-	assert.Nil(t, o.GetERawType())
-
-	// initialze object with a mock value
-	mockValue := new(MockEClassifier)
-	o.eRawType = mockValue
-
-	// get non proxy value
-	mockValue.On("EIsProxy").Return(false).Once()
-	assert.Equal(t, mockValue, o.GetERawType())
-	mock.AssertExpectationsForObjects(t, mockValue)
-
-	// get a proxy value
+	// events
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
+	// set object resource
+	mockResourceSet := new(MockEResourceSet)
+	mockResource := new(MockEResource)
+	o.ESetInternalResource(mockResource)
+
+	// get default value
+	assert.Nil(t, o.GetEClassifier())
+
+	// initialize object with a mock value
+	mockValue := new(MockEClassifier)
+	o.eClassifier = mockValue
+
+	// get non resolved value
+	mockValue.On("EIsProxy").Return(false).Once()
+	assert.Equal(t, mockValue, o.GetEClassifier())
+	mock.AssertExpectationsForObjects(t, mockValue, mockAdapter, mockResource, mockResourceSet)
+
+	// get a resolved value
+	mockURI, _ := url.Parse("test://file.t")
+	mockResolved := new(MockEClassifier)
+	mockResolved.On("EProxyURI").Return(nil).Once()
+	mockResource.On("GetResourceSet").Return(mockResourceSet).Once()
+	mockResourceSet.On("GetEObject", mockURI, true).Return(mockResolved).Once()
 	mockValue.On("EIsProxy").Return(true).Once()
-	mockValue.On("EProxyURI").Return(nil).Once()
-	assert.Equal(t, mockValue, o.GetERawType())
-	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue)
+	mockValue.On("EProxyURI").Return(mockURI).Twice()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == RESOLVE && notification.GetFeatureID() == EGENERIC_TYPE__ECLASSIFIER && notification.GetOldValue() == mockValue && notification.GetNewValue() == mockResolved
+	})).Once()
+	assert.Equal(t, mockResolved, o.GetEClassifier())
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockResolved, mockAdapter, mockResource, mockResourceSet)
+}
+
+func TestEGenericTypeEClassifierSet(t *testing.T) {
+	o := newEGenericTypeImpl()
+	v := new(MockEClassifier)
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.EAdapters().Add(mockAdapter)
+	o.SetEClassifier(v)
+	mockAdapter.AssertExpectations(t)
 }
 
 func TestEGenericTypeELowerBoundGet(t *testing.T) {
@@ -119,6 +119,70 @@ func TestEGenericTypeELowerBoundSet(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue)
 }
 
+func TestEGenericTypeELowerBoundBasicSet(t *testing.T) {
+	o := newEGenericTypeImpl()
+
+	// add listener
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	o.EAdapters().Add(mockAdapter)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	mockValue := new(MockEGenericType)
+	mockNotifications := new(MockENotificationChain)
+	mockNotifications.On("Add", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == SET && notification.GetFeatureID() == EGENERIC_TYPE__ELOWER_BOUND
+	})).Return(true).Once()
+	o.basicSetELowerBound(mockValue, mockNotifications)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockNotifications)
+}
+
+func TestEGenericTypeERawTypeGet(t *testing.T) {
+	o := newEGenericTypeImpl()
+
+	// events
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	o.EAdapters().Add(mockAdapter)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	// set object resource
+	mockResourceSet := new(MockEResourceSet)
+	mockResource := new(MockEResource)
+	o.ESetInternalResource(mockResource)
+
+	// get default value
+	assert.Nil(t, o.GetERawType())
+
+	// initialize object with a mock value
+	mockValue := new(MockEClassifier)
+	o.eRawType = mockValue
+
+	// get non resolved value
+	mockValue.On("EIsProxy").Return(false).Once()
+	assert.Equal(t, mockValue, o.GetERawType())
+	mock.AssertExpectationsForObjects(t, mockValue, mockAdapter, mockResource, mockResourceSet)
+
+	// get a resolved value
+	mockURI, _ := url.Parse("test://file.t")
+	mockResolved := new(MockEClassifier)
+	mockResolved.On("EProxyURI").Return(nil).Once()
+	mockResource.On("GetResourceSet").Return(mockResourceSet).Once()
+	mockResourceSet.On("GetEObject", mockURI, true).Return(mockResolved).Once()
+	mockValue.On("EIsProxy").Return(true).Once()
+	mockValue.On("EProxyURI").Return(mockURI).Twice()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == RESOLVE && notification.GetFeatureID() == EGENERIC_TYPE__ERAW_TYPE && notification.GetOldValue() == mockValue && notification.GetNewValue() == mockResolved
+	})).Once()
+	assert.Equal(t, mockResolved, o.GetERawType())
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockResolved, mockAdapter, mockResource, mockResourceSet)
+}
+
+func TestEGenericTypeETypeArgumentsGet(t *testing.T) {
+	o := newEGenericTypeImpl()
+	assert.NotNil(t, o.GetETypeArguments())
+}
+
 func TestEGenericTypeETypeParameterGet(t *testing.T) {
 	o := newEGenericTypeImpl()
 	// get default value
@@ -141,41 +205,45 @@ func TestEGenericTypeETypeParameterSet(t *testing.T) {
 	mockAdapter.AssertExpectations(t)
 }
 
-func TestEGenericTypeEClassifierGet(t *testing.T) {
+func TestEGenericTypeEUpperBoundGet(t *testing.T) {
 	o := newEGenericTypeImpl()
 	// get default value
-	assert.Nil(t, o.GetEClassifier())
+	assert.Nil(t, o.GetEUpperBound())
 
-	// initialze object with a mock value
-	mockValue := new(MockEClassifier)
-	o.eClassifier = mockValue
+	// get initialized value
+	v := new(MockEGenericType)
+	o.eUpperBound = v
+	assert.Equal(t, v, o.GetEUpperBound())
+}
 
-	// get non proxy value
-	mockValue.On("EIsProxy").Return(false).Once()
-	assert.Equal(t, mockValue, o.GetEClassifier())
-	mock.AssertExpectationsForObjects(t, mockValue)
+func TestEGenericTypeEUpperBoundSet(t *testing.T) {
+	o := newEGenericTypeImpl()
+	mockValue := new(MockEGenericType)
+	mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, mock.Anything).Return(nil).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.EAdapters().Add(mockAdapter)
+	o.SetEUpperBound(mockValue)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue)
+}
 
-	// get a proxy value
+func TestEGenericTypeEUpperBoundBasicSet(t *testing.T) {
+	o := newEGenericTypeImpl()
+
+	// add listener
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
-	mockValue.On("EIsProxy").Return(true).Once()
-	mockValue.On("EProxyURI").Return(nil).Once()
-	assert.Equal(t, mockValue, o.GetEClassifier())
-	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue)
-}
-
-func TestEGenericTypeEClassifierSet(t *testing.T) {
-	o := newEGenericTypeImpl()
-	v := new(MockEClassifier)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	o.EAdapters().Add(mockAdapter)
-	o.SetEClassifier(v)
-	mockAdapter.AssertExpectations(t)
+	mockValue := new(MockEGenericType)
+	mockNotifications := new(MockENotificationChain)
+	mockNotifications.On("Add", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == SET && notification.GetFeatureID() == EGENERIC_TYPE__EUPPER_BOUND
+	})).Return(true).Once()
+	o.basicSetEUpperBound(mockValue, mockNotifications)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockNotifications)
 }
 
 func TestEGenericTypeIsInstanceOperation(t *testing.T) {
@@ -214,7 +282,6 @@ func TestEGenericTypeESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEGenericType)
 		l := NewImmutableEList([]interface{}{mockValue})
-		// expectations
 		mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ETYPE_ARGUMENTS, mock.Anything).Return(nil).Once()
 
 		// set list with new contents

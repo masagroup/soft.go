@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"reflect"
 	"testing"
 )
@@ -26,6 +27,7 @@ func discardEClassifier() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestEClassifierAsEClassifier(t *testing.T) {
@@ -43,24 +45,24 @@ func TestEClassifierFeatureCount(t *testing.T) {
 	assert.Equal(t, ECLASSIFIER_FEATURE_COUNT, o.EStaticFeatureCount())
 }
 
-func TestEClassifierInstanceClassGet(t *testing.T) {
+func TestEClassifierClassifierIDGet(t *testing.T) {
 	o := newEClassifierImpl()
 	// get default value
-	assert.Equal(t, nil, o.GetInstanceClass())
+	assert.Equal(t, -1, o.GetClassifierID())
 	// get initialized value
-	v := reflect.TypeOf("")
-	o.instanceClass = v
-	assert.Equal(t, v, o.GetInstanceClass())
+	v := 45
+	o.classifierID = v
+	assert.Equal(t, v, o.GetClassifierID())
 }
 
-func TestEClassifierInstanceClassSet(t *testing.T) {
+func TestEClassifierClassifierIDSet(t *testing.T) {
 	o := newEClassifierImpl()
-	v := reflect.TypeOf("")
+	v := 45
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
-	o.SetInstanceClass(v)
+	o.SetClassifierID(v)
 	mockAdapter.AssertExpectations(t)
 }
 
@@ -83,24 +85,24 @@ func TestEClassifierEPackageGet(t *testing.T) {
 	assert.Equal(t, v, o.GetEPackage())
 }
 
-func TestEClassifierClassifierIDGet(t *testing.T) {
+func TestEClassifierInstanceClassGet(t *testing.T) {
 	o := newEClassifierImpl()
 	// get default value
-	assert.Equal(t, -1, o.GetClassifierID())
+	assert.Equal(t, nil, o.GetInstanceClass())
 	// get initialized value
-	v := 45
-	o.classifierID = v
-	assert.Equal(t, v, o.GetClassifierID())
+	v := reflect.TypeOf("")
+	o.instanceClass = v
+	assert.Equal(t, v, o.GetInstanceClass())
 }
 
-func TestEClassifierClassifierIDSet(t *testing.T) {
+func TestEClassifierInstanceClassSet(t *testing.T) {
 	o := newEClassifierImpl()
-	v := 45
+	v := reflect.TypeOf("")
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
-	o.SetClassifierID(v)
+	o.SetInstanceClass(v)
 	mockAdapter.AssertExpectations(t)
 }
 
@@ -179,6 +181,15 @@ func TestEClassifierEBasicInverseAdd(t *testing.T) {
 		o.EBasicInverseAdd(mockObject, ECLASSIFIER__EPACKAGE, nil)
 		assert.Equal(t, mockObject, o.GetEPackage())
 		mock.AssertExpectationsForObjects(t, mockObject)
+
+		mockOther := new(MockEPackage)
+		mockOther.On("EInternalResource").Return(nil).Once()
+		mockOther.On("EIsProxy").Return(false).Once()
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EInverseRemove", o, EPACKAGE__ECLASSIFIERS, nil).Return(nil).Once()
+		o.EBasicInverseAdd(mockOther, ECLASSIFIER__EPACKAGE, nil)
+		assert.Equal(t, mockOther, o.GetEPackage())
+		mock.AssertExpectationsForObjects(t, mockObject, mockOther)
 	}
 
 }

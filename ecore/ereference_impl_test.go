@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardEReference() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestEReferenceAsEReference(t *testing.T) {
@@ -40,6 +42,73 @@ func TestEReferenceStaticClass(t *testing.T) {
 func TestEReferenceFeatureCount(t *testing.T) {
 	o := newEReferenceImpl()
 	assert.Equal(t, EREFERENCE_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
+func TestEReferenceEKeysGet(t *testing.T) {
+	o := newEReferenceImpl()
+	assert.NotNil(t, o.GetEKeys())
+}
+
+func TestEReferenceEOppositeGet(t *testing.T) {
+	o := newEReferenceImpl()
+
+	// events
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	o.EAdapters().Add(mockAdapter)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	// set object resource
+	mockResourceSet := new(MockEResourceSet)
+	mockResource := new(MockEResource)
+	o.ESetInternalResource(mockResource)
+
+	// get default value
+	assert.Nil(t, o.GetEOpposite())
+
+	// initialize object with a mock value
+	mockValue := new(MockEReference)
+	o.eOpposite = mockValue
+
+	// get non resolved value
+	mockValue.On("EIsProxy").Return(false).Once()
+	assert.Equal(t, mockValue, o.GetEOpposite())
+	mock.AssertExpectationsForObjects(t, mockValue, mockAdapter, mockResource, mockResourceSet)
+
+	// get a resolved value
+	mockURI, _ := url.Parse("test://file.t")
+	mockResolved := new(MockEReference)
+	mockResolved.On("EProxyURI").Return(nil).Once()
+	mockResource.On("GetResourceSet").Return(mockResourceSet).Once()
+	mockResourceSet.On("GetEObject", mockURI, true).Return(mockResolved).Once()
+	mockValue.On("EIsProxy").Return(true).Once()
+	mockValue.On("EProxyURI").Return(mockURI).Twice()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == RESOLVE && notification.GetFeatureID() == EREFERENCE__EOPPOSITE && notification.GetOldValue() == mockValue && notification.GetNewValue() == mockResolved
+	})).Once()
+	assert.Equal(t, mockResolved, o.GetEOpposite())
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockResolved, mockAdapter, mockResource, mockResourceSet)
+}
+
+func TestEReferenceEOppositeSet(t *testing.T) {
+	o := newEReferenceImpl()
+	v := new(MockEReference)
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.EAdapters().Add(mockAdapter)
+	o.SetEOpposite(v)
+	mockAdapter.AssertExpectations(t)
+}
+
+func TestEReferenceEReferenceTypeGet(t *testing.T) {
+	o := newEReferenceImpl()
+	assert.Panics(t, func() { o.GetEReferenceType() })
+}
+
+func TestEReferenceContainerGet(t *testing.T) {
+	o := newEReferenceImpl()
+	assert.Panics(t, func() { o.IsContainer() })
 }
 
 func TestEReferenceContainmentGet(t *testing.T) {
@@ -63,11 +132,6 @@ func TestEReferenceContainmentSet(t *testing.T) {
 	mockAdapter.AssertExpectations(t)
 }
 
-func TestEReferenceContainerGet(t *testing.T) {
-	o := newEReferenceImpl()
-	assert.Panics(t, func() { o.IsContainer() })
-}
-
 func TestEReferenceResolveProxiesGet(t *testing.T) {
 	o := newEReferenceImpl()
 	// get default value
@@ -87,53 +151,6 @@ func TestEReferenceResolveProxiesSet(t *testing.T) {
 	o.EAdapters().Add(mockAdapter)
 	o.SetResolveProxies(v)
 	mockAdapter.AssertExpectations(t)
-}
-
-func TestEReferenceEOppositeGet(t *testing.T) {
-	o := newEReferenceImpl()
-	// get default value
-	assert.Nil(t, o.GetEOpposite())
-
-	// initialze object with a mock value
-	mockValue := new(MockEReference)
-	o.eOpposite = mockValue
-
-	// get non proxy value
-	mockValue.On("EIsProxy").Return(false).Once()
-	assert.Equal(t, mockValue, o.GetEOpposite())
-	mock.AssertExpectationsForObjects(t, mockValue)
-
-	// get a proxy value
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	o.EAdapters().Add(mockAdapter)
-	mock.AssertExpectationsForObjects(t, mockAdapter)
-
-	mockValue.On("EIsProxy").Return(true).Once()
-	mockValue.On("EProxyURI").Return(nil).Once()
-	assert.Equal(t, mockValue, o.GetEOpposite())
-	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue)
-}
-
-func TestEReferenceEOppositeSet(t *testing.T) {
-	o := newEReferenceImpl()
-	v := new(MockEReference)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	o.EAdapters().Add(mockAdapter)
-	o.SetEOpposite(v)
-	mockAdapter.AssertExpectations(t)
-}
-
-func TestEReferenceEReferenceTypeGet(t *testing.T) {
-	o := newEReferenceImpl()
-	assert.Panics(t, func() { o.GetEReferenceType() })
-}
-
-func TestEReferenceEKeysGet(t *testing.T) {
-	o := newEReferenceImpl()
-	assert.NotNil(t, o.GetEKeys())
 }
 
 func TestEReferenceEGetFromID(t *testing.T) {
@@ -162,7 +179,6 @@ func TestEReferenceESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEAttribute)
 		l := NewImmutableEList([]interface{}{mockValue})
-		// expectations
 		mockValue.On("EIsProxy").Return(false).Once()
 
 		// set list with new contents

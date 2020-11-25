@@ -80,8 +80,10 @@ func (eTypedElement *eTypedElementImpl) SetEType(newEType EClassifier) {
 
 // UnsetEType unset the value of eType
 func (eTypedElement *eTypedElementImpl) UnsetEType() {
+	oldEType := eTypedElement.eType
+	eTypedElement.eType = nil
 	if eTypedElement.ENotificationRequired() {
-		eTypedElement.ENotify(NewNotificationByFeatureID(eTypedElement.AsEObject(), UNSET, ETYPED_ELEMENT__ETYPE, nil, nil, NO_INDEX))
+		eTypedElement.ENotify(NewNotificationByFeatureID(eTypedElement.AsEObject(), UNSET, ETYPED_ELEMENT__ETYPE, oldEType, nil, NO_INDEX))
 	}
 }
 

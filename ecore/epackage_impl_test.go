@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardEPackage() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestEPackageAsEPackage(t *testing.T) {
@@ -42,25 +44,82 @@ func TestEPackageFeatureCount(t *testing.T) {
 	assert.Equal(t, EPACKAGE_FEATURE_COUNT, o.EStaticFeatureCount())
 }
 
-func TestEPackageNsURIGet(t *testing.T) {
+func TestEPackageEClassifiersGet(t *testing.T) {
 	o := newEPackageImpl()
-	// get default value
-	assert.Equal(t, "", o.GetNsURI())
-	// get initialized value
-	v := "Test String"
-	o.nsURI = v
-	assert.Equal(t, v, o.GetNsURI())
+	assert.NotNil(t, o.GetEClassifiers())
 }
 
-func TestEPackageNsURISet(t *testing.T) {
+func TestEPackageEFactoryInstanceGet(t *testing.T) {
 	o := newEPackageImpl()
-	v := "Test String"
+	// get default value
+	assert.Nil(t, o.GetEFactoryInstance())
+
+	// get initialized value
+	v := new(MockEFactory)
+	o.eFactoryInstance = v
+	assert.Equal(t, v, o.GetEFactoryInstance())
+}
+
+func TestEPackageEFactoryInstanceSet(t *testing.T) {
+	o := newEPackageImpl()
+
+	// add listener
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
-	o.SetNsURI(v)
-	mockAdapter.AssertExpectations(t)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	// first value
+	mockValue1 := new(MockEFactory)
+	mockValue1.On("EInverseAdd", o, EFACTORY__EPACKAGE, nil).Return(nil).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.SetEFactoryInstance(mockValue1)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue1)
+
+	// second value
+	mockValue2 := new(MockEFactory)
+	mockValue1.On("EInverseRemove", o, EFACTORY__EPACKAGE, nil).Return(nil).Once()
+	mockValue2.On("EInverseAdd", o, EFACTORY__EPACKAGE, nil).Return(nil).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.SetEFactoryInstance(mockValue2)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue1, mockValue2)
+}
+
+func TestEPackageEFactoryInstanceBasicSet(t *testing.T) {
+	o := newEPackageImpl()
+
+	// add listener
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	o.EAdapters().Add(mockAdapter)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	mockValue := new(MockEFactory)
+	mockNotifications := new(MockENotificationChain)
+	mockNotifications.On("Add", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == SET && notification.GetFeatureID() == EPACKAGE__EFACTORY_INSTANCE
+	})).Return(true).Once()
+	o.basicSetEFactoryInstance(mockValue, mockNotifications)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockNotifications)
+}
+
+func TestEPackageESubPackagesGet(t *testing.T) {
+	o := newEPackageImpl()
+	assert.NotNil(t, o.GetESubPackages())
+}
+
+func TestEPackageESuperPackageGet(t *testing.T) {
+	// default
+	o := newEPackageImpl()
+	assert.Nil(t, o.GetESuperPackage())
+
+	// set a mock container
+	v := new(MockEPackage)
+	o.ESetInternalContainer(v, EPACKAGE__ESUPER_PACKAGE)
+
+	// no proxy
+	v.On("EIsProxy").Return(false)
+	assert.Equal(t, v, o.GetESuperPackage())
 }
 
 func TestEPackageNsPrefixGet(t *testing.T) {
@@ -84,51 +143,25 @@ func TestEPackageNsPrefixSet(t *testing.T) {
 	mockAdapter.AssertExpectations(t)
 }
 
-func TestEPackageEFactoryInstanceGet(t *testing.T) {
+func TestEPackageNsURIGet(t *testing.T) {
 	o := newEPackageImpl()
 	// get default value
-	assert.Nil(t, o.GetEFactoryInstance())
-
+	assert.Equal(t, "", o.GetNsURI())
 	// get initialized value
-	v := new(MockEFactory)
-	o.eFactoryInstance = v
-	assert.Equal(t, v, o.GetEFactoryInstance())
+	v := "Test String"
+	o.nsURI = v
+	assert.Equal(t, v, o.GetNsURI())
 }
 
-func TestEPackageEFactoryInstanceSet(t *testing.T) {
+func TestEPackageNsURISet(t *testing.T) {
 	o := newEPackageImpl()
-	mockValue := new(MockEFactory)
-	mockValue.On("EInverseAdd", o, EFACTORY__EPACKAGE, nil).Return(nil).Once()
+	v := "Test String"
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
-	o.SetEFactoryInstance(mockValue)
-	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue)
-}
-
-func TestEPackageEClassifiersGet(t *testing.T) {
-	o := newEPackageImpl()
-	assert.NotNil(t, o.GetEClassifiers())
-}
-
-func TestEPackageESubPackagesGet(t *testing.T) {
-	o := newEPackageImpl()
-	assert.NotNil(t, o.GetESubPackages())
-}
-
-func TestEPackageESuperPackageGet(t *testing.T) {
-	// default
-	o := newEPackageImpl()
-	assert.Nil(t, o.GetESuperPackage())
-
-	// set a mock container
-	v := new(MockEPackage)
-	o.ESetInternalContainer(v, EPACKAGE__ESUPER_PACKAGE)
-
-	// no proxy
-	v.On("EIsProxy").Return(false)
-	assert.Equal(t, v, o.GetESuperPackage())
+	o.SetNsURI(v)
+	mockAdapter.AssertExpectations(t)
 }
 
 func TestEPackageGetEClassifierOperation(t *testing.T) {
@@ -156,7 +189,6 @@ func TestEPackageESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEClassifier)
 		l := NewImmutableEList([]interface{}{mockValue})
-		// expectations
 		mockValue.On("EInverseAdd", o, ECLASSIFIER__EPACKAGE, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
@@ -177,7 +209,6 @@ func TestEPackageESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEPackage)
 		l := NewImmutableEList([]interface{}{mockValue})
-		// expectations
 		mockValue.On("EInverseAdd", o, EPACKAGE__ESUPER_PACKAGE, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
@@ -290,6 +321,15 @@ func TestEPackageEBasicInverseAdd(t *testing.T) {
 		o.EBasicInverseAdd(mockObject, EPACKAGE__ESUPER_PACKAGE, nil)
 		assert.Equal(t, mockObject, o.GetESuperPackage())
 		mock.AssertExpectationsForObjects(t, mockObject)
+
+		mockOther := new(MockEPackage)
+		mockOther.On("EInternalResource").Return(nil).Once()
+		mockOther.On("EIsProxy").Return(false).Once()
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EInverseRemove", o, EPACKAGE__ESUB_PACKAGES, nil).Return(nil).Once()
+		o.EBasicInverseAdd(mockOther, EPACKAGE__ESUPER_PACKAGE, nil)
+		assert.Equal(t, mockOther, o.GetESuperPackage())
+		mock.AssertExpectationsForObjects(t, mockObject, mockOther)
 	}
 
 }

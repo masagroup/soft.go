@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,6 +26,7 @@ func discardEOperation() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
 func TestEOperationAsEOperation(t *testing.T) {
@@ -56,14 +58,21 @@ func TestEOperationEContainingClassGet(t *testing.T) {
 	assert.Equal(t, v, o.GetEContainingClass())
 }
 
-func TestEOperationEParametersGet(t *testing.T) {
-	o := newEOperationImpl()
-	assert.NotNil(t, o.GetEParameters())
-}
-
 func TestEOperationEExceptionsGet(t *testing.T) {
 	o := newEOperationImpl()
 	assert.NotNil(t, o.GetEExceptions())
+}
+
+func TestEOperationEExceptionsUnSet(t *testing.T) {
+	o := newEOperationImpl()
+	o.UnsetEExceptions()
+	l := o.GetEExceptions()
+	assert.True(t, l.Empty())
+}
+
+func TestEOperationEParametersGet(t *testing.T) {
+	o := newEOperationImpl()
+	assert.NotNil(t, o.GetEParameters())
 }
 
 func TestEOperationOperationIDGet(t *testing.T) {
@@ -110,7 +119,6 @@ func TestEOperationESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEClassifier)
 		l := NewImmutableEList([]interface{}{mockValue})
-		// expectations
 		mockValue.On("EIsProxy").Return(false).Once()
 
 		// set list with new contents
@@ -124,7 +132,6 @@ func TestEOperationESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEParameter)
 		l := NewImmutableEList([]interface{}{mockValue})
-		// expectations
 		mockValue.On("EInverseAdd", o, EPARAMETER__EOPERATION, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
@@ -195,6 +202,15 @@ func TestEOperationEBasicInverseAdd(t *testing.T) {
 		o.EBasicInverseAdd(mockObject, EOPERATION__ECONTAINING_CLASS, nil)
 		assert.Equal(t, mockObject, o.GetEContainingClass())
 		mock.AssertExpectationsForObjects(t, mockObject)
+
+		mockOther := new(MockEClass)
+		mockOther.On("EInternalResource").Return(nil).Once()
+		mockOther.On("EIsProxy").Return(false).Once()
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EInverseRemove", o, ECLASS__EOPERATIONS, nil).Return(nil).Once()
+		o.EBasicInverseAdd(mockOther, EOPERATION__ECONTAINING_CLASS, nil)
+		assert.Equal(t, mockOther, o.GetEContainingClass())
+		mock.AssertExpectationsForObjects(t, mockObject, mockOther)
 	}
 	{
 		mockObject := new(MockEParameter)

@@ -288,3 +288,22 @@ func TestBasicEObjectListUnResolvedAddAll(t *testing.T) {
 	assert.False(t, unresolved.AddAll(NewImmutableEList([]interface{}{mockObject1, mockObject2})))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2)
 }
+
+func TestBasicEObjectListUnResolvedInsert(t *testing.T) {
+	mockOwner := &MockEObjectInternal{}
+	mockObject := &MockEObjectInternal{}
+
+	list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, true, false)
+	unresolved := list.GetUnResolvedList()
+
+	assert.Panics(t, func() {
+		unresolved.Insert(1, mockObject)
+	})
+
+	mockOwner.On("EDeliver").Return(false).Once()
+	assert.True(t, unresolved.Insert(0, mockObject))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject)
+
+	assert.False(t, unresolved.Insert(0, mockObject))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject)
+}

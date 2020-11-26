@@ -513,3 +513,18 @@ func TestReflectiveEObjectImpl_GetReferenceProxyContainmentBidirectional(t *test
 	assert.Equal(t, mockResolved, o.EGetFromID(0, true))
 	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockReference, mockAdapter, mockResource, mockResourceSet)
 }
+
+func TestReflectiveEObjectImpl_EContents(t *testing.T) {
+	o := NewReflectiveEObjectImpl()
+	assert.NotNil(t, o.EContents())
+}
+
+func TestReflectiveEObjectImpl_EAllContents(t *testing.T) {
+	o := NewReflectiveEObjectImpl()
+	assert.NotNil(t, o.EAllContents())
+}
+
+func TestReflectiveEObjectImpl_ECrossReferences(t *testing.T) {
+	o := NewReflectiveEObjectImpl()
+	assert.NotNil(t, o.ECrossReferences())
+}

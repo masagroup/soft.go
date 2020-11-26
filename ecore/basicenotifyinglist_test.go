@@ -154,6 +154,9 @@ func TestNotifyingListInsert(t *testing.T) {
 
 func TestNotifyingListInsertAll(t *testing.T) {
 	l := newNotifyingListTest()
+
+	assert.False(t, l.InsertAll(0, NewImmutableEList([]interface{}{})))
+
 	l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
 			n.GetFeature() == l.mockFeature &&
@@ -162,7 +165,7 @@ func TestNotifyingListInsertAll(t *testing.T) {
 			n.GetEventType() == ADD_MANY &&
 			n.GetPosition() == 0
 	})).Once()
-	l.InsertAll(0, NewImmutableEList([]interface{}{1, 2, 3}))
+	assert.True(t, l.InsertAll(0, NewImmutableEList([]interface{}{1, 2, 3})))
 	l.assertExpectations(t)
 	assert.Equal(t, []interface{}{1, 2, 3}, l.ToArray())
 
@@ -174,7 +177,7 @@ func TestNotifyingListInsertAll(t *testing.T) {
 			n.GetEventType() == ADD_MANY &&
 			n.GetPosition() == 1
 	})).Once()
-	l.InsertAll(1, NewImmutableEList([]interface{}{4, 5}))
+	assert.True(t, l.InsertAll(1, NewImmutableEList([]interface{}{4, 5})))
 	l.assertExpectations(t)
 	assert.Equal(t, []interface{}{1, 4, 5, 2, 3}, l.ToArray())
 }

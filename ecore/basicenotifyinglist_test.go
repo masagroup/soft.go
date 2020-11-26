@@ -155,7 +155,7 @@ func TestNotifyingListInsert(t *testing.T) {
 func TestNotifyingListInsertAll(t *testing.T) {
 	l := newNotifyingListTest()
 
-	assert.False(t, l.InsertAll(0, NewImmutableEList([]interface{}{})))
+	assert.False(t, l.doInsertAll(0, NewImmutableEList([]interface{}{})))
 
 	l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
@@ -214,18 +214,25 @@ func TestNotifyingListRemoveAt(t *testing.T) {
 
 func TestNotifyingListAddWithNotification(t *testing.T) {
 	l := newNotifyingListTest()
+
+	// no notifications
+	l.AddWithNotification(1, nil)
+	l.assertExpectations(t)
+
+	// with notifications
 	mockChain := new(MockENotificationChain)
 	mockChain.On("Add", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
 			n.GetFeature() == l.mockFeature &&
-			n.GetNewValue() == 1 &&
+			n.GetNewValue() == 2 &&
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ADD &&
-			n.GetPosition() == 0
+			n.GetPosition() == 1
 	})).Once().Return(true)
-	l.AddWithNotification(1, mockChain)
+	l.AddWithNotification(2, mockChain)
 	l.assertExpectations(t)
 	mockChain.AssertExpectations(t)
+
 }
 
 func TestNotifyingListRemoveWithNotification(t *testing.T) {

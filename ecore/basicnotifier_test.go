@@ -31,6 +31,7 @@ func TestNotifierAdapter(t *testing.T) {
 	mockEAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == notifier &&
 			n.GetFeatureID() == -1 &&
+			n.GetFeature() == nil &&
 			n.GetNewValue() == nil &&
 			n.GetOldValue() == mockEAdapter &&
 			n.GetEventType() == REMOVING_ADAPTER &&

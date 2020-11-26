@@ -248,3 +248,20 @@ func TestBasicEObjectListUnResolvedSet(t *testing.T) {
 
 	mock.AssertExpectationsForObjects(t, mockOwner, mockObject)
 }
+
+func TestBasicEObjectListUnResolvedAdd(t *testing.T) {
+	mockOwner := &MockEObjectInternal{}
+	mockObject := &MockEObjectInternal{}
+
+	list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, true, false)
+	unresolved := list.GetUnResolvedList()
+
+	// add an object to unresolved
+	mockOwner.On("EDeliver").Return(false).Once()
+	assert.True(t, unresolved.Add(mockObject))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject)
+
+	// add an same object to unresolved
+	assert.False(t, unresolved.Add(mockObject))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject)
+}

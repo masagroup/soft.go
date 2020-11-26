@@ -49,10 +49,6 @@ func isContains(feature EStructuralFeature) bool {
 }
 
 func isProxy(feature EStructuralFeature) bool {
-	if isContainer(feature) || isContains(feature) {
-		return false
-	}
-
 	ref, isRef := feature.(EReference)
 	if isRef {
 		return ref.IsResolveProxies()

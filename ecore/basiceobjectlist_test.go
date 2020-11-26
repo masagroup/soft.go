@@ -95,15 +95,11 @@ func TestBasicEObjectListGet(t *testing.T) {
 	mockOwner := &MockEObjectInternal{}
 	mockOwner.On("EDeliver").Return(false)
 
-	// no proxy
-	{
-		list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, false, false)
-		mockObject := &MockEObjectInternal{}
-		list.Add(mockObject)
-		assert.Equal(t, mockObject, list.Get(0))
-
-		mock.AssertExpectationsForObjects(t, mockObject, mockOwner)
-	}
+	list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, false, false)
+	mockObject := &MockEObjectInternal{}
+	list.Add(mockObject)
+	assert.Equal(t, mockObject, list.Get(0))
+	mock.AssertExpectationsForObjects(t, mockObject, mockOwner)
 
 	// with proxy
 	{
@@ -118,6 +114,51 @@ func TestBasicEObjectListGet(t *testing.T) {
 
 		mock.AssertExpectationsForObjects(t, mockObject, mockOwner)
 	}
+}
+
+func TestBasicEObjectListGetProxy(t *testing.T) {
+
+	mockOwner := &MockEObjectInternal{}
+	mockOwner.On("EDeliver").Return(false)
+
+	list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, true, false)
+	mockObject := &MockEObjectInternal{}
+	list.Add(mockObject)
+
+	mockResolved := &MockEObjectInternal{}
+	mockOwner.On("EResolveProxy", mockObject).Return(mockResolved)
+	mockObject.On("EIsProxy").Return(true)
+	assert.Equal(t, mockResolved, list.Get(0))
+	mock.AssertExpectationsForObjects(t, mockObject, mockOwner)
+}
+
+func TestBasicEObjectListGetProxyContainment(t *testing.T) {
+
+	mockOwner := &MockEObjectInternal{}
+	mockOwner.On("EDeliver").Return(false).Once()
+
+	list := NewBasicEObjectList(mockOwner, 1, 2, true, false, false, true, false)
+	mockObject := &MockEObjectInternal{}
+	list.Add(mockObject)
+	mock.AssertExpectationsForObjects(t, mockObject, mockOwner)
+
+	mockAdapter := new(MockEAdapter)
+	mockResolved := &MockEObjectInternal{}
+	mockResolved.On("EInternalContainer").Return(nil).Once()
+	mockObject.On("EIsProxy").Return(true)
+	mockOwner.On("EDeliver").Return(true).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter}))
+	mockOwner.On("EResolveProxy", mockObject).Return(mockResolved)
+	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner &&
+			n.GetFeatureID() == 1 &&
+			n.GetNewValue() == mockResolved &&
+			n.GetOldValue() == mockObject &&
+			n.GetEventType() == RESOLVE &&
+			n.GetPosition() == 0
+	}))
+	assert.Equal(t, mockResolved, list.Get(0))
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockObject, mockOwner, mockResolved)
 }
 
 func TestBasicEObjectListUnResolved(t *testing.T) {

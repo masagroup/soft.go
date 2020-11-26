@@ -8,6 +8,13 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+func TestBasicNotifyingListAccessors(t *testing.T) {
+	l := newBasicENotifyingListFromData([]interface{}{})
+	assert.Equal(t, nil, l.GetFeature())
+	assert.Equal(t, -1, l.GetFeatureID())
+	assert.Equal(t, nil, l.GetNotifier())
+}
+
 type eNotifyingListTest struct {
 	*BasicENotifyingList
 	mockNotifier *MockENotifier
@@ -248,4 +255,45 @@ func TestNotifyingListSetWithNotification(t *testing.T) {
 	l.SetWithNotification(0, 2, mockChain)
 	l.assertExpectations(t)
 	mockChain.AssertExpectations(t)
+}
+
+func TestNotifyingListClear(t *testing.T) {
+	{
+		l := newNotifyingListTestFromData([]interface{}{})
+		l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+			return n.GetNotifier() == l.mockNotifier &&
+				n.GetFeature() == l.mockFeature &&
+				n.GetNewValue() == nil &&
+				n.GetEventType() == REMOVE_MANY &&
+				n.GetPosition() == NO_INDEX
+		})).Once()
+		l.Clear()
+		l.assertExpectations(t)
+	}
+	{
+		l := newNotifyingListTestFromData([]interface{}{1})
+		l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+			return n.GetNotifier() == l.mockNotifier &&
+				n.GetFeature() == l.mockFeature &&
+				n.GetNewValue() == nil &&
+				n.GetOldValue() == 1 &&
+				n.GetEventType() == REMOVE &&
+				n.GetPosition() == 0
+		})).Once()
+		l.Clear()
+		l.assertExpectations(t)
+	}
+	{
+		l := newNotifyingListTestFromData([]interface{}{1, 2})
+		l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+			return n.GetNotifier() == l.mockNotifier &&
+				n.GetFeature() == l.mockFeature &&
+				n.GetNewValue() == nil &&
+				n.GetEventType() == REMOVE_MANY &&
+				n.GetPosition() == NO_INDEX
+		})).Once()
+		l.Clear()
+		l.assertExpectations(t)
+	}
+
 }

@@ -362,3 +362,154 @@ func TestReflectiveEObjectImpl_UnSetContainer(t *testing.T) {
 	assert.Nil(t, o.EGetFromID(0, false))
 	mock.AssertExpectationsForObjects(t, mockClass, mockReference, mockOpposite, mockObject)
 }
+
+func TestReflectiveEObjectImpl_GetReferenceProxy(t *testing.T) {
+	mockObject := new(MockEObjectInternal)
+	mockClass := new(MockEClass)
+	mockReference := new(MockEReference)
+	mockResource := new(MockEResource)
+	mockResourceSet := new(MockEResourceSet)
+	mockURI, _ := url.Parse("test://file.t")
+	mockResolved := new(MockEObjectInternal)
+
+	o := NewReflectiveEObjectImpl()
+	o.setEClass(mockClass)
+	o.ESetInternalResource(mockResource)
+
+	// add listener
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	o.EAdapters().Add(mockAdapter)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	// simple set
+	mockClass.On("GetFeatureCount").Return(1).Once()
+	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Once()
+	mockReference.On("GetEOpposite").Return(nil).Twice()
+	mockReference.On("IsContainment").Return(false).Once()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == SET && notification.GetOldValue() == nil && notification.GetNewValue() == mockObject
+	})).Once()
+	o.ESetFromID(0, mockObject)
+	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockReference, mockAdapter)
+
+	// get with resolution - no contains
+	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Once()
+	mockReference.On("GetEOpposite").Return(nil).Once()
+	mockReference.On("IsContainment").Return(false).Once()
+	mockReference.On("IsResolveProxies").Return(true).Once()
+	mockResolved.On("EProxyURI").Return(nil).Once()
+	mockResource.On("GetResourceSet").Return(mockResourceSet).Once()
+	mockResourceSet.On("GetEObject", mockURI, true).Return(mockResolved).Once()
+	mockObject.On("EProxyURI").Return(mockURI).Twice()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == RESOLVE
+	})).Once()
+	assert.Equal(t, mockResolved, o.EGetFromID(0, true))
+	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockReference, mockAdapter, mockResource, mockResourceSet)
+}
+
+func TestReflectiveEObjectImpl_GetReferenceProxyContainment(t *testing.T) {
+	mockObject := new(MockEObjectInternal)
+	mockClass := new(MockEClass)
+	mockReference := new(MockEReference)
+	mockResource := new(MockEResource)
+	mockResourceSet := new(MockEResourceSet)
+	mockURI, _ := url.Parse("test://file.t")
+	mockResolved := new(MockEObjectInternal)
+
+	o := NewReflectiveEObjectImpl()
+	o.setEClass(mockClass)
+	o.ESetInternalResource(mockResource)
+
+	// add listener
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	o.EAdapters().Add(mockAdapter)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	// simple set
+	mockClass.On("GetFeatureCount").Return(1).Once()
+	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Once()
+	mockReference.On("GetEOpposite").Return(nil).Twice()
+	mockReference.On("IsContainment").Return(false).Once()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == SET && notification.GetOldValue() == nil && notification.GetNewValue() == mockObject
+	})).Once()
+	o.ESetFromID(0, mockObject)
+	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockReference, mockAdapter)
+
+	// get with resolution and containment
+	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Once()
+	mockClass.On("GetFeatureID", mockReference).Return(0).Once()
+	mockReference.On("GetEOpposite").Return(nil).Twice()
+	mockReference.On("IsContainment").Return(true).Once()
+	mockReference.On("IsResolveProxies").Return(true).Once()
+	mockResolved.On("EProxyURI").Return(nil).Once()
+	mockResource.On("GetResourceSet").Return(mockResourceSet).Once()
+	mockResourceSet.On("GetEObject", mockURI, true).Return(mockResolved).Once()
+	mockObject.On("EProxyURI").Return(mockURI).Twice()
+	mockObject.On("EInverseRemove", o, -1, nil).Return(nil).Once()
+	mockResolved.On("EInverseAdd", o, -1, nil).Return(nil).Once()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == RESOLVE
+	})).Once()
+	assert.Equal(t, mockResolved, o.EGetFromID(0, true))
+	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockReference, mockAdapter, mockResource, mockResourceSet)
+}
+
+func TestReflectiveEObjectImpl_GetReferenceProxyContainmentBidirectional(t *testing.T) {
+	mockClass := new(MockEClass)
+	mockObject := new(MockEObjectInternal)
+	mockObjectClass := new(MockEClass)
+	mockReference := new(MockEReference)
+	mockOpposite := new(MockEReference)
+	mockResource := new(MockEResource)
+	mockResourceSet := new(MockEResourceSet)
+	mockURI, _ := url.Parse("test://file.t")
+	mockResolved := new(MockEObjectInternal)
+	mockResolvedClass := new(MockEClass)
+
+	o := NewReflectiveEObjectImpl()
+	o.setEClass(mockClass)
+	o.ESetInternalResource(mockResource)
+
+	// add listener
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	o.EAdapters().Add(mockAdapter)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	// simple set
+	mockClass.On("GetFeatureCount").Return(1).Once()
+	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Once()
+	mockReference.On("GetEOpposite").Return(nil).Twice()
+	mockReference.On("IsContainment").Return(false).Once()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == SET && notification.GetOldValue() == nil && notification.GetNewValue() == mockObject
+	})).Once()
+	o.ESetFromID(0, mockObject)
+	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockReference, mockAdapter)
+
+	// get with resolution and containment
+	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Once()
+	mockReference.On("GetEOpposite").Return(mockOpposite).Times(3)
+	mockReference.On("IsContainment").Return(true).Once()
+	mockOpposite.On("IsContainment").Return(false).Once()
+	mockReference.On("IsResolveProxies").Return(true).Once()
+	mockResolved.On("EProxyURI").Return(nil).Once()
+	mockResource.On("GetResourceSet").Return(mockResourceSet).Once()
+	mockResourceSet.On("GetEObject", mockURI, true).Return(mockResolved).Once()
+	mockObject.On("EProxyURI").Return(mockURI).Twice()
+	mockObject.On("EClass").Return(mockObjectClass).Once()
+	mockObjectClass.On("GetFeatureID", mockOpposite).Return(1).Once()
+	mockResolved.On("EClass").Return(mockResolvedClass).Once()
+	mockResolvedClass.On("GetFeatureID", mockOpposite).Return(2).Once()
+	mockObject.On("EInverseRemove", o, 1, nil).Return(nil).Once()
+	mockResolved.On("EInverseAdd", o, 2, nil).Return(nil).Once()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == RESOLVE
+	})).Once()
+	assert.Equal(t, mockResolved, o.EGetFromID(0, true))
+	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockReference, mockAdapter, mockResource, mockResourceSet)
+}

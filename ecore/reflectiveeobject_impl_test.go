@@ -45,6 +45,35 @@ func TestReflectiveEObjectImpl_EContainer(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockClass, mockContainer, mockResolved, mockResource, mockResourceSet, mockAdapter)
 }
 
+func TestReflectiveEObjectImpl_EContainmentFeature(t *testing.T) {
+	mockClass := new(MockEClass)
+	mockContainer := new(MockEObjectInternal)
+	mockReference := new(MockEReference)
+	o := NewReflectiveEObjectImpl()
+	o.setEClass(mockClass)
+
+	//
+	o.ESetInternalContainer(mockContainer, -2)
+	mockContainer.On("EClass").Return(mockClass)
+	mockClass.On("GetEStructuralFeature", 1).Return(mockReference).Once()
+	assert.Equal(t, mockReference, o.EContainmentFeature())
+	mock.AssertExpectationsForObjects(t, mockClass, mockContainer, mockReference)
+
+	//
+	o.ESetInternalContainer(mockContainer, 1)
+	mockClass.On("GetEStructuralFeature", 1).Return(mockReference).Once()
+	assert.Equal(t, mockReference, o.EContainmentFeature())
+	mock.AssertExpectationsForObjects(t, mockClass, mockContainer, mockReference)
+
+	//
+	o.ESetInternalContainer(mockContainer, 1)
+	mockClass.On("GetEStructuralFeature", 1).Return(nil).Once()
+	assert.Panics(t, func() { o.EContainmentFeature() })
+
+	o.ESetInternalContainer(nil, -1)
+	assert.Nil(t, o.EContainmentFeature())
+}
+
 func TestReflectiveEObjectImpl_ESetResource(t *testing.T) {
 	mockClass := new(MockEClass)
 	mockContainer := new(MockEObjectInternal)

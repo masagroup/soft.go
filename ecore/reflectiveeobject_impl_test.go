@@ -1,11 +1,49 @@
 package ecore
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
+
+func TestReflectiveEObjectImpl_EContainer(t *testing.T) {
+	mockClass := new(MockEClass)
+	mockContainer := new(MockEObjectInternal)
+	mockResource := new(MockEResource)
+	mockResourceSet := new(MockEResourceSet)
+
+	o := NewReflectiveEObjectImpl()
+	o.setEClass(mockClass)
+	o.ESetInternalContainer(mockContainer, 0)
+	o.ESetInternalResource(mockResource)
+
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	o.EAdapters().Add(mockAdapter)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	// non proxy
+	mockContainer.On("EIsProxy").Return(false).Once()
+	assert.Equal(t, mockContainer, o.EContainer())
+	mock.AssertExpectationsForObjects(t, mockClass, mockContainer, mockAdapter)
+
+	// proxy
+	mockURI, _ := url.Parse("test://file.t")
+	mockResolved := new(MockEObjectInternal)
+	mockResolved.On("EProxyURI").Return(nil).Once()
+	mockResource.On("GetResourceSet").Return(mockResourceSet).Once()
+	mockResourceSet.On("GetEObject", mockURI, true).Return(mockResolved).Once()
+	mockContainer.On("EIsProxy").Return(true).Once()
+	mockContainer.On("EProxyURI").Return(mockURI).Twice()
+	mockClass.On("GetEStructuralFeature", 0).Return(nil).Once()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+		return notification.GetEventType() == RESOLVE
+	})).Once()
+	assert.Equal(t, mockResolved, o.EContainer())
+	mock.AssertExpectationsForObjects(t, mockClass, mockContainer, mockResolved, mockResource, mockResourceSet, mockAdapter)
+}
 
 func TestReflectiveEObjectImpl_ESetResource(t *testing.T) {
 	mockClass := new(MockEClass)

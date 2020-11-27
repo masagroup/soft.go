@@ -410,3 +410,21 @@ func TestBasicEObjectListUnResolvedRemove(t *testing.T) {
 	assert.Equal(t, []interface{}{}, unresolved.ToArray())
 	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2)
 }
+
+func TestBasicEObjectListUnResolvedClear(t *testing.T) {
+
+	mockOwner := &MockEObjectInternal{}
+	mockObject1 := &MockEObjectInternal{}
+	mockObject2 := &MockEObjectInternal{}
+
+	list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, true, false)
+	unresolved := list.GetUnResolvedList()
+
+	mockOwner.On("EDeliver").Return(false).Once()
+	unresolved.AddAll(NewImmutableEList([]interface{}{mockObject1, mockObject2}))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2)
+
+	mockOwner.On("EDeliver").Return(false).Once()
+	unresolved.Clear()
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2)
+}

@@ -17,7 +17,7 @@ func (eAttribute *eAttributeExt) GetEAttributeType() EDataType {
 }
 
 func (eAttribute *eAttributeExt) basicGetEAttributeType() EDataType {
-	return eAttribute.basicGetEAttributeType().(EDataType)
+	return eAttribute.basicGetEType().(EDataType)
 }
 
 func (eAttribute *eAttributeExt) SetID(newIsID bool) {

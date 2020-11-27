@@ -89,40 +89,40 @@ func getNonDuplicates(list EList, ref EList) *basicEList {
 	return newList
 }
 
-func (arr *basicEList) Add(elem interface{}) bool {
-	if arr.isUnique && arr.Contains(elem) {
+func (list *basicEList) Add(elem interface{}) bool {
+	if list.isUnique && list.Contains(elem) {
 		return false
 	}
-	arr.interfaces.(abstractEList).doAdd(elem)
+	list.interfaces.(abstractEList).doAdd(elem)
 	return true
 }
 
 // Add a new element to the array
-func (arr *basicEList) doAdd(e interface{}) {
-	size := len(arr.data)
-	arr.data = append(arr.data, e)
+func (list *basicEList) doAdd(e interface{}) {
+	size := len(list.data)
+	list.data = append(list.data, e)
 	// events
-	interfaces := arr.interfaces.(abstractEList)
+	interfaces := list.interfaces.(abstractEList)
 	interfaces.didAdd(size, e)
 	interfaces.didChange()
 }
 
 // AddAll elements of an array in the current one
-func (arr *basicEList) AddAll(collection EList) bool {
-	if arr.isUnique {
-		collection = getNonDuplicates(collection, arr)
+func (list *basicEList) AddAll(collection EList) bool {
+	if list.isUnique {
+		collection = getNonDuplicates(collection, list)
 		if collection.Size() == 0 {
 			return false
 		}
 	}
-	arr.interfaces.(abstractEList).doAddAll(collection)
+	list.interfaces.(abstractEList).doAddAll(collection)
 	return true
 }
 
-func (arr *basicEList) doAddAll(collection EList) bool {
+func (list *basicEList) doAddAll(collection EList) bool {
 	data := collection.ToArray()
-	arr.data = append(arr.data, data...)
-	interfaces := arr.interfaces.(abstractEList)
+	list.data = append(list.data, data...)
+	interfaces := list.interfaces.(abstractEList)
 	// events
 	for i, element := range data {
 		interfaces.didAdd(i, element)
@@ -132,47 +132,47 @@ func (arr *basicEList) doAddAll(collection EList) bool {
 }
 
 // Insert an element in the array
-func (arr *basicEList) Insert(index int, elem interface{}) bool {
-	if index < 0 || index > arr.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
+func (list *basicEList) Insert(index int, elem interface{}) bool {
+	if index < 0 || index > list.Size() {
+		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
-	if arr.isUnique && arr.Contains(elem) {
+	if list.isUnique && list.Contains(elem) {
 		return false
 	}
-	arr.interfaces.(abstractEList).doInsert(index, elem)
+	list.interfaces.(abstractEList).doInsert(index, elem)
 	return true
 }
 
-func (arr *basicEList) doInsert(index int, e interface{}) {
-	arr.data = append(arr.data, nil)
-	copy(arr.data[index+1:], arr.data[index:])
-	arr.data[index] = e
+func (list *basicEList) doInsert(index int, e interface{}) {
+	list.data = append(list.data, nil)
+	copy(list.data[index+1:], list.data[index:])
+	list.data[index] = e
 	// events
-	interfaces := arr.interfaces.(abstractEList)
+	interfaces := list.interfaces.(abstractEList)
 	interfaces.didAdd(index, e)
 	interfaces.didChange()
 }
 
 // InsertAll element of an array at a given position
-func (arr *basicEList) InsertAll(index int, collection EList) bool {
-	if index < 0 || index > arr.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
+func (list *basicEList) InsertAll(index int, collection EList) bool {
+	if index < 0 || index > list.Size() {
+		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
-	if arr.isUnique {
-		collection = getNonDuplicates(collection, arr)
+	if list.isUnique {
+		collection = getNonDuplicates(collection, list)
 		if collection.Size() == 0 {
 			return false
 		}
 	}
-	arr.interfaces.(abstractEList).doInsertAll(index, collection)
+	list.interfaces.(abstractEList).doInsertAll(index, collection)
 	return true
 }
 
-func (arr *basicEList) doInsertAll(index int, collection EList) bool {
+func (list *basicEList) doInsertAll(index int, collection EList) bool {
 	data := collection.ToArray()
-	arr.data = append(arr.data[:index], append(data, arr.data[index:]...)...)
+	list.data = append(list.data[:index], append(data, list.data[index:]...)...)
 	// events
-	interfaces := arr.interfaces.(abstractEList)
+	interfaces := list.interfaces.(abstractEList)
 	for i, element := range data {
 		interfaces.didAdd(i+index, element)
 		interfaces.didChange()
@@ -181,131 +181,131 @@ func (arr *basicEList) doInsertAll(index int, collection EList) bool {
 }
 
 // Move an element to the given index
-func (arr *basicEList) MoveObject(newIndex int, elem interface{}) {
-	oldIndex := arr.IndexOf(elem)
+func (list *basicEList) MoveObject(newIndex int, elem interface{}) {
+	oldIndex := list.IndexOf(elem)
 	if oldIndex == -1 {
 		panic("Object not found")
 	}
-	arr.interfaces.(abstractEList).doMove(oldIndex, newIndex)
+	list.interfaces.(abstractEList).doMove(oldIndex, newIndex)
 }
 
 // Swap move an element from oldIndex to newIndex
-func (arr *basicEList) Move(oldIndex, newIndex int) interface{} {
-	return arr.interfaces.(abstractEList).doMove(oldIndex, newIndex)
+func (list *basicEList) Move(oldIndex, newIndex int) interface{} {
+	return list.interfaces.(abstractEList).doMove(oldIndex, newIndex)
 }
 
-func (arr *basicEList) doMove(oldIndex, newIndex int) interface{} {
-	if oldIndex < 0 || oldIndex >= arr.Size() ||
-		newIndex < 0 || newIndex > arr.Size() {
-		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(arr.Size()))
+func (list *basicEList) doMove(oldIndex, newIndex int) interface{} {
+	if oldIndex < 0 || oldIndex >= list.Size() ||
+		newIndex < 0 || newIndex > list.Size() {
+		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(list.Size()))
 	}
-	object := arr.data[oldIndex]
-	copy(arr.data[oldIndex:], arr.data[oldIndex+1:])
+	object := list.data[oldIndex]
+	copy(list.data[oldIndex:], list.data[oldIndex+1:])
 	if newIndex > oldIndex {
 		newIndex--
 	}
-	copy(arr.data[newIndex+1:], arr.data[newIndex:])
-	arr.data[newIndex] = object
+	copy(list.data[newIndex+1:], list.data[newIndex:])
+	list.data[newIndex] = object
 	// events
-	interfaces := arr.interfaces.(abstractEList)
+	interfaces := list.interfaces.(abstractEList)
 	interfaces.didMove(newIndex, object, oldIndex)
 	interfaces.didChange()
 	return object
 }
 
 // RemoveAt remove an element at a given position
-func (arr *basicEList) RemoveAt(index int) interface{} {
-	return arr.interfaces.(abstractEList).doRemove(index)
+func (list *basicEList) RemoveAt(index int) interface{} {
+	return list.interfaces.(abstractEList).doRemove(index)
 }
 
 // Remove an element in an array
-func (arr *basicEList) Remove(elem interface{}) bool {
-	index := arr.IndexOf(elem)
+func (list *basicEList) Remove(elem interface{}) bool {
+	index := list.IndexOf(elem)
 	if index == -1 {
 		return false
 	}
-	arr.interfaces.(abstractEList).doRemove(index)
+	list.interfaces.(abstractEList).doRemove(index)
 	return true
 }
 
-func (arr *basicEList) doRemove(index int) interface{} {
-	if index < 0 || index >= arr.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
+func (list *basicEList) doRemove(index int) interface{} {
+	if index < 0 || index >= list.Size() {
+		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
-	object := arr.data[index]
-	arr.data = append(arr.data[:index], arr.data[index+1:]...)
+	object := list.data[index]
+	list.data = append(list.data[:index], list.data[index+1:]...)
 	// events
-	interfaces := arr.interfaces.(abstractEList)
+	interfaces := list.interfaces.(abstractEList)
 	interfaces.didRemove(index, object)
 	interfaces.didChange()
 	return object
 }
 
 // Get an element of the array
-func (arr *basicEList) Get(index int) interface{} {
-	if index < 0 || index >= arr.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
+func (list *basicEList) Get(index int) interface{} {
+	if index < 0 || index >= list.Size() {
+		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
-	return arr.interfaces.(abstractEList).doGet(index)
+	return list.interfaces.(abstractEList).doGet(index)
 }
 
-func (arr *basicEList) doGet(index int) interface{} {
-	return arr.data[index]
+func (list *basicEList) doGet(index int) interface{} {
+	return list.data[index]
 }
 
-func (arr *basicEList) doSet(index int, elem interface{}) interface{} {
-	old := arr.data[index]
-	arr.data[index] = elem
+func (list *basicEList) doSet(index int, elem interface{}) interface{} {
+	old := list.data[index]
+	list.data[index] = elem
 	// events
-	interfaces := arr.interfaces.(abstractEList)
+	interfaces := list.interfaces.(abstractEList)
 	interfaces.didSet(index, elem, old)
 	interfaces.didChange()
 	return old
 }
 
 // Set an element of the array
-func (arr *basicEList) Set(index int, elem interface{}) interface{} {
-	if index < 0 || index >= arr.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
+func (list *basicEList) Set(index int, elem interface{}) interface{} {
+	if index < 0 || index >= list.Size() {
+		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
-	if arr.isUnique {
-		currIndex := arr.IndexOf(elem)
+	if list.isUnique {
+		currIndex := list.IndexOf(elem)
 		if currIndex >= 0 && currIndex != index {
 			panic("element already in list")
 		}
 	}
-	return arr.interfaces.(abstractEList).doSet(index, elem)
+	return list.interfaces.(abstractEList).doSet(index, elem)
 }
 
 // Size count the number of element in the array
-func (arr *basicEList) Size() int {
-	return len(arr.data)
+func (list *basicEList) Size() int {
+	return len(list.data)
 }
 
 // Clear remove all elements of the array
-func (arr *basicEList) Clear() {
-	arr.interfaces.(abstractEList).doClear()
+func (list *basicEList) Clear() {
+	list.interfaces.(abstractEList).doClear()
 }
 
-func (arr *basicEList) doClear() []interface{} {
-	oldData := arr.data
-	arr.data = make([]interface{}, 0)
+func (list *basicEList) doClear() []interface{} {
+	oldData := list.data
+	list.data = make([]interface{}, 0)
 	return oldData
 }
 
 // Empty return true if the array contains 0 element
-func (arr *basicEList) Empty() bool {
-	return arr.Size() == 0
+func (list *basicEList) Empty() bool {
+	return list.Size() == 0
 }
 
 // Contains return if an array contains or not an element
-func (arr *basicEList) Contains(elem interface{}) bool {
-	return arr.interfaces.(EList).IndexOf(elem) != -1
+func (list *basicEList) Contains(elem interface{}) bool {
+	return list.interfaces.(EList).IndexOf(elem) != -1
 }
 
 // IndexOf return the index on an element in an array, else return -1
-func (arr *basicEList) IndexOf(elem interface{}) int {
-	for i, value := range arr.data {
+func (list *basicEList) IndexOf(elem interface{}) int {
+	for i, value := range list.data {
 		if value == elem {
 			return i
 		}
@@ -314,34 +314,34 @@ func (arr *basicEList) IndexOf(elem interface{}) int {
 }
 
 // Iterator through the array
-func (arr *basicEList) Iterator() EIterator {
-	return &listIterator{list: arr}
+func (list *basicEList) Iterator() EIterator {
+	return &listIterator{list: list}
 }
 
-func (arr *basicEList) ToArray() []interface{} {
-	return arr.data
+func (list *basicEList) ToArray() []interface{} {
+	return list.data
 }
 
-func (arr *basicEList) didAdd(index int, elem interface{}) {
-
-}
-
-func (arr *basicEList) didSet(index int, newElem interface{}, oldElem interface{}) {
+func (list *basicEList) didAdd(index int, elem interface{}) {
 
 }
 
-func (arr *basicEList) didRemove(index int, old interface{}) {
+func (list *basicEList) didSet(index int, newElem interface{}, oldElem interface{}) {
 
 }
 
-func (arr *basicEList) didClear(oldObjects []interface{}) {
+func (list *basicEList) didRemove(index int, old interface{}) {
 
 }
 
-func (arr *basicEList) didMove(newIndex int, movedObject interface{}, oldIndex int) {
+func (list *basicEList) didClear(oldObjects []interface{}) {
 
 }
 
-func (arr *basicEList) didChange() {
+func (list *basicEList) didMove(newIndex int, movedObject interface{}, oldIndex int) {
+
+}
+
+func (list *basicEList) didChange() {
 
 }

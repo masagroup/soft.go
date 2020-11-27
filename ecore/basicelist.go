@@ -3,7 +3,7 @@
 // This file is part of a MASA library or program.
 // Refer to the included end-user license agreement for restrictions.
 //
-// Copyright (c) 2019 MASA Group
+// Copyright (c) 2020 MASA Group
 //
 // *****************************************************************************
 
@@ -108,19 +108,19 @@ func (arr *basicEList) doAdd(e interface{}) {
 }
 
 // AddAll elements of an array in the current one
-func (arr *basicEList) AddAll(list EList) bool {
+func (arr *basicEList) AddAll(collection EList) bool {
 	if arr.isUnique {
-		list = getNonDuplicates(list, arr)
-		if list.Size() == 0 {
+		collection = getNonDuplicates(collection, arr)
+		if collection.Size() == 0 {
 			return false
 		}
 	}
-	arr.interfaces.(abstractEList).doAddAll(list)
+	arr.interfaces.(abstractEList).doAddAll(collection)
 	return true
 }
 
-func (arr *basicEList) doAddAll(list EList) bool {
-	data := list.ToArray()
+func (arr *basicEList) doAddAll(collection EList) bool {
+	data := collection.ToArray()
 	arr.data = append(arr.data, data...)
 	interfaces := arr.interfaces.(abstractEList)
 	// events
@@ -154,22 +154,22 @@ func (arr *basicEList) doInsert(index int, e interface{}) {
 }
 
 // InsertAll element of an array at a given position
-func (arr *basicEList) InsertAll(index int, list EList) bool {
+func (arr *basicEList) InsertAll(index int, collection EList) bool {
 	if index < 0 || index > arr.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
 	}
 	if arr.isUnique {
-		list = getNonDuplicates(list, arr)
-		if list.Size() == 0 {
+		collection = getNonDuplicates(collection, arr)
+		if collection.Size() == 0 {
 			return false
 		}
 	}
-	arr.interfaces.(abstractEList).doInsertAll(index, list)
+	arr.interfaces.(abstractEList).doInsertAll(index, collection)
 	return true
 }
 
-func (arr *basicEList) doInsertAll(index int, list EList) bool {
-	data := list.ToArray()
+func (arr *basicEList) doInsertAll(index int, collection EList) bool {
+	data := collection.ToArray()
 	arr.data = append(arr.data[:index], append(data, arr.data[index:]...)...)
 	// events
 	interfaces := arr.interfaces.(abstractEList)

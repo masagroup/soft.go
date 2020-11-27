@@ -212,6 +212,12 @@ func (list *BasicENotifyingList) doClear() []interface{} {
 	return oldData
 }
 
+func (list *BasicENotifyingList) doMove(oldIndex, newIndex int) interface{} {
+	oldObject := list.basicEList.doMove(oldIndex, newIndex)
+	list.createAndDispatchNotification(nil, MOVE, oldIndex, oldObject, newIndex)
+	return oldObject
+}
+
 // RemoveAt ...
 func (list *BasicENotifyingList) RemoveAt(index int) interface{} {
 	oldObject := list.basicEList.RemoveAt(index)

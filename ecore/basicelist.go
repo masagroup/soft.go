@@ -26,6 +26,8 @@ type abstractEList interface {
 
 	doClear() []interface{}
 
+	doMove(oldIndex, newIndew int) interface{}
+
 	didAdd(index int, elem interface{})
 
 	didSet(index int, newElem interface{}, oldElem interface{})
@@ -182,11 +184,15 @@ func (arr *basicEList) MoveObject(newIndex int, elem interface{}) {
 	if oldIndex == -1 {
 		panic("Object not found")
 	}
-	arr.Move(oldIndex, newIndex)
+	arr.interfaces.(abstractEList).doMove(oldIndex, newIndex)
 }
 
 // Swap move an element from oldIndex to newIndex
 func (arr *basicEList) Move(oldIndex, newIndex int) interface{} {
+	return arr.interfaces.(abstractEList).doMove(oldIndex, newIndex)
+}
+
+func (arr *basicEList) doMove(oldIndex, newIndex int) interface{} {
 	if oldIndex < 0 || oldIndex >= arr.Size() ||
 		newIndex < 0 || newIndex > arr.Size() {
 		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(arr.Size()))

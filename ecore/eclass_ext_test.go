@@ -61,6 +61,10 @@ func TestEClassSuperTypes(t *testing.T) {
 	assert.True(t, containsSubClass(eSuperClass3, eClass))
 
 	// remove many
+	eClass.GetESuperTypes().Add(eSuperClass2)
+	eClass.GetESuperTypes().RemoveAll(NewImmutableEList([]interface{}{eSuperClass, eSuperClass2}))
+	assert.False(t, containsSubClass(eSuperClass, eClass))
+	assert.True(t, containsSubClass(eSuperClass3, eClass))
 }
 
 func TestEClassFeaturesAdd(t *testing.T) {

@@ -428,3 +428,20 @@ func TestBasicEObjectListUnResolvedClear(t *testing.T) {
 	unresolved.Clear()
 	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2)
 }
+
+func TestBasicEObjectListUnResolvedAccessors(t *testing.T) {
+	mockOwner := &MockEObjectInternal{}
+	mockClass := &MockEClass{}
+	mockFeature := &MockEStructuralFeature{}
+	list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, true, false)
+	unresolved, _ := list.GetUnResolvedList().(ENotifyingList)
+	assert.NotNil(t, unresolved)
+	assert.Equal(t, mockOwner, unresolved.GetNotifier())
+	assert.Equal(t, 1, unresolved.GetFeatureID())
+
+	mockOwner.On("EClass").Return(mockClass).Once()
+	mockClass.On("GetEStructuralFeature", 1).Return(mockFeature).Once()
+	assert.Equal(t, mockFeature, unresolved.GetFeature())
+	mock.AssertExpectationsForObjects(t, mockOwner, mockClass, mockFeature)
+
+}

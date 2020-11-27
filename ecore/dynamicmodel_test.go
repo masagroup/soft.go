@@ -138,6 +138,9 @@ func TestDynamicModel(t *testing.T) {
 	mm := createDynamicMetaModel()
 	m := instanciateDynamicModel(mm)
 
+	assert.Equal(t, 0, mm.bookStoreEClass.GetClassifierID())
+	assert.Equal(t, 1, mm.bookEClass.GetClassifierID())
+
 	assert.Equal(t, mm.bookStoreEClass, m.bookStoreObject.EClass())
 	assert.Equal(t, mm.bookEClass, m.bookObject.EClass())
 

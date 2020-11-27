@@ -28,6 +28,8 @@ type abstractEList interface {
 
 	doMove(oldIndex, newIndew int) interface{}
 
+	doRemove(index int) interface{}
+
 	didAdd(index int, elem interface{})
 
 	didSet(index int, newElem interface{}, oldElem interface{})
@@ -213,16 +215,7 @@ func (arr *basicEList) doMove(oldIndex, newIndex int) interface{} {
 
 // RemoveAt remove an element at a given position
 func (arr *basicEList) RemoveAt(index int) interface{} {
-	if index < 0 || index >= arr.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
-	}
-	object := arr.Get(index)
-	arr.data = append(arr.data[:index], arr.data[index+1:]...)
-	// events
-	interfaces := arr.interfaces.(abstractEList)
-	interfaces.didRemove(index, object)
-	interfaces.didChange()
-	return object
+	return arr.interfaces.(abstractEList).doRemove(index)
 }
 
 // Remove an element in an array
@@ -231,8 +224,21 @@ func (arr *basicEList) Remove(elem interface{}) bool {
 	if index == -1 {
 		return false
 	}
-	arr.interfaces.(EList).RemoveAt(index)
+	arr.interfaces.(abstractEList).doRemove(index)
 	return true
+}
+
+func (arr *basicEList) doRemove(index int) interface{} {
+	if index < 0 || index >= arr.Size() {
+		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(arr.Size()))
+	}
+	object := arr.data[index]
+	arr.data = append(arr.data[:index], arr.data[index+1:]...)
+	// events
+	interfaces := arr.interfaces.(abstractEList)
+	interfaces.didRemove(index, object)
+	interfaces.didChange()
+	return object
 }
 
 // Get an element of the array

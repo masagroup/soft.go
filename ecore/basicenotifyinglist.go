@@ -130,7 +130,7 @@ func (list *BasicENotifyingList) AddWithNotification(object interface{}, notific
 func (list *BasicENotifyingList) RemoveWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain {
 	index := list.IndexOf(object)
 	if index != -1 {
-		oldObject := list.basicEList.RemoveAt(index)
+		oldObject := list.basicEList.doRemove(index)
 		return list.createAndAddNotification(notifications, REMOVE, oldObject, nil, index)
 	}
 	return notifications
@@ -219,8 +219,8 @@ func (list *BasicENotifyingList) doMove(oldIndex, newIndex int) interface{} {
 }
 
 // RemoveAt ...
-func (list *BasicENotifyingList) RemoveAt(index int) interface{} {
-	oldObject := list.basicEList.RemoveAt(index)
+func (list *BasicENotifyingList) doRemove(index int) interface{} {
+	oldObject := list.basicEList.doRemove(index)
 	var notifications ENotificationChain
 	notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(oldObject, notifications)
 	list.createAndDispatchNotification(notifications, REMOVE, oldObject, nil, index)

@@ -445,3 +445,54 @@ func TestBasicEObjectListUnResolvedAccessors(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockClass, mockFeature)
 
 }
+
+func TestBasicEObjectListUnResolvedAddWithNotification(t *testing.T) {
+	mockOwner := &MockEObjectInternal{}
+	mockObject1 := &MockEObjectInternal{}
+
+	list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, true, false)
+	unresolved, _ := list.GetUnResolvedList().(ENotifyingList)
+
+	mockOwner.On("EDeliver").Return(false).Once()
+	unresolved.AddWithNotification(mockObject1, nil)
+	assert.Equal(t, []interface{}{mockObject1}, unresolved.ToArray())
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1)
+}
+
+func TestBasicEObjectListUnResolvedRemoveWithNotification(t *testing.T) {
+	mockOwner := &MockEObjectInternal{}
+	mockObject1 := &MockEObjectInternal{}
+	mockObject2 := &MockEObjectInternal{}
+
+	list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, true, false)
+	unresolved, _ := list.GetUnResolvedList().(ENotifyingList)
+
+	mockOwner.On("EDeliver").Return(false).Once()
+	unresolved.AddAll(NewImmutableEList([]interface{}{mockObject1, mockObject2}))
+	assert.Equal(t, []interface{}{mockObject1, mockObject2}, unresolved.ToArray())
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2)
+
+	mockOwner.On("EDeliver").Return(false).Once()
+	unresolved.RemoveWithNotification(mockObject2, nil)
+	assert.Equal(t, []interface{}{mockObject1}, unresolved.ToArray())
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2)
+}
+
+func TestBasicEObjectListUnResolvedSetWithNotification(t *testing.T) {
+	mockOwner := &MockEObjectInternal{}
+	mockObject1 := &MockEObjectInternal{}
+	mockObject2 := &MockEObjectInternal{}
+
+	list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, true, false)
+	unresolved, _ := list.GetUnResolvedList().(ENotifyingList)
+
+	mockOwner.On("EDeliver").Return(false).Once()
+	unresolved.Add(mockObject1)
+	assert.Equal(t, []interface{}{mockObject1}, unresolved.ToArray())
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1)
+
+	mockOwner.On("EDeliver").Return(false).Once()
+	unresolved.SetWithNotification(0, mockObject2, nil)
+	assert.Equal(t, []interface{}{mockObject2}, unresolved.ToArray())
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2)
+}

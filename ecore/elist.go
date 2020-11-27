@@ -31,6 +31,8 @@ type EList interface {
 
 	Remove(interface{}) bool
 
+	RemoveAll(EList) bool
+
 	Size() int
 
 	Clear()

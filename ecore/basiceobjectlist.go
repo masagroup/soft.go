@@ -200,6 +200,18 @@ func (l *unResolvedEList) Remove(elem interface{}) bool {
 	return true
 }
 
+func (l *unResolvedEList) RemoveAll(collection EList) bool {
+	modified := false
+	for i := l.Size() - 1; i >= 0; {
+		if collection.Contains(l.Get(i)) {
+			l.RemoveAt(i)
+			modified = true
+		}
+		i--
+	}
+	return modified
+}
+
 // Get an element of the list
 func (l *unResolvedEList) Get(index int) interface{} {
 	if index < 0 || index >= l.Size() {

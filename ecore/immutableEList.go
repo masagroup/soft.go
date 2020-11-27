@@ -55,6 +55,10 @@ func (l *immutableEList) Remove(elem interface{}) bool {
 	panic("Immutable list can't be modified")
 }
 
+func (l *immutableEList) RemoveAll(collection EList) bool {
+	panic("Immutable list can't be modified")
+}
+
 // Size count the number of element in the array
 func (l *immutableEList) Size() int {
 	return len(l.data)

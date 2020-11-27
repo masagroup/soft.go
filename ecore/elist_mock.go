@@ -195,6 +195,20 @@ func (_m *MockEList) RemoveAt(_a0 int) interface{} {
 	return r0
 }
 
+// RemoveAll provides a mock function with given fields: _a0
+func (_m *MockEList) RemoveAll(_a0 EList) bool {
+	ret := _m.Called(_a0)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(EList) bool); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // Set provides a mock function with given fields: _a0, _a1
 func (_m *MockEList) Set(_a0 int, _a1 interface{}) interface{} {
 	ret := _m.Called(_a0, _a1)

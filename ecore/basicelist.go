@@ -241,6 +241,18 @@ func (list *basicEList) doRemove(index int) interface{} {
 	return object
 }
 
+func (list *basicEList) RemoveAll(collection EList) bool {
+	modified := false
+	for i := list.Size() - 1; i >= 0; {
+		if collection.Contains(list.Get(i)) {
+			list.RemoveAt(i)
+			modified = true
+		}
+		i--
+	}
+	return modified
+}
+
 // Get an element of the array
 func (list *basicEList) Get(index int) interface{} {
 	if index < 0 || index >= list.Size() {

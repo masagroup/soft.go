@@ -177,17 +177,17 @@ func (l *unResolvedEList) MoveObject(newIndex int, elem interface{}) {
 	if oldIndex == -1 {
 		panic("Object not found")
 	}
-	l.delegate.Move(oldIndex, newIndex)
+	l.delegate.interfaces.(abstractEList).doMove(oldIndex, newIndex)
 }
 
 // Swap move an element from oldIndex to newIndex
 func (l *unResolvedEList) Move(oldIndex, newIndex int) interface{} {
-	return l.delegate.Move(oldIndex, newIndex)
+	return l.delegate.interfaces.(abstractEList).doMove(oldIndex, newIndex)
 }
 
 // RemoveAt remove an element at a given position
 func (l *unResolvedEList) RemoveAt(index int) interface{} {
-	return l.delegate.RemoveAt(index)
+	return l.delegate.interfaces.(abstractEList).doRemove(index)
 }
 
 // Remove an element in an list
@@ -196,7 +196,7 @@ func (l *unResolvedEList) Remove(elem interface{}) bool {
 	if index == -1 {
 		return false
 	}
-	l.delegate.RemoveAt(index)
+	l.delegate.interfaces.(abstractEList).doRemove(index)
 	return true
 }
 

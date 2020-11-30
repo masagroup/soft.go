@@ -24,4 +24,5 @@ func TestMockEStoreEObjectEStore(t *testing.T) {
 	}).Once()
 	assert.Equal(t, mockStore, o.EStore())
 	assert.Equal(t, mockStore, o.EStore())
+	o.AssertExpectations(t)
 }

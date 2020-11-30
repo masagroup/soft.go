@@ -8,6 +8,16 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+func TestReflectiveEObjectImpl_EClass(t *testing.T) {
+	o := NewReflectiveEObjectImpl()
+	assert.Equal(t, GetPackage().GetEObject(), o.EClass())
+
+	mockClass := new(MockEClass)
+	o.setEClass(mockClass)
+	assert.Equal(t, mockClass, o.EClass())
+
+}
+
 func TestReflectiveEObjectImpl_EContainer(t *testing.T) {
 	mockClass := new(MockEClass)
 	mockContainer := new(MockEObjectInternal)

@@ -293,14 +293,14 @@ func (_m *MockEObjectInternal) EStaticFeatureCount() int {
 }
 
 // EProperties provides a mock function with given fields: featureID
-func (_m *MockEObjectInternal) EProperties() EDynamicProperties {
+func (_m *MockEObjectInternal) EProperties() EObjectProperties {
 	ret := _m.Called()
 
-	var r0 EDynamicProperties
-	if rf, ok := ret.Get(0).(func() EDynamicProperties); ok {
+	var r0 EObjectProperties
+	if rf, ok := ret.Get(0).(func() EObjectProperties); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(EDynamicProperties)
+		r0 = ret.Get(0).(EObjectProperties)
 	}
 
 	return r0

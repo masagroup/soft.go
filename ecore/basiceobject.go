@@ -113,7 +113,7 @@ type BasicEObject struct {
 	crossReferenceS    *contentsListAdapter
 }
 
-type EDynamicProperties interface {
+type EObjectProperties interface {
 	EDynamicGet(dynamicFeatureID int) interface{}
 	EDynamicSet(dynamicFeatureID int, newValue interface{})
 	EDynamicUnset(dynamicFeatureID int)
@@ -123,7 +123,7 @@ type EDynamicProperties interface {
 type EObjectInternal interface {
 	EObject
 
-	EProperties() EDynamicProperties
+	EProperties() EObjectProperties
 
 	EStaticClass() EClass
 	EStaticFeatureCount() int
@@ -188,7 +188,7 @@ func (o *BasicEObject) EStaticFeatureCount() int {
 	return o.AsEObjectInternal().EStaticClass().GetFeatureCount()
 }
 
-func (o *BasicEObject) EProperties() EDynamicProperties {
+func (o *BasicEObject) EProperties() EObjectProperties {
 	return nil
 }
 
@@ -400,7 +400,7 @@ func (o *BasicEObject) EGetFromID(featureID int, resolve bool) interface{} {
 	}
 }
 
-func (o *BasicEObject) eDynamicPropertiesGet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, resolve bool) interface{} {
+func (o *BasicEObject) eDynamicPropertiesGet(properties EObjectProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, resolve bool) interface{} {
 	if isContainer(dynamicFeature) {
 		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
 		if o.EContainerFeatureID() == featureID {
@@ -530,7 +530,7 @@ func (o *BasicEObject) ESetFromID(featureID int, newValue interface{}) {
 	}
 }
 
-func (o *BasicEObject) eDynamicPropertiesSet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, newValue interface{}) {
+func (o *BasicEObject) eDynamicPropertiesSet(properties EObjectProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, newValue interface{}) {
 	if isContainer(dynamicFeature) {
 		// container
 		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
@@ -638,7 +638,7 @@ func (o *BasicEObject) EIsSetFromID(featureID int) bool {
 	}
 }
 
-func (o *BasicEObject) eDynamicPropertiesIsSet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int) bool {
+func (o *BasicEObject) eDynamicPropertiesIsSet(properties EObjectProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int) bool {
 	if isContainer(dynamicFeature) {
 		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
 		return o.EContainerFeatureID() == featureID && o.EInternalContainer() != nil
@@ -676,7 +676,7 @@ func (o *BasicEObject) EUnsetFromID(featureID int) {
 	}
 }
 
-func (o *BasicEObject) eDynamicPropertiesUnset(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int) {
+func (o *BasicEObject) eDynamicPropertiesUnset(properties EObjectProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int) {
 	if isContainer(dynamicFeature) {
 		if o.EInternalContainer() != nil {
 			featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
@@ -807,7 +807,7 @@ func (o *BasicEObject) EBasicInverseAdd(otherEnd EObject, featureID int, notific
 	return notifications
 }
 
-func (o *BasicEObject) eDynamicPropertiesInverseAdd(properties EDynamicProperties, otherEnd EObject, dynamicFeature EStructuralFeature, dynamicFeatureID int, notifications ENotificationChain) ENotificationChain {
+func (o *BasicEObject) eDynamicPropertiesInverseAdd(properties EObjectProperties, otherEnd EObject, dynamicFeature EStructuralFeature, dynamicFeatureID int, notifications ENotificationChain) ENotificationChain {
 	if dynamicFeature.IsMany() {
 		value := properties.EDynamicGet(dynamicFeatureID)
 		if value == nil {
@@ -870,7 +870,7 @@ func (o *BasicEObject) EBasicInverseRemove(otherEnd EObject, featureID int, noti
 	return notifications
 }
 
-func (o *BasicEObject) eDynamicPropertiesInverseRemove(properties EDynamicProperties, otherEnd EObject, dynamicFeature EStructuralFeature, dynamicFeatureID int, notifications ENotificationChain) ENotificationChain {
+func (o *BasicEObject) eDynamicPropertiesInverseRemove(properties EObjectProperties, otherEnd EObject, dynamicFeature EStructuralFeature, dynamicFeatureID int, notifications ENotificationChain) ENotificationChain {
 	if dynamicFeature.IsMany() {
 		value := properties.EDynamicGet(dynamicFeatureID)
 		if value != nil {

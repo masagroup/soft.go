@@ -9,7 +9,7 @@ type EStore interface {
 
 	UnSet(object EObject, feature EStructuralFeature)
 
-	IsEmpty(object EObject, feature EStructuralFeature)
+	IsEmpty(object EObject, feature EStructuralFeature) bool
 
 	Size(object EObject, feature EStructuralFeature) int
 
@@ -21,9 +21,9 @@ type EStore interface {
 
 	Add(object EObject, feature EStructuralFeature, index int, value interface{})
 
-	Remove(object EObject, feature EStructuralFeature, index int) interface{}
+	Remove(object EObject, feature EStructuralFeature, index int)
 
-	Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) interface{}
+	Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int)
 
 	Clear(object EObject, feature EStructuralFeature)
 

@@ -112,8 +112,17 @@ func (_m *MockEStore) IndexOf(object EObject, feature EStructuralFeature, value 
 }
 
 // IsEmpty provides a mock function with given fields: object, feature
-func (_m *MockEStore) IsEmpty(object EObject, feature EStructuralFeature) {
-	_m.Called(object, feature)
+func (_m *MockEStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
+	ret := _m.Called(object, feature)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature) bool); ok {
+		r0 = rf(object, feature)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
 }
 
 // IsSet provides a mock function with given fields: object, feature
@@ -145,35 +154,13 @@ func (_m *MockEStore) LastIndexOf(object EObject, feature EStructuralFeature, va
 }
 
 // Move provides a mock function with given fields: object, feature, targetIndex, sourceIndex
-func (_m *MockEStore) Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) interface{} {
-	ret := _m.Called(object, feature, targetIndex, sourceIndex)
-
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int, int) interface{}); ok {
-		r0 = rf(object, feature, targetIndex, sourceIndex)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
-		}
-	}
-
-	return r0
+func (_m *MockEStore) Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) {
+	_m.Called(object, feature, targetIndex, sourceIndex)
 }
 
 // Remove provides a mock function with given fields: object, feature, index
-func (_m *MockEStore) Remove(object EObject, feature EStructuralFeature, index int) interface{} {
-	ret := _m.Called(object, feature, index)
-
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int) interface{}); ok {
-		r0 = rf(object, feature, index)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
-		}
-	}
-
-	return r0
+func (_m *MockEStore) Remove(object EObject, feature EStructuralFeature, index int) {
+	_m.Called(object, feature, index)
 }
 
 // Set provides a mock function with given fields: object, feature, index, value

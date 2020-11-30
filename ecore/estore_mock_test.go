@@ -88,6 +88,19 @@ func TestMockEStoreContains(t *testing.T) {
 	o.AssertExpectations(t)
 }
 
+func TestMockEStoreSize(t *testing.T) {
+	o := &MockEStore{}
+	mockObject := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	o.On("Size", mockObject, mockFeature).Return(1).Once()
+	o.On("Size", mockObject, mockFeature).Return(func(EObject, EStructuralFeature) int {
+		return 2
+	}).Once()
+	assert.Equal(t, 1, o.Size(mockObject, mockFeature))
+	assert.Equal(t, 2, o.Size(mockObject, mockFeature))
+	o.AssertExpectations(t)
+}
+
 func TestMockEStoreIndexOf(t *testing.T) {
 	o := &MockEStore{}
 	mockObject := &MockEObject{}

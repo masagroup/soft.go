@@ -155,18 +155,40 @@ func (list *BasicEStoreList) Insert(index int, e interface{}) bool {
 	if list.Contains(e) {
 		return false
 	}
-
-	// add to the store
+	// add to the store && inversAdd
 	list.store.Add(list.owner, list.feature, index, e)
-
-	// inverseAdd and notifications
 	notifications := list.interfaces.(eNotifyingListInternal).inverseAdd(e, nil)
+	// notifications
 	list.createAndDispatchNotification(notifications, ADD, nil, e, index)
 	return true
 }
 
-func (list *BasicEStoreList) InsertAll(int, EList) bool {
-	return false
+func (list *BasicEStoreList) InsertAll(index int, collection EList) bool {
+	if index < 0 || index > list.Size() {
+		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
+	}
+	collection = getNonDuplicates(collection, list)
+	if collection.Size() == 0 {
+		return false
+	}
+	// add to the store && inverseAdd
+	var i int = index
+	var notifications ENotificationChain = NewNotificationChain()
+	var notifyingList eNotifyingListInternal = list.interfaces.(eNotifyingListInternal)
+	for it := collection.Iterator(); it.HasNext(); i++ {
+		element := it.Next()
+		list.store.Add(list.owner, list.feature, i, element)
+		notifications = notifyingList.inverseAdd(element, notifications)
+	}
+	// notifications
+	list.createAndDispatchNotificationFn(notifications, func() ENotification {
+		if collection.Size() == 1 {
+			return list.createNotification(ADD, nil, collection.Get(0), index)
+		} else {
+			return list.createNotification(ADD_MANY, nil, collection.ToArray(), index)
+		}
+	})
+	return true
 }
 
 func (list *BasicEStoreList) MoveObject(int, interface{}) {

@@ -259,15 +259,33 @@ func (list *BasicEStoreList) RemoveAll(EList) bool {
 }
 
 func (list *BasicEStoreList) Size() int {
-	return 0
+	return list.store.Size(list.owner, list.feature)
 }
 
 func (list *BasicEStoreList) Clear() {
+	oldData := list.store.ToArray(list.owner, list.feature)
+	list.store.Clear(list.owner, list.feature)
+	if len(oldData) == 0 {
+		list.createAndDispatchNotification(nil, REMOVE_MANY, []interface{}{}, nil, -1)
+	} else {
+		var notifications ENotificationChain = NewNotificationChain()
+		for _, e := range oldData {
+			notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(e, notifications)
+		}
 
+		list.createAndDispatchNotificationFn(notifications,
+			func() ENotification {
+				if len(oldData) == 1 {
+					return list.createNotification(REMOVE, oldData[0], nil, 0)
+				} else {
+					return list.createNotification(REMOVE_MANY, oldData, nil, -1)
+				}
+			})
+	}
 }
 
 func (list *BasicEStoreList) Empty() bool {
-	return false
+	return list.store.IsEmpty(list.owner, list.feature)
 }
 
 func (list *BasicEStoreList) Contains(interface{}) bool {
@@ -279,11 +297,11 @@ func (list *BasicEStoreList) IndexOf(interface{}) int {
 }
 
 func (list *BasicEStoreList) Iterator() EIterator {
-	return nil
+	return &listIterator{list: list}
 }
 
 func (list *BasicEStoreList) ToArray() []interface{} {
-	return nil
+	return list.store.ToArray(list.owner, list.feature)
 }
 
 func (list *BasicEStoreList) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {

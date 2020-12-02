@@ -254,8 +254,16 @@ func (list *BasicEStoreList) Remove(element interface{}) bool {
 	return true
 }
 
-func (list *BasicEStoreList) RemoveAll(EList) bool {
-	return false
+func (list *BasicEStoreList) RemoveAll(collection EList) bool {
+	modified := false
+	for i := list.Size(); i-1 >= 0; i-- {
+		element := list.store.Get(list.owner, list.feature, i)
+		if collection.Contains(element) {
+			list.Remove(i)
+			modified = true
+		}
+	}
+	return modified
 }
 
 func (list *BasicEStoreList) Size() int {

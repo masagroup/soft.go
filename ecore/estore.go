@@ -3,7 +3,7 @@ package ecore
 type EStore interface {
 	Get(object EObject, feature EStructuralFeature, index int) interface{}
 
-	Set(object EObject, feature EStructuralFeature, index int, value interface{})
+	Set(object EObject, feature EStructuralFeature, index int, value interface{}) interface{}
 
 	IsSet(object EObject, feature EStructuralFeature) bool
 
@@ -21,9 +21,9 @@ type EStore interface {
 
 	Add(object EObject, feature EStructuralFeature, index int, value interface{})
 
-	Remove(object EObject, feature EStructuralFeature, index int)
+	Remove(object EObject, feature EStructuralFeature, index int) interface{}
 
-	Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int)
+	Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) interface{}
 
 	Clear(object EObject, feature EStructuralFeature)
 

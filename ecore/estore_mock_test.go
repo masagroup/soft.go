@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestMockEStoreGet(t *testing.T) {
@@ -34,8 +35,13 @@ func TestMockEStoreSet(t *testing.T) {
 	mockObject := &MockEObject{}
 	mockFeature := &MockEStructuralFeature{}
 	mockValue := &MockEObject{}
-	o.On("Set", mockObject, mockFeature, 0, mockValue).Once()
-	o.Set(mockObject, mockFeature, 0, mockValue)
+	mockOld := &MockEObject{}
+	o.On("Set", mockObject, mockFeature, 0, mockValue).Return(mockOld).Once()
+	o.On("Set", mockObject, mockFeature, 0, mockValue).Return(func(object EObject, feature EStructuralFeature, index int, value interface{}) interface{} {
+		return mockOld
+	}).Once()
+	assert.Equal(t, mockOld, o.Set(mockObject, mockFeature, 0, mockValue))
+	assert.Equal(t, mockOld, o.Set(mockObject, mockFeature, 0, mockValue))
 	o.AssertExpectations(t)
 }
 
@@ -143,18 +149,28 @@ func TestMockEStoreRemove(t *testing.T) {
 	o := &MockEStore{}
 	mockObject := &MockEObject{}
 	mockFeature := &MockEStructuralFeature{}
-	o.On("Remove", mockObject, mockFeature, 0).Once()
-	o.Remove(mockObject, mockFeature, 0)
-	o.AssertExpectations(t)
+	mockOld := &MockEObject{}
+	o.On("Remove", mockObject, mockFeature, 0).Return(mockOld).Once()
+	o.On("Remove", mockObject, mockFeature, 0).Return(func(object EObject, feature EStructuralFeature, index int) interface{} {
+		return mockOld
+	}).Once()
+	assert.Equal(t, mockOld, o.Remove(mockObject, mockFeature, 0))
+	assert.Equal(t, mockOld, o.Remove(mockObject, mockFeature, 0))
+	mock.AssertExpectationsForObjects(t, mockObject, mockFeature, mockOld, o)
 }
 
 func TestMockEStoreMove(t *testing.T) {
 	o := &MockEStore{}
 	mockObject := &MockEObject{}
 	mockFeature := &MockEStructuralFeature{}
-	o.On("Move", mockObject, mockFeature, 0, 1).Once()
-	o.Move(mockObject, mockFeature, 0, 1)
-	o.AssertExpectations(t)
+	mockOld := &MockEObject{}
+	o.On("Move", mockObject, mockFeature, 0, 1).Return(mockOld).Once()
+	o.On("Move", mockObject, mockFeature, 0, 1).Return(func(object EObject, feature EStructuralFeature, index int, old int) interface{} {
+		return mockOld
+	}).Once()
+	assert.Equal(t, mockOld, o.Move(mockObject, mockFeature, 0, 1))
+	assert.Equal(t, mockOld, o.Move(mockObject, mockFeature, 0, 1))
+	mock.AssertExpectationsForObjects(t, mockObject, mockFeature, mockOld, o)
 }
 
 func TestMockEStoreClear(t *testing.T) {

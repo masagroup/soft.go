@@ -154,18 +154,51 @@ func (_m *MockEStore) LastIndexOf(object EObject, feature EStructuralFeature, va
 }
 
 // Move provides a mock function with given fields: object, feature, targetIndex, sourceIndex
-func (_m *MockEStore) Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) {
-	_m.Called(object, feature, targetIndex, sourceIndex)
+func (_m *MockEStore) Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) interface{} {
+	ret := _m.Called(object, feature, targetIndex, sourceIndex)
+
+	var r0 interface{}
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int, int) interface{}); ok {
+		r0 = rf(object, feature, targetIndex, sourceIndex)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(interface{})
+		}
+	}
+
+	return r0
 }
 
 // Remove provides a mock function with given fields: object, feature, index
-func (_m *MockEStore) Remove(object EObject, feature EStructuralFeature, index int) {
-	_m.Called(object, feature, index)
+func (_m *MockEStore) Remove(object EObject, feature EStructuralFeature, index int) interface{} {
+	ret := _m.Called(object, feature, index)
+
+	var r0 interface{}
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int) interface{}); ok {
+		r0 = rf(object, feature, index)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(interface{})
+		}
+	}
+
+	return r0
 }
 
 // Set provides a mock function with given fields: object, feature, index, value
-func (_m *MockEStore) Set(object EObject, feature EStructuralFeature, index int, value interface{}) {
-	_m.Called(object, feature, index, value)
+func (_m *MockEStore) Set(object EObject, feature EStructuralFeature, index int, value interface{}) interface{} {
+	ret := _m.Called(object, feature, index, value)
+
+	var r0 interface{}
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int, interface{}) interface{}); ok {
+		r0 = rf(object, feature, index, value)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(interface{})
+		}
+	}
+
+	return r0
 }
 
 // Size provides a mock function with given fields: object, feature

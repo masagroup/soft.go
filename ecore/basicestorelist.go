@@ -204,8 +204,7 @@ func (list *BasicEStoreList) Move(oldIndex int, newIndex int) interface{} {
 		newIndex < 0 || newIndex > list.Size() {
 		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(list.Size()))
 	}
-	object := list.Get(oldIndex)
-	list.store.Move(list.owner, list.feature, newIndex, oldIndex)
+	object := list.store.Move(list.owner, list.feature, newIndex, oldIndex)
 	list.createAndDispatchNotification(nil, MOVE, oldIndex, object, newIndex)
 	return object
 }

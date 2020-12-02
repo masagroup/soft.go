@@ -191,12 +191,23 @@ func (list *BasicEStoreList) InsertAll(index int, collection EList) bool {
 	return true
 }
 
-func (list *BasicEStoreList) MoveObject(int, interface{}) {
-
+func (list *BasicEStoreList) MoveObject(newIndex int, elem interface{}) {
+	oldIndex := list.IndexOf(elem)
+	if oldIndex == -1 {
+		panic("Object not found")
+	}
+	list.Move(oldIndex, newIndex)
 }
 
-func (list *BasicEStoreList) Move(int, int) interface{} {
-	return nil
+func (list *BasicEStoreList) Move(oldIndex int, newIndex int) interface{} {
+	if oldIndex < 0 || oldIndex >= list.Size() ||
+		newIndex < 0 || newIndex > list.Size() {
+		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(list.Size()))
+	}
+	object := list.Get(oldIndex)
+	list.store.Move(list.owner, list.feature, newIndex, oldIndex)
+	list.createAndDispatchNotification(nil, MOVE, oldIndex, object, newIndex)
+	return object
 }
 
 func (list *BasicEStoreList) Get(int) interface{} {

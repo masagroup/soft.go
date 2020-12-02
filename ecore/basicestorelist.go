@@ -204,17 +204,33 @@ func (list *BasicEStoreList) Move(oldIndex int, newIndex int) interface{} {
 		newIndex < 0 || newIndex > list.Size() {
 		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(list.Size()))
 	}
-	object := list.store.Move(list.owner, list.feature, newIndex, oldIndex)
-	list.createAndDispatchNotification(nil, MOVE, oldIndex, object, newIndex)
-	return object
+	oldObject := list.store.Move(list.owner, list.feature, newIndex, oldIndex)
+	list.createAndDispatchNotification(nil, MOVE, oldIndex, oldObject, newIndex)
+	return oldObject
 }
 
 func (list *BasicEStoreList) Get(int) interface{} {
 	return nil
 }
 
-func (list *BasicEStoreList) Set(int, interface{}) interface{} {
-	return nil
+func (list *BasicEStoreList) Set(index int, newObject interface{}) interface{} {
+	if index < 0 || index >= list.Size() {
+		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
+	}
+	currIndex := list.IndexOf(newObject)
+	if currIndex >= 0 && currIndex != index {
+		panic("element already in list")
+	}
+
+	oldObject := list.store.Set(list.owner, list.feature, index, newObject)
+	if newObject != oldObject {
+		var notifications ENotificationChain
+		var notifyingList eNotifyingListInternal = list.interfaces.(eNotifyingListInternal)
+		notifications = notifyingList.inverseRemove(oldObject, notifications)
+		notifications = notifyingList.inverseAdd(newObject, notifications)
+		list.createAndDispatchNotification(notifications, SET, oldObject, newObject, index)
+	}
+	return oldObject
 }
 
 func (list *BasicEStoreList) RemoveAt(int) interface{} {

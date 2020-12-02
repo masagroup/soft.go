@@ -233,12 +233,25 @@ func (list *BasicEStoreList) Set(index int, newObject interface{}) interface{} {
 	return oldObject
 }
 
-func (list *BasicEStoreList) RemoveAt(int) interface{} {
-	return nil
+func (list *BasicEStoreList) RemoveAt(index int) interface{} {
+	if index < 0 || index >= list.Size() {
+		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
+	}
+	oldObject := list.store.Remove(list.owner, list.feature, index)
+	var notifications ENotificationChain
+	var notifyingList eNotifyingListInternal = list.interfaces.(eNotifyingListInternal)
+	notifications = notifyingList.inverseRemove(oldObject, notifications)
+	list.createAndDispatchNotification(notifications, REMOVE, oldObject, nil, index)
+	return oldObject
 }
 
-func (list *BasicEStoreList) Remove(interface{}) bool {
-	return false
+func (list *BasicEStoreList) Remove(element interface{}) bool {
+	index := list.IndexOf(element)
+	if index == -1 {
+		return false
+	}
+	list.RemoveAt(index)
+	return true
 }
 
 func (list *BasicEStoreList) RemoveAll(EList) bool {

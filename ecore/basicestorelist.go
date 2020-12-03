@@ -362,9 +362,31 @@ func (list *BasicEStoreList) ToArray() []interface{} {
 }
 
 func (list *BasicEStoreList) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {
+	internal, _ := object.(EObjectInternal)
+	if internal != nil && list.inverse {
+		if list.opposite {
+			inverseReference := list.feature.(EReference).GetEOpposite()
+			inverseFeatureID := internal.EClass().GetFeatureID(inverseReference)
+			return internal.EInverseAdd(list.owner, inverseFeatureID, notifications)
+		} else {
+			featureID := list.feature.GetFeatureID()
+			return internal.EInverseAdd(list.owner, EOPPOSITE_FEATURE_BASE-featureID, notifications)
+		}
+	}
 	return notifications
 }
 
 func (list *BasicEStoreList) inverseRemove(object interface{}, notifications ENotificationChain) ENotificationChain {
+	internal, _ := object.(EObjectInternal)
+	if internal != nil && list.inverse {
+		if list.opposite {
+			inverseReference := list.feature.(EReference).GetEOpposite()
+			inverseFeatureID := internal.EClass().GetFeatureID(inverseReference)
+			return internal.EInverseRemove(list.owner, inverseFeatureID, notifications)
+		} else {
+			featureID := list.feature.GetFeatureID()
+			return internal.EInverseRemove(list.owner, EOPPOSITE_FEATURE_BASE-featureID, notifications)
+		}
+	}
 	return notifications
 }

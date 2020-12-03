@@ -199,3 +199,24 @@ func TestBasicEStoreList_Insert(t *testing.T) {
 	})
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 }
+
+func TestBasicEStoreList_InsertAll(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	mockAdapter := new(MockEAdapter)
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+
+	mockStore.On("Size", mockOwner, mockFeature).Return(0).Once()
+	mockStore.On("Contains", mockOwner, mockFeature, 1).Return(false).Once()
+	mockStore.On("Add", mockOwner, mockFeature, 0, 1).Once()
+	mockOwner.On("EDeliver").Return(true).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter})).Once()
+	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner && n.GetFeature() == mockFeature && n.GetEventType() == ADD && n.GetNewValue() == 1
+	})).Once()
+	list.InsertAll(0, NewImmutableEList([]interface{}{1}))
+
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
+}

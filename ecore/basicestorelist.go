@@ -406,3 +406,9 @@ func (list *BasicEStoreList) inverseRemove(object interface{}, notifications ENo
 	}
 	return notifications
 }
+
+func (list *BasicEStoreList) GetUnResolvedList() EList {
+	l := NewBasicEStoreList(list.owner, list.feature, list.store)
+	l.proxies = false
+	return l
+}

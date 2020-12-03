@@ -207,6 +207,19 @@ func TestBasicEStoreList_InsertAll(t *testing.T) {
 	mockAdapter := new(MockEAdapter)
 	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
 
+	// invalid index
+	assert.Panics(t, func() {
+		list.InsertAll(-1, NewImmutableEList([]interface{}{}))
+	})
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
+	// already present element
+	mockStore.On("Size", mockOwner, mockFeature).Return(0).Once()
+	mockStore.On("Contains", mockOwner, mockFeature, 1).Return(true).Once()
+	assert.False(t, list.InsertAll(0, NewImmutableEList([]interface{}{1})))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
+	// single element inserted
 	mockStore.On("Size", mockOwner, mockFeature).Return(0).Once()
 	mockStore.On("Contains", mockOwner, mockFeature, 1).Return(false).Once()
 	mockStore.On("Add", mockOwner, mockFeature, 0, 1).Once()
@@ -215,8 +228,20 @@ func TestBasicEStoreList_InsertAll(t *testing.T) {
 	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == mockOwner && n.GetFeature() == mockFeature && n.GetEventType() == ADD && n.GetNewValue() == 1
 	})).Once()
-	list.InsertAll(0, NewImmutableEList([]interface{}{1}))
+	assert.True(t, list.InsertAll(0, NewImmutableEList([]interface{}{1})))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
+	mockStore.On("Size", mockOwner, mockFeature).Return(0).Once()
+	mockStore.On("Contains", mockOwner, mockFeature, 1).Return(false).Once()
+	mockStore.On("Contains", mockOwner, mockFeature, 2).Return(false).Once()
+	mockStore.On("Add", mockOwner, mockFeature, 0, 1).Once()
+	mockStore.On("Add", mockOwner, mockFeature, 1, 2).Once()
+	mockOwner.On("EDeliver").Return(true).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter})).Once()
+	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner && n.GetFeature() == mockFeature && n.GetEventType() == ADD_MANY
+	})).Once()
+	assert.True(t, list.InsertAll(0, NewImmutableEList([]interface{}{1, 2})))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
 }

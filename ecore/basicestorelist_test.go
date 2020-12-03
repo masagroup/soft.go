@@ -259,3 +259,53 @@ func TestBasicEStoreList_InsertAll(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
 }
+
+func TestBasicEStoreList_MoveObject(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	mockObject := &MockEObjectInternal{}
+	mockAdapter := new(MockEAdapter)
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+
+	mockStore.On("IndexOf", mockOwner, mockFeature, 1).Return(-1).Once()
+	assert.Panics(t, func() {
+		list.MoveObject(1, 1)
+	})
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
+
+	mockStore.On("IndexOf", mockOwner, mockFeature, 1).Return(0).Once()
+	mockStore.On("Size", mockOwner, mockFeature).Return(1).Twice()
+	mockStore.On("Move", mockOwner, mockFeature, 1, 0).Return(mockObject).Once()
+	mockOwner.On("EDeliver").Return(true).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter})).Once()
+	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner && n.GetFeature() == mockFeature && n.GetEventType() == MOVE
+	})).Once()
+	list.MoveObject(1, 1)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
+}
+
+func TestBasicEStoreList_Move(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	mockObject := &MockEObjectInternal{}
+	mockAdapter := new(MockEAdapter)
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+
+	assert.Panics(t, func() {
+		list.MoveObject(-1, 1)
+	})
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
+
+	mockStore.On("Size", mockOwner, mockFeature).Return(1).Twice()
+	mockStore.On("Move", mockOwner, mockFeature, 1, 0).Return(mockObject).Once()
+	mockOwner.On("EDeliver").Return(true).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter})).Once()
+	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner && n.GetFeature() == mockFeature && n.GetEventType() == MOVE
+	})).Once()
+	list.Move(0, 1)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
+}

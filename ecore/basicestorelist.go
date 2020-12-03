@@ -58,6 +58,10 @@ func (list *BasicEStoreList) GetOwner() EObject {
 	return list.owner
 }
 
+func (list *BasicEStoreList) GetNotifier() ENotifier {
+	return list.owner
+}
+
 func (list *BasicEStoreList) GetFeature() EStructuralFeature {
 	return list.feature
 }

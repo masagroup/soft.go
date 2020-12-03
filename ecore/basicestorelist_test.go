@@ -80,6 +80,32 @@ func TestBasicEStoreList_AddReferenceContainmentNoOpposite(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject)
 }
 
+func TestBasicEStoreList_AddReferenceContainmentOpposite(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockReference := &MockEReference{}
+	mockOpposite := &MockEReference{}
+	mockStore := &MockEStore{}
+	mockReference.On("IsContainment").Return(true).Once()
+	mockReference.On("IsResolveProxies").Return(false).Once()
+	mockReference.On("IsUnsettable").Return(false).Once()
+	mockReference.On("GetEOpposite").Return(mockOpposite).Once()
+	list := NewBasicEStoreList(mockOwner, mockReference, mockStore)
+	assert.NotNil(t, list)
+
+	mockObject := &MockEObjectInternal{}
+	mockClass := &MockEClass{}
+	mockStore.On("Size", mockOwner, mockReference).Return(0).Twice()
+	mockStore.On("Contains", mockOwner, mockReference, mockObject).Return(false).Once()
+	mockStore.On("Add", mockOwner, mockReference, 0, mockObject).Once()
+	mockReference.On("GetEOpposite").Return(mockOpposite).Once()
+	mockObject.On("EClass").Return(mockClass).Once()
+	mockClass.On("GetFeatureID", mockOpposite).Return(1).Once()
+	mockObject.On("EInverseAdd", mockOwner, 1, nil).Return(nil).Once()
+	mockOwner.On("EDeliver").Return(false).Once()
+	assert.True(t, list.Add(mockObject))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject, mockClass, mockOpposite)
+}
+
 func TestBasicEStoreList_AddWithNotification(t *testing.T) {
 	mockOwner := &MockEObject{}
 	mockFeature := &MockEStructuralFeature{}

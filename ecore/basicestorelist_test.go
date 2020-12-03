@@ -7,6 +7,62 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+func TestBasicEStoreList_Constructors(t *testing.T) {
+	{
+		mockOwner := &MockEObject{}
+		mockFeature := &MockEStructuralFeature{}
+		mockStore := &MockEStore{}
+		list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+		assert.NotNil(t, list)
+	}
+	{
+		mockOwner := &MockEObject{}
+		mockReference := &MockEReference{}
+		mockStore := &MockEStore{}
+		mockReference.On("IsContainment").Return(true).Once()
+		mockReference.On("IsResolveProxies").Return(false).Once()
+		mockReference.On("IsUnsettable").Return(false).Once()
+		mockReference.On("GetEOpposite").Return(nil).Once()
+		list := NewBasicEStoreList(mockOwner, mockReference, mockStore)
+		assert.NotNil(t, list)
+	}
+	{
+		mockOwner := &MockEObject{}
+		mockReference := &MockEReference{}
+		mockOpposite := &MockEReference{}
+		mockStore := &MockEStore{}
+		mockReference.On("IsContainment").Return(true).Once()
+		mockReference.On("IsResolveProxies").Return(false).Once()
+		mockReference.On("IsUnsettable").Return(false).Once()
+		mockReference.On("GetEOpposite").Return(mockOpposite).Once()
+		list := NewBasicEStoreList(mockOwner, mockReference, mockStore)
+		assert.NotNil(t, list)
+	}
+	{
+		mockOwner := &MockEObject{}
+		mockReference := &MockEReference{}
+		mockStore := &MockEStore{}
+		mockReference.On("IsContainment").Return(false).Once()
+		mockReference.On("IsResolveProxies").Return(false).Once()
+		mockReference.On("IsUnsettable").Return(false).Once()
+		mockReference.On("GetEOpposite").Return(nil).Once()
+		list := NewBasicEStoreList(mockOwner, mockReference, mockStore)
+		assert.NotNil(t, list)
+	}
+	{
+		mockOwner := &MockEObject{}
+		mockReference := &MockEReference{}
+		mockOpposite := &MockEReference{}
+		mockStore := &MockEStore{}
+		mockReference.On("IsContainment").Return(false).Once()
+		mockReference.On("IsResolveProxies").Return(false).Once()
+		mockReference.On("IsUnsettable").Return(false).Once()
+		mockReference.On("GetEOpposite").Return(mockOpposite).Once()
+		list := NewBasicEStoreList(mockOwner, mockReference, mockStore)
+		assert.NotNil(t, list)
+	}
+}
+
 func TestBasicEStoreList_Accessors(t *testing.T) {
 	mockOwner := &MockEObject{}
 	mockFeature := &MockEStructuralFeature{}

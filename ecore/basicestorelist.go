@@ -66,6 +66,10 @@ func (list *BasicEStoreList) GetFeatureID() int {
 	return list.owner.EClass().GetFeatureID(list.feature)
 }
 
+func (list *BasicEStoreList) GetStore() EStore {
+	return list.store
+}
+
 type basicEStoreListNotification struct {
 	*abstractNotification
 	list *BasicEStoreList

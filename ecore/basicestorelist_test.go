@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestBasicEStoreListAccessors(t *testing.T) {
+func TestBasicEStoreList_Accessors(t *testing.T) {
 	mockOwner := &MockEObject{}
 	mockFeature := &MockEStructuralFeature{}
 	mockStore := &MockEStore{}
@@ -24,7 +24,7 @@ func TestBasicEStoreListAccessors(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockClass, mockFeature, mockStore)
 }
 
-func TestBasicEStoreListAdd(t *testing.T) {
+func TestBasicEStoreList_Add(t *testing.T) {
 	mockOwner := &MockEObject{}
 	mockFeature := &MockEStructuralFeature{}
 	mockStore := &MockEStore{}
@@ -58,7 +58,29 @@ func TestBasicEStoreListAdd(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 }
 
-func TestBasicEStoreListAddWithNotification(t *testing.T) {
+func TestBasicEStoreList_AddReferenceContainmentNoOpposite(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockReference := &MockEReference{}
+	mockStore := &MockEStore{}
+	mockReference.On("IsContainment").Return(true).Once()
+	mockReference.On("IsResolveProxies").Return(false).Once()
+	mockReference.On("IsUnsettable").Return(false).Once()
+	mockReference.On("GetEOpposite").Return(nil).Once()
+	list := NewBasicEStoreList(mockOwner, mockReference, mockStore)
+	assert.NotNil(t, list)
+
+	mockObject := &MockEObjectInternal{}
+	mockStore.On("Size", mockOwner, mockReference).Return(0).Twice()
+	mockStore.On("Contains", mockOwner, mockReference, mockObject).Return(false).Once()
+	mockStore.On("Add", mockOwner, mockReference, 0, mockObject).Once()
+	mockReference.On("GetFeatureID").Return(0).Once()
+	mockObject.On("EInverseAdd", mockOwner, EOPPOSITE_FEATURE_BASE-0, nil).Return(nil).Once()
+	mockOwner.On("EDeliver").Return(false).Once()
+	assert.True(t, list.Add(mockObject))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject)
+}
+
+func TestBasicEStoreList_AddWithNotification(t *testing.T) {
 	mockOwner := &MockEObject{}
 	mockFeature := &MockEStructuralFeature{}
 	mockStore := &MockEStore{}

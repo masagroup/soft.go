@@ -181,3 +181,21 @@ func TestBasicEStoreList_AddWithNotification(t *testing.T) {
 	assert.Equal(t, mockNotifications, list.AddWithNotification(2, mockNotifications))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockAdapter, mockNotifications)
 }
+
+func TestBasicEStoreList_Insert(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+
+	assert.Panics(t, func() {
+		list.Insert(-1, 0)
+	})
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
+	mockStore.On("Size", mockOwner, mockFeature).Return(1).Once()
+	assert.Panics(t, func() {
+		list.Insert(2, 0)
+	})
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+}

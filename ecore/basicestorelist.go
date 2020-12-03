@@ -322,12 +322,35 @@ func (list *BasicEStoreList) Empty() bool {
 	return list.store.IsEmpty(list.owner, list.feature)
 }
 
-func (list *BasicEStoreList) Contains(interface{}) bool {
-	return false
+func (list *BasicEStoreList) Contains(element interface{}) bool {
+	result := list.store.Contains(list.owner, list.feature, element)
+	if !result && list.object && list.proxies {
+		for i := 0; i < list.Size(); i++ {
+			eObject, _ := list.store.Get(list.owner, list.feature, i).(EObject)
+			eResolved := list.resolveProxy(eObject)
+			if eObject == eResolved {
+				return true
+			}
+		}
+	}
+	return result
 }
 
-func (list *BasicEStoreList) IndexOf(interface{}) int {
-	return 0
+func (list *BasicEStoreList) IndexOf(element interface{}) int {
+	result := list.store.IndexOf(list.owner, list.feature, element)
+	if result >= 0 {
+		return result
+	}
+	if list.object && list.proxies {
+		for i := 0; i < list.Size(); i++ {
+			eObject, _ := list.store.Get(list.owner, list.feature, i).(EObject)
+			eResolved := list.resolveProxy(eObject)
+			if eObject == eResolved {
+				return i
+			}
+		}
+	}
+	return -1
 }
 
 func (list *BasicEStoreList) Iterator() EIterator {

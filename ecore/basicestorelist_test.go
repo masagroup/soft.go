@@ -200,6 +200,20 @@ func TestBasicEStoreList_Insert(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 }
 
+func TestBasicEStoreList_AddAll(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+
+	mockStore.On("Size", mockOwner, mockFeature).Return(0).Twice()
+	mockStore.On("Contains", mockOwner, mockFeature, 1).Return(false).Once()
+	mockStore.On("Add", mockOwner, mockFeature, 0, 1).Once()
+	mockOwner.On("EDeliver").Return(false).Once()
+	assert.True(t, list.AddAll(NewImmutableEList([]interface{}{1})))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+}
+
 func TestBasicEStoreList_InsertAll(t *testing.T) {
 	mockOwner := &MockEObject{}
 	mockFeature := &MockEStructuralFeature{}

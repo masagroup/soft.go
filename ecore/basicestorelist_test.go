@@ -57,3 +57,23 @@ func TestBasicEStoreListAdd(t *testing.T) {
 	assert.True(t, list.Add(2))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 }
+
+func TestBasicEStoreListAddWithNotification(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	mockNotifications := &MockENotificationChain{}
+	mockAdapter := new(MockEAdapter)
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+
+	// add 1
+	mockStore.On("Size", mockOwner, mockFeature).Return(1).Once()
+	mockStore.On("Add", mockOwner, mockFeature, 1, 2).Once()
+	mockOwner.On("EDeliver").Return(true).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter})).Once()
+	mockNotifications.On("Add", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner && n.GetFeature() == mockFeature && n.GetEventType() == ADD && n.GetNewValue() == 2
+	})).Return(true).Once()
+	assert.Equal(t, mockNotifications, list.AddWithNotification(2, mockNotifications))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockAdapter, mockNotifications)
+}

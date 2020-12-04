@@ -352,7 +352,7 @@ func (list *BasicEStoreList) Contains(element interface{}) bool {
 		for i := 0; i < list.Size(); i++ {
 			eObject, _ := list.store.Get(list.owner, list.feature, i).(EObject)
 			eResolved := list.resolveProxy(eObject)
-			if eObject == eResolved {
+			if element == eResolved {
 				return true
 			}
 		}
@@ -369,7 +369,7 @@ func (list *BasicEStoreList) IndexOf(element interface{}) int {
 		for i := 0; i < list.Size(); i++ {
 			eObject, _ := list.store.Get(list.owner, list.feature, i).(EObject)
 			eResolved := list.resolveProxy(eObject)
-			if eObject == eResolved {
+			if element == eResolved {
 				return i
 			}
 		}

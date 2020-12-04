@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -498,5 +499,59 @@ func TestBasicEStoreList_RemoveAll(t *testing.T) {
 	mockOwner.On("EDeliver").Return(false)
 	list.RemoveAll(NewImmutableEList([]interface{}{1}))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
+}
+
+func TestBasicEStoreList_Size(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
+	mockStore.On("Size", mockOwner, mockFeature).Return(1).Once()
+	assert.Equal(t, 1, list.Size())
+}
+
+func TestBasicEStoreList_Clear(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	mockAdapter := new(MockEAdapter)
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
+	// empty list
+	mockStore.On("ToArray", mockOwner, mockFeature).Return([]interface{}{}).Once()
+	mockStore.On("Clear", mockOwner, mockFeature).Once()
+	mockOwner.On("EDeliver").Return(true).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter})).Once()
+	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner && n.GetFeature() == mockFeature && n.GetEventType() == REMOVE_MANY && n.GetNewValue() == nil && len(n.GetOldValue().([]interface{})) == 0
+	}))
+	list.Clear()
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockAdapter)
+
+	// single element list
+	mockStore.On("ToArray", mockOwner, mockFeature).Return([]interface{}{1}).Once()
+	mockStore.On("Clear", mockOwner, mockFeature).Once()
+	mockOwner.On("EDeliver").Return(true).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter})).Once()
+	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner && n.GetFeature() == mockFeature && n.GetEventType() == REMOVE && n.GetNewValue() == nil && n.GetOldValue() == 1
+	}))
+	list.Clear()
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockAdapter)
+
+	// multi element list
+	mockStore.On("ToArray", mockOwner, mockFeature).Return([]interface{}{1, 2}).Once()
+	mockStore.On("Clear", mockOwner, mockFeature).Once()
+	mockOwner.On("EDeliver").Return(true).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter})).Once()
+	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner && n.GetFeature() == mockFeature && n.GetEventType() == REMOVE_MANY && n.GetNewValue() == nil && reflect.DeepEqual(n.GetOldValue(), []interface{}{1, 2})
+	}))
+	list.Clear()
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockAdapter)
 
 }

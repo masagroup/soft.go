@@ -406,3 +406,26 @@ func TestBasicEStoreList_Set(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockNewObject, mockOldObject)
 
 }
+
+func TestBasicEStoreList_SetWithNotification(t *testing.T) {
+	mockOwner := &MockEObjectInternal{}
+	mockReference := &MockEReference{}
+	mockOpposite := &MockEReference{}
+	mockStore := &MockEStore{}
+	mockNewObject := &MockEObjectInternal{}
+	mockOldObject := &MockEObjectInternal{}
+	mockAdapter := new(MockEAdapter)
+	mockReference.On("IsContainment").Return(true).Once()
+	mockReference.On("IsResolveProxies").Return(true).Once()
+	mockReference.On("IsUnsettable").Return(false).Once()
+	mockReference.On("GetEOpposite").Return(mockOpposite).Once()
+	list := NewBasicEStoreList(mockOwner, mockReference, mockStore)
+	assert.NotNil(t, list)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockOpposite)
+
+	mockStore.On("Set", list.owner, list.feature, 0, mockNewObject).Return(mockOldObject).Once()
+	mockOwner.On("EDeliver").Return(true).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter})).Once()
+	assert.NotNil(t, list.SetWithNotification(0, mockNewObject, nil))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockOpposite, mockNewObject, mockOldObject)
+}

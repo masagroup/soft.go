@@ -470,6 +470,7 @@ func TestBasicEStoreList_RemoveWithNotification(t *testing.T) {
 	mockFeature := &MockEStructuralFeature{}
 	mockStore := &MockEStore{}
 	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
 	mockNotifications := &MockENotificationChain{}
 	mockStore.On("IndexOf", mockOwner, mockFeature, 1).Return(-1).Once()
@@ -481,4 +482,21 @@ func TestBasicEStoreList_RemoveWithNotification(t *testing.T) {
 	mockOwner.On("EDeliver").Return(false).Once()
 	assert.Equal(t, mockNotifications, list.RemoveWithNotification(1, mockNotifications))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockNotifications)
+}
+
+func TestBasicEStoreList_RemoveAll(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
+	mockStore.On("Size", mockOwner, mockFeature).Return(1).Once()
+	mockStore.On("Get", mockOwner, mockFeature, 0).Return(1).Once()
+	mockStore.On("Size", mockOwner, mockFeature).Return(1).Once()
+	mockStore.On("Remove", mockOwner, mockFeature, 0).Return(1).Once()
+	mockOwner.On("EDeliver").Return(false)
+	list.RemoveAll(NewImmutableEList([]interface{}{1}))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
 }

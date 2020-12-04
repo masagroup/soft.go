@@ -307,9 +307,9 @@ func (list *BasicEStoreList) RemoveWithNotification(object interface{}, notifica
 func (list *BasicEStoreList) RemoveAll(collection EList) bool {
 	modified := false
 	for i := list.Size(); i-1 >= 0; i-- {
-		element := list.store.Get(list.owner, list.feature, i)
+		element := list.store.Get(list.owner, list.feature, i-1)
 		if collection.Contains(element) {
-			list.Remove(i)
+			list.RemoveAt(i - 1)
 			modified = true
 		}
 	}

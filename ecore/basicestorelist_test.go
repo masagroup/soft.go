@@ -644,3 +644,23 @@ func TestBasicEStoreList_IndexOf(t *testing.T) {
 		assert.Equal(t, 0, list.IndexOf(mockResolved))
 	}
 }
+
+func TestBasicEStoreList_Iterator(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+	assert.NotNil(t, list.Iterator())
+}
+
+func TestBasicEStoreList_ToArray(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
+	mockStore.On("ToArray", mockOwner, mockFeature).Return([]interface{}{1, 2})
+	assert.Equal(t, []interface{}{1, 2}, list.ToArray())
+}

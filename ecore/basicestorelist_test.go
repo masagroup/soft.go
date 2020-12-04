@@ -309,3 +309,54 @@ func TestBasicEStoreList_Move(t *testing.T) {
 	list.Move(0, 1)
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
 }
+
+func TestBasicEStoreList_Get_NoProxy(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockReference := &MockEReference{}
+	mockOpposite := &MockEReference{}
+	mockStore := &MockEStore{}
+	mockObject := &MockEObject{}
+	mockReference.On("IsContainment").Return(false).Once()
+	mockReference.On("IsResolveProxies").Return(false).Once()
+	mockReference.On("IsUnsettable").Return(false).Once()
+	mockReference.On("GetEOpposite").Return(mockOpposite).Once()
+	list := NewBasicEStoreList(mockOwner, mockReference, mockStore)
+	assert.NotNil(t, list)
+
+	mockStore.On("Get", list.owner, list.feature, 0).Return(mockObject).Once()
+	assert.Equal(t, mockObject, list.Get(0))
+}
+
+func TestBasicEStoreList_Get_Proxy(t *testing.T) {
+	mockOwner := &MockEObjectInternal{}
+	mockReference := &MockEReference{}
+	mockOpposite := &MockEReference{}
+	mockStore := &MockEStore{}
+	mockObject := &MockEObjectInternal{}
+	mockResolved := &MockEObjectInternal{}
+	mockReference.On("IsContainment").Return(true).Once()
+	mockReference.On("IsResolveProxies").Return(true).Once()
+	mockReference.On("IsUnsettable").Return(false).Once()
+	mockReference.On("GetEOpposite").Return(mockOpposite).Once()
+	list := NewBasicEStoreList(mockOwner, mockReference, mockStore)
+	assert.NotNil(t, list)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject, mockOpposite)
+
+	mockClass := &MockEClass{}
+	mockStore.On("Get", list.owner, list.feature, 0).Return(mockObject).Once()
+	mockObject.On("EIsProxy").Return(true).Once()
+	mockOwner.On("EResolveProxy", mockObject).Return(mockResolved).Once()
+	mockStore.On("Set", list.owner, list.feature, 0, mockResolved).Return(mockResolved).Return(mockObject).Once()
+	mockReference.On("GetEOpposite").Return(mockOpposite).Once()
+	mockClass.On("GetFeatureID", mockOpposite).Return(0).Once()
+	mockObject.On("EClass").Return(mockClass).Once()
+	mockObject.On("EInverseRemove", mockOwner, 0, nil).Return(nil).Once()
+	mockResolved.On("EInternalContainer").Return(nil).Once()
+	mockReference.On("GetEOpposite").Return(mockOpposite).Once()
+	mockClass.On("GetFeatureID", mockOpposite).Return(0).Once()
+	mockResolved.On("EClass").Return(mockClass).Once()
+	mockResolved.On("EInverseAdd", mockOwner, 0, nil).Return(nil).Once()
+	mockOwner.On("EDeliver").Return(false).Once()
+	assert.Equal(t, mockResolved, list.Get(0))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject, mockOpposite, mockResolved, mockClass)
+}

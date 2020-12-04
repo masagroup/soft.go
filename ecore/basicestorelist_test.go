@@ -295,7 +295,7 @@ func TestBasicEStoreList_Move(t *testing.T) {
 	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
 
 	assert.Panics(t, func() {
-		list.MoveObject(-1, 1)
+		list.Move(-1, 1)
 	})
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
 
@@ -342,6 +342,13 @@ func TestBasicEStoreList_Get_Proxy(t *testing.T) {
 	assert.NotNil(t, list)
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject, mockOpposite)
 
+	// no proxy object
+	mockStore.On("Get", list.owner, list.feature, 0).Return(mockObject).Once()
+	mockObject.On("EIsProxy").Return(false).Once()
+	assert.Equal(t, mockObject, list.Get(0))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject, mockOpposite, mockResolved)
+
+	// proxy object
 	mockClass := &MockEClass{}
 	mockStore.On("Get", list.owner, list.feature, 0).Return(mockObject).Once()
 	mockObject.On("EIsProxy").Return(true).Once()
@@ -359,4 +366,43 @@ func TestBasicEStoreList_Get_Proxy(t *testing.T) {
 	mockOwner.On("EDeliver").Return(false).Once()
 	assert.Equal(t, mockResolved, list.Get(0))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject, mockOpposite, mockResolved, mockClass)
+}
+
+func TestBasicEStoreList_Set(t *testing.T) {
+	mockOwner := &MockEObjectInternal{}
+	mockReference := &MockEReference{}
+	mockStore := &MockEStore{}
+	mockNewObject := &MockEObjectInternal{}
+	mockOldObject := &MockEObjectInternal{}
+	mockReference.On("IsContainment").Return(true).Once()
+	mockReference.On("IsResolveProxies").Return(false).Once()
+	mockReference.On("IsUnsettable").Return(false).Once()
+	mockReference.On("GetEOpposite").Return(nil).Once()
+	list := NewBasicEStoreList(mockOwner, mockReference, mockStore)
+	assert.NotNil(t, list)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore)
+
+	assert.Panics(t, func() {
+		list.Set(-1, mockNewObject)
+	})
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockNewObject)
+
+	mockStore.On("Size", list.owner, list.feature).Return(2).Once()
+	mockStore.On("IndexOf", list.owner, list.feature, mockNewObject).Return(1).Once()
+	assert.Panics(t, func() {
+		list.Set(0, mockNewObject)
+	})
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockNewObject)
+
+	mockStore.On("Size", list.owner, list.feature).Return(1).Once()
+	mockStore.On("IndexOf", list.owner, list.feature, mockNewObject).Return(-1).Once()
+	mockStore.On("Set", list.owner, list.feature, 0, mockNewObject).Return(mockOldObject).Once()
+	mockReference.On("GetFeatureID").Return(0).Once()
+	mockOldObject.On("EInverseRemove", mockOwner, EOPPOSITE_FEATURE_BASE-0, nil).Return(nil).Once()
+	mockReference.On("GetFeatureID").Return(0).Once()
+	mockNewObject.On("EInverseAdd", mockOwner, EOPPOSITE_FEATURE_BASE-0, nil).Return(nil).Once()
+	mockOwner.On("EDeliver").Return(false).Once()
+	assert.Equal(t, mockOldObject, list.Set(0, mockNewObject))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockNewObject, mockOldObject)
+
 }

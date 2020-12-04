@@ -13,7 +13,7 @@ func NewEStoreEObjectImpl(isCaching bool) *EStoreEObjectImpl {
 	return o
 }
 
-func (o *EStoreEObjectImpl) AsStoreEObject() EStoreEObject {
+func (o *EStoreEObjectImpl) AsEStoreEObject() EStoreEObject {
 	return o.GetInterfaces().(EStoreEObject)
 }
 
@@ -26,7 +26,7 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) interface{} {
 				result = o.createList(eFeature)
 				o.getProperties()[dynamicFeatureID] = result
 			} else {
-				result = o.AsStoreEObject().EStore().Get(o.AsEObject(), eFeature, NO_INDEX)
+				result = o.AsEStoreEObject().EStore().Get(o.AsEObject(), eFeature, NO_INDEX)
 				if o.isCaching {
 					o.getProperties()[dynamicFeatureID] = result
 				}
@@ -41,7 +41,7 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value interface{})
 	if eFeature.IsTransient() {
 		o.getProperties()[dynamicFeatureID] = value
 	} else {
-		o.AsStoreEObject().EStore().Set(o.AsEObject(), eFeature, NO_INDEX, value)
+		o.AsEStoreEObject().EStore().Set(o.AsEObject(), eFeature, NO_INDEX, value)
 		if o.isCaching {
 			o.getProperties()[dynamicFeatureID] = value
 		}
@@ -53,7 +53,7 @@ func (o *EStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	if eFeature.IsTransient() {
 		o.getProperties()[dynamicFeatureID] = nil
 	} else {
-		o.AsStoreEObject().EStore().UnSet(o.AsEObject(), eFeature)
+		o.AsEStoreEObject().EStore().UnSet(o.AsEObject(), eFeature)
 		o.getProperties()[dynamicFeatureID] = nil
 	}
 }
@@ -63,5 +63,5 @@ func (o *EStoreEObjectImpl) eDynamicFeature(dynamicFeatureID int) EStructuralFea
 }
 
 func (o *EStoreEObjectImpl) createList(eFeature EStructuralFeature) EList {
-	return nil
+	return NewBasicEStoreList(o.AsEObject(), eFeature, o.AsEStoreEObject().EStore())
 }

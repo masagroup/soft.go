@@ -143,6 +143,32 @@ func TestEStoreEObjectImpl_SetAttribute(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
 }
 
+func TestEStoreEObjectImpl_GetAttribute_Many(t *testing.T) {
+
+	// create object
+	o := newEStoreEObjectTest(false)
+
+	// create mocks
+	mockClass := new(MockEClass)
+	mockAttribute := new(MockEAttribute)
+	mockStore := o.mockStore
+
+	// initialise object with mock class
+	o.setEClass(mockClass)
+
+	mockAttribute.On("IsMany").Return(true).Once()
+	mockAttribute.On("IsTransient").Return(false).Once()
+	mockClass.On("GetFeatureCount").Return(1).Once()
+	mockClass.On("GetEStructuralFeature", 0).Return(mockAttribute).Twice()
+	list := o.EGetFromID(0, true)
+	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
+
+	eobjectlist, _ := list.(EObjectList)
+	assert.NotNil(t, eobjectlist)
+	enotifyinglist, _ := list.(ENotifyingList)
+	assert.NotNil(t, enotifyinglist)
+}
+
 func TestEStoreEObjectImpl_SetAttribute_Caching(t *testing.T) {
 
 	// create object

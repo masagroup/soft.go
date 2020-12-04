@@ -429,3 +429,38 @@ func TestBasicEStoreList_SetWithNotification(t *testing.T) {
 	assert.NotNil(t, list.SetWithNotification(0, mockNewObject, nil))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockOpposite, mockNewObject, mockOldObject)
 }
+
+func TestBasicEStoreList_RemoveAt(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+
+	assert.Panics(t, func() {
+		list.RemoveAt(-1)
+	})
+
+	mockStore.On("Size", mockOwner, mockFeature).Return(1).Once()
+	mockStore.On("Remove", mockOwner, mockFeature, 0).Return(1).Once()
+	mockOwner.On("EDeliver").Return(false).Once()
+	assert.Equal(t, 1, list.RemoveAt(0))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+}
+
+func TestBasicEStoreList_Remove(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+
+	mockStore.On("IndexOf", mockOwner, mockFeature, 1).Return(-1).Once()
+	assert.False(t, list.Remove(1))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
+	mockStore.On("IndexOf", mockOwner, mockFeature, 1).Return(0).Once()
+	mockStore.On("Size", mockOwner, mockFeature).Return(1).Once()
+	mockStore.On("Remove", mockOwner, mockFeature, 0).Return(1).Once()
+	mockOwner.On("EDeliver").Return(false).Once()
+	assert.True(t, list.Remove(1))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+}

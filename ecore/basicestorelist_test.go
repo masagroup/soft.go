@@ -664,3 +664,12 @@ func TestBasicEStoreList_ToArray(t *testing.T) {
 	mockStore.On("ToArray", mockOwner, mockFeature).Return([]interface{}{1, 2})
 	assert.Equal(t, []interface{}{1, 2}, list.ToArray())
 }
+
+func TestBasicEStoreList_GetUnResolvedList(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+	assert.NotNil(t, list.GetUnResolvedList())
+}

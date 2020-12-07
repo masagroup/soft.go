@@ -285,7 +285,12 @@ func (l *unResolvedBasicEObjectList) AddWithNotification(object interface{}, not
 }
 
 func (l *unResolvedBasicEObjectList) RemoveWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain {
-	return l.delegate.RemoveWithNotification(object, notifications)
+	index := l.delegate.basicEList.IndexOf(object)
+	if index != -1 {
+		oldObject := l.delegate.basicEList.doRemove(index)
+		return l.delegate.createAndAddNotification(notifications, REMOVE, oldObject, nil, index)
+	}
+	return notifications
 }
 
 func (l *unResolvedBasicEObjectList) SetWithNotification(index int, object interface{}, notifications ENotificationChain) ENotificationChain {

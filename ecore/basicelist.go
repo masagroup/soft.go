@@ -182,7 +182,7 @@ func (list *basicEList) doInsertAll(index int, collection EList) bool {
 
 // Move an element to the given index
 func (list *basicEList) MoveObject(newIndex int, elem interface{}) {
-	oldIndex := list.IndexOf(elem)
+	oldIndex := list.interfaces.(EList).IndexOf(elem)
 	if oldIndex == -1 {
 		panic("Object not found")
 	}
@@ -220,7 +220,7 @@ func (list *basicEList) RemoveAt(index int) interface{} {
 
 // Remove an element in an array
 func (list *basicEList) Remove(elem interface{}) bool {
-	index := list.IndexOf(elem)
+	index := list.interfaces.(EList).IndexOf(elem)
 	if index == -1 {
 		return false
 	}

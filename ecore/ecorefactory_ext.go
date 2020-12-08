@@ -49,11 +49,11 @@ const (
 
 func (factory *ecoreFactoryExt) createEDateFromString(dataType EDataType, literalValue string) interface{} {
 	t, _ := time.Parse(dateFormat, literalValue)
-	return t
+	return &t
 }
 
 func (factory *ecoreFactoryExt) convertEDateToString(dataType EDataType, instanceValue interface{}) string {
-	t := instanceValue.(time.Time)
+	t := instanceValue.(*time.Time)
 	return t.Format(dateFormat)
 }
 

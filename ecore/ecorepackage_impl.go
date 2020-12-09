@@ -3260,7 +3260,7 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eBoolean.SetName("EBoolean")
 	//p.eBoolean.SetInstanceClass( reflect.TypeOf(boolean))
 	p.eBoolean.SetSerializable(true)
-	p.eBoolean.(EDataTypeInternal).SetDefaultValue(p.eFactoryInstance.CreateFromString(p.eBoolean, "false"))
+	p.eBoolean.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eBoolean, "false"))
 
 	p.eBooleanObject.SetName("EBooleanObject")
 	//p.eBooleanObject.SetInstanceClass( reflect.TypeOf(java.lang.Boolean))
@@ -3269,7 +3269,7 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eByte.SetName("EByte")
 	//p.eByte.SetInstanceClass( reflect.TypeOf(byte))
 	p.eByte.SetSerializable(true)
-	p.eByte.(EDataTypeInternal).SetDefaultValue(p.eFactoryInstance.CreateFromString(p.eByte, "0"))
+	p.eByte.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eByte, "0"))
 
 	p.eByteArray.SetName("EByteArray")
 	//p.eByteArray.SetInstanceClass( reflect.TypeOf(byte[]))
@@ -3298,7 +3298,7 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eDouble.SetName("EDouble")
 	//p.eDouble.SetInstanceClass( reflect.TypeOf(double))
 	p.eDouble.SetSerializable(true)
-	p.eDouble.(EDataTypeInternal).SetDefaultValue(p.eFactoryInstance.CreateFromString(p.eDouble, "0.0"))
+	p.eDouble.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eDouble, "0.0"))
 
 	p.eDoubleObject.SetName("EDoubleObject")
 	//p.eDoubleObject.SetInstanceClass( reflect.TypeOf(java.lang.Double))
@@ -3323,7 +3323,7 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eFloat.SetName("EFloat")
 	//p.eFloat.SetInstanceClass( reflect.TypeOf(float))
 	p.eFloat.SetSerializable(true)
-	p.eFloat.(EDataTypeInternal).SetDefaultValue(p.eFactoryInstance.CreateFromString(p.eFloat, "0.0"))
+	p.eFloat.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eFloat, "0.0"))
 
 	p.eFloatObject.SetName("EFloatObject")
 	//p.eFloatObject.SetInstanceClass( reflect.TypeOf(java.lang.Float))
@@ -3332,7 +3332,7 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eInt.SetName("EInt")
 	//p.eInt.SetInstanceClass( reflect.TypeOf(int))
 	p.eInt.SetSerializable(true)
-	p.eInt.(EDataTypeInternal).SetDefaultValue(p.eFactoryInstance.CreateFromString(p.eInt, "0"))
+	p.eInt.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eInt, "0"))
 
 	p.eIntegerObject.SetName("EIntegerObject")
 	//p.eIntegerObject.SetInstanceClass( reflect.TypeOf(java.lang.Integer))
@@ -3353,7 +3353,7 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eLong.SetName("ELong")
 	//p.eLong.SetInstanceClass( reflect.TypeOf(long))
 	p.eLong.SetSerializable(true)
-	p.eLong.(EDataTypeInternal).SetDefaultValue(p.eFactoryInstance.CreateFromString(p.eLong, "0"))
+	p.eLong.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eLong, "0"))
 
 	p.eLongObject.SetName("ELongObject")
 	//p.eLongObject.SetInstanceClass( reflect.TypeOf(java.lang.Long))
@@ -3374,7 +3374,7 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eShort.SetName("EShort")
 	//p.eShort.SetInstanceClass( reflect.TypeOf(short))
 	p.eShort.SetSerializable(true)
-	p.eShort.(EDataTypeInternal).SetDefaultValue(p.eFactoryInstance.CreateFromString(p.eShort, "0"))
+	p.eShort.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eShort, "0"))
 
 	p.eShortObject.SetName("EShortObject")
 	//p.eShortObject.SetInstanceClass( reflect.TypeOf(java.lang.Short))

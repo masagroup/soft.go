@@ -22,8 +22,12 @@ func newEClassifierExt() *eClassifierExt {
 }
 
 func (eClassifier *eClassifierExt) initClassifierID() int {
-	if eClassifier.GetEPackage() != nil {
-		return eClassifier.GetEPackage().GetEClassifiers().IndexOf(eClassifier.asEClassifier())
+	if ePackage := eClassifier.GetEPackage(); ePackage != nil {
+		return ePackage.GetEClassifiers().IndexOf(eClassifier.asEClassifier())
 	}
 	return -1
+}
+
+func (eClassifier *eClassifierExt) GetDefaultValue() interface{} {
+	return nil
 }

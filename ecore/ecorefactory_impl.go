@@ -162,17 +162,17 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEClassFromContainerAndClassID(eC
 	return element
 }
 func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEDataType() EDataType {
-	return newEDataTypeImpl()
+	return newEDataTypeExt()
 }
 func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEDataTypeFromContainer(eContainer EPackage) EDataType {
-	element := newEDataTypeImpl()
+	element := newEDataTypeExt()
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)
 	}
 	return element
 }
 func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEDataTypeFromContainerAndClassID(eContainer EPackage, classID int) EDataType {
-	element := newEDataTypeImpl()
+	element := newEDataTypeExt()
 	element.SetClassifierID(classID)
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)

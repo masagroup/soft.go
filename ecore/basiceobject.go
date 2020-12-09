@@ -417,6 +417,8 @@ func (o *BasicEObject) eDynamicPropertiesGet(properties EObjectProperties, dynam
 			if dynamicFeature.IsMany() {
 				result = o.eDynamicPropertiesCreateList(dynamicFeature)
 				properties.EDynamicSet(dynamicFeatureID, result)
+			} else if defaultValue := dynamicFeature.GetDefaultValue(); defaultValue != nil {
+				result = defaultValue
 			}
 		} else if resolve && isProxy(dynamicFeature) {
 			oldValue, _ := result.(EObject)

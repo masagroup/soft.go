@@ -153,6 +153,7 @@ func TestReflectiveEObjectImpl_EUnSetFromID(t *testing.T) {
 func TestReflectiveEObjectImpl_GetAttribute(t *testing.T) {
 	mockAttribute := new(MockEAttribute)
 	mockAttribute.On("IsMany").Return(false).Once()
+	mockAttribute.On("GetDefaultValue").Return(nil).Once()
 
 	mockClass := new(MockEClass)
 	mockClass.On("GetFeatureCount").Return(2).Once()
@@ -164,6 +165,25 @@ func TestReflectiveEObjectImpl_GetAttribute(t *testing.T) {
 	// get unitialized value
 	assert.Nil(t, o.EGetFromID(0, true))
 
+	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute)
+}
+
+func TestReflectiveEObjectImpl_GetAttribute_Default(t *testing.T) {
+	mockDefault := new(MockEObject)
+
+	mockAttribute := new(MockEAttribute)
+	mockAttribute.On("IsMany").Return(false).Once()
+	mockAttribute.On("GetDefaultValue").Return(mockDefault).Once()
+
+	mockClass := new(MockEClass)
+	mockClass.On("GetFeatureCount").Return(2).Once()
+	mockClass.On("GetEStructuralFeature", 0).Return(mockAttribute).Once()
+
+	o := NewReflectiveEObjectImpl()
+	o.setEClass(mockClass)
+
+	// get default value
+	assert.Equal(t, mockDefault, o.EGetFromID(0, true))
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute)
 }
 
@@ -235,6 +255,7 @@ func TestReflectiveEObjectImpl_SetAttribute(t *testing.T) {
 func TestReflectiveEObjectImpl_UnsetAttribute(t *testing.T) {
 	mockAttribute := new(MockEAttribute)
 	mockAttribute.On("IsMany").Return(false).Once()
+	mockAttribute.On("GetDefaultValue").Return(nil).Once()
 
 	mockClass := new(MockEClass)
 	mockClass.On("GetFeatureCount").Return(2).Once()

@@ -45,7 +45,7 @@ func NewDynamicEObjectImpl() *DynamicEObjectImpl {
 // EClass ...
 func (o *DynamicEObjectImpl) EClass() EClass {
 	if o.class == nil {
-		return o.EStaticClass()
+		return o.AsEObjectInternal().EStaticClass()
 	}
 	return o.class
 }

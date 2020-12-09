@@ -38,6 +38,7 @@ func TestEStoreEObjectImpl_GetAttribute_Transient(t *testing.T) {
 
 	// first get
 	mockAttribute.On("IsMany").Return(false).Once()
+	mockAttribute.On("GetDefaultValue").Return(nil).Once()
 	mockAttribute.On("IsTransient").Return(true).Once()
 	mockClass.On("GetFeatureCount").Return(1).Once()
 	mockClass.On("GetEStructuralFeature", 0).Return(mockAttribute).Twice()

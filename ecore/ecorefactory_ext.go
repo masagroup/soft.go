@@ -35,6 +35,19 @@ func (factory *ecoreFactoryExt) convertEBooleanToString(dataType EDataType, inst
 	return fmt.Sprintf("%t", instanceValue)
 }
 
+func (factory *ecoreFactoryExt) createEByteFromString(eDataType EDataType, literalValue string) interface{} {
+	if len(literalValue) == 1 {
+		return []byte(literalValue)[0]
+	} else {
+		return nil
+	}
+}
+
+func (factory *ecoreFactoryExt) convertEByteToString(eDataType EDataType, instanceValue interface{}) string {
+	b := instanceValue.(byte)
+	return string([]byte{b})
+}
+
 func (factory *ecoreFactoryExt) createECharFromString(dataType EDataType, literalValue string) interface{} {
 	return literalValue[0]
 }

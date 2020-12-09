@@ -54,6 +54,12 @@ func TestFactoryBoolean(t *testing.T) {
 	assert.Equal(t, factory.convertEBooleanToString(nil, factory.createEBooleanFromString(nil, "false")), "false")
 }
 
+func TestFactoryByte(t *testing.T) {
+	factory := newEcoreFactoryExt()
+	assert.Nil(t, factory.createEByteFromString(nil, ""))
+	assert.Equal(t, factory.convertEByteToString(nil, factory.createEByteFromString(nil, "0")), "0")
+}
+
 func TestFactoryChar(t *testing.T) {
 	factory := newEcoreFactoryExt()
 	assert.Equal(t, factory.convertECharToString(nil, factory.createECharFromString(nil, "e")), "e")

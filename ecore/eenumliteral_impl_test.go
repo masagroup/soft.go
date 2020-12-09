@@ -61,7 +61,7 @@ func TestEEnumLiteralEEnumGet(t *testing.T) {
 func TestEEnumLiteralInstanceGet(t *testing.T) {
 	o := newEEnumLiteralImpl()
 	// get default value
-	assert.Equal(t, nil, o.GetInstance())
+	assert.Nil(t, o.GetInstance())
 	// get initialized value
 	v := interface{}(nil)
 	o.instance = v
@@ -166,7 +166,7 @@ func TestEEnumLiteralEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(EENUM_LITERAL__INSTANCE)
 		v := o.EGetFromID(EENUM_LITERAL__INSTANCE, false)
-		assert.Equal(t, nil, v)
+		assert.Nil(t, v)
 	}
 	{
 		o.EUnsetFromID(EENUM_LITERAL__LITERAL)

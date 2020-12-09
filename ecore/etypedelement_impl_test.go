@@ -106,7 +106,7 @@ func TestETypedElementETypeUnSet(t *testing.T) {
 		return notification.GetEventType() == UNSET && notification.GetFeatureID() == ETYPED_ELEMENT__ETYPE
 	})).Once()
 	o.UnsetEType()
-	assert.Equal(t, nil, o.GetEType())
+	assert.Nil(t, o.GetEType())
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 }
 

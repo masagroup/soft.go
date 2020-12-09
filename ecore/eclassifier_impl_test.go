@@ -88,7 +88,7 @@ func TestEClassifierEPackageGet(t *testing.T) {
 func TestEClassifierInstanceClassGet(t *testing.T) {
 	o := newEClassifierImpl()
 	// get default value
-	assert.Equal(t, nil, o.GetInstanceClass())
+	assert.Nil(t, o.GetInstanceClass())
 	// get initialized value
 	v := reflect.TypeOf("")
 	o.instanceClass = v
@@ -157,7 +157,7 @@ func TestEClassifierEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(ECLASSIFIER__INSTANCE_CLASS)
 		v := o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, false)
-		assert.Equal(t, nil, v)
+		assert.Nil(t, v)
 	}
 }
 

@@ -52,6 +52,13 @@ func TestEReferenceEKeysGet(t *testing.T) {
 func TestEReferenceEOppositeGet(t *testing.T) {
 	o := newEReferenceImpl()
 
+	// get default value
+	assert.Nil(t, o.GetEOpposite())
+
+	// initialize object with a mock value
+	mockValue := new(MockEReference)
+	o.eOpposite = mockValue
+
 	// events
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
@@ -62,13 +69,6 @@ func TestEReferenceEOppositeGet(t *testing.T) {
 	mockResourceSet := new(MockEResourceSet)
 	mockResource := new(MockEResource)
 	o.ESetInternalResource(mockResource)
-
-	// get default value
-	assert.Nil(t, o.GetEOpposite())
-
-	// initialize object with a mock value
-	mockValue := new(MockEReference)
-	o.eOpposite = mockValue
 
 	// get non resolved value
 	mockValue.On("EIsProxy").Return(false).Once()

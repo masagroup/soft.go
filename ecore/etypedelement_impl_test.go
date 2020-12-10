@@ -47,6 +47,13 @@ func TestETypedElementFeatureCount(t *testing.T) {
 func TestETypedElementETypeGet(t *testing.T) {
 	o := newETypedElementImpl()
 
+	// get default value
+	assert.Nil(t, o.GetEType())
+
+	// initialize object with a mock value
+	mockValue := new(MockEClassifier)
+	o.eType = mockValue
+
 	// events
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
@@ -57,13 +64,6 @@ func TestETypedElementETypeGet(t *testing.T) {
 	mockResourceSet := new(MockEResourceSet)
 	mockResource := new(MockEResource)
 	o.ESetInternalResource(mockResource)
-
-	// get default value
-	assert.Nil(t, o.GetEType())
-
-	// initialize object with a mock value
-	mockValue := new(MockEClassifier)
-	o.eType = mockValue
 
 	// get non resolved value
 	mockValue.On("EIsProxy").Return(false).Once()

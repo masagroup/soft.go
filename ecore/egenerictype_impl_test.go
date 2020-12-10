@@ -47,6 +47,13 @@ func TestEGenericTypeFeatureCount(t *testing.T) {
 func TestEGenericTypeEClassifierGet(t *testing.T) {
 	o := newEGenericTypeImpl()
 
+	// get default value
+	assert.Nil(t, o.GetEClassifier())
+
+	// initialize object with a mock value
+	mockValue := new(MockEClassifier)
+	o.eClassifier = mockValue
+
 	// events
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
@@ -57,13 +64,6 @@ func TestEGenericTypeEClassifierGet(t *testing.T) {
 	mockResourceSet := new(MockEResourceSet)
 	mockResource := new(MockEResource)
 	o.ESetInternalResource(mockResource)
-
-	// get default value
-	assert.Nil(t, o.GetEClassifier())
-
-	// initialize object with a mock value
-	mockValue := new(MockEClassifier)
-	o.eClassifier = mockValue
 
 	// get non resolved value
 	mockValue.On("EIsProxy").Return(false).Once()
@@ -140,6 +140,13 @@ func TestEGenericTypeELowerBoundBasicSet(t *testing.T) {
 func TestEGenericTypeERawTypeGet(t *testing.T) {
 	o := newEGenericTypeImpl()
 
+	// get default value
+	assert.Nil(t, o.GetERawType())
+
+	// initialize object with a mock value
+	mockValue := new(MockEClassifier)
+	o.eRawType = mockValue
+
 	// events
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
@@ -150,13 +157,6 @@ func TestEGenericTypeERawTypeGet(t *testing.T) {
 	mockResourceSet := new(MockEResourceSet)
 	mockResource := new(MockEResource)
 	o.ESetInternalResource(mockResource)
-
-	// get default value
-	assert.Nil(t, o.GetERawType())
-
-	// initialize object with a mock value
-	mockValue := new(MockEClassifier)
-	o.eRawType = mockValue
 
 	// get non resolved value
 	mockValue.On("EIsProxy").Return(false).Once()

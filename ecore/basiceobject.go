@@ -422,42 +422,44 @@ func (o *BasicEObject) eDynamicPropertiesGet(properties EObjectProperties, dynam
 			}
 		} else if resolve && isProxy(dynamicFeature) {
 			oldValue, _ := result.(EObject)
-			newValue := o.EResolveProxy(oldValue)
-			result = newValue
-			if oldValue != newValue {
-				properties.EDynamicSet(dynamicFeatureID, newValue)
-				if isContains(dynamicFeature) {
-					var notifications ENotificationChain
-					if !isBidirectional(dynamicFeature) {
-						featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
-						if oldValue != nil {
-							oldObject := oldValue.(EObjectInternal)
-							notifications = oldObject.EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
+			if oldValue != nil && oldValue.EIsProxy() {
+				newValue := o.EResolveProxy(oldValue)
+				result = newValue
+				if oldValue != newValue {
+					properties.EDynamicSet(dynamicFeatureID, newValue)
+					if isContains(dynamicFeature) {
+						var notifications ENotificationChain
+						if !isBidirectional(dynamicFeature) {
+							featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
+							if oldValue != nil {
+								oldObject := oldValue.(EObjectInternal)
+								notifications = oldObject.EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
+							}
+							if newValue != nil {
+								newObject := newValue.(EObjectInternal)
+								notifications = newObject.EInverseAdd(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
+							}
+						} else {
+							dynamicReference := dynamicFeature.(EReference)
+							reverseFeature := dynamicReference.GetEOpposite()
+							if oldValue != nil {
+								oldObject := oldValue.(EObjectInternal)
+								featureID := oldObject.EClass().GetFeatureID(reverseFeature)
+								notifications = oldObject.EInverseRemove(o.AsEObject(), featureID, notifications)
+							}
+							if newValue != nil {
+								newObject := newValue.(EObjectInternal)
+								featureID := newObject.EClass().GetFeatureID(reverseFeature)
+								notifications = newValue.(EObjectInternal).EInverseAdd(o.AsEObject(), featureID, notifications)
+							}
 						}
-						if newValue != nil {
-							newObject := newValue.(EObjectInternal)
-							notifications = newObject.EInverseAdd(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
-						}
-					} else {
-						dynamicReference := dynamicFeature.(EReference)
-						reverseFeature := dynamicReference.GetEOpposite()
-						if oldValue != nil {
-							oldObject := oldValue.(EObjectInternal)
-							featureID := oldObject.EClass().GetFeatureID(reverseFeature)
-							notifications = oldObject.EInverseRemove(o.AsEObject(), featureID, notifications)
-						}
-						if newValue != nil {
-							newObject := newValue.(EObjectInternal)
-							featureID := newObject.EClass().GetFeatureID(reverseFeature)
-							notifications = newValue.(EObjectInternal).EInverseAdd(o.AsEObject(), featureID, notifications)
+						if notifications != nil {
+							notifications.Dispatch()
 						}
 					}
-					if notifications != nil {
-						notifications.Dispatch()
+					if o.ENotificationRequired() {
+						o.ENotify(NewNotificationByFeature(o.AsEObject(), RESOLVE, dynamicFeature, oldValue, newValue, NO_INDEX))
 					}
-				}
-				if o.ENotificationRequired() {
-					o.ENotify(NewNotificationByFeature(o.AsEObject(), RESOLVE, dynamicFeature, oldValue, newValue, NO_INDEX))
 				}
 			}
 		}

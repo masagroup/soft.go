@@ -61,7 +61,6 @@ func NewBasicNotifier() *BasicNotifier {
 	notifier := new(BasicNotifier)
 	notifier.interfaces = notifier
 	notifier.eDeliver = true
-	notifier.eAdapters = newAdapterList(notifier)
 	return notifier
 }
 
@@ -76,6 +75,9 @@ func (o *BasicNotifier) GetInterfaces() interface{} {
 }
 
 func (notifier *BasicNotifier) EAdapters() EList {
+	if notifier.eAdapters == nil {
+		notifier.eAdapters = newAdapterList(notifier)
+	}
 	return notifier.eAdapters
 }
 
@@ -88,11 +90,13 @@ func (notifier *BasicNotifier) ESetDeliver(value bool) {
 }
 
 func (notifier *BasicNotifier) ENotify(notification ENotification) {
-	for it := notifier.eAdapters.Iterator(); it.HasNext(); {
-		it.Next().(EAdapter).NotifyChanged(notification)
+	if notifier.eAdapters != nil && notifier.eDeliver {
+		for it := notifier.eAdapters.Iterator(); it.HasNext(); {
+			it.Next().(EAdapter).NotifyChanged(notification)
+		}
 	}
 }
 
 func (notifier *BasicNotifier) ENotificationRequired() bool {
-	return notifier.eAdapters != nil && notifier.eAdapters.Size() > 0
+	return notifier.eAdapters != nil && notifier.eAdapters.Size() > 0 && notifier.eDeliver
 }

@@ -1,3 +1,5 @@
+github.com/OneOfOne/go-utils v0.0.0-20180319162427-6019ff89a94e h1:Kzs/MKSycSiJUW63f+BddSnX+3C5r+7JbHBV0b2wp50=
+github.com/OneOfOne/go-utils v0.0.0-20180319162427-6019ff89a94e/go.mod h1:oB/bL1T7aOtIWE/pkfR+SRdXfwbUyVe/0GogdHQxync=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

@@ -1,52 +1,52 @@
 package ecore
 
-type adapterList struct {
+type basicNotifierAdapterList struct {
 	*basicEList
 	notifier *BasicNotifier
 }
 
-type adapterNotification struct {
+type basicNotifierNotification struct {
 	*abstractNotification
-	notifier ENotifier
+	notifier *BasicNotifier
 }
 
-func (n *adapterNotification) GetNotifier() ENotifier {
-	return n.notifier
+func (n *basicNotifierNotification) GetNotifier() ENotifier {
+	return n.notifier.interfaces.(ENotifier)
 }
 
-func (n *adapterNotification) GetFeature() EStructuralFeature {
+func (n *basicNotifierNotification) GetFeature() EStructuralFeature {
 	return nil
 }
 
-func (n *adapterNotification) GetFeatureID() int {
+func (n *basicNotifierNotification) GetFeatureID() int {
 	return -1
 }
 
-func newAdapterNotification(notifier ENotifier, eventType EventType, oldValue interface{}, newValue interface{}, position int) *adapterNotification {
-	n := new(adapterNotification)
+func newBasicNotifierNotification(notifier *BasicNotifier, eventType EventType, oldValue interface{}, newValue interface{}, position int) *basicNotifierNotification {
+	n := new(basicNotifierNotification)
 	n.abstractNotification = NewAbstractNotification(eventType, oldValue, newValue, position)
 	n.notifier = notifier
 	return n
 }
 
-func newAdapterList(notifier *BasicNotifier) *adapterList {
-	l := new(adapterList)
+func newBasicNotifierAdapterList(notifier *BasicNotifier) *basicNotifierAdapterList {
+	l := new(basicNotifierAdapterList)
 	l.basicEList = NewEmptyBasicEList()
 	l.notifier = notifier
 	l.interfaces = l
 	return l
 }
 
-func (l *adapterList) didAdd(index int, elem interface{}) {
+func (l *basicNotifierAdapterList) didAdd(index int, elem interface{}) {
 	notifier := l.notifier.interfaces.(ENotifier)
 	elem.(EAdapter).SetTarget(notifier)
 }
 
-func (l *adapterList) didRemove(index int, elem interface{}) {
+func (l *basicNotifierAdapterList) didRemove(index int, elem interface{}) {
 	notifier := l.notifier.interfaces.(ENotifier)
 	adapter := elem.(EAdapter)
 	if notifier.EDeliver() {
-		adapter.NotifyChanged(newAdapterNotification(notifier, REMOVING_ADAPTER, elem, nil, index))
+		adapter.NotifyChanged(newBasicNotifierNotification(l.notifier, REMOVING_ADAPTER, elem, nil, index))
 	}
 	adapter.UnSetTarget(notifier)
 }
@@ -54,7 +54,7 @@ func (l *adapterList) didRemove(index int, elem interface{}) {
 type BasicNotifier struct {
 	interfaces interface{}
 	eDeliver   bool
-	eAdapters  EList
+	eAdapters  *basicNotifierAdapterList
 }
 
 func NewBasicNotifier() *BasicNotifier {
@@ -76,7 +76,7 @@ func (o *BasicNotifier) GetInterfaces() interface{} {
 
 func (notifier *BasicNotifier) EAdapters() EList {
 	if notifier.eAdapters == nil {
-		notifier.eAdapters = newAdapterList(notifier)
+		notifier.eAdapters = newBasicNotifierAdapterList(notifier)
 	}
 	return notifier.eAdapters
 }

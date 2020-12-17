@@ -13,11 +13,11 @@ func TestMockEObjectInternal_EProperties(t *testing.T) {
 	p := &MockEObjectProperties{}
 	// return a value
 	o.On("EProperties").Once().Return(p)
-	o.On("EProperties").Once().Return(func() EObjectProperties {
+	o.On("EProperties").Once().Return(func() EDynamicProperties {
 		return p
 	})
-	assert.Equal(t, p, o.EProperties())
-	assert.Equal(t, p, o.EProperties())
+	assert.Equal(t, p, o.EDynamicProperties())
+	assert.Equal(t, p, o.EDynamicProperties())
 	mock.AssertExpectationsForObjects(t, o, p)
 }
 

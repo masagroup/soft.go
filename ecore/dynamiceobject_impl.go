@@ -72,8 +72,8 @@ func (o *DynamicEObjectImpl) EStaticFeatureCount() int {
 	return 0
 }
 
-func (o *DynamicEObjectImpl) EProperties() EObjectProperties {
-	return o.GetInterfaces().(EObjectProperties)
+func (o *DynamicEObjectImpl) EProperties() EDynamicProperties {
+	return o.GetInterfaces().(EDynamicProperties)
 }
 
 func (o *DynamicEObjectImpl) EDynamicGet(dynamicFeatureID int) interface{} {

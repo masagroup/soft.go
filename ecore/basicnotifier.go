@@ -53,50 +53,62 @@ func (l *basicNotifierAdapterList) didRemove(index int, elem interface{}) {
 
 type BasicNotifier struct {
 	interfaces interface{}
-	eDeliver   bool
-	eAdapters  *basicNotifierAdapterList
+}
+
+type ENotifierInternal interface {
+	ENotifier
+	HasAdapters() bool
 }
 
 func NewBasicNotifier() *BasicNotifier {
 	notifier := new(BasicNotifier)
 	notifier.interfaces = notifier
-	notifier.eDeliver = true
 	return notifier
 }
 
+func (notifier *BasicNotifier) AsENotifier() ENotifier {
+	return notifier.interfaces.(ENotifier)
+}
+
 // SetInterfaces ...
-func (o *BasicNotifier) SetInterfaces(interfaces interface{}) {
-	o.interfaces = interfaces
+func (notifier *BasicNotifier) SetInterfaces(interfaces interface{}) {
+	notifier.interfaces = interfaces
 }
 
 // GetInterfaces ...
-func (o *BasicNotifier) GetInterfaces() interface{} {
-	return o.interfaces
+func (notifier *BasicNotifier) GetInterfaces() interface{} {
+	return notifier.interfaces
+}
+
+func (notifier *BasicNotifier) HasAdapters() bool {
+	adapters := notifier.AsENotifier().EAdapters()
+	return adapters != nil && !adapters.Empty()
 }
 
 func (notifier *BasicNotifier) EAdapters() EList {
-	if notifier.eAdapters == nil {
-		notifier.eAdapters = newBasicNotifierAdapterList(notifier)
-	}
-	return notifier.eAdapters
+	return NewEmptyImmutableEList()
 }
 
 func (notifier *BasicNotifier) EDeliver() bool {
-	return notifier.eDeliver
+	return false
 }
 
 func (notifier *BasicNotifier) ESetDeliver(value bool) {
-	notifier.eDeliver = value
+	panic("operation not supported")
 }
 
 func (notifier *BasicNotifier) ENotify(notification ENotification) {
-	if notifier.eAdapters != nil && notifier.eDeliver {
-		for it := notifier.eAdapters.Iterator(); it.HasNext(); {
+	n := notifier.AsENotifier()
+	adapters := n.EAdapters()
+	deliver := n.EDeliver()
+	if adapters != nil && deliver {
+		for it := adapters.Iterator(); it.HasNext(); {
 			it.Next().(EAdapter).NotifyChanged(notification)
 		}
 	}
 }
 
 func (notifier *BasicNotifier) ENotificationRequired() bool {
-	return notifier.eAdapters != nil && notifier.eAdapters.Size() > 0 && notifier.eDeliver
+	n := notifier.interfaces.(ENotifierInternal)
+	return n.HasAdapters() && n.EDeliver()
 }

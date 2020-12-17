@@ -11,6 +11,10 @@ func NewImmutableEList(data []interface{}) *immutableEList {
 	return &immutableEList{data: data}
 }
 
+func NewEmptyImmutableEList() *immutableEList {
+	return &immutableEList{data: []interface{}{}}
+}
+
 func (l *immutableEList) Add(elem interface{}) bool {
 	panic("Immutable list can't be modified")
 }

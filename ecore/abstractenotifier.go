@@ -2,12 +2,12 @@ package ecore
 
 type notifierAdapterList struct {
 	*basicEList
-	notifier *AbstractNotifier
+	notifier *AbstractENotifier
 }
 
 type notifierNotification struct {
 	*abstractNotification
-	notifier *AbstractNotifier
+	notifier *AbstractENotifier
 }
 
 func (n *notifierNotification) GetNotifier() ENotifier {
@@ -22,14 +22,14 @@ func (n *notifierNotification) GetFeatureID() int {
 	return -1
 }
 
-func newNotifierNotification(notifier *AbstractNotifier, eventType EventType, oldValue interface{}, newValue interface{}, position int) *notifierNotification {
+func newNotifierNotification(notifier *AbstractENotifier, eventType EventType, oldValue interface{}, newValue interface{}, position int) *notifierNotification {
 	n := new(notifierNotification)
 	n.abstractNotification = NewAbstractNotification(eventType, oldValue, newValue, position)
 	n.notifier = notifier
 	return n
 }
 
-func newNotifierAdapterList(notifier *AbstractNotifier) *notifierAdapterList {
+func newNotifierAdapterList(notifier *AbstractENotifier) *notifierAdapterList {
 	l := new(notifierAdapterList)
 	l.basicEList = NewEmptyBasicEList()
 	l.notifier = notifier
@@ -51,64 +51,71 @@ func (l *notifierAdapterList) didRemove(index int, elem interface{}) {
 	adapter.UnSetTarget(notifier)
 }
 
-type AbstractNotifier struct {
+type AbstractENotifier struct {
 	interfaces interface{}
 }
 
 type ENotifierInternal interface {
 	ENotifier
-	HasAdapters() bool
+	EBasicHasAdapters() bool
+	EBasicAdapters() EList
 }
 
-func NewAbstractNotifier() *AbstractNotifier {
-	notifier := new(AbstractNotifier)
+func NewAbstractENotifier() *AbstractENotifier {
+	notifier := new(AbstractENotifier)
 	notifier.interfaces = notifier
 	return notifier
 }
 
-func (notifier *AbstractNotifier) AsENotifier() ENotifier {
+func (notifier *AbstractENotifier) AsENotifier() ENotifier {
 	return notifier.interfaces.(ENotifier)
 }
 
+func (notifier *AbstractENotifier) AsENotifierInternal() ENotifierInternal {
+	return notifier.interfaces.(ENotifierInternal)
+}
+
 // SetInterfaces ...
-func (notifier *AbstractNotifier) SetInterfaces(interfaces interface{}) {
+func (notifier *AbstractENotifier) SetInterfaces(interfaces interface{}) {
 	notifier.interfaces = interfaces
 }
 
 // GetInterfaces ...
-func (notifier *AbstractNotifier) GetInterfaces() interface{} {
+func (notifier *AbstractENotifier) GetInterfaces() interface{} {
 	return notifier.interfaces
 }
 
-func (notifier *AbstractNotifier) HasAdapters() bool {
-	adapters := notifier.AsENotifier().EAdapters()
+func (notifier *AbstractENotifier) EBasicAdapters() EList {
+	return nil
+}
+
+func (notifier *AbstractENotifier) EBasicHasAdapters() bool {
+	adapters := notifier.AsENotifierInternal().EBasicAdapters()
 	return adapters != nil && !adapters.Empty()
 }
 
-func (notifier *AbstractNotifier) EAdapters() EList {
+func (notifier *AbstractENotifier) EAdapters() EList {
 	return NewEmptyImmutableEList()
 }
 
-func (notifier *AbstractNotifier) EDeliver() bool {
+func (notifier *AbstractENotifier) EDeliver() bool {
 	return false
 }
 
-func (notifier *AbstractNotifier) ESetDeliver(value bool) {
+func (notifier *AbstractENotifier) ESetDeliver(value bool) {
 	panic("operation not supported")
 }
 
-func (notifier *AbstractNotifier) ENotify(notification ENotification) {
+func (notifier *AbstractENotifier) ENotify(notification ENotification) {
 	n := notifier.AsENotifier()
-	adapters := n.EAdapters()
-	deliver := n.EDeliver()
-	if adapters != nil && deliver {
+	if adapters := n.EAdapters(); adapters != nil && n.EDeliver() {
 		for it := adapters.Iterator(); it.HasNext(); {
 			it.Next().(EAdapter).NotifyChanged(notification)
 		}
 	}
 }
 
-func (notifier *AbstractNotifier) ENotificationRequired() bool {
+func (notifier *AbstractENotifier) ENotificationRequired() bool {
 	n := notifier.interfaces.(ENotifierInternal)
-	return n.HasAdapters() && n.EDeliver()
+	return n.EBasicHasAdapters() && n.EDeliver()
 }

@@ -2,25 +2,22 @@ package ecore
 
 import (
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
-func TestAbstractEObjectGetInterfaces(t *testing.T) {
-	o := NewAbstractEObject()
-	assert.Equal(t, o, o.GetInterfaces())
-}
+// func TestAbstractEObjectGetInterfaces(t *testing.T) {
+// 	o := NewAbstractEObject()
+// 	assert.Equal(t, o, o.GetInterfaces())
+// }
 
-func TestAbstractEObjectGetEObject(t *testing.T) {
-	o := NewAbstractEObject()
-	assert.Equal(t, o, o.AsEObject())
-}
+// func TestAbstractEObjectGetEObject(t *testing.T) {
+// 	o := NewAbstractEObject()
+// 	assert.Equal(t, o, o.AsEObject())
+// }
 
-func TestAbstractEObjectEClass(t *testing.T) {
-	o := NewAbstractEObject()
-	assert.Equal(t, GetPackage().GetEObject(), o.EClass())
-}
+// func TestAbstractEObjectEClass(t *testing.T) {
+// 	o := NewAbstractEObject()
+// 	assert.Equal(t, GetPackage().GetEObject(), o.EClass())
+// }
 
 // func TestAbstractEObjectEIsProxy(t *testing.T) {
 // 	o := NewAbstractEObject()
@@ -43,37 +40,37 @@ func TestAbstractEObjectContainer(t *testing.T) {
 	//assert.Equal(t, 1, o.EContainerFeatureID())
 }
 
-func TestAbstractEObjectEBasicRemoveFromContainer(t *testing.T) {
-	var o EObject = nil
-	i, _ := o.(EObjectInternal)
-	assert.Nil(t, i)
-}
+// func TestAbstractEObjectEBasicRemoveFromContainer(t *testing.T) {
+// 	var o EObject = nil
+// 	i, _ := o.(EObjectInternal)
+// 	assert.Nil(t, i)
+// }
 
-func TestAbstractEObjectESetResource(t *testing.T) {
-	// no container
-	o := NewAbstractEObject()
-	mockResource := new(MockEResource)
-	mockNotifications := new(MockENotificationChain)
-	o.ESetResource(mockResource, mockNotifications)
-	mock.AssertExpectationsForObjects(t, mockResource, mockNotifications)
+// func TestAbstractEObjectESetResource(t *testing.T) {
+// 	// no container
+// 	o := NewAbstractEObject()
+// 	mockResource := new(MockEResource)
+// 	mockNotifications := new(MockENotificationChain)
+// 	o.ESetResource(mockResource, mockNotifications)
+// 	mock.AssertExpectationsForObjects(t, mockResource, mockNotifications)
 
-	mockResource2 := new(MockEResource)
-	mockContents := new(MockENotifyingList)
-	mockResource.On("GetContents").Return(mockContents).Once()
-	mockResource.On("Detached", o).Once()
-	mockContents.On("RemoveWithNotification", o, mockNotifications).Return(mockNotifications).Once()
-	o.ESetResource(mockResource2, mockNotifications)
-	mock.AssertExpectationsForObjects(t, mockResource, mockResource2, mockNotifications)
+// 	mockResource2 := new(MockEResource)
+// 	mockContents := new(MockENotifyingList)
+// 	mockResource.On("GetContents").Return(mockContents).Once()
+// 	mockResource.On("Detached", o).Once()
+// 	mockContents.On("RemoveWithNotification", o, mockNotifications).Return(mockNotifications).Once()
+// 	o.ESetResource(mockResource2, mockNotifications)
+// 	mock.AssertExpectationsForObjects(t, mockResource, mockResource2, mockNotifications)
 
-	// container - tested with reflective object
-}
+// 	// container - tested with reflective object
+// }
 
-func TestAbstractEObject_EStaticFeatureCount(t *testing.T) {
-	o := NewAbstractEObject()
-	assert.Equal(t, 0, o.EStaticFeatureCount())
-}
+// func TestAbstractEObject_EStaticFeatureCount(t *testing.T) {
+// 	o := NewAbstractEObject()
+// 	assert.Equal(t, 0, o.EStaticFeatureCount())
+// }
 
-func TestAbstractEObject_EDynamicProperties(t *testing.T) {
-	o := NewAbstractEObject()
-	assert.Nil(t, o.EDynamicProperties())
-}
+// func TestAbstractEObject_EDynamicProperties(t *testing.T) {
+// 	o := NewAbstractEObject()
+// 	assert.Nil(t, o.EDynamicProperties())
+// }

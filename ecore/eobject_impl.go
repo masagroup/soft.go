@@ -17,13 +17,13 @@ package ecore
 
 // EObjectImpl is the implementation of the model object 'EObject'
 type EObjectImpl struct {
-	*BasicEObject
+	*BasicEObjectImpl
 }
 
 // NewEObjectImpl is the constructor of a EObjectImpl
 func NewEObjectImpl() *EObjectImpl {
 	eObject := new(EObjectImpl)
-	eObject.BasicEObject = NewBasicEObject()
+	eObject.BasicEObjectImpl = NewBasicEObjectImpl()
 	eObject.SetInterfaces(eObject)
 
 	return eObject
@@ -76,6 +76,6 @@ func (eObject *EObjectImpl) EInvokeFromID(operationID int, arguments EList) inte
 		eObject.asEObject().EUnset(arguments.Get(0).(EStructuralFeature))
 		return nil
 	default:
-		return eObject.BasicEObject.EInvokeFromID(operationID, arguments)
+		return eObject.BasicEObjectImpl.EInvokeFromID(operationID, arguments)
 	}
 }

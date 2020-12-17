@@ -81,7 +81,7 @@ func newContentsListAdapter(obj *AbstractEObject, getFeaturesFn func(EClass) ELi
 	a.Adapter = NewAdapter()
 	a.obj = obj
 	a.getFeaturesFn = getFeaturesFn
-	obj.EAdapters().Add(a)
+	obj.AsEObject().EAdapters().Add(a)
 	return a
 }
 
@@ -104,7 +104,7 @@ func (a *contentsListAdapter) GetList() EList {
 
 // AbstractEObject is a basic implementation of an EObject
 type AbstractEObject struct {
-	AbstractNotifier
+	AbstractENotifier
 }
 
 type EDynamicProperties interface {
@@ -208,6 +208,10 @@ func (o *AbstractEObject) EContainer() EObject {
 		return resolved
 	}
 	return eContainer
+}
+
+func (o *AbstractEObject) EContainerFeatureID() int {
+	return o.AsEObjectInternal().EInternalContainerFeatureID()
 }
 
 // EResource ...

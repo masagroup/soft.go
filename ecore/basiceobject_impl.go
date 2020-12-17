@@ -32,6 +32,32 @@ func (o *BasicEObjectImpl) getObjectProperties() *basicEObjectImplProperties {
 	return o.properties
 }
 
+func (o *BasicEObjectImpl) EDeliver() bool {
+	return o.deliver
+}
+
+func (o *BasicEObjectImpl) ESetDeliver(deliver bool) {
+	o.deliver = deliver
+}
+
+func (o *BasicEObjectImpl) EAdapters() EList {
+	if o.adapters == nil {
+		o.adapters = newNotifierAdapterList(&o.AbstractENotifier)
+	}
+	return o.adapters
+}
+
+func (o *BasicEObjectImpl) EBasicHasAdapters() bool {
+	return o.adapters != nil
+}
+
+func (o *BasicEObjectImpl) EBasicAdapters() EList {
+	if o.adapters == nil {
+		return nil
+	}
+	return o.adapters
+}
+
 // EIsProxy ...
 func (o *BasicEObjectImpl) EIsProxy() bool {
 	return o.getObjectProperties().proxyURI != nil
@@ -49,18 +75,18 @@ func (o *BasicEObjectImpl) ESetProxyURI(uri *url.URL) {
 
 // EContents ...
 func (o *BasicEObjectImpl) EContents() EList {
-	if o.contents == nil {
-		o.contents = newContentsListAdapter(o, func(eClass EClass) EList { return eClass.GetEContainmentFeatures() })
+	if o.getObjectProperties().contents == nil {
+		o.getObjectProperties().contents = newContentsListAdapter(&o.AbstractEObject, func(eClass EClass) EList { return eClass.GetEContainmentFeatures() })
 	}
-	return o.contents.GetList()
+	return o.getObjectProperties().contents.GetList()
 }
 
 // ECrossReferences ...
 func (o *BasicEObjectImpl) ECrossReferences() EList {
-	if o.crossReferenceS == nil {
-		o.crossReferenceS = newContentsListAdapter(o, func(eClass EClass) EList { return eClass.GetECrossReferenceFeatures() })
+	if o.getObjectProperties().crossReferenceS == nil {
+		o.getObjectProperties().crossReferenceS = newContentsListAdapter(&o.AbstractEObject, func(eClass EClass) EList { return eClass.GetECrossReferenceFeatures() })
 	}
-	return o.crossReferenceS.GetList()
+	return o.getObjectProperties().crossReferenceS.GetList()
 }
 
 // ESetContainer ...

@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestMockEObjectInternal_EProperties(t *testing.T) {
+func TestMockEObjectInternal_EDynamicProperties(t *testing.T) {
 	o := &MockEObjectInternal{}
 	p := &MockEObjectProperties{}
 	// return a value
-	o.On("EProperties").Once().Return(p)
-	o.On("EProperties").Once().Return(func() EDynamicProperties {
+	o.On("EDynamicProperties").Once().Return(p)
+	o.On("EDynamicProperties").Once().Return(func() EDynamicProperties {
 		return p
 	})
 	assert.Equal(t, p, o.EDynamicProperties())

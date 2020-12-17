@@ -20,14 +20,16 @@ func TestResourceURINotifications(t *testing.T) {
 	r := NewEResourceImpl()
 	mockEAdapter := new(MockEAdapter)
 	mockEAdapter.On("SetTarget", r).Once()
-	mockEAdapter.On("NotifyChanged", mock.Anything).Once()
 	r.EAdapters().Add(mockEAdapter)
+	mock.AssertExpectationsForObjects(t, mockEAdapter)
 
 	u, err := url.Parse("https://example.com/foo%2fbar")
 	assert.Nil(t, err)
+
+	mockEAdapter.On("NotifyChanged", mock.Anything).Once()
 	r.SetURI(u)
 	assert.Equal(t, u, r.GetURI())
-	mockEAdapter.AssertExpectations(t)
+	mock.AssertExpectationsForObjects(t, mockEAdapter)
 }
 
 func TestResourceContents(t *testing.T) {

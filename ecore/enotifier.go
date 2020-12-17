@@ -18,6 +18,4 @@ type ENotifier interface {
 	ESetDeliver(bool)
 
 	ENotify(ENotification)
-
-	ENotificationRequired() bool
 }

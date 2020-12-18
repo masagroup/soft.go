@@ -13,13 +13,13 @@ package ecore
 // as they come and go.
 // It can be installed for an {@link EObject}, a {@link Resource}, or a {@link ResourceSet}.
 type EContentAdapter struct {
-	*Adapter
+	*AbstractEAdapter
 	interfaces interface{}
 }
 
 func NewEContentAdapter() *EContentAdapter {
 	ca := new(EContentAdapter)
-	ca.Adapter = NewAdapter()
+	ca.AbstractEAdapter = NewAbstractEAdapter()
 	ca.interfaces = ca
 	return ca
 }
@@ -33,7 +33,7 @@ func (adapter *EContentAdapter) NotifyChanged(notification ENotification) {
 }
 
 func (adapter *EContentAdapter) SetTarget(notifier ENotifier) {
-	adapter.Adapter.SetTarget(notifier)
+	adapter.AbstractEAdapter.SetTarget(notifier)
 	var it EIterator
 	switch t := notifier.(type) {
 	case EObject:
@@ -50,7 +50,7 @@ func (adapter *EContentAdapter) SetTarget(notifier ENotifier) {
 }
 
 func (adapter *EContentAdapter) UnSetTarget(notifier ENotifier) {
-	adapter.Adapter.UnSetTarget(notifier)
+	adapter.AbstractEAdapter.UnSetTarget(notifier)
 	switch t := notifier.(type) {
 	case EObject:
 		for it := t.EContents().Iterator(); it.HasNext(); {

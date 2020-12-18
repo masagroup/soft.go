@@ -18,7 +18,7 @@ type DynamicEObjectImpl struct {
 }
 
 type dynamicFeaturesAdapter struct {
-	*Adapter
+	*AbstractEAdapter
 	object *DynamicEObjectImpl
 }
 
@@ -36,7 +36,7 @@ func (adapter *dynamicFeaturesAdapter) NotifyChanged(notification ENotification)
 func NewDynamicEObjectImpl() *DynamicEObjectImpl {
 	o := new(DynamicEObjectImpl)
 	o.EObjectImpl = NewEObjectImpl()
-	o.adapter = &dynamicFeaturesAdapter{Adapter: NewAdapter(), object: o}
+	o.adapter = &dynamicFeaturesAdapter{AbstractEAdapter: NewAbstractEAdapter(), object: o}
 	o.SetInterfaces(o)
 	o.SetEClass(nil)
 	return o

@@ -18,7 +18,7 @@ type eClassExt struct {
 }
 
 type eSuperAdapter struct {
-	*Adapter
+	*AbstractEAdapter
 	class      *eClassExt
 	subClasses []*eClassExt
 }
@@ -98,7 +98,7 @@ func newEClassExt() *eClassExt {
 	eClass := new(eClassExt)
 	eClass.eClassImpl = newEClassImpl()
 	eClass.interfaces = eClass
-	eClass.adapter = &eSuperAdapter{Adapter: NewAdapter(), class: eClass, subClasses: []*eClassExt{}}
+	eClass.adapter = &eSuperAdapter{AbstractEAdapter: NewAbstractEAdapter(), class: eClass, subClasses: []*eClassExt{}}
 	eClass.EAdapters().Add(eClass.adapter)
 	return eClass
 }

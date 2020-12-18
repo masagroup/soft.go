@@ -1,12 +1,12 @@
 package ecore
 
 type notifierAdapterList struct {
-	*basicEList
+	basicEList
 	notifier *AbstractENotifier
 }
 
 type notifierNotification struct {
-	*abstractNotification
+	abstractNotification
 	notifier *AbstractENotifier
 }
 
@@ -24,16 +24,21 @@ func (n *notifierNotification) GetFeatureID() int {
 
 func newNotifierNotification(notifier *AbstractENotifier, eventType EventType, oldValue interface{}, newValue interface{}, position int) *notifierNotification {
 	n := new(notifierNotification)
-	n.abstractNotification = NewAbstractNotification(eventType, oldValue, newValue, position)
+	n.interfaces = n
+	n.eventType = eventType
+	n.oldValue = oldValue
+	n.newValue = newValue
+	n.position = position
 	n.notifier = notifier
 	return n
 }
 
 func newNotifierAdapterList(notifier *AbstractENotifier) *notifierAdapterList {
 	l := new(notifierAdapterList)
-	l.basicEList = NewEmptyBasicEList()
-	l.notifier = notifier
+	l.data = []interface{}{}
+	l.isUnique = true
 	l.interfaces = l
+	l.notifier = notifier
 	return l
 }
 

@@ -14,11 +14,6 @@ type AbstractEAdapter struct {
 	target ENotifier
 }
 
-// NewAbstractEAdapter Constructor
-func NewAbstractEAdapter() *AbstractEAdapter {
-	return &AbstractEAdapter{target: nil}
-}
-
 // GetTarget Returns the target from which the AbstractEAdapter receives notification.
 func (a *AbstractEAdapter) GetTarget() ENotifier {
 	return a.target

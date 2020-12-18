@@ -12,7 +12,7 @@ package ecore
 import "net/url"
 
 type ePackageExtAdapter struct {
-	*AbstractEAdapter
+	AbstractEAdapter
 	pack *EPackageExt
 }
 
@@ -36,7 +36,7 @@ type EPackageExt struct {
 func NewEPackageExt() *EPackageExt {
 	pack := new(EPackageExt)
 	pack.ePackageImpl = newEPackageImpl()
-	pack.adapter = &ePackageExtAdapter{AbstractEAdapter: NewAbstractEAdapter(), pack: pack}
+	pack.adapter = &ePackageExtAdapter{pack: pack}
 	pack.SetInterfaces(pack)
 	pack.EAdapters().Add(pack.adapter)
 	return pack

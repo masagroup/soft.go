@@ -12,11 +12,11 @@ type abstractNotification struct {
 // NewAbstractNotification ...
 func NewAbstractNotification(eventType EventType, oldValue interface{}, newValue interface{}, position int) *abstractNotification {
 	n := new(abstractNotification)
-	n.interfaces = n
 	n.eventType = eventType
 	n.oldValue = oldValue
 	n.newValue = newValue
 	n.position = position
+	n.interfaces = n
 	return n
 }
 
@@ -148,7 +148,7 @@ func (notif *abstractNotification) Dispatch() {
 }
 
 type notification struct {
-	*abstractNotification
+	abstractNotification
 	object    EObject
 	feature   EStructuralFeature
 	featureID int
@@ -157,18 +157,18 @@ type notification struct {
 // NewNotificationByFeature ...
 func NewNotificationByFeature(object EObject, eventType EventType, feature EStructuralFeature, oldValue interface{}, newValue interface{}, position int) *notification {
 	n := new(notification)
-	n.abstractNotification = NewAbstractNotification(eventType, oldValue, newValue, position)
-	n.interfaces = n
+	n.abstractNotification = abstractNotification{eventType: eventType, oldValue: oldValue, newValue: newValue, position: position}
 	n.object = object
 	n.feature = feature
 	n.featureID = -1
+	n.interfaces = n
 	return n
 }
 
 // NewNotificationByFeatureID ...
 func NewNotificationByFeatureID(object EObject, eventType EventType, featureID int, oldValue interface{}, newValue interface{}, position int) *notification {
 	n := new(notification)
-	n.abstractNotification = NewAbstractNotification(eventType, oldValue, newValue, position)
+	n.abstractNotification = abstractNotification{eventType: eventType, oldValue: oldValue, newValue: newValue, position: position}
 	n.interfaces = n
 	n.object = object
 	n.feature = nil

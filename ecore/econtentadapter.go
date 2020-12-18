@@ -13,13 +13,12 @@ package ecore
 // as they come and go.
 // It can be installed for an {@link EObject}, a {@link Resource}, or a {@link ResourceSet}.
 type EContentAdapter struct {
-	*AbstractEAdapter
+	AbstractEAdapter
 	interfaces interface{}
 }
 
 func NewEContentAdapter() *EContentAdapter {
 	ca := new(EContentAdapter)
-	ca.AbstractEAdapter = NewAbstractEAdapter()
 	ca.interfaces = ca
 	return ca
 }

@@ -70,7 +70,7 @@ func (l *resolvedContentsList) GetUnResolvedList() EList {
 
 // listen to object features modifications & maintain a list of object contents
 type contentsListAdapter struct {
-	*AbstractEAdapter
+	AbstractEAdapter
 	obj           *AbstractEObject
 	getFeaturesFn func(EClass) EList
 	list          EList
@@ -78,7 +78,6 @@ type contentsListAdapter struct {
 
 func newContentsListAdapter(obj *AbstractEObject, getFeaturesFn func(EClass) EList) *contentsListAdapter {
 	a := new(contentsListAdapter)
-	a.AbstractEAdapter = NewAbstractEAdapter()
 	a.obj = obj
 	a.getFeaturesFn = getFeaturesFn
 	obj.AsEObject().EAdapters().Add(a)

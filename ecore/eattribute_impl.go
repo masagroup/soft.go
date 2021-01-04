@@ -17,18 +17,22 @@ package ecore
 
 // eAttributeImpl is the implementation of the model object 'EAttribute'
 type eAttributeImpl struct {
-	*eStructuralFeatureExt
+	eStructuralFeatureExt
 	isID bool
 }
 
 // newEAttributeImpl is the constructor of a eAttributeImpl
 func newEAttributeImpl() *eAttributeImpl {
 	eAttribute := new(eAttributeImpl)
-	eAttribute.eStructuralFeatureExt = newEStructuralFeatureExt()
 	eAttribute.SetInterfaces(eAttribute)
+	eAttribute.Initialize()
+	return eAttribute
+}
+
+func (eAttribute *eAttributeImpl) Initialize() {
+	eAttribute.eStructuralFeatureExt.Initialize()
 	eAttribute.isID = false
 
-	return eAttribute
 }
 
 func (eAttribute *eAttributeImpl) asEAttribute() EAttribute {

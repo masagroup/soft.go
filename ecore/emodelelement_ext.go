@@ -18,13 +18,13 @@ import (
 
 // eModelElementExt is the extension of the model object 'EFactory'
 type eModelElementExt struct {
-	*eModelElementImpl
+	eModelElementImpl
 }
 
 func newEModelElementExt() *eModelElementExt {
 	eElement := new(eModelElementExt)
-	eElement.eModelElementImpl = newEModelElementImpl()
-	eElement.interfaces = eElement
+	eElement.SetInterfaces(eElement)
+	eElement.Initialize()
 	return eElement
 }
 

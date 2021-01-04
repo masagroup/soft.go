@@ -18,11 +18,9 @@ type BasicEObjectImpl struct {
 	properties         *basicEObjectImplProperties
 }
 
-func NewBasicEObjectImpl() *BasicEObjectImpl {
-	o := new(BasicEObjectImpl)
+func (o *BasicEObjectImpl) Initialize() {
 	o.deliver = true
 	o.containerFeatureID = -1
-	return o
 }
 
 func (o *BasicEObjectImpl) getObjectProperties() *basicEObjectImplProperties {

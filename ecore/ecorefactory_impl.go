@@ -67,13 +67,13 @@ type ecoreFactoryInternal interface {
 }
 
 type ecoreFactoryImpl struct {
-	*EFactoryExt
+	EFactoryExt
 }
 
 func newEcoreFactoryImpl() *ecoreFactoryImpl {
 	factory := new(ecoreFactoryImpl)
-	factory.EFactoryExt = NewEFactoryExt()
 	factory.SetInterfaces(factory)
+	factory.Initialize()
 	return factory
 }
 

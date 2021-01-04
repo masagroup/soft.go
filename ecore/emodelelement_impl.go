@@ -17,29 +17,32 @@ package ecore
 
 // eModelElementImpl is the implementation of the model object 'EModelElement'
 type eModelElementImpl struct {
-	*EObjectImpl
+	EObjectImpl
 	eAnnotations EList
+}
+type eModelElementImplInitializers interface {
+	initEAnnotations() EList
 }
 
 // newEModelElementImpl is the constructor of a eModelElementImpl
 func newEModelElementImpl() *eModelElementImpl {
 	eModelElement := new(eModelElementImpl)
-	eModelElement.EObjectImpl = NewEObjectImpl()
 	eModelElement.SetInterfaces(eModelElement)
-
+	eModelElement.Initialize()
 	return eModelElement
 }
 
-type eModelElementImplInitializers interface {
-	initEAnnotations() EList
-}
+func (eModelElement *eModelElementImpl) Initialize() {
+	eModelElement.EObjectImpl.Initialize()
 
-func (eModelElement *eModelElementImpl) getInitializers() eModelElementImplInitializers {
-	return eModelElement.AsEObject().(eModelElementImplInitializers)
 }
 
 func (eModelElement *eModelElementImpl) asEModelElement() EModelElement {
 	return eModelElement.GetInterfaces().(EModelElement)
+}
+
+func (eModelElement *eModelElementImpl) asInitializers() eModelElementImplInitializers {
+	return eModelElement.AsEObject().(eModelElementImplInitializers)
 }
 
 func (eModelElement *eModelElementImpl) EStaticClass() EClass {
@@ -58,7 +61,7 @@ func (eModelElement *eModelElementImpl) GetEAnnotation(string) EAnnotation {
 // GetEAnnotations get the value of eAnnotations
 func (eModelElement *eModelElementImpl) GetEAnnotations() EList {
 	if eModelElement.eAnnotations == nil {
-		eModelElement.eAnnotations = eModelElement.getInitializers().initEAnnotations()
+		eModelElement.eAnnotations = eModelElement.asInitializers().initEAnnotations()
 	}
 	return eModelElement.eAnnotations
 }

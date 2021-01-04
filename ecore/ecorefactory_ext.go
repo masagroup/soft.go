@@ -16,13 +16,13 @@ import (
 )
 
 type ecoreFactoryExt struct {
-	*ecoreFactoryImpl
+	ecoreFactoryImpl
 }
 
 func newEcoreFactoryExt() *ecoreFactoryExt {
 	factory := new(ecoreFactoryExt)
-	factory.ecoreFactoryImpl = newEcoreFactoryImpl()
-	factory.interfaces = factory
+	factory.SetInterfaces(factory)
+	factory.Initialize()
 	return factory
 }
 

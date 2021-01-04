@@ -11,14 +11,14 @@ package ecore
 
 // EFactoryExt is the extension of the model object 'EFactory'
 type EFactoryExt struct {
-	*eFactoryImpl
+	eFactoryImpl
 }
 
 // NewEFactoryExt ...
 func NewEFactoryExt() *EFactoryExt {
 	eFactory := new(EFactoryExt)
-	eFactory.eFactoryImpl = newEFactoryImpl()
 	eFactory.SetInterfaces(eFactory)
+	eFactory.Initialize()
 	return eFactory
 }
 

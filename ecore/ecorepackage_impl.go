@@ -17,7 +17,7 @@ package ecore
 
 // ecorePackageImpl is the EcorePackage implementation
 type ecorePackageImpl struct {
-	*EPackageExt
+	EPackageExt
 	eAnnotation               EClass
 	eAnnotation_Source        EAttribute
 	eAnnotation_Details       EReference
@@ -210,8 +210,13 @@ type ecorePackageImpl struct {
 
 func newEcorePackageImpl() *ecorePackageImpl {
 	p := new(ecorePackageImpl)
-	p.EPackageExt = NewEPackageExt()
 	p.SetInterfaces(p)
+	p.Initialize()
+	return p
+}
+
+func (p *ecorePackageImpl) Initialize() {
+	p.EPackageExt.Initialize()
 	p.SetName(NAME)
 	p.SetNsPrefix(NS_PREFIX)
 	p.SetNsURI(NS_URI)
@@ -219,7 +224,6 @@ func newEcorePackageImpl() *ecorePackageImpl {
 	p.createPackageContents()
 	p.initializePackageContents()
 	p.CreateResource()
-	return p
 }
 
 // GetEAnnotationClass returns the meta object corresponding to

@@ -17,18 +17,22 @@ package ecore
 
 // eDataTypeImpl is the implementation of the model object 'EDataType'
 type eDataTypeImpl struct {
-	*eClassifierExt
+	eClassifierExt
 	isSerializable bool
 }
 
 // newEDataTypeImpl is the constructor of a eDataTypeImpl
 func newEDataTypeImpl() *eDataTypeImpl {
 	eDataType := new(eDataTypeImpl)
-	eDataType.eClassifierExt = newEClassifierExt()
 	eDataType.SetInterfaces(eDataType)
+	eDataType.Initialize()
+	return eDataType
+}
+
+func (eDataType *eDataTypeImpl) Initialize() {
+	eDataType.eClassifierExt.Initialize()
 	eDataType.isSerializable = true
 
-	return eDataType
 }
 
 func (eDataType *eDataTypeImpl) asEDataType() EDataType {

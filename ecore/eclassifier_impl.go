@@ -19,32 +19,35 @@ import "reflect"
 
 // eClassifierImpl is the implementation of the model object 'EClassifier'
 type eClassifierImpl struct {
-	*eNamedElementImpl
+	eNamedElementImpl
 	classifierID  int
 	instanceClass reflect.Type
+}
+type eClassifierImplInitializers interface {
+	initClassifierID() int
 }
 
 // newEClassifierImpl is the constructor of a eClassifierImpl
 func newEClassifierImpl() *eClassifierImpl {
 	eClassifier := new(eClassifierImpl)
-	eClassifier.eNamedElementImpl = newENamedElementImpl()
 	eClassifier.SetInterfaces(eClassifier)
-	eClassifier.classifierID = -1
-	eClassifier.instanceClass = nil
-
+	eClassifier.Initialize()
 	return eClassifier
 }
 
-type eClassifierImplInitializers interface {
-	initClassifierID() int
-}
+func (eClassifier *eClassifierImpl) Initialize() {
+	eClassifier.eNamedElementImpl.Initialize()
+	eClassifier.classifierID = -1
+	eClassifier.instanceClass = nil
 
-func (eClassifier *eClassifierImpl) getInitializers() eClassifierImplInitializers {
-	return eClassifier.AsEObject().(eClassifierImplInitializers)
 }
 
 func (eClassifier *eClassifierImpl) asEClassifier() EClassifier {
 	return eClassifier.GetInterfaces().(EClassifier)
+}
+
+func (eClassifier *eClassifierImpl) asInitializers() eClassifierImplInitializers {
+	return eClassifier.AsEObject().(eClassifierImplInitializers)
 }
 
 func (eClassifier *eClassifierImpl) EStaticClass() EClass {
@@ -63,7 +66,7 @@ func (eClassifier *eClassifierImpl) IsInstance(interface{}) bool {
 // GetClassifierID get the value of classifierID
 func (eClassifier *eClassifierImpl) GetClassifierID() int {
 	if eClassifier.classifierID == -1 {
-		eClassifier.classifierID = eClassifier.getInitializers().initClassifierID()
+		eClassifier.classifierID = eClassifier.asInitializers().initClassifierID()
 	}
 	return eClassifier.classifierID
 }

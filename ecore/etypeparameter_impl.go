@@ -17,29 +17,32 @@ package ecore
 
 // eTypeParameterImpl is the implementation of the model object 'ETypeParameter'
 type eTypeParameterImpl struct {
-	*eNamedElementImpl
+	eNamedElementImpl
 	eBounds EList
+}
+type eTypeParameterImplInitializers interface {
+	initEBounds() EList
 }
 
 // newETypeParameterImpl is the constructor of a eTypeParameterImpl
 func newETypeParameterImpl() *eTypeParameterImpl {
 	eTypeParameter := new(eTypeParameterImpl)
-	eTypeParameter.eNamedElementImpl = newENamedElementImpl()
 	eTypeParameter.SetInterfaces(eTypeParameter)
-
+	eTypeParameter.Initialize()
 	return eTypeParameter
 }
 
-type eTypeParameterImplInitializers interface {
-	initEBounds() EList
-}
+func (eTypeParameter *eTypeParameterImpl) Initialize() {
+	eTypeParameter.eNamedElementImpl.Initialize()
 
-func (eTypeParameter *eTypeParameterImpl) getInitializers() eTypeParameterImplInitializers {
-	return eTypeParameter.AsEObject().(eTypeParameterImplInitializers)
 }
 
 func (eTypeParameter *eTypeParameterImpl) asETypeParameter() ETypeParameter {
 	return eTypeParameter.GetInterfaces().(ETypeParameter)
+}
+
+func (eTypeParameter *eTypeParameterImpl) asInitializers() eTypeParameterImplInitializers {
+	return eTypeParameter.AsEObject().(eTypeParameterImplInitializers)
 }
 
 func (eTypeParameter *eTypeParameterImpl) EStaticClass() EClass {
@@ -53,7 +56,7 @@ func (eTypeParameter *eTypeParameterImpl) EStaticFeatureCount() int {
 // GetEBounds get the value of eBounds
 func (eTypeParameter *eTypeParameterImpl) GetEBounds() EList {
 	if eTypeParameter.eBounds == nil {
-		eTypeParameter.eBounds = eTypeParameter.getInitializers().initEBounds()
+		eTypeParameter.eBounds = eTypeParameter.asInitializers().initEBounds()
 	}
 	return eTypeParameter.eBounds
 }

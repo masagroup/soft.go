@@ -66,12 +66,6 @@ type ENotifierInternal interface {
 	EBasicAdapters() EList
 }
 
-func NewAbstractENotifier() *AbstractENotifier {
-	notifier := new(AbstractENotifier)
-	notifier.interfaces = notifier
-	return notifier
-}
-
 func (notifier *AbstractENotifier) AsENotifier() ENotifier {
 	return notifier.interfaces.(ENotifier)
 }

@@ -17,29 +17,32 @@ package ecore
 
 // eEnumImpl is the implementation of the model object 'EEnum'
 type eEnumImpl struct {
-	*eDataTypeExt
+	eDataTypeExt
 	eLiterals EList
+}
+type eEnumImplInitializers interface {
+	initELiterals() EList
 }
 
 // newEEnumImpl is the constructor of a eEnumImpl
 func newEEnumImpl() *eEnumImpl {
 	eEnum := new(eEnumImpl)
-	eEnum.eDataTypeExt = newEDataTypeExt()
 	eEnum.SetInterfaces(eEnum)
-
+	eEnum.Initialize()
 	return eEnum
 }
 
-type eEnumImplInitializers interface {
-	initELiterals() EList
-}
+func (eEnum *eEnumImpl) Initialize() {
+	eEnum.eDataTypeExt.Initialize()
 
-func (eEnum *eEnumImpl) getInitializers() eEnumImplInitializers {
-	return eEnum.AsEObject().(eEnumImplInitializers)
 }
 
 func (eEnum *eEnumImpl) asEEnum() EEnum {
 	return eEnum.GetInterfaces().(EEnum)
+}
+
+func (eEnum *eEnumImpl) asInitializers() eEnumImplInitializers {
+	return eEnum.AsEObject().(eEnumImplInitializers)
 }
 
 func (eEnum *eEnumImpl) EStaticClass() EClass {
@@ -68,7 +71,7 @@ func (eEnum *eEnumImpl) GetEEnumLiteralByValue(int) EEnumLiteral {
 // GetELiterals get the value of eLiterals
 func (eEnum *eEnumImpl) GetELiterals() EList {
 	if eEnum.eLiterals == nil {
-		eEnum.eLiterals = eEnum.getInitializers().initELiterals()
+		eEnum.eLiterals = eEnum.asInitializers().initELiterals()
 	}
 	return eEnum.eLiterals
 }

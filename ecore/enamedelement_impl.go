@@ -17,18 +17,22 @@ package ecore
 
 // eNamedElementImpl is the implementation of the model object 'ENamedElement'
 type eNamedElementImpl struct {
-	*eModelElementExt
+	eModelElementExt
 	name string
 }
 
 // newENamedElementImpl is the constructor of a eNamedElementImpl
 func newENamedElementImpl() *eNamedElementImpl {
 	eNamedElement := new(eNamedElementImpl)
-	eNamedElement.eModelElementExt = newEModelElementExt()
 	eNamedElement.SetInterfaces(eNamedElement)
+	eNamedElement.Initialize()
+	return eNamedElement
+}
+
+func (eNamedElement *eNamedElementImpl) Initialize() {
+	eNamedElement.eModelElementExt.Initialize()
 	eNamedElement.name = ""
 
-	return eNamedElement
 }
 
 func (eNamedElement *eNamedElementImpl) asENamedElement() ENamedElement {

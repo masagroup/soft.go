@@ -17,34 +17,37 @@ package ecore
 
 // eReferenceImpl is the implementation of the model object 'EReference'
 type eReferenceImpl struct {
-	*eStructuralFeatureExt
+	eStructuralFeatureExt
 	eKeys            EList
 	eOpposite        EReference
 	isContainment    bool
 	isResolveProxies bool
 }
-
-// newEReferenceImpl is the constructor of a eReferenceImpl
-func newEReferenceImpl() *eReferenceImpl {
-	eReference := new(eReferenceImpl)
-	eReference.eStructuralFeatureExt = newEStructuralFeatureExt()
-	eReference.SetInterfaces(eReference)
-	eReference.isContainment = false
-	eReference.isResolveProxies = true
-
-	return eReference
-}
-
 type eReferenceImplInitializers interface {
 	initEKeys() EList
 }
 
-func (eReference *eReferenceImpl) getInitializers() eReferenceImplInitializers {
-	return eReference.AsEObject().(eReferenceImplInitializers)
+// newEReferenceImpl is the constructor of a eReferenceImpl
+func newEReferenceImpl() *eReferenceImpl {
+	eReference := new(eReferenceImpl)
+	eReference.SetInterfaces(eReference)
+	eReference.Initialize()
+	return eReference
+}
+
+func (eReference *eReferenceImpl) Initialize() {
+	eReference.eStructuralFeatureExt.Initialize()
+	eReference.isContainment = false
+	eReference.isResolveProxies = true
+
 }
 
 func (eReference *eReferenceImpl) asEReference() EReference {
 	return eReference.GetInterfaces().(EReference)
+}
+
+func (eReference *eReferenceImpl) asInitializers() eReferenceImplInitializers {
+	return eReference.AsEObject().(eReferenceImplInitializers)
 }
 
 func (eReference *eReferenceImpl) EStaticClass() EClass {
@@ -58,7 +61,7 @@ func (eReference *eReferenceImpl) EStaticFeatureCount() int {
 // GetEKeys get the value of eKeys
 func (eReference *eReferenceImpl) GetEKeys() EList {
 	if eReference.eKeys == nil {
-		eReference.eKeys = eReference.getInitializers().initEKeys()
+		eReference.eKeys = eReference.asInitializers().initEKeys()
 	}
 	return eReference.eKeys
 }

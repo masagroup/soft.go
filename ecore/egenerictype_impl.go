@@ -17,7 +17,7 @@ package ecore
 
 // eGenericTypeImpl is the implementation of the model object 'EGenericType'
 type eGenericTypeImpl struct {
-	*EObjectImpl
+	EObjectImpl
 	eClassifier    EClassifier
 	eLowerBound    EGenericType
 	eRawType       EClassifier
@@ -25,26 +25,29 @@ type eGenericTypeImpl struct {
 	eTypeParameter ETypeParameter
 	eUpperBound    EGenericType
 }
-
-// newEGenericTypeImpl is the constructor of a eGenericTypeImpl
-func newEGenericTypeImpl() *eGenericTypeImpl {
-	eGenericType := new(eGenericTypeImpl)
-	eGenericType.EObjectImpl = NewEObjectImpl()
-	eGenericType.SetInterfaces(eGenericType)
-
-	return eGenericType
-}
-
 type eGenericTypeImplInitializers interface {
 	initETypeArguments() EList
 }
 
-func (eGenericType *eGenericTypeImpl) getInitializers() eGenericTypeImplInitializers {
-	return eGenericType.AsEObject().(eGenericTypeImplInitializers)
+// newEGenericTypeImpl is the constructor of a eGenericTypeImpl
+func newEGenericTypeImpl() *eGenericTypeImpl {
+	eGenericType := new(eGenericTypeImpl)
+	eGenericType.SetInterfaces(eGenericType)
+	eGenericType.Initialize()
+	return eGenericType
+}
+
+func (eGenericType *eGenericTypeImpl) Initialize() {
+	eGenericType.EObjectImpl.Initialize()
+
 }
 
 func (eGenericType *eGenericTypeImpl) asEGenericType() EGenericType {
 	return eGenericType.GetInterfaces().(EGenericType)
+}
+
+func (eGenericType *eGenericTypeImpl) asInitializers() eGenericTypeImplInitializers {
+	return eGenericType.AsEObject().(eGenericTypeImplInitializers)
 }
 
 func (eGenericType *eGenericTypeImpl) EStaticClass() EClass {
@@ -147,7 +150,7 @@ func (eGenericType *eGenericTypeImpl) basicGetERawType() EClassifier {
 // GetETypeArguments get the value of eTypeArguments
 func (eGenericType *eGenericTypeImpl) GetETypeArguments() EList {
 	if eGenericType.eTypeArguments == nil {
-		eGenericType.eTypeArguments = eGenericType.getInitializers().initETypeArguments()
+		eGenericType.eTypeArguments = eGenericType.asInitializers().initETypeArguments()
 	}
 	return eGenericType.eTypeArguments
 }

@@ -17,15 +17,14 @@ package ecore
 
 // EObjectImpl is the implementation of the model object 'EObject'
 type EObjectImpl struct {
-	*BasicEObjectImpl
+	BasicEObjectImpl
 }
 
 // NewEObjectImpl is the constructor of a EObjectImpl
 func NewEObjectImpl() *EObjectImpl {
 	eObject := new(EObjectImpl)
-	eObject.BasicEObjectImpl = NewBasicEObjectImpl()
 	eObject.SetInterfaces(eObject)
-
+	eObject.Initialize()
 	return eObject
 }
 

@@ -100,8 +100,8 @@ type EResourceImpl struct {
 // NewBasicEObject is BasicEObject constructor
 func NewEResourceImpl() *EResourceImpl {
 	r := new(EResourceImpl)
-	r.ENotifierImpl = NewENotifierImpl()
 	r.SetInterfaces(r)
+	r.Initialize()
 	return r
 }
 

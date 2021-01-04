@@ -19,7 +19,7 @@ import "reflect"
 
 // eStructuralFeatureImpl is the implementation of the model object 'EStructuralFeature'
 type eStructuralFeatureImpl struct {
-	*eTypedElementExt
+	eTypedElementExt
 	defaultValueLiteral string
 	featureID           int
 	isChangeable        bool
@@ -32,8 +32,13 @@ type eStructuralFeatureImpl struct {
 // newEStructuralFeatureImpl is the constructor of a eStructuralFeatureImpl
 func newEStructuralFeatureImpl() *eStructuralFeatureImpl {
 	eStructuralFeature := new(eStructuralFeatureImpl)
-	eStructuralFeature.eTypedElementExt = newETypedElementExt()
 	eStructuralFeature.SetInterfaces(eStructuralFeature)
+	eStructuralFeature.Initialize()
+	return eStructuralFeature
+}
+
+func (eStructuralFeature *eStructuralFeatureImpl) Initialize() {
+	eStructuralFeature.eTypedElementExt.Initialize()
 	eStructuralFeature.defaultValueLiteral = ""
 	eStructuralFeature.featureID = -1
 	eStructuralFeature.isChangeable = true
@@ -42,7 +47,6 @@ func newEStructuralFeatureImpl() *eStructuralFeatureImpl {
 	eStructuralFeature.isUnsettable = false
 	eStructuralFeature.isVolatile = false
 
-	return eStructuralFeature
 }
 
 func (eStructuralFeature *eStructuralFeatureImpl) asEStructuralFeature() EStructuralFeature {

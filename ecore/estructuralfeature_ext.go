@@ -11,15 +11,15 @@ package ecore
 
 // eStructuralFeatureExt is the extension of the model object 'EStructuralFeature'
 type eStructuralFeatureExt struct {
-	*eStructuralFeatureImpl
+	eStructuralFeatureImpl
 	defaultValue        interface{}
 	defaultValueFactory EFactory
 }
 
 func newEStructuralFeatureExt() *eStructuralFeatureExt {
 	eStructuralFeature := new(eStructuralFeatureExt)
-	eStructuralFeature.eStructuralFeatureImpl = newEStructuralFeatureImpl()
-	eStructuralFeature.interfaces = eStructuralFeature
+	eStructuralFeature.SetInterfaces(eStructuralFeature)
+	eStructuralFeature.Initialize()
 	return eStructuralFeature
 }
 

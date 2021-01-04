@@ -49,13 +49,17 @@ type EResourceSetImpl struct {
 
 func NewEResourceSetImpl() *EResourceSetImpl {
 	rs := new(EResourceSetImpl)
-	rs.ENotifierImpl = NewENotifierImpl()
+	rs.SetInterfaces(rs)
+	rs.Initialize()
+	return rs
+}
+
+func (rs *EResourceSetImpl) Initialize() {
+	rs.ENotifierImpl.Initialize()
 	rs.resources = newResourcesList(rs)
 	rs.uriConverter = NewEURIConverterImpl()
 	rs.resourceFactoryRegistry = GetResourceFactoryRegistry()
 	rs.packageRegistry = NewEPackageRegistryImplWithDelegate(GetPackageRegistry())
-	rs.SetInterfaces(rs)
-	return rs
 }
 
 func (r *EResourceSetImpl) GetResources() EList {

@@ -11,19 +11,18 @@ package ecore
 
 type EDataTypeInternal interface {
 	EDataType
-
 	SetDefaultValue(defaultValue interface{})
 }
 
 type eDataTypeExt struct {
-	*eDataTypeImpl
+	eDataTypeImpl
 	defaultValue interface{}
 }
 
 func newEDataTypeExt() *eDataTypeExt {
 	eDataType := new(eDataTypeExt)
-	eDataType.eDataTypeImpl = newEDataTypeImpl()
-	eDataType.interfaces = eDataType
+	eDataType.SetInterfaces(eDataType)
+	eDataType.Initialize()
 	return eDataType
 }
 

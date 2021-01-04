@@ -17,7 +17,7 @@ package ecore
 
 // eStringToStringMapEntryImpl is the implementation of the model object 'EStringToStringMapEntry'
 type eStringToStringMapEntryImpl struct {
-	*EObjectImpl
+	EObjectImpl
 	key   string
 	value string
 }
@@ -25,12 +25,16 @@ type eStringToStringMapEntryImpl struct {
 // newEStringToStringMapEntryImpl is the constructor of a eStringToStringMapEntryImpl
 func newEStringToStringMapEntryImpl() *eStringToStringMapEntryImpl {
 	eStringToStringMapEntry := new(eStringToStringMapEntryImpl)
-	eStringToStringMapEntry.EObjectImpl = NewEObjectImpl()
 	eStringToStringMapEntry.SetInterfaces(eStringToStringMapEntry)
+	eStringToStringMapEntry.Initialize()
+	return eStringToStringMapEntry
+}
+
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) Initialize() {
+	eStringToStringMapEntry.EObjectImpl.Initialize()
 	eStringToStringMapEntry.key = ""
 	eStringToStringMapEntry.value = ""
 
-	return eStringToStringMapEntry
 }
 
 func (eStringToStringMapEntry *eStringToStringMapEntryImpl) asEStringToStringMapEntry() EStringToStringMapEntry {

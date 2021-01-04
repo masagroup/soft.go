@@ -11,13 +11,13 @@ package ecore
 
 // eClassifierExt is the extesnion of the model object 'EClassifier'
 type eClassifierExt struct {
-	*eClassifierImpl
+	eClassifierImpl
 }
 
 func newEClassifierExt() *eClassifierExt {
 	eClassifier := new(eClassifierExt)
-	eClassifier.eClassifierImpl = newEClassifierImpl()
-	eClassifier.interfaces = eClassifier
+	eClassifier.SetInterfaces(eClassifier)
+	eClassifier.Initialize()
 	return eClassifier
 }
 

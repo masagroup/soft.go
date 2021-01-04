@@ -17,15 +17,14 @@ package ecore
 
 // eParameterImpl is the implementation of the model object 'EParameter'
 type eParameterImpl struct {
-	*eTypedElementExt
+	eTypedElementExt
 }
 
 // newEParameterImpl is the constructor of a eParameterImpl
 func newEParameterImpl() *eParameterImpl {
 	eParameter := new(eParameterImpl)
-	eParameter.eTypedElementExt = newETypedElementExt()
 	eParameter.SetInterfaces(eParameter)
-
+	eParameter.Initialize()
 	return eParameter
 }
 

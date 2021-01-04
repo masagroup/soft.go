@@ -17,15 +17,14 @@ package ecore
 
 // eFactoryImpl is the implementation of the model object 'EFactory'
 type eFactoryImpl struct {
-	*eModelElementExt
+	eModelElementExt
 }
 
 // newEFactoryImpl is the constructor of a eFactoryImpl
 func newEFactoryImpl() *eFactoryImpl {
 	eFactory := new(eFactoryImpl)
-	eFactory.eModelElementExt = newEModelElementExt()
 	eFactory.SetInterfaces(eFactory)
-
+	eFactory.Initialize()
 	return eFactory
 }
 

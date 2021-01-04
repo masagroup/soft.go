@@ -6,8 +6,9 @@ type ENotifierImpl struct {
 	adapters *notifierAdapterList
 }
 
-func NewENotifierImpl() ENotifierImpl {
-	return ENotifierImpl{deliver: true}
+func (notifier *ENotifierImpl) Initialize() {
+	notifier.deliver = true
+	notifier.adapters = nil
 }
 
 func (notifier *ENotifierImpl) EAdapters() EList {

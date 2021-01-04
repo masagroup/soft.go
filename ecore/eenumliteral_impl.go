@@ -17,7 +17,7 @@ package ecore
 
 // eEnumLiteralImpl is the implementation of the model object 'EEnumLiteral'
 type eEnumLiteralImpl struct {
-	*eNamedElementImpl
+	eNamedElementImpl
 	instance interface{}
 	literal  string
 	value    int
@@ -26,13 +26,17 @@ type eEnumLiteralImpl struct {
 // newEEnumLiteralImpl is the constructor of a eEnumLiteralImpl
 func newEEnumLiteralImpl() *eEnumLiteralImpl {
 	eEnumLiteral := new(eEnumLiteralImpl)
-	eEnumLiteral.eNamedElementImpl = newENamedElementImpl()
 	eEnumLiteral.SetInterfaces(eEnumLiteral)
+	eEnumLiteral.Initialize()
+	return eEnumLiteral
+}
+
+func (eEnumLiteral *eEnumLiteralImpl) Initialize() {
+	eEnumLiteral.eNamedElementImpl.Initialize()
 	eEnumLiteral.instance = nil
 	eEnumLiteral.literal = ""
 	eEnumLiteral.value = 0
 
-	return eEnumLiteral
 }
 
 func (eEnumLiteral *eEnumLiteralImpl) asEEnumLiteral() EEnumLiteral {

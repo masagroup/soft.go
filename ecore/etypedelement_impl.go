@@ -17,7 +17,7 @@ package ecore
 
 // eTypedElementImpl is the implementation of the model object 'ETypedElement'
 type eTypedElementImpl struct {
-	*eNamedElementImpl
+	eNamedElementImpl
 	eType      EClassifier
 	isOrdered  bool
 	isUnique   bool
@@ -28,14 +28,18 @@ type eTypedElementImpl struct {
 // newETypedElementImpl is the constructor of a eTypedElementImpl
 func newETypedElementImpl() *eTypedElementImpl {
 	eTypedElement := new(eTypedElementImpl)
-	eTypedElement.eNamedElementImpl = newENamedElementImpl()
 	eTypedElement.SetInterfaces(eTypedElement)
+	eTypedElement.Initialize()
+	return eTypedElement
+}
+
+func (eTypedElement *eTypedElementImpl) Initialize() {
+	eTypedElement.eNamedElementImpl.Initialize()
 	eTypedElement.isOrdered = true
 	eTypedElement.isUnique = true
 	eTypedElement.lowerBound = 0
 	eTypedElement.upperBound = 1
 
-	return eTypedElement
 }
 
 func (eTypedElement *eTypedElementImpl) asETypedElement() ETypedElement {

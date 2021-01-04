@@ -50,9 +50,6 @@ func (o *BasicEObjectImpl) EBasicHasAdapters() bool {
 }
 
 func (o *BasicEObjectImpl) EBasicAdapters() EList {
-	if o.adapters == nil {
-		return nil
-	}
 	return o.adapters
 }
 

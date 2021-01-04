@@ -151,13 +151,6 @@ type EObjectInternal interface {
 	EResolveProxy(proxy EObject) EObject
 }
 
-// NewAbstractEObject is AbstractEObject constructor
-func NewAbstractEObject() *AbstractEObject {
-	o := new(AbstractEObject)
-	o.interfaces = o
-	return o
-}
-
 // AsEObject ...
 func (o *AbstractEObject) AsEObject() EObject {
 	return o.interfaces.(EObject)

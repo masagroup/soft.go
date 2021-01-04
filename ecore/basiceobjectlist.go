@@ -3,7 +3,7 @@ package ecore
 import "strconv"
 
 type basicEObjectList struct {
-	*BasicENotifyingList
+	BasicENotifyingList
 	owner            EObjectInternal
 	featureID        int
 	inverseFeatureID int
@@ -16,8 +16,9 @@ type basicEObjectList struct {
 
 func NewBasicEObjectList(owner EObjectInternal, featureID int, inverseFeatureID int, containment, inverse, opposite, proxies, unset bool) *basicEObjectList {
 	l := new(basicEObjectList)
-	l.BasicENotifyingList = NewBasicENotifyingList()
 	l.interfaces = l
+	l.data = []interface{}{}
+	l.isUnique = true
 	l.owner = owner
 	l.featureID = featureID
 	l.inverseFeatureID = inverseFeatureID

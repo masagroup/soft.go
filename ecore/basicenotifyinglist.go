@@ -10,21 +10,23 @@ type eNotifyingListInternal interface {
 
 // BasicENotifyingList ...
 type BasicENotifyingList struct {
-	*basicEList
+	basicEList
 }
 
 // NewBasicENotifyingList ...
 func NewBasicENotifyingList() *BasicENotifyingList {
 	l := new(BasicENotifyingList)
-	l.basicEList = NewUniqueBasicEList([]interface{}{})
 	l.interfaces = l
+	l.data = []interface{}{}
+	l.isUnique = true
 	return l
 }
 
 func newBasicENotifyingListFromData(data []interface{}) *BasicENotifyingList {
 	l := new(BasicENotifyingList)
-	l.basicEList = NewUniqueBasicEList(data)
 	l.interfaces = l
+	l.data = data
+	l.isUnique = true
 	return l
 }
 

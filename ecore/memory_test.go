@@ -7,6 +7,5 @@ import (
 )
 
 func BenchmarkSizes(b *testing.B) {
-	n := NewEObjectImpl()
-	b.Log(memory.Sizeof(n))
+	b.Log(memory.Sizeof(GetPackage()))
 }

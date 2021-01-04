@@ -44,7 +44,7 @@ func (list *BasicENotifyingList) GetFeatureID() int {
 }
 
 type notifyingListNotification struct {
-	*abstractNotification
+	abstractNotification
 	list *BasicENotifyingList
 }
 
@@ -62,9 +62,12 @@ func (notif *notifyingListNotification) GetFeatureID() int {
 
 func (list *BasicENotifyingList) createNotification(eventType EventType, oldValue interface{}, newValue interface{}, position int) ENotification {
 	n := new(notifyingListNotification)
-	n.abstractNotification = NewAbstractNotification(eventType, oldValue, newValue, position)
-	n.interfaces = n
+	n.eventType = eventType
+	n.oldValue = oldValue
+	n.newValue = newValue
+	n.position = position
 	n.list = list
+	n.interfaces = n
 	return n
 }
 

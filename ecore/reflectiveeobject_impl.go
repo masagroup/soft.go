@@ -11,7 +11,7 @@ package ecore
 
 // ReflectiveEObjectImpl ...
 type ReflectiveEObjectImpl struct {
-	*EObjectImpl
+	EObjectImpl
 	class      EClass
 	properties []interface{}
 }
@@ -19,8 +19,8 @@ type ReflectiveEObjectImpl struct {
 // NewReflectiveEObjectImpl is the constructor of a ReflectiveEObjectImpl
 func NewReflectiveEObjectImpl() *ReflectiveEObjectImpl {
 	o := new(ReflectiveEObjectImpl)
-	o.EObjectImpl = NewEObjectImpl()
 	o.SetInterfaces(o)
+	o.Initialize()
 	return o
 }
 

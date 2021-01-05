@@ -34,7 +34,7 @@ func TestEStoreEObjectImpl_GetAttribute_Transient(t *testing.T) {
 	mockStore := o.mockStore
 
 	// initialise object with mock class
-	o.setEClass(mockClass)
+	o.SetEClass(mockClass)
 
 	// first get
 	mockAttribute.On("IsMany").Return(false).Once()
@@ -56,7 +56,7 @@ func TestEStoreEObjectImpl_GetAttribute_Caching(t *testing.T) {
 	mockStore := o.mockStore
 
 	// initialise object with mock class
-	o.setEClass(mockClass)
+	o.SetEClass(mockClass)
 
 	// first get
 	mockAttribute.On("IsMany").Return(false).Once()
@@ -83,7 +83,7 @@ func TestEStoreEObjectImpl_GetAttribute_NoCaching(t *testing.T) {
 	mockStore := o.mockStore
 
 	// initialise object with mock class
-	o.setEClass(mockClass)
+	o.SetEClass(mockClass)
 
 	mockClass.On("GetFeatureCount").Return(1).Once()
 	for i := 0; i < 2; i++ {
@@ -106,7 +106,7 @@ func TestEStoreEObjectImpl_SetAttribute_Transient(t *testing.T) {
 	mockStore := o.mockStore
 
 	// initialise object with mock class
-	o.setEClass(mockClass)
+	o.SetEClass(mockClass)
 
 	// set
 	mockAttribute.On("IsTransient").Return(true).Twice()
@@ -132,7 +132,7 @@ func TestEStoreEObjectImpl_SetAttribute(t *testing.T) {
 	mockStore := o.mockStore
 
 	// initialise object with mock class
-	o.setEClass(mockClass)
+	o.SetEClass(mockClass)
 
 	mockAttribute.On("IsMany").Return(false).Once()
 	mockAttribute.On("IsTransient").Return(false).Twice()
@@ -155,7 +155,7 @@ func TestEStoreEObjectImpl_GetAttribute_Many(t *testing.T) {
 	mockStore := o.mockStore
 
 	// initialise object with mock class
-	o.setEClass(mockClass)
+	o.SetEClass(mockClass)
 
 	mockAttribute.On("IsMany").Return(true).Once()
 	mockAttribute.On("IsTransient").Return(false).Once()
@@ -181,7 +181,7 @@ func TestEStoreEObjectImpl_SetAttribute_Caching(t *testing.T) {
 	mockStore := o.mockStore
 
 	// initialise object with mock class
-	o.setEClass(mockClass)
+	o.SetEClass(mockClass)
 
 	mockAttribute.On("IsMany").Return(false).Once()
 	mockAttribute.On("IsTransient").Return(false).Twice()
@@ -202,7 +202,7 @@ func TestEStoreEObjectImpl_UnSetAttribute_Transient(t *testing.T) {
 	mockAttribute := new(MockEAttribute)
 
 	// initialise object with mock class
-	o.setEClass(mockClass)
+	o.SetEClass(mockClass)
 
 	mockAttribute.On("IsMany").Return(false).Once()
 	mockAttribute.On("IsTransient").Return(true).Twice()
@@ -223,7 +223,7 @@ func TestEStoreEObjectImpl_UnSetAttribute(t *testing.T) {
 	mockStore := o.mockStore
 
 	// initialise object with mock class
-	o.setEClass(mockClass)
+	o.SetEClass(mockClass)
 
 	mockAttribute.On("IsMany").Return(false).Once()
 	mockAttribute.On("IsTransient").Return(false).Twice()

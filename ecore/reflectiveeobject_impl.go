@@ -32,7 +32,7 @@ func (o *ReflectiveEObjectImpl) EClass() EClass {
 }
 
 // SetEClass ...
-func (o *ReflectiveEObjectImpl) setEClass(class EClass) {
+func (o *ReflectiveEObjectImpl) SetEClass(class EClass) {
 	o.class = class
 }
 

@@ -7,34 +7,34 @@ import (
 
 type CompactEObjectImpl struct {
 	AbstractEObject
-	flags   uint
+	flags   int
 	storage interface{}
 }
 
 const (
-	deliver_flag    uint = 1 << 0
-	container_flag  uint = 1 << 1
-	resource_flag   uint = 1 << 2
-	adapters_flag   uint = 1 << 3
-	proxy_flag      uint = 1 << 4
-	class_flag      uint = 1 << 5
-	contents_flag   uint = 1 << 6
-	cross_flag      uint = 1 << 7
-	properties_flag uint = 1 << 8
-	fields_mask     uint = deliver_flag | container_flag | resource_flag | adapters_flag | proxy_flag | class_flag | contents_flag | cross_flag | properties_flag
-	first_flag      uint = container_flag
-	last_flag       uint = properties_flag
+	deliver_flag    = 1 << 0
+	container_flag  = 1 << 1
+	resource_flag   = 1 << 2
+	adapters_flag   = 1 << 3
+	proxy_flag      = 1 << 4
+	class_flag      = 1 << 5
+	contents_flag   = 1 << 6
+	cross_flag      = 1 << 7
+	properties_flag = 1 << 8
+	fields_mask     = container_flag | resource_flag | adapters_flag | proxy_flag | class_flag | contents_flag | cross_flag | properties_flag
+	first_flag      = container_flag
+	last_flag       = properties_flag
 )
 
 func (o *CompactEObjectImpl) Initialize() {
-	o.flags = deliver_flag
+	o.flags = deliver_flag | (-1)<<16
 }
 
-func (o *CompactEObjectImpl) hasField(field uint) bool {
+func (o *CompactEObjectImpl) hasField(field int) bool {
 	return (o.flags & field) != 0
 }
 
-func (o *CompactEObjectImpl) getField(field uint) interface{} {
+func (o *CompactEObjectImpl) getField(field int) interface{} {
 	if o.hasField(field) {
 		if fieldIndex := o.fieldIndex(field); fieldIndex == -1 {
 			return o.storage
@@ -46,7 +46,7 @@ func (o *CompactEObjectImpl) getField(field uint) interface{} {
 	}
 }
 
-func (o *CompactEObjectImpl) setField(field uint, value interface{}) {
+func (o *CompactEObjectImpl) setField(field int, value interface{}) {
 	if o.hasField(field) {
 		if value == nil {
 			o.removeField(field)
@@ -62,7 +62,7 @@ func (o *CompactEObjectImpl) setField(field uint, value interface{}) {
 	}
 }
 
-func (o *CompactEObjectImpl) fieldIndex(field uint) int {
+func (o *CompactEObjectImpl) fieldIndex(field int) int {
 	result := 0
 	for bit := first_flag; bit < field; bit <<= 1 {
 		if (o.flags & bit) != 0 {
@@ -82,8 +82,8 @@ func (o *CompactEObjectImpl) fieldIndex(field uint) int {
 	}
 }
 
-func (o *CompactEObjectImpl) addField(field uint, value interface{}) {
-	if fieldCount := bits.OnesCount(o.flags & fields_mask); fieldCount == 0 {
+func (o *CompactEObjectImpl) addField(field int, value interface{}) {
+	if fieldCount := bits.OnesCount(uint(o.flags & fields_mask)); fieldCount == 0 {
 		o.storage = value
 	} else if fieldCount == 1 {
 		if fieldIndex := o.fieldIndex(field); fieldIndex == 0 {
@@ -109,8 +109,8 @@ func (o *CompactEObjectImpl) addField(field uint, value interface{}) {
 	o.flags |= field
 }
 
-func (o *CompactEObjectImpl) removeField(field uint) {
-	if fieldCount := bits.OnesCount(o.flags & fields_mask); fieldCount == 1 {
+func (o *CompactEObjectImpl) removeField(field int) {
+	if fieldCount := bits.OnesCount(uint(o.flags & fields_mask)); fieldCount == 1 {
 		o.storage = nil
 	} else if fieldCount == 2 {
 		storage := o.storage.([]interface{})
@@ -204,23 +204,23 @@ func (o *CompactEObjectImpl) EContents() EList {
 		contents = newContentsListAdapter(&o.AbstractEObject, func(eClass EClass) EList { return eClass.GetEContainmentFeatures() })
 		o.setField(contents_flag, contents)
 	}
-	return contents.(EList)
+	return contents.(*contentsListAdapter).GetList()
 }
 
 // ECrossReferences ...
 func (o *CompactEObjectImpl) ECrossReferences() EList {
-	crossReferenceS := o.getField(cross_flag)
-	if crossReferenceS == nil {
-		crossReferenceS = newContentsListAdapter(&o.AbstractEObject, func(eClass EClass) EList { return eClass.GetECrossReferenceFeatures() })
-		o.setField(cross_flag, crossReferenceS)
+	crossReferences := o.getField(cross_flag)
+	if crossReferences == nil {
+		crossReferences = newContentsListAdapter(&o.AbstractEObject, func(eClass EClass) EList { return eClass.GetECrossReferenceFeatures() })
+		o.setField(cross_flag, crossReferences)
 	}
-	return crossReferenceS.(EList)
+	return crossReferences.(*contentsListAdapter).GetList()
 }
 
 // ESetContainer ...
 func (o *CompactEObjectImpl) ESetInternalContainer(newContainer EObject, newContainerFeatureID int) {
 	o.setField(container_flag, newContainer)
-	o.flags = uint(newContainerFeatureID)<<16 | (o.flags & 0x00FF)
+	o.flags = newContainerFeatureID<<16 | (o.flags & 0x00FF)
 }
 
 func (o *CompactEObjectImpl) EInternalContainer() EObject {

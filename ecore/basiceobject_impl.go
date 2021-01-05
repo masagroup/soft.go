@@ -21,7 +21,6 @@ type BasicEObjectImpl struct {
 
 func (o *BasicEObjectImpl) Initialize() {
 	o.deliver = true
-	o.proxy = false
 	o.containerFeatureID = -1
 }
 

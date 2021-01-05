@@ -17,7 +17,7 @@ package ecore
 
 // eStringToStringMapEntryImpl is the implementation of the model object 'EStringToStringMapEntry'
 type eStringToStringMapEntryImpl struct {
-	EObjectImpl
+	CompactEObjectContainer
 	key   string
 	value string
 }
@@ -31,7 +31,7 @@ func newEStringToStringMapEntryImpl() *eStringToStringMapEntryImpl {
 }
 
 func (eStringToStringMapEntry *eStringToStringMapEntryImpl) Initialize() {
-	eStringToStringMapEntry.EObjectImpl.Initialize()
+	eStringToStringMapEntry.CompactEObjectContainer.Initialize()
 	eStringToStringMapEntry.key = ""
 	eStringToStringMapEntry.value = ""
 
@@ -84,7 +84,7 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EGetFromID(featureID
 	case ESTRING_TO_STRING_MAP_ENTRY__VALUE:
 		return eStringToStringMapEntry.asEStringToStringMapEntry().GetValue()
 	default:
-		return eStringToStringMapEntry.EObjectImpl.EGetFromID(featureID, resolve)
+		return eStringToStringMapEntry.CompactEObjectContainer.EGetFromID(featureID, resolve)
 	}
 }
 
@@ -95,7 +95,7 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) ESetFromID(featureID
 	case ESTRING_TO_STRING_MAP_ENTRY__VALUE:
 		eStringToStringMapEntry.asEStringToStringMapEntry().SetValue(newValue.(string))
 	default:
-		eStringToStringMapEntry.EObjectImpl.ESetFromID(featureID, newValue)
+		eStringToStringMapEntry.CompactEObjectContainer.ESetFromID(featureID, newValue)
 	}
 }
 
@@ -106,7 +106,7 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EUnsetFromID(feature
 	case ESTRING_TO_STRING_MAP_ENTRY__VALUE:
 		eStringToStringMapEntry.asEStringToStringMapEntry().SetValue("")
 	default:
-		eStringToStringMapEntry.EObjectImpl.EUnsetFromID(featureID)
+		eStringToStringMapEntry.CompactEObjectContainer.EUnsetFromID(featureID)
 	}
 }
 
@@ -117,6 +117,6 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EIsSetFromID(feature
 	case ESTRING_TO_STRING_MAP_ENTRY__VALUE:
 		return eStringToStringMapEntry.value != ""
 	default:
-		return eStringToStringMapEntry.EObjectImpl.EIsSetFromID(featureID)
+		return eStringToStringMapEntry.CompactEObjectContainer.EIsSetFromID(featureID)
 	}
 }

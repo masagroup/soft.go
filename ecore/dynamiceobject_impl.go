@@ -11,7 +11,7 @@ package ecore
 
 // DynamicEObjectImpl ...
 type DynamicEObjectImpl struct {
-	*EObjectImpl
+	EObjectImpl
 	class      EClass
 	properties []interface{}
 	adapter    *dynamicFeaturesAdapter
@@ -35,11 +35,15 @@ func (adapter *dynamicFeaturesAdapter) NotifyChanged(notification ENotification)
 // NewDynamicEObjectImpl is the constructor of a DynamicEObjectImpl
 func NewDynamicEObjectImpl() *DynamicEObjectImpl {
 	o := new(DynamicEObjectImpl)
-	o.EObjectImpl = NewEObjectImpl()
-	o.adapter = &dynamicFeaturesAdapter{object: o}
 	o.SetInterfaces(o)
-	o.SetEClass(nil)
+	o.Initialize()
 	return o
+}
+
+func (o *DynamicEObjectImpl) Initialize() {
+	o.EObjectImpl.Initialize()
+	o.adapter = &dynamicFeaturesAdapter{object: o}
+	o.resizeProperties()
 }
 
 // EClass ...

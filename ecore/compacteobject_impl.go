@@ -14,10 +14,11 @@ const (
 	resource_flag   uint = 1 << 2
 	adapters_flag   uint = 1 << 3
 	proxy_flag      uint = 1 << 4
-	contents_flag   uint = 1 << 5
-	cross_flag      uint = 1 << 6
-	properties_flag uint = 1 << 7
-	fields_mask     uint = deliver_flag | proxy_flag | adapters_flag | resource_flag | container_flag | properties_flag
+	class_flag      uint = 1 << 5
+	contents_flag   uint = 1 << 6
+	cross_flag      uint = 1 << 7
+	properties_flag uint = 1 << 8
+	fields_mask     uint = deliver_flag | container_flag | resource_flag | adapters_flag | proxy_flag | class_flag | contents_flag | cross_flag | properties_flag
 	first_flag      uint = container_flag
 	last_flag       uint = properties_flag
 )

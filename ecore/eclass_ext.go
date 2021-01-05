@@ -102,9 +102,9 @@ func newEClassExt() *eClassExt {
 }
 
 func (eClass *eClassExt) Initialize() {
+	eClass.eClassImpl.Initialize()
 	eClass.adapter = &eSuperAdapter{class: eClass, subClasses: []*eClassExt{}}
 	eClass.EAdapters().Add(eClass.adapter)
-	eClass.eClassImpl.Initialize()
 }
 
 func (eClass *eClassExt) IsSuperTypeOf(someClass EClass) bool {

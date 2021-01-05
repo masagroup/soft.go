@@ -41,9 +41,9 @@ func NewEPackageExt() *EPackageExt {
 }
 
 func (pack *EPackageExt) Initialize() {
+	pack.ePackageImpl.Initialize()
 	pack.adapter = &ePackageExtAdapter{pack: pack}
 	pack.EAdapters().Add(pack.adapter)
-	pack.ePackageImpl.Initialize()
 }
 
 func (pack *EPackageExt) GetEClassifier(classifier string) EClassifier {

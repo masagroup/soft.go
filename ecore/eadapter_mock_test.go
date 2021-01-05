@@ -33,3 +33,11 @@ func TestMockEAdapter_GetTarget(t *testing.T) {
 	assert.Equal(t, mockNotifier, mockAdapter.GetTarget())
 	mock.AssertExpectationsForObjects(t, mockNotifier, mockAdapter)
 }
+
+func TestMockEAdapter_UnSetTarget(t *testing.T) {
+	mockNotifier := new(MockENotifier)
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("UnSetTarget", mockNotifier).Once()
+	mockAdapter.UnSetTarget(mockNotifier)
+	mock.AssertExpectationsForObjects(t, mockNotifier, mockAdapter)
+}

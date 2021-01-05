@@ -10,12 +10,16 @@ type CompactEObjectImpl struct {
 
 const (
 	deliver_flag    uint = 1 << 0
-	proxy_flag      uint = 1 << 1
-	adapters_flag   uint = 1 << 2
-	resource_flag   uint = 1 << 3
-	container_flag  uint = 1 << 4
-	properties_flag uint = 1 << 5
+	container_flag  uint = 1 << 1
+	resource_flag   uint = 1 << 2
+	adapters_flag   uint = 1 << 3
+	proxy_flag      uint = 1 << 4
+	contents_flag   uint = 1 << 5
+	cross_flag      uint = 1 << 6
+	properties_flag uint = 1 << 7
 	fields_mask     uint = deliver_flag | proxy_flag | adapters_flag | resource_flag | container_flag | properties_flag
+	first_flag      uint = container_flag
+	last_flag       uint = properties_flag
 )
 
 func (o *CompactEObjectImpl) Initialize() {
@@ -56,14 +60,14 @@ func (o *CompactEObjectImpl) setField(field uint, value interface{}) {
 
 func (o *CompactEObjectImpl) fieldIndex(field uint) int {
 	result := 0
-	for bit := proxy_flag; bit < field; bit <<= 1 {
+	for bit := first_flag; bit < field; bit <<= 1 {
 		if (o.flags & bit) != 0 {
 			result++
 		}
 	}
 	if result == 0 {
 		field <<= 1
-		for bit := field; bit <= properties_flag; bit <<= 1 {
+		for bit := field; bit <= last_flag; bit <<= 1 {
 			if (o.flags & bit) != 0 {
 				return 0
 			}
@@ -87,7 +91,7 @@ func (o *CompactEObjectImpl) addField(field uint, value interface{}) {
 		} else {
 			result := make([]interface{}, fieldCount+1)
 			storage := o.storage.([]interface{})
-			for bit, sourceIndex, targetIndex := proxy_flag, 0, 0; bit <= properties_flag; bit <<= 1 {
+			for bit, sourceIndex, targetIndex := first_flag, 0, 0; bit <= last_flag; bit <<= 1 {
 				if bit == field {
 					result[targetIndex] = value
 					targetIndex++
@@ -117,7 +121,7 @@ func (o *CompactEObjectImpl) removeField(field uint) {
 		} else {
 			result := make([]interface{}, fieldCount-1)
 			storage := o.storage.([]interface{})
-			for bit, sourceIndex, targetIndex := proxy_flag, 0, 0; bit <= properties_flag; bit <<= 1 {
+			for bit, sourceIndex, targetIndex := first_flag, 0, 0; bit <= last_flag; bit <<= 1 {
 				if bit == field {
 					sourceIndex++
 				} else if (o.flags & bit) != 0 {

@@ -11,6 +11,7 @@ type basicEObjectImplProperties struct {
 type BasicEObjectImpl struct {
 	AbstractEObject
 	deliver            bool
+	proxy              bool
 	adapters           *notifierAdapterList
 	resource           EResource
 	container          EObject
@@ -20,6 +21,7 @@ type BasicEObjectImpl struct {
 
 func (o *BasicEObjectImpl) Initialize() {
 	o.deliver = true
+	o.proxy = false
 	o.containerFeatureID = -1
 }
 
@@ -55,16 +57,21 @@ func (o *BasicEObjectImpl) EBasicAdapters() EList {
 
 // EIsProxy ...
 func (o *BasicEObjectImpl) EIsProxy() bool {
-	return o.getObjectProperties().proxyURI != nil
+	return o.proxy
 }
 
 // EProxyURI ...
 func (o *BasicEObjectImpl) EProxyURI() *url.URL {
-	return o.getObjectProperties().proxyURI
+	if o.proxy {
+		return o.getObjectProperties().proxyURI
+	} else {
+		return nil
+	}
 }
 
 // ESetProxyURI ...
 func (o *BasicEObjectImpl) ESetProxyURI(uri *url.URL) {
+	o.proxy = uri != nil
 	o.getObjectProperties().proxyURI = uri
 }
 

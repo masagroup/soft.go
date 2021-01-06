@@ -17,15 +17,14 @@ package ecore
 
 // eParameterImpl is the implementation of the model object 'EParameter'
 type eParameterImpl struct {
-	*eTypedElementExt
+	eTypedElementExt
 }
 
 // newEParameterImpl is the constructor of a eParameterImpl
 func newEParameterImpl() *eParameterImpl {
 	eParameter := new(eParameterImpl)
-	eParameter.eTypedElementExt = newETypedElementExt()
 	eParameter.SetInterfaces(eParameter)
-
+	eParameter.Initialize()
 	return eParameter
 }
 
@@ -35,6 +34,10 @@ func (eParameter *eParameterImpl) asEParameter() EParameter {
 
 func (eParameter *eParameterImpl) EStaticClass() EClass {
 	return GetPackage().GetEParameter()
+}
+
+func (eParameter *eParameterImpl) EStaticFeatureCount() int {
+	return EPARAMETER_FEATURE_COUNT
 }
 
 // GetEOperation get the value of eOperation
@@ -67,7 +70,7 @@ func (eParameter *eParameterImpl) EBasicInverseAdd(otherEnd EObject, featureID i
 	switch featureID {
 	case EPARAMETER__EOPERATION:
 		msgs := notifications
-		if eParameter.EContainer() != nil {
+		if eParameter.EInternalContainer() != nil {
 			msgs = eParameter.EBasicRemoveFromContainer(msgs)
 		}
 		return eParameter.EBasicSetContainer(otherEnd, EPARAMETER__EOPERATION, msgs)

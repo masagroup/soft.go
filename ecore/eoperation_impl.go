@@ -17,37 +17,44 @@ package ecore
 
 // eOperationImpl is the implementation of the model object 'EOperation'
 type eOperationImpl struct {
-	*eTypedElementExt
+	eTypedElementExt
 	eExceptions EList
 	eParameters EList
 	operationID int
 }
-
-// newEOperationImpl is the constructor of a eOperationImpl
-func newEOperationImpl() *eOperationImpl {
-	eOperation := new(eOperationImpl)
-	eOperation.eTypedElementExt = newETypedElementExt()
-	eOperation.SetInterfaces(eOperation)
-	eOperation.operationID = -1
-
-	return eOperation
-}
-
 type eOperationImplInitializers interface {
 	initEExceptions() EList
 	initEParameters() EList
 }
 
-func (eOperation *eOperationImpl) getInitializers() eOperationImplInitializers {
-	return eOperation.AsEObject().(eOperationImplInitializers)
+// newEOperationImpl is the constructor of a eOperationImpl
+func newEOperationImpl() *eOperationImpl {
+	eOperation := new(eOperationImpl)
+	eOperation.SetInterfaces(eOperation)
+	eOperation.Initialize()
+	return eOperation
+}
+
+func (eOperation *eOperationImpl) Initialize() {
+	eOperation.eTypedElementExt.Initialize()
+	eOperation.operationID = -1
+
 }
 
 func (eOperation *eOperationImpl) asEOperation() EOperation {
 	return eOperation.GetInterfaces().(EOperation)
 }
 
+func (eOperation *eOperationImpl) asInitializers() eOperationImplInitializers {
+	return eOperation.AsEObject().(eOperationImplInitializers)
+}
+
 func (eOperation *eOperationImpl) EStaticClass() EClass {
 	return GetPackage().GetEOperation()
+}
+
+func (eOperation *eOperationImpl) EStaticFeatureCount() int {
+	return EOPERATION_FEATURE_COUNT
 }
 
 // IsOverrideOf default implementation
@@ -66,7 +73,7 @@ func (eOperation *eOperationImpl) GetEContainingClass() EClass {
 // GetEExceptions get the value of eExceptions
 func (eOperation *eOperationImpl) GetEExceptions() EList {
 	if eOperation.eExceptions == nil {
-		eOperation.eExceptions = eOperation.getInitializers().initEExceptions()
+		eOperation.eExceptions = eOperation.asInitializers().initEExceptions()
 	}
 	return eOperation.eExceptions
 }
@@ -81,7 +88,7 @@ func (eOperation *eOperationImpl) UnsetEExceptions() {
 // GetEParameters get the value of eParameters
 func (eOperation *eOperationImpl) GetEParameters() EList {
 	if eOperation.eParameters == nil {
-		eOperation.eParameters = eOperation.getInitializers().initEParameters()
+		eOperation.eParameters = eOperation.asInitializers().initEParameters()
 	}
 	return eOperation.eParameters
 }
@@ -187,7 +194,7 @@ func (eOperation *eOperationImpl) EBasicInverseAdd(otherEnd EObject, featureID i
 	switch featureID {
 	case EOPERATION__ECONTAINING_CLASS:
 		msgs := notifications
-		if eOperation.EContainer() != nil {
+		if eOperation.EInternalContainer() != nil {
 			msgs = eOperation.EBasicRemoveFromContainer(msgs)
 		}
 		return eOperation.EBasicSetContainer(otherEnd, EOPERATION__ECONTAINING_CLASS, msgs)

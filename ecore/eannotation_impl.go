@@ -17,45 +17,52 @@ package ecore
 
 // eAnnotationImpl is the implementation of the model object 'EAnnotation'
 type eAnnotationImpl struct {
-	*eModelElementExt
+	eModelElementExt
 	contents   EList
 	details    EList
 	references EList
 	source     string
 }
-
-// newEAnnotationImpl is the constructor of a eAnnotationImpl
-func newEAnnotationImpl() *eAnnotationImpl {
-	eAnnotation := new(eAnnotationImpl)
-	eAnnotation.eModelElementExt = newEModelElementExt()
-	eAnnotation.SetInterfaces(eAnnotation)
-	eAnnotation.source = ""
-
-	return eAnnotation
-}
-
 type eAnnotationImplInitializers interface {
 	initContents() EList
 	initDetails() EList
 	initReferences() EList
 }
 
-func (eAnnotation *eAnnotationImpl) getInitializers() eAnnotationImplInitializers {
-	return eAnnotation.AsEObject().(eAnnotationImplInitializers)
+// newEAnnotationImpl is the constructor of a eAnnotationImpl
+func newEAnnotationImpl() *eAnnotationImpl {
+	eAnnotation := new(eAnnotationImpl)
+	eAnnotation.SetInterfaces(eAnnotation)
+	eAnnotation.Initialize()
+	return eAnnotation
+}
+
+func (eAnnotation *eAnnotationImpl) Initialize() {
+	eAnnotation.eModelElementExt.Initialize()
+	eAnnotation.source = ""
+
 }
 
 func (eAnnotation *eAnnotationImpl) asEAnnotation() EAnnotation {
 	return eAnnotation.GetInterfaces().(EAnnotation)
 }
 
+func (eAnnotation *eAnnotationImpl) asInitializers() eAnnotationImplInitializers {
+	return eAnnotation.AsEObject().(eAnnotationImplInitializers)
+}
+
 func (eAnnotation *eAnnotationImpl) EStaticClass() EClass {
 	return GetPackage().GetEAnnotationClass()
+}
+
+func (eAnnotation *eAnnotationImpl) EStaticFeatureCount() int {
+	return EANNOTATION_FEATURE_COUNT
 }
 
 // GetContents get the value of contents
 func (eAnnotation *eAnnotationImpl) GetContents() EList {
 	if eAnnotation.contents == nil {
-		eAnnotation.contents = eAnnotation.getInitializers().initContents()
+		eAnnotation.contents = eAnnotation.asInitializers().initContents()
 	}
 	return eAnnotation.contents
 }
@@ -63,7 +70,7 @@ func (eAnnotation *eAnnotationImpl) GetContents() EList {
 // GetDetails get the value of details
 func (eAnnotation *eAnnotationImpl) GetDetails() EList {
 	if eAnnotation.details == nil {
-		eAnnotation.details = eAnnotation.getInitializers().initDetails()
+		eAnnotation.details = eAnnotation.asInitializers().initDetails()
 	}
 	return eAnnotation.details
 }
@@ -78,13 +85,13 @@ func (eAnnotation *eAnnotationImpl) GetEModelElement() EModelElement {
 
 // SetEModelElement set the value of eModelElement
 func (eAnnotation *eAnnotationImpl) SetEModelElement(newEModelElement EModelElement) {
-	if newEModelElement != eAnnotation.EContainer() || (newEModelElement != nil && eAnnotation.EContainerFeatureID() != EANNOTATION__EMODEL_ELEMENT) {
+	if newEModelElement != eAnnotation.EInternalContainer() || (newEModelElement != nil && eAnnotation.EContainerFeatureID() != EANNOTATION__EMODEL_ELEMENT) {
 		var notifications ENotificationChain
-		if eAnnotation.EContainer() != nil {
+		if eAnnotation.EInternalContainer() != nil {
 			notifications = eAnnotation.EBasicRemoveFromContainer(notifications)
 		}
 		if newEModelElementInternal, _ := newEModelElement.(EObjectInternal); newEModelElementInternal != nil {
-			notifications = newEModelElementInternal.EInverseAdd(eAnnotation.AsEObject(), EANNOTATION__EMODEL_ELEMENT, notifications)
+			notifications = newEModelElementInternal.EInverseAdd(eAnnotation.AsEObject(), EMODEL_ELEMENT__EANNOTATIONS, notifications)
 		}
 		notifications = eAnnotation.basicSetEModelElement(newEModelElement, notifications)
 		if notifications != nil {
@@ -102,7 +109,7 @@ func (eAnnotation *eAnnotationImpl) basicSetEModelElement(newEModelElement EMode
 // GetReferences get the value of references
 func (eAnnotation *eAnnotationImpl) GetReferences() EList {
 	if eAnnotation.references == nil {
-		eAnnotation.references = eAnnotation.getInitializers().initReferences()
+		eAnnotation.references = eAnnotation.asInitializers().initReferences()
 	}
 	return eAnnotation.references
 }
@@ -217,7 +224,7 @@ func (eAnnotation *eAnnotationImpl) EBasicInverseAdd(otherEnd EObject, featureID
 	switch featureID {
 	case EANNOTATION__EMODEL_ELEMENT:
 		msgs := notifications
-		if eAnnotation.EContainer() != nil {
+		if eAnnotation.EInternalContainer() != nil {
 			msgs = eAnnotation.EBasicRemoveFromContainer(msgs)
 		}
 		return eAnnotation.basicSetEModelElement(otherEnd.(EModelElement), msgs)

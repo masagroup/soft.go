@@ -11,14 +11,14 @@ package ecore
 
 // eReferenceExt is the extension of the model object 'EReference'
 type eReferenceExt struct {
-	*eReferenceImpl
+	eReferenceImpl
 	eReferenceType EClass
 }
 
 func newEReferenceExt() *eReferenceExt {
 	eReference := new(eReferenceExt)
-	eReference.eReferenceImpl = newEReferenceImpl()
-	eReference.interfaces = eReference
+	eReference.SetInterfaces(eReference)
+	eReference.Initialize()
 	return eReference
 }
 

@@ -220,6 +220,22 @@ func (_m *MockEObjectInternal) EProxyURI() *url.URL {
 	return r0
 }
 
+// EProxyURI provides a mock function with given fields:
+func (_m *MockEObjectInternal) EInternalContainerFeatureID() int {
+	ret := _m.Called()
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(int)
+		}
+	}
+
+	return r0
+}
+
 // EResolveProxy provides a mock function with given fields: proxy
 func (_m *MockEObjectInternal) EResolveProxy(proxy EObject) EObject {
 	ret := _m.Called(proxy)
@@ -244,6 +260,16 @@ func (_m *MockEObjectInternal) ESetFromID(featureID int, newValue interface{}) {
 // ESetProxyURI provides a mock function with given fields: uri
 func (_m *MockEObjectInternal) ESetProxyURI(uri *url.URL) {
 	_m.Called(uri)
+}
+
+// ESetInternalContainer provides a mock function with given fields: container, containerFeatureID
+func (_m *MockEObjectInternal) ESetInternalContainer(container EObject, containerFeatureID int) {
+	_m.Called(container, containerFeatureID)
+}
+
+// ESetInternalResource provides a mock function with given fields: resource
+func (_m *MockEObjectInternal) ESetInternalResource(resource EResource) {
+	_m.Called(resource)
 }
 
 // ESetResource provides a mock function with given fields: resource, notifications
@@ -273,6 +299,34 @@ func (_m *MockEObjectInternal) EStaticClass() EClass {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(EClass)
 		}
+	}
+
+	return r0
+}
+
+// EStaticFeatureCount provides a mock function with given fields: featureID
+func (_m *MockEObjectInternal) EStaticFeatureCount() int {
+	ret := _m.Called()
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	return r0
+}
+
+// EProperties provides a mock function with given fields: featureID
+func (_m *MockEObjectInternal) EDynamicProperties() EDynamicProperties {
+	ret := _m.Called()
+
+	var r0 EDynamicProperties
+	if rf, ok := ret.Get(0).(func() EDynamicProperties); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(EDynamicProperties)
 	}
 
 	return r0

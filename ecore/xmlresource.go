@@ -983,7 +983,7 @@ func (s *xmlSaveImpl) saveTopObject(eObject EObject) *xmlStringSegment {
 
 func (s *xmlSaveImpl) saveNamespaces() {
 	var prefixes []string
-	for prefix, _ := range s.prefixesToURI {
+	for prefix := range s.prefixesToURI {
 		prefixes = append(prefixes, prefix)
 	}
 	sort.Strings(prefixes)

@@ -16,13 +16,13 @@ import (
 )
 
 type ecoreFactoryExt struct {
-	*ecoreFactoryImpl
+	ecoreFactoryImpl
 }
 
 func newEcoreFactoryExt() *ecoreFactoryExt {
 	factory := new(ecoreFactoryExt)
-	factory.ecoreFactoryImpl = newEcoreFactoryImpl()
-	factory.interfaces = factory
+	factory.SetInterfaces(factory)
+	factory.Initialize()
 	return factory
 }
 
@@ -33,6 +33,19 @@ func (factory *ecoreFactoryExt) createEBooleanFromString(dataType EDataType, lit
 
 func (factory *ecoreFactoryExt) convertEBooleanToString(dataType EDataType, instanceValue interface{}) string {
 	return fmt.Sprintf("%t", instanceValue)
+}
+
+func (factory *ecoreFactoryExt) createEByteFromString(eDataType EDataType, literalValue string) interface{} {
+	if len(literalValue) == 1 {
+		return []byte(literalValue)[0]
+	} else {
+		return nil
+	}
+}
+
+func (factory *ecoreFactoryExt) convertEByteToString(eDataType EDataType, instanceValue interface{}) string {
+	b := instanceValue.(byte)
+	return string([]byte{b})
 }
 
 func (factory *ecoreFactoryExt) createECharFromString(dataType EDataType, literalValue string) interface{} {
@@ -49,11 +62,11 @@ const (
 
 func (factory *ecoreFactoryExt) createEDateFromString(dataType EDataType, literalValue string) interface{} {
 	t, _ := time.Parse(dateFormat, literalValue)
-	return t
+	return &t
 }
 
 func (factory *ecoreFactoryExt) convertEDateToString(dataType EDataType, instanceValue interface{}) string {
-	t := instanceValue.(time.Time)
+	t := instanceValue.(*time.Time)
 	return t.Format(dateFormat)
 }
 

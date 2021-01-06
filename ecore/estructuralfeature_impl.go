@@ -19,7 +19,7 @@ import "reflect"
 
 // eStructuralFeatureImpl is the implementation of the model object 'EStructuralFeature'
 type eStructuralFeatureImpl struct {
-	*eTypedElementExt
+	eTypedElementExt
 	defaultValueLiteral string
 	featureID           int
 	isChangeable        bool
@@ -32,8 +32,13 @@ type eStructuralFeatureImpl struct {
 // newEStructuralFeatureImpl is the constructor of a eStructuralFeatureImpl
 func newEStructuralFeatureImpl() *eStructuralFeatureImpl {
 	eStructuralFeature := new(eStructuralFeatureImpl)
-	eStructuralFeature.eTypedElementExt = newETypedElementExt()
 	eStructuralFeature.SetInterfaces(eStructuralFeature)
+	eStructuralFeature.Initialize()
+	return eStructuralFeature
+}
+
+func (eStructuralFeature *eStructuralFeatureImpl) Initialize() {
+	eStructuralFeature.eTypedElementExt.Initialize()
 	eStructuralFeature.defaultValueLiteral = ""
 	eStructuralFeature.featureID = -1
 	eStructuralFeature.isChangeable = true
@@ -42,7 +47,6 @@ func newEStructuralFeatureImpl() *eStructuralFeatureImpl {
 	eStructuralFeature.isUnsettable = false
 	eStructuralFeature.isVolatile = false
 
-	return eStructuralFeature
 }
 
 func (eStructuralFeature *eStructuralFeatureImpl) asEStructuralFeature() EStructuralFeature {
@@ -51,6 +55,10 @@ func (eStructuralFeature *eStructuralFeatureImpl) asEStructuralFeature() EStruct
 
 func (eStructuralFeature *eStructuralFeatureImpl) EStaticClass() EClass {
 	return GetPackage().GetEStructuralFeature()
+}
+
+func (eStructuralFeature *eStructuralFeatureImpl) EStaticFeatureCount() int {
+	return ESTRUCTURAL_FEATURE_FEATURE_COUNT
 }
 
 // GetContainerClass default implementation
@@ -204,7 +212,7 @@ func (eStructuralFeature *eStructuralFeatureImpl) ESetFromID(featureID int, newV
 	case ESTRUCTURAL_FEATURE__CHANGEABLE:
 		eStructuralFeature.asEStructuralFeature().SetChangeable(newValue.(bool))
 	case ESTRUCTURAL_FEATURE__DEFAULT_VALUE:
-		eStructuralFeature.asEStructuralFeature().SetDefaultValue(newValue.(interface{}))
+		eStructuralFeature.asEStructuralFeature().SetDefaultValue(newValue)
 	case ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL:
 		eStructuralFeature.asEStructuralFeature().SetDefaultValueLiteral(newValue.(string))
 	case ESTRUCTURAL_FEATURE__DERIVED:
@@ -250,7 +258,7 @@ func (eStructuralFeature *eStructuralFeatureImpl) EIsSetFromID(featureID int) bo
 	case ESTRUCTURAL_FEATURE__CHANGEABLE:
 		return eStructuralFeature.isChangeable != true
 	case ESTRUCTURAL_FEATURE__DEFAULT_VALUE:
-		return eStructuralFeature.GetDefaultValue() != ""
+		return eStructuralFeature.GetDefaultValue() != nil
 	case ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL:
 		return eStructuralFeature.defaultValueLiteral != ""
 	case ESTRUCTURAL_FEATURE__DERIVED:
@@ -283,7 +291,7 @@ func (eStructuralFeature *eStructuralFeatureImpl) EBasicInverseAdd(otherEnd EObj
 	switch featureID {
 	case ESTRUCTURAL_FEATURE__ECONTAINING_CLASS:
 		msgs := notifications
-		if eStructuralFeature.EContainer() != nil {
+		if eStructuralFeature.EInternalContainer() != nil {
 			msgs = eStructuralFeature.EBasicRemoveFromContainer(msgs)
 		}
 		return eStructuralFeature.EBasicSetContainer(otherEnd, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, msgs)

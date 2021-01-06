@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,4 +26,20 @@ func discardEObject() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
+}
+
+func TestEObjectAsEObject(t *testing.T) {
+	o := NewEObjectImpl()
+	assert.Equal(t, o, o.asEObject())
+}
+
+func TestEObjectStaticClass(t *testing.T) {
+	o := NewEObjectImpl()
+	assert.Equal(t, GetPackage().GetEObject(), o.EStaticClass())
+}
+
+func TestEObjectFeatureCount(t *testing.T) {
+	o := NewEObjectImpl()
+	assert.Equal(t, EOBJECT_FEATURE_COUNT, o.EStaticFeatureCount())
 }

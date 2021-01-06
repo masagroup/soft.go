@@ -42,7 +42,7 @@ func TestMockEPackageGetEClassifiers(t *testing.T) {
 // TestMockEPackageGetEFactoryInstance tests method GetEFactoryInstance
 func TestMockEPackageGetEFactoryInstance(t *testing.T) {
 	o := &MockEPackage{}
-	r := &MockEFactory{}
+	r := new(MockEFactory)
 	o.On("GetEFactoryInstance").Once().Return(r)
 	o.On("GetEFactoryInstance").Once().Return(func() EFactory {
 		return r
@@ -55,7 +55,7 @@ func TestMockEPackageGetEFactoryInstance(t *testing.T) {
 // TestMockEPackageSetEFactoryInstance tests method SetEFactoryInstance
 func TestMockEPackageSetEFactoryInstance(t *testing.T) {
 	o := &MockEPackage{}
-	v := &MockEFactory{}
+	v := new(MockEFactory)
 	o.On("SetEFactoryInstance", v).Once()
 	o.SetEFactoryInstance(v)
 	o.AssertExpectations(t)
@@ -78,7 +78,7 @@ func TestMockEPackageGetESubPackages(t *testing.T) {
 // TestMockEPackageGetESuperPackage tests method GetESuperPackage
 func TestMockEPackageGetESuperPackage(t *testing.T) {
 	o := &MockEPackage{}
-	r := &MockEPackage{}
+	r := new(MockEPackage)
 	o.On("GetESuperPackage").Once().Return(r)
 	o.On("GetESuperPackage").Once().Return(func() EPackage {
 		return r
@@ -136,7 +136,7 @@ func TestMockEPackageSetNsURI(t *testing.T) {
 func TestMockEPackageGetEClassifier(t *testing.T) {
 	o := &MockEPackage{}
 	name := "Test String"
-	r := &MockEClassifier{}
+	r := new(MockEClassifier)
 	o.On("GetEClassifier", name).Return(r).Once()
 	o.On("GetEClassifier", name).Return(func() EClassifier {
 		return r

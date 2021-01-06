@@ -61,6 +61,10 @@ func TestEClassSuperTypes(t *testing.T) {
 	assert.True(t, containsSubClass(eSuperClass3, eClass))
 
 	// remove many
+	eClass.GetESuperTypes().Add(eSuperClass2)
+	eClass.GetESuperTypes().RemoveAll(NewImmutableEList([]interface{}{eSuperClass, eSuperClass2}))
+	assert.False(t, containsSubClass(eSuperClass, eClass))
+	assert.True(t, containsSubClass(eSuperClass3, eClass))
 }
 
 func TestEClassFeaturesAdd(t *testing.T) {
@@ -304,11 +308,14 @@ func TestEClassIsSuperTypeOf(t *testing.T) {
 func TestEClassGetOverride(t *testing.T) {
 	eClass := newEClassExt()
 	eSuperClass := newEClassExt()
+	eClass.GetESuperTypes().Add(eSuperClass)
+
 	mockOperation1 := &MockEOperation{}
 	mockOperation2 := &MockEOperation{}
+	mockOperation1.On("EInverseAdd", eClass, EOPERATION__ECONTAINING_CLASS, nil).Return(nil)
 	mockOperation1.On("SetOperationID", 1)
+	mockOperation2.On("EInverseAdd", eSuperClass, EOPERATION__ECONTAINING_CLASS, nil).Return(nil)
 	mockOperation2.On("SetOperationID", 0)
-	eClass.GetESuperTypes().Add(eSuperClass)
 	eClass.GetEOperations().Add(mockOperation1)
 	eSuperClass.GetEOperations().Add(mockOperation2)
 

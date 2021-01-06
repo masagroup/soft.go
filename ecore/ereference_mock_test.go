@@ -77,7 +77,7 @@ func TestMockEReferenceGetEKeys(t *testing.T) {
 // TestMockEReferenceGetEOpposite tests method GetEOpposite
 func TestMockEReferenceGetEOpposite(t *testing.T) {
 	o := &MockEReference{}
-	r := &MockEReference{}
+	r := new(MockEReference)
 	o.On("GetEOpposite").Once().Return(r)
 	o.On("GetEOpposite").Once().Return(func() EReference {
 		return r
@@ -90,7 +90,7 @@ func TestMockEReferenceGetEOpposite(t *testing.T) {
 // TestMockEReferenceSetEOpposite tests method SetEOpposite
 func TestMockEReferenceSetEOpposite(t *testing.T) {
 	o := &MockEReference{}
-	v := &MockEReference{}
+	v := new(MockEReference)
 	o.On("SetEOpposite", v).Once()
 	o.SetEOpposite(v)
 	o.AssertExpectations(t)
@@ -99,7 +99,7 @@ func TestMockEReferenceSetEOpposite(t *testing.T) {
 // TestMockEReferenceGetEReferenceType tests method GetEReferenceType
 func TestMockEReferenceGetEReferenceType(t *testing.T) {
 	o := &MockEReference{}
-	r := &MockEClass{}
+	r := new(MockEClass)
 	o.On("GetEReferenceType").Once().Return(r)
 	o.On("GetEReferenceType").Once().Return(func() EClass {
 		return r

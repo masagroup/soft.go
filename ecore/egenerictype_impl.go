@@ -17,7 +17,7 @@ package ecore
 
 // eGenericTypeImpl is the implementation of the model object 'EGenericType'
 type eGenericTypeImpl struct {
-	*EObjectImpl
+	CompactEObjectContainer
 	eClassifier    EClassifier
 	eLowerBound    EGenericType
 	eRawType       EClassifier
@@ -25,30 +25,37 @@ type eGenericTypeImpl struct {
 	eTypeParameter ETypeParameter
 	eUpperBound    EGenericType
 }
-
-// newEGenericTypeImpl is the constructor of a eGenericTypeImpl
-func newEGenericTypeImpl() *eGenericTypeImpl {
-	eGenericType := new(eGenericTypeImpl)
-	eGenericType.EObjectImpl = NewEObjectImpl()
-	eGenericType.SetInterfaces(eGenericType)
-
-	return eGenericType
-}
-
 type eGenericTypeImplInitializers interface {
 	initETypeArguments() EList
 }
 
-func (eGenericType *eGenericTypeImpl) getInitializers() eGenericTypeImplInitializers {
-	return eGenericType.AsEObject().(eGenericTypeImplInitializers)
+// newEGenericTypeImpl is the constructor of a eGenericTypeImpl
+func newEGenericTypeImpl() *eGenericTypeImpl {
+	eGenericType := new(eGenericTypeImpl)
+	eGenericType.SetInterfaces(eGenericType)
+	eGenericType.Initialize()
+	return eGenericType
+}
+
+func (eGenericType *eGenericTypeImpl) Initialize() {
+	eGenericType.CompactEObjectContainer.Initialize()
+
 }
 
 func (eGenericType *eGenericTypeImpl) asEGenericType() EGenericType {
 	return eGenericType.GetInterfaces().(EGenericType)
 }
 
+func (eGenericType *eGenericTypeImpl) asInitializers() eGenericTypeImplInitializers {
+	return eGenericType.AsEObject().(eGenericTypeImplInitializers)
+}
+
 func (eGenericType *eGenericTypeImpl) EStaticClass() EClass {
 	return GetPackage().GetEGenericType()
+}
+
+func (eGenericType *eGenericTypeImpl) EStaticFeatureCount() int {
+	return EGENERIC_TYPE_FEATURE_COUNT
 }
 
 // IsInstance default implementation
@@ -143,7 +150,7 @@ func (eGenericType *eGenericTypeImpl) basicGetERawType() EClassifier {
 // GetETypeArguments get the value of eTypeArguments
 func (eGenericType *eGenericTypeImpl) GetETypeArguments() EList {
 	if eGenericType.eTypeArguments == nil {
-		eGenericType.eTypeArguments = eGenericType.getInitializers().initETypeArguments()
+		eGenericType.eTypeArguments = eGenericType.asInitializers().initETypeArguments()
 	}
 	return eGenericType.eTypeArguments
 }
@@ -224,7 +231,7 @@ func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve bool) in
 	case EGENERIC_TYPE__EUPPER_BOUND:
 		return eGenericType.asEGenericType().GetEUpperBound()
 	default:
-		return eGenericType.EObjectImpl.EGetFromID(featureID, resolve)
+		return eGenericType.CompactEObjectContainer.EGetFromID(featureID, resolve)
 	}
 }
 
@@ -243,7 +250,7 @@ func (eGenericType *eGenericTypeImpl) ESetFromID(featureID int, newValue interfa
 	case EGENERIC_TYPE__EUPPER_BOUND:
 		eGenericType.asEGenericType().SetEUpperBound(newValue.(EGenericType))
 	default:
-		eGenericType.EObjectImpl.ESetFromID(featureID, newValue)
+		eGenericType.CompactEObjectContainer.ESetFromID(featureID, newValue)
 	}
 }
 
@@ -260,7 +267,7 @@ func (eGenericType *eGenericTypeImpl) EUnsetFromID(featureID int) {
 	case EGENERIC_TYPE__EUPPER_BOUND:
 		eGenericType.asEGenericType().SetEUpperBound(nil)
 	default:
-		eGenericType.EObjectImpl.EUnsetFromID(featureID)
+		eGenericType.CompactEObjectContainer.EUnsetFromID(featureID)
 	}
 }
 
@@ -279,7 +286,7 @@ func (eGenericType *eGenericTypeImpl) EIsSetFromID(featureID int) bool {
 	case EGENERIC_TYPE__EUPPER_BOUND:
 		return eGenericType.eUpperBound != nil
 	default:
-		return eGenericType.EObjectImpl.EIsSetFromID(featureID)
+		return eGenericType.CompactEObjectContainer.EIsSetFromID(featureID)
 	}
 }
 
@@ -288,7 +295,7 @@ func (eGenericType *eGenericTypeImpl) EInvokeFromID(operationID int, arguments E
 	case EGENERIC_TYPE__IS_INSTANCE_EJAVAOBJECT:
 		return eGenericType.asEGenericType().IsInstance(arguments.Get(0))
 	default:
-		return eGenericType.EObjectImpl.EInvokeFromID(operationID, arguments)
+		return eGenericType.CompactEObjectContainer.EInvokeFromID(operationID, arguments)
 	}
 }
 
@@ -302,6 +309,6 @@ func (eGenericType *eGenericTypeImpl) EBasicInverseRemove(otherEnd EObject, feat
 	case EGENERIC_TYPE__EUPPER_BOUND:
 		return eGenericType.basicSetEUpperBound(nil, notifications)
 	default:
-		return eGenericType.EObjectImpl.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return eGenericType.CompactEObjectContainer.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

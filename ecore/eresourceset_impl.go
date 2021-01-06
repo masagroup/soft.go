@@ -39,7 +39,7 @@ func (l *resourcesList) inverseRemove(object interface{}, notifications ENotific
 
 //EResourceSetImpl ...
 type EResourceSetImpl struct {
-	*BasicNotifier
+	ENotifierImpl
 	resources               EList
 	uriConverter            EURIConverter
 	uriResourceMap          map[*url.URL]EResource
@@ -49,13 +49,17 @@ type EResourceSetImpl struct {
 
 func NewEResourceSetImpl() *EResourceSetImpl {
 	rs := new(EResourceSetImpl)
-	rs.BasicNotifier = NewBasicNotifier()
+	rs.SetInterfaces(rs)
+	rs.Initialize()
+	return rs
+}
+
+func (rs *EResourceSetImpl) Initialize() {
+	rs.ENotifierImpl.Initialize()
 	rs.resources = newResourcesList(rs)
 	rs.uriConverter = NewEURIConverterImpl()
 	rs.resourceFactoryRegistry = GetResourceFactoryRegistry()
 	rs.packageRegistry = NewEPackageRegistryImplWithDelegate(GetPackageRegistry())
-	rs.SetInterfaces(rs)
-	return rs
 }
 
 func (r *EResourceSetImpl) GetResources() EList {
@@ -77,7 +81,7 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 	for it := r.resources.Iterator(); it.HasNext(); {
 		resource := it.Next().(EResource)
 		resourceURI := r.uriConverter.Normalize(resource.GetURI())
-		if resourceURI == normalizedURI {
+		if *resourceURI == *normalizedURI {
 			if loadOnDemand && !resource.IsLoaded() {
 				resource.Load()
 			}

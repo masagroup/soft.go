@@ -36,10 +36,12 @@ func (r *EURIConverterImpl) Normalize(uri *url.URL) *url.URL {
 }
 
 func (r *EURIConverterImpl) GetURIHandler(uri *url.URL) EURIHandler {
-	for it := r.uriHandlers.Iterator(); it.HasNext(); {
-		uriHandler := it.Next().(EURIHandler)
-		if uriHandler.CanHandle(uri) {
-			return uriHandler
+	if uri != nil {
+		for it := r.uriHandlers.Iterator(); it.HasNext(); {
+			uriHandler := it.Next().(EURIHandler)
+			if uriHandler.CanHandle(uri) {
+				return uriHandler
+			}
 		}
 	}
 	return nil

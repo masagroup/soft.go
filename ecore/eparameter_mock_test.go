@@ -28,7 +28,7 @@ func discardMockEParameter() {
 // TestMockEParameterGetEOperation tests method GetEOperation
 func TestMockEParameterGetEOperation(t *testing.T) {
 	o := &MockEParameter{}
-	r := &MockEOperation{}
+	r := new(MockEOperation)
 	o.On("GetEOperation").Once().Return(r)
 	o.On("GetEOperation").Once().Return(func() EOperation {
 		return r

@@ -11,14 +11,14 @@ package ecore
 
 // eClassExt is the extension of the model object 'EClass'
 type eClassExt struct {
-	*eClassImpl
+	eClassImpl
 	adapter                *eSuperAdapter
 	nameToFeatureMap       map[string]EStructuralFeature
 	operationToOverrideMap map[EOperation]EOperation
 }
 
 type eSuperAdapter struct {
-	*Adapter
+	AbstractEAdapter
 	class      *eClassExt
 	subClasses []*eClassExt
 }
@@ -96,11 +96,15 @@ func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 
 func newEClassExt() *eClassExt {
 	eClass := new(eClassExt)
-	eClass.eClassImpl = newEClassImpl()
-	eClass.interfaces = eClass
-	eClass.adapter = &eSuperAdapter{Adapter: NewAdapter(), class: eClass, subClasses: []*eClassExt{}}
-	eClass.EAdapters().Add(eClass.adapter)
+	eClass.SetInterfaces(eClass)
+	eClass.Initialize()
 	return eClass
+}
+
+func (eClass *eClassExt) Initialize() {
+	eClass.eClassImpl.Initialize()
+	eClass.adapter = &eSuperAdapter{class: eClass, subClasses: []*eClassExt{}}
+	eClass.EAdapters().Add(eClass.adapter)
 }
 
 func (eClass *eClassExt) IsSuperTypeOf(someClass EClass) bool {

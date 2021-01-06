@@ -84,6 +84,11 @@ func TestImmutableEListClear(t *testing.T) {
 	assert.Panics(t, func() { a.Clear() })
 }
 
+func TestImmutableEListRemoveAll(t *testing.T) {
+	a := NewImmutableEList(nil)
+	assert.Panics(t, func() { a.RemoveAll(nil) })
+}
+
 func TestImmutableEListContains(t *testing.T) {
 	a := NewImmutableEList([]interface{}{1, 2})
 	assert.True(t, a.Contains(2))

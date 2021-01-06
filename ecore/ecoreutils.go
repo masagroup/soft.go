@@ -118,8 +118,8 @@ func ResolveInResource(proxy EObject, resource EResource) EObject {
 }
 
 func ResolveInResourceSet(proxy EObject, resourceSet EResourceSet) EObject {
-	proxyURI := proxy.(EObjectInternal).EProxyURI()
-	if proxyURI != nil {
+	if proxyInternal, _ := proxy.(EObjectInternal); proxyInternal != nil && proxyInternal.EProxyURI() != nil {
+		proxyURI := proxyInternal.EProxyURI()
 		var resolved EObject
 		if resourceSet != nil {
 			resolved = resourceSet.GetEObject(proxyURI, true)

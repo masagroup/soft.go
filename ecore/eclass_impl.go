@@ -17,7 +17,7 @@ package ecore
 
 // eClassImpl is the implementation of the model object 'EClass'
 type eClassImpl struct {
-	*eClassifierExt
+	eClassifierExt
 	eAllAttributes          EList
 	eAllContainments        EList
 	eAllOperations          EList
@@ -35,18 +35,6 @@ type eClassImpl struct {
 	isAbstract              bool
 	isInterface             bool
 }
-
-// newEClassImpl is the constructor of a eClassImpl
-func newEClassImpl() *eClassImpl {
-	eClass := new(eClassImpl)
-	eClass.eClassifierExt = newEClassifierExt()
-	eClass.SetInterfaces(eClass)
-	eClass.isAbstract = false
-	eClass.isInterface = false
-
-	return eClass
-}
-
 type eClassImplInitializers interface {
 	initEAllAttributes()
 	initEAllContainments()
@@ -64,16 +52,35 @@ type eClassImplInitializers interface {
 	initESuperTypes() EList
 }
 
-func (eClass *eClassImpl) getInitializers() eClassImplInitializers {
-	return eClass.AsEObject().(eClassImplInitializers)
+// newEClassImpl is the constructor of a eClassImpl
+func newEClassImpl() *eClassImpl {
+	eClass := new(eClassImpl)
+	eClass.SetInterfaces(eClass)
+	eClass.Initialize()
+	return eClass
+}
+
+func (eClass *eClassImpl) Initialize() {
+	eClass.eClassifierExt.Initialize()
+	eClass.isAbstract = false
+	eClass.isInterface = false
+
 }
 
 func (eClass *eClassImpl) asEClass() EClass {
 	return eClass.GetInterfaces().(EClass)
 }
 
+func (eClass *eClassImpl) asInitializers() eClassImplInitializers {
+	return eClass.AsEObject().(eClassImplInitializers)
+}
+
 func (eClass *eClassImpl) EStaticClass() EClass {
 	return GetPackage().GetEClass()
+}
+
+func (eClass *eClassImpl) EStaticFeatureCount() int {
+	return ECLASS_FEATURE_COUNT
 }
 
 // GetEOperation default implementation
@@ -128,82 +135,82 @@ func (eClass *eClassImpl) IsSuperTypeOf(EClass) bool {
 
 // GetEAllAttributes get the value of eAllAttributes
 func (eClass *eClassImpl) GetEAllAttributes() EList {
-	eClass.getInitializers().initEAllAttributes()
+	eClass.asInitializers().initEAllAttributes()
 	return eClass.eAllAttributes
 }
 
 // GetEAllContainments get the value of eAllContainments
 func (eClass *eClassImpl) GetEAllContainments() EList {
-	eClass.getInitializers().initEAllContainments()
+	eClass.asInitializers().initEAllContainments()
 	return eClass.eAllContainments
 }
 
 // GetEAllOperations get the value of eAllOperations
 func (eClass *eClassImpl) GetEAllOperations() EList {
-	eClass.getInitializers().initEAllOperations()
+	eClass.asInitializers().initEAllOperations()
 	return eClass.eAllOperations
 }
 
 // GetEAllReferences get the value of eAllReferences
 func (eClass *eClassImpl) GetEAllReferences() EList {
-	eClass.getInitializers().initEAllReferences()
+	eClass.asInitializers().initEAllReferences()
 	return eClass.eAllReferences
 }
 
 // GetEAllStructuralFeatures get the value of eAllStructuralFeatures
 func (eClass *eClassImpl) GetEAllStructuralFeatures() EList {
-	eClass.getInitializers().initEAllStructuralFeatures()
+	eClass.asInitializers().initEAllStructuralFeatures()
 	return eClass.eAllStructuralFeatures
 }
 
 // GetEAllSuperTypes get the value of eAllSuperTypes
 func (eClass *eClassImpl) GetEAllSuperTypes() EList {
-	eClass.getInitializers().initEAllSuperTypes()
+	eClass.asInitializers().initEAllSuperTypes()
 	return eClass.eAllSuperTypes
 }
 
 // GetEAttributes get the value of eAttributes
 func (eClass *eClassImpl) GetEAttributes() EList {
-	eClass.getInitializers().initEAttributes()
+	eClass.asInitializers().initEAttributes()
 	return eClass.eAttributes
 }
 
 // GetEContainmentFeatures get the value of eContainmentFeatures
 func (eClass *eClassImpl) GetEContainmentFeatures() EList {
-	eClass.getInitializers().initEContainmentFeatures()
+	eClass.asInitializers().initEContainmentFeatures()
 	return eClass.eContainmentFeatures
 }
 
 // GetECrossReferenceFeatures get the value of eCrossReferenceFeatures
 func (eClass *eClassImpl) GetECrossReferenceFeatures() EList {
-	eClass.getInitializers().initECrossReferenceFeatures()
+	eClass.asInitializers().initECrossReferenceFeatures()
 	return eClass.eCrossReferenceFeatures
 }
 
 // GetEIDAttribute get the value of eIDAttribute
 func (eClass *eClassImpl) GetEIDAttribute() EAttribute {
-	eClass.getInitializers().initEIDAttribute()
+	eClass.asInitializers().initEIDAttribute()
 	return eClass.eIDAttribute
 }
 
 // GetEOperations get the value of eOperations
 func (eClass *eClassImpl) GetEOperations() EList {
 	if eClass.eOperations == nil {
-		eClass.eOperations = eClass.getInitializers().initEOperations()
+		eClass.eOperations = eClass.asInitializers().initEOperations()
 	}
 	return eClass.eOperations
 }
 
 // GetEReferences get the value of eReferences
 func (eClass *eClassImpl) GetEReferences() EList {
-	eClass.getInitializers().initEReferences()
+	eClass.asInitializers().initEReferences()
 	return eClass.eReferences
 }
 
 // GetEStructuralFeatures get the value of eStructuralFeatures
 func (eClass *eClassImpl) GetEStructuralFeatures() EList {
 	if eClass.eStructuralFeatures == nil {
-		eClass.eStructuralFeatures = eClass.getInitializers().initEStructuralFeatures()
+		eClass.eStructuralFeatures = eClass.asInitializers().initEStructuralFeatures()
 	}
 	return eClass.eStructuralFeatures
 }
@@ -211,7 +218,7 @@ func (eClass *eClassImpl) GetEStructuralFeatures() EList {
 // GetESuperTypes get the value of eSuperTypes
 func (eClass *eClassImpl) GetESuperTypes() EList {
 	if eClass.eSuperTypes == nil {
-		eClass.eSuperTypes = eClass.getInitializers().initESuperTypes()
+		eClass.eSuperTypes = eClass.asInitializers().initESuperTypes()
 	}
 	return eClass.eSuperTypes
 }

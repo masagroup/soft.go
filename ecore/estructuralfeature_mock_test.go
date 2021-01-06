@@ -117,7 +117,7 @@ func TestMockEStructuralFeatureSetDerived(t *testing.T) {
 // TestMockEStructuralFeatureGetEContainingClass tests method GetEContainingClass
 func TestMockEStructuralFeatureGetEContainingClass(t *testing.T) {
 	o := &MockEStructuralFeature{}
-	r := &MockEClass{}
+	r := new(MockEClass)
 	o.On("GetEContainingClass").Once().Return(r)
 	o.On("GetEContainingClass").Once().Return(func() EClass {
 		return r
@@ -218,7 +218,7 @@ func TestMockEStructuralFeatureSetVolatile(t *testing.T) {
 // TestMockEStructuralFeatureGetContainerClass tests method GetContainerClass
 func TestMockEStructuralFeatureGetContainerClass(t *testing.T) {
 	o := &MockEStructuralFeature{}
-	r := reflect.Type(nil)
+	r := reflect.TypeOf("")
 	o.On("GetContainerClass").Return(r).Once()
 	o.On("GetContainerClass").Return(func() reflect.Type {
 		return r

@@ -11,19 +11,23 @@ package ecore
 
 // eClassifierExt is the extesnion of the model object 'EClassifier'
 type eClassifierExt struct {
-	*eClassifierImpl
+	eClassifierImpl
 }
 
 func newEClassifierExt() *eClassifierExt {
 	eClassifier := new(eClassifierExt)
-	eClassifier.eClassifierImpl = newEClassifierImpl()
-	eClassifier.interfaces = eClassifier
+	eClassifier.SetInterfaces(eClassifier)
+	eClassifier.Initialize()
 	return eClassifier
 }
 
 func (eClassifier *eClassifierExt) initClassifierID() int {
-	if eClassifier.GetEPackage() != nil {
-		return eClassifier.GetEPackage().GetEClassifiers().IndexOf(eClassifier.asEClassifier())
+	if ePackage := eClassifier.GetEPackage(); ePackage != nil {
+		return ePackage.GetEClassifiers().IndexOf(eClassifier.asEClassifier())
 	}
 	return -1
+}
+
+func (eClassifier *eClassifierExt) GetDefaultValue() interface{} {
+	return nil
 }

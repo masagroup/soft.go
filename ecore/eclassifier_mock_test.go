@@ -64,7 +64,7 @@ func TestMockEClassifierGetDefaultValue(t *testing.T) {
 // TestMockEClassifierGetEPackage tests method GetEPackage
 func TestMockEClassifierGetEPackage(t *testing.T) {
 	o := &MockEClassifier{}
-	r := &MockEPackage{}
+	r := new(MockEPackage)
 	o.On("GetEPackage").Once().Return(r)
 	o.On("GetEPackage").Once().Return(func() EPackage {
 		return r
@@ -77,7 +77,7 @@ func TestMockEClassifierGetEPackage(t *testing.T) {
 // TestMockEClassifierGetInstanceClass tests method GetInstanceClass
 func TestMockEClassifierGetInstanceClass(t *testing.T) {
 	o := &MockEClassifier{}
-	r := reflect.Type(nil)
+	r := reflect.TypeOf("")
 	o.On("GetInstanceClass").Once().Return(r)
 	o.On("GetInstanceClass").Once().Return(func() reflect.Type {
 		return r
@@ -90,7 +90,7 @@ func TestMockEClassifierGetInstanceClass(t *testing.T) {
 // TestMockEClassifierSetInstanceClass tests method SetInstanceClass
 func TestMockEClassifierSetInstanceClass(t *testing.T) {
 	o := &MockEClassifier{}
-	v := reflect.Type(nil)
+	v := reflect.TypeOf("")
 	o.On("SetInstanceClass", v).Once()
 	o.SetInstanceClass(v)
 	o.AssertExpectations(t)

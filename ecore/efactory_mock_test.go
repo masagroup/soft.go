@@ -28,7 +28,7 @@ func discardMockEFactory() {
 // TestMockEFactoryGetEPackage tests method GetEPackage
 func TestMockEFactoryGetEPackage(t *testing.T) {
 	o := &MockEFactory{}
-	r := &MockEPackage{}
+	r := new(MockEPackage)
 	o.On("GetEPackage").Once().Return(r)
 	o.On("GetEPackage").Once().Return(func() EPackage {
 		return r
@@ -41,7 +41,7 @@ func TestMockEFactoryGetEPackage(t *testing.T) {
 // TestMockEFactorySetEPackage tests method SetEPackage
 func TestMockEFactorySetEPackage(t *testing.T) {
 	o := &MockEFactory{}
-	v := &MockEPackage{}
+	v := new(MockEPackage)
 	o.On("SetEPackage", v).Once()
 	o.SetEPackage(v)
 	o.AssertExpectations(t)
@@ -50,7 +50,7 @@ func TestMockEFactorySetEPackage(t *testing.T) {
 // TestMockEFactoryConvertToString tests method ConvertToString
 func TestMockEFactoryConvertToString(t *testing.T) {
 	o := &MockEFactory{}
-	eDataType := &MockEDataType{}
+	eDataType := new(MockEDataType)
 	instanceValue := interface{}(nil)
 	r := "Test String"
 	o.On("ConvertToString", eDataType, instanceValue).Return(r).Once()
@@ -65,8 +65,8 @@ func TestMockEFactoryConvertToString(t *testing.T) {
 // TestMockEFactoryCreate tests method Create
 func TestMockEFactoryCreate(t *testing.T) {
 	o := &MockEFactory{}
-	eClass := &MockEClass{}
-	r := &MockEObject{}
+	eClass := new(MockEClass)
+	r := new(MockEObject)
 	o.On("Create", eClass).Return(r).Once()
 	o.On("Create", eClass).Return(func() EObject {
 		return r
@@ -79,7 +79,7 @@ func TestMockEFactoryCreate(t *testing.T) {
 // TestMockEFactoryCreateFromString tests method CreateFromString
 func TestMockEFactoryCreateFromString(t *testing.T) {
 	o := &MockEFactory{}
-	eDataType := &MockEDataType{}
+	eDataType := new(MockEDataType)
 	literalValue := "Test String"
 	r := interface{}(nil)
 	o.On("CreateFromString", eDataType, literalValue).Return(r).Once()

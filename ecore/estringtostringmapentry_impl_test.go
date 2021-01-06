@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,40 +26,107 @@ func discardEStringToStringMapEntry() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
+}
+
+func TestEStringToStringMapEntryAsEStringToStringMapEntry(t *testing.T) {
+	o := newEStringToStringMapEntryImpl()
+	assert.Equal(t, o, o.asEStringToStringMapEntry())
+}
+
+func TestEStringToStringMapEntryStaticClass(t *testing.T) {
+	o := newEStringToStringMapEntryImpl()
+	assert.Equal(t, GetPackage().GetEStringToStringMapEntry(), o.EStaticClass())
+}
+
+func TestEStringToStringMapEntryFeatureCount(t *testing.T) {
+	o := newEStringToStringMapEntryImpl()
+	assert.Equal(t, ESTRING_TO_STRING_MAP_ENTRY_FEATURE_COUNT, o.EStaticFeatureCount())
 }
 
 func TestEStringToStringMapEntryKeyGet(t *testing.T) {
+	o := newEStringToStringMapEntryImpl()
+	// get default value
+	assert.Equal(t, "", o.GetKey())
+	// get initialized value
 	v := "Test String"
-	obj := newEStringToStringMapEntryImpl()
-	obj.SetKey(v)
-	assert.Equal(t, v, obj.GetKey())
+	o.key = v
+	assert.Equal(t, v, o.GetKey())
 }
 
 func TestEStringToStringMapEntryKeySet(t *testing.T) {
-	obj := newEStringToStringMapEntryImpl()
+	o := newEStringToStringMapEntryImpl()
 	v := "Test String"
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetKey(v)
+	o.EAdapters().Add(mockAdapter)
+	o.SetKey(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStringToStringMapEntryValueGet(t *testing.T) {
+	o := newEStringToStringMapEntryImpl()
+	// get default value
+	assert.Equal(t, "", o.GetValue())
+	// get initialized value
 	v := "Test String"
-	obj := newEStringToStringMapEntryImpl()
-	obj.SetValue(v)
-	assert.Equal(t, v, obj.GetValue())
+	o.value = v
+	assert.Equal(t, v, o.GetValue())
 }
 
 func TestEStringToStringMapEntryValueSet(t *testing.T) {
-	obj := newEStringToStringMapEntryImpl()
+	o := newEStringToStringMapEntryImpl()
 	v := "Test String"
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetValue(v)
+	o.EAdapters().Add(mockAdapter)
+	o.SetValue(v)
 	mockAdapter.AssertExpectations(t)
+}
+
+func TestEStringToStringMapEntryEGetFromID(t *testing.T) {
+	o := newEStringToStringMapEntryImpl()
+	assert.Panics(t, func() { o.EGetFromID(-1, true) })
+	assert.Equal(t, o.GetKey(), o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, true))
+	assert.Equal(t, o.GetValue(), o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, true))
+}
+
+func TestEStringToStringMapEntryESetFromID(t *testing.T) {
+	o := newEStringToStringMapEntryImpl()
+	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
+	{
+		v := "Test String"
+		o.ESetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, v)
+		assert.Equal(t, v, o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, false))
+	}
+	{
+		v := "Test String"
+		o.ESetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, v)
+		assert.Equal(t, v, o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, false))
+	}
+
+}
+
+func TestEStringToStringMapEntryEIsSetFromID(t *testing.T) {
+	o := newEStringToStringMapEntryImpl()
+	assert.Panics(t, func() { o.EIsSetFromID(-1) })
+	assert.False(t, o.EIsSetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY))
+	assert.False(t, o.EIsSetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE))
+}
+
+func TestEStringToStringMapEntryEUnsetFromID(t *testing.T) {
+	o := newEStringToStringMapEntryImpl()
+	assert.Panics(t, func() { o.EUnsetFromID(-1) })
+	{
+		o.EUnsetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY)
+		v := o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, false)
+		assert.Equal(t, "", v)
+	}
+	{
+		o.EUnsetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE)
+		v := o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, false)
+		assert.Equal(t, "", v)
+	}
 }

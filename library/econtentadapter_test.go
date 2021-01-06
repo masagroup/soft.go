@@ -11,12 +11,11 @@ import (
 
 type contentAdapter struct {
 	mock.Mock
-	*ecore.EContentAdapter
+	ecore.EContentAdapter
 }
 
 func newContentAdapter() *contentAdapter {
 	c := new(contentAdapter)
-	c.EContentAdapter = ecore.NewEContentAdapter()
 	c.SetInterfaces(c)
 	return c
 }

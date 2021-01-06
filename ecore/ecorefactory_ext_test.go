@@ -31,16 +31,16 @@ func TestFactoryDate(t *testing.T) {
 
 			date := factory.CreateFromString(mockEDataType, "2020-05-12T17:33:10.77Z")
 			expected := time.Date(2020, time.May, 12, 17, 33, 10, 770000000, time.UTC)
-			assert.Equal(t, expected, date)
+			assert.Equal(t, &expected, date)
 		}
 		{
 			date := factory.CreateFromString(mockEDataType, "2007-06-02T10:26:13.000Z")
 			expected := time.Date(2007, time.June, 2, 10, 26, 13, 0, time.UTC)
-			assert.Equal(t, expected, date)
+			assert.Equal(t, &expected, date)
 		}
 		{
 			date := time.Date(2020, time.May, 12, 17, 33, 10, 770000000, time.UTC)
-			dateStr := factory.ConvertToString(mockEDataType, date)
+			dateStr := factory.ConvertToString(mockEDataType, &date)
 			expected := "2020-05-12T17:33:10.77Z"
 			assert.Equal(t, expected, dateStr)
 		}
@@ -52,6 +52,12 @@ func TestFactoryBoolean(t *testing.T) {
 	factory := newEcoreFactoryExt()
 	assert.Equal(t, factory.convertEBooleanToString(nil, factory.createEBooleanFromString(nil, "true")), "true")
 	assert.Equal(t, factory.convertEBooleanToString(nil, factory.createEBooleanFromString(nil, "false")), "false")
+}
+
+func TestFactoryByte(t *testing.T) {
+	factory := newEcoreFactoryExt()
+	assert.Nil(t, factory.createEByteFromString(nil, ""))
+	assert.Equal(t, factory.convertEByteToString(nil, factory.createEByteFromString(nil, "0")), "0")
 }
 
 func TestFactoryChar(t *testing.T) {

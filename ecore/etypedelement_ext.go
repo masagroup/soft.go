@@ -11,13 +11,13 @@ package ecore
 
 // eTypedElementExt is the extension of the model object 'ETypedElement'
 type eTypedElementExt struct {
-	*eTypedElementImpl
+	eTypedElementImpl
 }
 
 func newETypedElementExt() *eTypedElementExt {
 	eTypedElement := new(eTypedElementExt)
-	eTypedElement.eTypedElementImpl = newETypedElementImpl()
-	eTypedElement.interfaces = eTypedElement
+	eTypedElement.SetInterfaces(eTypedElement)
+	eTypedElement.Initialize()
 	return eTypedElement
 }
 

@@ -17,7 +17,7 @@ package ecore
 
 // eTypedElementImpl is the implementation of the model object 'ETypedElement'
 type eTypedElementImpl struct {
-	*eNamedElementImpl
+	eNamedElementImpl
 	eType      EClassifier
 	isOrdered  bool
 	isUnique   bool
@@ -28,14 +28,18 @@ type eTypedElementImpl struct {
 // newETypedElementImpl is the constructor of a eTypedElementImpl
 func newETypedElementImpl() *eTypedElementImpl {
 	eTypedElement := new(eTypedElementImpl)
-	eTypedElement.eNamedElementImpl = newENamedElementImpl()
 	eTypedElement.SetInterfaces(eTypedElement)
+	eTypedElement.Initialize()
+	return eTypedElement
+}
+
+func (eTypedElement *eTypedElementImpl) Initialize() {
+	eTypedElement.eNamedElementImpl.Initialize()
 	eTypedElement.isOrdered = true
 	eTypedElement.isUnique = true
 	eTypedElement.lowerBound = 0
 	eTypedElement.upperBound = 1
 
-	return eTypedElement
 }
 
 func (eTypedElement *eTypedElementImpl) asETypedElement() ETypedElement {
@@ -44,6 +48,10 @@ func (eTypedElement *eTypedElementImpl) asETypedElement() ETypedElement {
 
 func (eTypedElement *eTypedElementImpl) EStaticClass() EClass {
 	return GetPackage().GetETypedElement()
+}
+
+func (eTypedElement *eTypedElementImpl) EStaticFeatureCount() int {
+	return ETYPED_ELEMENT_FEATURE_COUNT
 }
 
 // GetEType get the value of eType
@@ -76,8 +84,10 @@ func (eTypedElement *eTypedElementImpl) SetEType(newEType EClassifier) {
 
 // UnsetEType unset the value of eType
 func (eTypedElement *eTypedElementImpl) UnsetEType() {
+	oldEType := eTypedElement.eType
+	eTypedElement.eType = nil
 	if eTypedElement.ENotificationRequired() {
-		eTypedElement.ENotify(NewNotificationByFeatureID(eTypedElement.AsEObject(), UNSET, ETYPED_ELEMENT__ETYPE, nil, nil, NO_INDEX))
+		eTypedElement.ENotify(NewNotificationByFeatureID(eTypedElement.AsEObject(), UNSET, ETYPED_ELEMENT__ETYPE, oldEType, nil, NO_INDEX))
 	}
 }
 

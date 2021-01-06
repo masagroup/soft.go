@@ -2,13 +2,13 @@ package ecore
 
 // eAttributeExt is the extension of the model object 'EAttribute'
 type eAttributeExt struct {
-	*eAttributeImpl
+	eAttributeImpl
 }
 
 func newEAttributeExt() *eAttributeExt {
 	eAttribute := new(eAttributeExt)
-	eAttribute.eAttributeImpl = newEAttributeImpl()
-	eAttribute.interfaces = eAttribute
+	eAttribute.SetInterfaces(eAttribute)
+	eAttribute.Initialize()
 	return eAttribute
 }
 
@@ -17,7 +17,7 @@ func (eAttribute *eAttributeExt) GetEAttributeType() EDataType {
 }
 
 func (eAttribute *eAttributeExt) basicGetEAttributeType() EDataType {
-	return eAttribute.basicGetEAttributeType().(EDataType)
+	return eAttribute.basicGetEType().(EDataType)
 }
 
 func (eAttribute *eAttributeExt) SetID(newIsID bool) {

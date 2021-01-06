@@ -18,6 +18,7 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"net/url"
 	"testing"
 )
 
@@ -25,58 +26,199 @@ func discardEEnumLiteral() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = url.Parse
 }
 
-func TestEEnumLiteralValueGet(t *testing.T) {
-	v := 45
-	obj := newEEnumLiteralImpl()
-	obj.SetValue(v)
-	assert.Equal(t, v, obj.GetValue())
+func TestEEnumLiteralAsEEnumLiteral(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	assert.Equal(t, o, o.asEEnumLiteral())
 }
 
-func TestEEnumLiteralValueSet(t *testing.T) {
-	obj := newEEnumLiteralImpl()
-	v := 45
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetValue(v)
-	mockAdapter.AssertExpectations(t)
+func TestEEnumLiteralStaticClass(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	assert.Equal(t, GetPackage().GetEEnumLiteral(), o.EStaticClass())
+}
+
+func TestEEnumLiteralFeatureCount(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	assert.Equal(t, EENUM_LITERAL_FEATURE_COUNT, o.EStaticFeatureCount())
+}
+
+func TestEEnumLiteralEEnumGet(t *testing.T) {
+	// default
+	o := newEEnumLiteralImpl()
+	assert.Nil(t, o.GetEEnum())
+
+	// set a mock container
+	v := new(MockEEnum)
+	o.ESetInternalContainer(v, EENUM_LITERAL__EENUM)
+
+	// no proxy
+	v.On("EIsProxy").Return(false)
+	assert.Equal(t, v, o.GetEEnum())
 }
 
 func TestEEnumLiteralInstanceGet(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	// get default value
+	assert.Nil(t, o.GetInstance())
+	// get initialized value
 	v := interface{}(nil)
-	obj := newEEnumLiteralImpl()
-	obj.SetInstance(v)
-	assert.Equal(t, v, obj.GetInstance())
+	o.instance = v
+	assert.Equal(t, v, o.GetInstance())
 }
 
 func TestEEnumLiteralInstanceSet(t *testing.T) {
-	obj := newEEnumLiteralImpl()
+	o := newEEnumLiteralImpl()
 	v := interface{}(nil)
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetInstance(v)
+	o.EAdapters().Add(mockAdapter)
+	o.SetInstance(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEEnumLiteralLiteralGet(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	// get default value
+	assert.Equal(t, "", o.GetLiteral())
+	// get initialized value
 	v := "Test String"
-	obj := newEEnumLiteralImpl()
-	obj.SetLiteral(v)
-	assert.Equal(t, v, obj.GetLiteral())
+	o.literal = v
+	assert.Equal(t, v, o.GetLiteral())
 }
 
 func TestEEnumLiteralLiteralSet(t *testing.T) {
-	obj := newEEnumLiteralImpl()
+	o := newEEnumLiteralImpl()
 	v := "Test String"
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", obj).Once()
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
-	obj.EAdapters().Add(mockAdapter)
-	obj.SetLiteral(v)
+	o.EAdapters().Add(mockAdapter)
+	o.SetLiteral(v)
 	mockAdapter.AssertExpectations(t)
+}
+
+func TestEEnumLiteralValueGet(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	// get default value
+	assert.Equal(t, 0, o.GetValue())
+	// get initialized value
+	v := 45
+	o.value = v
+	assert.Equal(t, v, o.GetValue())
+}
+
+func TestEEnumLiteralValueSet(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	v := 45
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.EAdapters().Add(mockAdapter)
+	o.SetValue(v)
+	mockAdapter.AssertExpectations(t)
+}
+
+func TestEEnumLiteralEGetFromID(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	assert.Panics(t, func() { o.EGetFromID(-1, true) })
+	assert.Equal(t, o.GetEEnum(), o.EGetFromID(EENUM_LITERAL__EENUM, true))
+	assert.Equal(t, o.GetInstance(), o.EGetFromID(EENUM_LITERAL__INSTANCE, true))
+	assert.Equal(t, o.GetLiteral(), o.EGetFromID(EENUM_LITERAL__LITERAL, true))
+	assert.Equal(t, o.GetValue(), o.EGetFromID(EENUM_LITERAL__VALUE, true))
+}
+
+func TestEEnumLiteralESetFromID(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
+	{
+		v := interface{}(nil)
+		o.ESetFromID(EENUM_LITERAL__INSTANCE, v)
+		assert.Equal(t, v, o.EGetFromID(EENUM_LITERAL__INSTANCE, false))
+	}
+	{
+		v := "Test String"
+		o.ESetFromID(EENUM_LITERAL__LITERAL, v)
+		assert.Equal(t, v, o.EGetFromID(EENUM_LITERAL__LITERAL, false))
+	}
+	{
+		v := 45
+		o.ESetFromID(EENUM_LITERAL__VALUE, v)
+		assert.Equal(t, v, o.EGetFromID(EENUM_LITERAL__VALUE, false))
+	}
+
+}
+
+func TestEEnumLiteralEIsSetFromID(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	assert.Panics(t, func() { o.EIsSetFromID(-1) })
+	assert.False(t, o.EIsSetFromID(EENUM_LITERAL__EENUM))
+	assert.False(t, o.EIsSetFromID(EENUM_LITERAL__INSTANCE))
+	assert.False(t, o.EIsSetFromID(EENUM_LITERAL__LITERAL))
+	assert.False(t, o.EIsSetFromID(EENUM_LITERAL__VALUE))
+}
+
+func TestEEnumLiteralEUnsetFromID(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	assert.Panics(t, func() { o.EUnsetFromID(-1) })
+	{
+		o.EUnsetFromID(EENUM_LITERAL__INSTANCE)
+		v := o.EGetFromID(EENUM_LITERAL__INSTANCE, false)
+		assert.Nil(t, v)
+	}
+	{
+		o.EUnsetFromID(EENUM_LITERAL__LITERAL)
+		v := o.EGetFromID(EENUM_LITERAL__LITERAL, false)
+		assert.Equal(t, "", v)
+	}
+	{
+		o.EUnsetFromID(EENUM_LITERAL__VALUE)
+		v := o.EGetFromID(EENUM_LITERAL__VALUE, false)
+		assert.Equal(t, 0, v)
+	}
+}
+
+func TestEEnumLiteralEBasicInverseAdd(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEEnum)
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EIsProxy").Return(false).Once()
+		o.EBasicInverseAdd(mockObject, EENUM_LITERAL__EENUM, nil)
+		assert.Equal(t, mockObject, o.GetEEnum())
+		mock.AssertExpectationsForObjects(t, mockObject)
+
+		mockOther := new(MockEEnum)
+		mockOther.On("EInternalResource").Return(nil).Once()
+		mockOther.On("EIsProxy").Return(false).Once()
+		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EInverseRemove", o, EENUM__ELITERALS, nil).Return(nil).Once()
+		o.EBasicInverseAdd(mockOther, EENUM_LITERAL__EENUM, nil)
+		assert.Equal(t, mockOther, o.GetEEnum())
+		mock.AssertExpectationsForObjects(t, mockObject, mockOther)
+	}
+
+}
+
+func TestEEnumLiteralEBasicInverseRemove(t *testing.T) {
+	o := newEEnumLiteralImpl()
+	{
+		mockObject := new(MockEObject)
+		mockNotifications := new(MockENotificationChain)
+		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
+	}
+	{
+		mockObject := new(MockEEnum)
+		o.EBasicInverseRemove(mockObject, EENUM_LITERAL__EENUM, nil)
+		mock.AssertExpectationsForObjects(t, mockObject)
+
+	}
+
 }

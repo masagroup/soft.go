@@ -17,33 +17,40 @@ package ecore
 
 // eModelElementImpl is the implementation of the model object 'EModelElement'
 type eModelElementImpl struct {
-	*EObjectImpl
+	CompactEObjectContainer
 	eAnnotations EList
+}
+type eModelElementImplInitializers interface {
+	initEAnnotations() EList
 }
 
 // newEModelElementImpl is the constructor of a eModelElementImpl
 func newEModelElementImpl() *eModelElementImpl {
 	eModelElement := new(eModelElementImpl)
-	eModelElement.EObjectImpl = NewEObjectImpl()
 	eModelElement.SetInterfaces(eModelElement)
-
+	eModelElement.Initialize()
 	return eModelElement
 }
 
-type eModelElementImplInitializers interface {
-	initEAnnotations() EList
-}
+func (eModelElement *eModelElementImpl) Initialize() {
+	eModelElement.CompactEObjectContainer.Initialize()
 
-func (eModelElement *eModelElementImpl) getInitializers() eModelElementImplInitializers {
-	return eModelElement.AsEObject().(eModelElementImplInitializers)
 }
 
 func (eModelElement *eModelElementImpl) asEModelElement() EModelElement {
 	return eModelElement.GetInterfaces().(EModelElement)
 }
 
+func (eModelElement *eModelElementImpl) asInitializers() eModelElementImplInitializers {
+	return eModelElement.AsEObject().(eModelElementImplInitializers)
+}
+
 func (eModelElement *eModelElementImpl) EStaticClass() EClass {
 	return GetPackage().GetEModelElement()
+}
+
+func (eModelElement *eModelElementImpl) EStaticFeatureCount() int {
+	return EMODEL_ELEMENT_FEATURE_COUNT
 }
 
 // GetEAnnotation default implementation
@@ -54,7 +61,7 @@ func (eModelElement *eModelElementImpl) GetEAnnotation(string) EAnnotation {
 // GetEAnnotations get the value of eAnnotations
 func (eModelElement *eModelElementImpl) GetEAnnotations() EList {
 	if eModelElement.eAnnotations == nil {
-		eModelElement.eAnnotations = eModelElement.getInitializers().initEAnnotations()
+		eModelElement.eAnnotations = eModelElement.asInitializers().initEAnnotations()
 	}
 	return eModelElement.eAnnotations
 }
@@ -68,7 +75,7 @@ func (eModelElement *eModelElementImpl) EGetFromID(featureID int, resolve bool) 
 	case EMODEL_ELEMENT__EANNOTATIONS:
 		return eModelElement.asEModelElement().GetEAnnotations()
 	default:
-		return eModelElement.EObjectImpl.EGetFromID(featureID, resolve)
+		return eModelElement.CompactEObjectContainer.EGetFromID(featureID, resolve)
 	}
 }
 
@@ -79,7 +86,7 @@ func (eModelElement *eModelElementImpl) ESetFromID(featureID int, newValue inter
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	default:
-		eModelElement.EObjectImpl.ESetFromID(featureID, newValue)
+		eModelElement.CompactEObjectContainer.ESetFromID(featureID, newValue)
 	}
 }
 
@@ -88,7 +95,7 @@ func (eModelElement *eModelElementImpl) EUnsetFromID(featureID int) {
 	case EMODEL_ELEMENT__EANNOTATIONS:
 		eModelElement.asEModelElement().GetEAnnotations().Clear()
 	default:
-		eModelElement.EObjectImpl.EUnsetFromID(featureID)
+		eModelElement.CompactEObjectContainer.EUnsetFromID(featureID)
 	}
 }
 
@@ -97,7 +104,7 @@ func (eModelElement *eModelElementImpl) EIsSetFromID(featureID int) bool {
 	case EMODEL_ELEMENT__EANNOTATIONS:
 		return eModelElement.eAnnotations != nil && eModelElement.eAnnotations.Size() != 0
 	default:
-		return eModelElement.EObjectImpl.EIsSetFromID(featureID)
+		return eModelElement.CompactEObjectContainer.EIsSetFromID(featureID)
 	}
 }
 
@@ -106,7 +113,7 @@ func (eModelElement *eModelElementImpl) EInvokeFromID(operationID int, arguments
 	case EMODEL_ELEMENT__GET_EANNOTATION_ESTRING:
 		return eModelElement.asEModelElement().GetEAnnotation(arguments.Get(0).(string))
 	default:
-		return eModelElement.EObjectImpl.EInvokeFromID(operationID, arguments)
+		return eModelElement.CompactEObjectContainer.EInvokeFromID(operationID, arguments)
 	}
 }
 
@@ -116,7 +123,7 @@ func (eModelElement *eModelElementImpl) EBasicInverseAdd(otherEnd EObject, featu
 		list := eModelElement.GetEAnnotations().(ENotifyingList)
 		return list.AddWithNotification(otherEnd, notifications)
 	default:
-		return eModelElement.EObjectImpl.EBasicInverseAdd(otherEnd, featureID, notifications)
+		return eModelElement.CompactEObjectContainer.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
 }
 
@@ -126,6 +133,6 @@ func (eModelElement *eModelElementImpl) EBasicInverseRemove(otherEnd EObject, fe
 		list := eModelElement.GetEAnnotations().(ENotifyingList)
 		return list.RemoveWithNotification(otherEnd, notifications)
 	default:
-		return eModelElement.EObjectImpl.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return eModelElement.CompactEObjectContainer.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

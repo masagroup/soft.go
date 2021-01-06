@@ -176,7 +176,7 @@ func TestMockEClassGetECrossReferenceFeatures(t *testing.T) {
 // TestMockEClassGetEIDAttribute tests method GetEIDAttribute
 func TestMockEClassGetEIDAttribute(t *testing.T) {
 	o := &MockEClass{}
-	r := &MockEAttribute{}
+	r := new(MockEAttribute)
 	o.On("GetEIDAttribute").Once().Return(r)
 	o.On("GetEIDAttribute").Once().Return(func() EAttribute {
 		return r
@@ -268,7 +268,7 @@ func TestMockEClassSetInterface(t *testing.T) {
 func TestMockEClassGetEOperation(t *testing.T) {
 	o := &MockEClass{}
 	operationID := 45
-	r := &MockEOperation{}
+	r := new(MockEOperation)
 	o.On("GetEOperation", operationID).Return(r).Once()
 	o.On("GetEOperation", operationID).Return(func() EOperation {
 		return r
@@ -282,7 +282,7 @@ func TestMockEClassGetEOperation(t *testing.T) {
 func TestMockEClassGetEStructuralFeature(t *testing.T) {
 	o := &MockEClass{}
 	featureID := 45
-	r := &MockEStructuralFeature{}
+	r := new(MockEStructuralFeature)
 	o.On("GetEStructuralFeature", featureID).Return(r).Once()
 	o.On("GetEStructuralFeature", featureID).Return(func() EStructuralFeature {
 		return r
@@ -296,7 +296,7 @@ func TestMockEClassGetEStructuralFeature(t *testing.T) {
 func TestMockEClassGetEStructuralFeatureFromName(t *testing.T) {
 	o := &MockEClass{}
 	featureName := "Test String"
-	r := &MockEStructuralFeature{}
+	r := new(MockEStructuralFeature)
 	o.On("GetEStructuralFeatureFromName", featureName).Return(r).Once()
 	o.On("GetEStructuralFeatureFromName", featureName).Return(func() EStructuralFeature {
 		return r
@@ -322,7 +322,7 @@ func TestMockEClassGetFeatureCount(t *testing.T) {
 // TestMockEClassGetFeatureID tests method GetFeatureID
 func TestMockEClassGetFeatureID(t *testing.T) {
 	o := &MockEClass{}
-	feature := &MockEStructuralFeature{}
+	feature := new(MockEStructuralFeature)
 	r := 45
 	o.On("GetFeatureID", feature).Return(r).Once()
 	o.On("GetFeatureID", feature).Return(func() int {
@@ -336,8 +336,8 @@ func TestMockEClassGetFeatureID(t *testing.T) {
 // TestMockEClassGetFeatureType tests method GetFeatureType
 func TestMockEClassGetFeatureType(t *testing.T) {
 	o := &MockEClass{}
-	feature := &MockEStructuralFeature{}
-	r := &MockEClassifier{}
+	feature := new(MockEStructuralFeature)
+	r := new(MockEClassifier)
 	o.On("GetFeatureType", feature).Return(r).Once()
 	o.On("GetFeatureType", feature).Return(func() EClassifier {
 		return r
@@ -363,7 +363,7 @@ func TestMockEClassGetOperationCount(t *testing.T) {
 // TestMockEClassGetOperationID tests method GetOperationID
 func TestMockEClassGetOperationID(t *testing.T) {
 	o := &MockEClass{}
-	operation := &MockEOperation{}
+	operation := new(MockEOperation)
 	r := 45
 	o.On("GetOperationID", operation).Return(r).Once()
 	o.On("GetOperationID", operation).Return(func() int {
@@ -377,8 +377,8 @@ func TestMockEClassGetOperationID(t *testing.T) {
 // TestMockEClassGetOverride tests method GetOverride
 func TestMockEClassGetOverride(t *testing.T) {
 	o := &MockEClass{}
-	operation := &MockEOperation{}
-	r := &MockEOperation{}
+	operation := new(MockEOperation)
+	r := new(MockEOperation)
 	o.On("GetOverride", operation).Return(r).Once()
 	o.On("GetOverride", operation).Return(func() EOperation {
 		return r
@@ -391,7 +391,7 @@ func TestMockEClassGetOverride(t *testing.T) {
 // TestMockEClassIsSuperTypeOf tests method IsSuperTypeOf
 func TestMockEClassIsSuperTypeOf(t *testing.T) {
 	o := &MockEClass{}
-	someClass := &MockEClass{}
+	someClass := new(MockEClass)
 	r := true
 	o.On("IsSuperTypeOf", someClass).Return(r).Once()
 	o.On("IsSuperTypeOf", someClass).Return(func() bool {

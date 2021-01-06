@@ -17,40 +17,47 @@ package ecore
 
 // ePackageImpl is the implementation of the model object 'EPackage'
 type ePackageImpl struct {
-	*eNamedElementImpl
+	eNamedElementImpl
 	eClassifiers     EList
 	eFactoryInstance EFactory
 	eSubPackages     EList
 	nsPrefix         string
 	nsURI            string
 }
-
-// newEPackageImpl is the constructor of a ePackageImpl
-func newEPackageImpl() *ePackageImpl {
-	ePackage := new(ePackageImpl)
-	ePackage.eNamedElementImpl = newENamedElementImpl()
-	ePackage.SetInterfaces(ePackage)
-	ePackage.nsPrefix = ""
-	ePackage.nsURI = ""
-
-	return ePackage
-}
-
 type ePackageImplInitializers interface {
 	initEClassifiers() EList
 	initESubPackages() EList
 }
 
-func (ePackage *ePackageImpl) getInitializers() ePackageImplInitializers {
-	return ePackage.AsEObject().(ePackageImplInitializers)
+// newEPackageImpl is the constructor of a ePackageImpl
+func newEPackageImpl() *ePackageImpl {
+	ePackage := new(ePackageImpl)
+	ePackage.SetInterfaces(ePackage)
+	ePackage.Initialize()
+	return ePackage
+}
+
+func (ePackage *ePackageImpl) Initialize() {
+	ePackage.eNamedElementImpl.Initialize()
+	ePackage.nsPrefix = ""
+	ePackage.nsURI = ""
+
 }
 
 func (ePackage *ePackageImpl) asEPackage() EPackage {
 	return ePackage.GetInterfaces().(EPackage)
 }
 
+func (ePackage *ePackageImpl) asInitializers() ePackageImplInitializers {
+	return ePackage.AsEObject().(ePackageImplInitializers)
+}
+
 func (ePackage *ePackageImpl) EStaticClass() EClass {
 	return GetPackage().GetEPackage()
+}
+
+func (ePackage *ePackageImpl) EStaticFeatureCount() int {
+	return EPACKAGE_FEATURE_COUNT
 }
 
 // GetEClassifier default implementation
@@ -61,7 +68,7 @@ func (ePackage *ePackageImpl) GetEClassifier(string) EClassifier {
 // GetEClassifiers get the value of eClassifiers
 func (ePackage *ePackageImpl) GetEClassifiers() EList {
 	if ePackage.eClassifiers == nil {
-		ePackage.eClassifiers = ePackage.getInitializers().initEClassifiers()
+		ePackage.eClassifiers = ePackage.asInitializers().initEClassifiers()
 	}
 	return ePackage.eClassifiers
 }
@@ -106,7 +113,7 @@ func (ePackage *ePackageImpl) basicSetEFactoryInstance(newEFactoryInstance EFact
 // GetESubPackages get the value of eSubPackages
 func (ePackage *ePackageImpl) GetESubPackages() EList {
 	if ePackage.eSubPackages == nil {
-		ePackage.eSubPackages = ePackage.getInitializers().initESubPackages()
+		ePackage.eSubPackages = ePackage.asInitializers().initESubPackages()
 	}
 	return ePackage.eSubPackages
 }
@@ -247,8 +254,9 @@ func (ePackage *ePackageImpl) EBasicInverseAdd(otherEnd EObject, featureID int, 
 		return list.AddWithNotification(otherEnd, notifications)
 	case EPACKAGE__EFACTORY_INSTANCE:
 		msgs := notifications
-		if ePackage.eFactoryInstance != nil {
-			msgs = ePackage.eFactoryInstance.(EObjectInternal).EInverseRemove(ePackage.AsEObject(), EOPPOSITE_FEATURE_BASE-EPACKAGE__EFACTORY_INSTANCE, msgs)
+		eFactoryInstance := ePackage.eFactoryInstance
+		if eFactoryInstance != nil {
+			msgs = eFactoryInstance.(EObjectInternal).EInverseRemove(ePackage.AsEObject(), EOPPOSITE_FEATURE_BASE-EPACKAGE__EFACTORY_INSTANCE, msgs)
 		}
 		return ePackage.basicSetEFactoryInstance(otherEnd.(EFactory), msgs)
 	case EPACKAGE__ESUB_PACKAGES:
@@ -256,7 +264,7 @@ func (ePackage *ePackageImpl) EBasicInverseAdd(otherEnd EObject, featureID int, 
 		return list.AddWithNotification(otherEnd, notifications)
 	case EPACKAGE__ESUPER_PACKAGE:
 		msgs := notifications
-		if ePackage.EContainer() != nil {
+		if ePackage.EInternalContainer() != nil {
 			msgs = ePackage.EBasicRemoveFromContainer(msgs)
 		}
 		return ePackage.EBasicSetContainer(otherEnd, EPACKAGE__ESUPER_PACKAGE, msgs)

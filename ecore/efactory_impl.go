@@ -17,15 +17,14 @@ package ecore
 
 // eFactoryImpl is the implementation of the model object 'EFactory'
 type eFactoryImpl struct {
-	*eModelElementExt
+	eModelElementExt
 }
 
 // newEFactoryImpl is the constructor of a eFactoryImpl
 func newEFactoryImpl() *eFactoryImpl {
 	eFactory := new(eFactoryImpl)
-	eFactory.eModelElementExt = newEModelElementExt()
 	eFactory.SetInterfaces(eFactory)
-
+	eFactory.Initialize()
 	return eFactory
 }
 
@@ -35,6 +34,10 @@ func (eFactory *eFactoryImpl) asEFactory() EFactory {
 
 func (eFactory *eFactoryImpl) EStaticClass() EClass {
 	return GetPackage().GetEFactory()
+}
+
+func (eFactory *eFactoryImpl) EStaticFeatureCount() int {
+	return EFACTORY_FEATURE_COUNT
 }
 
 // ConvertToString default implementation
@@ -62,13 +65,13 @@ func (eFactory *eFactoryImpl) GetEPackage() EPackage {
 
 // SetEPackage set the value of ePackage
 func (eFactory *eFactoryImpl) SetEPackage(newEPackage EPackage) {
-	if newEPackage != eFactory.EContainer() || (newEPackage != nil && eFactory.EContainerFeatureID() != EFACTORY__EPACKAGE) {
+	if newEPackage != eFactory.EInternalContainer() || (newEPackage != nil && eFactory.EContainerFeatureID() != EFACTORY__EPACKAGE) {
 		var notifications ENotificationChain
-		if eFactory.EContainer() != nil {
+		if eFactory.EInternalContainer() != nil {
 			notifications = eFactory.EBasicRemoveFromContainer(notifications)
 		}
 		if newEPackageInternal, _ := newEPackage.(EObjectInternal); newEPackageInternal != nil {
-			notifications = newEPackageInternal.EInverseAdd(eFactory.AsEObject(), EFACTORY__EPACKAGE, notifications)
+			notifications = newEPackageInternal.EInverseAdd(eFactory.AsEObject(), EPACKAGE__EFACTORY_INSTANCE, notifications)
 		}
 		notifications = eFactory.basicSetEPackage(newEPackage, notifications)
 		if notifications != nil {
@@ -136,7 +139,7 @@ func (eFactory *eFactoryImpl) EBasicInverseAdd(otherEnd EObject, featureID int, 
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		msgs := notifications
-		if eFactory.EContainer() != nil {
+		if eFactory.EInternalContainer() != nil {
 			msgs = eFactory.EBasicRemoveFromContainer(msgs)
 		}
 		return eFactory.basicSetEPackage(otherEnd.(EPackage), msgs)

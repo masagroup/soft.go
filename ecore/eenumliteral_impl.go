@@ -17,7 +17,7 @@ package ecore
 
 // eEnumLiteralImpl is the implementation of the model object 'EEnumLiteral'
 type eEnumLiteralImpl struct {
-	*eNamedElementImpl
+	eNamedElementImpl
 	instance interface{}
 	literal  string
 	value    int
@@ -26,13 +26,17 @@ type eEnumLiteralImpl struct {
 // newEEnumLiteralImpl is the constructor of a eEnumLiteralImpl
 func newEEnumLiteralImpl() *eEnumLiteralImpl {
 	eEnumLiteral := new(eEnumLiteralImpl)
-	eEnumLiteral.eNamedElementImpl = newENamedElementImpl()
 	eEnumLiteral.SetInterfaces(eEnumLiteral)
+	eEnumLiteral.Initialize()
+	return eEnumLiteral
+}
+
+func (eEnumLiteral *eEnumLiteralImpl) Initialize() {
+	eEnumLiteral.eNamedElementImpl.Initialize()
 	eEnumLiteral.instance = nil
 	eEnumLiteral.literal = ""
 	eEnumLiteral.value = 0
 
-	return eEnumLiteral
 }
 
 func (eEnumLiteral *eEnumLiteralImpl) asEEnumLiteral() EEnumLiteral {
@@ -41,6 +45,10 @@ func (eEnumLiteral *eEnumLiteralImpl) asEEnumLiteral() EEnumLiteral {
 
 func (eEnumLiteral *eEnumLiteralImpl) EStaticClass() EClass {
 	return GetPackage().GetEEnumLiteral()
+}
+
+func (eEnumLiteral *eEnumLiteralImpl) EStaticFeatureCount() int {
+	return EENUM_LITERAL_FEATURE_COUNT
 }
 
 // GetEEnum get the value of eEnum
@@ -111,7 +119,7 @@ func (eEnumLiteral *eEnumLiteralImpl) EGetFromID(featureID int, resolve bool) in
 func (eEnumLiteral *eEnumLiteralImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case EENUM_LITERAL__INSTANCE:
-		eEnumLiteral.asEEnumLiteral().SetInstance(newValue.(interface{}))
+		eEnumLiteral.asEEnumLiteral().SetInstance(newValue)
 	case EENUM_LITERAL__LITERAL:
 		eEnumLiteral.asEEnumLiteral().SetLiteral(newValue.(string))
 	case EENUM_LITERAL__VALUE:
@@ -139,7 +147,7 @@ func (eEnumLiteral *eEnumLiteralImpl) EIsSetFromID(featureID int) bool {
 	case EENUM_LITERAL__EENUM:
 		return eEnumLiteral.GetEEnum() != nil
 	case EENUM_LITERAL__INSTANCE:
-		return eEnumLiteral.GetInstance() != ""
+		return eEnumLiteral.GetInstance() != nil
 	case EENUM_LITERAL__LITERAL:
 		return eEnumLiteral.literal != ""
 	case EENUM_LITERAL__VALUE:
@@ -153,7 +161,7 @@ func (eEnumLiteral *eEnumLiteralImpl) EBasicInverseAdd(otherEnd EObject, feature
 	switch featureID {
 	case EENUM_LITERAL__EENUM:
 		msgs := notifications
-		if eEnumLiteral.EContainer() != nil {
+		if eEnumLiteral.EInternalContainer() != nil {
 			msgs = eEnumLiteral.EBasicRemoveFromContainer(msgs)
 		}
 		return eEnumLiteral.EBasicSetContainer(otherEnd, EENUM_LITERAL__EENUM, msgs)

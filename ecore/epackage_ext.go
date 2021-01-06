@@ -12,7 +12,7 @@ package ecore
 import "net/url"
 
 type ePackageExtAdapter struct {
-	*Adapter
+	AbstractEAdapter
 	pack *EPackageExt
 }
 
@@ -28,18 +28,22 @@ func (a *ePackageExtAdapter) NotifyChanged(notification ENotification) {
 
 // EPackageExt is the extension of the model object 'EFactory'
 type EPackageExt struct {
-	*ePackageImpl
+	ePackageImpl
 	adapter          EAdapter
 	nameToClassifier map[string]EClassifier
 }
 
 func NewEPackageExt() *EPackageExt {
 	pack := new(EPackageExt)
-	pack.ePackageImpl = newEPackageImpl()
-	pack.adapter = &ePackageExtAdapter{Adapter: NewAdapter(), pack: pack}
 	pack.SetInterfaces(pack)
-	pack.EAdapters().Add(pack.adapter)
+	pack.Initialize()
 	return pack
+}
+
+func (pack *EPackageExt) Initialize() {
+	pack.ePackageImpl.Initialize()
+	pack.adapter = &ePackageExtAdapter{pack: pack}
+	pack.EAdapters().Add(pack.adapter)
 }
 
 func (pack *EPackageExt) GetEClassifier(classifier string) EClassifier {

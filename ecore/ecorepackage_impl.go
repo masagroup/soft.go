@@ -18,160 +18,26 @@ package ecore
 // ecorePackageImpl is the EcorePackage implementation
 type ecorePackageImpl struct {
 	EPackageExt
-	eAnnotation               EClass
-	eAnnotation_Source        EAttribute
-	eAnnotation_Details       EReference
-	eAnnotation_EModelElement EReference
-	eAnnotation_Contents      EReference
-	eAnnotation_References    EReference
-
-	eAttribute                EClass
-	eAttribute_ID             EAttribute
-	eAttribute_EAttributeType EReference
-
-	eClass                                   EClass
-	eClass_Abstract                          EAttribute
-	eClass_Interface                         EAttribute
-	eClass_EStructuralFeatures               EReference
-	eClass_EAttributes                       EReference
-	eClass_EReferences                       EReference
-	eClass_ESuperTypes                       EReference
-	eClass_EOperations                       EReference
-	eClass_EContainmentFeatures              EReference
-	eClass_ECrossReferenceFeatures           EReference
-	eClass_EAllAttributes                    EReference
-	eClass_EAllReferences                    EReference
-	eClass_EAllContainments                  EReference
-	eClass_EAllOperations                    EReference
-	eClass_EAllStructuralFeatures            EReference
-	eClass_EAllSuperTypes                    EReference
-	eClass_EIDAttribute                      EReference
-	eClass_IsSuperTypeOf_EClass              EOperation
-	eClass_GetFeatureCount                   EOperation
-	eClass_GetEStructuralFeature_EInt        EOperation
-	eClass_GetEStructuralFeature_EString     EOperation
-	eClass_GetFeatureID_EStructuralFeature   EOperation
-	eClass_GetOperationCount                 EOperation
-	eClass_GetEOperation_EInt                EOperation
-	eClass_GetOperationID_EOperation         EOperation
-	eClass_GetOverride_EOperation            EOperation
-	eClass_GetFeatureType_EStructuralFeature EOperation
-
-	eClassifier                        EClass
-	eClassifier_InstanceClass          EAttribute
-	eClassifier_DefaultValue           EAttribute
-	eClassifier_EPackage               EReference
-	eClassifier_ClassifierID           EAttribute
-	eClassifier_IsInstance_EJavaObject EOperation
-
-	eDataType              EClass
-	eDataType_Serializable EAttribute
-
-	eEnum                                  EClass
-	eEnum_ELiterals                        EReference
-	eEnum_GetEEnumLiteral_EString          EOperation
-	eEnum_GetEEnumLiteral_EInt             EOperation
-	eEnum_GetEEnumLiteralByLiteral_EString EOperation
-
-	eEnumLiteral          EClass
-	eEnumLiteral_Value    EAttribute
-	eEnumLiteral_Instance EAttribute
-	eEnumLiteral_Literal  EAttribute
-	eEnumLiteral_EEnum    EReference
-
-	eFactory                                       EClass
-	eFactory_EPackage                              EReference
-	eFactory_Create_EClass                         EOperation
-	eFactory_CreateFromString_EDataType_EString    EOperation
-	eFactory_ConvertToString_EDataType_EJavaObject EOperation
-
-	eGenericType                        EClass
-	eGenericType_EUpperBound            EReference
-	eGenericType_ETypeArguments         EReference
-	eGenericType_ERawType               EReference
-	eGenericType_ELowerBound            EReference
-	eGenericType_ETypeParameter         EReference
-	eGenericType_EClassifier            EReference
-	eGenericType_IsInstance_EJavaObject EOperation
-
-	eModelElement                        EClass
-	eModelElement_EAnnotations           EReference
-	eModelElement_GetEAnnotation_EString EOperation
-
-	eNamedElement      EClass
-	eNamedElement_Name EAttribute
-
-	eObject                                     EClass
-	eObject_EClass                              EOperation
-	eObject_EIsProxy                            EOperation
-	eObject_EResource                           EOperation
-	eObject_EContainer                          EOperation
-	eObject_EContainingFeature                  EOperation
-	eObject_EContainmentFeature                 EOperation
-	eObject_EContents                           EOperation
-	eObject_EAllContents                        EOperation
-	eObject_ECrossReferences                    EOperation
-	eObject_EGet_EStructuralFeature             EOperation
-	eObject_EGet_EStructuralFeature_EBoolean    EOperation
-	eObject_ESet_EStructuralFeature_EJavaObject EOperation
-	eObject_EIsSet_EStructuralFeature           EOperation
-	eObject_EUnset_EStructuralFeature           EOperation
-	eObject_EInvoke_EOperation_EEList           EOperation
-
-	eOperation                         EClass
-	eOperation_EContainingClass        EReference
-	eOperation_EParameters             EReference
-	eOperation_EExceptions             EReference
-	eOperation_OperationID             EAttribute
-	eOperation_IsOverrideOf_EOperation EOperation
-
-	ePackage                        EClass
-	ePackage_NsURI                  EAttribute
-	ePackage_NsPrefix               EAttribute
-	ePackage_EFactoryInstance       EReference
-	ePackage_EClassifiers           EReference
-	ePackage_ESubPackages           EReference
-	ePackage_ESuperPackage          EReference
-	ePackage_GetEClassifier_EString EOperation
-
-	eParameter            EClass
-	eParameter_EOperation EReference
-
-	eReference                EClass
-	eReference_Containment    EAttribute
-	eReference_Container      EAttribute
-	eReference_ResolveProxies EAttribute
-	eReference_EOpposite      EReference
-	eReference_EReferenceType EReference
-	eReference_EKeys          EReference
-
-	eStringToStringMapEntry       EClass
-	eStringToStringMapEntry_Key   EAttribute
-	eStringToStringMapEntry_Value EAttribute
-
-	eStructuralFeature                     EClass
-	eStructuralFeature_Changeable          EAttribute
-	eStructuralFeature_Volatile            EAttribute
-	eStructuralFeature_Transient           EAttribute
-	eStructuralFeature_DefaultValueLiteral EAttribute
-	eStructuralFeature_DefaultValue        EAttribute
-	eStructuralFeature_Unsettable          EAttribute
-	eStructuralFeature_Derived             EAttribute
-	eStructuralFeature_EContainingClass    EReference
-	eStructuralFeature_FeatureID           EAttribute
-	eStructuralFeature_GetContainerClass   EOperation
-
-	eTypeParameter         EClass
-	eTypeParameter_EBounds EReference
-
-	eTypedElement            EClass
-	eTypedElement_Ordered    EAttribute
-	eTypedElement_Unique     EAttribute
-	eTypedElement_LowerBound EAttribute
-	eTypedElement_UpperBound EAttribute
-	eTypedElement_Many       EAttribute
-	eTypedElement_Required   EAttribute
-	eTypedElement_EType      EReference
+	eAnnotation             EClass
+	eAttribute              EClass
+	eClass                  EClass
+	eClassifier             EClass
+	eDataType               EClass
+	eEnum                   EClass
+	eEnumLiteral            EClass
+	eFactory                EClass
+	eGenericType            EClass
+	eModelElement           EClass
+	eNamedElement           EClass
+	eObject                 EClass
+	eOperation              EClass
+	ePackage                EClass
+	eParameter              EClass
+	eReference              EClass
+	eStringToStringMapEntry EClass
+	eStructuralFeature      EClass
+	eTypeParameter          EClass
+	eTypedElement           EClass
 
 	eBigDecimal                EDataType
 	eBigInteger                EDataType
@@ -233,27 +99,27 @@ func (p *ecorePackageImpl) GetEAnnotationClass() EClass {
 
 // GetEAnnotation_Source returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEAnnotation_Source() EAttribute {
-	return p.eAnnotation_Source
+	return p.eAnnotation.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEAnnotation_Contents returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEAnnotation_Contents() EReference {
-	return p.eAnnotation_Contents
+	return p.eAnnotation.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEAnnotation_Details returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEAnnotation_Details() EReference {
-	return p.eAnnotation_Details
+	return p.eAnnotation.GetEStructuralFeatures().Get(1).(EReference)
 }
 
 // GetEAnnotation_EModelElement returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEAnnotation_EModelElement() EReference {
-	return p.eAnnotation_EModelElement
+	return p.eAnnotation.GetEStructuralFeatures().Get(2).(EReference)
 }
 
 // GetEAnnotation_References returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEAnnotation_References() EReference {
-	return p.eAnnotation_References
+	return p.eAnnotation.GetEStructuralFeatures().Get(4).(EReference)
 }
 
 // GetEAttribute returns the meta object corresponding to
@@ -263,12 +129,12 @@ func (p *ecorePackageImpl) GetEAttribute() EClass {
 
 // GetEAttribute_ID returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEAttribute_ID() EAttribute {
-	return p.eAttribute_ID
+	return p.eAttribute.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEAttribute_EAttributeType returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEAttribute_EAttributeType() EReference {
-	return p.eAttribute_EAttributeType
+	return p.eAttribute.GetEStructuralFeatures().Get(1).(EReference)
 }
 
 // GetEClass returns the meta object corresponding to
@@ -278,132 +144,132 @@ func (p *ecorePackageImpl) GetEClass() EClass {
 
 // GetEClass_Abstract returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_Abstract() EAttribute {
-	return p.eClass_Abstract
+	return p.eClass.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEClass_Interface returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_Interface() EAttribute {
-	return p.eClass_Interface
+	return p.eClass.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEClass_EAllAttributes returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_EAllAttributes() EReference {
-	return p.eClass_EAllAttributes
+	return p.eClass.GetEStructuralFeatures().Get(9).(EReference)
 }
 
 // GetEClass_EAllContainments returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_EAllContainments() EReference {
-	return p.eClass_EAllContainments
+	return p.eClass.GetEStructuralFeatures().Get(11).(EReference)
 }
 
 // GetEClass_EAllOperations returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_EAllOperations() EReference {
-	return p.eClass_EAllOperations
+	return p.eClass.GetEStructuralFeatures().Get(12).(EReference)
 }
 
 // GetEClass_EAllReferences returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_EAllReferences() EReference {
-	return p.eClass_EAllReferences
+	return p.eClass.GetEStructuralFeatures().Get(10).(EReference)
 }
 
 // GetEClass_EAllStructuralFeatures returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_EAllStructuralFeatures() EReference {
-	return p.eClass_EAllStructuralFeatures
+	return p.eClass.GetEStructuralFeatures().Get(13).(EReference)
 }
 
 // GetEClass_EAllSuperTypes returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_EAllSuperTypes() EReference {
-	return p.eClass_EAllSuperTypes
+	return p.eClass.GetEStructuralFeatures().Get(14).(EReference)
 }
 
 // GetEClass_EAttributes returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_EAttributes() EReference {
-	return p.eClass_EAttributes
+	return p.eClass.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEClass_EContainmentFeatures returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_EContainmentFeatures() EReference {
-	return p.eClass_EContainmentFeatures
+	return p.eClass.GetEStructuralFeatures().Get(7).(EReference)
 }
 
 // GetEClass_ECrossReferenceFeatures returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_ECrossReferenceFeatures() EReference {
-	return p.eClass_ECrossReferenceFeatures
+	return p.eClass.GetEStructuralFeatures().Get(8).(EReference)
 }
 
 // GetEClass_EIDAttribute returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_EIDAttribute() EReference {
-	return p.eClass_EIDAttribute
+	return p.eClass.GetEStructuralFeatures().Get(15).(EReference)
 }
 
 // GetEClass_EOperations returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_EOperations() EReference {
-	return p.eClass_EOperations
+	return p.eClass.GetEStructuralFeatures().Get(6).(EReference)
 }
 
 // GetEClass_EReferences returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_EReferences() EReference {
-	return p.eClass_EReferences
+	return p.eClass.GetEStructuralFeatures().Get(4).(EReference)
 }
 
 // GetEClass_EStructuralFeatures returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_EStructuralFeatures() EReference {
-	return p.eClass_EStructuralFeatures
+	return p.eClass.GetEStructuralFeatures().Get(2).(EReference)
 }
 
 // GetEClass_ESuperTypes returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_ESuperTypes() EReference {
-	return p.eClass_ESuperTypes
+	return p.eClass.GetEStructuralFeatures().Get(5).(EReference)
 }
 
 // GetEClass_GetEOperation_EInt returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_GetEOperation_EInt() EOperation {
-	return p.eClass_GetEOperation_EInt
+	return p.eClass.GetEOperations().Get(6).(EOperation)
 }
 
 // GetEClass_GetEStructuralFeature_EInt returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_GetEStructuralFeature_EInt() EOperation {
-	return p.eClass_GetEStructuralFeature_EInt
+	return p.eClass.GetEOperations().Get(2).(EOperation)
 }
 
 // GetEClass_GetEStructuralFeature_EString returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_GetEStructuralFeature_EString() EOperation {
-	return p.eClass_GetEStructuralFeature_EString
+	return p.eClass.GetEOperations().Get(3).(EOperation)
 }
 
 // GetEClass_GetFeatureCount returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_GetFeatureCount() EOperation {
-	return p.eClass_GetFeatureCount
+	return p.eClass.GetEOperations().Get(1).(EOperation)
 }
 
 // GetEClass_GetFeatureID_EStructuralFeature returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_GetFeatureID_EStructuralFeature() EOperation {
-	return p.eClass_GetFeatureID_EStructuralFeature
+	return p.eClass.GetEOperations().Get(4).(EOperation)
 }
 
 // GetEClass_GetFeatureType_EStructuralFeature returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_GetFeatureType_EStructuralFeature() EOperation {
-	return p.eClass_GetFeatureType_EStructuralFeature
+	return p.eClass.GetEOperations().Get(9).(EOperation)
 }
 
 // GetEClass_GetOperationCount returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_GetOperationCount() EOperation {
-	return p.eClass_GetOperationCount
+	return p.eClass.GetEOperations().Get(5).(EOperation)
 }
 
 // GetEClass_GetOperationID_EOperation returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_GetOperationID_EOperation() EOperation {
-	return p.eClass_GetOperationID_EOperation
+	return p.eClass.GetEOperations().Get(7).(EOperation)
 }
 
 // GetEClass_GetOverride_EOperation returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_GetOverride_EOperation() EOperation {
-	return p.eClass_GetOverride_EOperation
+	return p.eClass.GetEOperations().Get(8).(EOperation)
 }
 
 // GetEClass_IsSuperTypeOf_EClass returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClass_IsSuperTypeOf_EClass() EOperation {
-	return p.eClass_IsSuperTypeOf_EClass
+	return p.eClass.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEClassifierClass returns the meta object corresponding to
@@ -413,27 +279,27 @@ func (p *ecorePackageImpl) GetEClassifierClass() EClass {
 
 // GetEClassifier_ClassifierID returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_ClassifierID() EAttribute {
-	return p.eClassifier_ClassifierID
+	return p.eClassifier.GetEStructuralFeatures().Get(3).(EAttribute)
 }
 
 // GetEClassifier_DefaultValue returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_DefaultValue() EAttribute {
-	return p.eClassifier_DefaultValue
+	return p.eClassifier.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEClassifier_InstanceClass returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_InstanceClass() EAttribute {
-	return p.eClassifier_InstanceClass
+	return p.eClassifier.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEClassifier_EPackage returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_EPackage() EReference {
-	return p.eClassifier_EPackage
+	return p.eClassifier.GetEStructuralFeatures().Get(2).(EReference)
 }
 
 // GetEClassifier_IsInstance_EJavaObject returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_IsInstance_EJavaObject() EOperation {
-	return p.eClassifier_IsInstance_EJavaObject
+	return p.eClassifier.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEDataType returns the meta object corresponding to
@@ -443,7 +309,7 @@ func (p *ecorePackageImpl) GetEDataType() EClass {
 
 // GetEDataType_Serializable returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEDataType_Serializable() EAttribute {
-	return p.eDataType_Serializable
+	return p.eDataType.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEEnum returns the meta object corresponding to
@@ -453,22 +319,22 @@ func (p *ecorePackageImpl) GetEEnum() EClass {
 
 // GetEEnum_ELiterals returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEEnum_ELiterals() EReference {
-	return p.eEnum_ELiterals
+	return p.eEnum.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetEEnum_GetEEnumLiteral_EString returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEEnum_GetEEnumLiteral_EString() EOperation {
-	return p.eEnum_GetEEnumLiteral_EString
+	return p.eEnum.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEEnum_GetEEnumLiteral_EInt returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEEnum_GetEEnumLiteral_EInt() EOperation {
-	return p.eEnum_GetEEnumLiteral_EInt
+	return p.eEnum.GetEOperations().Get(1).(EOperation)
 }
 
 // GetEEnum_GetEEnumLiteralByLiteral_EString returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEEnum_GetEEnumLiteralByLiteral_EString() EOperation {
-	return p.eEnum_GetEEnumLiteralByLiteral_EString
+	return p.eEnum.GetEOperations().Get(2).(EOperation)
 }
 
 // GetEEnumLiteral returns the meta object corresponding to
@@ -478,22 +344,22 @@ func (p *ecorePackageImpl) GetEEnumLiteral() EClass {
 
 // GetEEnumLiteral_Instance returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEEnumLiteral_Instance() EAttribute {
-	return p.eEnumLiteral_Instance
+	return p.eEnumLiteral.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEEnumLiteral_Literal returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEEnumLiteral_Literal() EAttribute {
-	return p.eEnumLiteral_Literal
+	return p.eEnumLiteral.GetEStructuralFeatures().Get(2).(EAttribute)
 }
 
 // GetEEnumLiteral_Value returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEEnumLiteral_Value() EAttribute {
-	return p.eEnumLiteral_Value
+	return p.eEnumLiteral.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEEnumLiteral_EEnum returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEEnumLiteral_EEnum() EReference {
-	return p.eEnumLiteral_EEnum
+	return p.eEnumLiteral.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEFactory returns the meta object corresponding to
@@ -503,22 +369,22 @@ func (p *ecorePackageImpl) GetEFactory() EClass {
 
 // GetEFactory_EPackage returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEFactory_EPackage() EReference {
-	return p.eFactory_EPackage
+	return p.eFactory.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetEFactory_ConvertToString_EDataType_EJavaObject returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEFactory_ConvertToString_EDataType_EJavaObject() EOperation {
-	return p.eFactory_ConvertToString_EDataType_EJavaObject
+	return p.eFactory.GetEOperations().Get(2).(EOperation)
 }
 
 // GetEFactory_Create_EClass returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEFactory_Create_EClass() EOperation {
-	return p.eFactory_Create_EClass
+	return p.eFactory.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEFactory_CreateFromString_EDataType_EString returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEFactory_CreateFromString_EDataType_EString() EOperation {
-	return p.eFactory_CreateFromString_EDataType_EString
+	return p.eFactory.GetEOperations().Get(1).(EOperation)
 }
 
 // GetEGenericType returns the meta object corresponding to
@@ -528,37 +394,37 @@ func (p *ecorePackageImpl) GetEGenericType() EClass {
 
 // GetEGenericType_EClassifier returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEGenericType_EClassifier() EReference {
-	return p.eGenericType_EClassifier
+	return p.eGenericType.GetEStructuralFeatures().Get(5).(EReference)
 }
 
 // GetEGenericType_ELowerBound returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEGenericType_ELowerBound() EReference {
-	return p.eGenericType_ELowerBound
+	return p.eGenericType.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEGenericType_ERawType returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEGenericType_ERawType() EReference {
-	return p.eGenericType_ERawType
+	return p.eGenericType.GetEStructuralFeatures().Get(2).(EReference)
 }
 
 // GetEGenericType_ETypeArguments returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEGenericType_ETypeArguments() EReference {
-	return p.eGenericType_ETypeArguments
+	return p.eGenericType.GetEStructuralFeatures().Get(1).(EReference)
 }
 
 // GetEGenericType_ETypeParameter returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEGenericType_ETypeParameter() EReference {
-	return p.eGenericType_ETypeParameter
+	return p.eGenericType.GetEStructuralFeatures().Get(4).(EReference)
 }
 
 // GetEGenericType_EUpperBound returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEGenericType_EUpperBound() EReference {
-	return p.eGenericType_EUpperBound
+	return p.eGenericType.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetEGenericType_IsInstance_EJavaObject returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEGenericType_IsInstance_EJavaObject() EOperation {
-	return p.eGenericType_IsInstance_EJavaObject
+	return p.eGenericType.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEModelElement returns the meta object corresponding to
@@ -568,12 +434,12 @@ func (p *ecorePackageImpl) GetEModelElement() EClass {
 
 // GetEModelElement_EAnnotations returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEModelElement_EAnnotations() EReference {
-	return p.eModelElement_EAnnotations
+	return p.eModelElement.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetEModelElement_GetEAnnotation_EString returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEModelElement_GetEAnnotation_EString() EOperation {
-	return p.eModelElement_GetEAnnotation_EString
+	return p.eModelElement.GetEOperations().Get(0).(EOperation)
 }
 
 // GetENamedElement returns the meta object corresponding to
@@ -583,7 +449,7 @@ func (p *ecorePackageImpl) GetENamedElement() EClass {
 
 // GetENamedElement_Name returns the meta object corresponding to
 func (p *ecorePackageImpl) GetENamedElement_Name() EAttribute {
-	return p.eNamedElement_Name
+	return p.eNamedElement.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEObject returns the meta object corresponding to
@@ -593,77 +459,77 @@ func (p *ecorePackageImpl) GetEObject() EClass {
 
 // GetEObject_EAllContents returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EAllContents() EOperation {
-	return p.eObject_EAllContents
+	return p.eObject.GetEOperations().Get(7).(EOperation)
 }
 
 // GetEObject_EClass returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EClass() EOperation {
-	return p.eObject_EClass
+	return p.eObject.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEObject_EContainer returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EContainer() EOperation {
-	return p.eObject_EContainer
+	return p.eObject.GetEOperations().Get(3).(EOperation)
 }
 
 // GetEObject_EContainingFeature returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EContainingFeature() EOperation {
-	return p.eObject_EContainingFeature
+	return p.eObject.GetEOperations().Get(4).(EOperation)
 }
 
 // GetEObject_EContainmentFeature returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EContainmentFeature() EOperation {
-	return p.eObject_EContainmentFeature
+	return p.eObject.GetEOperations().Get(5).(EOperation)
 }
 
 // GetEObject_EContents returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EContents() EOperation {
-	return p.eObject_EContents
+	return p.eObject.GetEOperations().Get(6).(EOperation)
 }
 
 // GetEObject_ECrossReferences returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_ECrossReferences() EOperation {
-	return p.eObject_ECrossReferences
+	return p.eObject.GetEOperations().Get(8).(EOperation)
 }
 
 // GetEObject_EGet_EStructuralFeature returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EGet_EStructuralFeature() EOperation {
-	return p.eObject_EGet_EStructuralFeature
+	return p.eObject.GetEOperations().Get(9).(EOperation)
 }
 
 // GetEObject_EGet_EStructuralFeature_EBoolean returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EGet_EStructuralFeature_EBoolean() EOperation {
-	return p.eObject_EGet_EStructuralFeature_EBoolean
+	return p.eObject.GetEOperations().Get(10).(EOperation)
 }
 
 // GetEObject_EInvoke_EOperation_EEList returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EInvoke_EOperation_EEList() EOperation {
-	return p.eObject_EInvoke_EOperation_EEList
+	return p.eObject.GetEOperations().Get(14).(EOperation)
 }
 
 // GetEObject_EIsProxy returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EIsProxy() EOperation {
-	return p.eObject_EIsProxy
+	return p.eObject.GetEOperations().Get(1).(EOperation)
 }
 
 // GetEObject_EIsSet_EStructuralFeature returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EIsSet_EStructuralFeature() EOperation {
-	return p.eObject_EIsSet_EStructuralFeature
+	return p.eObject.GetEOperations().Get(12).(EOperation)
 }
 
 // GetEObject_EResource returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EResource() EOperation {
-	return p.eObject_EResource
+	return p.eObject.GetEOperations().Get(2).(EOperation)
 }
 
 // GetEObject_ESet_EStructuralFeature_EJavaObject returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_ESet_EStructuralFeature_EJavaObject() EOperation {
-	return p.eObject_ESet_EStructuralFeature_EJavaObject
+	return p.eObject.GetEOperations().Get(11).(EOperation)
 }
 
 // GetEObject_EUnset_EStructuralFeature returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEObject_EUnset_EStructuralFeature() EOperation {
-	return p.eObject_EUnset_EStructuralFeature
+	return p.eObject.GetEOperations().Get(13).(EOperation)
 }
 
 // GetEOperation returns the meta object corresponding to
@@ -673,27 +539,27 @@ func (p *ecorePackageImpl) GetEOperation() EClass {
 
 // GetEOperation_OperationID returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEOperation_OperationID() EAttribute {
-	return p.eOperation_OperationID
+	return p.eOperation.GetEStructuralFeatures().Get(3).(EAttribute)
 }
 
 // GetEOperation_EContainingClass returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEOperation_EContainingClass() EReference {
-	return p.eOperation_EContainingClass
+	return p.eOperation.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetEOperation_EExceptions returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEOperation_EExceptions() EReference {
-	return p.eOperation_EExceptions
+	return p.eOperation.GetEStructuralFeatures().Get(2).(EReference)
 }
 
 // GetEOperation_EParameters returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEOperation_EParameters() EReference {
-	return p.eOperation_EParameters
+	return p.eOperation.GetEStructuralFeatures().Get(1).(EReference)
 }
 
 // GetEOperation_IsOverrideOf_EOperation returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEOperation_IsOverrideOf_EOperation() EOperation {
-	return p.eOperation_IsOverrideOf_EOperation
+	return p.eOperation.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEPackage returns the meta object corresponding to
@@ -703,37 +569,37 @@ func (p *ecorePackageImpl) GetEPackage() EClass {
 
 // GetEPackage_NsPrefix returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEPackage_NsPrefix() EAttribute {
-	return p.ePackage_NsPrefix
+	return p.ePackage.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEPackage_NsURI returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEPackage_NsURI() EAttribute {
-	return p.ePackage_NsURI
+	return p.ePackage.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEPackage_EClassifiers returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEPackage_EClassifiers() EReference {
-	return p.ePackage_EClassifiers
+	return p.ePackage.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEPackage_EFactoryInstance returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEPackage_EFactoryInstance() EReference {
-	return p.ePackage_EFactoryInstance
+	return p.ePackage.GetEStructuralFeatures().Get(2).(EReference)
 }
 
 // GetEPackage_ESubPackages returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEPackage_ESubPackages() EReference {
-	return p.ePackage_ESubPackages
+	return p.ePackage.GetEStructuralFeatures().Get(4).(EReference)
 }
 
 // GetEPackage_ESuperPackage returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEPackage_ESuperPackage() EReference {
-	return p.ePackage_ESuperPackage
+	return p.ePackage.GetEStructuralFeatures().Get(5).(EReference)
 }
 
 // GetEPackage_GetEClassifier_EString returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEPackage_GetEClassifier_EString() EOperation {
-	return p.ePackage_GetEClassifier_EString
+	return p.ePackage.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEParameter returns the meta object corresponding to
@@ -743,7 +609,7 @@ func (p *ecorePackageImpl) GetEParameter() EClass {
 
 // GetEParameter_EOperation returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEParameter_EOperation() EReference {
-	return p.eParameter_EOperation
+	return p.eParameter.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetEReference returns the meta object corresponding to
@@ -753,32 +619,32 @@ func (p *ecorePackageImpl) GetEReference() EClass {
 
 // GetEReference_Container returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEReference_Container() EAttribute {
-	return p.eReference_Container
+	return p.eReference.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEReference_Containment returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEReference_Containment() EAttribute {
-	return p.eReference_Containment
+	return p.eReference.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEReference_ResolveProxies returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEReference_ResolveProxies() EAttribute {
-	return p.eReference_ResolveProxies
+	return p.eReference.GetEStructuralFeatures().Get(2).(EAttribute)
 }
 
 // GetEReference_EKeys returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEReference_EKeys() EReference {
-	return p.eReference_EKeys
+	return p.eReference.GetEStructuralFeatures().Get(5).(EReference)
 }
 
 // GetEReference_EOpposite returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEReference_EOpposite() EReference {
-	return p.eReference_EOpposite
+	return p.eReference.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEReference_EReferenceType returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEReference_EReferenceType() EReference {
-	return p.eReference_EReferenceType
+	return p.eReference.GetEStructuralFeatures().Get(4).(EReference)
 }
 
 // GetEStringToStringMapEntry returns the meta object corresponding to
@@ -788,12 +654,12 @@ func (p *ecorePackageImpl) GetEStringToStringMapEntry() EClass {
 
 // GetEStringToStringMapEntry_Key returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEStringToStringMapEntry_Key() EAttribute {
-	return p.eStringToStringMapEntry_Key
+	return p.eStringToStringMapEntry.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEStringToStringMapEntry_Value returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEStringToStringMapEntry_Value() EAttribute {
-	return p.eStringToStringMapEntry_Value
+	return p.eStringToStringMapEntry.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEStructuralFeature returns the meta object corresponding to
@@ -803,52 +669,52 @@ func (p *ecorePackageImpl) GetEStructuralFeature() EClass {
 
 // GetEStructuralFeature_Changeable returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEStructuralFeature_Changeable() EAttribute {
-	return p.eStructuralFeature_Changeable
+	return p.eStructuralFeature.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEStructuralFeature_DefaultValue returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEStructuralFeature_DefaultValue() EAttribute {
-	return p.eStructuralFeature_DefaultValue
+	return p.eStructuralFeature.GetEStructuralFeatures().Get(4).(EAttribute)
 }
 
 // GetEStructuralFeature_DefaultValueLiteral returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEStructuralFeature_DefaultValueLiteral() EAttribute {
-	return p.eStructuralFeature_DefaultValueLiteral
+	return p.eStructuralFeature.GetEStructuralFeatures().Get(3).(EAttribute)
 }
 
 // GetEStructuralFeature_Derived returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEStructuralFeature_Derived() EAttribute {
-	return p.eStructuralFeature_Derived
+	return p.eStructuralFeature.GetEStructuralFeatures().Get(6).(EAttribute)
 }
 
 // GetEStructuralFeature_FeatureID returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEStructuralFeature_FeatureID() EAttribute {
-	return p.eStructuralFeature_FeatureID
+	return p.eStructuralFeature.GetEStructuralFeatures().Get(8).(EAttribute)
 }
 
 // GetEStructuralFeature_Transient returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEStructuralFeature_Transient() EAttribute {
-	return p.eStructuralFeature_Transient
+	return p.eStructuralFeature.GetEStructuralFeatures().Get(2).(EAttribute)
 }
 
 // GetEStructuralFeature_Unsettable returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEStructuralFeature_Unsettable() EAttribute {
-	return p.eStructuralFeature_Unsettable
+	return p.eStructuralFeature.GetEStructuralFeatures().Get(5).(EAttribute)
 }
 
 // GetEStructuralFeature_Volatile returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEStructuralFeature_Volatile() EAttribute {
-	return p.eStructuralFeature_Volatile
+	return p.eStructuralFeature.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEStructuralFeature_EContainingClass returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEStructuralFeature_EContainingClass() EReference {
-	return p.eStructuralFeature_EContainingClass
+	return p.eStructuralFeature.GetEStructuralFeatures().Get(7).(EReference)
 }
 
 // GetEStructuralFeature_GetContainerClass returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEStructuralFeature_GetContainerClass() EOperation {
-	return p.eStructuralFeature_GetContainerClass
+	return p.eStructuralFeature.GetEOperations().Get(0).(EOperation)
 }
 
 // GetETypeParameter returns the meta object corresponding to
@@ -858,7 +724,7 @@ func (p *ecorePackageImpl) GetETypeParameter() EClass {
 
 // GetETypeParameter_EBounds returns the meta object corresponding to
 func (p *ecorePackageImpl) GetETypeParameter_EBounds() EReference {
-	return p.eTypeParameter_EBounds
+	return p.eTypeParameter.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetETypedElement returns the meta object corresponding to
@@ -868,37 +734,37 @@ func (p *ecorePackageImpl) GetETypedElement() EClass {
 
 // GetETypedElement_LowerBound returns the meta object corresponding to
 func (p *ecorePackageImpl) GetETypedElement_LowerBound() EAttribute {
-	return p.eTypedElement_LowerBound
+	return p.eTypedElement.GetEStructuralFeatures().Get(2).(EAttribute)
 }
 
 // GetETypedElement_Many returns the meta object corresponding to
 func (p *ecorePackageImpl) GetETypedElement_Many() EAttribute {
-	return p.eTypedElement_Many
+	return p.eTypedElement.GetEStructuralFeatures().Get(4).(EAttribute)
 }
 
 // GetETypedElement_Ordered returns the meta object corresponding to
 func (p *ecorePackageImpl) GetETypedElement_Ordered() EAttribute {
-	return p.eTypedElement_Ordered
+	return p.eTypedElement.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetETypedElement_Required returns the meta object corresponding to
 func (p *ecorePackageImpl) GetETypedElement_Required() EAttribute {
-	return p.eTypedElement_Required
+	return p.eTypedElement.GetEStructuralFeatures().Get(5).(EAttribute)
 }
 
 // GetETypedElement_Unique returns the meta object corresponding to
 func (p *ecorePackageImpl) GetETypedElement_Unique() EAttribute {
-	return p.eTypedElement_Unique
+	return p.eTypedElement.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetETypedElement_UpperBound returns the meta object corresponding to
 func (p *ecorePackageImpl) GetETypedElement_UpperBound() EAttribute {
-	return p.eTypedElement_UpperBound
+	return p.eTypedElement.GetEStructuralFeatures().Get(3).(EAttribute)
 }
 
 // GetETypedElement_EType returns the meta object corresponding to
 func (p *ecorePackageImpl) GetETypedElement_EType() EReference {
-	return p.eTypedElement_EType
+	return p.eTypedElement.GetEStructuralFeatures().Get(6).(EReference)
 }
 
 // GetEBigDecimal returns the meta object corresponding to
@@ -1094,244 +960,244 @@ func (p *ecorePackageImpl) createPackageContents() {
 func (p *ecorePackageImpl) createEAnnotationContent(factory EcoreFactory) {
 	p.eAnnotation = factory.CreateEClassFromContainerAndClassID(p, EANNOTATION)
 
-	p.eAnnotation_Source = factory.CreateEAttributeFromContainerAndClassID(p.eAnnotation, EANNOTATION__SOURCE)
-	p.eAnnotation_Details = factory.CreateEReferenceFromContainerAndClassID(p.eAnnotation, EANNOTATION__DETAILS)
-	p.eAnnotation_EModelElement = factory.CreateEReferenceFromContainerAndClassID(p.eAnnotation, EANNOTATION__EMODEL_ELEMENT)
-	p.eAnnotation_Contents = factory.CreateEReferenceFromContainerAndClassID(p.eAnnotation, EANNOTATION__CONTENTS)
-	p.eAnnotation_References = factory.CreateEReferenceFromContainerAndClassID(p.eAnnotation, EANNOTATION__REFERENCES)
+	factory.CreateEAttributeFromContainerAndClassID(p.eAnnotation, EANNOTATION__SOURCE)
+	factory.CreateEReferenceFromContainerAndClassID(p.eAnnotation, EANNOTATION__DETAILS)
+	factory.CreateEReferenceFromContainerAndClassID(p.eAnnotation, EANNOTATION__EMODEL_ELEMENT)
+	factory.CreateEReferenceFromContainerAndClassID(p.eAnnotation, EANNOTATION__CONTENTS)
+	factory.CreateEReferenceFromContainerAndClassID(p.eAnnotation, EANNOTATION__REFERENCES)
 
 }
 
 func (p *ecorePackageImpl) createEAttributeContent(factory EcoreFactory) {
 	p.eAttribute = factory.CreateEClassFromContainerAndClassID(p, EATTRIBUTE)
 
-	p.eAttribute_ID = factory.CreateEAttributeFromContainerAndClassID(p.eAttribute, EATTRIBUTE__ID)
-	p.eAttribute_EAttributeType = factory.CreateEReferenceFromContainerAndClassID(p.eAttribute, EATTRIBUTE__EATTRIBUTE_TYPE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eAttribute, EATTRIBUTE__ID)
+	factory.CreateEReferenceFromContainerAndClassID(p.eAttribute, EATTRIBUTE__EATTRIBUTE_TYPE)
 
 }
 
 func (p *ecorePackageImpl) createEClassContent(factory EcoreFactory) {
 	p.eClass = factory.CreateEClassFromContainerAndClassID(p, ECLASS)
 
-	p.eClass_Abstract = factory.CreateEAttributeFromContainerAndClassID(p.eClass, ECLASS__ABSTRACT)
-	p.eClass_Interface = factory.CreateEAttributeFromContainerAndClassID(p.eClass, ECLASS__INTERFACE)
-	p.eClass_EStructuralFeatures = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ESTRUCTURAL_FEATURES)
-	p.eClass_EAttributes = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EATTRIBUTES)
-	p.eClass_EReferences = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EREFERENCES)
-	p.eClass_ESuperTypes = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ESUPER_TYPES)
-	p.eClass_EOperations = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EOPERATIONS)
-	p.eClass_EContainmentFeatures = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ECONTAINMENT_FEATURES)
-	p.eClass_ECrossReferenceFeatures = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ECROSS_REFERENCE_FEATURES)
-	p.eClass_EAllAttributes = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_ATTRIBUTES)
-	p.eClass_EAllReferences = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_REFERENCES)
-	p.eClass_EAllContainments = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_CONTAINMENTS)
-	p.eClass_EAllOperations = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_OPERATIONS)
-	p.eClass_EAllStructuralFeatures = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_STRUCTURAL_FEATURES)
-	p.eClass_EAllSuperTypes = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_SUPER_TYPES)
-	p.eClass_EIDAttribute = factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EID_ATTRIBUTE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eClass, ECLASS__ABSTRACT)
+	factory.CreateEAttributeFromContainerAndClassID(p.eClass, ECLASS__INTERFACE)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ESTRUCTURAL_FEATURES)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EATTRIBUTES)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EREFERENCES)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ESUPER_TYPES)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EOPERATIONS)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ECONTAINMENT_FEATURES)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__ECROSS_REFERENCE_FEATURES)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_ATTRIBUTES)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_REFERENCES)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_CONTAINMENTS)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_OPERATIONS)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_STRUCTURAL_FEATURES)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_SUPER_TYPES)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EID_ATTRIBUTE)
 
-	p.eClass_IsSuperTypeOf_EClass = factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__IS_SUPER_TYPE_OF_ECLASS)
-	p.eClass_GetFeatureCount = factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_FEATURE_COUNT)
-	p.eClass_GetEStructuralFeature_EInt = factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_ESTRUCTURAL_FEATURE_EINT)
-	p.eClass_GetEStructuralFeature_EString = factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING)
-	p.eClass_GetFeatureID_EStructuralFeature = factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_FEATURE_ID_ESTRUCTURALFEATURE)
-	p.eClass_GetOperationCount = factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_OPERATION_COUNT)
-	p.eClass_GetEOperation_EInt = factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_EOPERATION_EINT)
-	p.eClass_GetOperationID_EOperation = factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_OPERATION_ID_EOPERATION)
-	p.eClass_GetOverride_EOperation = factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_OVERRIDE_EOPERATION)
-	p.eClass_GetFeatureType_EStructuralFeature = factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_FEATURE_TYPE_ESTRUCTURALFEATURE)
+	factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__IS_SUPER_TYPE_OF_ECLASS)
+	factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_FEATURE_COUNT)
+	factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_ESTRUCTURAL_FEATURE_EINT)
+	factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_ESTRUCTURAL_FEATURE_ESTRING)
+	factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_FEATURE_ID_ESTRUCTURALFEATURE)
+	factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_OPERATION_COUNT)
+	factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_EOPERATION_EINT)
+	factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_OPERATION_ID_EOPERATION)
+	factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_OVERRIDE_EOPERATION)
+	factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_FEATURE_TYPE_ESTRUCTURALFEATURE)
 
 }
 
 func (p *ecorePackageImpl) createEClassifierContent(factory EcoreFactory) {
 	p.eClassifier = factory.CreateEClassFromContainerAndClassID(p, ECLASSIFIER)
 
-	p.eClassifier_InstanceClass = factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__INSTANCE_CLASS)
-	p.eClassifier_DefaultValue = factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__DEFAULT_VALUE)
-	p.eClassifier_EPackage = factory.CreateEReferenceFromContainerAndClassID(p.eClassifier, ECLASSIFIER__EPACKAGE)
-	p.eClassifier_ClassifierID = factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__CLASSIFIER_ID)
+	factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__INSTANCE_CLASS)
+	factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__DEFAULT_VALUE)
+	factory.CreateEReferenceFromContainerAndClassID(p.eClassifier, ECLASSIFIER__EPACKAGE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__CLASSIFIER_ID)
 
-	p.eClassifier_IsInstance_EJavaObject = factory.CreateEOperationFromContainerAndClassID(p.eClassifier, ECLASSIFIER__IS_INSTANCE_EJAVAOBJECT)
+	factory.CreateEOperationFromContainerAndClassID(p.eClassifier, ECLASSIFIER__IS_INSTANCE_EJAVAOBJECT)
 
 }
 
 func (p *ecorePackageImpl) createEDataTypeContent(factory EcoreFactory) {
 	p.eDataType = factory.CreateEClassFromContainerAndClassID(p, EDATA_TYPE)
 
-	p.eDataType_Serializable = factory.CreateEAttributeFromContainerAndClassID(p.eDataType, EDATA_TYPE__SERIALIZABLE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eDataType, EDATA_TYPE__SERIALIZABLE)
 
 }
 
 func (p *ecorePackageImpl) createEEnumContent(factory EcoreFactory) {
 	p.eEnum = factory.CreateEClassFromContainerAndClassID(p, EENUM)
 
-	p.eEnum_ELiterals = factory.CreateEReferenceFromContainerAndClassID(p.eEnum, EENUM__ELITERALS)
+	factory.CreateEReferenceFromContainerAndClassID(p.eEnum, EENUM__ELITERALS)
 
-	p.eEnum_GetEEnumLiteral_EString = factory.CreateEOperationFromContainerAndClassID(p.eEnum, EENUM__GET_EENUM_LITERAL_ESTRING)
-	p.eEnum_GetEEnumLiteral_EInt = factory.CreateEOperationFromContainerAndClassID(p.eEnum, EENUM__GET_EENUM_LITERAL_EINT)
-	p.eEnum_GetEEnumLiteralByLiteral_EString = factory.CreateEOperationFromContainerAndClassID(p.eEnum, EENUM__GET_EENUM_LITERAL_BY_LITERAL_ESTRING)
+	factory.CreateEOperationFromContainerAndClassID(p.eEnum, EENUM__GET_EENUM_LITERAL_ESTRING)
+	factory.CreateEOperationFromContainerAndClassID(p.eEnum, EENUM__GET_EENUM_LITERAL_EINT)
+	factory.CreateEOperationFromContainerAndClassID(p.eEnum, EENUM__GET_EENUM_LITERAL_BY_LITERAL_ESTRING)
 
 }
 
 func (p *ecorePackageImpl) createEEnumLiteralContent(factory EcoreFactory) {
 	p.eEnumLiteral = factory.CreateEClassFromContainerAndClassID(p, EENUM_LITERAL)
 
-	p.eEnumLiteral_Value = factory.CreateEAttributeFromContainerAndClassID(p.eEnumLiteral, EENUM_LITERAL__VALUE)
-	p.eEnumLiteral_Instance = factory.CreateEAttributeFromContainerAndClassID(p.eEnumLiteral, EENUM_LITERAL__INSTANCE)
-	p.eEnumLiteral_Literal = factory.CreateEAttributeFromContainerAndClassID(p.eEnumLiteral, EENUM_LITERAL__LITERAL)
-	p.eEnumLiteral_EEnum = factory.CreateEReferenceFromContainerAndClassID(p.eEnumLiteral, EENUM_LITERAL__EENUM)
+	factory.CreateEAttributeFromContainerAndClassID(p.eEnumLiteral, EENUM_LITERAL__VALUE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eEnumLiteral, EENUM_LITERAL__INSTANCE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eEnumLiteral, EENUM_LITERAL__LITERAL)
+	factory.CreateEReferenceFromContainerAndClassID(p.eEnumLiteral, EENUM_LITERAL__EENUM)
 
 }
 
 func (p *ecorePackageImpl) createEFactoryContent(factory EcoreFactory) {
 	p.eFactory = factory.CreateEClassFromContainerAndClassID(p, EFACTORY)
 
-	p.eFactory_EPackage = factory.CreateEReferenceFromContainerAndClassID(p.eFactory, EFACTORY__EPACKAGE)
+	factory.CreateEReferenceFromContainerAndClassID(p.eFactory, EFACTORY__EPACKAGE)
 
-	p.eFactory_Create_EClass = factory.CreateEOperationFromContainerAndClassID(p.eFactory, EFACTORY__CREATE_ECLASS)
-	p.eFactory_CreateFromString_EDataType_EString = factory.CreateEOperationFromContainerAndClassID(p.eFactory, EFACTORY__CREATE_FROM_STRING_EDATATYPE_ESTRING)
-	p.eFactory_ConvertToString_EDataType_EJavaObject = factory.CreateEOperationFromContainerAndClassID(p.eFactory, EFACTORY__CONVERT_TO_STRING_EDATATYPE_EJAVAOBJECT)
+	factory.CreateEOperationFromContainerAndClassID(p.eFactory, EFACTORY__CREATE_ECLASS)
+	factory.CreateEOperationFromContainerAndClassID(p.eFactory, EFACTORY__CREATE_FROM_STRING_EDATATYPE_ESTRING)
+	factory.CreateEOperationFromContainerAndClassID(p.eFactory, EFACTORY__CONVERT_TO_STRING_EDATATYPE_EJAVAOBJECT)
 
 }
 
 func (p *ecorePackageImpl) createEGenericTypeContent(factory EcoreFactory) {
 	p.eGenericType = factory.CreateEClassFromContainerAndClassID(p, EGENERIC_TYPE)
 
-	p.eGenericType_EUpperBound = factory.CreateEReferenceFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__EUPPER_BOUND)
-	p.eGenericType_ETypeArguments = factory.CreateEReferenceFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__ETYPE_ARGUMENTS)
-	p.eGenericType_ERawType = factory.CreateEReferenceFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__ERAW_TYPE)
-	p.eGenericType_ELowerBound = factory.CreateEReferenceFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__ELOWER_BOUND)
-	p.eGenericType_ETypeParameter = factory.CreateEReferenceFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__ETYPE_PARAMETER)
-	p.eGenericType_EClassifier = factory.CreateEReferenceFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__ECLASSIFIER)
+	factory.CreateEReferenceFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__EUPPER_BOUND)
+	factory.CreateEReferenceFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__ETYPE_ARGUMENTS)
+	factory.CreateEReferenceFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__ERAW_TYPE)
+	factory.CreateEReferenceFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__ELOWER_BOUND)
+	factory.CreateEReferenceFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__ETYPE_PARAMETER)
+	factory.CreateEReferenceFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__ECLASSIFIER)
 
-	p.eGenericType_IsInstance_EJavaObject = factory.CreateEOperationFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__IS_INSTANCE_EJAVAOBJECT)
+	factory.CreateEOperationFromContainerAndClassID(p.eGenericType, EGENERIC_TYPE__IS_INSTANCE_EJAVAOBJECT)
 
 }
 
 func (p *ecorePackageImpl) createEModelElementContent(factory EcoreFactory) {
 	p.eModelElement = factory.CreateEClassFromContainerAndClassID(p, EMODEL_ELEMENT)
 
-	p.eModelElement_EAnnotations = factory.CreateEReferenceFromContainerAndClassID(p.eModelElement, EMODEL_ELEMENT__EANNOTATIONS)
+	factory.CreateEReferenceFromContainerAndClassID(p.eModelElement, EMODEL_ELEMENT__EANNOTATIONS)
 
-	p.eModelElement_GetEAnnotation_EString = factory.CreateEOperationFromContainerAndClassID(p.eModelElement, EMODEL_ELEMENT__GET_EANNOTATION_ESTRING)
+	factory.CreateEOperationFromContainerAndClassID(p.eModelElement, EMODEL_ELEMENT__GET_EANNOTATION_ESTRING)
 
 }
 
 func (p *ecorePackageImpl) createENamedElementContent(factory EcoreFactory) {
 	p.eNamedElement = factory.CreateEClassFromContainerAndClassID(p, ENAMED_ELEMENT)
 
-	p.eNamedElement_Name = factory.CreateEAttributeFromContainerAndClassID(p.eNamedElement, ENAMED_ELEMENT__NAME)
+	factory.CreateEAttributeFromContainerAndClassID(p.eNamedElement, ENAMED_ELEMENT__NAME)
 
 }
 
 func (p *ecorePackageImpl) createEObjectContent(factory EcoreFactory) {
 	p.eObject = factory.CreateEClassFromContainerAndClassID(p, EOBJECT)
 
-	p.eObject_EClass = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ECLASS)
-	p.eObject_EIsProxy = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EIS_PROXY)
-	p.eObject_EResource = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ERESOURCE)
-	p.eObject_EContainer = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ECONTAINER)
-	p.eObject_EContainingFeature = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ECONTAINING_FEATURE)
-	p.eObject_EContainmentFeature = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ECONTAINMENT_FEATURE)
-	p.eObject_EContents = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ECONTENTS)
-	p.eObject_EAllContents = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EALL_CONTENTS)
-	p.eObject_ECrossReferences = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ECROSS_REFERENCES)
-	p.eObject_EGet_EStructuralFeature = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EGET_ESTRUCTURALFEATURE)
-	p.eObject_EGet_EStructuralFeature_EBoolean = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EGET_ESTRUCTURALFEATURE_EBOOLEAN)
-	p.eObject_ESet_EStructuralFeature_EJavaObject = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ESET_ESTRUCTURALFEATURE_EJAVAOBJECT)
-	p.eObject_EIsSet_EStructuralFeature = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EIS_SET_ESTRUCTURALFEATURE)
-	p.eObject_EUnset_EStructuralFeature = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EUNSET_ESTRUCTURALFEATURE)
-	p.eObject_EInvoke_EOperation_EEList = factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EINVOKE_EOPERATION_EELIST)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ECLASS)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EIS_PROXY)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ERESOURCE)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ECONTAINER)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ECONTAINING_FEATURE)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ECONTAINMENT_FEATURE)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ECONTENTS)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EALL_CONTENTS)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ECROSS_REFERENCES)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EGET_ESTRUCTURALFEATURE)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EGET_ESTRUCTURALFEATURE_EBOOLEAN)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__ESET_ESTRUCTURALFEATURE_EJAVAOBJECT)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EIS_SET_ESTRUCTURALFEATURE)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EUNSET_ESTRUCTURALFEATURE)
+	factory.CreateEOperationFromContainerAndClassID(p.eObject, EOBJECT__EINVOKE_EOPERATION_EELIST)
 
 }
 
 func (p *ecorePackageImpl) createEOperationContent(factory EcoreFactory) {
 	p.eOperation = factory.CreateEClassFromContainerAndClassID(p, EOPERATION)
 
-	p.eOperation_EContainingClass = factory.CreateEReferenceFromContainerAndClassID(p.eOperation, EOPERATION__ECONTAINING_CLASS)
-	p.eOperation_EParameters = factory.CreateEReferenceFromContainerAndClassID(p.eOperation, EOPERATION__EPARAMETERS)
-	p.eOperation_EExceptions = factory.CreateEReferenceFromContainerAndClassID(p.eOperation, EOPERATION__EEXCEPTIONS)
-	p.eOperation_OperationID = factory.CreateEAttributeFromContainerAndClassID(p.eOperation, EOPERATION__OPERATION_ID)
+	factory.CreateEReferenceFromContainerAndClassID(p.eOperation, EOPERATION__ECONTAINING_CLASS)
+	factory.CreateEReferenceFromContainerAndClassID(p.eOperation, EOPERATION__EPARAMETERS)
+	factory.CreateEReferenceFromContainerAndClassID(p.eOperation, EOPERATION__EEXCEPTIONS)
+	factory.CreateEAttributeFromContainerAndClassID(p.eOperation, EOPERATION__OPERATION_ID)
 
-	p.eOperation_IsOverrideOf_EOperation = factory.CreateEOperationFromContainerAndClassID(p.eOperation, EOPERATION__IS_OVERRIDE_OF_EOPERATION)
+	factory.CreateEOperationFromContainerAndClassID(p.eOperation, EOPERATION__IS_OVERRIDE_OF_EOPERATION)
 
 }
 
 func (p *ecorePackageImpl) createEPackageContent(factory EcoreFactory) {
 	p.ePackage = factory.CreateEClassFromContainerAndClassID(p, EPACKAGE)
 
-	p.ePackage_NsURI = factory.CreateEAttributeFromContainerAndClassID(p.ePackage, EPACKAGE__NS_URI)
-	p.ePackage_NsPrefix = factory.CreateEAttributeFromContainerAndClassID(p.ePackage, EPACKAGE__NS_PREFIX)
-	p.ePackage_EFactoryInstance = factory.CreateEReferenceFromContainerAndClassID(p.ePackage, EPACKAGE__EFACTORY_INSTANCE)
-	p.ePackage_EClassifiers = factory.CreateEReferenceFromContainerAndClassID(p.ePackage, EPACKAGE__ECLASSIFIERS)
-	p.ePackage_ESubPackages = factory.CreateEReferenceFromContainerAndClassID(p.ePackage, EPACKAGE__ESUB_PACKAGES)
-	p.ePackage_ESuperPackage = factory.CreateEReferenceFromContainerAndClassID(p.ePackage, EPACKAGE__ESUPER_PACKAGE)
+	factory.CreateEAttributeFromContainerAndClassID(p.ePackage, EPACKAGE__NS_URI)
+	factory.CreateEAttributeFromContainerAndClassID(p.ePackage, EPACKAGE__NS_PREFIX)
+	factory.CreateEReferenceFromContainerAndClassID(p.ePackage, EPACKAGE__EFACTORY_INSTANCE)
+	factory.CreateEReferenceFromContainerAndClassID(p.ePackage, EPACKAGE__ECLASSIFIERS)
+	factory.CreateEReferenceFromContainerAndClassID(p.ePackage, EPACKAGE__ESUB_PACKAGES)
+	factory.CreateEReferenceFromContainerAndClassID(p.ePackage, EPACKAGE__ESUPER_PACKAGE)
 
-	p.ePackage_GetEClassifier_EString = factory.CreateEOperationFromContainerAndClassID(p.ePackage, EPACKAGE__GET_ECLASSIFIER_ESTRING)
+	factory.CreateEOperationFromContainerAndClassID(p.ePackage, EPACKAGE__GET_ECLASSIFIER_ESTRING)
 
 }
 
 func (p *ecorePackageImpl) createEParameterContent(factory EcoreFactory) {
 	p.eParameter = factory.CreateEClassFromContainerAndClassID(p, EPARAMETER)
 
-	p.eParameter_EOperation = factory.CreateEReferenceFromContainerAndClassID(p.eParameter, EPARAMETER__EOPERATION)
+	factory.CreateEReferenceFromContainerAndClassID(p.eParameter, EPARAMETER__EOPERATION)
 
 }
 
 func (p *ecorePackageImpl) createEReferenceContent(factory EcoreFactory) {
 	p.eReference = factory.CreateEClassFromContainerAndClassID(p, EREFERENCE)
 
-	p.eReference_Containment = factory.CreateEAttributeFromContainerAndClassID(p.eReference, EREFERENCE__CONTAINMENT)
-	p.eReference_Container = factory.CreateEAttributeFromContainerAndClassID(p.eReference, EREFERENCE__CONTAINER)
-	p.eReference_ResolveProxies = factory.CreateEAttributeFromContainerAndClassID(p.eReference, EREFERENCE__RESOLVE_PROXIES)
-	p.eReference_EOpposite = factory.CreateEReferenceFromContainerAndClassID(p.eReference, EREFERENCE__EOPPOSITE)
-	p.eReference_EReferenceType = factory.CreateEReferenceFromContainerAndClassID(p.eReference, EREFERENCE__EREFERENCE_TYPE)
-	p.eReference_EKeys = factory.CreateEReferenceFromContainerAndClassID(p.eReference, EREFERENCE__EKEYS)
+	factory.CreateEAttributeFromContainerAndClassID(p.eReference, EREFERENCE__CONTAINMENT)
+	factory.CreateEAttributeFromContainerAndClassID(p.eReference, EREFERENCE__CONTAINER)
+	factory.CreateEAttributeFromContainerAndClassID(p.eReference, EREFERENCE__RESOLVE_PROXIES)
+	factory.CreateEReferenceFromContainerAndClassID(p.eReference, EREFERENCE__EOPPOSITE)
+	factory.CreateEReferenceFromContainerAndClassID(p.eReference, EREFERENCE__EREFERENCE_TYPE)
+	factory.CreateEReferenceFromContainerAndClassID(p.eReference, EREFERENCE__EKEYS)
 
 }
 
 func (p *ecorePackageImpl) createEStringToStringMapEntryContent(factory EcoreFactory) {
 	p.eStringToStringMapEntry = factory.CreateEClassFromContainerAndClassID(p, ESTRING_TO_STRING_MAP_ENTRY)
 
-	p.eStringToStringMapEntry_Key = factory.CreateEAttributeFromContainerAndClassID(p.eStringToStringMapEntry, ESTRING_TO_STRING_MAP_ENTRY__KEY)
-	p.eStringToStringMapEntry_Value = factory.CreateEAttributeFromContainerAndClassID(p.eStringToStringMapEntry, ESTRING_TO_STRING_MAP_ENTRY__VALUE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eStringToStringMapEntry, ESTRING_TO_STRING_MAP_ENTRY__KEY)
+	factory.CreateEAttributeFromContainerAndClassID(p.eStringToStringMapEntry, ESTRING_TO_STRING_MAP_ENTRY__VALUE)
 
 }
 
 func (p *ecorePackageImpl) createEStructuralFeatureContent(factory EcoreFactory) {
 	p.eStructuralFeature = factory.CreateEClassFromContainerAndClassID(p, ESTRUCTURAL_FEATURE)
 
-	p.eStructuralFeature_Changeable = factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__CHANGEABLE)
-	p.eStructuralFeature_Volatile = factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__VOLATILE)
-	p.eStructuralFeature_Transient = factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__TRANSIENT)
-	p.eStructuralFeature_DefaultValueLiteral = factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL)
-	p.eStructuralFeature_DefaultValue = factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__DEFAULT_VALUE)
-	p.eStructuralFeature_Unsettable = factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__UNSETTABLE)
-	p.eStructuralFeature_Derived = factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__DERIVED)
-	p.eStructuralFeature_EContainingClass = factory.CreateEReferenceFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS)
-	p.eStructuralFeature_FeatureID = factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__FEATURE_ID)
+	factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__CHANGEABLE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__VOLATILE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__TRANSIENT)
+	factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL)
+	factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__DEFAULT_VALUE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__UNSETTABLE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__DERIVED)
+	factory.CreateEReferenceFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS)
+	factory.CreateEAttributeFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__FEATURE_ID)
 
-	p.eStructuralFeature_GetContainerClass = factory.CreateEOperationFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__GET_CONTAINER_CLASS)
+	factory.CreateEOperationFromContainerAndClassID(p.eStructuralFeature, ESTRUCTURAL_FEATURE__GET_CONTAINER_CLASS)
 
 }
 
 func (p *ecorePackageImpl) createETypeParameterContent(factory EcoreFactory) {
 	p.eTypeParameter = factory.CreateEClassFromContainerAndClassID(p, ETYPE_PARAMETER)
 
-	p.eTypeParameter_EBounds = factory.CreateEReferenceFromContainerAndClassID(p.eTypeParameter, ETYPE_PARAMETER__EBOUNDS)
+	factory.CreateEReferenceFromContainerAndClassID(p.eTypeParameter, ETYPE_PARAMETER__EBOUNDS)
 
 }
 
 func (p *ecorePackageImpl) createETypedElementContent(factory EcoreFactory) {
 	p.eTypedElement = factory.CreateEClassFromContainerAndClassID(p, ETYPED_ELEMENT)
 
-	p.eTypedElement_Ordered = factory.CreateEAttributeFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__ORDERED)
-	p.eTypedElement_Unique = factory.CreateEAttributeFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__UNIQUE)
-	p.eTypedElement_LowerBound = factory.CreateEAttributeFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__LOWER_BOUND)
-	p.eTypedElement_UpperBound = factory.CreateEAttributeFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__UPPER_BOUND)
-	p.eTypedElement_Many = factory.CreateEAttributeFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__MANY)
-	p.eTypedElement_Required = factory.CreateEAttributeFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__REQUIRED)
-	p.eTypedElement_EType = factory.CreateEReferenceFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__ETYPE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__ORDERED)
+	factory.CreateEAttributeFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__UNIQUE)
+	factory.CreateEAttributeFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__LOWER_BOUND)
+	factory.CreateEAttributeFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__UPPER_BOUND)
+	factory.CreateEAttributeFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__MANY)
+	factory.CreateEAttributeFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__REQUIRED)
+	factory.CreateEReferenceFromContainerAndClassID(p.eTypedElement, ETYPED_ELEMENT__ETYPE)
 
 }
 
@@ -1418,80 +1284,86 @@ func (p *ecorePackageImpl) initializeEAnnotationContent() {
 	p.eAnnotation.SetName("EAnnotation")
 	p.eAnnotation.SetAbstract(false)
 	p.eAnnotation.SetInterface(false)
-	p.eAnnotation_Source.SetName("source")
-	p.eAnnotation_Source.SetEType(p.GetEString())
-	p.eAnnotation_Source.SetLowerBound(0)
-	p.eAnnotation_Source.SetUpperBound(1)
-	p.eAnnotation_Source.SetTransient(false)
-	p.eAnnotation_Source.SetVolatile(false)
-	p.eAnnotation_Source.SetChangeable(true)
-	p.eAnnotation_Source.SetUnsettable(false)
-	p.eAnnotation_Source.SetUnique(true)
-	p.eAnnotation_Source.SetDerived(false)
-	p.eAnnotation_Source.SetOrdered(true)
-	p.eAnnotation_Source.SetID(false)
-	p.eAnnotation_Source.SetDefaultValueLiteral("")
 
-	p.eAnnotation_Contents.SetName("contents")
-	p.eAnnotation_Contents.SetEType(p.GetEObject())
-	p.eAnnotation_Contents.SetLowerBound(0)
-	p.eAnnotation_Contents.SetUpperBound(-1)
-	p.eAnnotation_Contents.SetTransient(false)
-	p.eAnnotation_Contents.SetVolatile(false)
-	p.eAnnotation_Contents.SetChangeable(true)
-	p.eAnnotation_Contents.SetUnsettable(false)
-	p.eAnnotation_Contents.SetUnique(true)
-	p.eAnnotation_Contents.SetDerived(false)
-	p.eAnnotation_Contents.SetOrdered(true)
-	p.eAnnotation_Contents.SetContainment(true)
-	p.eAnnotation_Contents.SetResolveProxies(false)
-	p.eAnnotation_Contents.SetDefaultValueLiteral("")
+	eAnnotation_Source := p.GetEAnnotation_Source()
+	eAnnotation_Source.SetName("source")
+	eAnnotation_Source.SetEType(p.GetEString())
+	eAnnotation_Source.SetLowerBound(0)
+	eAnnotation_Source.SetUpperBound(1)
+	eAnnotation_Source.SetTransient(false)
+	eAnnotation_Source.SetVolatile(false)
+	eAnnotation_Source.SetChangeable(true)
+	eAnnotation_Source.SetUnsettable(false)
+	eAnnotation_Source.SetUnique(true)
+	eAnnotation_Source.SetDerived(false)
+	eAnnotation_Source.SetOrdered(true)
+	eAnnotation_Source.SetID(false)
+	eAnnotation_Source.SetDefaultValueLiteral("")
 
-	p.eAnnotation_Details.SetName("details")
-	p.eAnnotation_Details.SetEType(p.GetEStringToStringMapEntry())
-	p.eAnnotation_Details.SetLowerBound(0)
-	p.eAnnotation_Details.SetUpperBound(-1)
-	p.eAnnotation_Details.SetTransient(false)
-	p.eAnnotation_Details.SetVolatile(false)
-	p.eAnnotation_Details.SetChangeable(true)
-	p.eAnnotation_Details.SetUnsettable(false)
-	p.eAnnotation_Details.SetUnique(true)
-	p.eAnnotation_Details.SetDerived(false)
-	p.eAnnotation_Details.SetOrdered(true)
-	p.eAnnotation_Details.SetContainment(true)
-	p.eAnnotation_Details.SetResolveProxies(false)
-	p.eAnnotation_Details.SetDefaultValueLiteral("")
+	eAnnotation_Contents := p.GetEAnnotation_Contents()
+	eAnnotation_Contents.SetName("contents")
+	eAnnotation_Contents.SetEType(p.GetEObject())
+	eAnnotation_Contents.SetLowerBound(0)
+	eAnnotation_Contents.SetUpperBound(-1)
+	eAnnotation_Contents.SetTransient(false)
+	eAnnotation_Contents.SetVolatile(false)
+	eAnnotation_Contents.SetChangeable(true)
+	eAnnotation_Contents.SetUnsettable(false)
+	eAnnotation_Contents.SetUnique(true)
+	eAnnotation_Contents.SetDerived(false)
+	eAnnotation_Contents.SetOrdered(true)
+	eAnnotation_Contents.SetContainment(true)
+	eAnnotation_Contents.SetResolveProxies(false)
+	eAnnotation_Contents.SetDefaultValueLiteral("")
 
-	p.eAnnotation_EModelElement.SetName("eModelElement")
-	p.eAnnotation_EModelElement.SetEType(p.GetEModelElement())
-	p.eAnnotation_EModelElement.SetLowerBound(0)
-	p.eAnnotation_EModelElement.SetUpperBound(1)
-	p.eAnnotation_EModelElement.SetTransient(true)
-	p.eAnnotation_EModelElement.SetVolatile(false)
-	p.eAnnotation_EModelElement.SetChangeable(true)
-	p.eAnnotation_EModelElement.SetUnsettable(false)
-	p.eAnnotation_EModelElement.SetUnique(true)
-	p.eAnnotation_EModelElement.SetDerived(false)
-	p.eAnnotation_EModelElement.SetOrdered(true)
-	p.eAnnotation_EModelElement.SetContainment(false)
-	p.eAnnotation_EModelElement.SetResolveProxies(false)
-	p.eAnnotation_EModelElement.SetDefaultValueLiteral("")
-	p.eAnnotation_EModelElement.SetEOpposite(p.GetEModelElement_EAnnotations())
+	eAnnotation_Details := p.GetEAnnotation_Details()
+	eAnnotation_Details.SetName("details")
+	eAnnotation_Details.SetEType(p.GetEStringToStringMapEntry())
+	eAnnotation_Details.SetLowerBound(0)
+	eAnnotation_Details.SetUpperBound(-1)
+	eAnnotation_Details.SetTransient(false)
+	eAnnotation_Details.SetVolatile(false)
+	eAnnotation_Details.SetChangeable(true)
+	eAnnotation_Details.SetUnsettable(false)
+	eAnnotation_Details.SetUnique(true)
+	eAnnotation_Details.SetDerived(false)
+	eAnnotation_Details.SetOrdered(true)
+	eAnnotation_Details.SetContainment(true)
+	eAnnotation_Details.SetResolveProxies(false)
+	eAnnotation_Details.SetDefaultValueLiteral("")
 
-	p.eAnnotation_References.SetName("references")
-	p.eAnnotation_References.SetEType(p.GetEObject())
-	p.eAnnotation_References.SetLowerBound(0)
-	p.eAnnotation_References.SetUpperBound(-1)
-	p.eAnnotation_References.SetTransient(false)
-	p.eAnnotation_References.SetVolatile(false)
-	p.eAnnotation_References.SetChangeable(true)
-	p.eAnnotation_References.SetUnsettable(false)
-	p.eAnnotation_References.SetUnique(true)
-	p.eAnnotation_References.SetDerived(false)
-	p.eAnnotation_References.SetOrdered(true)
-	p.eAnnotation_References.SetContainment(false)
-	p.eAnnotation_References.SetResolveProxies(true)
-	p.eAnnotation_References.SetDefaultValueLiteral("")
+	eAnnotation_EModelElement := p.GetEAnnotation_EModelElement()
+	eAnnotation_EModelElement.SetName("eModelElement")
+	eAnnotation_EModelElement.SetEType(p.GetEModelElement())
+	eAnnotation_EModelElement.SetLowerBound(0)
+	eAnnotation_EModelElement.SetUpperBound(1)
+	eAnnotation_EModelElement.SetTransient(true)
+	eAnnotation_EModelElement.SetVolatile(false)
+	eAnnotation_EModelElement.SetChangeable(true)
+	eAnnotation_EModelElement.SetUnsettable(false)
+	eAnnotation_EModelElement.SetUnique(true)
+	eAnnotation_EModelElement.SetDerived(false)
+	eAnnotation_EModelElement.SetOrdered(true)
+	eAnnotation_EModelElement.SetContainment(false)
+	eAnnotation_EModelElement.SetResolveProxies(false)
+	eAnnotation_EModelElement.SetDefaultValueLiteral("")
+	eAnnotation_EModelElement.SetEOpposite(p.GetEModelElement_EAnnotations())
+
+	eAnnotation_References := p.GetEAnnotation_References()
+	eAnnotation_References.SetName("references")
+	eAnnotation_References.SetEType(p.GetEObject())
+	eAnnotation_References.SetLowerBound(0)
+	eAnnotation_References.SetUpperBound(-1)
+	eAnnotation_References.SetTransient(false)
+	eAnnotation_References.SetVolatile(false)
+	eAnnotation_References.SetChangeable(true)
+	eAnnotation_References.SetUnsettable(false)
+	eAnnotation_References.SetUnique(true)
+	eAnnotation_References.SetDerived(false)
+	eAnnotation_References.SetOrdered(true)
+	eAnnotation_References.SetContainment(false)
+	eAnnotation_References.SetResolveProxies(true)
+	eAnnotation_References.SetDefaultValueLiteral("")
 
 }
 
@@ -1499,34 +1371,37 @@ func (p *ecorePackageImpl) initializeEAttributeContent() {
 	p.eAttribute.SetName("EAttribute")
 	p.eAttribute.SetAbstract(false)
 	p.eAttribute.SetInterface(false)
-	p.eAttribute_ID.SetName("iD")
-	p.eAttribute_ID.SetEType(p.GetEBoolean())
-	p.eAttribute_ID.SetLowerBound(0)
-	p.eAttribute_ID.SetUpperBound(1)
-	p.eAttribute_ID.SetTransient(false)
-	p.eAttribute_ID.SetVolatile(false)
-	p.eAttribute_ID.SetChangeable(true)
-	p.eAttribute_ID.SetUnsettable(false)
-	p.eAttribute_ID.SetUnique(true)
-	p.eAttribute_ID.SetDerived(false)
-	p.eAttribute_ID.SetOrdered(true)
-	p.eAttribute_ID.SetID(false)
-	p.eAttribute_ID.SetDefaultValueLiteral("")
 
-	p.eAttribute_EAttributeType.SetName("eAttributeType")
-	p.eAttribute_EAttributeType.SetEType(p.GetEDataType())
-	p.eAttribute_EAttributeType.SetLowerBound(1)
-	p.eAttribute_EAttributeType.SetUpperBound(1)
-	p.eAttribute_EAttributeType.SetTransient(true)
-	p.eAttribute_EAttributeType.SetVolatile(true)
-	p.eAttribute_EAttributeType.SetChangeable(false)
-	p.eAttribute_EAttributeType.SetUnsettable(false)
-	p.eAttribute_EAttributeType.SetUnique(true)
-	p.eAttribute_EAttributeType.SetDerived(true)
-	p.eAttribute_EAttributeType.SetOrdered(true)
-	p.eAttribute_EAttributeType.SetContainment(false)
-	p.eAttribute_EAttributeType.SetResolveProxies(true)
-	p.eAttribute_EAttributeType.SetDefaultValueLiteral("")
+	eAttribute_ID := p.GetEAttribute_ID()
+	eAttribute_ID.SetName("iD")
+	eAttribute_ID.SetEType(p.GetEBoolean())
+	eAttribute_ID.SetLowerBound(0)
+	eAttribute_ID.SetUpperBound(1)
+	eAttribute_ID.SetTransient(false)
+	eAttribute_ID.SetVolatile(false)
+	eAttribute_ID.SetChangeable(true)
+	eAttribute_ID.SetUnsettable(false)
+	eAttribute_ID.SetUnique(true)
+	eAttribute_ID.SetDerived(false)
+	eAttribute_ID.SetOrdered(true)
+	eAttribute_ID.SetID(false)
+	eAttribute_ID.SetDefaultValueLiteral("")
+
+	eAttribute_EAttributeType := p.GetEAttribute_EAttributeType()
+	eAttribute_EAttributeType.SetName("eAttributeType")
+	eAttribute_EAttributeType.SetEType(p.GetEDataType())
+	eAttribute_EAttributeType.SetLowerBound(1)
+	eAttribute_EAttributeType.SetUpperBound(1)
+	eAttribute_EAttributeType.SetTransient(true)
+	eAttribute_EAttributeType.SetVolatile(true)
+	eAttribute_EAttributeType.SetChangeable(false)
+	eAttribute_EAttributeType.SetUnsettable(false)
+	eAttribute_EAttributeType.SetUnique(true)
+	eAttribute_EAttributeType.SetDerived(true)
+	eAttribute_EAttributeType.SetOrdered(true)
+	eAttribute_EAttributeType.SetContainment(false)
+	eAttribute_EAttributeType.SetResolveProxies(true)
+	eAttribute_EAttributeType.SetDefaultValueLiteral("")
 
 }
 
@@ -1534,255 +1409,272 @@ func (p *ecorePackageImpl) initializeEClassContent() {
 	p.eClass.SetName("EClass")
 	p.eClass.SetAbstract(false)
 	p.eClass.SetInterface(false)
-	p.eClass_Abstract.SetName("abstract")
-	p.eClass_Abstract.SetEType(p.GetEBoolean())
-	p.eClass_Abstract.SetLowerBound(0)
-	p.eClass_Abstract.SetUpperBound(1)
-	p.eClass_Abstract.SetTransient(false)
-	p.eClass_Abstract.SetVolatile(false)
-	p.eClass_Abstract.SetChangeable(true)
-	p.eClass_Abstract.SetUnsettable(false)
-	p.eClass_Abstract.SetUnique(true)
-	p.eClass_Abstract.SetDerived(false)
-	p.eClass_Abstract.SetOrdered(true)
-	p.eClass_Abstract.SetID(false)
-	p.eClass_Abstract.SetDefaultValueLiteral("")
 
-	p.eClass_Interface.SetName("interface")
-	p.eClass_Interface.SetEType(p.GetEBoolean())
-	p.eClass_Interface.SetLowerBound(0)
-	p.eClass_Interface.SetUpperBound(1)
-	p.eClass_Interface.SetTransient(false)
-	p.eClass_Interface.SetVolatile(false)
-	p.eClass_Interface.SetChangeable(true)
-	p.eClass_Interface.SetUnsettable(false)
-	p.eClass_Interface.SetUnique(true)
-	p.eClass_Interface.SetDerived(false)
-	p.eClass_Interface.SetOrdered(true)
-	p.eClass_Interface.SetID(false)
-	p.eClass_Interface.SetDefaultValueLiteral("")
+	eClass_Abstract := p.GetEClass_Abstract()
+	eClass_Abstract.SetName("abstract")
+	eClass_Abstract.SetEType(p.GetEBoolean())
+	eClass_Abstract.SetLowerBound(0)
+	eClass_Abstract.SetUpperBound(1)
+	eClass_Abstract.SetTransient(false)
+	eClass_Abstract.SetVolatile(false)
+	eClass_Abstract.SetChangeable(true)
+	eClass_Abstract.SetUnsettable(false)
+	eClass_Abstract.SetUnique(true)
+	eClass_Abstract.SetDerived(false)
+	eClass_Abstract.SetOrdered(true)
+	eClass_Abstract.SetID(false)
+	eClass_Abstract.SetDefaultValueLiteral("")
 
-	p.eClass_EAllAttributes.SetName("eAllAttributes")
-	p.eClass_EAllAttributes.SetEType(p.GetEAttribute())
-	p.eClass_EAllAttributes.SetLowerBound(0)
-	p.eClass_EAllAttributes.SetUpperBound(-1)
-	p.eClass_EAllAttributes.SetTransient(true)
-	p.eClass_EAllAttributes.SetVolatile(false)
-	p.eClass_EAllAttributes.SetChangeable(false)
-	p.eClass_EAllAttributes.SetUnsettable(false)
-	p.eClass_EAllAttributes.SetUnique(true)
-	p.eClass_EAllAttributes.SetDerived(true)
-	p.eClass_EAllAttributes.SetOrdered(true)
-	p.eClass_EAllAttributes.SetContainment(false)
-	p.eClass_EAllAttributes.SetResolveProxies(true)
-	p.eClass_EAllAttributes.SetDefaultValueLiteral("")
+	eClass_Interface := p.GetEClass_Interface()
+	eClass_Interface.SetName("interface")
+	eClass_Interface.SetEType(p.GetEBoolean())
+	eClass_Interface.SetLowerBound(0)
+	eClass_Interface.SetUpperBound(1)
+	eClass_Interface.SetTransient(false)
+	eClass_Interface.SetVolatile(false)
+	eClass_Interface.SetChangeable(true)
+	eClass_Interface.SetUnsettable(false)
+	eClass_Interface.SetUnique(true)
+	eClass_Interface.SetDerived(false)
+	eClass_Interface.SetOrdered(true)
+	eClass_Interface.SetID(false)
+	eClass_Interface.SetDefaultValueLiteral("")
 
-	p.eClass_EAllContainments.SetName("eAllContainments")
-	p.eClass_EAllContainments.SetEType(p.GetEReference())
-	p.eClass_EAllContainments.SetLowerBound(0)
-	p.eClass_EAllContainments.SetUpperBound(-1)
-	p.eClass_EAllContainments.SetTransient(true)
-	p.eClass_EAllContainments.SetVolatile(false)
-	p.eClass_EAllContainments.SetChangeable(false)
-	p.eClass_EAllContainments.SetUnsettable(false)
-	p.eClass_EAllContainments.SetUnique(true)
-	p.eClass_EAllContainments.SetDerived(true)
-	p.eClass_EAllContainments.SetOrdered(true)
-	p.eClass_EAllContainments.SetContainment(false)
-	p.eClass_EAllContainments.SetResolveProxies(true)
-	p.eClass_EAllContainments.SetDefaultValueLiteral("")
+	eClass_EAllAttributes := p.GetEClass_EAllAttributes()
+	eClass_EAllAttributes.SetName("eAllAttributes")
+	eClass_EAllAttributes.SetEType(p.GetEAttribute())
+	eClass_EAllAttributes.SetLowerBound(0)
+	eClass_EAllAttributes.SetUpperBound(-1)
+	eClass_EAllAttributes.SetTransient(true)
+	eClass_EAllAttributes.SetVolatile(false)
+	eClass_EAllAttributes.SetChangeable(false)
+	eClass_EAllAttributes.SetUnsettable(false)
+	eClass_EAllAttributes.SetUnique(true)
+	eClass_EAllAttributes.SetDerived(true)
+	eClass_EAllAttributes.SetOrdered(true)
+	eClass_EAllAttributes.SetContainment(false)
+	eClass_EAllAttributes.SetResolveProxies(true)
+	eClass_EAllAttributes.SetDefaultValueLiteral("")
 
-	p.eClass_EAllOperations.SetName("eAllOperations")
-	p.eClass_EAllOperations.SetEType(p.GetEOperation())
-	p.eClass_EAllOperations.SetLowerBound(0)
-	p.eClass_EAllOperations.SetUpperBound(-1)
-	p.eClass_EAllOperations.SetTransient(true)
-	p.eClass_EAllOperations.SetVolatile(false)
-	p.eClass_EAllOperations.SetChangeable(false)
-	p.eClass_EAllOperations.SetUnsettable(false)
-	p.eClass_EAllOperations.SetUnique(true)
-	p.eClass_EAllOperations.SetDerived(true)
-	p.eClass_EAllOperations.SetOrdered(true)
-	p.eClass_EAllOperations.SetContainment(false)
-	p.eClass_EAllOperations.SetResolveProxies(true)
-	p.eClass_EAllOperations.SetDefaultValueLiteral("")
+	eClass_EAllContainments := p.GetEClass_EAllContainments()
+	eClass_EAllContainments.SetName("eAllContainments")
+	eClass_EAllContainments.SetEType(p.GetEReference())
+	eClass_EAllContainments.SetLowerBound(0)
+	eClass_EAllContainments.SetUpperBound(-1)
+	eClass_EAllContainments.SetTransient(true)
+	eClass_EAllContainments.SetVolatile(false)
+	eClass_EAllContainments.SetChangeable(false)
+	eClass_EAllContainments.SetUnsettable(false)
+	eClass_EAllContainments.SetUnique(true)
+	eClass_EAllContainments.SetDerived(true)
+	eClass_EAllContainments.SetOrdered(true)
+	eClass_EAllContainments.SetContainment(false)
+	eClass_EAllContainments.SetResolveProxies(true)
+	eClass_EAllContainments.SetDefaultValueLiteral("")
 
-	p.eClass_EAllReferences.SetName("eAllReferences")
-	p.eClass_EAllReferences.SetEType(p.GetEReference())
-	p.eClass_EAllReferences.SetLowerBound(0)
-	p.eClass_EAllReferences.SetUpperBound(-1)
-	p.eClass_EAllReferences.SetTransient(true)
-	p.eClass_EAllReferences.SetVolatile(false)
-	p.eClass_EAllReferences.SetChangeable(false)
-	p.eClass_EAllReferences.SetUnsettable(false)
-	p.eClass_EAllReferences.SetUnique(true)
-	p.eClass_EAllReferences.SetDerived(true)
-	p.eClass_EAllReferences.SetOrdered(true)
-	p.eClass_EAllReferences.SetContainment(false)
-	p.eClass_EAllReferences.SetResolveProxies(true)
-	p.eClass_EAllReferences.SetDefaultValueLiteral("")
+	eClass_EAllOperations := p.GetEClass_EAllOperations()
+	eClass_EAllOperations.SetName("eAllOperations")
+	eClass_EAllOperations.SetEType(p.GetEOperation())
+	eClass_EAllOperations.SetLowerBound(0)
+	eClass_EAllOperations.SetUpperBound(-1)
+	eClass_EAllOperations.SetTransient(true)
+	eClass_EAllOperations.SetVolatile(false)
+	eClass_EAllOperations.SetChangeable(false)
+	eClass_EAllOperations.SetUnsettable(false)
+	eClass_EAllOperations.SetUnique(true)
+	eClass_EAllOperations.SetDerived(true)
+	eClass_EAllOperations.SetOrdered(true)
+	eClass_EAllOperations.SetContainment(false)
+	eClass_EAllOperations.SetResolveProxies(true)
+	eClass_EAllOperations.SetDefaultValueLiteral("")
 
-	p.eClass_EAllStructuralFeatures.SetName("eAllStructuralFeatures")
-	p.eClass_EAllStructuralFeatures.SetEType(p.GetEStructuralFeature())
-	p.eClass_EAllStructuralFeatures.SetLowerBound(0)
-	p.eClass_EAllStructuralFeatures.SetUpperBound(-1)
-	p.eClass_EAllStructuralFeatures.SetTransient(true)
-	p.eClass_EAllStructuralFeatures.SetVolatile(false)
-	p.eClass_EAllStructuralFeatures.SetChangeable(false)
-	p.eClass_EAllStructuralFeatures.SetUnsettable(false)
-	p.eClass_EAllStructuralFeatures.SetUnique(true)
-	p.eClass_EAllStructuralFeatures.SetDerived(true)
-	p.eClass_EAllStructuralFeatures.SetOrdered(true)
-	p.eClass_EAllStructuralFeatures.SetContainment(false)
-	p.eClass_EAllStructuralFeatures.SetResolveProxies(true)
-	p.eClass_EAllStructuralFeatures.SetDefaultValueLiteral("")
+	eClass_EAllReferences := p.GetEClass_EAllReferences()
+	eClass_EAllReferences.SetName("eAllReferences")
+	eClass_EAllReferences.SetEType(p.GetEReference())
+	eClass_EAllReferences.SetLowerBound(0)
+	eClass_EAllReferences.SetUpperBound(-1)
+	eClass_EAllReferences.SetTransient(true)
+	eClass_EAllReferences.SetVolatile(false)
+	eClass_EAllReferences.SetChangeable(false)
+	eClass_EAllReferences.SetUnsettable(false)
+	eClass_EAllReferences.SetUnique(true)
+	eClass_EAllReferences.SetDerived(true)
+	eClass_EAllReferences.SetOrdered(true)
+	eClass_EAllReferences.SetContainment(false)
+	eClass_EAllReferences.SetResolveProxies(true)
+	eClass_EAllReferences.SetDefaultValueLiteral("")
 
-	p.eClass_EAllSuperTypes.SetName("eAllSuperTypes")
-	p.eClass_EAllSuperTypes.SetEType(p.GetEClass())
-	p.eClass_EAllSuperTypes.SetLowerBound(0)
-	p.eClass_EAllSuperTypes.SetUpperBound(-1)
-	p.eClass_EAllSuperTypes.SetTransient(true)
-	p.eClass_EAllSuperTypes.SetVolatile(false)
-	p.eClass_EAllSuperTypes.SetChangeable(false)
-	p.eClass_EAllSuperTypes.SetUnsettable(false)
-	p.eClass_EAllSuperTypes.SetUnique(true)
-	p.eClass_EAllSuperTypes.SetDerived(true)
-	p.eClass_EAllSuperTypes.SetOrdered(true)
-	p.eClass_EAllSuperTypes.SetContainment(false)
-	p.eClass_EAllSuperTypes.SetResolveProxies(true)
-	p.eClass_EAllSuperTypes.SetDefaultValueLiteral("")
+	eClass_EAllStructuralFeatures := p.GetEClass_EAllStructuralFeatures()
+	eClass_EAllStructuralFeatures.SetName("eAllStructuralFeatures")
+	eClass_EAllStructuralFeatures.SetEType(p.GetEStructuralFeature())
+	eClass_EAllStructuralFeatures.SetLowerBound(0)
+	eClass_EAllStructuralFeatures.SetUpperBound(-1)
+	eClass_EAllStructuralFeatures.SetTransient(true)
+	eClass_EAllStructuralFeatures.SetVolatile(false)
+	eClass_EAllStructuralFeatures.SetChangeable(false)
+	eClass_EAllStructuralFeatures.SetUnsettable(false)
+	eClass_EAllStructuralFeatures.SetUnique(true)
+	eClass_EAllStructuralFeatures.SetDerived(true)
+	eClass_EAllStructuralFeatures.SetOrdered(true)
+	eClass_EAllStructuralFeatures.SetContainment(false)
+	eClass_EAllStructuralFeatures.SetResolveProxies(true)
+	eClass_EAllStructuralFeatures.SetDefaultValueLiteral("")
 
-	p.eClass_EAttributes.SetName("eAttributes")
-	p.eClass_EAttributes.SetEType(p.GetEAttribute())
-	p.eClass_EAttributes.SetLowerBound(0)
-	p.eClass_EAttributes.SetUpperBound(-1)
-	p.eClass_EAttributes.SetTransient(true)
-	p.eClass_EAttributes.SetVolatile(false)
-	p.eClass_EAttributes.SetChangeable(false)
-	p.eClass_EAttributes.SetUnsettable(false)
-	p.eClass_EAttributes.SetUnique(true)
-	p.eClass_EAttributes.SetDerived(true)
-	p.eClass_EAttributes.SetOrdered(true)
-	p.eClass_EAttributes.SetContainment(false)
-	p.eClass_EAttributes.SetResolveProxies(true)
-	p.eClass_EAttributes.SetDefaultValueLiteral("")
+	eClass_EAllSuperTypes := p.GetEClass_EAllSuperTypes()
+	eClass_EAllSuperTypes.SetName("eAllSuperTypes")
+	eClass_EAllSuperTypes.SetEType(p.GetEClass())
+	eClass_EAllSuperTypes.SetLowerBound(0)
+	eClass_EAllSuperTypes.SetUpperBound(-1)
+	eClass_EAllSuperTypes.SetTransient(true)
+	eClass_EAllSuperTypes.SetVolatile(false)
+	eClass_EAllSuperTypes.SetChangeable(false)
+	eClass_EAllSuperTypes.SetUnsettable(false)
+	eClass_EAllSuperTypes.SetUnique(true)
+	eClass_EAllSuperTypes.SetDerived(true)
+	eClass_EAllSuperTypes.SetOrdered(true)
+	eClass_EAllSuperTypes.SetContainment(false)
+	eClass_EAllSuperTypes.SetResolveProxies(true)
+	eClass_EAllSuperTypes.SetDefaultValueLiteral("")
 
-	p.eClass_EContainmentFeatures.SetName("eContainmentFeatures")
-	p.eClass_EContainmentFeatures.SetEType(p.GetEStructuralFeature())
-	p.eClass_EContainmentFeatures.SetLowerBound(0)
-	p.eClass_EContainmentFeatures.SetUpperBound(-1)
-	p.eClass_EContainmentFeatures.SetTransient(true)
-	p.eClass_EContainmentFeatures.SetVolatile(false)
-	p.eClass_EContainmentFeatures.SetChangeable(false)
-	p.eClass_EContainmentFeatures.SetUnsettable(false)
-	p.eClass_EContainmentFeatures.SetUnique(true)
-	p.eClass_EContainmentFeatures.SetDerived(true)
-	p.eClass_EContainmentFeatures.SetOrdered(true)
-	p.eClass_EContainmentFeatures.SetContainment(false)
-	p.eClass_EContainmentFeatures.SetResolveProxies(true)
-	p.eClass_EContainmentFeatures.SetDefaultValueLiteral("")
+	eClass_EAttributes := p.GetEClass_EAttributes()
+	eClass_EAttributes.SetName("eAttributes")
+	eClass_EAttributes.SetEType(p.GetEAttribute())
+	eClass_EAttributes.SetLowerBound(0)
+	eClass_EAttributes.SetUpperBound(-1)
+	eClass_EAttributes.SetTransient(true)
+	eClass_EAttributes.SetVolatile(false)
+	eClass_EAttributes.SetChangeable(false)
+	eClass_EAttributes.SetUnsettable(false)
+	eClass_EAttributes.SetUnique(true)
+	eClass_EAttributes.SetDerived(true)
+	eClass_EAttributes.SetOrdered(true)
+	eClass_EAttributes.SetContainment(false)
+	eClass_EAttributes.SetResolveProxies(true)
+	eClass_EAttributes.SetDefaultValueLiteral("")
 
-	p.eClass_ECrossReferenceFeatures.SetName("eCrossReferenceFeatures")
-	p.eClass_ECrossReferenceFeatures.SetEType(p.GetEStructuralFeature())
-	p.eClass_ECrossReferenceFeatures.SetLowerBound(0)
-	p.eClass_ECrossReferenceFeatures.SetUpperBound(-1)
-	p.eClass_ECrossReferenceFeatures.SetTransient(true)
-	p.eClass_ECrossReferenceFeatures.SetVolatile(false)
-	p.eClass_ECrossReferenceFeatures.SetChangeable(false)
-	p.eClass_ECrossReferenceFeatures.SetUnsettable(false)
-	p.eClass_ECrossReferenceFeatures.SetUnique(true)
-	p.eClass_ECrossReferenceFeatures.SetDerived(true)
-	p.eClass_ECrossReferenceFeatures.SetOrdered(true)
-	p.eClass_ECrossReferenceFeatures.SetContainment(false)
-	p.eClass_ECrossReferenceFeatures.SetResolveProxies(true)
-	p.eClass_ECrossReferenceFeatures.SetDefaultValueLiteral("")
+	eClass_EContainmentFeatures := p.GetEClass_EContainmentFeatures()
+	eClass_EContainmentFeatures.SetName("eContainmentFeatures")
+	eClass_EContainmentFeatures.SetEType(p.GetEStructuralFeature())
+	eClass_EContainmentFeatures.SetLowerBound(0)
+	eClass_EContainmentFeatures.SetUpperBound(-1)
+	eClass_EContainmentFeatures.SetTransient(true)
+	eClass_EContainmentFeatures.SetVolatile(false)
+	eClass_EContainmentFeatures.SetChangeable(false)
+	eClass_EContainmentFeatures.SetUnsettable(false)
+	eClass_EContainmentFeatures.SetUnique(true)
+	eClass_EContainmentFeatures.SetDerived(true)
+	eClass_EContainmentFeatures.SetOrdered(true)
+	eClass_EContainmentFeatures.SetContainment(false)
+	eClass_EContainmentFeatures.SetResolveProxies(true)
+	eClass_EContainmentFeatures.SetDefaultValueLiteral("")
 
-	p.eClass_EIDAttribute.SetName("eIDAttribute")
-	p.eClass_EIDAttribute.SetEType(p.GetEAttribute())
-	p.eClass_EIDAttribute.SetLowerBound(0)
-	p.eClass_EIDAttribute.SetUpperBound(1)
-	p.eClass_EIDAttribute.SetTransient(true)
-	p.eClass_EIDAttribute.SetVolatile(false)
-	p.eClass_EIDAttribute.SetChangeable(false)
-	p.eClass_EIDAttribute.SetUnsettable(false)
-	p.eClass_EIDAttribute.SetUnique(true)
-	p.eClass_EIDAttribute.SetDerived(true)
-	p.eClass_EIDAttribute.SetOrdered(true)
-	p.eClass_EIDAttribute.SetContainment(false)
-	p.eClass_EIDAttribute.SetResolveProxies(false)
-	p.eClass_EIDAttribute.SetDefaultValueLiteral("")
+	eClass_ECrossReferenceFeatures := p.GetEClass_ECrossReferenceFeatures()
+	eClass_ECrossReferenceFeatures.SetName("eCrossReferenceFeatures")
+	eClass_ECrossReferenceFeatures.SetEType(p.GetEStructuralFeature())
+	eClass_ECrossReferenceFeatures.SetLowerBound(0)
+	eClass_ECrossReferenceFeatures.SetUpperBound(-1)
+	eClass_ECrossReferenceFeatures.SetTransient(true)
+	eClass_ECrossReferenceFeatures.SetVolatile(false)
+	eClass_ECrossReferenceFeatures.SetChangeable(false)
+	eClass_ECrossReferenceFeatures.SetUnsettable(false)
+	eClass_ECrossReferenceFeatures.SetUnique(true)
+	eClass_ECrossReferenceFeatures.SetDerived(true)
+	eClass_ECrossReferenceFeatures.SetOrdered(true)
+	eClass_ECrossReferenceFeatures.SetContainment(false)
+	eClass_ECrossReferenceFeatures.SetResolveProxies(true)
+	eClass_ECrossReferenceFeatures.SetDefaultValueLiteral("")
 
-	p.eClass_EOperations.SetName("eOperations")
-	p.eClass_EOperations.SetEType(p.GetEOperation())
-	p.eClass_EOperations.SetLowerBound(0)
-	p.eClass_EOperations.SetUpperBound(-1)
-	p.eClass_EOperations.SetTransient(false)
-	p.eClass_EOperations.SetVolatile(false)
-	p.eClass_EOperations.SetChangeable(true)
-	p.eClass_EOperations.SetUnsettable(false)
-	p.eClass_EOperations.SetUnique(true)
-	p.eClass_EOperations.SetDerived(false)
-	p.eClass_EOperations.SetOrdered(true)
-	p.eClass_EOperations.SetContainment(true)
-	p.eClass_EOperations.SetResolveProxies(false)
-	p.eClass_EOperations.SetDefaultValueLiteral("")
-	p.eClass_EOperations.SetEOpposite(p.GetEOperation_EContainingClass())
+	eClass_EIDAttribute := p.GetEClass_EIDAttribute()
+	eClass_EIDAttribute.SetName("eIDAttribute")
+	eClass_EIDAttribute.SetEType(p.GetEAttribute())
+	eClass_EIDAttribute.SetLowerBound(0)
+	eClass_EIDAttribute.SetUpperBound(1)
+	eClass_EIDAttribute.SetTransient(true)
+	eClass_EIDAttribute.SetVolatile(false)
+	eClass_EIDAttribute.SetChangeable(false)
+	eClass_EIDAttribute.SetUnsettable(false)
+	eClass_EIDAttribute.SetUnique(true)
+	eClass_EIDAttribute.SetDerived(true)
+	eClass_EIDAttribute.SetOrdered(true)
+	eClass_EIDAttribute.SetContainment(false)
+	eClass_EIDAttribute.SetResolveProxies(false)
+	eClass_EIDAttribute.SetDefaultValueLiteral("")
 
-	p.eClass_EReferences.SetName("eReferences")
-	p.eClass_EReferences.SetEType(p.GetEReference())
-	p.eClass_EReferences.SetLowerBound(0)
-	p.eClass_EReferences.SetUpperBound(-1)
-	p.eClass_EReferences.SetTransient(true)
-	p.eClass_EReferences.SetVolatile(false)
-	p.eClass_EReferences.SetChangeable(false)
-	p.eClass_EReferences.SetUnsettable(false)
-	p.eClass_EReferences.SetUnique(true)
-	p.eClass_EReferences.SetDerived(true)
-	p.eClass_EReferences.SetOrdered(true)
-	p.eClass_EReferences.SetContainment(false)
-	p.eClass_EReferences.SetResolveProxies(true)
-	p.eClass_EReferences.SetDefaultValueLiteral("")
+	eClass_EOperations := p.GetEClass_EOperations()
+	eClass_EOperations.SetName("eOperations")
+	eClass_EOperations.SetEType(p.GetEOperation())
+	eClass_EOperations.SetLowerBound(0)
+	eClass_EOperations.SetUpperBound(-1)
+	eClass_EOperations.SetTransient(false)
+	eClass_EOperations.SetVolatile(false)
+	eClass_EOperations.SetChangeable(true)
+	eClass_EOperations.SetUnsettable(false)
+	eClass_EOperations.SetUnique(true)
+	eClass_EOperations.SetDerived(false)
+	eClass_EOperations.SetOrdered(true)
+	eClass_EOperations.SetContainment(true)
+	eClass_EOperations.SetResolveProxies(false)
+	eClass_EOperations.SetDefaultValueLiteral("")
+	eClass_EOperations.SetEOpposite(p.GetEOperation_EContainingClass())
 
-	p.eClass_EStructuralFeatures.SetName("eStructuralFeatures")
-	p.eClass_EStructuralFeatures.SetEType(p.GetEStructuralFeature())
-	p.eClass_EStructuralFeatures.SetLowerBound(0)
-	p.eClass_EStructuralFeatures.SetUpperBound(-1)
-	p.eClass_EStructuralFeatures.SetTransient(false)
-	p.eClass_EStructuralFeatures.SetVolatile(false)
-	p.eClass_EStructuralFeatures.SetChangeable(true)
-	p.eClass_EStructuralFeatures.SetUnsettable(false)
-	p.eClass_EStructuralFeatures.SetUnique(true)
-	p.eClass_EStructuralFeatures.SetDerived(false)
-	p.eClass_EStructuralFeatures.SetOrdered(true)
-	p.eClass_EStructuralFeatures.SetContainment(true)
-	p.eClass_EStructuralFeatures.SetResolveProxies(false)
-	p.eClass_EStructuralFeatures.SetDefaultValueLiteral("")
-	p.eClass_EStructuralFeatures.SetEOpposite(p.GetEStructuralFeature_EContainingClass())
+	eClass_EReferences := p.GetEClass_EReferences()
+	eClass_EReferences.SetName("eReferences")
+	eClass_EReferences.SetEType(p.GetEReference())
+	eClass_EReferences.SetLowerBound(0)
+	eClass_EReferences.SetUpperBound(-1)
+	eClass_EReferences.SetTransient(true)
+	eClass_EReferences.SetVolatile(false)
+	eClass_EReferences.SetChangeable(false)
+	eClass_EReferences.SetUnsettable(false)
+	eClass_EReferences.SetUnique(true)
+	eClass_EReferences.SetDerived(true)
+	eClass_EReferences.SetOrdered(true)
+	eClass_EReferences.SetContainment(false)
+	eClass_EReferences.SetResolveProxies(true)
+	eClass_EReferences.SetDefaultValueLiteral("")
 
-	p.eClass_ESuperTypes.SetName("eSuperTypes")
-	p.eClass_ESuperTypes.SetEType(p.GetEClass())
-	p.eClass_ESuperTypes.SetLowerBound(0)
-	p.eClass_ESuperTypes.SetUpperBound(-1)
-	p.eClass_ESuperTypes.SetTransient(false)
-	p.eClass_ESuperTypes.SetVolatile(false)
-	p.eClass_ESuperTypes.SetChangeable(true)
-	p.eClass_ESuperTypes.SetUnsettable(false)
-	p.eClass_ESuperTypes.SetUnique(true)
-	p.eClass_ESuperTypes.SetDerived(false)
-	p.eClass_ESuperTypes.SetOrdered(true)
-	p.eClass_ESuperTypes.SetContainment(false)
-	p.eClass_ESuperTypes.SetResolveProxies(true)
-	p.eClass_ESuperTypes.SetDefaultValueLiteral("")
+	eClass_EStructuralFeatures := p.GetEClass_EStructuralFeatures()
+	eClass_EStructuralFeatures.SetName("eStructuralFeatures")
+	eClass_EStructuralFeatures.SetEType(p.GetEStructuralFeature())
+	eClass_EStructuralFeatures.SetLowerBound(0)
+	eClass_EStructuralFeatures.SetUpperBound(-1)
+	eClass_EStructuralFeatures.SetTransient(false)
+	eClass_EStructuralFeatures.SetVolatile(false)
+	eClass_EStructuralFeatures.SetChangeable(true)
+	eClass_EStructuralFeatures.SetUnsettable(false)
+	eClass_EStructuralFeatures.SetUnique(true)
+	eClass_EStructuralFeatures.SetDerived(false)
+	eClass_EStructuralFeatures.SetOrdered(true)
+	eClass_EStructuralFeatures.SetContainment(true)
+	eClass_EStructuralFeatures.SetResolveProxies(false)
+	eClass_EStructuralFeatures.SetDefaultValueLiteral("")
+	eClass_EStructuralFeatures.SetEOpposite(p.GetEStructuralFeature_EContainingClass())
 
-	p.eClass_GetEOperation_EInt.SetEType(p.GetEOperation())
-	p.eClass_GetEOperation_EInt.SetName("getEOperation")
-	p.eClass_GetEOperation_EInt.SetLowerBound(0)
-	p.eClass_GetEOperation_EInt.SetUpperBound(1)
-	p.eClass_GetEOperation_EInt.SetUnique(true)
-	p.eClass_GetEOperation_EInt.SetOrdered(true)
+	eClass_ESuperTypes := p.GetEClass_ESuperTypes()
+	eClass_ESuperTypes.SetName("eSuperTypes")
+	eClass_ESuperTypes.SetEType(p.GetEClass())
+	eClass_ESuperTypes.SetLowerBound(0)
+	eClass_ESuperTypes.SetUpperBound(-1)
+	eClass_ESuperTypes.SetTransient(false)
+	eClass_ESuperTypes.SetVolatile(false)
+	eClass_ESuperTypes.SetChangeable(true)
+	eClass_ESuperTypes.SetUnsettable(false)
+	eClass_ESuperTypes.SetUnique(true)
+	eClass_ESuperTypes.SetDerived(false)
+	eClass_ESuperTypes.SetOrdered(true)
+	eClass_ESuperTypes.SetContainment(false)
+	eClass_ESuperTypes.SetResolveProxies(true)
+	eClass_ESuperTypes.SetDefaultValueLiteral("")
 
+	eClass_GetEOperation_EInt := p.GetEClass_GetEOperation_EInt()
+	eClass_GetEOperation_EInt.SetEType(p.GetEOperation())
+	eClass_GetEOperation_EInt.SetName("getEOperation")
+	eClass_GetEOperation_EInt.SetLowerBound(0)
+	eClass_GetEOperation_EInt.SetUpperBound(1)
+	eClass_GetEOperation_EInt.SetUnique(true)
+	eClass_GetEOperation_EInt.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eClass_GetEOperation_EInt)
+		parameter := GetFactory().CreateEParameterFromContainer(eClass_GetEOperation_EInt)
 		parameter.SetName("operationID")
 		parameter.SetEType(p.GetEInt())
 		parameter.SetLowerBound(0)
@@ -1791,15 +1683,15 @@ func (p *ecorePackageImpl) initializeEClassContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eClass_GetEStructuralFeature_EInt.SetEType(p.GetEStructuralFeature())
-	p.eClass_GetEStructuralFeature_EInt.SetName("getEStructuralFeature")
-	p.eClass_GetEStructuralFeature_EInt.SetLowerBound(0)
-	p.eClass_GetEStructuralFeature_EInt.SetUpperBound(1)
-	p.eClass_GetEStructuralFeature_EInt.SetUnique(true)
-	p.eClass_GetEStructuralFeature_EInt.SetOrdered(true)
-
+	eClass_GetEStructuralFeature_EInt := p.GetEClass_GetEStructuralFeature_EInt()
+	eClass_GetEStructuralFeature_EInt.SetEType(p.GetEStructuralFeature())
+	eClass_GetEStructuralFeature_EInt.SetName("getEStructuralFeature")
+	eClass_GetEStructuralFeature_EInt.SetLowerBound(0)
+	eClass_GetEStructuralFeature_EInt.SetUpperBound(1)
+	eClass_GetEStructuralFeature_EInt.SetUnique(true)
+	eClass_GetEStructuralFeature_EInt.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eClass_GetEStructuralFeature_EInt)
+		parameter := GetFactory().CreateEParameterFromContainer(eClass_GetEStructuralFeature_EInt)
 		parameter.SetName("featureID")
 		parameter.SetEType(p.GetEInt())
 		parameter.SetLowerBound(0)
@@ -1808,15 +1700,15 @@ func (p *ecorePackageImpl) initializeEClassContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eClass_GetEStructuralFeature_EString.SetEType(p.GetEStructuralFeature())
-	p.eClass_GetEStructuralFeature_EString.SetName("getEStructuralFeature")
-	p.eClass_GetEStructuralFeature_EString.SetLowerBound(0)
-	p.eClass_GetEStructuralFeature_EString.SetUpperBound(1)
-	p.eClass_GetEStructuralFeature_EString.SetUnique(true)
-	p.eClass_GetEStructuralFeature_EString.SetOrdered(true)
-
+	eClass_GetEStructuralFeature_EString := p.GetEClass_GetEStructuralFeature_EString()
+	eClass_GetEStructuralFeature_EString.SetEType(p.GetEStructuralFeature())
+	eClass_GetEStructuralFeature_EString.SetName("getEStructuralFeature")
+	eClass_GetEStructuralFeature_EString.SetLowerBound(0)
+	eClass_GetEStructuralFeature_EString.SetUpperBound(1)
+	eClass_GetEStructuralFeature_EString.SetUnique(true)
+	eClass_GetEStructuralFeature_EString.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eClass_GetEStructuralFeature_EString)
+		parameter := GetFactory().CreateEParameterFromContainer(eClass_GetEStructuralFeature_EString)
 		parameter.SetName("featureName")
 		parameter.SetEType(p.GetEString())
 		parameter.SetLowerBound(0)
@@ -1825,22 +1717,23 @@ func (p *ecorePackageImpl) initializeEClassContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eClass_GetFeatureCount.SetEType(p.GetEInt())
-	p.eClass_GetFeatureCount.SetName("getFeatureCount")
-	p.eClass_GetFeatureCount.SetLowerBound(0)
-	p.eClass_GetFeatureCount.SetUpperBound(1)
-	p.eClass_GetFeatureCount.SetUnique(true)
-	p.eClass_GetFeatureCount.SetOrdered(true)
+	eClass_GetFeatureCount := p.GetEClass_GetFeatureCount()
+	eClass_GetFeatureCount.SetEType(p.GetEInt())
+	eClass_GetFeatureCount.SetName("getFeatureCount")
+	eClass_GetFeatureCount.SetLowerBound(0)
+	eClass_GetFeatureCount.SetUpperBound(1)
+	eClass_GetFeatureCount.SetUnique(true)
+	eClass_GetFeatureCount.SetOrdered(true)
 
-	p.eClass_GetFeatureID_EStructuralFeature.SetEType(p.GetEInt())
-	p.eClass_GetFeatureID_EStructuralFeature.SetName("getFeatureID")
-	p.eClass_GetFeatureID_EStructuralFeature.SetLowerBound(0)
-	p.eClass_GetFeatureID_EStructuralFeature.SetUpperBound(1)
-	p.eClass_GetFeatureID_EStructuralFeature.SetUnique(true)
-	p.eClass_GetFeatureID_EStructuralFeature.SetOrdered(true)
-
+	eClass_GetFeatureID_EStructuralFeature := p.GetEClass_GetFeatureID_EStructuralFeature()
+	eClass_GetFeatureID_EStructuralFeature.SetEType(p.GetEInt())
+	eClass_GetFeatureID_EStructuralFeature.SetName("getFeatureID")
+	eClass_GetFeatureID_EStructuralFeature.SetLowerBound(0)
+	eClass_GetFeatureID_EStructuralFeature.SetUpperBound(1)
+	eClass_GetFeatureID_EStructuralFeature.SetUnique(true)
+	eClass_GetFeatureID_EStructuralFeature.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eClass_GetFeatureID_EStructuralFeature)
+		parameter := GetFactory().CreateEParameterFromContainer(eClass_GetFeatureID_EStructuralFeature)
 		parameter.SetName("feature")
 		parameter.SetEType(p.GetEStructuralFeature())
 		parameter.SetLowerBound(0)
@@ -1849,15 +1742,15 @@ func (p *ecorePackageImpl) initializeEClassContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eClass_GetFeatureType_EStructuralFeature.SetEType(p.GetEClassifierClass())
-	p.eClass_GetFeatureType_EStructuralFeature.SetName("getFeatureType")
-	p.eClass_GetFeatureType_EStructuralFeature.SetLowerBound(0)
-	p.eClass_GetFeatureType_EStructuralFeature.SetUpperBound(1)
-	p.eClass_GetFeatureType_EStructuralFeature.SetUnique(true)
-	p.eClass_GetFeatureType_EStructuralFeature.SetOrdered(true)
-
+	eClass_GetFeatureType_EStructuralFeature := p.GetEClass_GetFeatureType_EStructuralFeature()
+	eClass_GetFeatureType_EStructuralFeature.SetEType(p.GetEClassifierClass())
+	eClass_GetFeatureType_EStructuralFeature.SetName("getFeatureType")
+	eClass_GetFeatureType_EStructuralFeature.SetLowerBound(0)
+	eClass_GetFeatureType_EStructuralFeature.SetUpperBound(1)
+	eClass_GetFeatureType_EStructuralFeature.SetUnique(true)
+	eClass_GetFeatureType_EStructuralFeature.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eClass_GetFeatureType_EStructuralFeature)
+		parameter := GetFactory().CreateEParameterFromContainer(eClass_GetFeatureType_EStructuralFeature)
 		parameter.SetName("feature")
 		parameter.SetEType(p.GetEStructuralFeature())
 		parameter.SetLowerBound(0)
@@ -1866,22 +1759,23 @@ func (p *ecorePackageImpl) initializeEClassContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eClass_GetOperationCount.SetEType(p.GetEInt())
-	p.eClass_GetOperationCount.SetName("getOperationCount")
-	p.eClass_GetOperationCount.SetLowerBound(0)
-	p.eClass_GetOperationCount.SetUpperBound(1)
-	p.eClass_GetOperationCount.SetUnique(true)
-	p.eClass_GetOperationCount.SetOrdered(true)
+	eClass_GetOperationCount := p.GetEClass_GetOperationCount()
+	eClass_GetOperationCount.SetEType(p.GetEInt())
+	eClass_GetOperationCount.SetName("getOperationCount")
+	eClass_GetOperationCount.SetLowerBound(0)
+	eClass_GetOperationCount.SetUpperBound(1)
+	eClass_GetOperationCount.SetUnique(true)
+	eClass_GetOperationCount.SetOrdered(true)
 
-	p.eClass_GetOperationID_EOperation.SetEType(p.GetEInt())
-	p.eClass_GetOperationID_EOperation.SetName("getOperationID")
-	p.eClass_GetOperationID_EOperation.SetLowerBound(0)
-	p.eClass_GetOperationID_EOperation.SetUpperBound(1)
-	p.eClass_GetOperationID_EOperation.SetUnique(true)
-	p.eClass_GetOperationID_EOperation.SetOrdered(true)
-
+	eClass_GetOperationID_EOperation := p.GetEClass_GetOperationID_EOperation()
+	eClass_GetOperationID_EOperation.SetEType(p.GetEInt())
+	eClass_GetOperationID_EOperation.SetName("getOperationID")
+	eClass_GetOperationID_EOperation.SetLowerBound(0)
+	eClass_GetOperationID_EOperation.SetUpperBound(1)
+	eClass_GetOperationID_EOperation.SetUnique(true)
+	eClass_GetOperationID_EOperation.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eClass_GetOperationID_EOperation)
+		parameter := GetFactory().CreateEParameterFromContainer(eClass_GetOperationID_EOperation)
 		parameter.SetName("operation")
 		parameter.SetEType(p.GetEOperation())
 		parameter.SetLowerBound(0)
@@ -1890,15 +1784,15 @@ func (p *ecorePackageImpl) initializeEClassContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eClass_GetOverride_EOperation.SetEType(p.GetEOperation())
-	p.eClass_GetOverride_EOperation.SetName("getOverride")
-	p.eClass_GetOverride_EOperation.SetLowerBound(0)
-	p.eClass_GetOverride_EOperation.SetUpperBound(1)
-	p.eClass_GetOverride_EOperation.SetUnique(true)
-	p.eClass_GetOverride_EOperation.SetOrdered(true)
-
+	eClass_GetOverride_EOperation := p.GetEClass_GetOverride_EOperation()
+	eClass_GetOverride_EOperation.SetEType(p.GetEOperation())
+	eClass_GetOverride_EOperation.SetName("getOverride")
+	eClass_GetOverride_EOperation.SetLowerBound(0)
+	eClass_GetOverride_EOperation.SetUpperBound(1)
+	eClass_GetOverride_EOperation.SetUnique(true)
+	eClass_GetOverride_EOperation.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eClass_GetOverride_EOperation)
+		parameter := GetFactory().CreateEParameterFromContainer(eClass_GetOverride_EOperation)
 		parameter.SetName("operation")
 		parameter.SetEType(p.GetEOperation())
 		parameter.SetLowerBound(0)
@@ -1907,15 +1801,15 @@ func (p *ecorePackageImpl) initializeEClassContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eClass_IsSuperTypeOf_EClass.SetEType(p.GetEBoolean())
-	p.eClass_IsSuperTypeOf_EClass.SetName("isSuperTypeOf")
-	p.eClass_IsSuperTypeOf_EClass.SetLowerBound(0)
-	p.eClass_IsSuperTypeOf_EClass.SetUpperBound(1)
-	p.eClass_IsSuperTypeOf_EClass.SetUnique(true)
-	p.eClass_IsSuperTypeOf_EClass.SetOrdered(true)
-
+	eClass_IsSuperTypeOf_EClass := p.GetEClass_IsSuperTypeOf_EClass()
+	eClass_IsSuperTypeOf_EClass.SetEType(p.GetEBoolean())
+	eClass_IsSuperTypeOf_EClass.SetName("isSuperTypeOf")
+	eClass_IsSuperTypeOf_EClass.SetLowerBound(0)
+	eClass_IsSuperTypeOf_EClass.SetUpperBound(1)
+	eClass_IsSuperTypeOf_EClass.SetUnique(true)
+	eClass_IsSuperTypeOf_EClass.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eClass_IsSuperTypeOf_EClass)
+		parameter := GetFactory().CreateEParameterFromContainer(eClass_IsSuperTypeOf_EClass)
 		parameter.SetName("someClass")
 		parameter.SetEType(p.GetEClass())
 		parameter.SetLowerBound(0)
@@ -1930,73 +1824,78 @@ func (p *ecorePackageImpl) initializeEClassifierContent() {
 	p.eClassifier.SetName("EClassifier")
 	p.eClassifier.SetAbstract(true)
 	p.eClassifier.SetInterface(false)
-	p.eClassifier_ClassifierID.SetName("classifierID")
-	p.eClassifier_ClassifierID.SetEType(p.GetEInt())
-	p.eClassifier_ClassifierID.SetLowerBound(0)
-	p.eClassifier_ClassifierID.SetUpperBound(1)
-	p.eClassifier_ClassifierID.SetTransient(true)
-	p.eClassifier_ClassifierID.SetVolatile(false)
-	p.eClassifier_ClassifierID.SetChangeable(true)
-	p.eClassifier_ClassifierID.SetUnsettable(false)
-	p.eClassifier_ClassifierID.SetUnique(true)
-	p.eClassifier_ClassifierID.SetDerived(false)
-	p.eClassifier_ClassifierID.SetOrdered(true)
-	p.eClassifier_ClassifierID.SetID(false)
-	p.eClassifier_ClassifierID.SetDefaultValueLiteral("-1")
 
-	p.eClassifier_DefaultValue.SetName("defaultValue")
-	p.eClassifier_DefaultValue.SetEType(p.GetEJavaObject())
-	p.eClassifier_DefaultValue.SetLowerBound(0)
-	p.eClassifier_DefaultValue.SetUpperBound(1)
-	p.eClassifier_DefaultValue.SetTransient(true)
-	p.eClassifier_DefaultValue.SetVolatile(true)
-	p.eClassifier_DefaultValue.SetChangeable(false)
-	p.eClassifier_DefaultValue.SetUnsettable(false)
-	p.eClassifier_DefaultValue.SetUnique(true)
-	p.eClassifier_DefaultValue.SetDerived(true)
-	p.eClassifier_DefaultValue.SetOrdered(true)
-	p.eClassifier_DefaultValue.SetID(false)
-	p.eClassifier_DefaultValue.SetDefaultValueLiteral("")
+	eClassifier_ClassifierID := p.GetEClassifier_ClassifierID()
+	eClassifier_ClassifierID.SetName("classifierID")
+	eClassifier_ClassifierID.SetEType(p.GetEInt())
+	eClassifier_ClassifierID.SetLowerBound(0)
+	eClassifier_ClassifierID.SetUpperBound(1)
+	eClassifier_ClassifierID.SetTransient(true)
+	eClassifier_ClassifierID.SetVolatile(false)
+	eClassifier_ClassifierID.SetChangeable(true)
+	eClassifier_ClassifierID.SetUnsettable(false)
+	eClassifier_ClassifierID.SetUnique(true)
+	eClassifier_ClassifierID.SetDerived(false)
+	eClassifier_ClassifierID.SetOrdered(true)
+	eClassifier_ClassifierID.SetID(false)
+	eClassifier_ClassifierID.SetDefaultValueLiteral("-1")
 
-	p.eClassifier_InstanceClass.SetName("instanceClass")
-	p.eClassifier_InstanceClass.SetEType(p.GetEJavaClass())
-	p.eClassifier_InstanceClass.SetLowerBound(0)
-	p.eClassifier_InstanceClass.SetUpperBound(1)
-	p.eClassifier_InstanceClass.SetTransient(false)
-	p.eClassifier_InstanceClass.SetVolatile(false)
-	p.eClassifier_InstanceClass.SetChangeable(true)
-	p.eClassifier_InstanceClass.SetUnsettable(false)
-	p.eClassifier_InstanceClass.SetUnique(true)
-	p.eClassifier_InstanceClass.SetDerived(false)
-	p.eClassifier_InstanceClass.SetOrdered(true)
-	p.eClassifier_InstanceClass.SetID(false)
-	p.eClassifier_InstanceClass.SetDefaultValueLiteral("")
+	eClassifier_DefaultValue := p.GetEClassifier_DefaultValue()
+	eClassifier_DefaultValue.SetName("defaultValue")
+	eClassifier_DefaultValue.SetEType(p.GetEJavaObject())
+	eClassifier_DefaultValue.SetLowerBound(0)
+	eClassifier_DefaultValue.SetUpperBound(1)
+	eClassifier_DefaultValue.SetTransient(true)
+	eClassifier_DefaultValue.SetVolatile(true)
+	eClassifier_DefaultValue.SetChangeable(false)
+	eClassifier_DefaultValue.SetUnsettable(false)
+	eClassifier_DefaultValue.SetUnique(true)
+	eClassifier_DefaultValue.SetDerived(true)
+	eClassifier_DefaultValue.SetOrdered(true)
+	eClassifier_DefaultValue.SetID(false)
+	eClassifier_DefaultValue.SetDefaultValueLiteral("")
 
-	p.eClassifier_EPackage.SetName("ePackage")
-	p.eClassifier_EPackage.SetEType(p.GetEPackage())
-	p.eClassifier_EPackage.SetLowerBound(0)
-	p.eClassifier_EPackage.SetUpperBound(1)
-	p.eClassifier_EPackage.SetTransient(true)
-	p.eClassifier_EPackage.SetVolatile(false)
-	p.eClassifier_EPackage.SetChangeable(false)
-	p.eClassifier_EPackage.SetUnsettable(false)
-	p.eClassifier_EPackage.SetUnique(true)
-	p.eClassifier_EPackage.SetDerived(false)
-	p.eClassifier_EPackage.SetOrdered(true)
-	p.eClassifier_EPackage.SetContainment(false)
-	p.eClassifier_EPackage.SetResolveProxies(true)
-	p.eClassifier_EPackage.SetDefaultValueLiteral("")
-	p.eClassifier_EPackage.SetEOpposite(p.GetEPackage_EClassifiers())
+	eClassifier_InstanceClass := p.GetEClassifier_InstanceClass()
+	eClassifier_InstanceClass.SetName("instanceClass")
+	eClassifier_InstanceClass.SetEType(p.GetEJavaClass())
+	eClassifier_InstanceClass.SetLowerBound(0)
+	eClassifier_InstanceClass.SetUpperBound(1)
+	eClassifier_InstanceClass.SetTransient(false)
+	eClassifier_InstanceClass.SetVolatile(false)
+	eClassifier_InstanceClass.SetChangeable(true)
+	eClassifier_InstanceClass.SetUnsettable(false)
+	eClassifier_InstanceClass.SetUnique(true)
+	eClassifier_InstanceClass.SetDerived(false)
+	eClassifier_InstanceClass.SetOrdered(true)
+	eClassifier_InstanceClass.SetID(false)
+	eClassifier_InstanceClass.SetDefaultValueLiteral("")
 
-	p.eClassifier_IsInstance_EJavaObject.SetEType(p.GetEBoolean())
-	p.eClassifier_IsInstance_EJavaObject.SetName("isInstance")
-	p.eClassifier_IsInstance_EJavaObject.SetLowerBound(0)
-	p.eClassifier_IsInstance_EJavaObject.SetUpperBound(1)
-	p.eClassifier_IsInstance_EJavaObject.SetUnique(true)
-	p.eClassifier_IsInstance_EJavaObject.SetOrdered(true)
+	eClassifier_EPackage := p.GetEClassifier_EPackage()
+	eClassifier_EPackage.SetName("ePackage")
+	eClassifier_EPackage.SetEType(p.GetEPackage())
+	eClassifier_EPackage.SetLowerBound(0)
+	eClassifier_EPackage.SetUpperBound(1)
+	eClassifier_EPackage.SetTransient(true)
+	eClassifier_EPackage.SetVolatile(false)
+	eClassifier_EPackage.SetChangeable(false)
+	eClassifier_EPackage.SetUnsettable(false)
+	eClassifier_EPackage.SetUnique(true)
+	eClassifier_EPackage.SetDerived(false)
+	eClassifier_EPackage.SetOrdered(true)
+	eClassifier_EPackage.SetContainment(false)
+	eClassifier_EPackage.SetResolveProxies(true)
+	eClassifier_EPackage.SetDefaultValueLiteral("")
+	eClassifier_EPackage.SetEOpposite(p.GetEPackage_EClassifiers())
 
+	eClassifier_IsInstance_EJavaObject := p.GetEClassifier_IsInstance_EJavaObject()
+	eClassifier_IsInstance_EJavaObject.SetEType(p.GetEBoolean())
+	eClassifier_IsInstance_EJavaObject.SetName("isInstance")
+	eClassifier_IsInstance_EJavaObject.SetLowerBound(0)
+	eClassifier_IsInstance_EJavaObject.SetUpperBound(1)
+	eClassifier_IsInstance_EJavaObject.SetUnique(true)
+	eClassifier_IsInstance_EJavaObject.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eClassifier_IsInstance_EJavaObject)
+		parameter := GetFactory().CreateEParameterFromContainer(eClassifier_IsInstance_EJavaObject)
 		parameter.SetName("object")
 		parameter.SetEType(p.GetEJavaObject())
 		parameter.SetLowerBound(0)
@@ -2011,19 +1910,21 @@ func (p *ecorePackageImpl) initializeEDataTypeContent() {
 	p.eDataType.SetName("EDataType")
 	p.eDataType.SetAbstract(false)
 	p.eDataType.SetInterface(false)
-	p.eDataType_Serializable.SetName("serializable")
-	p.eDataType_Serializable.SetEType(p.GetEBoolean())
-	p.eDataType_Serializable.SetLowerBound(0)
-	p.eDataType_Serializable.SetUpperBound(1)
-	p.eDataType_Serializable.SetTransient(false)
-	p.eDataType_Serializable.SetVolatile(false)
-	p.eDataType_Serializable.SetChangeable(true)
-	p.eDataType_Serializable.SetUnsettable(false)
-	p.eDataType_Serializable.SetUnique(true)
-	p.eDataType_Serializable.SetDerived(false)
-	p.eDataType_Serializable.SetOrdered(true)
-	p.eDataType_Serializable.SetID(false)
-	p.eDataType_Serializable.SetDefaultValueLiteral("true")
+
+	eDataType_Serializable := p.GetEDataType_Serializable()
+	eDataType_Serializable.SetName("serializable")
+	eDataType_Serializable.SetEType(p.GetEBoolean())
+	eDataType_Serializable.SetLowerBound(0)
+	eDataType_Serializable.SetUpperBound(1)
+	eDataType_Serializable.SetTransient(false)
+	eDataType_Serializable.SetVolatile(false)
+	eDataType_Serializable.SetChangeable(true)
+	eDataType_Serializable.SetUnsettable(false)
+	eDataType_Serializable.SetUnique(true)
+	eDataType_Serializable.SetDerived(false)
+	eDataType_Serializable.SetOrdered(true)
+	eDataType_Serializable.SetID(false)
+	eDataType_Serializable.SetDefaultValueLiteral("true")
 
 }
 
@@ -2032,31 +1933,32 @@ func (p *ecorePackageImpl) initializeEEnumContent() {
 	p.eEnum.SetAbstract(false)
 	p.eEnum.SetInterface(false)
 
-	p.eEnum_ELiterals.SetName("eLiterals")
-	p.eEnum_ELiterals.SetEType(p.GetEEnumLiteral())
-	p.eEnum_ELiterals.SetLowerBound(0)
-	p.eEnum_ELiterals.SetUpperBound(-1)
-	p.eEnum_ELiterals.SetTransient(false)
-	p.eEnum_ELiterals.SetVolatile(false)
-	p.eEnum_ELiterals.SetChangeable(true)
-	p.eEnum_ELiterals.SetUnsettable(false)
-	p.eEnum_ELiterals.SetUnique(true)
-	p.eEnum_ELiterals.SetDerived(false)
-	p.eEnum_ELiterals.SetOrdered(true)
-	p.eEnum_ELiterals.SetContainment(true)
-	p.eEnum_ELiterals.SetResolveProxies(false)
-	p.eEnum_ELiterals.SetDefaultValueLiteral("")
-	p.eEnum_ELiterals.SetEOpposite(p.GetEEnumLiteral_EEnum())
+	eEnum_ELiterals := p.GetEEnum_ELiterals()
+	eEnum_ELiterals.SetName("eLiterals")
+	eEnum_ELiterals.SetEType(p.GetEEnumLiteral())
+	eEnum_ELiterals.SetLowerBound(0)
+	eEnum_ELiterals.SetUpperBound(-1)
+	eEnum_ELiterals.SetTransient(false)
+	eEnum_ELiterals.SetVolatile(false)
+	eEnum_ELiterals.SetChangeable(true)
+	eEnum_ELiterals.SetUnsettable(false)
+	eEnum_ELiterals.SetUnique(true)
+	eEnum_ELiterals.SetDerived(false)
+	eEnum_ELiterals.SetOrdered(true)
+	eEnum_ELiterals.SetContainment(true)
+	eEnum_ELiterals.SetResolveProxies(false)
+	eEnum_ELiterals.SetDefaultValueLiteral("")
+	eEnum_ELiterals.SetEOpposite(p.GetEEnumLiteral_EEnum())
 
-	p.eEnum_GetEEnumLiteral_EString.SetEType(p.GetEEnumLiteral())
-	p.eEnum_GetEEnumLiteral_EString.SetName("getEEnumLiteral")
-	p.eEnum_GetEEnumLiteral_EString.SetLowerBound(0)
-	p.eEnum_GetEEnumLiteral_EString.SetUpperBound(1)
-	p.eEnum_GetEEnumLiteral_EString.SetUnique(true)
-	p.eEnum_GetEEnumLiteral_EString.SetOrdered(true)
-
+	eEnum_GetEEnumLiteral_EString := p.GetEEnum_GetEEnumLiteral_EString()
+	eEnum_GetEEnumLiteral_EString.SetEType(p.GetEEnumLiteral())
+	eEnum_GetEEnumLiteral_EString.SetName("getEEnumLiteral")
+	eEnum_GetEEnumLiteral_EString.SetLowerBound(0)
+	eEnum_GetEEnumLiteral_EString.SetUpperBound(1)
+	eEnum_GetEEnumLiteral_EString.SetUnique(true)
+	eEnum_GetEEnumLiteral_EString.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eEnum_GetEEnumLiteral_EString)
+		parameter := GetFactory().CreateEParameterFromContainer(eEnum_GetEEnumLiteral_EString)
 		parameter.SetName("name")
 		parameter.SetEType(p.GetEString())
 		parameter.SetLowerBound(0)
@@ -2065,15 +1967,15 @@ func (p *ecorePackageImpl) initializeEEnumContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eEnum_GetEEnumLiteral_EInt.SetEType(p.GetEEnumLiteral())
-	p.eEnum_GetEEnumLiteral_EInt.SetName("getEEnumLiteral")
-	p.eEnum_GetEEnumLiteral_EInt.SetLowerBound(0)
-	p.eEnum_GetEEnumLiteral_EInt.SetUpperBound(1)
-	p.eEnum_GetEEnumLiteral_EInt.SetUnique(true)
-	p.eEnum_GetEEnumLiteral_EInt.SetOrdered(true)
-
+	eEnum_GetEEnumLiteral_EInt := p.GetEEnum_GetEEnumLiteral_EInt()
+	eEnum_GetEEnumLiteral_EInt.SetEType(p.GetEEnumLiteral())
+	eEnum_GetEEnumLiteral_EInt.SetName("getEEnumLiteral")
+	eEnum_GetEEnumLiteral_EInt.SetLowerBound(0)
+	eEnum_GetEEnumLiteral_EInt.SetUpperBound(1)
+	eEnum_GetEEnumLiteral_EInt.SetUnique(true)
+	eEnum_GetEEnumLiteral_EInt.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eEnum_GetEEnumLiteral_EInt)
+		parameter := GetFactory().CreateEParameterFromContainer(eEnum_GetEEnumLiteral_EInt)
 		parameter.SetName("value")
 		parameter.SetEType(p.GetEInt())
 		parameter.SetLowerBound(0)
@@ -2082,15 +1984,15 @@ func (p *ecorePackageImpl) initializeEEnumContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eEnum_GetEEnumLiteralByLiteral_EString.SetEType(p.GetEEnumLiteral())
-	p.eEnum_GetEEnumLiteralByLiteral_EString.SetName("getEEnumLiteralByLiteral")
-	p.eEnum_GetEEnumLiteralByLiteral_EString.SetLowerBound(0)
-	p.eEnum_GetEEnumLiteralByLiteral_EString.SetUpperBound(1)
-	p.eEnum_GetEEnumLiteralByLiteral_EString.SetUnique(true)
-	p.eEnum_GetEEnumLiteralByLiteral_EString.SetOrdered(true)
-
+	eEnum_GetEEnumLiteralByLiteral_EString := p.GetEEnum_GetEEnumLiteralByLiteral_EString()
+	eEnum_GetEEnumLiteralByLiteral_EString.SetEType(p.GetEEnumLiteral())
+	eEnum_GetEEnumLiteralByLiteral_EString.SetName("getEEnumLiteralByLiteral")
+	eEnum_GetEEnumLiteralByLiteral_EString.SetLowerBound(0)
+	eEnum_GetEEnumLiteralByLiteral_EString.SetUpperBound(1)
+	eEnum_GetEEnumLiteralByLiteral_EString.SetUnique(true)
+	eEnum_GetEEnumLiteralByLiteral_EString.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eEnum_GetEEnumLiteralByLiteral_EString)
+		parameter := GetFactory().CreateEParameterFromContainer(eEnum_GetEEnumLiteralByLiteral_EString)
 		parameter.SetName("literal")
 		parameter.SetEType(p.GetEString())
 		parameter.SetLowerBound(0)
@@ -2105,63 +2007,68 @@ func (p *ecorePackageImpl) initializeEEnumLiteralContent() {
 	p.eEnumLiteral.SetName("EEnumLiteral")
 	p.eEnumLiteral.SetAbstract(false)
 	p.eEnumLiteral.SetInterface(false)
-	p.eEnumLiteral_Instance.SetName("instance")
-	p.eEnumLiteral_Instance.SetEType(p.GetEEnumerator())
-	p.eEnumLiteral_Instance.SetLowerBound(0)
-	p.eEnumLiteral_Instance.SetUpperBound(1)
-	p.eEnumLiteral_Instance.SetTransient(true)
-	p.eEnumLiteral_Instance.SetVolatile(false)
-	p.eEnumLiteral_Instance.SetChangeable(true)
-	p.eEnumLiteral_Instance.SetUnsettable(false)
-	p.eEnumLiteral_Instance.SetUnique(true)
-	p.eEnumLiteral_Instance.SetDerived(false)
-	p.eEnumLiteral_Instance.SetOrdered(true)
-	p.eEnumLiteral_Instance.SetID(false)
-	p.eEnumLiteral_Instance.SetDefaultValueLiteral("")
 
-	p.eEnumLiteral_Literal.SetName("literal")
-	p.eEnumLiteral_Literal.SetEType(p.GetEString())
-	p.eEnumLiteral_Literal.SetLowerBound(0)
-	p.eEnumLiteral_Literal.SetUpperBound(1)
-	p.eEnumLiteral_Literal.SetTransient(false)
-	p.eEnumLiteral_Literal.SetVolatile(false)
-	p.eEnumLiteral_Literal.SetChangeable(true)
-	p.eEnumLiteral_Literal.SetUnsettable(false)
-	p.eEnumLiteral_Literal.SetUnique(true)
-	p.eEnumLiteral_Literal.SetDerived(false)
-	p.eEnumLiteral_Literal.SetOrdered(true)
-	p.eEnumLiteral_Literal.SetID(false)
-	p.eEnumLiteral_Literal.SetDefaultValueLiteral("")
+	eEnumLiteral_Instance := p.GetEEnumLiteral_Instance()
+	eEnumLiteral_Instance.SetName("instance")
+	eEnumLiteral_Instance.SetEType(p.GetEEnumerator())
+	eEnumLiteral_Instance.SetLowerBound(0)
+	eEnumLiteral_Instance.SetUpperBound(1)
+	eEnumLiteral_Instance.SetTransient(true)
+	eEnumLiteral_Instance.SetVolatile(false)
+	eEnumLiteral_Instance.SetChangeable(true)
+	eEnumLiteral_Instance.SetUnsettable(false)
+	eEnumLiteral_Instance.SetUnique(true)
+	eEnumLiteral_Instance.SetDerived(false)
+	eEnumLiteral_Instance.SetOrdered(true)
+	eEnumLiteral_Instance.SetID(false)
+	eEnumLiteral_Instance.SetDefaultValueLiteral("")
 
-	p.eEnumLiteral_Value.SetName("value")
-	p.eEnumLiteral_Value.SetEType(p.GetEInt())
-	p.eEnumLiteral_Value.SetLowerBound(0)
-	p.eEnumLiteral_Value.SetUpperBound(1)
-	p.eEnumLiteral_Value.SetTransient(false)
-	p.eEnumLiteral_Value.SetVolatile(false)
-	p.eEnumLiteral_Value.SetChangeable(true)
-	p.eEnumLiteral_Value.SetUnsettable(false)
-	p.eEnumLiteral_Value.SetUnique(true)
-	p.eEnumLiteral_Value.SetDerived(false)
-	p.eEnumLiteral_Value.SetOrdered(true)
-	p.eEnumLiteral_Value.SetID(false)
-	p.eEnumLiteral_Value.SetDefaultValueLiteral("")
+	eEnumLiteral_Literal := p.GetEEnumLiteral_Literal()
+	eEnumLiteral_Literal.SetName("literal")
+	eEnumLiteral_Literal.SetEType(p.GetEString())
+	eEnumLiteral_Literal.SetLowerBound(0)
+	eEnumLiteral_Literal.SetUpperBound(1)
+	eEnumLiteral_Literal.SetTransient(false)
+	eEnumLiteral_Literal.SetVolatile(false)
+	eEnumLiteral_Literal.SetChangeable(true)
+	eEnumLiteral_Literal.SetUnsettable(false)
+	eEnumLiteral_Literal.SetUnique(true)
+	eEnumLiteral_Literal.SetDerived(false)
+	eEnumLiteral_Literal.SetOrdered(true)
+	eEnumLiteral_Literal.SetID(false)
+	eEnumLiteral_Literal.SetDefaultValueLiteral("")
 
-	p.eEnumLiteral_EEnum.SetName("eEnum")
-	p.eEnumLiteral_EEnum.SetEType(p.GetEEnum())
-	p.eEnumLiteral_EEnum.SetLowerBound(0)
-	p.eEnumLiteral_EEnum.SetUpperBound(1)
-	p.eEnumLiteral_EEnum.SetTransient(true)
-	p.eEnumLiteral_EEnum.SetVolatile(false)
-	p.eEnumLiteral_EEnum.SetChangeable(false)
-	p.eEnumLiteral_EEnum.SetUnsettable(false)
-	p.eEnumLiteral_EEnum.SetUnique(true)
-	p.eEnumLiteral_EEnum.SetDerived(false)
-	p.eEnumLiteral_EEnum.SetOrdered(true)
-	p.eEnumLiteral_EEnum.SetContainment(false)
-	p.eEnumLiteral_EEnum.SetResolveProxies(false)
-	p.eEnumLiteral_EEnum.SetDefaultValueLiteral("")
-	p.eEnumLiteral_EEnum.SetEOpposite(p.GetEEnum_ELiterals())
+	eEnumLiteral_Value := p.GetEEnumLiteral_Value()
+	eEnumLiteral_Value.SetName("value")
+	eEnumLiteral_Value.SetEType(p.GetEInt())
+	eEnumLiteral_Value.SetLowerBound(0)
+	eEnumLiteral_Value.SetUpperBound(1)
+	eEnumLiteral_Value.SetTransient(false)
+	eEnumLiteral_Value.SetVolatile(false)
+	eEnumLiteral_Value.SetChangeable(true)
+	eEnumLiteral_Value.SetUnsettable(false)
+	eEnumLiteral_Value.SetUnique(true)
+	eEnumLiteral_Value.SetDerived(false)
+	eEnumLiteral_Value.SetOrdered(true)
+	eEnumLiteral_Value.SetID(false)
+	eEnumLiteral_Value.SetDefaultValueLiteral("")
+
+	eEnumLiteral_EEnum := p.GetEEnumLiteral_EEnum()
+	eEnumLiteral_EEnum.SetName("eEnum")
+	eEnumLiteral_EEnum.SetEType(p.GetEEnum())
+	eEnumLiteral_EEnum.SetLowerBound(0)
+	eEnumLiteral_EEnum.SetUpperBound(1)
+	eEnumLiteral_EEnum.SetTransient(true)
+	eEnumLiteral_EEnum.SetVolatile(false)
+	eEnumLiteral_EEnum.SetChangeable(false)
+	eEnumLiteral_EEnum.SetUnsettable(false)
+	eEnumLiteral_EEnum.SetUnique(true)
+	eEnumLiteral_EEnum.SetDerived(false)
+	eEnumLiteral_EEnum.SetOrdered(true)
+	eEnumLiteral_EEnum.SetContainment(false)
+	eEnumLiteral_EEnum.SetResolveProxies(false)
+	eEnumLiteral_EEnum.SetDefaultValueLiteral("")
+	eEnumLiteral_EEnum.SetEOpposite(p.GetEEnum_ELiterals())
 
 }
 
@@ -2170,31 +2077,32 @@ func (p *ecorePackageImpl) initializeEFactoryContent() {
 	p.eFactory.SetAbstract(false)
 	p.eFactory.SetInterface(false)
 
-	p.eFactory_EPackage.SetName("ePackage")
-	p.eFactory_EPackage.SetEType(p.GetEPackage())
-	p.eFactory_EPackage.SetLowerBound(1)
-	p.eFactory_EPackage.SetUpperBound(1)
-	p.eFactory_EPackage.SetTransient(true)
-	p.eFactory_EPackage.SetVolatile(false)
-	p.eFactory_EPackage.SetChangeable(true)
-	p.eFactory_EPackage.SetUnsettable(false)
-	p.eFactory_EPackage.SetUnique(true)
-	p.eFactory_EPackage.SetDerived(false)
-	p.eFactory_EPackage.SetOrdered(true)
-	p.eFactory_EPackage.SetContainment(false)
-	p.eFactory_EPackage.SetResolveProxies(false)
-	p.eFactory_EPackage.SetDefaultValueLiteral("")
-	p.eFactory_EPackage.SetEOpposite(p.GetEPackage_EFactoryInstance())
+	eFactory_EPackage := p.GetEFactory_EPackage()
+	eFactory_EPackage.SetName("ePackage")
+	eFactory_EPackage.SetEType(p.GetEPackage())
+	eFactory_EPackage.SetLowerBound(1)
+	eFactory_EPackage.SetUpperBound(1)
+	eFactory_EPackage.SetTransient(true)
+	eFactory_EPackage.SetVolatile(false)
+	eFactory_EPackage.SetChangeable(true)
+	eFactory_EPackage.SetUnsettable(false)
+	eFactory_EPackage.SetUnique(true)
+	eFactory_EPackage.SetDerived(false)
+	eFactory_EPackage.SetOrdered(true)
+	eFactory_EPackage.SetContainment(false)
+	eFactory_EPackage.SetResolveProxies(false)
+	eFactory_EPackage.SetDefaultValueLiteral("")
+	eFactory_EPackage.SetEOpposite(p.GetEPackage_EFactoryInstance())
 
-	p.eFactory_ConvertToString_EDataType_EJavaObject.SetEType(p.GetEString())
-	p.eFactory_ConvertToString_EDataType_EJavaObject.SetName("convertToString")
-	p.eFactory_ConvertToString_EDataType_EJavaObject.SetLowerBound(0)
-	p.eFactory_ConvertToString_EDataType_EJavaObject.SetUpperBound(1)
-	p.eFactory_ConvertToString_EDataType_EJavaObject.SetUnique(true)
-	p.eFactory_ConvertToString_EDataType_EJavaObject.SetOrdered(true)
-
+	eFactory_ConvertToString_EDataType_EJavaObject := p.GetEFactory_ConvertToString_EDataType_EJavaObject()
+	eFactory_ConvertToString_EDataType_EJavaObject.SetEType(p.GetEString())
+	eFactory_ConvertToString_EDataType_EJavaObject.SetName("convertToString")
+	eFactory_ConvertToString_EDataType_EJavaObject.SetLowerBound(0)
+	eFactory_ConvertToString_EDataType_EJavaObject.SetUpperBound(1)
+	eFactory_ConvertToString_EDataType_EJavaObject.SetUnique(true)
+	eFactory_ConvertToString_EDataType_EJavaObject.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eFactory_ConvertToString_EDataType_EJavaObject)
+		parameter := GetFactory().CreateEParameterFromContainer(eFactory_ConvertToString_EDataType_EJavaObject)
 		parameter.SetName("eDataType")
 		parameter.SetEType(p.GetEDataType())
 		parameter.SetLowerBound(0)
@@ -2202,9 +2110,8 @@ func (p *ecorePackageImpl) initializeEFactoryContent() {
 		parameter.SetUnique(true)
 		parameter.SetOrdered(true)
 	}
-
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eFactory_ConvertToString_EDataType_EJavaObject)
+		parameter := GetFactory().CreateEParameterFromContainer(eFactory_ConvertToString_EDataType_EJavaObject)
 		parameter.SetName("instanceValue")
 		parameter.SetEType(p.GetEJavaObject())
 		parameter.SetLowerBound(0)
@@ -2213,15 +2120,15 @@ func (p *ecorePackageImpl) initializeEFactoryContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eFactory_Create_EClass.SetEType(p.GetEObject())
-	p.eFactory_Create_EClass.SetName("create")
-	p.eFactory_Create_EClass.SetLowerBound(0)
-	p.eFactory_Create_EClass.SetUpperBound(1)
-	p.eFactory_Create_EClass.SetUnique(true)
-	p.eFactory_Create_EClass.SetOrdered(true)
-
+	eFactory_Create_EClass := p.GetEFactory_Create_EClass()
+	eFactory_Create_EClass.SetEType(p.GetEObject())
+	eFactory_Create_EClass.SetName("create")
+	eFactory_Create_EClass.SetLowerBound(0)
+	eFactory_Create_EClass.SetUpperBound(1)
+	eFactory_Create_EClass.SetUnique(true)
+	eFactory_Create_EClass.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eFactory_Create_EClass)
+		parameter := GetFactory().CreateEParameterFromContainer(eFactory_Create_EClass)
 		parameter.SetName("eClass")
 		parameter.SetEType(p.GetEClass())
 		parameter.SetLowerBound(0)
@@ -2230,15 +2137,15 @@ func (p *ecorePackageImpl) initializeEFactoryContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eFactory_CreateFromString_EDataType_EString.SetEType(p.GetEJavaObject())
-	p.eFactory_CreateFromString_EDataType_EString.SetName("createFromString")
-	p.eFactory_CreateFromString_EDataType_EString.SetLowerBound(0)
-	p.eFactory_CreateFromString_EDataType_EString.SetUpperBound(1)
-	p.eFactory_CreateFromString_EDataType_EString.SetUnique(true)
-	p.eFactory_CreateFromString_EDataType_EString.SetOrdered(true)
-
+	eFactory_CreateFromString_EDataType_EString := p.GetEFactory_CreateFromString_EDataType_EString()
+	eFactory_CreateFromString_EDataType_EString.SetEType(p.GetEJavaObject())
+	eFactory_CreateFromString_EDataType_EString.SetName("createFromString")
+	eFactory_CreateFromString_EDataType_EString.SetLowerBound(0)
+	eFactory_CreateFromString_EDataType_EString.SetUpperBound(1)
+	eFactory_CreateFromString_EDataType_EString.SetUnique(true)
+	eFactory_CreateFromString_EDataType_EString.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eFactory_CreateFromString_EDataType_EString)
+		parameter := GetFactory().CreateEParameterFromContainer(eFactory_CreateFromString_EDataType_EString)
 		parameter.SetName("eDataType")
 		parameter.SetEType(p.GetEDataType())
 		parameter.SetLowerBound(0)
@@ -2246,9 +2153,8 @@ func (p *ecorePackageImpl) initializeEFactoryContent() {
 		parameter.SetUnique(true)
 		parameter.SetOrdered(true)
 	}
-
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eFactory_CreateFromString_EDataType_EString)
+		parameter := GetFactory().CreateEParameterFromContainer(eFactory_CreateFromString_EDataType_EString)
 		parameter.SetName("literalValue")
 		parameter.SetEType(p.GetEString())
 		parameter.SetLowerBound(0)
@@ -2264,105 +2170,111 @@ func (p *ecorePackageImpl) initializeEGenericTypeContent() {
 	p.eGenericType.SetAbstract(false)
 	p.eGenericType.SetInterface(false)
 
-	p.eGenericType_EClassifier.SetName("eClassifier")
-	p.eGenericType_EClassifier.SetEType(p.GetEClassifierClass())
-	p.eGenericType_EClassifier.SetLowerBound(0)
-	p.eGenericType_EClassifier.SetUpperBound(1)
-	p.eGenericType_EClassifier.SetTransient(false)
-	p.eGenericType_EClassifier.SetVolatile(false)
-	p.eGenericType_EClassifier.SetChangeable(true)
-	p.eGenericType_EClassifier.SetUnsettable(false)
-	p.eGenericType_EClassifier.SetUnique(true)
-	p.eGenericType_EClassifier.SetDerived(false)
-	p.eGenericType_EClassifier.SetOrdered(true)
-	p.eGenericType_EClassifier.SetContainment(false)
-	p.eGenericType_EClassifier.SetResolveProxies(true)
-	p.eGenericType_EClassifier.SetDefaultValueLiteral("")
+	eGenericType_EClassifier := p.GetEGenericType_EClassifier()
+	eGenericType_EClassifier.SetName("eClassifier")
+	eGenericType_EClassifier.SetEType(p.GetEClassifierClass())
+	eGenericType_EClassifier.SetLowerBound(0)
+	eGenericType_EClassifier.SetUpperBound(1)
+	eGenericType_EClassifier.SetTransient(false)
+	eGenericType_EClassifier.SetVolatile(false)
+	eGenericType_EClassifier.SetChangeable(true)
+	eGenericType_EClassifier.SetUnsettable(false)
+	eGenericType_EClassifier.SetUnique(true)
+	eGenericType_EClassifier.SetDerived(false)
+	eGenericType_EClassifier.SetOrdered(true)
+	eGenericType_EClassifier.SetContainment(false)
+	eGenericType_EClassifier.SetResolveProxies(true)
+	eGenericType_EClassifier.SetDefaultValueLiteral("")
 
-	p.eGenericType_ELowerBound.SetName("eLowerBound")
-	p.eGenericType_ELowerBound.SetEType(p.GetEGenericType())
-	p.eGenericType_ELowerBound.SetLowerBound(0)
-	p.eGenericType_ELowerBound.SetUpperBound(1)
-	p.eGenericType_ELowerBound.SetTransient(false)
-	p.eGenericType_ELowerBound.SetVolatile(false)
-	p.eGenericType_ELowerBound.SetChangeable(true)
-	p.eGenericType_ELowerBound.SetUnsettable(false)
-	p.eGenericType_ELowerBound.SetUnique(true)
-	p.eGenericType_ELowerBound.SetDerived(false)
-	p.eGenericType_ELowerBound.SetOrdered(true)
-	p.eGenericType_ELowerBound.SetContainment(true)
-	p.eGenericType_ELowerBound.SetResolveProxies(false)
-	p.eGenericType_ELowerBound.SetDefaultValueLiteral("")
+	eGenericType_ELowerBound := p.GetEGenericType_ELowerBound()
+	eGenericType_ELowerBound.SetName("eLowerBound")
+	eGenericType_ELowerBound.SetEType(p.GetEGenericType())
+	eGenericType_ELowerBound.SetLowerBound(0)
+	eGenericType_ELowerBound.SetUpperBound(1)
+	eGenericType_ELowerBound.SetTransient(false)
+	eGenericType_ELowerBound.SetVolatile(false)
+	eGenericType_ELowerBound.SetChangeable(true)
+	eGenericType_ELowerBound.SetUnsettable(false)
+	eGenericType_ELowerBound.SetUnique(true)
+	eGenericType_ELowerBound.SetDerived(false)
+	eGenericType_ELowerBound.SetOrdered(true)
+	eGenericType_ELowerBound.SetContainment(true)
+	eGenericType_ELowerBound.SetResolveProxies(false)
+	eGenericType_ELowerBound.SetDefaultValueLiteral("")
 
-	p.eGenericType_ERawType.SetName("eRawType")
-	p.eGenericType_ERawType.SetEType(p.GetEClassifierClass())
-	p.eGenericType_ERawType.SetLowerBound(1)
-	p.eGenericType_ERawType.SetUpperBound(1)
-	p.eGenericType_ERawType.SetTransient(true)
-	p.eGenericType_ERawType.SetVolatile(false)
-	p.eGenericType_ERawType.SetChangeable(false)
-	p.eGenericType_ERawType.SetUnsettable(false)
-	p.eGenericType_ERawType.SetUnique(true)
-	p.eGenericType_ERawType.SetDerived(true)
-	p.eGenericType_ERawType.SetOrdered(true)
-	p.eGenericType_ERawType.SetContainment(false)
-	p.eGenericType_ERawType.SetResolveProxies(true)
-	p.eGenericType_ERawType.SetDefaultValueLiteral("")
+	eGenericType_ERawType := p.GetEGenericType_ERawType()
+	eGenericType_ERawType.SetName("eRawType")
+	eGenericType_ERawType.SetEType(p.GetEClassifierClass())
+	eGenericType_ERawType.SetLowerBound(1)
+	eGenericType_ERawType.SetUpperBound(1)
+	eGenericType_ERawType.SetTransient(true)
+	eGenericType_ERawType.SetVolatile(false)
+	eGenericType_ERawType.SetChangeable(false)
+	eGenericType_ERawType.SetUnsettable(false)
+	eGenericType_ERawType.SetUnique(true)
+	eGenericType_ERawType.SetDerived(true)
+	eGenericType_ERawType.SetOrdered(true)
+	eGenericType_ERawType.SetContainment(false)
+	eGenericType_ERawType.SetResolveProxies(true)
+	eGenericType_ERawType.SetDefaultValueLiteral("")
 
-	p.eGenericType_ETypeArguments.SetName("eTypeArguments")
-	p.eGenericType_ETypeArguments.SetEType(p.GetEGenericType())
-	p.eGenericType_ETypeArguments.SetLowerBound(0)
-	p.eGenericType_ETypeArguments.SetUpperBound(-1)
-	p.eGenericType_ETypeArguments.SetTransient(false)
-	p.eGenericType_ETypeArguments.SetVolatile(false)
-	p.eGenericType_ETypeArguments.SetChangeable(true)
-	p.eGenericType_ETypeArguments.SetUnsettable(false)
-	p.eGenericType_ETypeArguments.SetUnique(true)
-	p.eGenericType_ETypeArguments.SetDerived(false)
-	p.eGenericType_ETypeArguments.SetOrdered(true)
-	p.eGenericType_ETypeArguments.SetContainment(true)
-	p.eGenericType_ETypeArguments.SetResolveProxies(false)
-	p.eGenericType_ETypeArguments.SetDefaultValueLiteral("")
+	eGenericType_ETypeArguments := p.GetEGenericType_ETypeArguments()
+	eGenericType_ETypeArguments.SetName("eTypeArguments")
+	eGenericType_ETypeArguments.SetEType(p.GetEGenericType())
+	eGenericType_ETypeArguments.SetLowerBound(0)
+	eGenericType_ETypeArguments.SetUpperBound(-1)
+	eGenericType_ETypeArguments.SetTransient(false)
+	eGenericType_ETypeArguments.SetVolatile(false)
+	eGenericType_ETypeArguments.SetChangeable(true)
+	eGenericType_ETypeArguments.SetUnsettable(false)
+	eGenericType_ETypeArguments.SetUnique(true)
+	eGenericType_ETypeArguments.SetDerived(false)
+	eGenericType_ETypeArguments.SetOrdered(true)
+	eGenericType_ETypeArguments.SetContainment(true)
+	eGenericType_ETypeArguments.SetResolveProxies(false)
+	eGenericType_ETypeArguments.SetDefaultValueLiteral("")
 
-	p.eGenericType_ETypeParameter.SetName("eTypeParameter")
-	p.eGenericType_ETypeParameter.SetEType(p.GetETypeParameter())
-	p.eGenericType_ETypeParameter.SetLowerBound(0)
-	p.eGenericType_ETypeParameter.SetUpperBound(1)
-	p.eGenericType_ETypeParameter.SetTransient(false)
-	p.eGenericType_ETypeParameter.SetVolatile(false)
-	p.eGenericType_ETypeParameter.SetChangeable(true)
-	p.eGenericType_ETypeParameter.SetUnsettable(false)
-	p.eGenericType_ETypeParameter.SetUnique(true)
-	p.eGenericType_ETypeParameter.SetDerived(false)
-	p.eGenericType_ETypeParameter.SetOrdered(true)
-	p.eGenericType_ETypeParameter.SetContainment(false)
-	p.eGenericType_ETypeParameter.SetResolveProxies(false)
-	p.eGenericType_ETypeParameter.SetDefaultValueLiteral("")
+	eGenericType_ETypeParameter := p.GetEGenericType_ETypeParameter()
+	eGenericType_ETypeParameter.SetName("eTypeParameter")
+	eGenericType_ETypeParameter.SetEType(p.GetETypeParameter())
+	eGenericType_ETypeParameter.SetLowerBound(0)
+	eGenericType_ETypeParameter.SetUpperBound(1)
+	eGenericType_ETypeParameter.SetTransient(false)
+	eGenericType_ETypeParameter.SetVolatile(false)
+	eGenericType_ETypeParameter.SetChangeable(true)
+	eGenericType_ETypeParameter.SetUnsettable(false)
+	eGenericType_ETypeParameter.SetUnique(true)
+	eGenericType_ETypeParameter.SetDerived(false)
+	eGenericType_ETypeParameter.SetOrdered(true)
+	eGenericType_ETypeParameter.SetContainment(false)
+	eGenericType_ETypeParameter.SetResolveProxies(false)
+	eGenericType_ETypeParameter.SetDefaultValueLiteral("")
 
-	p.eGenericType_EUpperBound.SetName("eUpperBound")
-	p.eGenericType_EUpperBound.SetEType(p.GetEGenericType())
-	p.eGenericType_EUpperBound.SetLowerBound(0)
-	p.eGenericType_EUpperBound.SetUpperBound(1)
-	p.eGenericType_EUpperBound.SetTransient(false)
-	p.eGenericType_EUpperBound.SetVolatile(false)
-	p.eGenericType_EUpperBound.SetChangeable(true)
-	p.eGenericType_EUpperBound.SetUnsettable(false)
-	p.eGenericType_EUpperBound.SetUnique(true)
-	p.eGenericType_EUpperBound.SetDerived(false)
-	p.eGenericType_EUpperBound.SetOrdered(true)
-	p.eGenericType_EUpperBound.SetContainment(true)
-	p.eGenericType_EUpperBound.SetResolveProxies(false)
-	p.eGenericType_EUpperBound.SetDefaultValueLiteral("")
+	eGenericType_EUpperBound := p.GetEGenericType_EUpperBound()
+	eGenericType_EUpperBound.SetName("eUpperBound")
+	eGenericType_EUpperBound.SetEType(p.GetEGenericType())
+	eGenericType_EUpperBound.SetLowerBound(0)
+	eGenericType_EUpperBound.SetUpperBound(1)
+	eGenericType_EUpperBound.SetTransient(false)
+	eGenericType_EUpperBound.SetVolatile(false)
+	eGenericType_EUpperBound.SetChangeable(true)
+	eGenericType_EUpperBound.SetUnsettable(false)
+	eGenericType_EUpperBound.SetUnique(true)
+	eGenericType_EUpperBound.SetDerived(false)
+	eGenericType_EUpperBound.SetOrdered(true)
+	eGenericType_EUpperBound.SetContainment(true)
+	eGenericType_EUpperBound.SetResolveProxies(false)
+	eGenericType_EUpperBound.SetDefaultValueLiteral("")
 
-	p.eGenericType_IsInstance_EJavaObject.SetEType(p.GetEBoolean())
-	p.eGenericType_IsInstance_EJavaObject.SetName("isInstance")
-	p.eGenericType_IsInstance_EJavaObject.SetLowerBound(0)
-	p.eGenericType_IsInstance_EJavaObject.SetUpperBound(1)
-	p.eGenericType_IsInstance_EJavaObject.SetUnique(true)
-	p.eGenericType_IsInstance_EJavaObject.SetOrdered(true)
-
+	eGenericType_IsInstance_EJavaObject := p.GetEGenericType_IsInstance_EJavaObject()
+	eGenericType_IsInstance_EJavaObject.SetEType(p.GetEBoolean())
+	eGenericType_IsInstance_EJavaObject.SetName("isInstance")
+	eGenericType_IsInstance_EJavaObject.SetLowerBound(0)
+	eGenericType_IsInstance_EJavaObject.SetUpperBound(1)
+	eGenericType_IsInstance_EJavaObject.SetUnique(true)
+	eGenericType_IsInstance_EJavaObject.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eGenericType_IsInstance_EJavaObject)
+		parameter := GetFactory().CreateEParameterFromContainer(eGenericType_IsInstance_EJavaObject)
 		parameter.SetName("object")
 		parameter.SetEType(p.GetEJavaObject())
 		parameter.SetLowerBound(0)
@@ -2378,31 +2290,32 @@ func (p *ecorePackageImpl) initializeEModelElementContent() {
 	p.eModelElement.SetAbstract(true)
 	p.eModelElement.SetInterface(false)
 
-	p.eModelElement_EAnnotations.SetName("eAnnotations")
-	p.eModelElement_EAnnotations.SetEType(p.GetEAnnotationClass())
-	p.eModelElement_EAnnotations.SetLowerBound(0)
-	p.eModelElement_EAnnotations.SetUpperBound(-1)
-	p.eModelElement_EAnnotations.SetTransient(false)
-	p.eModelElement_EAnnotations.SetVolatile(false)
-	p.eModelElement_EAnnotations.SetChangeable(true)
-	p.eModelElement_EAnnotations.SetUnsettable(false)
-	p.eModelElement_EAnnotations.SetUnique(true)
-	p.eModelElement_EAnnotations.SetDerived(false)
-	p.eModelElement_EAnnotations.SetOrdered(true)
-	p.eModelElement_EAnnotations.SetContainment(true)
-	p.eModelElement_EAnnotations.SetResolveProxies(false)
-	p.eModelElement_EAnnotations.SetDefaultValueLiteral("")
-	p.eModelElement_EAnnotations.SetEOpposite(p.GetEAnnotation_EModelElement())
+	eModelElement_EAnnotations := p.GetEModelElement_EAnnotations()
+	eModelElement_EAnnotations.SetName("eAnnotations")
+	eModelElement_EAnnotations.SetEType(p.GetEAnnotationClass())
+	eModelElement_EAnnotations.SetLowerBound(0)
+	eModelElement_EAnnotations.SetUpperBound(-1)
+	eModelElement_EAnnotations.SetTransient(false)
+	eModelElement_EAnnotations.SetVolatile(false)
+	eModelElement_EAnnotations.SetChangeable(true)
+	eModelElement_EAnnotations.SetUnsettable(false)
+	eModelElement_EAnnotations.SetUnique(true)
+	eModelElement_EAnnotations.SetDerived(false)
+	eModelElement_EAnnotations.SetOrdered(true)
+	eModelElement_EAnnotations.SetContainment(true)
+	eModelElement_EAnnotations.SetResolveProxies(false)
+	eModelElement_EAnnotations.SetDefaultValueLiteral("")
+	eModelElement_EAnnotations.SetEOpposite(p.GetEAnnotation_EModelElement())
 
-	p.eModelElement_GetEAnnotation_EString.SetEType(p.GetEAnnotationClass())
-	p.eModelElement_GetEAnnotation_EString.SetName("getEAnnotation")
-	p.eModelElement_GetEAnnotation_EString.SetLowerBound(0)
-	p.eModelElement_GetEAnnotation_EString.SetUpperBound(1)
-	p.eModelElement_GetEAnnotation_EString.SetUnique(true)
-	p.eModelElement_GetEAnnotation_EString.SetOrdered(true)
-
+	eModelElement_GetEAnnotation_EString := p.GetEModelElement_GetEAnnotation_EString()
+	eModelElement_GetEAnnotation_EString.SetEType(p.GetEAnnotationClass())
+	eModelElement_GetEAnnotation_EString.SetName("getEAnnotation")
+	eModelElement_GetEAnnotation_EString.SetLowerBound(0)
+	eModelElement_GetEAnnotation_EString.SetUpperBound(1)
+	eModelElement_GetEAnnotation_EString.SetUnique(true)
+	eModelElement_GetEAnnotation_EString.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eModelElement_GetEAnnotation_EString)
+		parameter := GetFactory().CreateEParameterFromContainer(eModelElement_GetEAnnotation_EString)
 		parameter.SetName("source")
 		parameter.SetEType(p.GetEString())
 		parameter.SetLowerBound(0)
@@ -2417,19 +2330,21 @@ func (p *ecorePackageImpl) initializeENamedElementContent() {
 	p.eNamedElement.SetName("ENamedElement")
 	p.eNamedElement.SetAbstract(true)
 	p.eNamedElement.SetInterface(false)
-	p.eNamedElement_Name.SetName("name")
-	p.eNamedElement_Name.SetEType(p.GetEString())
-	p.eNamedElement_Name.SetLowerBound(0)
-	p.eNamedElement_Name.SetUpperBound(1)
-	p.eNamedElement_Name.SetTransient(false)
-	p.eNamedElement_Name.SetVolatile(false)
-	p.eNamedElement_Name.SetChangeable(true)
-	p.eNamedElement_Name.SetUnsettable(false)
-	p.eNamedElement_Name.SetUnique(true)
-	p.eNamedElement_Name.SetDerived(false)
-	p.eNamedElement_Name.SetOrdered(true)
-	p.eNamedElement_Name.SetID(false)
-	p.eNamedElement_Name.SetDefaultValueLiteral("")
+
+	eNamedElement_Name := p.GetENamedElement_Name()
+	eNamedElement_Name.SetName("name")
+	eNamedElement_Name.SetEType(p.GetEString())
+	eNamedElement_Name.SetLowerBound(0)
+	eNamedElement_Name.SetUpperBound(1)
+	eNamedElement_Name.SetTransient(false)
+	eNamedElement_Name.SetVolatile(false)
+	eNamedElement_Name.SetChangeable(true)
+	eNamedElement_Name.SetUnsettable(false)
+	eNamedElement_Name.SetUnique(true)
+	eNamedElement_Name.SetDerived(false)
+	eNamedElement_Name.SetOrdered(true)
+	eNamedElement_Name.SetID(false)
+	eNamedElement_Name.SetDefaultValueLiteral("")
 
 }
 
@@ -2438,64 +2353,71 @@ func (p *ecorePackageImpl) initializeEObjectContent() {
 	p.eObject.SetAbstract(false)
 	p.eObject.SetInterface(false)
 
-	p.eObject_EAllContents.SetEType(p.GetETreeIterator())
-	p.eObject_EAllContents.SetName("eAllContents")
-	p.eObject_EAllContents.SetLowerBound(0)
-	p.eObject_EAllContents.SetUpperBound(1)
-	p.eObject_EAllContents.SetUnique(true)
-	p.eObject_EAllContents.SetOrdered(true)
+	eObject_EAllContents := p.GetEObject_EAllContents()
+	eObject_EAllContents.SetEType(p.GetETreeIterator())
+	eObject_EAllContents.SetName("eAllContents")
+	eObject_EAllContents.SetLowerBound(0)
+	eObject_EAllContents.SetUpperBound(1)
+	eObject_EAllContents.SetUnique(true)
+	eObject_EAllContents.SetOrdered(true)
 
-	p.eObject_EClass.SetEType(p.GetEClass())
-	p.eObject_EClass.SetName("eClass")
-	p.eObject_EClass.SetLowerBound(0)
-	p.eObject_EClass.SetUpperBound(1)
-	p.eObject_EClass.SetUnique(true)
-	p.eObject_EClass.SetOrdered(true)
+	eObject_EClass := p.GetEObject_EClass()
+	eObject_EClass.SetEType(p.GetEClass())
+	eObject_EClass.SetName("eClass")
+	eObject_EClass.SetLowerBound(0)
+	eObject_EClass.SetUpperBound(1)
+	eObject_EClass.SetUnique(true)
+	eObject_EClass.SetOrdered(true)
 
-	p.eObject_EContainer.SetEType(p.GetEObject())
-	p.eObject_EContainer.SetName("eContainer")
-	p.eObject_EContainer.SetLowerBound(0)
-	p.eObject_EContainer.SetUpperBound(1)
-	p.eObject_EContainer.SetUnique(true)
-	p.eObject_EContainer.SetOrdered(true)
+	eObject_EContainer := p.GetEObject_EContainer()
+	eObject_EContainer.SetEType(p.GetEObject())
+	eObject_EContainer.SetName("eContainer")
+	eObject_EContainer.SetLowerBound(0)
+	eObject_EContainer.SetUpperBound(1)
+	eObject_EContainer.SetUnique(true)
+	eObject_EContainer.SetOrdered(true)
 
-	p.eObject_EContainingFeature.SetEType(p.GetEStructuralFeature())
-	p.eObject_EContainingFeature.SetName("eContainingFeature")
-	p.eObject_EContainingFeature.SetLowerBound(0)
-	p.eObject_EContainingFeature.SetUpperBound(1)
-	p.eObject_EContainingFeature.SetUnique(true)
-	p.eObject_EContainingFeature.SetOrdered(true)
+	eObject_EContainingFeature := p.GetEObject_EContainingFeature()
+	eObject_EContainingFeature.SetEType(p.GetEStructuralFeature())
+	eObject_EContainingFeature.SetName("eContainingFeature")
+	eObject_EContainingFeature.SetLowerBound(0)
+	eObject_EContainingFeature.SetUpperBound(1)
+	eObject_EContainingFeature.SetUnique(true)
+	eObject_EContainingFeature.SetOrdered(true)
 
-	p.eObject_EContainmentFeature.SetEType(p.GetEReference())
-	p.eObject_EContainmentFeature.SetName("eContainmentFeature")
-	p.eObject_EContainmentFeature.SetLowerBound(0)
-	p.eObject_EContainmentFeature.SetUpperBound(1)
-	p.eObject_EContainmentFeature.SetUnique(true)
-	p.eObject_EContainmentFeature.SetOrdered(true)
+	eObject_EContainmentFeature := p.GetEObject_EContainmentFeature()
+	eObject_EContainmentFeature.SetEType(p.GetEReference())
+	eObject_EContainmentFeature.SetName("eContainmentFeature")
+	eObject_EContainmentFeature.SetLowerBound(0)
+	eObject_EContainmentFeature.SetUpperBound(1)
+	eObject_EContainmentFeature.SetUnique(true)
+	eObject_EContainmentFeature.SetOrdered(true)
 
-	p.eObject_EContents.SetEType(p.GetEEList())
-	p.eObject_EContents.SetName("eContents")
-	p.eObject_EContents.SetLowerBound(0)
-	p.eObject_EContents.SetUpperBound(1)
-	p.eObject_EContents.SetUnique(true)
-	p.eObject_EContents.SetOrdered(true)
+	eObject_EContents := p.GetEObject_EContents()
+	eObject_EContents.SetEType(p.GetEEList())
+	eObject_EContents.SetName("eContents")
+	eObject_EContents.SetLowerBound(0)
+	eObject_EContents.SetUpperBound(1)
+	eObject_EContents.SetUnique(true)
+	eObject_EContents.SetOrdered(true)
 
-	p.eObject_ECrossReferences.SetEType(p.GetEEList())
-	p.eObject_ECrossReferences.SetName("eCrossReferences")
-	p.eObject_ECrossReferences.SetLowerBound(0)
-	p.eObject_ECrossReferences.SetUpperBound(1)
-	p.eObject_ECrossReferences.SetUnique(true)
-	p.eObject_ECrossReferences.SetOrdered(true)
+	eObject_ECrossReferences := p.GetEObject_ECrossReferences()
+	eObject_ECrossReferences.SetEType(p.GetEEList())
+	eObject_ECrossReferences.SetName("eCrossReferences")
+	eObject_ECrossReferences.SetLowerBound(0)
+	eObject_ECrossReferences.SetUpperBound(1)
+	eObject_ECrossReferences.SetUnique(true)
+	eObject_ECrossReferences.SetOrdered(true)
 
-	p.eObject_EGet_EStructuralFeature.SetEType(p.GetEJavaObject())
-	p.eObject_EGet_EStructuralFeature.SetName("eGet")
-	p.eObject_EGet_EStructuralFeature.SetLowerBound(0)
-	p.eObject_EGet_EStructuralFeature.SetUpperBound(1)
-	p.eObject_EGet_EStructuralFeature.SetUnique(true)
-	p.eObject_EGet_EStructuralFeature.SetOrdered(true)
-
+	eObject_EGet_EStructuralFeature := p.GetEObject_EGet_EStructuralFeature()
+	eObject_EGet_EStructuralFeature.SetEType(p.GetEJavaObject())
+	eObject_EGet_EStructuralFeature.SetName("eGet")
+	eObject_EGet_EStructuralFeature.SetLowerBound(0)
+	eObject_EGet_EStructuralFeature.SetUpperBound(1)
+	eObject_EGet_EStructuralFeature.SetUnique(true)
+	eObject_EGet_EStructuralFeature.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eObject_EGet_EStructuralFeature)
+		parameter := GetFactory().CreateEParameterFromContainer(eObject_EGet_EStructuralFeature)
 		parameter.SetName("feature")
 		parameter.SetEType(p.GetEStructuralFeature())
 		parameter.SetLowerBound(0)
@@ -2504,15 +2426,15 @@ func (p *ecorePackageImpl) initializeEObjectContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eObject_EGet_EStructuralFeature_EBoolean.SetEType(p.GetEJavaObject())
-	p.eObject_EGet_EStructuralFeature_EBoolean.SetName("eGet")
-	p.eObject_EGet_EStructuralFeature_EBoolean.SetLowerBound(0)
-	p.eObject_EGet_EStructuralFeature_EBoolean.SetUpperBound(1)
-	p.eObject_EGet_EStructuralFeature_EBoolean.SetUnique(true)
-	p.eObject_EGet_EStructuralFeature_EBoolean.SetOrdered(true)
-
+	eObject_EGet_EStructuralFeature_EBoolean := p.GetEObject_EGet_EStructuralFeature_EBoolean()
+	eObject_EGet_EStructuralFeature_EBoolean.SetEType(p.GetEJavaObject())
+	eObject_EGet_EStructuralFeature_EBoolean.SetName("eGet")
+	eObject_EGet_EStructuralFeature_EBoolean.SetLowerBound(0)
+	eObject_EGet_EStructuralFeature_EBoolean.SetUpperBound(1)
+	eObject_EGet_EStructuralFeature_EBoolean.SetUnique(true)
+	eObject_EGet_EStructuralFeature_EBoolean.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eObject_EGet_EStructuralFeature_EBoolean)
+		parameter := GetFactory().CreateEParameterFromContainer(eObject_EGet_EStructuralFeature_EBoolean)
 		parameter.SetName("feature")
 		parameter.SetEType(p.GetEStructuralFeature())
 		parameter.SetLowerBound(0)
@@ -2520,9 +2442,8 @@ func (p *ecorePackageImpl) initializeEObjectContent() {
 		parameter.SetUnique(true)
 		parameter.SetOrdered(true)
 	}
-
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eObject_EGet_EStructuralFeature_EBoolean)
+		parameter := GetFactory().CreateEParameterFromContainer(eObject_EGet_EStructuralFeature_EBoolean)
 		parameter.SetName("resolve")
 		parameter.SetEType(p.GetEBoolean())
 		parameter.SetLowerBound(0)
@@ -2531,15 +2452,15 @@ func (p *ecorePackageImpl) initializeEObjectContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eObject_EInvoke_EOperation_EEList.SetEType(p.GetEJavaObject())
-	p.eObject_EInvoke_EOperation_EEList.SetName("eInvoke")
-	p.eObject_EInvoke_EOperation_EEList.SetLowerBound(0)
-	p.eObject_EInvoke_EOperation_EEList.SetUpperBound(1)
-	p.eObject_EInvoke_EOperation_EEList.SetUnique(true)
-	p.eObject_EInvoke_EOperation_EEList.SetOrdered(true)
-
+	eObject_EInvoke_EOperation_EEList := p.GetEObject_EInvoke_EOperation_EEList()
+	eObject_EInvoke_EOperation_EEList.SetEType(p.GetEJavaObject())
+	eObject_EInvoke_EOperation_EEList.SetName("eInvoke")
+	eObject_EInvoke_EOperation_EEList.SetLowerBound(0)
+	eObject_EInvoke_EOperation_EEList.SetUpperBound(1)
+	eObject_EInvoke_EOperation_EEList.SetUnique(true)
+	eObject_EInvoke_EOperation_EEList.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eObject_EInvoke_EOperation_EEList)
+		parameter := GetFactory().CreateEParameterFromContainer(eObject_EInvoke_EOperation_EEList)
 		parameter.SetName("operation")
 		parameter.SetEType(p.GetEOperation())
 		parameter.SetLowerBound(0)
@@ -2547,9 +2468,8 @@ func (p *ecorePackageImpl) initializeEObjectContent() {
 		parameter.SetUnique(true)
 		parameter.SetOrdered(true)
 	}
-
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eObject_EInvoke_EOperation_EEList)
+		parameter := GetFactory().CreateEParameterFromContainer(eObject_EInvoke_EOperation_EEList)
 		parameter.SetName("arguments")
 		parameter.SetEType(p.GetEEList())
 		parameter.SetLowerBound(0)
@@ -2558,22 +2478,23 @@ func (p *ecorePackageImpl) initializeEObjectContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eObject_EIsProxy.SetEType(p.GetEBoolean())
-	p.eObject_EIsProxy.SetName("eIsProxy")
-	p.eObject_EIsProxy.SetLowerBound(0)
-	p.eObject_EIsProxy.SetUpperBound(1)
-	p.eObject_EIsProxy.SetUnique(true)
-	p.eObject_EIsProxy.SetOrdered(true)
+	eObject_EIsProxy := p.GetEObject_EIsProxy()
+	eObject_EIsProxy.SetEType(p.GetEBoolean())
+	eObject_EIsProxy.SetName("eIsProxy")
+	eObject_EIsProxy.SetLowerBound(0)
+	eObject_EIsProxy.SetUpperBound(1)
+	eObject_EIsProxy.SetUnique(true)
+	eObject_EIsProxy.SetOrdered(true)
 
-	p.eObject_EIsSet_EStructuralFeature.SetEType(p.GetEBoolean())
-	p.eObject_EIsSet_EStructuralFeature.SetName("eIsSet")
-	p.eObject_EIsSet_EStructuralFeature.SetLowerBound(0)
-	p.eObject_EIsSet_EStructuralFeature.SetUpperBound(1)
-	p.eObject_EIsSet_EStructuralFeature.SetUnique(true)
-	p.eObject_EIsSet_EStructuralFeature.SetOrdered(true)
-
+	eObject_EIsSet_EStructuralFeature := p.GetEObject_EIsSet_EStructuralFeature()
+	eObject_EIsSet_EStructuralFeature.SetEType(p.GetEBoolean())
+	eObject_EIsSet_EStructuralFeature.SetName("eIsSet")
+	eObject_EIsSet_EStructuralFeature.SetLowerBound(0)
+	eObject_EIsSet_EStructuralFeature.SetUpperBound(1)
+	eObject_EIsSet_EStructuralFeature.SetUnique(true)
+	eObject_EIsSet_EStructuralFeature.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eObject_EIsSet_EStructuralFeature)
+		parameter := GetFactory().CreateEParameterFromContainer(eObject_EIsSet_EStructuralFeature)
 		parameter.SetName("feature")
 		parameter.SetEType(p.GetEStructuralFeature())
 		parameter.SetLowerBound(0)
@@ -2582,22 +2503,23 @@ func (p *ecorePackageImpl) initializeEObjectContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eObject_EResource.SetEType(p.GetEResource())
-	p.eObject_EResource.SetName("eResource")
-	p.eObject_EResource.SetLowerBound(0)
-	p.eObject_EResource.SetUpperBound(1)
-	p.eObject_EResource.SetUnique(true)
-	p.eObject_EResource.SetOrdered(true)
+	eObject_EResource := p.GetEObject_EResource()
+	eObject_EResource.SetEType(p.GetEResource())
+	eObject_EResource.SetName("eResource")
+	eObject_EResource.SetLowerBound(0)
+	eObject_EResource.SetUpperBound(1)
+	eObject_EResource.SetUnique(true)
+	eObject_EResource.SetOrdered(true)
 
-	p.eObject_ESet_EStructuralFeature_EJavaObject.SetEType(nil)
-	p.eObject_ESet_EStructuralFeature_EJavaObject.SetName("eSet")
-	p.eObject_ESet_EStructuralFeature_EJavaObject.SetLowerBound(0)
-	p.eObject_ESet_EStructuralFeature_EJavaObject.SetUpperBound(1)
-	p.eObject_ESet_EStructuralFeature_EJavaObject.SetUnique(true)
-	p.eObject_ESet_EStructuralFeature_EJavaObject.SetOrdered(true)
-
+	eObject_ESet_EStructuralFeature_EJavaObject := p.GetEObject_ESet_EStructuralFeature_EJavaObject()
+	eObject_ESet_EStructuralFeature_EJavaObject.SetEType(nil)
+	eObject_ESet_EStructuralFeature_EJavaObject.SetName("eSet")
+	eObject_ESet_EStructuralFeature_EJavaObject.SetLowerBound(0)
+	eObject_ESet_EStructuralFeature_EJavaObject.SetUpperBound(1)
+	eObject_ESet_EStructuralFeature_EJavaObject.SetUnique(true)
+	eObject_ESet_EStructuralFeature_EJavaObject.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eObject_ESet_EStructuralFeature_EJavaObject)
+		parameter := GetFactory().CreateEParameterFromContainer(eObject_ESet_EStructuralFeature_EJavaObject)
 		parameter.SetName("feature")
 		parameter.SetEType(nil)
 		parameter.SetLowerBound(0)
@@ -2605,9 +2527,8 @@ func (p *ecorePackageImpl) initializeEObjectContent() {
 		parameter.SetUnique(true)
 		parameter.SetOrdered(true)
 	}
-
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eObject_ESet_EStructuralFeature_EJavaObject)
+		parameter := GetFactory().CreateEParameterFromContainer(eObject_ESet_EStructuralFeature_EJavaObject)
 		parameter.SetName("newValue")
 		parameter.SetEType(nil)
 		parameter.SetLowerBound(0)
@@ -2616,15 +2537,15 @@ func (p *ecorePackageImpl) initializeEObjectContent() {
 		parameter.SetOrdered(true)
 	}
 
-	p.eObject_EUnset_EStructuralFeature.SetEType(nil)
-	p.eObject_EUnset_EStructuralFeature.SetName("eUnset")
-	p.eObject_EUnset_EStructuralFeature.SetLowerBound(0)
-	p.eObject_EUnset_EStructuralFeature.SetUpperBound(1)
-	p.eObject_EUnset_EStructuralFeature.SetUnique(true)
-	p.eObject_EUnset_EStructuralFeature.SetOrdered(true)
-
+	eObject_EUnset_EStructuralFeature := p.GetEObject_EUnset_EStructuralFeature()
+	eObject_EUnset_EStructuralFeature.SetEType(nil)
+	eObject_EUnset_EStructuralFeature.SetName("eUnset")
+	eObject_EUnset_EStructuralFeature.SetLowerBound(0)
+	eObject_EUnset_EStructuralFeature.SetUpperBound(1)
+	eObject_EUnset_EStructuralFeature.SetUnique(true)
+	eObject_EUnset_EStructuralFeature.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eObject_EUnset_EStructuralFeature)
+		parameter := GetFactory().CreateEParameterFromContainer(eObject_EUnset_EStructuralFeature)
 		parameter.SetName("feature")
 		parameter.SetEType(nil)
 		parameter.SetLowerBound(0)
@@ -2639,76 +2560,81 @@ func (p *ecorePackageImpl) initializeEOperationContent() {
 	p.eOperation.SetName("EOperation")
 	p.eOperation.SetAbstract(false)
 	p.eOperation.SetInterface(false)
-	p.eOperation_OperationID.SetName("operationID")
-	p.eOperation_OperationID.SetEType(p.GetEInt())
-	p.eOperation_OperationID.SetLowerBound(0)
-	p.eOperation_OperationID.SetUpperBound(1)
-	p.eOperation_OperationID.SetTransient(false)
-	p.eOperation_OperationID.SetVolatile(false)
-	p.eOperation_OperationID.SetChangeable(true)
-	p.eOperation_OperationID.SetUnsettable(false)
-	p.eOperation_OperationID.SetUnique(true)
-	p.eOperation_OperationID.SetDerived(false)
-	p.eOperation_OperationID.SetOrdered(true)
-	p.eOperation_OperationID.SetID(false)
-	p.eOperation_OperationID.SetDefaultValueLiteral("-1")
 
-	p.eOperation_EContainingClass.SetName("eContainingClass")
-	p.eOperation_EContainingClass.SetEType(p.GetEClass())
-	p.eOperation_EContainingClass.SetLowerBound(0)
-	p.eOperation_EContainingClass.SetUpperBound(1)
-	p.eOperation_EContainingClass.SetTransient(true)
-	p.eOperation_EContainingClass.SetVolatile(false)
-	p.eOperation_EContainingClass.SetChangeable(false)
-	p.eOperation_EContainingClass.SetUnsettable(false)
-	p.eOperation_EContainingClass.SetUnique(true)
-	p.eOperation_EContainingClass.SetDerived(false)
-	p.eOperation_EContainingClass.SetOrdered(true)
-	p.eOperation_EContainingClass.SetContainment(false)
-	p.eOperation_EContainingClass.SetResolveProxies(false)
-	p.eOperation_EContainingClass.SetDefaultValueLiteral("")
-	p.eOperation_EContainingClass.SetEOpposite(p.GetEClass_EOperations())
+	eOperation_OperationID := p.GetEOperation_OperationID()
+	eOperation_OperationID.SetName("operationID")
+	eOperation_OperationID.SetEType(p.GetEInt())
+	eOperation_OperationID.SetLowerBound(0)
+	eOperation_OperationID.SetUpperBound(1)
+	eOperation_OperationID.SetTransient(false)
+	eOperation_OperationID.SetVolatile(false)
+	eOperation_OperationID.SetChangeable(true)
+	eOperation_OperationID.SetUnsettable(false)
+	eOperation_OperationID.SetUnique(true)
+	eOperation_OperationID.SetDerived(false)
+	eOperation_OperationID.SetOrdered(true)
+	eOperation_OperationID.SetID(false)
+	eOperation_OperationID.SetDefaultValueLiteral("-1")
 
-	p.eOperation_EExceptions.SetName("eExceptions")
-	p.eOperation_EExceptions.SetEType(p.GetEClassifierClass())
-	p.eOperation_EExceptions.SetLowerBound(0)
-	p.eOperation_EExceptions.SetUpperBound(-1)
-	p.eOperation_EExceptions.SetTransient(false)
-	p.eOperation_EExceptions.SetVolatile(false)
-	p.eOperation_EExceptions.SetChangeable(true)
-	p.eOperation_EExceptions.SetUnsettable(true)
-	p.eOperation_EExceptions.SetUnique(true)
-	p.eOperation_EExceptions.SetDerived(false)
-	p.eOperation_EExceptions.SetOrdered(true)
-	p.eOperation_EExceptions.SetContainment(false)
-	p.eOperation_EExceptions.SetResolveProxies(true)
-	p.eOperation_EExceptions.SetDefaultValueLiteral("")
+	eOperation_EContainingClass := p.GetEOperation_EContainingClass()
+	eOperation_EContainingClass.SetName("eContainingClass")
+	eOperation_EContainingClass.SetEType(p.GetEClass())
+	eOperation_EContainingClass.SetLowerBound(0)
+	eOperation_EContainingClass.SetUpperBound(1)
+	eOperation_EContainingClass.SetTransient(true)
+	eOperation_EContainingClass.SetVolatile(false)
+	eOperation_EContainingClass.SetChangeable(false)
+	eOperation_EContainingClass.SetUnsettable(false)
+	eOperation_EContainingClass.SetUnique(true)
+	eOperation_EContainingClass.SetDerived(false)
+	eOperation_EContainingClass.SetOrdered(true)
+	eOperation_EContainingClass.SetContainment(false)
+	eOperation_EContainingClass.SetResolveProxies(false)
+	eOperation_EContainingClass.SetDefaultValueLiteral("")
+	eOperation_EContainingClass.SetEOpposite(p.GetEClass_EOperations())
 
-	p.eOperation_EParameters.SetName("eParameters")
-	p.eOperation_EParameters.SetEType(p.GetEParameter())
-	p.eOperation_EParameters.SetLowerBound(0)
-	p.eOperation_EParameters.SetUpperBound(-1)
-	p.eOperation_EParameters.SetTransient(false)
-	p.eOperation_EParameters.SetVolatile(false)
-	p.eOperation_EParameters.SetChangeable(true)
-	p.eOperation_EParameters.SetUnsettable(false)
-	p.eOperation_EParameters.SetUnique(true)
-	p.eOperation_EParameters.SetDerived(false)
-	p.eOperation_EParameters.SetOrdered(true)
-	p.eOperation_EParameters.SetContainment(true)
-	p.eOperation_EParameters.SetResolveProxies(false)
-	p.eOperation_EParameters.SetDefaultValueLiteral("")
-	p.eOperation_EParameters.SetEOpposite(p.GetEParameter_EOperation())
+	eOperation_EExceptions := p.GetEOperation_EExceptions()
+	eOperation_EExceptions.SetName("eExceptions")
+	eOperation_EExceptions.SetEType(p.GetEClassifierClass())
+	eOperation_EExceptions.SetLowerBound(0)
+	eOperation_EExceptions.SetUpperBound(-1)
+	eOperation_EExceptions.SetTransient(false)
+	eOperation_EExceptions.SetVolatile(false)
+	eOperation_EExceptions.SetChangeable(true)
+	eOperation_EExceptions.SetUnsettable(true)
+	eOperation_EExceptions.SetUnique(true)
+	eOperation_EExceptions.SetDerived(false)
+	eOperation_EExceptions.SetOrdered(true)
+	eOperation_EExceptions.SetContainment(false)
+	eOperation_EExceptions.SetResolveProxies(true)
+	eOperation_EExceptions.SetDefaultValueLiteral("")
 
-	p.eOperation_IsOverrideOf_EOperation.SetEType(p.GetEBoolean())
-	p.eOperation_IsOverrideOf_EOperation.SetName("isOverrideOf")
-	p.eOperation_IsOverrideOf_EOperation.SetLowerBound(0)
-	p.eOperation_IsOverrideOf_EOperation.SetUpperBound(1)
-	p.eOperation_IsOverrideOf_EOperation.SetUnique(true)
-	p.eOperation_IsOverrideOf_EOperation.SetOrdered(true)
+	eOperation_EParameters := p.GetEOperation_EParameters()
+	eOperation_EParameters.SetName("eParameters")
+	eOperation_EParameters.SetEType(p.GetEParameter())
+	eOperation_EParameters.SetLowerBound(0)
+	eOperation_EParameters.SetUpperBound(-1)
+	eOperation_EParameters.SetTransient(false)
+	eOperation_EParameters.SetVolatile(false)
+	eOperation_EParameters.SetChangeable(true)
+	eOperation_EParameters.SetUnsettable(false)
+	eOperation_EParameters.SetUnique(true)
+	eOperation_EParameters.SetDerived(false)
+	eOperation_EParameters.SetOrdered(true)
+	eOperation_EParameters.SetContainment(true)
+	eOperation_EParameters.SetResolveProxies(false)
+	eOperation_EParameters.SetDefaultValueLiteral("")
+	eOperation_EParameters.SetEOpposite(p.GetEParameter_EOperation())
 
+	eOperation_IsOverrideOf_EOperation := p.GetEOperation_IsOverrideOf_EOperation()
+	eOperation_IsOverrideOf_EOperation.SetEType(p.GetEBoolean())
+	eOperation_IsOverrideOf_EOperation.SetName("isOverrideOf")
+	eOperation_IsOverrideOf_EOperation.SetLowerBound(0)
+	eOperation_IsOverrideOf_EOperation.SetUpperBound(1)
+	eOperation_IsOverrideOf_EOperation.SetUnique(true)
+	eOperation_IsOverrideOf_EOperation.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.eOperation_IsOverrideOf_EOperation)
+		parameter := GetFactory().CreateEParameterFromContainer(eOperation_IsOverrideOf_EOperation)
 		parameter.SetName("someOperation")
 		parameter.SetEType(p.GetEOperation())
 		parameter.SetLowerBound(0)
@@ -2723,107 +2649,114 @@ func (p *ecorePackageImpl) initializeEPackageContent() {
 	p.ePackage.SetName("EPackage")
 	p.ePackage.SetAbstract(false)
 	p.ePackage.SetInterface(false)
-	p.ePackage_NsPrefix.SetName("nsPrefix")
-	p.ePackage_NsPrefix.SetEType(p.GetEString())
-	p.ePackage_NsPrefix.SetLowerBound(0)
-	p.ePackage_NsPrefix.SetUpperBound(1)
-	p.ePackage_NsPrefix.SetTransient(false)
-	p.ePackage_NsPrefix.SetVolatile(false)
-	p.ePackage_NsPrefix.SetChangeable(true)
-	p.ePackage_NsPrefix.SetUnsettable(false)
-	p.ePackage_NsPrefix.SetUnique(true)
-	p.ePackage_NsPrefix.SetDerived(false)
-	p.ePackage_NsPrefix.SetOrdered(true)
-	p.ePackage_NsPrefix.SetID(false)
-	p.ePackage_NsPrefix.SetDefaultValueLiteral("")
 
-	p.ePackage_NsURI.SetName("nsURI")
-	p.ePackage_NsURI.SetEType(p.GetEString())
-	p.ePackage_NsURI.SetLowerBound(0)
-	p.ePackage_NsURI.SetUpperBound(1)
-	p.ePackage_NsURI.SetTransient(false)
-	p.ePackage_NsURI.SetVolatile(false)
-	p.ePackage_NsURI.SetChangeable(true)
-	p.ePackage_NsURI.SetUnsettable(false)
-	p.ePackage_NsURI.SetUnique(true)
-	p.ePackage_NsURI.SetDerived(false)
-	p.ePackage_NsURI.SetOrdered(true)
-	p.ePackage_NsURI.SetID(false)
-	p.ePackage_NsURI.SetDefaultValueLiteral("")
+	ePackage_NsPrefix := p.GetEPackage_NsPrefix()
+	ePackage_NsPrefix.SetName("nsPrefix")
+	ePackage_NsPrefix.SetEType(p.GetEString())
+	ePackage_NsPrefix.SetLowerBound(0)
+	ePackage_NsPrefix.SetUpperBound(1)
+	ePackage_NsPrefix.SetTransient(false)
+	ePackage_NsPrefix.SetVolatile(false)
+	ePackage_NsPrefix.SetChangeable(true)
+	ePackage_NsPrefix.SetUnsettable(false)
+	ePackage_NsPrefix.SetUnique(true)
+	ePackage_NsPrefix.SetDerived(false)
+	ePackage_NsPrefix.SetOrdered(true)
+	ePackage_NsPrefix.SetID(false)
+	ePackage_NsPrefix.SetDefaultValueLiteral("")
 
-	p.ePackage_EClassifiers.SetName("eClassifiers")
-	p.ePackage_EClassifiers.SetEType(p.GetEClassifierClass())
-	p.ePackage_EClassifiers.SetLowerBound(0)
-	p.ePackage_EClassifiers.SetUpperBound(-1)
-	p.ePackage_EClassifiers.SetTransient(false)
-	p.ePackage_EClassifiers.SetVolatile(false)
-	p.ePackage_EClassifiers.SetChangeable(true)
-	p.ePackage_EClassifiers.SetUnsettable(false)
-	p.ePackage_EClassifiers.SetUnique(true)
-	p.ePackage_EClassifiers.SetDerived(false)
-	p.ePackage_EClassifiers.SetOrdered(true)
-	p.ePackage_EClassifiers.SetContainment(true)
-	p.ePackage_EClassifiers.SetResolveProxies(true)
-	p.ePackage_EClassifiers.SetDefaultValueLiteral("")
-	p.ePackage_EClassifiers.SetEOpposite(p.GetEClassifier_EPackage())
+	ePackage_NsURI := p.GetEPackage_NsURI()
+	ePackage_NsURI.SetName("nsURI")
+	ePackage_NsURI.SetEType(p.GetEString())
+	ePackage_NsURI.SetLowerBound(0)
+	ePackage_NsURI.SetUpperBound(1)
+	ePackage_NsURI.SetTransient(false)
+	ePackage_NsURI.SetVolatile(false)
+	ePackage_NsURI.SetChangeable(true)
+	ePackage_NsURI.SetUnsettable(false)
+	ePackage_NsURI.SetUnique(true)
+	ePackage_NsURI.SetDerived(false)
+	ePackage_NsURI.SetOrdered(true)
+	ePackage_NsURI.SetID(false)
+	ePackage_NsURI.SetDefaultValueLiteral("")
 
-	p.ePackage_EFactoryInstance.SetName("eFactoryInstance")
-	p.ePackage_EFactoryInstance.SetEType(p.GetEFactory())
-	p.ePackage_EFactoryInstance.SetLowerBound(1)
-	p.ePackage_EFactoryInstance.SetUpperBound(1)
-	p.ePackage_EFactoryInstance.SetTransient(true)
-	p.ePackage_EFactoryInstance.SetVolatile(false)
-	p.ePackage_EFactoryInstance.SetChangeable(true)
-	p.ePackage_EFactoryInstance.SetUnsettable(false)
-	p.ePackage_EFactoryInstance.SetUnique(true)
-	p.ePackage_EFactoryInstance.SetDerived(false)
-	p.ePackage_EFactoryInstance.SetOrdered(true)
-	p.ePackage_EFactoryInstance.SetContainment(true)
-	p.ePackage_EFactoryInstance.SetResolveProxies(false)
-	p.ePackage_EFactoryInstance.SetDefaultValueLiteral("")
-	p.ePackage_EFactoryInstance.SetEOpposite(p.GetEFactory_EPackage())
+	ePackage_EClassifiers := p.GetEPackage_EClassifiers()
+	ePackage_EClassifiers.SetName("eClassifiers")
+	ePackage_EClassifiers.SetEType(p.GetEClassifierClass())
+	ePackage_EClassifiers.SetLowerBound(0)
+	ePackage_EClassifiers.SetUpperBound(-1)
+	ePackage_EClassifiers.SetTransient(false)
+	ePackage_EClassifiers.SetVolatile(false)
+	ePackage_EClassifiers.SetChangeable(true)
+	ePackage_EClassifiers.SetUnsettable(false)
+	ePackage_EClassifiers.SetUnique(true)
+	ePackage_EClassifiers.SetDerived(false)
+	ePackage_EClassifiers.SetOrdered(true)
+	ePackage_EClassifiers.SetContainment(true)
+	ePackage_EClassifiers.SetResolveProxies(true)
+	ePackage_EClassifiers.SetDefaultValueLiteral("")
+	ePackage_EClassifiers.SetEOpposite(p.GetEClassifier_EPackage())
 
-	p.ePackage_ESubPackages.SetName("eSubPackages")
-	p.ePackage_ESubPackages.SetEType(p.GetEPackage())
-	p.ePackage_ESubPackages.SetLowerBound(0)
-	p.ePackage_ESubPackages.SetUpperBound(-1)
-	p.ePackage_ESubPackages.SetTransient(false)
-	p.ePackage_ESubPackages.SetVolatile(false)
-	p.ePackage_ESubPackages.SetChangeable(true)
-	p.ePackage_ESubPackages.SetUnsettable(false)
-	p.ePackage_ESubPackages.SetUnique(true)
-	p.ePackage_ESubPackages.SetDerived(false)
-	p.ePackage_ESubPackages.SetOrdered(true)
-	p.ePackage_ESubPackages.SetContainment(true)
-	p.ePackage_ESubPackages.SetResolveProxies(true)
-	p.ePackage_ESubPackages.SetDefaultValueLiteral("")
-	p.ePackage_ESubPackages.SetEOpposite(p.GetEPackage_ESuperPackage())
+	ePackage_EFactoryInstance := p.GetEPackage_EFactoryInstance()
+	ePackage_EFactoryInstance.SetName("eFactoryInstance")
+	ePackage_EFactoryInstance.SetEType(p.GetEFactory())
+	ePackage_EFactoryInstance.SetLowerBound(1)
+	ePackage_EFactoryInstance.SetUpperBound(1)
+	ePackage_EFactoryInstance.SetTransient(true)
+	ePackage_EFactoryInstance.SetVolatile(false)
+	ePackage_EFactoryInstance.SetChangeable(true)
+	ePackage_EFactoryInstance.SetUnsettable(false)
+	ePackage_EFactoryInstance.SetUnique(true)
+	ePackage_EFactoryInstance.SetDerived(false)
+	ePackage_EFactoryInstance.SetOrdered(true)
+	ePackage_EFactoryInstance.SetContainment(true)
+	ePackage_EFactoryInstance.SetResolveProxies(false)
+	ePackage_EFactoryInstance.SetDefaultValueLiteral("")
+	ePackage_EFactoryInstance.SetEOpposite(p.GetEFactory_EPackage())
 
-	p.ePackage_ESuperPackage.SetName("eSuperPackage")
-	p.ePackage_ESuperPackage.SetEType(p.GetEPackage())
-	p.ePackage_ESuperPackage.SetLowerBound(0)
-	p.ePackage_ESuperPackage.SetUpperBound(1)
-	p.ePackage_ESuperPackage.SetTransient(true)
-	p.ePackage_ESuperPackage.SetVolatile(false)
-	p.ePackage_ESuperPackage.SetChangeable(false)
-	p.ePackage_ESuperPackage.SetUnsettable(false)
-	p.ePackage_ESuperPackage.SetUnique(true)
-	p.ePackage_ESuperPackage.SetDerived(false)
-	p.ePackage_ESuperPackage.SetOrdered(true)
-	p.ePackage_ESuperPackage.SetContainment(false)
-	p.ePackage_ESuperPackage.SetResolveProxies(true)
-	p.ePackage_ESuperPackage.SetDefaultValueLiteral("")
-	p.ePackage_ESuperPackage.SetEOpposite(p.GetEPackage_ESubPackages())
+	ePackage_ESubPackages := p.GetEPackage_ESubPackages()
+	ePackage_ESubPackages.SetName("eSubPackages")
+	ePackage_ESubPackages.SetEType(p.GetEPackage())
+	ePackage_ESubPackages.SetLowerBound(0)
+	ePackage_ESubPackages.SetUpperBound(-1)
+	ePackage_ESubPackages.SetTransient(false)
+	ePackage_ESubPackages.SetVolatile(false)
+	ePackage_ESubPackages.SetChangeable(true)
+	ePackage_ESubPackages.SetUnsettable(false)
+	ePackage_ESubPackages.SetUnique(true)
+	ePackage_ESubPackages.SetDerived(false)
+	ePackage_ESubPackages.SetOrdered(true)
+	ePackage_ESubPackages.SetContainment(true)
+	ePackage_ESubPackages.SetResolveProxies(true)
+	ePackage_ESubPackages.SetDefaultValueLiteral("")
+	ePackage_ESubPackages.SetEOpposite(p.GetEPackage_ESuperPackage())
 
-	p.ePackage_GetEClassifier_EString.SetEType(p.GetEClassifierClass())
-	p.ePackage_GetEClassifier_EString.SetName("getEClassifier")
-	p.ePackage_GetEClassifier_EString.SetLowerBound(0)
-	p.ePackage_GetEClassifier_EString.SetUpperBound(1)
-	p.ePackage_GetEClassifier_EString.SetUnique(true)
-	p.ePackage_GetEClassifier_EString.SetOrdered(true)
+	ePackage_ESuperPackage := p.GetEPackage_ESuperPackage()
+	ePackage_ESuperPackage.SetName("eSuperPackage")
+	ePackage_ESuperPackage.SetEType(p.GetEPackage())
+	ePackage_ESuperPackage.SetLowerBound(0)
+	ePackage_ESuperPackage.SetUpperBound(1)
+	ePackage_ESuperPackage.SetTransient(true)
+	ePackage_ESuperPackage.SetVolatile(false)
+	ePackage_ESuperPackage.SetChangeable(false)
+	ePackage_ESuperPackage.SetUnsettable(false)
+	ePackage_ESuperPackage.SetUnique(true)
+	ePackage_ESuperPackage.SetDerived(false)
+	ePackage_ESuperPackage.SetOrdered(true)
+	ePackage_ESuperPackage.SetContainment(false)
+	ePackage_ESuperPackage.SetResolveProxies(true)
+	ePackage_ESuperPackage.SetDefaultValueLiteral("")
+	ePackage_ESuperPackage.SetEOpposite(p.GetEPackage_ESubPackages())
 
+	ePackage_GetEClassifier_EString := p.GetEPackage_GetEClassifier_EString()
+	ePackage_GetEClassifier_EString.SetEType(p.GetEClassifierClass())
+	ePackage_GetEClassifier_EString.SetName("getEClassifier")
+	ePackage_GetEClassifier_EString.SetLowerBound(0)
+	ePackage_GetEClassifier_EString.SetUpperBound(1)
+	ePackage_GetEClassifier_EString.SetUnique(true)
+	ePackage_GetEClassifier_EString.SetOrdered(true)
 	{
-		parameter := GetFactory().CreateEParameterFromContainer(p.ePackage_GetEClassifier_EString)
+		parameter := GetFactory().CreateEParameterFromContainer(ePackage_GetEClassifier_EString)
 		parameter.SetName("name")
 		parameter.SetEType(p.GetEString())
 		parameter.SetLowerBound(0)
@@ -2839,21 +2772,22 @@ func (p *ecorePackageImpl) initializeEParameterContent() {
 	p.eParameter.SetAbstract(false)
 	p.eParameter.SetInterface(false)
 
-	p.eParameter_EOperation.SetName("eOperation")
-	p.eParameter_EOperation.SetEType(p.GetEOperation())
-	p.eParameter_EOperation.SetLowerBound(0)
-	p.eParameter_EOperation.SetUpperBound(1)
-	p.eParameter_EOperation.SetTransient(true)
-	p.eParameter_EOperation.SetVolatile(false)
-	p.eParameter_EOperation.SetChangeable(false)
-	p.eParameter_EOperation.SetUnsettable(false)
-	p.eParameter_EOperation.SetUnique(true)
-	p.eParameter_EOperation.SetDerived(false)
-	p.eParameter_EOperation.SetOrdered(true)
-	p.eParameter_EOperation.SetContainment(false)
-	p.eParameter_EOperation.SetResolveProxies(false)
-	p.eParameter_EOperation.SetDefaultValueLiteral("")
-	p.eParameter_EOperation.SetEOpposite(p.GetEOperation_EParameters())
+	eParameter_EOperation := p.GetEParameter_EOperation()
+	eParameter_EOperation.SetName("eOperation")
+	eParameter_EOperation.SetEType(p.GetEOperation())
+	eParameter_EOperation.SetLowerBound(0)
+	eParameter_EOperation.SetUpperBound(1)
+	eParameter_EOperation.SetTransient(true)
+	eParameter_EOperation.SetVolatile(false)
+	eParameter_EOperation.SetChangeable(false)
+	eParameter_EOperation.SetUnsettable(false)
+	eParameter_EOperation.SetUnique(true)
+	eParameter_EOperation.SetDerived(false)
+	eParameter_EOperation.SetOrdered(true)
+	eParameter_EOperation.SetContainment(false)
+	eParameter_EOperation.SetResolveProxies(false)
+	eParameter_EOperation.SetDefaultValueLiteral("")
+	eParameter_EOperation.SetEOpposite(p.GetEOperation_EParameters())
 
 }
 
@@ -2861,92 +2795,99 @@ func (p *ecorePackageImpl) initializeEReferenceContent() {
 	p.eReference.SetName("EReference")
 	p.eReference.SetAbstract(false)
 	p.eReference.SetInterface(false)
-	p.eReference_Container.SetName("container")
-	p.eReference_Container.SetEType(p.GetEBoolean())
-	p.eReference_Container.SetLowerBound(0)
-	p.eReference_Container.SetUpperBound(1)
-	p.eReference_Container.SetTransient(true)
-	p.eReference_Container.SetVolatile(true)
-	p.eReference_Container.SetChangeable(false)
-	p.eReference_Container.SetUnsettable(false)
-	p.eReference_Container.SetUnique(true)
-	p.eReference_Container.SetDerived(true)
-	p.eReference_Container.SetOrdered(true)
-	p.eReference_Container.SetID(false)
-	p.eReference_Container.SetDefaultValueLiteral("")
 
-	p.eReference_Containment.SetName("containment")
-	p.eReference_Containment.SetEType(p.GetEBoolean())
-	p.eReference_Containment.SetLowerBound(0)
-	p.eReference_Containment.SetUpperBound(1)
-	p.eReference_Containment.SetTransient(false)
-	p.eReference_Containment.SetVolatile(false)
-	p.eReference_Containment.SetChangeable(true)
-	p.eReference_Containment.SetUnsettable(false)
-	p.eReference_Containment.SetUnique(true)
-	p.eReference_Containment.SetDerived(false)
-	p.eReference_Containment.SetOrdered(true)
-	p.eReference_Containment.SetID(false)
-	p.eReference_Containment.SetDefaultValueLiteral("")
+	eReference_Container := p.GetEReference_Container()
+	eReference_Container.SetName("container")
+	eReference_Container.SetEType(p.GetEBoolean())
+	eReference_Container.SetLowerBound(0)
+	eReference_Container.SetUpperBound(1)
+	eReference_Container.SetTransient(true)
+	eReference_Container.SetVolatile(true)
+	eReference_Container.SetChangeable(false)
+	eReference_Container.SetUnsettable(false)
+	eReference_Container.SetUnique(true)
+	eReference_Container.SetDerived(true)
+	eReference_Container.SetOrdered(true)
+	eReference_Container.SetID(false)
+	eReference_Container.SetDefaultValueLiteral("")
 
-	p.eReference_ResolveProxies.SetName("resolveProxies")
-	p.eReference_ResolveProxies.SetEType(p.GetEBoolean())
-	p.eReference_ResolveProxies.SetLowerBound(0)
-	p.eReference_ResolveProxies.SetUpperBound(1)
-	p.eReference_ResolveProxies.SetTransient(false)
-	p.eReference_ResolveProxies.SetVolatile(false)
-	p.eReference_ResolveProxies.SetChangeable(true)
-	p.eReference_ResolveProxies.SetUnsettable(false)
-	p.eReference_ResolveProxies.SetUnique(true)
-	p.eReference_ResolveProxies.SetDerived(false)
-	p.eReference_ResolveProxies.SetOrdered(true)
-	p.eReference_ResolveProxies.SetID(false)
-	p.eReference_ResolveProxies.SetDefaultValueLiteral("true")
+	eReference_Containment := p.GetEReference_Containment()
+	eReference_Containment.SetName("containment")
+	eReference_Containment.SetEType(p.GetEBoolean())
+	eReference_Containment.SetLowerBound(0)
+	eReference_Containment.SetUpperBound(1)
+	eReference_Containment.SetTransient(false)
+	eReference_Containment.SetVolatile(false)
+	eReference_Containment.SetChangeable(true)
+	eReference_Containment.SetUnsettable(false)
+	eReference_Containment.SetUnique(true)
+	eReference_Containment.SetDerived(false)
+	eReference_Containment.SetOrdered(true)
+	eReference_Containment.SetID(false)
+	eReference_Containment.SetDefaultValueLiteral("")
 
-	p.eReference_EKeys.SetName("eKeys")
-	p.eReference_EKeys.SetEType(p.GetEAttribute())
-	p.eReference_EKeys.SetLowerBound(0)
-	p.eReference_EKeys.SetUpperBound(-1)
-	p.eReference_EKeys.SetTransient(false)
-	p.eReference_EKeys.SetVolatile(false)
-	p.eReference_EKeys.SetChangeable(true)
-	p.eReference_EKeys.SetUnsettable(false)
-	p.eReference_EKeys.SetUnique(true)
-	p.eReference_EKeys.SetDerived(false)
-	p.eReference_EKeys.SetOrdered(true)
-	p.eReference_EKeys.SetContainment(false)
-	p.eReference_EKeys.SetResolveProxies(true)
-	p.eReference_EKeys.SetDefaultValueLiteral("")
+	eReference_ResolveProxies := p.GetEReference_ResolveProxies()
+	eReference_ResolveProxies.SetName("resolveProxies")
+	eReference_ResolveProxies.SetEType(p.GetEBoolean())
+	eReference_ResolveProxies.SetLowerBound(0)
+	eReference_ResolveProxies.SetUpperBound(1)
+	eReference_ResolveProxies.SetTransient(false)
+	eReference_ResolveProxies.SetVolatile(false)
+	eReference_ResolveProxies.SetChangeable(true)
+	eReference_ResolveProxies.SetUnsettable(false)
+	eReference_ResolveProxies.SetUnique(true)
+	eReference_ResolveProxies.SetDerived(false)
+	eReference_ResolveProxies.SetOrdered(true)
+	eReference_ResolveProxies.SetID(false)
+	eReference_ResolveProxies.SetDefaultValueLiteral("true")
 
-	p.eReference_EOpposite.SetName("eOpposite")
-	p.eReference_EOpposite.SetEType(p.GetEReference())
-	p.eReference_EOpposite.SetLowerBound(0)
-	p.eReference_EOpposite.SetUpperBound(1)
-	p.eReference_EOpposite.SetTransient(false)
-	p.eReference_EOpposite.SetVolatile(false)
-	p.eReference_EOpposite.SetChangeable(true)
-	p.eReference_EOpposite.SetUnsettable(false)
-	p.eReference_EOpposite.SetUnique(true)
-	p.eReference_EOpposite.SetDerived(false)
-	p.eReference_EOpposite.SetOrdered(true)
-	p.eReference_EOpposite.SetContainment(false)
-	p.eReference_EOpposite.SetResolveProxies(true)
-	p.eReference_EOpposite.SetDefaultValueLiteral("")
+	eReference_EKeys := p.GetEReference_EKeys()
+	eReference_EKeys.SetName("eKeys")
+	eReference_EKeys.SetEType(p.GetEAttribute())
+	eReference_EKeys.SetLowerBound(0)
+	eReference_EKeys.SetUpperBound(-1)
+	eReference_EKeys.SetTransient(false)
+	eReference_EKeys.SetVolatile(false)
+	eReference_EKeys.SetChangeable(true)
+	eReference_EKeys.SetUnsettable(false)
+	eReference_EKeys.SetUnique(true)
+	eReference_EKeys.SetDerived(false)
+	eReference_EKeys.SetOrdered(true)
+	eReference_EKeys.SetContainment(false)
+	eReference_EKeys.SetResolveProxies(true)
+	eReference_EKeys.SetDefaultValueLiteral("")
 
-	p.eReference_EReferenceType.SetName("eReferenceType")
-	p.eReference_EReferenceType.SetEType(p.GetEClass())
-	p.eReference_EReferenceType.SetLowerBound(1)
-	p.eReference_EReferenceType.SetUpperBound(1)
-	p.eReference_EReferenceType.SetTransient(true)
-	p.eReference_EReferenceType.SetVolatile(true)
-	p.eReference_EReferenceType.SetChangeable(false)
-	p.eReference_EReferenceType.SetUnsettable(false)
-	p.eReference_EReferenceType.SetUnique(true)
-	p.eReference_EReferenceType.SetDerived(true)
-	p.eReference_EReferenceType.SetOrdered(true)
-	p.eReference_EReferenceType.SetContainment(false)
-	p.eReference_EReferenceType.SetResolveProxies(true)
-	p.eReference_EReferenceType.SetDefaultValueLiteral("")
+	eReference_EOpposite := p.GetEReference_EOpposite()
+	eReference_EOpposite.SetName("eOpposite")
+	eReference_EOpposite.SetEType(p.GetEReference())
+	eReference_EOpposite.SetLowerBound(0)
+	eReference_EOpposite.SetUpperBound(1)
+	eReference_EOpposite.SetTransient(false)
+	eReference_EOpposite.SetVolatile(false)
+	eReference_EOpposite.SetChangeable(true)
+	eReference_EOpposite.SetUnsettable(false)
+	eReference_EOpposite.SetUnique(true)
+	eReference_EOpposite.SetDerived(false)
+	eReference_EOpposite.SetOrdered(true)
+	eReference_EOpposite.SetContainment(false)
+	eReference_EOpposite.SetResolveProxies(true)
+	eReference_EOpposite.SetDefaultValueLiteral("")
+
+	eReference_EReferenceType := p.GetEReference_EReferenceType()
+	eReference_EReferenceType.SetName("eReferenceType")
+	eReference_EReferenceType.SetEType(p.GetEClass())
+	eReference_EReferenceType.SetLowerBound(1)
+	eReference_EReferenceType.SetUpperBound(1)
+	eReference_EReferenceType.SetTransient(true)
+	eReference_EReferenceType.SetVolatile(true)
+	eReference_EReferenceType.SetChangeable(false)
+	eReference_EReferenceType.SetUnsettable(false)
+	eReference_EReferenceType.SetUnique(true)
+	eReference_EReferenceType.SetDerived(true)
+	eReference_EReferenceType.SetOrdered(true)
+	eReference_EReferenceType.SetContainment(false)
+	eReference_EReferenceType.SetResolveProxies(true)
+	eReference_EReferenceType.SetDefaultValueLiteral("")
 
 }
 
@@ -2954,33 +2895,36 @@ func (p *ecorePackageImpl) initializeEStringToStringMapEntryContent() {
 	p.eStringToStringMapEntry.SetName("EStringToStringMapEntry")
 	p.eStringToStringMapEntry.SetAbstract(false)
 	p.eStringToStringMapEntry.SetInterface(false)
-	p.eStringToStringMapEntry_Key.SetName("key")
-	p.eStringToStringMapEntry_Key.SetEType(p.GetEString())
-	p.eStringToStringMapEntry_Key.SetLowerBound(0)
-	p.eStringToStringMapEntry_Key.SetUpperBound(1)
-	p.eStringToStringMapEntry_Key.SetTransient(false)
-	p.eStringToStringMapEntry_Key.SetVolatile(false)
-	p.eStringToStringMapEntry_Key.SetChangeable(true)
-	p.eStringToStringMapEntry_Key.SetUnsettable(false)
-	p.eStringToStringMapEntry_Key.SetUnique(true)
-	p.eStringToStringMapEntry_Key.SetDerived(false)
-	p.eStringToStringMapEntry_Key.SetOrdered(true)
-	p.eStringToStringMapEntry_Key.SetID(false)
-	p.eStringToStringMapEntry_Key.SetDefaultValueLiteral("")
 
-	p.eStringToStringMapEntry_Value.SetName("value")
-	p.eStringToStringMapEntry_Value.SetEType(p.GetEString())
-	p.eStringToStringMapEntry_Value.SetLowerBound(0)
-	p.eStringToStringMapEntry_Value.SetUpperBound(1)
-	p.eStringToStringMapEntry_Value.SetTransient(false)
-	p.eStringToStringMapEntry_Value.SetVolatile(false)
-	p.eStringToStringMapEntry_Value.SetChangeable(true)
-	p.eStringToStringMapEntry_Value.SetUnsettable(false)
-	p.eStringToStringMapEntry_Value.SetUnique(true)
-	p.eStringToStringMapEntry_Value.SetDerived(false)
-	p.eStringToStringMapEntry_Value.SetOrdered(true)
-	p.eStringToStringMapEntry_Value.SetID(false)
-	p.eStringToStringMapEntry_Value.SetDefaultValueLiteral("")
+	eStringToStringMapEntry_Key := p.GetEStringToStringMapEntry_Key()
+	eStringToStringMapEntry_Key.SetName("key")
+	eStringToStringMapEntry_Key.SetEType(p.GetEString())
+	eStringToStringMapEntry_Key.SetLowerBound(0)
+	eStringToStringMapEntry_Key.SetUpperBound(1)
+	eStringToStringMapEntry_Key.SetTransient(false)
+	eStringToStringMapEntry_Key.SetVolatile(false)
+	eStringToStringMapEntry_Key.SetChangeable(true)
+	eStringToStringMapEntry_Key.SetUnsettable(false)
+	eStringToStringMapEntry_Key.SetUnique(true)
+	eStringToStringMapEntry_Key.SetDerived(false)
+	eStringToStringMapEntry_Key.SetOrdered(true)
+	eStringToStringMapEntry_Key.SetID(false)
+	eStringToStringMapEntry_Key.SetDefaultValueLiteral("")
+
+	eStringToStringMapEntry_Value := p.GetEStringToStringMapEntry_Value()
+	eStringToStringMapEntry_Value.SetName("value")
+	eStringToStringMapEntry_Value.SetEType(p.GetEString())
+	eStringToStringMapEntry_Value.SetLowerBound(0)
+	eStringToStringMapEntry_Value.SetUpperBound(1)
+	eStringToStringMapEntry_Value.SetTransient(false)
+	eStringToStringMapEntry_Value.SetVolatile(false)
+	eStringToStringMapEntry_Value.SetChangeable(true)
+	eStringToStringMapEntry_Value.SetUnsettable(false)
+	eStringToStringMapEntry_Value.SetUnique(true)
+	eStringToStringMapEntry_Value.SetDerived(false)
+	eStringToStringMapEntry_Value.SetOrdered(true)
+	eStringToStringMapEntry_Value.SetID(false)
+	eStringToStringMapEntry_Value.SetDefaultValueLiteral("")
 
 }
 
@@ -2988,140 +2932,151 @@ func (p *ecorePackageImpl) initializeEStructuralFeatureContent() {
 	p.eStructuralFeature.SetName("EStructuralFeature")
 	p.eStructuralFeature.SetAbstract(true)
 	p.eStructuralFeature.SetInterface(false)
-	p.eStructuralFeature_Changeable.SetName("changeable")
-	p.eStructuralFeature_Changeable.SetEType(p.GetEBoolean())
-	p.eStructuralFeature_Changeable.SetLowerBound(0)
-	p.eStructuralFeature_Changeable.SetUpperBound(1)
-	p.eStructuralFeature_Changeable.SetTransient(false)
-	p.eStructuralFeature_Changeable.SetVolatile(false)
-	p.eStructuralFeature_Changeable.SetChangeable(true)
-	p.eStructuralFeature_Changeable.SetUnsettable(false)
-	p.eStructuralFeature_Changeable.SetUnique(true)
-	p.eStructuralFeature_Changeable.SetDerived(false)
-	p.eStructuralFeature_Changeable.SetOrdered(true)
-	p.eStructuralFeature_Changeable.SetID(false)
-	p.eStructuralFeature_Changeable.SetDefaultValueLiteral("true")
 
-	p.eStructuralFeature_DefaultValue.SetName("defaultValue")
-	p.eStructuralFeature_DefaultValue.SetEType(p.GetEJavaObject())
-	p.eStructuralFeature_DefaultValue.SetLowerBound(0)
-	p.eStructuralFeature_DefaultValue.SetUpperBound(1)
-	p.eStructuralFeature_DefaultValue.SetTransient(true)
-	p.eStructuralFeature_DefaultValue.SetVolatile(true)
-	p.eStructuralFeature_DefaultValue.SetChangeable(true)
-	p.eStructuralFeature_DefaultValue.SetUnsettable(false)
-	p.eStructuralFeature_DefaultValue.SetUnique(true)
-	p.eStructuralFeature_DefaultValue.SetDerived(true)
-	p.eStructuralFeature_DefaultValue.SetOrdered(true)
-	p.eStructuralFeature_DefaultValue.SetID(false)
-	p.eStructuralFeature_DefaultValue.SetDefaultValueLiteral("")
+	eStructuralFeature_Changeable := p.GetEStructuralFeature_Changeable()
+	eStructuralFeature_Changeable.SetName("changeable")
+	eStructuralFeature_Changeable.SetEType(p.GetEBoolean())
+	eStructuralFeature_Changeable.SetLowerBound(0)
+	eStructuralFeature_Changeable.SetUpperBound(1)
+	eStructuralFeature_Changeable.SetTransient(false)
+	eStructuralFeature_Changeable.SetVolatile(false)
+	eStructuralFeature_Changeable.SetChangeable(true)
+	eStructuralFeature_Changeable.SetUnsettable(false)
+	eStructuralFeature_Changeable.SetUnique(true)
+	eStructuralFeature_Changeable.SetDerived(false)
+	eStructuralFeature_Changeable.SetOrdered(true)
+	eStructuralFeature_Changeable.SetID(false)
+	eStructuralFeature_Changeable.SetDefaultValueLiteral("true")
 
-	p.eStructuralFeature_DefaultValueLiteral.SetName("defaultValueLiteral")
-	p.eStructuralFeature_DefaultValueLiteral.SetEType(p.GetEString())
-	p.eStructuralFeature_DefaultValueLiteral.SetLowerBound(0)
-	p.eStructuralFeature_DefaultValueLiteral.SetUpperBound(1)
-	p.eStructuralFeature_DefaultValueLiteral.SetTransient(false)
-	p.eStructuralFeature_DefaultValueLiteral.SetVolatile(false)
-	p.eStructuralFeature_DefaultValueLiteral.SetChangeable(true)
-	p.eStructuralFeature_DefaultValueLiteral.SetUnsettable(false)
-	p.eStructuralFeature_DefaultValueLiteral.SetUnique(true)
-	p.eStructuralFeature_DefaultValueLiteral.SetDerived(false)
-	p.eStructuralFeature_DefaultValueLiteral.SetOrdered(true)
-	p.eStructuralFeature_DefaultValueLiteral.SetID(false)
-	p.eStructuralFeature_DefaultValueLiteral.SetDefaultValueLiteral("")
+	eStructuralFeature_DefaultValue := p.GetEStructuralFeature_DefaultValue()
+	eStructuralFeature_DefaultValue.SetName("defaultValue")
+	eStructuralFeature_DefaultValue.SetEType(p.GetEJavaObject())
+	eStructuralFeature_DefaultValue.SetLowerBound(0)
+	eStructuralFeature_DefaultValue.SetUpperBound(1)
+	eStructuralFeature_DefaultValue.SetTransient(true)
+	eStructuralFeature_DefaultValue.SetVolatile(true)
+	eStructuralFeature_DefaultValue.SetChangeable(true)
+	eStructuralFeature_DefaultValue.SetUnsettable(false)
+	eStructuralFeature_DefaultValue.SetUnique(true)
+	eStructuralFeature_DefaultValue.SetDerived(true)
+	eStructuralFeature_DefaultValue.SetOrdered(true)
+	eStructuralFeature_DefaultValue.SetID(false)
+	eStructuralFeature_DefaultValue.SetDefaultValueLiteral("")
 
-	p.eStructuralFeature_Derived.SetName("derived")
-	p.eStructuralFeature_Derived.SetEType(p.GetEBoolean())
-	p.eStructuralFeature_Derived.SetLowerBound(0)
-	p.eStructuralFeature_Derived.SetUpperBound(1)
-	p.eStructuralFeature_Derived.SetTransient(false)
-	p.eStructuralFeature_Derived.SetVolatile(false)
-	p.eStructuralFeature_Derived.SetChangeable(true)
-	p.eStructuralFeature_Derived.SetUnsettable(false)
-	p.eStructuralFeature_Derived.SetUnique(true)
-	p.eStructuralFeature_Derived.SetDerived(false)
-	p.eStructuralFeature_Derived.SetOrdered(true)
-	p.eStructuralFeature_Derived.SetID(false)
-	p.eStructuralFeature_Derived.SetDefaultValueLiteral("")
+	eStructuralFeature_DefaultValueLiteral := p.GetEStructuralFeature_DefaultValueLiteral()
+	eStructuralFeature_DefaultValueLiteral.SetName("defaultValueLiteral")
+	eStructuralFeature_DefaultValueLiteral.SetEType(p.GetEString())
+	eStructuralFeature_DefaultValueLiteral.SetLowerBound(0)
+	eStructuralFeature_DefaultValueLiteral.SetUpperBound(1)
+	eStructuralFeature_DefaultValueLiteral.SetTransient(false)
+	eStructuralFeature_DefaultValueLiteral.SetVolatile(false)
+	eStructuralFeature_DefaultValueLiteral.SetChangeable(true)
+	eStructuralFeature_DefaultValueLiteral.SetUnsettable(false)
+	eStructuralFeature_DefaultValueLiteral.SetUnique(true)
+	eStructuralFeature_DefaultValueLiteral.SetDerived(false)
+	eStructuralFeature_DefaultValueLiteral.SetOrdered(true)
+	eStructuralFeature_DefaultValueLiteral.SetID(false)
+	eStructuralFeature_DefaultValueLiteral.SetDefaultValueLiteral("")
 
-	p.eStructuralFeature_FeatureID.SetName("featureID")
-	p.eStructuralFeature_FeatureID.SetEType(p.GetEInt())
-	p.eStructuralFeature_FeatureID.SetLowerBound(0)
-	p.eStructuralFeature_FeatureID.SetUpperBound(1)
-	p.eStructuralFeature_FeatureID.SetTransient(false)
-	p.eStructuralFeature_FeatureID.SetVolatile(false)
-	p.eStructuralFeature_FeatureID.SetChangeable(true)
-	p.eStructuralFeature_FeatureID.SetUnsettable(false)
-	p.eStructuralFeature_FeatureID.SetUnique(true)
-	p.eStructuralFeature_FeatureID.SetDerived(false)
-	p.eStructuralFeature_FeatureID.SetOrdered(true)
-	p.eStructuralFeature_FeatureID.SetID(false)
-	p.eStructuralFeature_FeatureID.SetDefaultValueLiteral("-1")
+	eStructuralFeature_Derived := p.GetEStructuralFeature_Derived()
+	eStructuralFeature_Derived.SetName("derived")
+	eStructuralFeature_Derived.SetEType(p.GetEBoolean())
+	eStructuralFeature_Derived.SetLowerBound(0)
+	eStructuralFeature_Derived.SetUpperBound(1)
+	eStructuralFeature_Derived.SetTransient(false)
+	eStructuralFeature_Derived.SetVolatile(false)
+	eStructuralFeature_Derived.SetChangeable(true)
+	eStructuralFeature_Derived.SetUnsettable(false)
+	eStructuralFeature_Derived.SetUnique(true)
+	eStructuralFeature_Derived.SetDerived(false)
+	eStructuralFeature_Derived.SetOrdered(true)
+	eStructuralFeature_Derived.SetID(false)
+	eStructuralFeature_Derived.SetDefaultValueLiteral("")
 
-	p.eStructuralFeature_Transient.SetName("transient")
-	p.eStructuralFeature_Transient.SetEType(p.GetEBoolean())
-	p.eStructuralFeature_Transient.SetLowerBound(0)
-	p.eStructuralFeature_Transient.SetUpperBound(1)
-	p.eStructuralFeature_Transient.SetTransient(false)
-	p.eStructuralFeature_Transient.SetVolatile(false)
-	p.eStructuralFeature_Transient.SetChangeable(true)
-	p.eStructuralFeature_Transient.SetUnsettable(false)
-	p.eStructuralFeature_Transient.SetUnique(true)
-	p.eStructuralFeature_Transient.SetDerived(false)
-	p.eStructuralFeature_Transient.SetOrdered(true)
-	p.eStructuralFeature_Transient.SetID(false)
-	p.eStructuralFeature_Transient.SetDefaultValueLiteral("")
+	eStructuralFeature_FeatureID := p.GetEStructuralFeature_FeatureID()
+	eStructuralFeature_FeatureID.SetName("featureID")
+	eStructuralFeature_FeatureID.SetEType(p.GetEInt())
+	eStructuralFeature_FeatureID.SetLowerBound(0)
+	eStructuralFeature_FeatureID.SetUpperBound(1)
+	eStructuralFeature_FeatureID.SetTransient(false)
+	eStructuralFeature_FeatureID.SetVolatile(false)
+	eStructuralFeature_FeatureID.SetChangeable(true)
+	eStructuralFeature_FeatureID.SetUnsettable(false)
+	eStructuralFeature_FeatureID.SetUnique(true)
+	eStructuralFeature_FeatureID.SetDerived(false)
+	eStructuralFeature_FeatureID.SetOrdered(true)
+	eStructuralFeature_FeatureID.SetID(false)
+	eStructuralFeature_FeatureID.SetDefaultValueLiteral("-1")
 
-	p.eStructuralFeature_Unsettable.SetName("unsettable")
-	p.eStructuralFeature_Unsettable.SetEType(p.GetEBoolean())
-	p.eStructuralFeature_Unsettable.SetLowerBound(0)
-	p.eStructuralFeature_Unsettable.SetUpperBound(1)
-	p.eStructuralFeature_Unsettable.SetTransient(false)
-	p.eStructuralFeature_Unsettable.SetVolatile(false)
-	p.eStructuralFeature_Unsettable.SetChangeable(true)
-	p.eStructuralFeature_Unsettable.SetUnsettable(false)
-	p.eStructuralFeature_Unsettable.SetUnique(true)
-	p.eStructuralFeature_Unsettable.SetDerived(false)
-	p.eStructuralFeature_Unsettable.SetOrdered(true)
-	p.eStructuralFeature_Unsettable.SetID(false)
-	p.eStructuralFeature_Unsettable.SetDefaultValueLiteral("")
+	eStructuralFeature_Transient := p.GetEStructuralFeature_Transient()
+	eStructuralFeature_Transient.SetName("transient")
+	eStructuralFeature_Transient.SetEType(p.GetEBoolean())
+	eStructuralFeature_Transient.SetLowerBound(0)
+	eStructuralFeature_Transient.SetUpperBound(1)
+	eStructuralFeature_Transient.SetTransient(false)
+	eStructuralFeature_Transient.SetVolatile(false)
+	eStructuralFeature_Transient.SetChangeable(true)
+	eStructuralFeature_Transient.SetUnsettable(false)
+	eStructuralFeature_Transient.SetUnique(true)
+	eStructuralFeature_Transient.SetDerived(false)
+	eStructuralFeature_Transient.SetOrdered(true)
+	eStructuralFeature_Transient.SetID(false)
+	eStructuralFeature_Transient.SetDefaultValueLiteral("")
 
-	p.eStructuralFeature_Volatile.SetName("volatile")
-	p.eStructuralFeature_Volatile.SetEType(p.GetEBoolean())
-	p.eStructuralFeature_Volatile.SetLowerBound(0)
-	p.eStructuralFeature_Volatile.SetUpperBound(1)
-	p.eStructuralFeature_Volatile.SetTransient(false)
-	p.eStructuralFeature_Volatile.SetVolatile(false)
-	p.eStructuralFeature_Volatile.SetChangeable(true)
-	p.eStructuralFeature_Volatile.SetUnsettable(false)
-	p.eStructuralFeature_Volatile.SetUnique(true)
-	p.eStructuralFeature_Volatile.SetDerived(false)
-	p.eStructuralFeature_Volatile.SetOrdered(true)
-	p.eStructuralFeature_Volatile.SetID(false)
-	p.eStructuralFeature_Volatile.SetDefaultValueLiteral("")
+	eStructuralFeature_Unsettable := p.GetEStructuralFeature_Unsettable()
+	eStructuralFeature_Unsettable.SetName("unsettable")
+	eStructuralFeature_Unsettable.SetEType(p.GetEBoolean())
+	eStructuralFeature_Unsettable.SetLowerBound(0)
+	eStructuralFeature_Unsettable.SetUpperBound(1)
+	eStructuralFeature_Unsettable.SetTransient(false)
+	eStructuralFeature_Unsettable.SetVolatile(false)
+	eStructuralFeature_Unsettable.SetChangeable(true)
+	eStructuralFeature_Unsettable.SetUnsettable(false)
+	eStructuralFeature_Unsettable.SetUnique(true)
+	eStructuralFeature_Unsettable.SetDerived(false)
+	eStructuralFeature_Unsettable.SetOrdered(true)
+	eStructuralFeature_Unsettable.SetID(false)
+	eStructuralFeature_Unsettable.SetDefaultValueLiteral("")
 
-	p.eStructuralFeature_EContainingClass.SetName("eContainingClass")
-	p.eStructuralFeature_EContainingClass.SetEType(p.GetEClass())
-	p.eStructuralFeature_EContainingClass.SetLowerBound(0)
-	p.eStructuralFeature_EContainingClass.SetUpperBound(1)
-	p.eStructuralFeature_EContainingClass.SetTransient(true)
-	p.eStructuralFeature_EContainingClass.SetVolatile(false)
-	p.eStructuralFeature_EContainingClass.SetChangeable(false)
-	p.eStructuralFeature_EContainingClass.SetUnsettable(false)
-	p.eStructuralFeature_EContainingClass.SetUnique(true)
-	p.eStructuralFeature_EContainingClass.SetDerived(false)
-	p.eStructuralFeature_EContainingClass.SetOrdered(true)
-	p.eStructuralFeature_EContainingClass.SetContainment(false)
-	p.eStructuralFeature_EContainingClass.SetResolveProxies(false)
-	p.eStructuralFeature_EContainingClass.SetDefaultValueLiteral("")
-	p.eStructuralFeature_EContainingClass.SetEOpposite(p.GetEClass_EStructuralFeatures())
+	eStructuralFeature_Volatile := p.GetEStructuralFeature_Volatile()
+	eStructuralFeature_Volatile.SetName("volatile")
+	eStructuralFeature_Volatile.SetEType(p.GetEBoolean())
+	eStructuralFeature_Volatile.SetLowerBound(0)
+	eStructuralFeature_Volatile.SetUpperBound(1)
+	eStructuralFeature_Volatile.SetTransient(false)
+	eStructuralFeature_Volatile.SetVolatile(false)
+	eStructuralFeature_Volatile.SetChangeable(true)
+	eStructuralFeature_Volatile.SetUnsettable(false)
+	eStructuralFeature_Volatile.SetUnique(true)
+	eStructuralFeature_Volatile.SetDerived(false)
+	eStructuralFeature_Volatile.SetOrdered(true)
+	eStructuralFeature_Volatile.SetID(false)
+	eStructuralFeature_Volatile.SetDefaultValueLiteral("")
 
-	p.eStructuralFeature_GetContainerClass.SetEType(p.GetEJavaClass())
-	p.eStructuralFeature_GetContainerClass.SetName("getContainerClass")
-	p.eStructuralFeature_GetContainerClass.SetLowerBound(0)
-	p.eStructuralFeature_GetContainerClass.SetUpperBound(1)
-	p.eStructuralFeature_GetContainerClass.SetUnique(true)
-	p.eStructuralFeature_GetContainerClass.SetOrdered(true)
+	eStructuralFeature_EContainingClass := p.GetEStructuralFeature_EContainingClass()
+	eStructuralFeature_EContainingClass.SetName("eContainingClass")
+	eStructuralFeature_EContainingClass.SetEType(p.GetEClass())
+	eStructuralFeature_EContainingClass.SetLowerBound(0)
+	eStructuralFeature_EContainingClass.SetUpperBound(1)
+	eStructuralFeature_EContainingClass.SetTransient(true)
+	eStructuralFeature_EContainingClass.SetVolatile(false)
+	eStructuralFeature_EContainingClass.SetChangeable(false)
+	eStructuralFeature_EContainingClass.SetUnsettable(false)
+	eStructuralFeature_EContainingClass.SetUnique(true)
+	eStructuralFeature_EContainingClass.SetDerived(false)
+	eStructuralFeature_EContainingClass.SetOrdered(true)
+	eStructuralFeature_EContainingClass.SetContainment(false)
+	eStructuralFeature_EContainingClass.SetResolveProxies(false)
+	eStructuralFeature_EContainingClass.SetDefaultValueLiteral("")
+	eStructuralFeature_EContainingClass.SetEOpposite(p.GetEClass_EStructuralFeatures())
+
+	eStructuralFeature_GetContainerClass := p.GetEStructuralFeature_GetContainerClass()
+	eStructuralFeature_GetContainerClass.SetEType(p.GetEJavaClass())
+	eStructuralFeature_GetContainerClass.SetName("getContainerClass")
+	eStructuralFeature_GetContainerClass.SetLowerBound(0)
+	eStructuralFeature_GetContainerClass.SetUpperBound(1)
+	eStructuralFeature_GetContainerClass.SetUnique(true)
+	eStructuralFeature_GetContainerClass.SetOrdered(true)
 
 }
 
@@ -3130,20 +3085,21 @@ func (p *ecorePackageImpl) initializeETypeParameterContent() {
 	p.eTypeParameter.SetAbstract(false)
 	p.eTypeParameter.SetInterface(false)
 
-	p.eTypeParameter_EBounds.SetName("eBounds")
-	p.eTypeParameter_EBounds.SetEType(p.GetEGenericType())
-	p.eTypeParameter_EBounds.SetLowerBound(0)
-	p.eTypeParameter_EBounds.SetUpperBound(-1)
-	p.eTypeParameter_EBounds.SetTransient(false)
-	p.eTypeParameter_EBounds.SetVolatile(false)
-	p.eTypeParameter_EBounds.SetChangeable(true)
-	p.eTypeParameter_EBounds.SetUnsettable(false)
-	p.eTypeParameter_EBounds.SetUnique(true)
-	p.eTypeParameter_EBounds.SetDerived(false)
-	p.eTypeParameter_EBounds.SetOrdered(true)
-	p.eTypeParameter_EBounds.SetContainment(true)
-	p.eTypeParameter_EBounds.SetResolveProxies(false)
-	p.eTypeParameter_EBounds.SetDefaultValueLiteral("")
+	eTypeParameter_EBounds := p.GetETypeParameter_EBounds()
+	eTypeParameter_EBounds.SetName("eBounds")
+	eTypeParameter_EBounds.SetEType(p.GetEGenericType())
+	eTypeParameter_EBounds.SetLowerBound(0)
+	eTypeParameter_EBounds.SetUpperBound(-1)
+	eTypeParameter_EBounds.SetTransient(false)
+	eTypeParameter_EBounds.SetVolatile(false)
+	eTypeParameter_EBounds.SetChangeable(true)
+	eTypeParameter_EBounds.SetUnsettable(false)
+	eTypeParameter_EBounds.SetUnique(true)
+	eTypeParameter_EBounds.SetDerived(false)
+	eTypeParameter_EBounds.SetOrdered(true)
+	eTypeParameter_EBounds.SetContainment(true)
+	eTypeParameter_EBounds.SetResolveProxies(false)
+	eTypeParameter_EBounds.SetDefaultValueLiteral("")
 
 }
 
@@ -3151,104 +3107,112 @@ func (p *ecorePackageImpl) initializeETypedElementContent() {
 	p.eTypedElement.SetName("ETypedElement")
 	p.eTypedElement.SetAbstract(true)
 	p.eTypedElement.SetInterface(false)
-	p.eTypedElement_LowerBound.SetName("lowerBound")
-	p.eTypedElement_LowerBound.SetEType(p.GetEInt())
-	p.eTypedElement_LowerBound.SetLowerBound(0)
-	p.eTypedElement_LowerBound.SetUpperBound(1)
-	p.eTypedElement_LowerBound.SetTransient(false)
-	p.eTypedElement_LowerBound.SetVolatile(false)
-	p.eTypedElement_LowerBound.SetChangeable(true)
-	p.eTypedElement_LowerBound.SetUnsettable(false)
-	p.eTypedElement_LowerBound.SetUnique(true)
-	p.eTypedElement_LowerBound.SetDerived(false)
-	p.eTypedElement_LowerBound.SetOrdered(true)
-	p.eTypedElement_LowerBound.SetID(false)
-	p.eTypedElement_LowerBound.SetDefaultValueLiteral("")
 
-	p.eTypedElement_Many.SetName("many")
-	p.eTypedElement_Many.SetEType(p.GetEBoolean())
-	p.eTypedElement_Many.SetLowerBound(0)
-	p.eTypedElement_Many.SetUpperBound(1)
-	p.eTypedElement_Many.SetTransient(true)
-	p.eTypedElement_Many.SetVolatile(true)
-	p.eTypedElement_Many.SetChangeable(false)
-	p.eTypedElement_Many.SetUnsettable(false)
-	p.eTypedElement_Many.SetUnique(true)
-	p.eTypedElement_Many.SetDerived(true)
-	p.eTypedElement_Many.SetOrdered(true)
-	p.eTypedElement_Many.SetID(false)
-	p.eTypedElement_Many.SetDefaultValueLiteral("")
+	eTypedElement_LowerBound := p.GetETypedElement_LowerBound()
+	eTypedElement_LowerBound.SetName("lowerBound")
+	eTypedElement_LowerBound.SetEType(p.GetEInt())
+	eTypedElement_LowerBound.SetLowerBound(0)
+	eTypedElement_LowerBound.SetUpperBound(1)
+	eTypedElement_LowerBound.SetTransient(false)
+	eTypedElement_LowerBound.SetVolatile(false)
+	eTypedElement_LowerBound.SetChangeable(true)
+	eTypedElement_LowerBound.SetUnsettable(false)
+	eTypedElement_LowerBound.SetUnique(true)
+	eTypedElement_LowerBound.SetDerived(false)
+	eTypedElement_LowerBound.SetOrdered(true)
+	eTypedElement_LowerBound.SetID(false)
+	eTypedElement_LowerBound.SetDefaultValueLiteral("")
 
-	p.eTypedElement_Ordered.SetName("ordered")
-	p.eTypedElement_Ordered.SetEType(p.GetEBoolean())
-	p.eTypedElement_Ordered.SetLowerBound(0)
-	p.eTypedElement_Ordered.SetUpperBound(1)
-	p.eTypedElement_Ordered.SetTransient(false)
-	p.eTypedElement_Ordered.SetVolatile(false)
-	p.eTypedElement_Ordered.SetChangeable(true)
-	p.eTypedElement_Ordered.SetUnsettable(false)
-	p.eTypedElement_Ordered.SetUnique(true)
-	p.eTypedElement_Ordered.SetDerived(false)
-	p.eTypedElement_Ordered.SetOrdered(true)
-	p.eTypedElement_Ordered.SetID(false)
-	p.eTypedElement_Ordered.SetDefaultValueLiteral("true")
+	eTypedElement_Many := p.GetETypedElement_Many()
+	eTypedElement_Many.SetName("many")
+	eTypedElement_Many.SetEType(p.GetEBoolean())
+	eTypedElement_Many.SetLowerBound(0)
+	eTypedElement_Many.SetUpperBound(1)
+	eTypedElement_Many.SetTransient(true)
+	eTypedElement_Many.SetVolatile(true)
+	eTypedElement_Many.SetChangeable(false)
+	eTypedElement_Many.SetUnsettable(false)
+	eTypedElement_Many.SetUnique(true)
+	eTypedElement_Many.SetDerived(true)
+	eTypedElement_Many.SetOrdered(true)
+	eTypedElement_Many.SetID(false)
+	eTypedElement_Many.SetDefaultValueLiteral("")
 
-	p.eTypedElement_Required.SetName("required")
-	p.eTypedElement_Required.SetEType(p.GetEBoolean())
-	p.eTypedElement_Required.SetLowerBound(0)
-	p.eTypedElement_Required.SetUpperBound(1)
-	p.eTypedElement_Required.SetTransient(true)
-	p.eTypedElement_Required.SetVolatile(true)
-	p.eTypedElement_Required.SetChangeable(false)
-	p.eTypedElement_Required.SetUnsettable(false)
-	p.eTypedElement_Required.SetUnique(true)
-	p.eTypedElement_Required.SetDerived(true)
-	p.eTypedElement_Required.SetOrdered(true)
-	p.eTypedElement_Required.SetID(false)
-	p.eTypedElement_Required.SetDefaultValueLiteral("")
+	eTypedElement_Ordered := p.GetETypedElement_Ordered()
+	eTypedElement_Ordered.SetName("ordered")
+	eTypedElement_Ordered.SetEType(p.GetEBoolean())
+	eTypedElement_Ordered.SetLowerBound(0)
+	eTypedElement_Ordered.SetUpperBound(1)
+	eTypedElement_Ordered.SetTransient(false)
+	eTypedElement_Ordered.SetVolatile(false)
+	eTypedElement_Ordered.SetChangeable(true)
+	eTypedElement_Ordered.SetUnsettable(false)
+	eTypedElement_Ordered.SetUnique(true)
+	eTypedElement_Ordered.SetDerived(false)
+	eTypedElement_Ordered.SetOrdered(true)
+	eTypedElement_Ordered.SetID(false)
+	eTypedElement_Ordered.SetDefaultValueLiteral("true")
 
-	p.eTypedElement_Unique.SetName("unique")
-	p.eTypedElement_Unique.SetEType(p.GetEBoolean())
-	p.eTypedElement_Unique.SetLowerBound(0)
-	p.eTypedElement_Unique.SetUpperBound(1)
-	p.eTypedElement_Unique.SetTransient(false)
-	p.eTypedElement_Unique.SetVolatile(false)
-	p.eTypedElement_Unique.SetChangeable(true)
-	p.eTypedElement_Unique.SetUnsettable(false)
-	p.eTypedElement_Unique.SetUnique(true)
-	p.eTypedElement_Unique.SetDerived(false)
-	p.eTypedElement_Unique.SetOrdered(true)
-	p.eTypedElement_Unique.SetID(false)
-	p.eTypedElement_Unique.SetDefaultValueLiteral("true")
+	eTypedElement_Required := p.GetETypedElement_Required()
+	eTypedElement_Required.SetName("required")
+	eTypedElement_Required.SetEType(p.GetEBoolean())
+	eTypedElement_Required.SetLowerBound(0)
+	eTypedElement_Required.SetUpperBound(1)
+	eTypedElement_Required.SetTransient(true)
+	eTypedElement_Required.SetVolatile(true)
+	eTypedElement_Required.SetChangeable(false)
+	eTypedElement_Required.SetUnsettable(false)
+	eTypedElement_Required.SetUnique(true)
+	eTypedElement_Required.SetDerived(true)
+	eTypedElement_Required.SetOrdered(true)
+	eTypedElement_Required.SetID(false)
+	eTypedElement_Required.SetDefaultValueLiteral("")
 
-	p.eTypedElement_UpperBound.SetName("upperBound")
-	p.eTypedElement_UpperBound.SetEType(p.GetEInt())
-	p.eTypedElement_UpperBound.SetLowerBound(0)
-	p.eTypedElement_UpperBound.SetUpperBound(1)
-	p.eTypedElement_UpperBound.SetTransient(false)
-	p.eTypedElement_UpperBound.SetVolatile(false)
-	p.eTypedElement_UpperBound.SetChangeable(true)
-	p.eTypedElement_UpperBound.SetUnsettable(false)
-	p.eTypedElement_UpperBound.SetUnique(true)
-	p.eTypedElement_UpperBound.SetDerived(false)
-	p.eTypedElement_UpperBound.SetOrdered(true)
-	p.eTypedElement_UpperBound.SetID(false)
-	p.eTypedElement_UpperBound.SetDefaultValueLiteral("1")
+	eTypedElement_Unique := p.GetETypedElement_Unique()
+	eTypedElement_Unique.SetName("unique")
+	eTypedElement_Unique.SetEType(p.GetEBoolean())
+	eTypedElement_Unique.SetLowerBound(0)
+	eTypedElement_Unique.SetUpperBound(1)
+	eTypedElement_Unique.SetTransient(false)
+	eTypedElement_Unique.SetVolatile(false)
+	eTypedElement_Unique.SetChangeable(true)
+	eTypedElement_Unique.SetUnsettable(false)
+	eTypedElement_Unique.SetUnique(true)
+	eTypedElement_Unique.SetDerived(false)
+	eTypedElement_Unique.SetOrdered(true)
+	eTypedElement_Unique.SetID(false)
+	eTypedElement_Unique.SetDefaultValueLiteral("true")
 
-	p.eTypedElement_EType.SetName("eType")
-	p.eTypedElement_EType.SetEType(p.GetEClassifierClass())
-	p.eTypedElement_EType.SetLowerBound(0)
-	p.eTypedElement_EType.SetUpperBound(1)
-	p.eTypedElement_EType.SetTransient(false)
-	p.eTypedElement_EType.SetVolatile(false)
-	p.eTypedElement_EType.SetChangeable(true)
-	p.eTypedElement_EType.SetUnsettable(true)
-	p.eTypedElement_EType.SetUnique(true)
-	p.eTypedElement_EType.SetDerived(false)
-	p.eTypedElement_EType.SetOrdered(true)
-	p.eTypedElement_EType.SetContainment(false)
-	p.eTypedElement_EType.SetResolveProxies(true)
-	p.eTypedElement_EType.SetDefaultValueLiteral("")
+	eTypedElement_UpperBound := p.GetETypedElement_UpperBound()
+	eTypedElement_UpperBound.SetName("upperBound")
+	eTypedElement_UpperBound.SetEType(p.GetEInt())
+	eTypedElement_UpperBound.SetLowerBound(0)
+	eTypedElement_UpperBound.SetUpperBound(1)
+	eTypedElement_UpperBound.SetTransient(false)
+	eTypedElement_UpperBound.SetVolatile(false)
+	eTypedElement_UpperBound.SetChangeable(true)
+	eTypedElement_UpperBound.SetUnsettable(false)
+	eTypedElement_UpperBound.SetUnique(true)
+	eTypedElement_UpperBound.SetDerived(false)
+	eTypedElement_UpperBound.SetOrdered(true)
+	eTypedElement_UpperBound.SetID(false)
+	eTypedElement_UpperBound.SetDefaultValueLiteral("1")
+
+	eTypedElement_EType := p.GetETypedElement_EType()
+	eTypedElement_EType.SetName("eType")
+	eTypedElement_EType.SetEType(p.GetEClassifierClass())
+	eTypedElement_EType.SetLowerBound(0)
+	eTypedElement_EType.SetUpperBound(1)
+	eTypedElement_EType.SetTransient(false)
+	eTypedElement_EType.SetVolatile(false)
+	eTypedElement_EType.SetChangeable(true)
+	eTypedElement_EType.SetUnsettable(true)
+	eTypedElement_EType.SetUnique(true)
+	eTypedElement_EType.SetDerived(false)
+	eTypedElement_EType.SetOrdered(true)
+	eTypedElement_EType.SetContainment(false)
+	eTypedElement_EType.SetResolveProxies(true)
+	eTypedElement_EType.SetDefaultValueLiteral("")
 
 }
 

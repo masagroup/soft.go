@@ -49,13 +49,21 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EStaticFeatureCount(
 	return ESTRING_TO_STRING_MAP_ENTRY_FEATURE_COUNT
 }
 
-// GetKey get the value of key
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetKey() string {
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetKey() interface{} {
+	return eStringToStringMapEntry.GetStringKey()
+}
+
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetValue() interface{} {
+	return eStringToStringMapEntry.GetStringValue()
+}
+
+// GetStringKey get the value of key
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetStringKey() string {
 	return eStringToStringMapEntry.key
 }
 
-// SetKey set the value of key
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetKey(newKey string) {
+// SetStringKey set the value of key
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetStringKey(newKey string) {
 	oldKey := eStringToStringMapEntry.key
 	eStringToStringMapEntry.key = newKey
 	if eStringToStringMapEntry.ENotificationRequired() {
@@ -63,13 +71,13 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetKey(newKey string
 	}
 }
 
-// GetValue get the value of value
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetValue() string {
+// GetStringValue get the value of value
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetStringValue() string {
 	return eStringToStringMapEntry.value
 }
 
-// SetValue set the value of value
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetValue(newValue string) {
+// SetStringValue set the value of value
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetStringValue(newValue string) {
 	oldValue := eStringToStringMapEntry.value
 	eStringToStringMapEntry.value = newValue
 	if eStringToStringMapEntry.ENotificationRequired() {
@@ -80,9 +88,9 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetValue(newValue st
 func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	switch featureID {
 	case ESTRING_TO_STRING_MAP_ENTRY__KEY:
-		return eStringToStringMapEntry.asEStringToStringMapEntry().GetKey()
+		return eStringToStringMapEntry.asEStringToStringMapEntry().GetStringKey()
 	case ESTRING_TO_STRING_MAP_ENTRY__VALUE:
-		return eStringToStringMapEntry.asEStringToStringMapEntry().GetValue()
+		return eStringToStringMapEntry.asEStringToStringMapEntry().GetStringValue()
 	default:
 		return eStringToStringMapEntry.CompactEObjectContainer.EGetFromID(featureID, resolve)
 	}
@@ -91,9 +99,9 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EGetFromID(featureID
 func (eStringToStringMapEntry *eStringToStringMapEntryImpl) ESetFromID(featureID int, newValue interface{}) {
 	switch featureID {
 	case ESTRING_TO_STRING_MAP_ENTRY__KEY:
-		eStringToStringMapEntry.asEStringToStringMapEntry().SetKey(newValue.(string))
+		eStringToStringMapEntry.asEStringToStringMapEntry().SetStringKey(newValue.(string))
 	case ESTRING_TO_STRING_MAP_ENTRY__VALUE:
-		eStringToStringMapEntry.asEStringToStringMapEntry().SetValue(newValue.(string))
+		eStringToStringMapEntry.asEStringToStringMapEntry().SetStringValue(newValue.(string))
 	default:
 		eStringToStringMapEntry.CompactEObjectContainer.ESetFromID(featureID, newValue)
 	}
@@ -102,9 +110,9 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) ESetFromID(featureID
 func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case ESTRING_TO_STRING_MAP_ENTRY__KEY:
-		eStringToStringMapEntry.asEStringToStringMapEntry().SetKey("")
+		eStringToStringMapEntry.asEStringToStringMapEntry().SetStringKey("")
 	case ESTRING_TO_STRING_MAP_ENTRY__VALUE:
-		eStringToStringMapEntry.asEStringToStringMapEntry().SetValue("")
+		eStringToStringMapEntry.asEStringToStringMapEntry().SetStringValue("")
 	default:
 		eStringToStringMapEntry.CompactEObjectContainer.EUnsetFromID(featureID)
 	}

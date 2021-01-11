@@ -18,12 +18,13 @@ package ecore
 // EStringToStringMapEntry is the representation of the model object 'EStringToStringMapEntry'
 type EStringToStringMapEntry interface {
 	EObject
+	EMapEntry
 
-	GetKey() string
-	SetKey(string)
+	GetStringKey() string
+	SetStringKey(string)
 
-	GetValue() string
-	SetValue(string)
+	GetStringValue() string
+	SetStringValue(string)
 
 	// Start of user code EStringToStringMapEntry
 	// End of user code

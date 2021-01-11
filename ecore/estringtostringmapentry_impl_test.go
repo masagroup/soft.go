@@ -43,15 +43,24 @@ func TestEStringToStringMapEntryFeatureCount(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
 	assert.Equal(t, ESTRING_TO_STRING_MAP_ENTRY_FEATURE_COUNT, o.EStaticFeatureCount())
 }
+func TestEStringToStringMapEntryGetKey(t *testing.T) {
+	o := newEStringToStringMapEntryImpl()
+	assert.Equal(t, o.GetStringKey(), o.GetKey())
+}
+
+func TestEStringToStringMapEntryGetValue(t *testing.T) {
+	o := newEStringToStringMapEntryImpl()
+	assert.Equal(t, o.GetStringValue(), o.GetValue())
+}
 
 func TestEStringToStringMapEntryKeyGet(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
 	// get default value
-	assert.Equal(t, "", o.GetKey())
+	assert.Equal(t, "", o.GetStringKey())
 	// get initialized value
 	v := "Test String"
 	o.key = v
-	assert.Equal(t, v, o.GetKey())
+	assert.Equal(t, v, o.GetStringKey())
 }
 
 func TestEStringToStringMapEntryKeySet(t *testing.T) {
@@ -61,18 +70,18 @@ func TestEStringToStringMapEntryKeySet(t *testing.T) {
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
-	o.SetKey(v)
+	o.SetStringKey(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStringToStringMapEntryValueGet(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
 	// get default value
-	assert.Equal(t, "", o.GetValue())
+	assert.Equal(t, "", o.GetStringValue())
 	// get initialized value
 	v := "Test String"
 	o.value = v
-	assert.Equal(t, v, o.GetValue())
+	assert.Equal(t, v, o.GetStringValue())
 }
 
 func TestEStringToStringMapEntryValueSet(t *testing.T) {
@@ -82,15 +91,15 @@ func TestEStringToStringMapEntryValueSet(t *testing.T) {
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
-	o.SetValue(v)
+	o.SetStringValue(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStringToStringMapEntryEGetFromID(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
 	assert.Panics(t, func() { o.EGetFromID(-1, true) })
-	assert.Equal(t, o.GetKey(), o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, true))
-	assert.Equal(t, o.GetValue(), o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, true))
+	assert.Equal(t, o.GetStringKey(), o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, true))
+	assert.Equal(t, o.GetStringValue(), o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, true))
 }
 
 func TestEStringToStringMapEntryESetFromID(t *testing.T) {

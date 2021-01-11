@@ -17,6 +17,7 @@ func newXMILoadImpl() *xmiLoadImpl {
 	l := new(xmiLoadImpl)
 	l.xmlLoadImpl = newXMLLoadImpl()
 	l.notFeatures = append(l.notFeatures, xml.Name{Space: xmiURI, Local: typeAttrib}, xml.Name{Space: xmiURI, Local: versionAttrib}, xml.Name{Space: xmiURI, Local: uuidAttrib})
+	l.extendedMetaData = nil
 	l.interfaces = l
 	return l
 }
@@ -45,6 +46,7 @@ func newXMISaveImpl() *xmiSaveImpl {
 	s := new(xmiSaveImpl)
 	s.xmlSaveImpl = newXMLSaveImpl()
 	s.interfaces = s
+	s.extendedMetaData = nil
 	return s
 }
 

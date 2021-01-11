@@ -104,6 +104,51 @@ func (n *xmlNamespaces) getURI(prefix string) (response string, ok bool) {
 }
 
 const (
+	annotationURI = "http:///org/eclipse/emf/ecore/util/ExtendedMetaData"
+)
+
+type xmlExtendedMetaData struct {
+	annotationURI string
+}
+
+type xmlEClassifierExtendedMetaData struct {
+	emd   *xmlExtendedMetaData
+	class EClass
+	name  string
+}
+
+func (e *xmlEClassifierExtendedMetaData) getName() string {
+	if e.name == "unitialized" {
+		e.name = e.emd.basicGetName(e.class)
+	}
+	return e.name
+}
+
+type xmlEPackageExtendedMetaData struct {
+	emd  *xmlExtendedMetaData
+	name string
+}
+
+type xmlEStructuralFeatureExtendedMetaData struct {
+	emd  *xmlExtendedMetaData
+	name string
+}
+
+func newXmlExtendedMetaData() *xmlExtendedMetaData {
+	return &xmlExtendedMetaData{annotationURI: annotationURI}
+}
+
+func (emd *xmlExtendedMetaData) GetName() {
+
+}
+
+func (emd *xmlExtendedMetaData) basicGetName(element ENamedElement) string {
+	if annotation := element.GetEAnnotation(emd.annotationURI); annotation != nil {
+	}
+	return element.GetName()
+}
+
+const (
 	href                            = "href"
 	typeAttrib                      = "type"
 	schemaLocationAttrib            = "schemaLocation"
@@ -141,6 +186,7 @@ type xmlLoadImpl struct {
 	spacesToFactories   map[string]EFactory
 	sameDocumentProxies []EObject
 	notFeatures         []xml.Name
+	extendedMetaData    *xmlExtendedMetaData
 }
 
 func newXMLLoadImpl() *xmlLoadImpl {
@@ -149,6 +195,7 @@ func newXMLLoadImpl() *xmlLoadImpl {
 	l.namespaces = newXmlNamespaces()
 	l.spacesToFactories = make(map[string]EFactory)
 	l.notFeatures = append(l.notFeatures, xml.Name{Space: xsiURI, Local: typeAttrib}, xml.Name{Space: xsiURI, Local: schemaLocationAttrib}, xml.Name{Space: xsiURI, Local: noNamespaceSchemaLocationAttrib})
+	l.extendedMetaData = newXmlExtendedMetaData()
 	return l
 }
 
@@ -921,15 +968,16 @@ const (
 )
 
 type xmlSaveImpl struct {
-	interfaces    interface{}
-	resource      xmlResource
-	str           *xmlString
-	packages      map[EPackage]string
-	uriToPrefixes map[string][]string
-	prefixesToURI map[string]string
-	featureKinds  map[EStructuralFeature]int
-	namespaces    *xmlNamespaces
-	keepDefaults  bool
+	interfaces       interface{}
+	resource         xmlResource
+	str              *xmlString
+	packages         map[EPackage]string
+	uriToPrefixes    map[string][]string
+	prefixesToURI    map[string]string
+	featureKinds     map[EStructuralFeature]int
+	namespaces       *xmlNamespaces
+	extendedMetaData *xmlExtendedMetaData
+	keepDefaults     bool
 }
 
 func newXMLSaveImpl() *xmlSaveImpl {
@@ -941,6 +989,7 @@ func newXMLSaveImpl() *xmlSaveImpl {
 	s.prefixesToURI = make(map[string]string)
 	s.featureKinds = make(map[EStructuralFeature]int)
 	s.namespaces = newXmlNamespaces()
+	s.extendedMetaData = newXmlExtendedMetaData()
 	return s
 }
 

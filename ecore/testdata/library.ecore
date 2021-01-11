@@ -14,26 +14,26 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name">
       <eType xsi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="writers" upperBound="-1" eType="#//Writer" transient="true" derived="true" containment="true" resolveProxies="false">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="writers" upperBound="-1" eType="#//Writer" containment="true" resolveProxies="false">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="group" value="#people"/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="employees" upperBound="-1" eType="#//Employee" transient="true" derived="true" containment="true" resolveProxies="false">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="employees" upperBound="-1" eType="#//Employee" containment="true" resolveProxies="false">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="group" value="#people"/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="borrowers" upperBound="-1" eType="#//Borrower" transient="true" derived="true" containment="true" resolveProxies="false">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="borrowers" upperBound="-1" eType="#//Borrower" containment="true" resolveProxies="false">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="group" value="#people"/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="stock" ordered="false" upperBound="-1" eType="#//Item" containment="true" resolveProxies="false"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="books" ordered="false" upperBound="-1" eType="#//Book" transient="true" derived="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="stock" ordered="false" upperBound="-1" eType="#//Item" transient="true" containment="true" resolveProxies="false"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="books" ordered="false" upperBound="-1" eType="#//Book" containment="true" resolveProxies="false"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="branches" upperBound="-1" eType="#//Library" containment="true" eOpposite="#//Library/parentBranch"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="parentBranch" eType="#//Library" eOpposite="#//Library/branches"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="people" upperBound="-1">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="people" upperBound="-1" transient="true">
       <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
         <details key="kind" value="group"/>
       </eAnnotations>
@@ -41,6 +41,15 @@
     </eStructuralFeatures>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Writer" eSuperTypes="#//Person">
+    <eAnnotations source="http://net.masagroup/soft/2018/GenCpp">
+      <details key="extension" value="true"/>
+    </eAnnotations>
+    <eAnnotations source="http://net.masagroup/soft/2019/GenGo">
+      <details key="extension" value="true"/>
+    </eAnnotations>
+    <eAnnotations source="http://net.masagroup/soft/2020/GenTS">
+      <details key="extension" value="true"/>
+    </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" volatile="true" transient="true">
       <eType xsi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     </eStructuralFeatures>

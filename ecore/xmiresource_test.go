@@ -104,6 +104,12 @@ func TestXMIResourceLoadComplex(t *testing.T) {
 	eCirculationItemClass := superTypes.Get(0).(EClass)
 	assert.Equal(t, "CirculatingItem", eCirculationItemClass.GetName())
 
+	eWriter, _ := eClassifiers.Get(2).(EClass)
+	assert.NotNil(t, eWriter)
+	assert.False(t, eWriter.GetEAnnotations().Empty())
+	eAnnotation := eWriter.GetEAnnotation("http://net.masagroup/soft/2019/GenGo")
+	assert.NotNil(t, eAnnotation)
+	assert.Equal(t, "true", eAnnotation.GetDetails().GetValue("extension"))
 }
 
 func TestXMIResourceSaveSimple(t *testing.T) {

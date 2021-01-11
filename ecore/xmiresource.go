@@ -62,14 +62,14 @@ type xmiResource interface {
 }
 
 type xmiResourceImpl struct {
-	*xmlResourceImpl
+	xmlResourceImpl
 	xmiVersion string
 }
 
 func newXMIResourceImpl() *xmiResourceImpl {
 	r := new(xmiResourceImpl)
-	r.xmlResourceImpl = newXMLResourceImpl()
 	r.SetInterfaces(r)
+	r.Initialize()
 	return r
 }
 

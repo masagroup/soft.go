@@ -1533,13 +1533,13 @@ func (s *xmlSaveImpl) getIDRef(eObject EObject) string {
 }
 
 type xmlResourceImpl struct {
-	*EResourceImpl
+	EResourceImpl
 }
 
 func newXMLResourceImpl() *xmlResourceImpl {
 	r := new(xmlResourceImpl)
-	r.EResourceImpl = NewEResourceImpl()
 	r.SetInterfaces(r)
+	r.Initialize()
 	return r
 }
 

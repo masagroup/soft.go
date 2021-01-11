@@ -144,6 +144,9 @@ func (emd *xmlExtendedMetaData) GetName() {
 
 func (emd *xmlExtendedMetaData) basicGetName(element ENamedElement) string {
 	if annotation := element.GetEAnnotation(emd.annotationURI); annotation != nil {
+		if name := annotation.GetDetails().GetValue("name"); name != nil {
+			return name.(string)
+		}
 	}
 	return element.GetName()
 }

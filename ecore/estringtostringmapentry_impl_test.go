@@ -43,6 +43,7 @@ func TestEStringToStringMapEntryFeatureCount(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
 	assert.Equal(t, ESTRING_TO_STRING_MAP_ENTRY_FEATURE_COUNT, o.EStaticFeatureCount())
 }
+
 func TestEStringToStringMapEntryGetKey(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
 	assert.Equal(t, o.GetStringKey(), o.GetKey())

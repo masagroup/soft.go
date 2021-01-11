@@ -158,7 +158,6 @@ func TestEAnnotationEGetFromID(t *testing.T) {
 	assert.Equal(t, o.GetContents(), o.EGetFromID(EANNOTATION__CONTENTS, true))
 	assert.Equal(t, o.GetContents().(EObjectList).GetUnResolvedList(), o.EGetFromID(EANNOTATION__CONTENTS, false))
 	assert.Equal(t, o.GetDetails(), o.EGetFromID(EANNOTATION__DETAILS, true))
-	assert.Equal(t, o.GetDetails().(EObjectList).GetUnResolvedList(), o.EGetFromID(EANNOTATION__DETAILS, false))
 	assert.Equal(t, o.GetEModelElement(), o.EGetFromID(EANNOTATION__EMODEL_ELEMENT, true))
 	assert.Equal(t, o.GetReferences(), o.EGetFromID(EANNOTATION__REFERENCES, true))
 	assert.Equal(t, o.GetReferences().(EObjectList).GetUnResolvedList(), o.EGetFromID(EANNOTATION__REFERENCES, false))
@@ -182,16 +181,13 @@ func TestEAnnotationESetFromID(t *testing.T) {
 	}
 	{
 		// list with a value
-		mockValue := new(MockEStringToStringMapEntry)
-		l := NewImmutableEList([]interface{}{mockValue})
-		mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EANNOTATION__DETAILS, mock.Anything).Return(nil).Once()
-
+		m := NewBasicEMap()
+		m.Put("key", "value")
 		// set list with new contents
-		o.ESetFromID(EANNOTATION__DETAILS, l)
+		o.ESetFromID(EANNOTATION__DETAILS, m)
 		// checks
 		assert.Equal(t, 1, o.GetDetails().Size())
-		assert.Equal(t, mockValue, o.GetDetails().Get(0))
-		mock.AssertExpectationsForObjects(t, mockValue)
+		assert.Equal(t, NewMapEntry("key", "value"), o.GetDetails().Get(0))
 	}
 	{
 		mockValue := new(MockEModelElement)
@@ -311,21 +307,6 @@ func TestEAnnotationEBasicInverseRemove(t *testing.T) {
 
 		// basic inverse remove
 		o.EBasicInverseRemove(mockObject, EANNOTATION__CONTENTS, nil)
-
-		// check it was removed
-		assert.False(t, l.Contains(mockObject))
-		mock.AssertExpectationsForObjects(t, mockObject)
-	}
-	{
-		// initialize list with a mock object
-		mockObject := new(MockEStringToStringMapEntry)
-		mockObject.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EANNOTATION__DETAILS, mock.Anything).Return(nil).Once()
-
-		l := o.GetDetails()
-		l.Add(mockObject)
-
-		// basic inverse remove
-		o.EBasicInverseRemove(mockObject, EANNOTATION__DETAILS, nil)
 
 		// check it was removed
 		assert.False(t, l.Contains(mockObject))

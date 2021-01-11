@@ -36,15 +36,15 @@ func (eAnnotation *MockEAnnotation) GetContents() EList {
 }
 
 // GetDetails get the value of details
-func (eAnnotation *MockEAnnotation) GetDetails() EList {
+func (eAnnotation *MockEAnnotation) GetDetails() EMap {
 	ret := eAnnotation.Called()
 
-	var r EList
-	if rf, ok := ret.Get(0).(func() EList); ok {
+	var r EMap
+	if rf, ok := ret.Get(0).(func() EMap); ok {
 		r = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			r = ret.Get(0).(EMap)
 		}
 	}
 

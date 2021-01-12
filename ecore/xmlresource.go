@@ -513,7 +513,7 @@ func (l *xmlLoadImpl) handleFeature(space string, local string) {
 	}
 
 	if eObject != nil {
-		eFeature := l.getFeature(eObject, local)
+		eFeature := l.getFeature(eObject, space, local)
 		if eFeature != nil {
 			xsiType := l.interfaces.(xmlLoadInternal).getXSIType()
 			if len(xsiType) > 0 {
@@ -641,10 +641,13 @@ func (l *xmlLoadImpl) getFactoryForSpace(space string) EFactory {
 
 func (l *xmlLoadImpl) setAttributeValue(eObject EObject, qname string, value string) {
 	local := qname
+	space := ""
 	if index := strings.Index(qname, ":"); index > 0 {
 		local = qname[index+1:]
+		prefix := qname[:index-1]
+		space, _ = l.namespaces.getURI(prefix)
 	}
-	eFeature := l.getFeature(eObject, local)
+	eFeature := l.getFeature(eObject, space, local)
 	if eFeature != nil {
 		kind := l.getLoadFeatureKind(eFeature)
 		if kind == single || kind == many {
@@ -822,9 +825,18 @@ func (l *xmlLoadImpl) handleReferences() {
 	}
 }
 
-func (l *xmlLoadImpl) getFeature(eObject EObject, name string) EStructuralFeature {
+func (l *xmlLoadImpl) getFeature(eObject EObject, space, name string) EStructuralFeature {
 	eClass := eObject.EClass()
 	eFeature := eClass.GetEStructuralFeatureFromName(name)
+	if eFeature == nil && l.extendedMetaData != nil {
+		features := eClass.GetEAllStructuralFeatures()
+		for it := features.Iterator(); it.HasNext(); {
+			feature := it.Next().(EStructuralFeature)
+			if name == l.extendedMetaData.getName(feature) && space == l.extendedMetaData.getNamespace(feature) {
+				return feature
+			}
+		}
+	}
 	return eFeature
 }
 
@@ -1142,7 +1154,7 @@ func (s *xmlSaveImpl) saveHeader() {
 
 func (s *xmlSaveImpl) saveTopObject(eObject EObject) *xmlStringSegment {
 	eClass := eObject.EClass()
-	name := s.getQName(eClass)
+	name := s.getClassQName(eClass)
 	s.str.startElement(name)
 	mark := s.str.mark()
 	s.saveElementID(eObject)
@@ -1410,7 +1422,7 @@ func (s *xmlSaveImpl) saveEObject(o EObject, f EStructuralFeature) {
 }
 
 func (s *xmlSaveImpl) saveTypeAttribute(eClass EClass) {
-	s.str.addAttribute("xsi:type", s.getQName(eClass))
+	s.str.addAttribute("xsi:type", s.getClassQName(eClass))
 	s.uriToPrefixes[xsiURI] = []string{xsiNS}
 	s.prefixesToURI[xsiNS] = xsiURI
 }
@@ -1598,8 +1610,8 @@ func (s *xmlSaveImpl) getSaveResourceKindMany(eObject EObject, eFeature EStructu
 	return same
 }
 
-func (s *xmlSaveImpl) getQName(eClass EClass) string {
-	return s.getElementQName(eClass.GetEPackage(), eClass.GetName(), false)
+func (s *xmlSaveImpl) getClassQName(eClass EClass) string {
+	return s.getElementQName(eClass.GetEPackage(), s.getXmlName(eClass), false)
 }
 
 func (s *xmlSaveImpl) getElementQName(ePackage EPackage, name string, mustHavePrefix bool) string {
@@ -1614,7 +1626,14 @@ func (s *xmlSaveImpl) getElementQName(ePackage EPackage, name string, mustHavePr
 }
 
 func (s *xmlSaveImpl) getFeatureQName(eFeature EStructuralFeature) string {
-	return eFeature.GetName()
+	return s.getXmlName(eFeature)
+}
+
+func (s *xmlSaveImpl) getXmlName(eElement ENamedElement) string {
+	if s.extendedMetaData != nil {
+		return s.extendedMetaData.getName(eElement)
+	}
+	return eElement.GetName()
 }
 
 func (s *xmlSaveImpl) getPrefix(ePackage EPackage, mustHavePrefix bool) string {

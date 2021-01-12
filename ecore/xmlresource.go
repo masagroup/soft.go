@@ -108,58 +108,160 @@ const (
 )
 
 type xmlExtendedMetaData struct {
-	elementToNameMap             map[ENamedElement]string
-	packageToNameToClassifierMap map[EPackage]map[string]EClassifier
+	metaData map[interface{}]interface{}
 }
 
-func newXmlExtendedMetaData() *xmlExtendedMetaData {
-	return &xmlExtendedMetaData{}
+type xmlENamedElementExtendedMetaData interface {
+	getName() string
 }
 
-func (emd *xmlExtendedMetaData) GetType(ePackage EPackage, name string) EClassifier {
+type xmlENamedElementExtendedMetaDataImpl struct {
+	emd      *xmlExtendedMetaData
+	eElement ENamedElement
+	name     string
+}
+
+func (m *xmlENamedElementExtendedMetaDataImpl) getName() string {
+	if m.name == "unitialized" {
+		m.name = m.emd.basicGetName(m.eElement)
+	}
+	return m.name
+}
+
+type xmlEPackageExtentedMetaData interface {
+	getType(string) EClassifier
+}
+
+type xmlEPackageExtentedMetaDataImpl struct {
+	emd                 *xmlExtendedMetaData
+	ePackage            EPackage
+	nameToClassifierMap map[string]EClassifier
+}
+
+func (m *xmlEPackageExtentedMetaDataImpl) getType(name string) EClassifier {
 	var eResult EClassifier = nil
-	nameToClassifierMap := emd.packageToNameToClassifierMap[ePackage]
-	if nameToClassifierMap != nil {
-		eResult = nameToClassifierMap[name]
+	if m.nameToClassifierMap != nil {
+		eResult = m.nameToClassifierMap[name]
 	}
 	if eResult == nil {
-		eClassifiers := ePackage.GetEClassifiers()
-		if nameToClassifierMap == nil || len(nameToClassifierMap) != eClassifiers.Size() {
-			nameToClassifierMap = make(map[string]EClassifier)
+		eClassifiers := m.ePackage.GetEClassifiers()
+		if m.nameToClassifierMap == nil || len(m.nameToClassifierMap) != eClassifiers.Size() {
+			nameToClassifierMap := make(map[string]EClassifier)
 			for it := eClassifiers.Iterator(); it.HasNext(); {
 				eClassifier := it.Next().(EClassifier)
-				eClassifierName := emd.GetName(eClassifier)
+				eClassifierName := m.emd.getName(eClassifier)
 				nameToClassifierMap[eClassifierName] = eClassifier
 				if eClassifierName == name {
 					eResult = eClassifier
 				}
 			}
-			emd.packageToNameToClassifierMap[ePackage] = nameToClassifierMap
+			m.nameToClassifierMap = nameToClassifierMap
 		}
 	}
 	return eResult
 }
 
-func (emd *xmlExtendedMetaData) GetName(element ENamedElement) string {
-	name, ok := emd.elementToNameMap[element]
-	if !ok {
-		name = emd.basicGetName(element)
-		emd.elementToNameMap[element] = name
-	}
-	return name
+type xmlEStructuralFeatureExtentedMetaData interface {
+	xmlENamedElementExtendedMetaData
+	getNamespace() string
 }
 
-func (emd *xmlExtendedMetaData) basicGetName(element ENamedElement) string {
-	if annotation := element.GetEAnnotation(annotationURI); annotation != nil {
+type xmlEStructuralFeatureExtentedMetaDataImpl struct {
+	xmlENamedElementExtendedMetaDataImpl
+	namespace string
+}
+
+func (m *xmlEStructuralFeatureExtentedMetaDataImpl) getNamespace() string {
+	if m.namespace == "unitialized" {
+		m.namespace = m.emd.basicGetNamespace(m.eElement.(EStructuralFeature))
+	}
+	return m.namespace
+}
+
+func newXmlExtendedMetaData() *xmlExtendedMetaData {
+	return &xmlExtendedMetaData{metaData: make(map[interface{}]interface{})}
+}
+
+func (emd *xmlExtendedMetaData) getXmlENamedElementExtendedMetaData(eElement ENamedElement) xmlENamedElementExtendedMetaData {
+	var result xmlENamedElementExtendedMetaData
+	if i, ok := emd.metaData[eElement]; ok {
+		result = i.(xmlENamedElementExtendedMetaData)
+	} else {
+		if eFeature, _ := eElement.(EStructuralFeature); eFeature != nil {
+			result = &xmlEStructuralFeatureExtentedMetaDataImpl{xmlENamedElementExtendedMetaDataImpl: xmlENamedElementExtendedMetaDataImpl{emd: emd, eElement: eElement, name: "unitialized"}, namespace: "unitialized"}
+		} else {
+			result = &xmlENamedElementExtendedMetaDataImpl{emd: emd, eElement: eElement, name: "unitialized"}
+		}
+		emd.metaData[eElement] = result
+	}
+	return result
+}
+
+func (emd *xmlExtendedMetaData) getXmlEStructuralFeatureExtentedMetaData(eFeature EStructuralFeature) xmlEStructuralFeatureExtentedMetaData {
+	var result xmlEStructuralFeatureExtentedMetaData
+	if i, ok := emd.metaData[eFeature]; ok {
+		result = i.(xmlEStructuralFeatureExtentedMetaData)
+	} else {
+		result = &xmlEStructuralFeatureExtentedMetaDataImpl{xmlENamedElementExtendedMetaDataImpl: xmlENamedElementExtendedMetaDataImpl{emd: emd, eElement: eFeature, name: "unitialized"}, namespace: "unitialized"}
+		emd.metaData[eFeature] = result
+	}
+	return result
+}
+
+func (emd *xmlExtendedMetaData) getXmlEPackageExtentedMetaData(ePackage EPackage) xmlEPackageExtentedMetaData {
+	var result xmlEPackageExtentedMetaData
+	if i, ok := emd.metaData[ePackage]; ok {
+		result = i.(xmlEPackageExtentedMetaData)
+	} else {
+		result = &xmlEPackageExtentedMetaDataImpl{emd: emd, ePackage: ePackage}
+		emd.metaData[ePackage] = result
+	}
+	return result
+}
+
+func (emd *xmlExtendedMetaData) getType(ePackage EPackage, name string) EClassifier {
+	return emd.getXmlEPackageExtentedMetaData(ePackage).getType(name)
+}
+
+func (emd *xmlExtendedMetaData) getName(eElement ENamedElement) string {
+	return emd.getXmlENamedElementExtendedMetaData(eElement).getName()
+}
+
+func (emd *xmlExtendedMetaData) getNamespace(eFeature EStructuralFeature) string {
+	return emd.getXmlEStructuralFeatureExtentedMetaData(eFeature).getNamespace()
+}
+
+func (emd *xmlExtendedMetaData) basicGetName(eElement ENamedElement) string {
+	if annotation := eElement.GetEAnnotation(annotationURI); annotation != nil {
 		if name := annotation.GetDetails().GetValue("name"); name != nil {
 			return name.(string)
 		}
 	}
-	return element.GetName()
+	return eElement.GetName()
 }
 
-func (emd *xmlExtendedMetaData) GetDocumentRoot(ePackage EPackage) EClass {
-	eClassifier := emd.GetType(ePackage, "")
+func (emd *xmlExtendedMetaData) basicGetNamespace(eFeature EStructuralFeature) string {
+	if annotation := eFeature.GetEAnnotation(annotationURI); annotation != nil {
+		if value := annotation.GetDetails().GetValue("namespace"); value != nil {
+			namespace := value.(string)
+			if namespace == "##targetNamespace" {
+				eContainingClass := eFeature.GetEContainingClass()
+				if eContainingClass != nil {
+					ePackage := eContainingClass.GetEPackage()
+					if ePackage != nil {
+						return ePackage.GetNsURI()
+					}
+				}
+			} else {
+				return namespace
+			}
+		}
+	}
+	return ""
+}
+
+func (emd *xmlExtendedMetaData) getDocumentRoot(ePackage EPackage) EClass {
+	eClassifier := emd.getType(ePackage, "")
 	if eClassifier != nil {
 		return eClassifier.(EClass)
 	}

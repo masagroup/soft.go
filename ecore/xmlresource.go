@@ -108,47 +108,62 @@ const (
 )
 
 type xmlExtendedMetaData struct {
-	annotationURI string
-}
-
-type xmlEClassifierExtendedMetaData struct {
-	emd   *xmlExtendedMetaData
-	class EClass
-	name  string
-}
-
-func (e *xmlEClassifierExtendedMetaData) getName() string {
-	if e.name == "unitialized" {
-		e.name = e.emd.basicGetName(e.class)
-	}
-	return e.name
-}
-
-type xmlEPackageExtendedMetaData struct {
-	emd  *xmlExtendedMetaData
-	name string
-}
-
-type xmlEStructuralFeatureExtendedMetaData struct {
-	emd  *xmlExtendedMetaData
-	name string
+	elementToNameMap             map[ENamedElement]string
+	packageToNameToClassifierMap map[EPackage]map[string]EClassifier
 }
 
 func newXmlExtendedMetaData() *xmlExtendedMetaData {
-	return &xmlExtendedMetaData{annotationURI: annotationURI}
+	return &xmlExtendedMetaData{}
 }
 
-func (emd *xmlExtendedMetaData) GetName() {
+func (emd *xmlExtendedMetaData) GetType(ePackage EPackage, name string) EClassifier {
+	var eResult EClassifier = nil
+	nameToClassifierMap := emd.packageToNameToClassifierMap[ePackage]
+	if nameToClassifierMap != nil {
+		eResult = nameToClassifierMap[name]
+	}
+	if eResult == nil {
+		eClassifiers := ePackage.GetEClassifiers()
+		if nameToClassifierMap == nil || len(nameToClassifierMap) != eClassifiers.Size() {
+			nameToClassifierMap = make(map[string]EClassifier)
+			for it := eClassifiers.Iterator(); it.HasNext(); {
+				eClassifier := it.Next().(EClassifier)
+				eClassifierName := emd.GetName(eClassifier)
+				nameToClassifierMap[eClassifierName] = eClassifier
+				if eClassifierName == name {
+					eResult = eClassifier
+				}
+			}
+			emd.packageToNameToClassifierMap[ePackage] = nameToClassifierMap
+		}
+	}
+	return eResult
+}
 
+func (emd *xmlExtendedMetaData) GetName(element ENamedElement) string {
+	name, ok := emd.elementToNameMap[element]
+	if !ok {
+		name = emd.basicGetName(element)
+		emd.elementToNameMap[element] = name
+	}
+	return name
 }
 
 func (emd *xmlExtendedMetaData) basicGetName(element ENamedElement) string {
-	if annotation := element.GetEAnnotation(emd.annotationURI); annotation != nil {
+	if annotation := element.GetEAnnotation(annotationURI); annotation != nil {
 		if name := annotation.GetDetails().GetValue("name"); name != nil {
 			return name.(string)
 		}
 	}
 	return element.GetName()
+}
+
+func (emd *xmlExtendedMetaData) GetDocumentRoot(ePackage EPackage) EClass {
+	eClassifier := emd.GetType(ePackage, "")
+	if eClassifier != nil {
+		return eClassifier.(EClass)
+	}
+	return nil
 }
 
 const (

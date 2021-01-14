@@ -1034,10 +1034,43 @@ func (s *xmlSaveImpl) saveHeader() {
 
 func (s *xmlSaveImpl) saveTopObject(eObject EObject) {
 	eClass := eObject.EClass()
-	name := s.getClassQName(eClass)
-	s.str.startElement(name)
+	if s.extendedMetaData == nil || s.extendedMetaData.GetDocumentRoot(eClass.GetEPackage()) != eClass {
+		var name string
+		if rootFeature := s.getRootFeature(eClass); rootFeature != nil {
+			name = s.getFeatureQName(rootFeature)
+		} else {
+			name = s.getClassQName(eClass)
+		}
+		s.str.startElement(name)
+	}
 	s.saveElementID(eObject)
 	s.saveFeatures(eObject, false)
+}
+
+func (s *xmlSaveImpl) getRootFeature(eClassifier EClassifier) EStructuralFeature {
+	if s.extendedMetaData != nil {
+		for eClassifier != nil {
+			if eClass := s.extendedMetaData.GetDocumentRoot(eClassifier.GetEPackage()); eClass != nil {
+				for it := eClass.GetEStructuralFeatures().Iterator(); it.HasNext(); {
+					eFeature := it.Next().(EStructuralFeature)
+					if eFeature.GetEType() == eClassifier && eFeature.IsChangeable() {
+						return eFeature
+					}
+				}
+			}
+			if eClass, _ := eClassifier.(EClass); eClass != nil {
+				eSuperTypes := eClass.GetESuperTypes()
+				if eSuperTypes.Empty() {
+					eClassifier = nil
+				} else {
+					eClassifier = eSuperTypes.Get(0).(EClass)
+				}
+			} else {
+				eClassifier = nil
+			}
+		}
+	}
+	return nil
 }
 
 func (s *xmlSaveImpl) saveNamespaces() {

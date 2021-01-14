@@ -280,7 +280,25 @@ func (l *xmlLoadImpl) createObject(space string, local string) EObject {
 	eFactory := l.getFactoryForSpace(space)
 	if eFactory != nil {
 		ePackage := eFactory.GetEPackage()
-		eType := ePackage.GetEClassifier(local)
+		if l.extendedMetaData != nil {
+			eClass := l.extendedMetaData.GetDocumentRoot(ePackage)
+			if eClass != nil {
+				// document root : add it to object list & handle feature
+				documentRoot := l.createObjectWithFactory(eFactory, eClass)
+				l.objects = append(l.objects, documentRoot)
+				l.handleFeature(space, local)
+
+				// remove document root and new object if any
+				l.objects = l.objects[1:]
+				if len(l.objects) > 0 {
+					newObject := l.objects[0]
+					l.objects = nil
+					return newObject
+				}
+				return nil
+			}
+		}
+		eType := l.getType(ePackage, local)
 		return l.createObjectWithFactory(eFactory, eType)
 	} else {
 		prefix, _ := l.namespaces.getPrefix(space)
@@ -331,8 +349,7 @@ func (l *xmlLoadImpl) createObjectFromTypeName(eObject EObject, qname string, eF
 		return nil
 	}
 
-	ePackage := eFactory.GetEPackage()
-	eType := ePackage.GetEClassifier(local)
+	eType := l.getType(eFactory.GetEPackage(), local)
 	eResult := l.createObjectWithFactory(eFactory, eType)
 	if eResult != nil {
 		l.setFeatureValue(eObject, eFeature, eResult, -1)
@@ -673,6 +690,13 @@ func (l *xmlLoadImpl) getFeature(eObject EObject, space, name string) EStructura
 		}
 	}
 	return eFeature
+}
+
+func (l *xmlLoadImpl) getType(ePackage EPackage, name string) EClassifier {
+	if l.extendedMetaData != nil {
+		return l.extendedMetaData.GetType(ePackage, name)
+	}
+	return ePackage.GetEClassifier(name)
 }
 
 func (l *xmlLoadImpl) handleUnknownFeature(name string) {

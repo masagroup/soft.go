@@ -974,7 +974,7 @@ func (o *AbstractEObject) EObjectForFragmentSegment(uriSegment string) EObject {
 		}
 	}
 	if index == -1 {
-		eFeature := o.eStructuralFeature(uriSegment)
+		eFeature := o.eStructuralFeature(uriSegment[1:])
 		return o.AsEObject().EGetResolve(eFeature, false).(EObject)
 	}
 	return nil

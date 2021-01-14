@@ -267,7 +267,7 @@ func (l *xmlLoadImpl) startPrefixMapping(prefix string, uri string) {
 
 func (l *xmlLoadImpl) processElement(space string, local string) {
 	if len(l.objects) == 0 {
-		eObject := l.createObject(space, local)
+		eObject := l.createTopObject(space, local)
 		if eObject != nil {
 			l.objects = append(l.objects, eObject)
 			l.resource.GetContents().Add(eObject)
@@ -277,7 +277,7 @@ func (l *xmlLoadImpl) processElement(space string, local string) {
 	}
 }
 
-func (l *xmlLoadImpl) createObject(space string, local string) EObject {
+func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 	eFactory := l.getFactoryForSpace(space)
 	if eFactory != nil {
 		ePackage := eFactory.GetEPackage()

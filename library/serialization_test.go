@@ -10,7 +10,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSerializationLoadXML(t *testing.T) {
+func TestSerializationLoadSimpleXML(t *testing.T) {
+	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
+
+	fileURI := &url.URL{Path: "testdata/simple.input.xml"}
+	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
+	resource := resourceFactory.CreateResource(fileURI)
+	resource.Load()
+	assert.True(t, resource.IsLoaded())
+	assert.True(t, resource.GetErrors().Empty())
+	assert.True(t, resource.GetWarnings().Empty())
+}
+
+func TestSerializationLoadComplexXML(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
 	fileURI := &url.URL{Path: "testdata/library.xml"}
@@ -40,7 +52,10 @@ func TestSerializationLoadSaveXML(t *testing.T) {
 
 func TestSerializationSaveXmlFile(t *testing.T) {
 	// create a library model with a single employee
+	root := GetFactory().CreateDocumentRoot()
 	library := GetFactory().CreateLibrary()
+	root.SetLibrary(library)
+
 	employee := GetFactory().CreateEmployee()
 	employee.SetFirstName("First Name")
 	employee.SetLastName("Last Name")
@@ -52,7 +67,7 @@ func TestSerializationSaveXmlFile(t *testing.T) {
 	fileURI := &url.URL{Path: "testdata/simple.output.xml"}
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
-	resource.GetContents().Add(library)
+	resource.GetContents().Add(root)
 	resource.Save()
 
 	bytesInput, errInput := ioutil.ReadFile("testdata/simple.input.xml")

@@ -271,7 +271,6 @@ func (l *xmlLoadImpl) processElement(space string, local string) {
 	if len(l.objects) == 0 {
 		eObject := l.createTopObject(space, local)
 		if eObject != nil {
-			l.objects = append(l.objects, eObject)
 			l.resource.GetContents().Add(eObject)
 		}
 	} else {
@@ -283,38 +282,30 @@ func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 	eFactory := l.getFactoryForSpace(space)
 	if eFactory != nil {
 		ePackage := eFactory.GetEPackage()
-		if l.extendedMetaData != nil {
+		if l.extendedMetaData != nil && l.extendedMetaData.GetDocumentRoot(ePackage) != nil {
 			eClass := l.extendedMetaData.GetDocumentRoot(ePackage)
-			if eClass != nil {
-				// add document root to object list & handle feature
-				documentRoot := l.createObjectWithFactory(eFactory, eClass)
-				l.objects = append(l.objects, documentRoot)
-				l.handleFeature(space, local)
-
+			// add document root to object list & handle its features
+			eObject := l.createObjectWithFactory(eFactory, eClass)
+			l.objects = append(l.objects, eObject)
+			l.handleFeature(space, local)
+			if l.isSuppressDocumentRoot {
 				// remove document root from object list
 				l.objects = l.objects[1:]
-
-				if l.isSuppressDocumentRoot {
-					// consider new child object as the future new root
-					// remove it from document root
-					if len(l.objects) > 0 {
-						newObject := l.objects[0]
-
-						// remove new object from is container ( document root )
-						newObject.EUnset(newObject.EContainmentFeature())
-
-						// reset list of objects
-						l.objects = nil
-						return newObject
-					}
-					return nil
-				} else {
-					return documentRoot
+				// consider new child object as the future new root
+				// remove it from document root
+				if len(l.objects) > 0 {
+					eObject = l.objects[0]
+					// remove new object from its container ( document root )
+					eObject.EUnset(eObject.EContainmentFeature())
 				}
 			}
+			return eObject
+		} else {
+			eType := l.getType(ePackage, local)
+			eObject := l.createObjectWithFactory(eFactory, eType)
+			l.objects = append(l.objects, eObject)
+			return eObject
 		}
-		eType := l.getType(ePackage, local)
-		return l.createObjectWithFactory(eFactory, eType)
 	} else {
 		prefix, _ := l.namespaces.getPrefix(space)
 		l.handleUnknownPackage(prefix)
@@ -807,8 +798,6 @@ func (s *xmlString) startElement(name string) {
 		if s.firstElementMark == nil {
 			s.firstElementMark = s.mark()
 		}
-	} else {
-		s.add(s.getElementIndentWithExtra(1))
 	}
 }
 
@@ -1044,6 +1033,8 @@ func (s *xmlSaveImpl) saveTopObject(eObject EObject) {
 			name = s.getClassQName(eClass)
 		}
 		s.str.startElement(name)
+	} else {
+		s.str.startElement("")
 	}
 	s.saveElementID(eObject)
 	s.saveFeatures(eObject, false)

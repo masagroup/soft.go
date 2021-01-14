@@ -35,6 +35,7 @@ type EResource interface {
 
 	Load()
 	LoadWithReader(r io.Reader)
+
 	Unload()
 	IsLoaded() bool
 

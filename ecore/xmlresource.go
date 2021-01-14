@@ -129,19 +129,20 @@ type reference struct {
 }
 
 type xmlLoadImpl struct {
-	interfaces          interface{}
-	decoder             *xml.Decoder
-	resource            xmlResource
-	isResolveDeferred   bool
-	elements            []string
-	objects             []EObject
-	attributes          []xml.Attr
-	references          []reference
-	namespaces          *xmlNamespaces
-	spacesToFactories   map[string]EFactory
-	sameDocumentProxies []EObject
-	notFeatures         []xml.Name
-	extendedMetaData    *ExtendedMetaData
+	interfaces             interface{}
+	decoder                *xml.Decoder
+	resource               xmlResource
+	isResolveDeferred      bool
+	isSuppressDocumentRoot bool
+	elements               []string
+	objects                []EObject
+	attributes             []xml.Attr
+	references             []reference
+	namespaces             *xmlNamespaces
+	spacesToFactories      map[string]EFactory
+	sameDocumentProxies    []EObject
+	notFeatures            []xml.Name
+	extendedMetaData       *ExtendedMetaData
 }
 
 func newXMLLoadImpl() *xmlLoadImpl {
@@ -283,19 +284,31 @@ func (l *xmlLoadImpl) createObject(space string, local string) EObject {
 		if l.extendedMetaData != nil {
 			eClass := l.extendedMetaData.GetDocumentRoot(ePackage)
 			if eClass != nil {
-				// document root : add it to object list & handle feature
+				// add document root to object list & handle feature
 				documentRoot := l.createObjectWithFactory(eFactory, eClass)
 				l.objects = append(l.objects, documentRoot)
 				l.handleFeature(space, local)
 
-				// remove document root and new object if any
+				// remove document root from object list
 				l.objects = l.objects[1:]
-				if len(l.objects) > 0 {
-					newObject := l.objects[0]
-					l.objects = nil
-					return newObject
+
+				if l.isSuppressDocumentRoot {
+					// consider new child object as the future new root
+					// remove it from document root
+					if len(l.objects) > 0 {
+						newObject := l.objects[0]
+
+						// remove new object from is container ( document root )
+						newObject.EUnset(newObject.EContainmentFeature())
+
+						// reset list of objects
+						l.objects = nil
+						return newObject
+					}
+					return nil
+				} else {
+					return documentRoot
 				}
-				return nil
 			}
 		}
 		eType := l.getType(ePackage, local)

@@ -285,7 +285,7 @@ func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 		if l.extendedMetaData != nil && l.extendedMetaData.GetDocumentRoot(ePackage) != nil {
 			eClass := l.extendedMetaData.GetDocumentRoot(ePackage)
 			// add document root to object list & handle its features
-			eObject := l.createObjectWithFactory(eFactory, eClass)
+			eObject := l.createObjectWithFactory(eFactory, eClass, true)
 			l.objects = append(l.objects, eObject)
 			l.handleFeature(space, local)
 			if l.isSuppressDocumentRoot {
@@ -302,7 +302,7 @@ func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 			return eObject
 		} else {
 			eType := l.getType(ePackage, local)
-			eObject := l.createObjectWithFactory(eFactory, eType)
+			eObject := l.createObjectWithFactory(eFactory, eType, false)
 			l.objects = append(l.objects, eObject)
 			return eObject
 		}
@@ -313,12 +313,12 @@ func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 	}
 }
 
-func (l *xmlLoadImpl) createObjectWithFactory(eFactory EFactory, eType EClassifier) EObject {
+func (l *xmlLoadImpl) createObjectWithFactory(eFactory EFactory, eType EClassifier, handleAttributes bool) EObject {
 	if eFactory != nil {
 		eClass, _ := eType.(EClass)
 		if eClass != nil && !eClass.IsAbstract() {
 			eObject := eFactory.Create(eClass)
-			if eObject != nil {
+			if eObject != nil && !handleAttributes {
 				l.interfaces.(xmlLoadInternal).handleAttributes(eObject)
 			}
 			return eObject
@@ -332,7 +332,7 @@ func (l *xmlLoadImpl) createObjectFromFeatureType(eObject EObject, eFeature EStr
 	if eFeature != nil && eFeature.GetEType() != nil {
 		eType := eFeature.GetEType()
 		eFactory := eType.GetEPackage().GetEFactoryInstance()
-		eResult = l.createObjectWithFactory(eFactory, eType)
+		eResult = l.createObjectWithFactory(eFactory, eType, false)
 	}
 	if eResult != nil {
 		l.setFeatureValue(eObject, eFeature, eResult, -1)
@@ -356,7 +356,7 @@ func (l *xmlLoadImpl) createObjectFromTypeName(eObject EObject, qname string, eF
 	}
 
 	eType := l.getType(eFactory.GetEPackage(), local)
-	eResult := l.createObjectWithFactory(eFactory, eType)
+	eResult := l.createObjectWithFactory(eFactory, eType, false)
 	if eResult != nil {
 		l.setFeatureValue(eObject, eFeature, eResult, -1)
 		l.objects = append(l.objects, eResult)

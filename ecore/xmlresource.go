@@ -255,6 +255,8 @@ func (l *xmlLoadImpl) handlePrefixMapping() {
 		for _, attr := range l.attributes {
 			if attr.Name.Space == xmlNS {
 				l.startPrefixMapping(attr.Name.Local, attr.Value)
+			} else if attr.Name.Space == "" && attr.Name.Local == xmlNS {
+				l.startPrefixMapping("", attr.Value)
 			}
 		}
 	}
@@ -473,7 +475,7 @@ func (l *xmlLoadImpl) handleAttributes(eObject EObject) {
 			value := attr.Value
 			if name == href {
 				l.handleProxy(eObject, value)
-			} else if uri != xmlNS && l.isUserAttribute(attr.Name) {
+			} else if name != xmlNS && uri != xmlNS && l.isUserAttribute(attr.Name) {
 				l.setAttributeValue(eObject, name, value)
 			}
 		}
@@ -506,12 +508,12 @@ func (l *xmlLoadImpl) getFactoryForSpace(space string) EFactory {
 
 func (l *xmlLoadImpl) setAttributeValue(eObject EObject, qname string, value string) {
 	local := qname
-	space := ""
+	prefix := ""
 	if index := strings.Index(qname, ":"); index > 0 {
 		local = qname[index+1:]
-		prefix := qname[:index-1]
-		space, _ = l.namespaces.getURI(prefix)
+		prefix = qname[:index-1]
 	}
+	space, _ := l.namespaces.getURI(prefix)
 	eFeature := l.getFeature(eObject, space, local)
 	if eFeature != nil {
 		kind := l.getLoadFeatureKind(eFeature)

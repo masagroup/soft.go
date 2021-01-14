@@ -748,6 +748,7 @@ type xmlStringSegment struct {
 type xmlString struct {
 	segments           []*xmlStringSegment
 	currentSegment     *xmlStringSegment
+	firstElementMark   *xmlStringSegment
 	lineWidth          int
 	depth              int
 	indentation        string
@@ -801,6 +802,9 @@ func (s *xmlString) startElement(name string) {
 		s.add("<")
 		s.add(name)
 		s.lastElementIsStart = true
+		if s.firstElementMark == nil {
+			s.firstElementMark = s.mark()
+		}
 	} else {
 		s.add(s.getElementIndentWithExtra(1))
 	}
@@ -935,6 +939,10 @@ func (s *xmlString) mark() *xmlStringSegment {
 	return r
 }
 
+func (s *xmlString) resetToFirstElementMark() {
+	s.resetToMark(s.firstElementMark)
+}
+
 func (s *xmlString) resetToMark(segment *xmlStringSegment) {
 	if segment != nil {
 		s.currentSegment = segment
@@ -1009,10 +1017,10 @@ func (s *xmlSaveImpl) save(resource xmlResource, w io.Writer) {
 
 	// top object
 	object := c.Get(0).(EObject)
-	mark := s.saveTopObject(object)
+	s.saveTopObject(object)
 
 	// namespaces
-	s.str.resetToMark(mark)
+	s.str.resetToFirstElementMark()
 	s.interfaces.(xmlSaveInternal).saveNamespaces()
 
 	// write result
@@ -1024,14 +1032,12 @@ func (s *xmlSaveImpl) saveHeader() {
 	s.str.addLine()
 }
 
-func (s *xmlSaveImpl) saveTopObject(eObject EObject) *xmlStringSegment {
+func (s *xmlSaveImpl) saveTopObject(eObject EObject) {
 	eClass := eObject.EClass()
 	name := s.getClassQName(eClass)
 	s.str.startElement(name)
-	mark := s.str.mark()
 	s.saveElementID(eObject)
 	s.saveFeatures(eObject, false)
-	return mark
 }
 
 func (s *xmlSaveImpl) saveNamespaces() {

@@ -690,7 +690,8 @@ func (l *xmlLoadImpl) getFeature(eObject EObject, space, name string) EStructura
 		features := eClass.GetEAllStructuralFeatures()
 		for it := features.Iterator(); it.HasNext(); {
 			feature := it.Next().(EStructuralFeature)
-			if name == l.extendedMetaData.GetName(feature) && space == l.extendedMetaData.GetNamespace(feature) {
+			_, isAttribute := feature.(EAttribute)
+			if name == l.extendedMetaData.GetName(feature) && (isAttribute || space == l.extendedMetaData.GetNamespace(feature)) {
 				return feature
 			}
 		}

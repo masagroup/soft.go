@@ -1560,6 +1560,21 @@ func (s *xmlSaveImpl) getClassQName(eClass EClass) string {
 	return s.getElementQName(eClass.GetEPackage(), s.getXmlName(eClass), false)
 }
 
+func (s *xmlSaveImpl) getFeatureQName(eFeature EStructuralFeature) string {
+	if s.extendedMetaData != nil {
+		name := s.extendedMetaData.GetName(eFeature)
+		namespace := s.extendedMetaData.GetNamespace(eFeature)
+		ePackage := s.getPackageForSpace(namespace)
+		if ePackage != nil {
+			return s.getElementQName(ePackage, name, false)
+		} else {
+			return name
+		}
+	} else {
+		return eFeature.GetName()
+	}
+}
+
 func (s *xmlSaveImpl) getElementQName(ePackage EPackage, name string, mustHavePrefix bool) string {
 	nsPrefix := s.getPrefix(ePackage, mustHavePrefix)
 	if nsPrefix == "" {
@@ -1569,10 +1584,6 @@ func (s *xmlSaveImpl) getElementQName(ePackage EPackage, name string, mustHavePr
 	} else {
 		return nsPrefix + ":" + name
 	}
-}
-
-func (s *xmlSaveImpl) getFeatureQName(eFeature EStructuralFeature) string {
-	return s.getXmlName(eFeature)
 }
 
 func (s *xmlSaveImpl) getXmlName(eElement ENamedElement) string {

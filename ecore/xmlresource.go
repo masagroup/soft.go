@@ -979,7 +979,6 @@ type xmlSaveImpl struct {
 	uriToPrefixes    map[string][]string
 	prefixesToURI    map[string]string
 	featureKinds     map[EStructuralFeature]int
-	namespaces       *xmlNamespaces
 	extendedMetaData *ExtendedMetaData
 	keepDefaults     bool
 }
@@ -992,7 +991,6 @@ func newXMLSaveImpl() *xmlSaveImpl {
 	s.uriToPrefixes = make(map[string][]string)
 	s.prefixesToURI = make(map[string]string)
 	s.featureKinds = make(map[EStructuralFeature]int)
-	s.namespaces = newXmlNamespaces()
 	s.extendedMetaData = NewExtendedMetaData()
 	return s
 }
@@ -1008,8 +1006,18 @@ func (s *xmlSaveImpl) save(resource xmlResource, w io.Writer) {
 	s.saveHeader()
 
 	// top object
-	object := c.Get(0).(EObject)
-	s.saveTopObject(object)
+	eObject := c.Get(0).(EObject)
+
+	// initialize prefixes
+	if s.extendedMetaData != nil {
+		eClass := eObject.EClass()
+		if ePrefixMapFeature := s.extendedMetaData.GetXMLNSPrefixMapFeature(eClass); ePrefixMapFeature != nil {
+			m := eObject.EGet(ePrefixMapFeature).(EMap)
+			s.setPrefixToNamespace(m)
+		}
+	}
+
+	s.saveTopObject(eObject)
 
 	// namespaces
 	s.str.resetToFirstElementMark()
@@ -1557,10 +1565,6 @@ func (s *xmlSaveImpl) getPrefix(ePackage EPackage, mustHavePrefix bool) string {
 			}
 		}
 		if !found {
-			nsPrefix, ok = s.namespaces.getPrefix(nsURI)
-			if ok {
-				return nsPrefix
-			}
 			nsPrefix = ePackage.GetNsPrefix()
 			if len(nsPrefix) == 0 && mustHavePrefix {
 				nsPrefix = "_"
@@ -1579,6 +1583,27 @@ func (s *xmlSaveImpl) getPrefix(ePackage EPackage, mustHavePrefix bool) string {
 		s.packages[ePackage] = nsPrefix
 	}
 	return nsPrefix
+}
+
+func (s *xmlSaveImpl) setPrefixToNamespace(prefixToNamespaceMap EMap) {
+	for it := prefixToNamespaceMap.Iterator(); it.HasNext(); {
+		entry := it.Next().(EMapEntry)
+		prefix := entry.GetKey().(string)
+		nsURI := entry.GetValue().(string)
+		if ePackage := s.getPackageForSpace(nsURI); ePackage != nil {
+			s.packages[ePackage] = prefix
+		}
+		s.prefixesToURI[prefix] = nsURI
+		s.uriToPrefixes[nsURI] = append(s.uriToPrefixes[nsURI], prefix)
+	}
+}
+
+func (s *xmlSaveImpl) getPackageForSpace(nsURI string) EPackage {
+	packageRegistry := GetPackageRegistry()
+	if s.resource.GetResourceSet() != nil {
+		packageRegistry = s.resource.GetResourceSet().GetPackageRegistry()
+	}
+	return packageRegistry.GetPackage(nsURI)
 }
 
 func (s *xmlSaveImpl) getDataType(value interface{}, f EStructuralFeature, isAttribute bool) (string, bool) {

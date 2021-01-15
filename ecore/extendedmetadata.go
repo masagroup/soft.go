@@ -136,6 +136,26 @@ func (emd *ExtendedMetaData) GetDocumentRoot(ePackage EPackage) EClass {
 	return nil
 }
 
+func (emd *ExtendedMetaData) GetXMLNSPrefixMapFeature(eClass EClass) EReference {
+	for it := eClass.GetEAllReferences().Iterator(); it.HasNext(); {
+		eReference := it.Next().(EReference)
+		if emd.GetName(eReference) == "xmlns:prefix" {
+			return eReference
+		}
+	}
+	return nil
+}
+
+func (emd *ExtendedMetaData) GetXSISchemaLocationMapFeature(eClass EClass) EReference {
+	for it := eClass.GetEAllReferences().Iterator(); it.HasNext(); {
+		eReference := it.Next().(EReference)
+		if emd.GetName(eReference) == "xsi:schemaLocation" {
+			return eReference
+		}
+	}
+	return nil
+}
+
 func (emd *ExtendedMetaData) basicGetName(eElement ENamedElement) string {
 	if annotation := eElement.GetEAnnotation(annotationURI); annotation != nil {
 		if name := annotation.GetDetails().GetValue("name"); name != nil {

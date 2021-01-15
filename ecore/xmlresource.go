@@ -139,6 +139,7 @@ type xmlLoadImpl struct {
 	attributes             []xml.Attr
 	references             []reference
 	namespaces             *xmlNamespaces
+	prefixesToURI          map[string]string
 	spacesToFactories      map[string]EFactory
 	sameDocumentProxies    []EObject
 	notFeatures            []xml.Name
@@ -149,6 +150,7 @@ func newXMLLoadImpl() *xmlLoadImpl {
 	l := new(xmlLoadImpl)
 	l.interfaces = l
 	l.namespaces = newXmlNamespaces()
+	l.prefixesToURI = make(map[string]string)
 	l.spacesToFactories = make(map[string]EFactory)
 	l.notFeatures = append(l.notFeatures, xml.Name{Space: xsiURI, Local: typeAttrib}, xml.Name{Space: xsiURI, Local: schemaLocationAttrib}, xml.Name{Space: xsiURI, Local: noNamespaceSchemaLocationAttrib})
 	l.extendedMetaData = NewExtendedMetaData()
@@ -196,12 +198,15 @@ func (l *xmlLoadImpl) startElement(e xml.StartElement) {
 }
 
 func (l *xmlLoadImpl) endElement(e xml.EndElement) {
-
+	var eRoot EObject
 	if len(l.objects) > 0 {
+		eRoot = l.objects[0]
 		l.objects = l.objects[:len(l.objects)-1]
 	}
+
 	if len(l.objects) == 0 {
 		l.handleReferences()
+		l.recordSchemaLocations(eRoot)
 	}
 
 	context := l.namespaces.popContext()
@@ -264,6 +269,14 @@ func (l *xmlLoadImpl) handlePrefixMapping() {
 
 func (l *xmlLoadImpl) startPrefixMapping(prefix string, uri string) {
 	l.namespaces.declarePrefix(prefix, uri)
+	if _, exists := l.prefixesToURI[prefix]; exists {
+		index := 1
+		for _, exists = l.prefixesToURI[prefix+"_"+fmt.Sprintf("%d", index)]; exists; {
+			index++
+		}
+		prefix += "_" + fmt.Sprintf("%d", index)
+	}
+	l.prefixesToURI[prefix] = uri
 	delete(l.spacesToFactories, uri)
 }
 
@@ -683,6 +696,18 @@ func (l *xmlLoadImpl) handleReferences() {
 	}
 }
 
+func (l *xmlLoadImpl) recordSchemaLocations(eObject EObject) {
+	if l.extendedMetaData != nil {
+		eClass := eObject.EClass()
+		if xmlnsPrefixMapFeature := l.extendedMetaData.GetXMLNSPrefixMapFeature(eClass); xmlnsPrefixMapFeature != nil {
+			m := eObject.EGet(xmlnsPrefixMapFeature).(EMap)
+			for prefix, nsURI := range l.prefixesToURI {
+				m.Put(prefix, nsURI)
+			}
+		}
+	}
+}
+
 func (l *xmlLoadImpl) getFeature(eObject EObject, space, name string) EStructuralFeature {
 	eClass := eObject.EClass()
 	eFeature := eClass.GetEStructuralFeatureFromName(name)
@@ -1008,7 +1033,7 @@ func (s *xmlSaveImpl) save(resource xmlResource, w io.Writer) {
 	// top object
 	eObject := c.Get(0).(EObject)
 
-	// initialize prefixes
+	// initialize prefixes if any in top
 	if s.extendedMetaData != nil {
 		eClass := eObject.EClass()
 		if ePrefixMapFeature := s.extendedMetaData.GetXMLNSPrefixMapFeature(eClass); ePrefixMapFeature != nil {

@@ -188,6 +188,7 @@ func (l *xmlLoadImpl) load(resource xmlResource, r io.Reader) {
 }
 
 func (l *xmlLoadImpl) startElement(e xml.StartElement) {
+	l.elements = append(l.elements, e.Name.Local)
 	l.setAttributes(e.Attr)
 	l.namespaces.pushContext()
 	l.handlePrefixMapping()
@@ -198,13 +199,16 @@ func (l *xmlLoadImpl) startElement(e xml.StartElement) {
 }
 
 func (l *xmlLoadImpl) endElement(e xml.EndElement) {
+	// remove last object
 	var eRoot EObject
 	if len(l.objects) > 0 {
 		eRoot = l.objects[0]
 		l.objects = l.objects[:len(l.objects)-1]
 	}
 
-	if len(l.objects) == 0 {
+	// end of the document
+	l.elements = l.elements[:len(l.elements)-1]
+	if len(l.elements) == 0 {
 		l.handleReferences()
 		l.recordSchemaLocations(eRoot)
 	}

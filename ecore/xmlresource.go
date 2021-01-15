@@ -1111,7 +1111,11 @@ func (s *xmlSaveImpl) saveNamespaces() {
 	}
 	sort.Strings(prefixes)
 	for _, prefix := range prefixes {
-		s.str.addAttribute("xmlns:"+prefix, s.prefixesToURI[prefix])
+		attribute := "xmlns"
+		if len(prefix) > 0 {
+			attribute += ":" + prefix
+		}
+		s.str.addAttribute(attribute, s.prefixesToURI[prefix])
 	}
 }
 

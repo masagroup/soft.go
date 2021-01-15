@@ -10,28 +10,60 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func diagnosticError(errors ecore.EList) string {
+	if errors.Empty() {
+		return ""
+	} else {
+		return errors.Get(0).(ecore.EDiagnostic).GetMessage()
+	}
+}
+
 func TestSerializationLoadSimpleXML(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/simple.input.xml"}
+	fileURI := &url.URL{Path: "testdata/library.simple.xml"}
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()
 	assert.True(t, resource.IsLoaded())
-	assert.True(t, resource.GetErrors().Empty())
-	assert.True(t, resource.GetWarnings().Empty())
+	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
+}
+
+func TestSerializationLoadOwnerXML(t *testing.T) {
+	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
+
+	fileURI := &url.URL{Path: "testdata/library.owner.xml"}
+	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
+	resource := resourceFactory.CreateResource(fileURI)
+	resource.Load()
+	assert.True(t, resource.IsLoaded())
+	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
 }
 
 func TestSerializationLoadComplexXML(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/library.xml"}
+	fileURI := &url.URL{Path: "testdata/library.complex.xml"}
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()
 	assert.True(t, resource.IsLoaded())
-	assert.True(t, resource.GetErrors().Empty())
-	assert.True(t, resource.GetWarnings().Empty())
+	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
+}
+
+func TestSerializationLoadSaveSimpleXML(t *testing.T) {
+	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
+
+	fileURI := &url.URL{Path: "testdata/library.simple.xml"}
+	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
+	resource := resourceFactory.CreateResource(fileURI)
+	resource.Load()
+
+	resource.SetURI(&url.URL{Path: "testdata/library.simple.output.xml"})
+	resource.Save()
 }
 
 func TestSerializationLoadSaveXML(t *testing.T) {

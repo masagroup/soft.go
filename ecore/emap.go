@@ -15,8 +15,3 @@ type EMap interface {
 
 	ToMap() map[interface{}]interface{}
 }
-
-type EMapEntry interface {
-	GetKey() interface{}
-	GetValue() interface{}
-}

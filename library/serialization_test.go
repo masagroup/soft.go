@@ -18,10 +18,22 @@ func diagnosticError(errors ecore.EList) string {
 	}
 }
 
-func TestSerializationLoadSimpleXML(t *testing.T) {
+func TestSerializationLoadSimpleDefaultXML(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/library.simple.xml"}
+	fileURI := &url.URL{Path: "testdata/library.simple.default.xml"}
+	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
+	resource := resourceFactory.CreateResource(fileURI)
+	resource.Load()
+	assert.True(t, resource.IsLoaded())
+	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
+}
+
+func TestSerializationLoadSimplePrefixXML(t *testing.T) {
+	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
+
+	fileURI := &url.URL{Path: "testdata/library.simple.prefix.xml"}
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()

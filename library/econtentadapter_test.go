@@ -82,7 +82,7 @@ func TestEContentAdapterEObjectChildChanged(t *testing.T) {
 func TestEContentAdapterResource(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/library.xml"}
+	fileURI := &url.URL{Path: "testdata/library.complex.xml"}
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()

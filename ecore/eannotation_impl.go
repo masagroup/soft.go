@@ -133,7 +133,7 @@ func (eAnnotation *eAnnotationImpl) initContents() EList {
 }
 
 func (eAnnotation *eAnnotationImpl) initDetails() EMap {
-	return NewBasicEMap()
+	return NewBasicEObjectMap(GetPackage().GetEStringToStringMapEntry())
 }
 
 func (eAnnotation *eAnnotationImpl) initReferences() EList {
@@ -170,9 +170,9 @@ func (eAnnotation *eAnnotationImpl) ESetFromID(featureID int, newValue interface
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	case EANNOTATION__DETAILS:
-		list := eAnnotation.asEAnnotation().GetDetails()
-		list.Clear()
-		list.AddAll(newValue.(EMap))
+		m := eAnnotation.asEAnnotation().GetDetails()
+		m.Clear()
+		m.AddAll(newValue.(EList))
 	case EANNOTATION__EMODEL_ELEMENT:
 		eAnnotation.asEAnnotation().SetEModelElement(newValue.(EModelElement))
 	case EANNOTATION__REFERENCES:

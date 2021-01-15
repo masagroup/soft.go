@@ -181,13 +181,22 @@ func TestEAnnotationESetFromID(t *testing.T) {
 	}
 	{
 		// list with a value
-		m := NewBasicEMap()
-		m.Put("key", "value")
+		mockMap := &MockEMap{}
+		mockEntry := &MockEMapEntry{}
+		mockIterator := &MockEIterator{}
+		mockKey := "Test String"
+		mockValue := "Test String"
+		mockMap.On("Iterator").Return(mockIterator).Once()
+		mockIterator.On("HasNext").Return(true).Once()
+		mockIterator.On("Next").Return(mockEntry).Once()
+		mockIterator.On("HasNext").Return(false).Once()
+		mockEntry.On("GetKey").Return(mockKey).Once()
+		mockEntry.On("GetValue").Return(mockValue).Once()
+
 		// set list with new contents
-		o.ESetFromID(EANNOTATION__DETAILS, m)
-		// checks
-		assert.Equal(t, 1, o.GetDetails().Size())
-		assert.Equal(t, NewMapEntry("key", "value"), o.GetDetails().Get(0))
+		o.ESetFromID(EANNOTATION__DETAILS, mockMap)
+		assert.Equal(t, map[interface{}]interface{}{mockKey: mockValue}, o.GetDetails().ToMap())
+		mock.AssertExpectationsForObjects(t, mockMap, mockEntry)
 	}
 	{
 		mockValue := new(MockEModelElement)

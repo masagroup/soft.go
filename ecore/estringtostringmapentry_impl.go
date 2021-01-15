@@ -53,8 +53,16 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetKey() interface{}
 	return eStringToStringMapEntry.GetStringKey()
 }
 
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetKey(key interface{}) {
+	eStringToStringMapEntry.SetStringKey(key.(string))
+}
+
 func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetValue() interface{} {
 	return eStringToStringMapEntry.GetStringValue()
+}
+
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetValue(value interface{}) {
+	eStringToStringMapEntry.SetStringValue(value.(string))
 }
 
 // GetStringKey get the value of key

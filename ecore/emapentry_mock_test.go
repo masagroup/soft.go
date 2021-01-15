@@ -10,7 +10,7 @@ import (
 func TestMockEMapEntry_GetKey(t *testing.T) {
 	l := &MockEMapEntry{}
 	l.On("GetKey").Once().Return("1")
-	l.On("GetKey").Once().Return(func(interface{}) interface{} {
+	l.On("GetKey").Once().Return(func() interface{} {
 		return "2"
 	})
 	assert.Equal(t, "1", l.GetKey())
@@ -28,7 +28,7 @@ func TestMockEMapEntry_SetKey(t *testing.T) {
 func TestMockEMapEntry_GetValue(t *testing.T) {
 	l := &MockEMapEntry{}
 	l.On("GetValue").Once().Return("1")
-	l.On("GetValue").Once().Return(func(interface{}) interface{} {
+	l.On("GetValue").Once().Return(func() interface{} {
 		return "2"
 	})
 	assert.Equal(t, "1", l.GetValue())

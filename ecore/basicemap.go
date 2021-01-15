@@ -2,7 +2,8 @@ package ecore
 
 type BasicEMap struct {
 	EList
-	mapData map[interface{}]interface{}
+	entryClass EClass
+	mapData    map[interface{}]interface{}
 }
 
 type mapList struct {
@@ -40,26 +41,10 @@ func (ml *mapList) didClear(oldObjects []interface{}) {
 	ml.m.mapData = make(map[interface{}]interface{})
 }
 
-type mapEntry struct {
-	key   interface{}
-	value interface{}
-}
-
-func NewMapEntry(key, value interface{}) *mapEntry {
-	return &mapEntry{key: key, value: value}
-}
-
-func (entry *mapEntry) GetKey() interface{} {
-	return entry.key
-}
-
-func (entry *mapEntry) GetValue() interface{} {
-	return entry.value
-}
-
-func NewBasicEMap() *BasicEMap {
+func NewBasicEMap(entryClass EClass) *BasicEMap {
 	basicEMap := &BasicEMap{}
 	basicEMap.EList = newMapList(basicEMap)
+	basicEMap.entryClass = entryClass
 	basicEMap.mapData = make(map[interface{}]interface{})
 	return basicEMap
 }
@@ -80,7 +65,15 @@ func (m *BasicEMap) GetValue(value interface{}) interface{} {
 
 func (m *BasicEMap) Put(key interface{}, value interface{}) {
 	m.mapData[key] = value
-	m.Add(&mapEntry{key: key, value: value})
+	m.Add(m.newEntry(key, value))
+}
+
+func (m *BasicEMap) newEntry(key interface{}, value interface{}) EMapEntry {
+	eFactory := m.entryClass.GetEPackage().GetEFactoryInstance()
+	eEntry := eFactory.Create(m.entryClass).(EMapEntry)
+	eEntry.SetKey(key)
+	eEntry.SetValue(value)
+	return eEntry
 }
 
 func (m *BasicEMap) RemoveKey(key interface{}) interface{} {

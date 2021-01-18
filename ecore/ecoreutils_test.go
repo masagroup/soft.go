@@ -322,3 +322,11 @@ func TestEcoreUtilsCopyReal(t *testing.T) {
 	eClassCopy := Copy(eClass)
 	assert.True(t, Equals(eClass, eClassCopy))
 }
+
+func TestEcoreUtils_GetURI(t *testing.T) {
+	mockURI, _ := url.Parse("test://file.t")
+	mockEObject := &MockEObjectInternal{}
+	mockEObject.On("EIsProxy").Return(true).Once()
+	mockEObject.On("EProxyURI").Return(mockURI).Once()
+	assert.Equal(t, mockURI, GetURI(mockEObject))
+}

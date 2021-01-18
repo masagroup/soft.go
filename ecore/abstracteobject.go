@@ -372,7 +372,11 @@ func (o *AbstractEObject) eDynamicPropertiesGet(properties EDynamicProperties, d
 		result := properties.EDynamicGet(dynamicFeatureID)
 		if result == nil {
 			if dynamicFeature.IsMany() {
-				result = o.eDynamicPropertiesCreateList(dynamicFeature)
+				if isMapType(dynamicFeature) {
+					result = o.eDynamicPropertiesCreateMap(dynamicFeature)
+				} else {
+					result = o.eDynamicPropertiesCreateList(dynamicFeature)
+				}
 				properties.EDynamicSet(dynamicFeatureID, result)
 			} else if defaultValue := dynamicFeature.GetDefaultValue(); defaultValue != nil {
 				result = defaultValue
@@ -423,6 +427,11 @@ func (o *AbstractEObject) eDynamicPropertiesGet(properties EDynamicProperties, d
 		return result
 	}
 	return nil
+}
+
+func (o *AbstractEObject) eDynamicPropertiesCreateMap(feature EStructuralFeature) EMap {
+	eClass := feature.GetEType().(EClass)
+	return NewBasicEObjectMap(eClass)
 }
 
 func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeature) EList {

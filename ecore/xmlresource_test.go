@@ -91,6 +91,7 @@ func TestXmlLoadLibraryNoRoot(t *testing.T) {
 
 	// create a resource set
 	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetPackageRegistry().RegisterPackage(GetPackage())
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 
 	// create a resource
@@ -112,5 +113,42 @@ func TestXmlLoadLibraryNoRoot(t *testing.T) {
 
 	// check library name
 	eLibrary, _ := eResource.GetContents().Get(0).(EObject)
+	assert.Equal(t, "My Library", eLibrary.EGet(eLibraryNameAttribute))
+}
+
+func TestXmlLoadLibraryComplex(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	assert.NotNil(t, ePackage)
+
+	// create a resource set
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	// create a resource
+	eResource := newXMLResourceImpl()
+	eResourceSet.GetResources().Add(eResource)
+
+	// load it
+	eResource.SetURI(&url.URL{Path: "testdata/library.complex.xml"})
+	eResource.Load()
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	// retrieve document root class , library class & library name attribute
+	eDocumentRootClass, _ := ePackage.GetEClassifier("DocumentRoot").(EClass)
+	assert.NotNil(t, eDocumentRootClass)
+	eDocumentRootLibraryFeature, _ := eDocumentRootClass.GetEStructuralFeatureFromName("library").(EReference)
+	assert.NotNil(t, eDocumentRootLibraryFeature)
+	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	assert.NotNil(t, eLibraryClass)
+	eLibraryNameAttribute, _ := eLibraryClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	assert.NotNil(t, eLibraryNameAttribute)
+
+	// check library name
+	eDocumentRoot := eResource.GetContents().Get(0).(EObject)
+	assert.NotNil(t, eDocumentRoot)
+	eLibrary, _ := eDocumentRoot.EGet(eDocumentRootLibraryFeature).(EObject)
+	assert.NotNil(t, eLibrary)
 	assert.Equal(t, "My Library", eLibrary.EGet(eLibraryNameAttribute))
 }

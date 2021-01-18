@@ -100,3 +100,10 @@ func isProxy(feature EStructuralFeature) bool {
 	}
 	return false
 }
+
+func isMapType(feature EStructuralFeature) bool {
+	if eType := feature.GetEType(); eType != nil {
+		return eType.GetInstanceTypeName() == "ecore.EMapEntry"
+	}
+	return false
+}

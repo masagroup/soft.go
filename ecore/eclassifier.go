@@ -23,6 +23,9 @@ type EClassifier interface {
 
 	IsInstance(interface{}) bool
 
+	GetInstanceTypeName() string
+	SetInstanceTypeName(string)
+
 	GetInstanceClass() reflect.Type
 	SetInstanceClass(reflect.Type)
 

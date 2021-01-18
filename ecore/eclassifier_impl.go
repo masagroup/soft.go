@@ -20,8 +20,9 @@ import "reflect"
 // eClassifierImpl is the implementation of the model object 'EClassifier'
 type eClassifierImpl struct {
 	eNamedElementImpl
-	classifierID  int
-	instanceClass reflect.Type
+	classifierID     int
+	instanceClass    reflect.Type
+	instanceTypeName string
 }
 type eClassifierImplInitializers interface {
 	initClassifierID() int
@@ -39,6 +40,7 @@ func (eClassifier *eClassifierImpl) Initialize() {
 	eClassifier.eNamedElementImpl.Initialize()
 	eClassifier.classifierID = -1
 	eClassifier.instanceClass = nil
+	eClassifier.instanceTypeName = ""
 
 }
 
@@ -107,6 +109,20 @@ func (eClassifier *eClassifierImpl) SetInstanceClass(newInstanceClass reflect.Ty
 	}
 }
 
+// GetInstanceTypeName get the value of instanceTypeName
+func (eClassifier *eClassifierImpl) GetInstanceTypeName() string {
+	return eClassifier.instanceTypeName
+}
+
+// SetInstanceTypeName set the value of instanceTypeName
+func (eClassifier *eClassifierImpl) SetInstanceTypeName(newInstanceTypeName string) {
+	oldInstanceTypeName := eClassifier.instanceTypeName
+	eClassifier.instanceTypeName = newInstanceTypeName
+	if eClassifier.ENotificationRequired() {
+		eClassifier.ENotify(NewNotificationByFeatureID(eClassifier.AsEObject(), SET, ECLASSIFIER__INSTANCE_TYPE_NAME, oldInstanceTypeName, newInstanceTypeName, NO_INDEX))
+	}
+}
+
 func (eClassifier *eClassifierImpl) initClassifierID() int {
 	return -1
 }
@@ -121,6 +137,8 @@ func (eClassifier *eClassifierImpl) EGetFromID(featureID int, resolve bool) inte
 		return eClassifier.asEClassifier().GetEPackage()
 	case ECLASSIFIER__INSTANCE_CLASS:
 		return eClassifier.asEClassifier().GetInstanceClass()
+	case ECLASSIFIER__INSTANCE_TYPE_NAME:
+		return eClassifier.asEClassifier().GetInstanceTypeName()
 	default:
 		return eClassifier.eNamedElementImpl.EGetFromID(featureID, resolve)
 	}
@@ -132,6 +150,8 @@ func (eClassifier *eClassifierImpl) ESetFromID(featureID int, newValue interface
 		eClassifier.asEClassifier().SetClassifierID(newValue.(int))
 	case ECLASSIFIER__INSTANCE_CLASS:
 		eClassifier.asEClassifier().SetInstanceClass(newValue.(reflect.Type))
+	case ECLASSIFIER__INSTANCE_TYPE_NAME:
+		eClassifier.asEClassifier().SetInstanceTypeName(newValue.(string))
 	default:
 		eClassifier.eNamedElementImpl.ESetFromID(featureID, newValue)
 	}
@@ -143,6 +163,8 @@ func (eClassifier *eClassifierImpl) EUnsetFromID(featureID int) {
 		eClassifier.asEClassifier().SetClassifierID(-1)
 	case ECLASSIFIER__INSTANCE_CLASS:
 		eClassifier.asEClassifier().SetInstanceClass(nil)
+	case ECLASSIFIER__INSTANCE_TYPE_NAME:
+		eClassifier.asEClassifier().SetInstanceTypeName("")
 	default:
 		eClassifier.eNamedElementImpl.EUnsetFromID(featureID)
 	}
@@ -158,6 +180,8 @@ func (eClassifier *eClassifierImpl) EIsSetFromID(featureID int) bool {
 		return eClassifier.GetEPackage() != nil
 	case ECLASSIFIER__INSTANCE_CLASS:
 		return eClassifier.instanceClass != nil
+	case ECLASSIFIER__INSTANCE_TYPE_NAME:
+		return eClassifier.instanceTypeName != ""
 	default:
 		return eClassifier.eNamedElementImpl.EIsSetFromID(featureID)
 	}

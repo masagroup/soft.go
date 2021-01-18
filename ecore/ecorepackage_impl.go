@@ -279,22 +279,27 @@ func (p *ecorePackageImpl) GetEClassifierClass() EClass {
 
 // GetEClassifier_ClassifierID returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_ClassifierID() EAttribute {
-	return p.eClassifier.GetEStructuralFeatures().Get(3).(EAttribute)
+	return p.eClassifier.GetEStructuralFeatures().Get(4).(EAttribute)
 }
 
 // GetEClassifier_DefaultValue returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_DefaultValue() EAttribute {
-	return p.eClassifier.GetEStructuralFeatures().Get(1).(EAttribute)
+	return p.eClassifier.GetEStructuralFeatures().Get(2).(EAttribute)
 }
 
 // GetEClassifier_InstanceClass returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_InstanceClass() EAttribute {
+	return p.eClassifier.GetEStructuralFeatures().Get(1).(EAttribute)
+}
+
+// GetEClassifier_InstanceTypeName returns the meta object corresponding to
+func (p *ecorePackageImpl) GetEClassifier_InstanceTypeName() EAttribute {
 	return p.eClassifier.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEClassifier_EPackage returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_EPackage() EReference {
-	return p.eClassifier.GetEStructuralFeatures().Get(2).(EReference)
+	return p.eClassifier.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEClassifier_IsInstance_EJavaObject returns the meta object corresponding to
@@ -1012,6 +1017,7 @@ func (p *ecorePackageImpl) createEClassContent(factory EcoreFactory) {
 func (p *ecorePackageImpl) createEClassifierContent(factory EcoreFactory) {
 	p.eClassifier = factory.CreateEClassFromContainerAndClassID(p, ECLASSIFIER)
 
+	factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__INSTANCE_TYPE_NAME)
 	factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__INSTANCE_CLASS)
 	factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__DEFAULT_VALUE)
 	factory.CreateEReferenceFromContainerAndClassID(p.eClassifier, ECLASSIFIER__EPACKAGE)
@@ -1869,6 +1875,21 @@ func (p *ecorePackageImpl) initializeEClassifierContent() {
 	eClassifier_InstanceClass.SetOrdered(true)
 	eClassifier_InstanceClass.SetID(false)
 	eClassifier_InstanceClass.SetDefaultValueLiteral("")
+
+	eClassifier_InstanceTypeName := p.GetEClassifier_InstanceTypeName()
+	eClassifier_InstanceTypeName.SetName("instanceTypeName")
+	eClassifier_InstanceTypeName.SetEType(p.GetEString())
+	eClassifier_InstanceTypeName.SetLowerBound(0)
+	eClassifier_InstanceTypeName.SetUpperBound(1)
+	eClassifier_InstanceTypeName.SetTransient(false)
+	eClassifier_InstanceTypeName.SetVolatile(false)
+	eClassifier_InstanceTypeName.SetChangeable(true)
+	eClassifier_InstanceTypeName.SetUnsettable(false)
+	eClassifier_InstanceTypeName.SetUnique(true)
+	eClassifier_InstanceTypeName.SetDerived(false)
+	eClassifier_InstanceTypeName.SetOrdered(true)
+	eClassifier_InstanceTypeName.SetID(false)
+	eClassifier_InstanceTypeName.SetDefaultValueLiteral("")
 
 	eClassifier_EPackage := p.GetEClassifier_EPackage()
 	eClassifier_EPackage.SetName("ePackage")
@@ -3218,142 +3239,142 @@ func (p *ecorePackageImpl) initializeETypedElementContent() {
 
 func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eBigDecimal.SetName("EBigDecimal")
-	//p.eBigDecimal.SetInstanceClass( reflect.TypeOf(java.math.BigDecimal))
+	p.eBigDecimal.SetInstanceTypeName("float64")
 	p.eBigDecimal.SetSerializable(true)
 
 	p.eBigInteger.SetName("EBigInteger")
-	//p.eBigInteger.SetInstanceClass( reflect.TypeOf(java.math.BigInteger))
+	p.eBigInteger.SetInstanceTypeName("int")
 	p.eBigInteger.SetSerializable(true)
 
 	p.eBoolean.SetName("EBoolean")
-	//p.eBoolean.SetInstanceClass( reflect.TypeOf(boolean))
+	p.eBoolean.SetInstanceTypeName("bool")
 	p.eBoolean.SetSerializable(true)
 	p.eBoolean.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eBoolean, "false"))
 
 	p.eBooleanObject.SetName("EBooleanObject")
-	//p.eBooleanObject.SetInstanceClass( reflect.TypeOf(java.lang.Boolean))
+	p.eBooleanObject.SetInstanceTypeName("bool")
 	p.eBooleanObject.SetSerializable(true)
 
 	p.eByte.SetName("EByte")
-	//p.eByte.SetInstanceClass( reflect.TypeOf(byte))
+	p.eByte.SetInstanceTypeName("byte")
 	p.eByte.SetSerializable(true)
 	p.eByte.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eByte, "0"))
 
 	p.eByteArray.SetName("EByteArray")
-	//p.eByteArray.SetInstanceClass( reflect.TypeOf(byte[]))
+	p.eByteArray.SetInstanceTypeName("[]byte")
 	p.eByteArray.SetSerializable(true)
 
 	p.eByteObject.SetName("EByteObject")
-	//p.eByteObject.SetInstanceClass( reflect.TypeOf(java.lang.Byte))
+	p.eByteObject.SetInstanceTypeName("byte")
 	p.eByteObject.SetSerializable(true)
 
 	p.eChar.SetName("EChar")
-	//p.eChar.SetInstanceClass( reflect.TypeOf(char))
+	p.eChar.SetInstanceTypeName("byte")
 	p.eChar.SetSerializable(true)
 
 	p.eCharacterObject.SetName("ECharacterObject")
-	//p.eCharacterObject.SetInstanceClass( reflect.TypeOf(java.lang.Character))
+	p.eCharacterObject.SetInstanceTypeName("byte")
 	p.eCharacterObject.SetSerializable(true)
 
 	p.eDate.SetName("EDate")
-	//p.eDate.SetInstanceClass( reflect.TypeOf(java.util.Date))
+	p.eDate.SetInstanceTypeName("time.Time")
 	p.eDate.SetSerializable(true)
 
 	p.eDiagnosticChain.SetName("EDiagnosticChain")
-	//p.eDiagnosticChain.SetInstanceClass( reflect.TypeOf(org.eclipse.emf.common.util.DiagnosticChain))
+	p.eDiagnosticChain.SetInstanceTypeName("org.eclipse.emf.common.util.DiagnosticChain")
 	p.eDiagnosticChain.SetSerializable(false)
 
 	p.eDouble.SetName("EDouble")
-	//p.eDouble.SetInstanceClass( reflect.TypeOf(double))
+	p.eDouble.SetInstanceTypeName("float64")
 	p.eDouble.SetSerializable(true)
 	p.eDouble.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eDouble, "0.0"))
 
 	p.eDoubleObject.SetName("EDoubleObject")
-	//p.eDoubleObject.SetInstanceClass( reflect.TypeOf(java.lang.Double))
+	p.eDoubleObject.SetInstanceTypeName("float64")
 	p.eDoubleObject.SetSerializable(true)
 
 	p.eEList.SetName("EEList")
-	//p.eEList.SetInstanceClass( reflect.TypeOf(org.eclipse.emf.common.util.EList))
+	p.eEList.SetInstanceTypeName("org.eclipse.emf.common.util.EList")
 	p.eEList.SetSerializable(false)
 
 	p.eEnumerator.SetName("EEnumerator")
-	//p.eEnumerator.SetInstanceClass( reflect.TypeOf(org.eclipse.emf.common.util.Enumerator))
+	p.eEnumerator.SetInstanceTypeName("org.eclipse.emf.common.util.Enumerator")
 	p.eEnumerator.SetSerializable(false)
 
 	p.eFeatureMap.SetName("EFeatureMap")
-	//p.eFeatureMap.SetInstanceClass( reflect.TypeOf(org.eclipse.emf.ecore.util.FeatureMap))
+	p.eFeatureMap.SetInstanceTypeName("org.eclipse.emf.ecore.util.FeatureMap")
 	p.eFeatureMap.SetSerializable(false)
 
 	p.eFeatureMapEntry.SetName("EFeatureMapEntry")
-	//p.eFeatureMapEntry.SetInstanceClass( reflect.TypeOf(org.eclipse.emf.ecore.util.FeatureMap$Entry))
+	p.eFeatureMapEntry.SetInstanceTypeName("org.eclipse.emf.ecore.util.FeatureMap$Entry")
 	p.eFeatureMapEntry.SetSerializable(false)
 
 	p.eFloat.SetName("EFloat")
-	//p.eFloat.SetInstanceClass( reflect.TypeOf(float))
+	p.eFloat.SetInstanceTypeName("float64")
 	p.eFloat.SetSerializable(true)
 	p.eFloat.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eFloat, "0.0"))
 
 	p.eFloatObject.SetName("EFloatObject")
-	//p.eFloatObject.SetInstanceClass( reflect.TypeOf(java.lang.Float))
+	p.eFloatObject.SetInstanceTypeName("float64")
 	p.eFloatObject.SetSerializable(true)
 
 	p.eInt.SetName("EInt")
-	//p.eInt.SetInstanceClass( reflect.TypeOf(int))
+	p.eInt.SetInstanceTypeName("int")
 	p.eInt.SetSerializable(true)
 	p.eInt.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eInt, "0"))
 
 	p.eIntegerObject.SetName("EIntegerObject")
-	//p.eIntegerObject.SetInstanceClass( reflect.TypeOf(java.lang.Integer))
+	p.eIntegerObject.SetInstanceTypeName("int")
 	p.eIntegerObject.SetSerializable(true)
 
 	p.eInvocationTargetException.SetName("EInvocationTargetException")
-	//p.eInvocationTargetException.SetInstanceClass( reflect.TypeOf(java.lang.reflect.InvocationTargetException))
+	p.eInvocationTargetException.SetInstanceTypeName("java.lang.reflect.InvocationTargetException")
 	p.eInvocationTargetException.SetSerializable(false)
 
 	p.eJavaClass.SetName("EJavaClass")
-	//p.eJavaClass.SetInstanceClass( reflect.TypeOf(java.lang.Class))
+	p.eJavaClass.SetInstanceTypeName("java.lang.Class")
 	p.eJavaClass.SetSerializable(true)
 
 	p.eJavaObject.SetName("EJavaObject")
-	//p.eJavaObject.SetInstanceClass( reflect.TypeOf(java.lang.Object))
+	p.eJavaObject.SetInstanceTypeName("java.lang.Object")
 	p.eJavaObject.SetSerializable(true)
 
 	p.eLong.SetName("ELong")
-	//p.eLong.SetInstanceClass( reflect.TypeOf(long))
+	p.eLong.SetInstanceTypeName("int")
 	p.eLong.SetSerializable(true)
 	p.eLong.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eLong, "0"))
 
 	p.eLongObject.SetName("ELongObject")
-	//p.eLongObject.SetInstanceClass( reflect.TypeOf(java.lang.Long))
+	p.eLongObject.SetInstanceTypeName("int")
 	p.eLongObject.SetSerializable(true)
 
 	p.eMap.SetName("EMap")
-	//p.eMap.SetInstanceClass( reflect.TypeOf(java.util.Map))
+	p.eMap.SetInstanceTypeName("ecore.EMap")
 	p.eMap.SetSerializable(false)
 
 	p.eResource.SetName("EResource")
-	//p.eResource.SetInstanceClass( reflect.TypeOf(org.eclipse.emf.ecore.resource.Resource))
+	p.eResource.SetInstanceTypeName("org.eclipse.emf.ecore.resource.Resource")
 	p.eResource.SetSerializable(false)
 
 	p.eResourceSet.SetName("EResourceSet")
-	//p.eResourceSet.SetInstanceClass( reflect.TypeOf(org.eclipse.emf.ecore.resource.ResourceSet))
+	p.eResourceSet.SetInstanceTypeName("org.eclipse.emf.ecore.resource.ResourceSet")
 	p.eResourceSet.SetSerializable(false)
 
 	p.eShort.SetName("EShort")
-	//p.eShort.SetInstanceClass( reflect.TypeOf(short))
+	p.eShort.SetInstanceTypeName("uint16")
 	p.eShort.SetSerializable(true)
 	p.eShort.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eShort, "0"))
 
 	p.eShortObject.SetName("EShortObject")
-	//p.eShortObject.SetInstanceClass( reflect.TypeOf(java.lang.Short))
+	p.eShortObject.SetInstanceTypeName("uint16")
 	p.eShortObject.SetSerializable(true)
 
 	p.eString.SetName("EString")
-	//p.eString.SetInstanceClass( reflect.TypeOf(java.lang.String))
+	p.eString.SetInstanceTypeName("string")
 	p.eString.SetSerializable(true)
 
 	p.eTreeIterator.SetName("ETreeIterator")
-	//p.eTreeIterator.SetInstanceClass( reflect.TypeOf(org.eclipse.emf.common.util.TreeIterator))
+	p.eTreeIterator.SetInstanceTypeName("ecore.EIterator")
 	p.eTreeIterator.SetSerializable(false)
 
 }

@@ -68,6 +68,7 @@ func TestPackageClasses(t *testing.T) {
 	assert.NotNil(t, p.GetEClass_GetOverride_EOperation())
 	assert.NotNil(t, p.GetEClass_GetFeatureType_EStructuralFeature())
 	assert.NotNil(t, p.GetEClassifierClass())
+	assert.NotNil(t, p.GetEClassifier_InstanceTypeName())
 	assert.NotNil(t, p.GetEClassifier_InstanceClass())
 	assert.NotNil(t, p.GetEClassifier_DefaultValue())
 	assert.NotNil(t, p.GetEClassifier_EPackage())

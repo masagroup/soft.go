@@ -30,7 +30,6 @@ func TestBasicEMap_GetValue(t *testing.T) {
 
 	m.Put(2, "2")
 	assert.Equal(t, "2", m.GetValue(2))
-
 }
 
 func TestBasicEMap_RemoveKey(t *testing.T) {
@@ -127,4 +126,12 @@ func TestBasicEMap_Clear(t *testing.T) {
 	assert.Equal(t, map[interface{}]interface{}{}, m.ToMap())
 	assert.Equal(t, []interface{}{}, m.ToArray())
 	mock.AssertExpectationsForObjects(t, mockEntry1, mockEntry2)
+}
+
+func TestBasicEMap_UpdateEntry(t *testing.T) {
+	m := NewBasicEMap()
+	m.Put(2, "2")
+	e := m.Get(0).(EMapEntry)
+	e.SetKey(3)
+	e.SetValue("3")
 }

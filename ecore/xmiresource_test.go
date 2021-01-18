@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestXMIResourceLoadSimple(t *testing.T) {
+func TestXMIResourceLoadLibrarySimple(t *testing.T) {
 	resource := newXMIResourceImpl()
-	resource.SetURI(&url.URL{Path: "testdata/bookStore.ecore"})
+	resource.SetURI(&url.URL{Path: "testdata/library.simple.ecore"})
 	resource.Load()
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty())
@@ -22,36 +22,36 @@ func TestXMIResourceLoadSimple(t *testing.T) {
 
 	ePackage, _ := contents.Get(0).(EPackage)
 	assert.NotNil(t, ePackage)
-	assert.Equal(t, "BookStorePackage", ePackage.GetName())
-	assert.Equal(t, "bookStore", ePackage.GetNsPrefix())
-	assert.Equal(t, "http:///com.ibm.dynamic.example.bookStore.ecore", ePackage.GetNsURI())
+	assert.Equal(t, "library", ePackage.GetName())
+	assert.Equal(t, "lib", ePackage.GetNsPrefix())
+	assert.Equal(t, "http:///com.ibm.dynamic.example.library.ecore", ePackage.GetNsURI())
 
 	eClassifiers := ePackage.GetEClassifiers()
 	assert.Equal(t, 2, eClassifiers.Size())
 
-	eBookStore, _ := eClassifiers.Get(0).(EClassifier)
-	assert.NotNil(t, eBookStore)
-	assert.Equal(t, "BookStore", eBookStore.GetName())
+	eLibrary, _ := eClassifiers.Get(0).(EClassifier)
+	assert.NotNil(t, eLibrary)
+	assert.Equal(t, "Library", eLibrary.GetName())
 
-	eBookStoreClass, _ := eBookStore.(EClass)
-	assert.NotNil(t, eBookStoreClass)
-	assert.Equal(t, 3, eBookStoreClass.GetFeatureCount())
+	eLibraryClass, _ := eLibrary.(EClass)
+	assert.NotNil(t, eLibraryClass)
+	assert.Equal(t, 3, eLibraryClass.GetFeatureCount())
 
-	eOwnerFeature := eBookStoreClass.GetEStructuralFeature(0)
+	eOwnerFeature := eLibraryClass.GetEStructuralFeature(0)
 	assert.Equal(t, "owner", eOwnerFeature.GetName())
 	eOwnerAttribute, _ := eOwnerFeature.(EAttribute)
 	assert.NotNil(t, eOwnerAttribute)
 	eOwnerAttributeType := eOwnerAttribute.GetEAttributeType()
 	assert.Equal(t, "EString", eOwnerAttributeType.GetName())
 
-	eLocationFeature := eBookStoreClass.GetEStructuralFeature(1)
+	eLocationFeature := eLibraryClass.GetEStructuralFeature(1)
 	assert.Equal(t, "location", eLocationFeature.GetName())
 	eLocationAttribute, _ := eLocationFeature.(EAttribute)
 	assert.NotNil(t, eLocationAttribute)
 	eLocationType := eLocationAttribute.GetEAttributeType()
 	assert.NotNil(t, eLocationType)
 
-	eBooksFeature := eBookStoreClass.GetEStructuralFeature(2)
+	eBooksFeature := eLibraryClass.GetEStructuralFeature(2)
 	assert.Equal(t, "books", eBooksFeature.GetName())
 	eBooksReference, _ := eBooksFeature.(EReference)
 	assert.NotNil(t, eBooksReference)
@@ -77,9 +77,9 @@ func TestXMIResourceLoadSimple(t *testing.T) {
 	assert.Equal(t, eBookClass, eBooksReference.GetEReferenceType())
 }
 
-func TestXMIResourceLoadComplex(t *testing.T) {
+func TestXMIResourceLoadLibraryNoRoot(t *testing.T) {
 	resource := newXMIResourceImpl()
-	resource.SetURI(&url.URL{Path: "testdata/library.ecore"})
+	resource.SetURI(&url.URL{Path: "testdata/library.noroot.ecore"})
 	resource.Load()
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty())
@@ -112,39 +112,53 @@ func TestXMIResourceLoadComplex(t *testing.T) {
 	assert.Equal(t, "true", eAnnotation.GetDetails().GetValue("extension"))
 }
 
-func TestXMIResourceSaveSimple(t *testing.T) {
+func TestXMIResourceSaveLibrarySimple(t *testing.T) {
 
 	resource := newXMIResourceImpl()
-	resource.SetURI(&url.URL{Path: "testdata/bookStore.ecore"})
+	resource.SetURI(&url.URL{Path: "testdata/library.simple.ecore"})
 	resource.Load()
 
 	var strbuff strings.Builder
 	resource.SaveWithWriter(&strbuff)
 
-	bytes, err := ioutil.ReadFile("testdata/bookStore.ecore")
+	bytes, err := ioutil.ReadFile("testdata/library.simple.ecore")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
 
-func TestXMIResourceSaveComplex(t *testing.T) {
+func TestXMIResourceSaveLibraryNoRoot(t *testing.T) {
 
 	resource := newXMIResourceImpl()
-	resource.SetURI(&url.URL{Path: "testdata/library.ecore"})
+	resource.SetURI(&url.URL{Path: "testdata/library.noroot.ecore"})
 	resource.Load()
 
 	var strbuff strings.Builder
 	resource.SaveWithWriter(&strbuff)
 
-	bytes, err := ioutil.ReadFile("testdata/library.ecore")
+	bytes, err := ioutil.ReadFile("testdata/library.noroot.ecore")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
 
-func BenchmarkXMIResourceLoadSaveSimple(b *testing.B) {
+func TestXMIResourceSaveLibraryComplex(t *testing.T) {
+
+	resource := newXMIResourceImpl()
+	resource.SetURI(&url.URL{Path: "testdata/library.complex.ecore"})
+	resource.Load()
+
+	var strbuff strings.Builder
+	resource.SaveWithWriter(&strbuff)
+
+	bytes, err := ioutil.ReadFile("testdata/library.complex.ecore")
+	assert.Nil(t, err)
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
+}
+
+func BenchmarkXMIResourceLoadSaveLibrarySimple(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		resource := newXMIResourceImpl()
-		resource.SetURI(&url.URL{Path: "testdata/bookStore.ecore"})
+		resource.SetURI(&url.URL{Path: "testdata/library.simple.ecore"})
 		resource.Load()
 
 		var strbuff strings.Builder
@@ -153,11 +167,11 @@ func BenchmarkXMIResourceLoadSaveSimple(b *testing.B) {
 	}
 }
 
-func BenchmarkXMIResourceLoadSaveComplex(b *testing.B) {
+func BenchmarkXMIResourceLoadSaveLibraryNoRoot(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		resource := newXMIResourceImpl()
-		resource.SetURI(&url.URL{Path: "testdata/library.ecore"})
+		resource.SetURI(&url.URL{Path: "testdata/library.noroot.ecore"})
 		resource.Load()
 
 		var strbuff strings.Builder

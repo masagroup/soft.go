@@ -120,6 +120,34 @@ func TestXMIResourceLoadLibraryNoRoot(t *testing.T) {
 	assert.Equal(t, "true", eAnnotation.GetDetails().GetValue("extension"))
 }
 
+func TestXMIResourceLoadLibraryComplex(t *testing.T) {
+	resource := newXMIResourceImpl()
+	resource.SetURI(&url.URL{Path: "testdata/library.complex.ecore"})
+	resource.Load()
+	assert.True(t, resource.IsLoaded())
+	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
+	assert.Equal(t, "2.0", resource.GetXMIVersion())
+
+	contents := resource.GetContents()
+	assert.Equal(t, 1, contents.Size())
+
+	ePackage, _ := contents.Get(0).(EPackage)
+	assert.NotNil(t, ePackage)
+
+	eClassifiers := ePackage.GetEClassifiers()
+	eDocumentRootClass, _ := eClassifiers.Get(0).(EClass)
+	assert.NotNil(t, eDocumentRootClass)
+
+	eXMNLSPrefixFeature, _ := eDocumentRootClass.GetEStructuralFeatureFromName("xMLNSPrefixMap").(EReference)
+	assert.NotNil(t, eXMNLSPrefixFeature)
+
+	eType := eXMNLSPrefixFeature.GetEType()
+	assert.NotNil(t, eType)
+	assert.Equal(t, "EStringToStringMapEntry", eType.GetName())
+	assert.False(t, eType.EIsProxy())
+}
+
 func TestXMIResourceSaveLibrarySimple(t *testing.T) {
 
 	resource := newXMIResourceImpl()

@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestEContentAdapterSetTarget(t *testing.T) {
+func TestEContentAdapter_SetTarget_EObject(t *testing.T) {
 	adapter := NewEContentAdapter()
 	nb := rand.Intn(10) + 1
 	children := []interface{}{}
@@ -33,7 +33,6 @@ func TestEContentAdapterSetTarget(t *testing.T) {
 
 	mockChildren := NewImmutableEList(children)
 	mockObject := new(MockEObject)
-	mockAdapters := new(MockEList)
 	mockObject.On("EContents").Return(mockChildren)
 
 	// set adapter target -> this should recursively register adapter on all object children
@@ -43,7 +42,51 @@ func TestEContentAdapterSetTarget(t *testing.T) {
 	adapter.UnSetTarget(mockObject)
 
 	mock.AssertExpectationsForObjects(t, children...)
-	mock.AssertExpectationsForObjects(t, mockObject, mockAdapters)
+	mock.AssertExpectationsForObjects(t, mockObject)
+}
+
+func TestEContentAdapter_SetTarget_EResourceSet(t *testing.T) {
+	adapter := NewEContentAdapter()
+	mockResourceSet := &MockEResourceSet{}
+	mockResource := &MockEResource{}
+	mockResourceAdapters := new(MockEList)
+
+	// Set target
+	mockResourceSet.On("GetResources").Return(NewImmutableEList([]interface{}{mockResource})).Once()
+	mockResource.On("EAdapters").Return(mockResourceAdapters).Once()
+	mockResourceAdapters.On("Contains", adapter).Return(false).Once()
+	mockResourceAdapters.On("Add", adapter).Return(true).Once()
+	adapter.SetTarget(mockResourceSet)
+	mock.AssertExpectationsForObjects(t, mockResourceSet, mockResource, mockResourceAdapters)
+
+	// UnSet target
+	mockResourceSet.On("GetResources").Return(NewImmutableEList([]interface{}{mockResource})).Once()
+	mockResource.On("EAdapters").Return(mockResourceAdapters).Once()
+	mockResourceAdapters.On("Remove", adapter).Return(true).Once()
+	adapter.UnSetTarget(mockResourceSet)
+	mock.AssertExpectationsForObjects(t, mockResourceSet, mockResource, mockResourceAdapters)
+}
+
+func TestEContentAdapter_SetTarget_EResource(t *testing.T) {
+	adapter := NewEContentAdapter()
+	mockResource := &MockEResource{}
+	mockObject := &MockEObject{}
+	mockObjectAdapters := new(MockEList)
+
+	// Set target
+	mockResource.On("GetContents").Return(NewImmutableEList([]interface{}{mockObject})).Once()
+	mockObject.On("EAdapters").Return(mockObjectAdapters).Once()
+	mockObjectAdapters.On("Contains", adapter).Return(false).Once()
+	mockObjectAdapters.On("Add", adapter).Return(true).Once()
+	adapter.SetTarget(mockResource)
+	mock.AssertExpectationsForObjects(t, mockResource, mockObject, mockObjectAdapters)
+
+	// UnSet target
+	mockResource.On("GetContents").Return(NewImmutableEList([]interface{}{mockObject})).Once()
+	mockObject.On("EAdapters").Return(mockObjectAdapters).Once()
+	mockObjectAdapters.On("Remove", adapter).Return(true).Once()
+	adapter.UnSetTarget(mockResource)
+	mock.AssertExpectationsForObjects(t, mockResource, mockObject, mockObjectAdapters)
 }
 
 func TestEContentAdapterNotifyChanged(t *testing.T) {
@@ -295,4 +338,77 @@ func TestEContentAdapterNotifyChanged_RemoveMany(t *testing.T) {
 
 	mock.AssertExpectationsForObjects(t, mockChildren...)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference)
+}
+
+func TestEContentAdapterIntegration(t *testing.T) {
+	mockAdapter := NewMockContentAdapter()
+
+	rs := NewEResourceSetImpl()
+	rs.EAdapters().Add(mockAdapter)
+
+	// add a new resource to resource set & check that mockAdapter is called
+	r := NewEResourceImpl()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == rs &&
+			n.GetFeatureID() == RESOURCE_SET__RESOURCES &&
+			n.GetNewValue() == r &&
+			n.GetEventType() == ADD &&
+			n.GetPosition() == 0
+	})).Once()
+	rs.GetResources().Add(r)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	// add a new object to resource & check that mockAdapter is called
+	o := NewEObjectImpl()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == r &&
+			n.GetFeatureID() == RESOURCE__CONTENTS &&
+			n.GetNewValue() == o &&
+			n.GetEventType() == ADD &&
+			n.GetPosition() == 0
+	})).Once()
+	r.GetContents().Add(o)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	// remove object from resource & check that mockAdpater is called
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == r &&
+			n.GetFeatureID() == RESOURCE__CONTENTS &&
+			n.GetOldValue() == o &&
+			n.GetEventType() == REMOVE &&
+			n.GetPosition() == 0
+	})).Once()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == o &&
+			n.GetOldValue() == mockAdapter &&
+			n.GetEventType() == REMOVING_ADAPTER &&
+			n.GetPosition() == 0
+	})).Once()
+	r.GetContents().Remove(o)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	// remove resource from resource set & check that mockAdapter is called & correctly removed
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == r &&
+			n.GetFeatureID() == RESOURCE__RESOURCE_SET &&
+			n.GetOldValue() == rs &&
+			n.GetNewValue() == nil &&
+			n.GetEventType() == SET &&
+			n.GetPosition() == -1
+	})).Once()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == rs &&
+			n.GetFeatureID() == RESOURCE_SET__RESOURCES &&
+			n.GetOldValue() == r &&
+			n.GetEventType() == REMOVE &&
+			n.GetPosition() == 0
+	})).Once()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == r &&
+			n.GetOldValue() == mockAdapter &&
+			n.GetEventType() == REMOVING_ADAPTER &&
+			n.GetPosition() == 0
+	})).Once()
+	rs.GetResources().Remove(r)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
 }

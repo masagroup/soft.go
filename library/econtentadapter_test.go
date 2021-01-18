@@ -9,29 +9,13 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type contentAdapter struct {
-	mock.Mock
-	ecore.EContentAdapter
-}
-
-func newContentAdapter() *contentAdapter {
-	c := new(contentAdapter)
-	c.SetInterfaces(c)
-	return c
-}
-
-func (adapter *contentAdapter) NotifyChanged(notification ecore.ENotification) {
-	adapter.Called(notification)
-	adapter.EContentAdapter.NotifyChanged(notification)
-}
-
 func TestEContentAdapterEObjectTopChanged(t *testing.T) {
 
 	library := GetFactory().CreateLibrary()
 	employee := GetFactory().CreateEmployee()
 
 	// create and add a new content adapter
-	adapter := newContentAdapter()
+	adapter := ecore.NewMockContentAdapter()
 	library.EAdapters().Add(adapter)
 
 	// check that a notification is raised when employee is added
@@ -59,7 +43,7 @@ func TestEContentAdapterEObjectChildChanged(t *testing.T) {
 	library.GetEmployees().Add(employee)
 
 	// create and add a new content adapter
-	adapter := newContentAdapter()
+	adapter := ecore.NewMockContentAdapter()
 	library.EAdapters().Add(adapter)
 
 	// check that a notification is raised when employee is added
@@ -90,6 +74,6 @@ func TestEContentAdapterResource(t *testing.T) {
 	assert.True(t, resource.GetErrors().Empty())
 	assert.True(t, resource.GetWarnings().Empty())
 
-	adapter := newContentAdapter()
+	adapter := ecore.NewMockContentAdapter()
 	resource.EAdapters().Add(adapter)
 }

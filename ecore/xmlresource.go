@@ -205,9 +205,11 @@ func (l *xmlLoadImpl) endElement(e xml.EndElement) {
 		eRoot = l.objects[0]
 		l.objects = l.objects[:len(l.objects)-1]
 	}
+	if len(l.elements) > 0 {
+		l.elements = l.elements[:len(l.elements)-1]
+	}
 
 	// end of the document
-	l.elements = l.elements[:len(l.elements)-1]
 	if len(l.elements) == 0 {
 		l.handleReferences()
 		l.recordSchemaLocations(eRoot)
@@ -701,7 +703,7 @@ func (l *xmlLoadImpl) handleReferences() {
 }
 
 func (l *xmlLoadImpl) recordSchemaLocations(eObject EObject) {
-	if l.extendedMetaData != nil {
+	if l.extendedMetaData != nil && eObject != nil {
 		eClass := eObject.EClass()
 		if xmlnsPrefixMapFeature := l.extendedMetaData.GetXMLNSPrefixMapFeature(eClass); xmlnsPrefixMapFeature != nil {
 			m := eObject.EGet(xmlnsPrefixMapFeature).(EMap)

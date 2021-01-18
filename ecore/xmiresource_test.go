@@ -9,13 +9,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func diagnosticError(errors EList) string {
+	if errors.Empty() {
+		return ""
+	} else {
+		return errors.Get(0).(EDiagnostic).GetMessage()
+	}
+}
+
 func TestXMIResourceLoadLibrarySimple(t *testing.T) {
 	resource := newXMIResourceImpl()
 	resource.SetURI(&url.URL{Path: "testdata/library.simple.ecore"})
 	resource.Load()
 	assert.True(t, resource.IsLoaded())
-	assert.True(t, resource.GetErrors().Empty())
-	assert.True(t, resource.GetWarnings().Empty())
+	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
 
 	contents := resource.GetContents()
 	assert.Equal(t, 1, contents.Size())
@@ -82,8 +90,8 @@ func TestXMIResourceLoadLibraryNoRoot(t *testing.T) {
 	resource.SetURI(&url.URL{Path: "testdata/library.noroot.ecore"})
 	resource.Load()
 	assert.True(t, resource.IsLoaded())
-	assert.True(t, resource.GetErrors().Empty())
-	assert.True(t, resource.GetWarnings().Empty())
+	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
 	assert.Equal(t, "2.0", resource.GetXMIVersion())
 
 	contents := resource.GetContents()

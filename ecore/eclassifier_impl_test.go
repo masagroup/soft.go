@@ -205,7 +205,6 @@ func TestEClassifierEBasicInverseRemove(t *testing.T) {
 		mockObject := new(MockEPackage)
 		o.EBasicInverseRemove(mockObject, ECLASSIFIER__EPACKAGE, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
-
 	}
 
 }

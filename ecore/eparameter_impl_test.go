@@ -108,7 +108,6 @@ func TestEParameterEBasicInverseRemove(t *testing.T) {
 		mockObject := new(MockEOperation)
 		o.EBasicInverseRemove(mockObject, EPARAMETER__EOPERATION, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
-
 	}
 
 }

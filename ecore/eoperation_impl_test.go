@@ -233,7 +233,6 @@ func TestEOperationEBasicInverseRemove(t *testing.T) {
 		mockObject := new(MockEClass)
 		o.EBasicInverseRemove(mockObject, EOPERATION__ECONTAINING_CLASS, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
-
 	}
 	{
 		// initialize list with a mock object

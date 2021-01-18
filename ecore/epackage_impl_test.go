@@ -360,7 +360,6 @@ func TestEPackageEBasicInverseRemove(t *testing.T) {
 		mockObject := new(MockEFactory)
 		o.EBasicInverseRemove(mockObject, EPACKAGE__EFACTORY_INSTANCE, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
-
 	}
 	{
 		// initialize list with a mock object
@@ -381,7 +380,6 @@ func TestEPackageEBasicInverseRemove(t *testing.T) {
 		mockObject := new(MockEPackage)
 		o.EBasicInverseRemove(mockObject, EPACKAGE__ESUPER_PACKAGE, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
-
 	}
 
 }

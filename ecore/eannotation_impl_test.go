@@ -322,10 +322,15 @@ func TestEAnnotationEBasicInverseRemove(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}
 	{
+		mockObject := new(MockEStringToStringMapEntry)
+		o.EBasicInverseRemove(mockObject, EANNOTATION__DETAILS, nil)
+		mock.AssertExpectationsForObjects(t, mockObject)
+		assert.True(t, o.GetDetails().Empty())
+	}
+	{
 		mockObject := new(MockEModelElement)
 		o.EBasicInverseRemove(mockObject, EANNOTATION__EMODEL_ELEMENT, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
-
 	}
 
 }

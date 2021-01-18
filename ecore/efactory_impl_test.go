@@ -211,7 +211,6 @@ func TestEFactoryEBasicInverseRemove(t *testing.T) {
 		mockObject := new(MockEPackage)
 		o.EBasicInverseRemove(mockObject, EFACTORY__EPACKAGE, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
-
 	}
 
 }

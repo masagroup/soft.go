@@ -109,14 +109,27 @@ func TestEGenericTypeELowerBoundGet(t *testing.T) {
 
 func TestEGenericTypeELowerBoundSet(t *testing.T) {
 	o := newEGenericTypeImpl()
-	mockValue := new(MockEGenericType)
-	mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, mock.Anything).Return(nil).Once()
+
+	// add listener
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
-	o.SetELowerBound(mockValue)
-	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	mockValue1 := new(MockEGenericType)
+	mockValue1.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, mock.Anything).Return(nil).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.SetELowerBound(mockValue1)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue1)
+
+	// second value
+	mockValue2 := new(MockEGenericType)
+	mockValue1.On("EInverseRemove", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, nil).Return(nil).Once()
+	mockValue2.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, nil).Return(nil).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.SetELowerBound(mockValue2)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue1, mockValue2)
+
 }
 
 func TestEGenericTypeELowerBoundBasicSet(t *testing.T) {
@@ -218,14 +231,27 @@ func TestEGenericTypeEUpperBoundGet(t *testing.T) {
 
 func TestEGenericTypeEUpperBoundSet(t *testing.T) {
 	o := newEGenericTypeImpl()
-	mockValue := new(MockEGenericType)
-	mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, mock.Anything).Return(nil).Once()
+
+	// add listener
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
-	o.SetEUpperBound(mockValue)
-	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+
+	mockValue1 := new(MockEGenericType)
+	mockValue1.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, mock.Anything).Return(nil).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.SetEUpperBound(mockValue1)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue1)
+
+	// second value
+	mockValue2 := new(MockEGenericType)
+	mockValue1.On("EInverseRemove", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, nil).Return(nil).Once()
+	mockValue2.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, nil).Return(nil).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.SetEUpperBound(mockValue2)
+	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue1, mockValue2)
+
 }
 
 func TestEGenericTypeEUpperBoundBasicSet(t *testing.T) {
@@ -359,7 +385,9 @@ func TestEGenericTypeEBasicInverseRemove(t *testing.T) {
 		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
 	}
 	{
-
+		mockObject := new(MockEGenericType)
+		o.EBasicInverseRemove(mockObject, EGENERIC_TYPE__ELOWER_BOUND, nil)
+		mock.AssertExpectationsForObjects(t, mockObject)
 	}
 	{
 		// initialize list with a mock object
@@ -377,7 +405,9 @@ func TestEGenericTypeEBasicInverseRemove(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}
 	{
-
+		mockObject := new(MockEGenericType)
+		o.EBasicInverseRemove(mockObject, EGENERIC_TYPE__EUPPER_BOUND, nil)
+		mock.AssertExpectationsForObjects(t, mockObject)
 	}
 
 }

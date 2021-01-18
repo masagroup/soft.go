@@ -218,7 +218,6 @@ func TestEEnumLiteralEBasicInverseRemove(t *testing.T) {
 		mockObject := new(MockEEnum)
 		o.EBasicInverseRemove(mockObject, EENUM_LITERAL__EENUM, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
-
 	}
 
 }

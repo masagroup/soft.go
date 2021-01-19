@@ -11,6 +11,12 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
+const (
+	OPTION_EXTENDED_META_DATA        = "EXTENDED_META_DATA"
+	OPTION_SUPPRESS_DOCUMENT_ROOT    = "SUPPRESS_DOCUMENT_ROOT"
+	OPTION_IDREF_RESOLUTION_DEFERRED = "IDREF_RESOLUTION_DEFERRED"
+)
+
 type xmlLoad interface {
 	load(resource xmlResource, w io.Reader)
 }
@@ -30,8 +36,8 @@ type xmlSaveInternal interface {
 
 type xmlResource interface {
 	EResourceInternal
-	createLoad() xmlLoad
-	createSave() xmlSave
+	createLoad(options map[string]interface{}) xmlLoad
+	createSave(options map[string]interface{}) xmlSave
 }
 
 type pair [2]interface{}
@@ -146,14 +152,23 @@ type xmlLoadImpl struct {
 	extendedMetaData       *ExtendedMetaData
 }
 
-func newXMLLoadImpl() *xmlLoadImpl {
+func newXMLLoadImpl(options map[string]interface{}) *xmlLoadImpl {
 	l := new(xmlLoadImpl)
 	l.interfaces = l
 	l.namespaces = newXmlNamespaces()
 	l.prefixesToURI = make(map[string]string)
 	l.spacesToFactories = make(map[string]EFactory)
 	l.notFeatures = append(l.notFeatures, xml.Name{Space: xsiURI, Local: typeAttrib}, xml.Name{Space: xsiURI, Local: schemaLocationAttrib}, xml.Name{Space: xsiURI, Local: noNamespaceSchemaLocationAttrib})
-	l.extendedMetaData = NewExtendedMetaData()
+	if options != nil {
+		l.isResolveDeferred = options[OPTION_IDREF_RESOLUTION_DEFERRED] == true
+		l.isSuppressDocumentRoot = options[OPTION_SUPPRESS_DOCUMENT_ROOT] == true
+		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
+			l.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
+		}
+	}
+	if l.extendedMetaData == nil {
+		l.extendedMetaData = NewExtendedMetaData()
+	}
 	return l
 }
 
@@ -315,7 +330,7 @@ func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 				if len(l.objects) > 0 {
 					eObject = l.objects[0]
 					// remove new object from its container ( document root )
-					eObject.EUnset(eObject.EContainmentFeature())
+					Remove(eObject)
 				}
 			}
 			return eObject
@@ -1014,7 +1029,7 @@ type xmlSaveImpl struct {
 	keepDefaults     bool
 }
 
-func newXMLSaveImpl() *xmlSaveImpl {
+func newXMLSaveImpl(options map[string]interface{}) *xmlSaveImpl {
 	s := new(xmlSaveImpl)
 	s.interfaces = s
 	s.str = newXmlString()
@@ -1707,22 +1722,22 @@ func newXMLResourceImpl() *xmlResourceImpl {
 	return r
 }
 
-func (r *xmlResourceImpl) DoLoad(rd io.Reader) {
+func (r *xmlResourceImpl) DoLoad(rd io.Reader, options map[string]interface{}) {
 	resource := r.GetInterfaces().(xmlResource)
-	l := resource.createLoad()
+	l := resource.createLoad(options)
 	l.load(resource, rd)
 }
 
-func (r *xmlResourceImpl) DoSave(w io.Writer) {
+func (r *xmlResourceImpl) DoSave(w io.Writer, options map[string]interface{}) {
 	resource := r.GetInterfaces().(xmlResource)
-	s := resource.createSave()
+	s := resource.createSave(options)
 	s.save(resource, w)
 }
 
-func (r *xmlResourceImpl) createLoad() xmlLoad {
-	return newXMLLoadImpl()
+func (r *xmlResourceImpl) createLoad(options map[string]interface{}) xmlLoad {
+	return newXMLLoadImpl(options)
 }
 
-func (r *xmlResourceImpl) createSave() xmlSave {
-	return newXMLSaveImpl()
+func (r *xmlResourceImpl) createSave(options map[string]interface{}) xmlSave {
+	return newXMLSaveImpl(options)
 }

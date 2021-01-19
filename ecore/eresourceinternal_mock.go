@@ -10,13 +10,13 @@ type MockEResourceInternal struct {
 }
 
 // DoLoad provides a mock function with given fields: rd
-func (_m *MockEResourceInternal) DoLoad(rd io.Reader) {
-	_m.Called(rd)
+func (_m *MockEResourceInternal) DoLoad(rd io.Reader, options map[string]interface{}) {
+	_m.Called(rd, options)
 }
 
 // DoSave provides a mock function with given fields: rd
-func (_m *MockEResourceInternal) DoSave(rd io.Writer) {
-	_m.Called(rd)
+func (_m *MockEResourceInternal) DoSave(rd io.Writer, options map[string]interface{}) {
+	_m.Called(rd, options)
 }
 
 // DoUnload provides a mock function with given fields:

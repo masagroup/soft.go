@@ -13,9 +13,9 @@ type xmiLoadImpl struct {
 	*xmlLoadImpl
 }
 
-func newXMILoadImpl() *xmiLoadImpl {
+func newXMILoadImpl(options map[string]interface{}) *xmiLoadImpl {
 	l := new(xmiLoadImpl)
-	l.xmlLoadImpl = newXMLLoadImpl()
+	l.xmlLoadImpl = newXMLLoadImpl(options)
 	l.notFeatures = append(l.notFeatures, xml.Name{Space: xmiURI, Local: typeAttrib}, xml.Name{Space: xmiURI, Local: versionAttrib}, xml.Name{Space: xmiURI, Local: uuidAttrib})
 	l.extendedMetaData = nil
 	l.interfaces = l
@@ -42,9 +42,9 @@ type xmiSaveImpl struct {
 	*xmlSaveImpl
 }
 
-func newXMISaveImpl() *xmiSaveImpl {
+func newXMISaveImpl(options map[string]interface{}) *xmiSaveImpl {
 	s := new(xmiSaveImpl)
-	s.xmlSaveImpl = newXMLSaveImpl()
+	s.xmlSaveImpl = newXMLSaveImpl(options)
 	s.interfaces = s
 	s.extendedMetaData = nil
 	return s
@@ -83,10 +83,10 @@ func (r *xmiResourceImpl) GetXMIVersion() string {
 	return r.xmiVersion
 }
 
-func (r *xmiResourceImpl) createLoad() xmlLoad {
-	return newXMILoadImpl()
+func (r *xmiResourceImpl) createLoad(options map[string]interface{}) xmlLoad {
+	return newXMILoadImpl(options)
 }
 
-func (r *xmiResourceImpl) createSave() xmlSave {
-	return newXMISaveImpl()
+func (r *xmiResourceImpl) createSave(options map[string]interface{}) xmlSave {
+	return newXMISaveImpl(options)
 }

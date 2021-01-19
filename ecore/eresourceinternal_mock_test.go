@@ -13,8 +13,9 @@ func TestMockEResourceInternalDoLoad(t *testing.T) {
 	r := &MockEResourceInternal{}
 	uri, _ := url.Parse("test://file.t")
 	f, _ := os.Open(uri.String())
-	r.On("DoLoad", f).Once()
-	r.DoLoad(f)
+	m := make(map[string]interface{})
+	r.On("DoLoad", f, m).Once()
+	r.DoLoad(f, m)
 	mock.AssertExpectationsForObjects(t, r)
 }
 
@@ -22,8 +23,9 @@ func TestMockEResourceInternalDoSave(t *testing.T) {
 	r := &MockEResourceInternal{}
 	uri, _ := url.Parse("test://file.t")
 	f, _ := os.Create(uri.String())
-	r.On("DoSave", f).Once()
-	r.DoSave(f)
+	m := make(map[string]interface{})
+	r.On("DoSave", f, m).Once()
+	r.DoSave(f, m)
 	mock.AssertExpectationsForObjects(t, r)
 }
 

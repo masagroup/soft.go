@@ -1,7 +1,9 @@
 package ecore
 
 import (
+	"io/ioutil"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -151,4 +153,31 @@ func TestXmlLoadLibraryComplex(t *testing.T) {
 	eLibrary, _ := eDocumentRoot.EGet(eDocumentRootLibraryFeature).(EObject)
 	assert.NotNil(t, eLibrary)
 	assert.Equal(t, "My Library", eLibrary.EGet(eLibraryNameAttribute))
+}
+
+func TestXmlLoadSaveLibraryComplex(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	assert.NotNil(t, ePackage)
+
+	// create a resource set
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	// create a resource
+	eResource := newXMLResourceImpl()
+	eResourceSet.GetResources().Add(eResource)
+
+	// load it
+	eResource.SetURI(&url.URL{Path: "testdata/library.complex.xml"})
+	eResource.Load()
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	var strbuff strings.Builder
+	eResource.SaveWithWriter(&strbuff, nil)
+
+	bytes, err := ioutil.ReadFile("testdata/library.complex.xml")
+	assert.Nil(t, err)
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }

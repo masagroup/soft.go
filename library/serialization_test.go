@@ -105,7 +105,7 @@ func TestSerializationLoadSaveSimpleXML(t *testing.T) {
 	resource.Load()
 
 	var strbuff strings.Builder
-	resource.SaveWithWriter(&strbuff)
+	resource.SaveWithWriter(&strbuff, nil)
 
 	bytes, err := ioutil.ReadFile("testdata/library.simple.default.xml")
 	assert.Nil(t, err)
@@ -121,7 +121,7 @@ func TestSerializationLoadSavePrefixXML(t *testing.T) {
 	resource.Load()
 
 	var strbuff strings.Builder
-	resource.SaveWithWriter(&strbuff)
+	resource.SaveWithWriter(&strbuff, nil)
 
 	bytes, err := ioutil.ReadFile("testdata/library.simple.prefix.xml")
 	assert.Nil(t, err)
@@ -137,7 +137,7 @@ func TestSerializationLoadSaveComplexXML(t *testing.T) {
 	resource.Load()
 
 	var strbuff strings.Builder
-	resource.SaveWithWriter(&strbuff)
+	resource.SaveWithWriter(&strbuff, nil)
 
 	bytes, err := ioutil.ReadFile("testdata/library.complex.xml")
 	assert.Nil(t, err)

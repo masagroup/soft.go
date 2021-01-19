@@ -155,7 +155,7 @@ func TestXMIResourceSaveLibrarySimple(t *testing.T) {
 	resource.Load()
 
 	var strbuff strings.Builder
-	resource.SaveWithWriter(&strbuff)
+	resource.SaveWithWriter(&strbuff, nil)
 
 	bytes, err := ioutil.ReadFile("testdata/library.simple.ecore")
 	assert.Nil(t, err)
@@ -169,7 +169,7 @@ func TestXMIResourceSaveLibraryNoRoot(t *testing.T) {
 	resource.Load()
 
 	var strbuff strings.Builder
-	resource.SaveWithWriter(&strbuff)
+	resource.SaveWithWriter(&strbuff, nil)
 
 	bytes, err := ioutil.ReadFile("testdata/library.noroot.ecore")
 	assert.Nil(t, err)
@@ -183,7 +183,7 @@ func TestXMIResourceSaveLibraryComplex(t *testing.T) {
 	resource.Load()
 
 	var strbuff strings.Builder
-	resource.SaveWithWriter(&strbuff)
+	resource.SaveWithWriter(&strbuff, nil)
 
 	bytes, err := ioutil.ReadFile("testdata/library.complex.ecore")
 	assert.Nil(t, err)
@@ -198,7 +198,7 @@ func BenchmarkXMIResourceLoadSaveLibrarySimple(b *testing.B) {
 		resource.Load()
 
 		var strbuff strings.Builder
-		resource.SaveWithWriter(&strbuff)
+		resource.SaveWithWriter(&strbuff, nil)
 		resource = nil
 	}
 }
@@ -211,7 +211,7 @@ func BenchmarkXMIResourceLoadSaveLibraryNoRoot(b *testing.B) {
 		resource.Load()
 
 		var strbuff strings.Builder
-		resource.SaveWithWriter(&strbuff)
+		resource.SaveWithWriter(&strbuff, nil)
 		resource = nil
 	}
 }

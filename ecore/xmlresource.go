@@ -1037,7 +1037,14 @@ func newXMLSaveImpl(options map[string]interface{}) *xmlSaveImpl {
 	s.uriToPrefixes = make(map[string][]string)
 	s.prefixesToURI = make(map[string]string)
 	s.featureKinds = make(map[EStructuralFeature]int)
-	s.extendedMetaData = NewExtendedMetaData()
+	if options != nil {
+		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
+			s.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
+		}
+	}
+	if s.extendedMetaData == nil {
+		s.extendedMetaData = NewExtendedMetaData()
+	}
 	return s
 }
 

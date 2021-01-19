@@ -155,6 +155,39 @@ func TestXmlLoadLibraryComplex(t *testing.T) {
 	assert.Equal(t, "My Library", eLibrary.EGet(eLibraryNameAttribute))
 }
 
+func TestXmlLoadLibraryComplexWithOptions(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	assert.NotNil(t, ePackage)
+
+	// create a resource set
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetPackageRegistry().RegisterPackage(GetPackage())
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	// create a resource
+	eResource := newXMLResourceImpl()
+	eResourceSet.GetResources().Add(eResource)
+
+	extendedMetaData := NewExtendedMetaData()
+
+	// load it
+	eResource.SetURI(&url.URL{Path: "testdata/library.complex.noroot.xml"})
+	eResource.LoadWithOptions(map[string]interface{}{OPTION_SUPPRESS_DOCUMENT_ROOT: true, OPTION_EXTENDED_META_DATA: extendedMetaData})
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	// retrive library class & library name attribute
+	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	assert.NotNil(t, eLibraryClass)
+	eLibraryNameAttribute, _ := eLibraryClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	assert.NotNil(t, eLibraryNameAttribute)
+
+	// check library name
+	eLibrary, _ := eResource.GetContents().Get(0).(EObject)
+	assert.Equal(t, "My Library", eLibrary.EGet(eLibraryNameAttribute))
+}
+
 func TestXmlLoadSaveLibraryComplex(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	assert.NotNil(t, ePackage)
@@ -178,6 +211,36 @@ func TestXmlLoadSaveLibraryComplex(t *testing.T) {
 	eResource.SaveWithWriter(&strbuff, nil)
 
 	bytes, err := ioutil.ReadFile("testdata/library.complex.xml")
+	assert.Nil(t, err)
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
+}
+
+func TestXmlLoadSaveLibraryComplexWithOptions(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	assert.NotNil(t, ePackage)
+
+	// create a resource set
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	// create a resource
+	eResource := newXMLResourceImpl()
+	eResourceSet.GetResources().Add(eResource)
+
+	extendedMetaData := NewExtendedMetaData()
+	options := map[string]interface{}{OPTION_SUPPRESS_DOCUMENT_ROOT: true, OPTION_EXTENDED_META_DATA: extendedMetaData}
+	// load it
+	eResource.SetURI(&url.URL{Path: "testdata/library.complex.noroot.xml"})
+	eResource.LoadWithOptions(options)
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	// save it
+	var strbuff strings.Builder
+	eResource.SaveWithWriter(&strbuff, options)
+
+	bytes, err := ioutil.ReadFile("testdata/library.complex.noroot.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }

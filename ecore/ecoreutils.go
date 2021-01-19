@@ -171,3 +171,21 @@ func EqualsAll(l1 EList, l2 EList) bool {
 	dE := newDeepEqual()
 	return dE.equalsAll(l1, l2)
 }
+
+func Remove(eObject EObject) {
+	if eObjectInternal, _ := eObject.(EObjectInternal); eObjectInternal != nil {
+		if eContainer := eObjectInternal.EInternalContainer(); eContainer != nil {
+			if eFeature := eObject.EContainmentFeature(); eFeature != nil {
+				if eFeature.IsMany() {
+					l := eContainer.EGet(eFeature).(EList)
+					l.Remove(eObject)
+				} else {
+					eContainer.EUnset(eFeature)
+				}
+			}
+		}
+		if eResource := eObjectInternal.EInternalResource(); eResource != nil {
+			eResource.GetContents().Remove(eObject)
+		}
+	}
+}

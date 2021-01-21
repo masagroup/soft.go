@@ -3261,10 +3261,12 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eBigDecimal.SetName("EBigDecimal")
 	p.eBigDecimal.SetInstanceTypeName("float64")
 	p.eBigDecimal.SetSerializable(true)
+	p.eBigDecimal.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eBigDecimal, "0.0"))
 
 	p.eBigInteger.SetName("EBigInteger")
-	p.eBigInteger.SetInstanceTypeName("int")
+	p.eBigInteger.SetInstanceTypeName("int64")
 	p.eBigInteger.SetSerializable(true)
+	p.eBigInteger.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eBigInteger, "0"))
 
 	p.eBoolean.SetName("EBoolean")
 	p.eBoolean.SetInstanceTypeName("bool")
@@ -3274,6 +3276,7 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eBooleanObject.SetName("EBooleanObject")
 	p.eBooleanObject.SetInstanceTypeName("bool")
 	p.eBooleanObject.SetSerializable(true)
+	p.eBooleanObject.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eBooleanObject, "false"))
 
 	p.eByte.SetName("EByte")
 	p.eByte.SetInstanceTypeName("byte")
@@ -3287,17 +3290,20 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eByteObject.SetName("EByteObject")
 	p.eByteObject.SetInstanceTypeName("byte")
 	p.eByteObject.SetSerializable(true)
+	p.eByteObject.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eByteObject, ""))
 
 	p.eChar.SetName("EChar")
 	p.eChar.SetInstanceTypeName("byte")
 	p.eChar.SetSerializable(true)
+	p.eChar.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eChar, ""))
 
 	p.eCharacterObject.SetName("ECharacterObject")
 	p.eCharacterObject.SetInstanceTypeName("byte")
 	p.eCharacterObject.SetSerializable(true)
+	p.eCharacterObject.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eCharacterObject, ""))
 
 	p.eDate.SetName("EDate")
-	p.eDate.SetInstanceTypeName("time.Time")
+	p.eDate.SetInstanceTypeName("*time.Time")
 	p.eDate.SetSerializable(true)
 
 	p.eDiagnosticChain.SetName("EDiagnosticChain")
@@ -3312,31 +3318,33 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eDoubleObject.SetName("EDoubleObject")
 	p.eDoubleObject.SetInstanceTypeName("float64")
 	p.eDoubleObject.SetSerializable(true)
+	p.eDoubleObject.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eDoubleObject, "0.0"))
 
 	p.eEList.SetName("EEList")
-	p.eEList.SetInstanceTypeName("org.eclipse.emf.common.util.EList")
+	p.eEList.SetInstanceTypeName("ecore.EList")
 	p.eEList.SetSerializable(false)
 
 	p.eEnumerator.SetName("EEnumerator")
-	p.eEnumerator.SetInstanceTypeName("org.eclipse.emf.common.util.Enumerator")
+	p.eEnumerator.SetInstanceTypeName("interface{}")
 	p.eEnumerator.SetSerializable(false)
 
 	p.eFeatureMap.SetName("EFeatureMap")
-	p.eFeatureMap.SetInstanceTypeName("org.eclipse.emf.ecore.util.FeatureMap")
+	p.eFeatureMap.SetInstanceTypeName("interface{}")
 	p.eFeatureMap.SetSerializable(false)
 
 	p.eFeatureMapEntry.SetName("EFeatureMapEntry")
-	p.eFeatureMapEntry.SetInstanceTypeName("org.eclipse.emf.ecore.util.FeatureMap$Entry")
+	p.eFeatureMapEntry.SetInstanceTypeName("interface{}")
 	p.eFeatureMapEntry.SetSerializable(false)
 
 	p.eFloat.SetName("EFloat")
-	p.eFloat.SetInstanceTypeName("float64")
+	p.eFloat.SetInstanceTypeName("float32")
 	p.eFloat.SetSerializable(true)
 	p.eFloat.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eFloat, "0.0"))
 
 	p.eFloatObject.SetName("EFloatObject")
-	p.eFloatObject.SetInstanceTypeName("float64")
+	p.eFloatObject.SetInstanceTypeName("float32")
 	p.eFloatObject.SetSerializable(true)
+	p.eFloatObject.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eFloatObject, "0.0"))
 
 	p.eInt.SetName("EInt")
 	p.eInt.SetInstanceTypeName("int")
@@ -3346,6 +3354,7 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eIntegerObject.SetName("EIntegerObject")
 	p.eIntegerObject.SetInstanceTypeName("int")
 	p.eIntegerObject.SetSerializable(true)
+	p.eIntegerObject.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eIntegerObject, "0"))
 
 	p.eInvocationTargetException.SetName("EInvocationTargetException")
 	p.eInvocationTargetException.SetInstanceTypeName("java.lang.reflect.InvocationTargetException")
@@ -3360,13 +3369,14 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eJavaObject.SetSerializable(true)
 
 	p.eLong.SetName("ELong")
-	p.eLong.SetInstanceTypeName("int")
+	p.eLong.SetInstanceTypeName("int64")
 	p.eLong.SetSerializable(true)
 	p.eLong.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eLong, "0"))
 
 	p.eLongObject.SetName("ELongObject")
 	p.eLongObject.SetInstanceTypeName("int")
 	p.eLongObject.SetSerializable(true)
+	p.eLongObject.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eLongObject, "0"))
 
 	p.eMap.SetName("EMap")
 	p.eMap.SetInstanceTypeName("ecore.EMap")
@@ -3381,17 +3391,19 @@ func (p *ecorePackageImpl) initializePackageEDataTypes() {
 	p.eResourceSet.SetSerializable(false)
 
 	p.eShort.SetName("EShort")
-	p.eShort.SetInstanceTypeName("uint16")
+	p.eShort.SetInstanceTypeName("int16")
 	p.eShort.SetSerializable(true)
 	p.eShort.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eShort, "0"))
 
 	p.eShortObject.SetName("EShortObject")
-	p.eShortObject.SetInstanceTypeName("uint16")
+	p.eShortObject.SetInstanceTypeName("int16")
 	p.eShortObject.SetSerializable(true)
+	p.eShortObject.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eShortObject, "0"))
 
 	p.eString.SetName("EString")
 	p.eString.SetInstanceTypeName("string")
 	p.eString.SetSerializable(true)
+	p.eString.(EDataTypeInternal).SetDefaultValue(p.GetEFactoryInstance().CreateFromString(p.eString, ""))
 
 	p.eTreeIterator.SetName("ETreeIterator")
 	p.eTreeIterator.SetInstanceTypeName("ecore.EIterator")

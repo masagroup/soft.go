@@ -527,8 +527,9 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) convertEShortObjectToString(eDataType 
 	panic("NotImplementedException")
 }
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEStringFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	return literalValue
 }
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEStringToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(string)
+	return v
 }

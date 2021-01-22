@@ -631,13 +631,13 @@ func TestFactoryConvert(t *testing.T) {
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ESTRING)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, "test", factory.CreateFromString(mockEDataType, "test"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ESTRING)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "test", factory.ConvertToString(mockEDataType, "test"))
 		mockEDataType.AssertExpectations(t)
 	}
 }

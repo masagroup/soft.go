@@ -15,6 +15,12 @@ func TestMockEPackageRegistryImpl_RegisterPackage(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, p)
 }
 
+func TestMockEPackageRegistryImpl_RegisterPackageWithURI(t *testing.T) {
+	rp := NewEPackageRegistryImpl()
+	p := &MockEPackage{}
+	rp.RegisterPackageWithURI(p, "nsURI")
+}
+
 func TestMockEPackageRegistryImpl_UnRegisterPackage(t *testing.T) {
 	rp := NewEPackageRegistryImpl()
 	p := &MockEPackage{}

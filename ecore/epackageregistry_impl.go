@@ -24,6 +24,10 @@ func (r *EPackageRegistryImpl) RegisterPackage(pack EPackage) {
 	r.packages[pack.GetNsURI()] = pack
 }
 
+func (r *EPackageRegistryImpl) RegisterPackageWithURI(pack EPackage, nsURI string) {
+	r.packages[nsURI] = pack
+}
+
 func (r *EPackageRegistryImpl) UnregisterPackage(pack EPackage) {
 	delete(r.packages, pack.GetNsURI())
 }

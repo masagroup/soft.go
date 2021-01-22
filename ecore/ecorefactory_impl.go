@@ -397,138 +397,183 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) ConvertToString(eDataType EDataType, i
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEBigDecimalFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBigDecimalToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEBigIntegerFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBigIntegerToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEBooleanFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBooleanToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEBooleanObjectFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBooleanObjectToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteArrayFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteArrayToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteObjectFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteObjectToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createECharFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertECharToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createECharacterObjectFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertECharacterObjectToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEDateFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDateToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEDoubleFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDoubleToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEDoubleObjectFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDoubleObjectToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEFloatFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEFloatToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEFloatObjectFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEFloatObjectToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEIntFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEIntToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEIntegerObjectFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEIntegerObjectToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEJavaClassFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEJavaClassToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEJavaObjectFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEJavaObjectToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createELongFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertELongToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createELongObjectFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertELongObjectToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEShortFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEShortToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEShortObjectFromString(eDataType EDataType, literalValue string) interface{} {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEShortObjectToString(eDataType EDataType, instanceValue interface{}) string {
 	panic("NotImplementedException")
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEStringFromString(eDataType EDataType, literalValue string) interface{} {
 	return literalValue
 }
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEStringToString(eDataType EDataType, instanceValue interface{}) string {
 	v, _ := instanceValue.(string)
 	return v

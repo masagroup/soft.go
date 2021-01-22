@@ -395,75 +395,104 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) ConvertToString(eDataType EDataType, i
 	}
 }
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEBigDecimalFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.ParseFloat(literalValue, 64)
+	return value
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBigDecimalToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(float64)
+	return strconv.FormatFloat(v, 'f', -1, 64)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEBigIntegerFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.ParseInt(literalValue, 10, 64)
+	return value
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBigIntegerToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(int64)
+	return strconv.FormatInt(v, 10)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEBooleanFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.ParseBool(literalValue)
+	return value
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBooleanToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(bool)
+	return strconv.FormatBool(v)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEBooleanObjectFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.ParseBool(literalValue)
+	return value
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBooleanObjectToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(bool)
+	return strconv.FormatBool(v)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	if len(literalValue) == 0 {
+		return "golang\u0000"
+	} else {
+		return []byte(literalValue)[0]
+	}
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	b := instanceValue.(byte)
+	return string([]byte{b})
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteArrayFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	return []byte(literalValue)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteArrayToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	b := instanceValue.([]byte)
+	return string(b)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteObjectFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	if len(literalValue) == 0 {
+		return "golang\u0000"
+	} else {
+		return []byte(literalValue)[0]
+	}
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteObjectToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	b := instanceValue.(byte)
+	return string([]byte{b})
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createECharFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	if len(literalValue) == 0 {
+		return "golang\u0000"
+	} else {
+		return []byte(literalValue)[0]
+	}
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertECharToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	b := instanceValue.(byte)
+	return string([]byte{b})
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createECharacterObjectFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	if len(literalValue) == 0 {
+		return "golang\u0000"
+	} else {
+		return []byte(literalValue)[0]
+	}
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertECharacterObjectToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	b := instanceValue.(byte)
+	return string([]byte{b})
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEDateFromString(eDataType EDataType, literalValue string) interface{} {
@@ -475,51 +504,63 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDateToString(eDataType EDataTy
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEDoubleFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.ParseFloat(literalValue, 64)
+	return value
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDoubleToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(float64)
+	return strconv.FormatFloat(v, 'f', -1, 64)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEDoubleObjectFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.ParseFloat(literalValue, 64)
+	return value
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDoubleObjectToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(float64)
+	return strconv.FormatFloat(v, 'f', -1, 64)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEFloatFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.ParseFloat(literalValue, 32)
+	return float32(value)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEFloatToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(float32)
+	return strconv.FormatFloat(float64(v), 'f', -1, 32)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEFloatObjectFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.ParseFloat(literalValue, 32)
+	return float32(value)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEFloatObjectToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(float32)
+	return strconv.FormatFloat(float64(v), 'f', -1, 32)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEIntFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.Atoi(literalValue)
+	return value
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEIntToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(int)
+	return strconv.Itoa(v)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEIntegerObjectFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.Atoi(literalValue)
+	return value
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEIntegerObjectToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(int)
+	return strconv.Itoa(v)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEJavaClassFromString(eDataType EDataType, literalValue string) interface{} {
@@ -539,35 +580,43 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) convertEJavaObjectToString(eDataType E
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createELongFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.ParseInt(literalValue, 10, 64)
+	return value
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertELongToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(int64)
+	return strconv.FormatInt(v, 10)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createELongObjectFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.Atoi(literalValue)
+	return value
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertELongObjectToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(int)
+	return strconv.Itoa(v)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEShortFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.ParseInt(literalValue, 10, 16)
+	return int16(value)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEShortToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(int16)
+	return strconv.FormatInt(int64(v), 10)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEShortObjectFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	value, _ := strconv.ParseInt(literalValue, 10, 16)
+	return int16(value)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEShortObjectToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	v, _ := instanceValue.(int16)
+	return strconv.FormatInt(int64(v), 10)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEStringFromString(eDataType EDataType, literalValue string) interface{} {

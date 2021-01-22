@@ -367,109 +367,118 @@ func TestFactoryConvert(t *testing.T) {
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBIG_DECIMAL)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, float64(3), factory.CreateFromString(mockEDataType, "3"))
+		assert.Equal(t, float64(3.2), factory.CreateFromString(mockEDataType, "3.2"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBIG_DECIMAL)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "1.2", factory.ConvertToString(mockEDataType, float64(1.2)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBIG_INTEGER)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, int64(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBIG_INTEGER)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int64(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBOOLEAN)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, true, factory.CreateFromString(mockEDataType, "true"))
+		assert.Equal(t, false, factory.CreateFromString(mockEDataType, "false"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBOOLEAN)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "true", factory.ConvertToString(mockEDataType, true))
+		assert.Equal(t, "false", factory.ConvertToString(mockEDataType, false))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBOOLEAN_OBJECT)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, true, factory.CreateFromString(mockEDataType, "true"))
+		assert.Equal(t, false, factory.CreateFromString(mockEDataType, "false"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBOOLEAN_OBJECT)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "true", factory.ConvertToString(mockEDataType, true))
+		assert.Equal(t, "false", factory.ConvertToString(mockEDataType, false))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBYTE)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, "golang\u0000", factory.CreateFromString(mockEDataType, ""))
+		assert.Equal(t, byte('a'), factory.CreateFromString(mockEDataType, "a"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBYTE)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "a", factory.ConvertToString(mockEDataType, byte('a')))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBYTE_ARRAY)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, []byte("ab"), factory.CreateFromString(mockEDataType, "ab"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBYTE_ARRAY)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "ab", factory.ConvertToString(mockEDataType, []byte("ab")))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBYTE_OBJECT)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, "golang\u0000", factory.CreateFromString(mockEDataType, ""))
+		assert.Equal(t, byte('a'), factory.CreateFromString(mockEDataType, "a"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EBYTE_OBJECT)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "a", factory.ConvertToString(mockEDataType, byte('a')))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ECHAR)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, "golang\u0000", factory.CreateFromString(mockEDataType, ""))
+		assert.Equal(t, byte('a'), factory.CreateFromString(mockEDataType, "a"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ECHAR)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "a", factory.ConvertToString(mockEDataType, byte('a')))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ECHARACTER_OBJECT)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, "golang\u0000", factory.CreateFromString(mockEDataType, ""))
+		assert.Equal(t, byte('a'), factory.CreateFromString(mockEDataType, "a"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ECHARACTER_OBJECT)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "a", factory.ConvertToString(mockEDataType, byte('a')))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
@@ -487,73 +496,77 @@ func TestFactoryConvert(t *testing.T) {
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EDOUBLE)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, float64(3), factory.CreateFromString(mockEDataType, "3"))
+		assert.Equal(t, float64(3.2), factory.CreateFromString(mockEDataType, "3.2"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EDOUBLE)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "1.2", factory.ConvertToString(mockEDataType, float64(1.2)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EDOUBLE_OBJECT)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, float64(3), factory.CreateFromString(mockEDataType, "3"))
+		assert.Equal(t, float64(3.2), factory.CreateFromString(mockEDataType, "3.2"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EDOUBLE_OBJECT)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "1.2", factory.ConvertToString(mockEDataType, float64(1.2)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EFLOAT)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, float32(3), factory.CreateFromString(mockEDataType, "3"))
+		assert.Equal(t, float32(3.2), factory.CreateFromString(mockEDataType, "3.2"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EFLOAT)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "1.2", factory.ConvertToString(mockEDataType, float32(1.2)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EFLOAT_OBJECT)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, float32(3), factory.CreateFromString(mockEDataType, "3"))
+		assert.Equal(t, float32(3.2), factory.CreateFromString(mockEDataType, "3.2"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EFLOAT_OBJECT)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "1.2", factory.ConvertToString(mockEDataType, float32(1.2)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EINT)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, int(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EINT)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EINTEGER_OBJECT)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, int(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EINTEGER_OBJECT)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
@@ -583,49 +596,49 @@ func TestFactoryConvert(t *testing.T) {
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ELONG)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, int64(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ELONG)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int64(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ELONG_OBJECT)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, int(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ELONG_OBJECT)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ESHORT)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, int16(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ESHORT)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int16(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ESHORT_OBJECT)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		assert.Equal(t, int16(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(ESHORT_OBJECT)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int16(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{

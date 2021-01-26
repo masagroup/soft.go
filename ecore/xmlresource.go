@@ -627,14 +627,18 @@ func (l *xmlLoadImpl) setValueFromId(eObject EObject, eReference EReference, ids
 }
 
 func (l *xmlLoadImpl) handleProxy(eProxy EObject, id string) {
+	resourceURI := l.resource.GetURI()
 	uri, ok := url.Parse(id)
-	if ok != nil {
+	if ok != nil || resourceURI == nil {
 		return
 	}
+	// resolve reference uri
+	uri = resourceURI.ResolveReference(uri)
 
+	// set object proxy uri
 	eProxy.(EObjectInternal).ESetProxyURI(uri)
 
-	if (l.resource.GetURI() == &url.URL{Scheme: uri.Scheme,
+	if (*resourceURI == url.URL{Scheme: uri.Scheme,
 		User:       uri.User,
 		Host:       uri.Host,
 		Path:       uri.Path,

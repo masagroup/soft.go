@@ -10,8 +10,8 @@ import (
 type EResourceInternal interface {
 	EResource
 
-	DoLoad(rd io.Reader)
-	DoSave(rd io.Writer)
+	DoLoad(rd io.Reader, options map[string]interface{})
+	DoSave(rd io.Writer, options map[string]interface{})
 	DoUnload()
 
 	basicSetLoaded(bool, ENotificationChain) ENotificationChain
@@ -270,29 +270,33 @@ func (r *EResourceImpl) getURIConverter() EURIConverter {
 }
 
 func (r *EResourceImpl) Load() {
+	r.LoadWithOptions(nil)
+}
+
+func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 	if !r.isLoaded {
 		uriConverter := r.getURIConverter()
 		if uriConverter != nil {
 			rd := uriConverter.CreateReader(r.uri)
 			if rd != nil {
-				r.LoadWithReader(rd)
+				r.LoadWithReader(rd, options)
 				rd.Close()
 			}
 		}
 	}
 }
 
-func (r *EResourceImpl) LoadWithReader(rd io.Reader) {
+func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]interface{}) {
 	if !r.isLoaded {
 		n := r.basicSetLoaded(true, nil)
-		r.GetInterfaces().(EResourceInternal).DoLoad(rd)
+		r.GetInterfaces().(EResourceInternal).DoLoad(rd, options)
 		if n != nil {
 			n.Dispatch()
 		}
 	}
 }
 
-func (r *EResourceImpl) DoLoad(rd io.Reader) {
+func (r *EResourceImpl) DoLoad(rd io.Reader, options map[string]interface{}) {
 }
 
 func (r *EResourceImpl) Unload() {
@@ -319,21 +323,25 @@ func (r *EResourceImpl) IsLoaded() bool {
 }
 
 func (r *EResourceImpl) Save() {
+	r.SaveWithOptions(nil)
+}
+
+func (r *EResourceImpl) SaveWithOptions(options map[string]interface{}) {
 	uriConverter := r.getURIConverter()
 	if uriConverter != nil {
 		w := uriConverter.CreateWriter(r.uri)
 		if w != nil {
-			r.SaveWithWriter(w)
+			r.SaveWithWriter(w, options)
 			w.Close()
 		}
 	}
 }
 
-func (r *EResourceImpl) SaveWithWriter(w io.Writer) {
-	r.GetInterfaces().(EResourceInternal).DoSave(w)
+func (r *EResourceImpl) SaveWithWriter(w io.Writer, options map[string]interface{}) {
+	r.GetInterfaces().(EResourceInternal).DoSave(w, options)
 }
 
-func (r *EResourceImpl) DoSave(rd io.Writer) {
+func (r *EResourceImpl) DoSave(rd io.Writer, options map[string]interface{}) {
 
 }
 

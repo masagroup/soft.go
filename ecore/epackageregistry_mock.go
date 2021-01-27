@@ -46,6 +46,10 @@ func (_m *MockEPackageRegistry) RegisterPackage(pack EPackage) {
 	_m.Called(pack)
 }
 
+func (_m *MockEPackageRegistry) RegisterPackageWithURI(pack EPackage, nsURI string) {
+	_m.Called(pack, nsURI)
+}
+
 // UnregisterPackage provides a mock function with given fields: pack
 func (_m *MockEPackageRegistry) UnregisterPackage(pack EPackage) {
 	_m.Called(pack)

@@ -19,13 +19,13 @@ package ecore
 type eAnnotationImpl struct {
 	eModelElementExt
 	contents   EList
-	details    EList
+	details    EMap
 	references EList
 	source     string
 }
 type eAnnotationImplInitializers interface {
 	initContents() EList
-	initDetails() EList
+	initDetails() EMap
 	initReferences() EList
 }
 
@@ -68,7 +68,7 @@ func (eAnnotation *eAnnotationImpl) GetContents() EList {
 }
 
 // GetDetails get the value of details
-func (eAnnotation *eAnnotationImpl) GetDetails() EList {
+func (eAnnotation *eAnnotationImpl) GetDetails() EMap {
 	if eAnnotation.details == nil {
 		eAnnotation.details = eAnnotation.asInitializers().initDetails()
 	}
@@ -132,8 +132,8 @@ func (eAnnotation *eAnnotationImpl) initContents() EList {
 	return NewBasicEObjectList(eAnnotation.AsEObjectInternal(), EANNOTATION__CONTENTS, -1, true, true, false, false, false)
 }
 
-func (eAnnotation *eAnnotationImpl) initDetails() EList {
-	return NewBasicEObjectList(eAnnotation.AsEObjectInternal(), EANNOTATION__DETAILS, -1, true, true, false, false, false)
+func (eAnnotation *eAnnotationImpl) initDetails() EMap {
+	return NewBasicEObjectMap(GetPackage().GetEStringToStringMapEntry())
 }
 
 func (eAnnotation *eAnnotationImpl) initReferences() EList {
@@ -170,9 +170,9 @@ func (eAnnotation *eAnnotationImpl) ESetFromID(featureID int, newValue interface
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	case EANNOTATION__DETAILS:
-		list := eAnnotation.asEAnnotation().GetDetails()
-		list.Clear()
-		list.AddAll(newValue.(EList))
+		m := eAnnotation.asEAnnotation().GetDetails()
+		m.Clear()
+		m.AddAll(newValue.(EList))
 	case EANNOTATION__EMODEL_ELEMENT:
 		eAnnotation.asEAnnotation().SetEModelElement(newValue.(EModelElement))
 	case EANNOTATION__REFERENCES:
@@ -239,8 +239,7 @@ func (eAnnotation *eAnnotationImpl) EBasicInverseRemove(otherEnd EObject, featur
 		list := eAnnotation.GetContents().(ENotifyingList)
 		return list.RemoveWithNotification(otherEnd, notifications)
 	case EANNOTATION__DETAILS:
-		list := eAnnotation.GetDetails().(ENotifyingList)
-		return list.RemoveWithNotification(otherEnd, notifications)
+		return notifications
 	case EANNOTATION__EMODEL_ELEMENT:
 		return eAnnotation.basicSetEModelElement(nil, notifications)
 	default:

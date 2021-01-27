@@ -302,6 +302,10 @@ func (list *basicEList) Clear() {
 func (list *basicEList) doClear() []interface{} {
 	oldData := list.data
 	list.data = make([]interface{}, 0)
+
+	// events
+	interfaces := list.interfaces.(abstractEList)
+	interfaces.didClear(oldData)
 	return oldData
 }
 

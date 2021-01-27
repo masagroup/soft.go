@@ -106,6 +106,27 @@ func TestEClassifierInstanceClassSet(t *testing.T) {
 	mockAdapter.AssertExpectations(t)
 }
 
+func TestEClassifierInstanceTypeNameGet(t *testing.T) {
+	o := newEClassifierImpl()
+	// get default value
+	assert.Equal(t, "", o.GetInstanceTypeName())
+	// get initialized value
+	v := "Test String"
+	o.instanceTypeName = v
+	assert.Equal(t, v, o.GetInstanceTypeName())
+}
+
+func TestEClassifierInstanceTypeNameSet(t *testing.T) {
+	o := newEClassifierImpl()
+	v := "Test String"
+	mockAdapter := new(MockEAdapter)
+	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	o.EAdapters().Add(mockAdapter)
+	o.SetInstanceTypeName(v)
+	mockAdapter.AssertExpectations(t)
+}
+
 func TestEClassifierIsInstanceOperation(t *testing.T) {
 	o := newEClassifierImpl()
 	assert.Panics(t, func() { o.IsInstance(nil) })
@@ -119,6 +140,7 @@ func TestEClassifierEGetFromID(t *testing.T) {
 	assert.Panics(t, func() { o.EGetFromID(ECLASSIFIER__DEFAULT_VALUE, false) })
 	assert.Equal(t, o.GetEPackage(), o.EGetFromID(ECLASSIFIER__EPACKAGE, true))
 	assert.Equal(t, o.GetInstanceClass(), o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, true))
+	assert.Equal(t, o.GetInstanceTypeName(), o.EGetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, true))
 }
 
 func TestEClassifierESetFromID(t *testing.T) {
@@ -134,6 +156,11 @@ func TestEClassifierESetFromID(t *testing.T) {
 		o.ESetFromID(ECLASSIFIER__INSTANCE_CLASS, v)
 		assert.Equal(t, v, o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, false))
 	}
+	{
+		v := "Test String"
+		o.ESetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, v)
+		assert.Equal(t, v, o.EGetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, false))
+	}
 
 }
 
@@ -144,6 +171,7 @@ func TestEClassifierEIsSetFromID(t *testing.T) {
 	assert.Panics(t, func() { o.EIsSetFromID(ECLASSIFIER__DEFAULT_VALUE) })
 	assert.False(t, o.EIsSetFromID(ECLASSIFIER__EPACKAGE))
 	assert.False(t, o.EIsSetFromID(ECLASSIFIER__INSTANCE_CLASS))
+	assert.False(t, o.EIsSetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME))
 }
 
 func TestEClassifierEUnsetFromID(t *testing.T) {
@@ -158,6 +186,11 @@ func TestEClassifierEUnsetFromID(t *testing.T) {
 		o.EUnsetFromID(ECLASSIFIER__INSTANCE_CLASS)
 		v := o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, false)
 		assert.Nil(t, v)
+	}
+	{
+		o.EUnsetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME)
+		v := o.EGetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, false)
+		assert.Equal(t, "", v)
 	}
 }
 
@@ -176,16 +209,16 @@ func TestEClassifierEBasicInverseAdd(t *testing.T) {
 	}
 	{
 		mockObject := new(MockEPackage)
-		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EResource").Return(nil).Once()
 		mockObject.On("EIsProxy").Return(false).Once()
 		o.EBasicInverseAdd(mockObject, ECLASSIFIER__EPACKAGE, nil)
 		assert.Equal(t, mockObject, o.GetEPackage())
 		mock.AssertExpectationsForObjects(t, mockObject)
 
 		mockOther := new(MockEPackage)
-		mockOther.On("EInternalResource").Return(nil).Once()
+		mockOther.On("EResource").Return(nil).Once()
 		mockOther.On("EIsProxy").Return(false).Once()
-		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EResource").Return(nil).Once()
 		mockObject.On("EInverseRemove", o, EPACKAGE__ECLASSIFIERS, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, ECLASSIFIER__EPACKAGE, nil)
 		assert.Equal(t, mockOther, o.GetEPackage())
@@ -205,7 +238,6 @@ func TestEClassifierEBasicInverseRemove(t *testing.T) {
 		mockObject := new(MockEPackage)
 		o.EBasicInverseRemove(mockObject, ECLASSIFIER__EPACKAGE, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
-
 	}
 
 }

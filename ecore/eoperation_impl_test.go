@@ -197,16 +197,16 @@ func TestEOperationEBasicInverseAdd(t *testing.T) {
 	}
 	{
 		mockObject := new(MockEClass)
-		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EResource").Return(nil).Once()
 		mockObject.On("EIsProxy").Return(false).Once()
 		o.EBasicInverseAdd(mockObject, EOPERATION__ECONTAINING_CLASS, nil)
 		assert.Equal(t, mockObject, o.GetEContainingClass())
 		mock.AssertExpectationsForObjects(t, mockObject)
 
 		mockOther := new(MockEClass)
-		mockOther.On("EInternalResource").Return(nil).Once()
+		mockOther.On("EResource").Return(nil).Once()
 		mockOther.On("EIsProxy").Return(false).Once()
-		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EResource").Return(nil).Once()
 		mockObject.On("EInverseRemove", o, ECLASS__EOPERATIONS, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, EOPERATION__ECONTAINING_CLASS, nil)
 		assert.Equal(t, mockOther, o.GetEContainingClass())
@@ -233,7 +233,6 @@ func TestEOperationEBasicInverseRemove(t *testing.T) {
 		mockObject := new(MockEClass)
 		o.EBasicInverseRemove(mockObject, EOPERATION__ECONTAINING_CLASS, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
-
 	}
 	{
 		// initialize list with a mock object

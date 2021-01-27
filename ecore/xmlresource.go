@@ -11,6 +11,12 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
+const (
+	OPTION_EXTENDED_META_DATA        = "EXTENDED_META_DATA"
+	OPTION_SUPPRESS_DOCUMENT_ROOT    = "SUPPRESS_DOCUMENT_ROOT"
+	OPTION_IDREF_RESOLUTION_DEFERRED = "IDREF_RESOLUTION_DEFERRED"
+)
+
 type xmlLoad interface {
 	load(resource xmlResource, w io.Reader)
 }
@@ -30,8 +36,8 @@ type xmlSaveInternal interface {
 
 type xmlResource interface {
 	EResourceInternal
-	createLoad() xmlLoad
-	createSave() xmlSave
+	createLoad(options map[string]interface{}) xmlLoad
+	createSave(options map[string]interface{}) xmlSave
 }
 
 type pair [2]interface{}
@@ -129,26 +135,40 @@ type reference struct {
 }
 
 type xmlLoadImpl struct {
-	interfaces          interface{}
-	decoder             *xml.Decoder
-	resource            xmlResource
-	isResolveDeferred   bool
-	elements            []string
-	objects             []EObject
-	attributes          []xml.Attr
-	references          []reference
-	namespaces          *xmlNamespaces
-	spacesToFactories   map[string]EFactory
-	sameDocumentProxies []EObject
-	notFeatures         []xml.Name
+	interfaces             interface{}
+	decoder                *xml.Decoder
+	resource               xmlResource
+	isResolveDeferred      bool
+	isSuppressDocumentRoot bool
+	elements               []string
+	objects                []EObject
+	attributes             []xml.Attr
+	references             []reference
+	namespaces             *xmlNamespaces
+	prefixesToURI          map[string]string
+	spacesToFactories      map[string]EFactory
+	sameDocumentProxies    []EObject
+	notFeatures            []xml.Name
+	extendedMetaData       *ExtendedMetaData
 }
 
-func newXMLLoadImpl() *xmlLoadImpl {
+func newXMLLoadImpl(options map[string]interface{}) *xmlLoadImpl {
 	l := new(xmlLoadImpl)
 	l.interfaces = l
 	l.namespaces = newXmlNamespaces()
+	l.prefixesToURI = make(map[string]string)
 	l.spacesToFactories = make(map[string]EFactory)
 	l.notFeatures = append(l.notFeatures, xml.Name{Space: xsiURI, Local: typeAttrib}, xml.Name{Space: xsiURI, Local: schemaLocationAttrib}, xml.Name{Space: xsiURI, Local: noNamespaceSchemaLocationAttrib})
+	if options != nil {
+		l.isResolveDeferred = options[OPTION_IDREF_RESOLUTION_DEFERRED] == true
+		l.isSuppressDocumentRoot = options[OPTION_SUPPRESS_DOCUMENT_ROOT] == true
+		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
+			l.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
+		}
+	}
+	if l.extendedMetaData == nil {
+		l.extendedMetaData = NewExtendedMetaData()
+	}
 	return l
 }
 
@@ -183,6 +203,7 @@ func (l *xmlLoadImpl) load(resource xmlResource, r io.Reader) {
 }
 
 func (l *xmlLoadImpl) startElement(e xml.StartElement) {
+	l.elements = append(l.elements, e.Name.Local)
 	l.setAttributes(e.Attr)
 	l.namespaces.pushContext()
 	l.handlePrefixMapping()
@@ -193,12 +214,20 @@ func (l *xmlLoadImpl) startElement(e xml.StartElement) {
 }
 
 func (l *xmlLoadImpl) endElement(e xml.EndElement) {
-
+	// remove last object
+	var eRoot EObject
 	if len(l.objects) > 0 {
+		eRoot = l.objects[0]
 		l.objects = l.objects[:len(l.objects)-1]
 	}
-	if len(l.objects) == 0 {
+	if len(l.elements) > 0 {
+		l.elements = l.elements[:len(l.elements)-1]
+	}
+
+	// end of the document
+	if len(l.elements) == 0 {
 		l.handleReferences()
+		l.recordSchemaLocations(eRoot)
 	}
 
 	context := l.namespaces.popContext()
@@ -252,6 +281,8 @@ func (l *xmlLoadImpl) handlePrefixMapping() {
 		for _, attr := range l.attributes {
 			if attr.Name.Space == xmlNS {
 				l.startPrefixMapping(attr.Name.Local, attr.Value)
+			} else if attr.Name.Space == "" && attr.Name.Local == xmlNS {
+				l.startPrefixMapping("", attr.Value)
 			}
 		}
 	}
@@ -259,14 +290,21 @@ func (l *xmlLoadImpl) handlePrefixMapping() {
 
 func (l *xmlLoadImpl) startPrefixMapping(prefix string, uri string) {
 	l.namespaces.declarePrefix(prefix, uri)
+	if _, exists := l.prefixesToURI[prefix]; exists {
+		index := 1
+		for _, exists = l.prefixesToURI[prefix+"_"+fmt.Sprintf("%d", index)]; exists; {
+			index++
+		}
+		prefix += "_" + fmt.Sprintf("%d", index)
+	}
+	l.prefixesToURI[prefix] = uri
 	delete(l.spacesToFactories, uri)
 }
 
 func (l *xmlLoadImpl) processElement(space string, local string) {
 	if len(l.objects) == 0 {
-		eObject := l.createObject(space, local)
+		eObject := l.createTopObject(space, local)
 		if eObject != nil {
-			l.objects = append(l.objects, eObject)
 			l.resource.GetContents().Add(eObject)
 		}
 	} else {
@@ -274,12 +312,34 @@ func (l *xmlLoadImpl) processElement(space string, local string) {
 	}
 }
 
-func (l *xmlLoadImpl) createObject(space string, local string) EObject {
+func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 	eFactory := l.getFactoryForSpace(space)
 	if eFactory != nil {
 		ePackage := eFactory.GetEPackage()
-		eType := ePackage.GetEClassifier(local)
-		return l.createObjectWithFactory(eFactory, eType)
+		if l.extendedMetaData != nil && l.extendedMetaData.GetDocumentRoot(ePackage) != nil {
+			eClass := l.extendedMetaData.GetDocumentRoot(ePackage)
+			// add document root to object list & handle its features
+			eObject := l.createObjectWithFactory(eFactory, eClass, true)
+			l.objects = append(l.objects, eObject)
+			l.handleFeature(space, local)
+			if l.isSuppressDocumentRoot {
+				// remove document root from object list
+				l.objects = l.objects[1:]
+				// consider new child object as the future new root
+				// remove it from document root
+				if len(l.objects) > 0 {
+					eObject = l.objects[0]
+					// remove new object from its container ( document root )
+					Remove(eObject)
+				}
+			}
+			return eObject
+		} else {
+			eType := l.getType(ePackage, local)
+			eObject := l.createObjectWithFactory(eFactory, eType, false)
+			l.objects = append(l.objects, eObject)
+			return eObject
+		}
 	} else {
 		prefix, _ := l.namespaces.getPrefix(space)
 		l.handleUnknownPackage(prefix)
@@ -287,12 +347,12 @@ func (l *xmlLoadImpl) createObject(space string, local string) EObject {
 	}
 }
 
-func (l *xmlLoadImpl) createObjectWithFactory(eFactory EFactory, eType EClassifier) EObject {
+func (l *xmlLoadImpl) createObjectWithFactory(eFactory EFactory, eType EClassifier, handleAttributes bool) EObject {
 	if eFactory != nil {
 		eClass, _ := eType.(EClass)
 		if eClass != nil && !eClass.IsAbstract() {
 			eObject := eFactory.Create(eClass)
-			if eObject != nil {
+			if eObject != nil && !handleAttributes {
 				l.interfaces.(xmlLoadInternal).handleAttributes(eObject)
 			}
 			return eObject
@@ -306,7 +366,7 @@ func (l *xmlLoadImpl) createObjectFromFeatureType(eObject EObject, eFeature EStr
 	if eFeature != nil && eFeature.GetEType() != nil {
 		eType := eFeature.GetEType()
 		eFactory := eType.GetEPackage().GetEFactoryInstance()
-		eResult = l.createObjectWithFactory(eFactory, eType)
+		eResult = l.createObjectWithFactory(eFactory, eType, false)
 	}
 	if eResult != nil {
 		l.setFeatureValue(eObject, eFeature, eResult, -1)
@@ -329,9 +389,8 @@ func (l *xmlLoadImpl) createObjectFromTypeName(eObject EObject, qname string, eF
 		return nil
 	}
 
-	ePackage := eFactory.GetEPackage()
-	eType := ePackage.GetEClassifier(local)
-	eResult := l.createObjectWithFactory(eFactory, eType)
+	eType := l.getType(eFactory.GetEPackage(), local)
+	eResult := l.createObjectWithFactory(eFactory, eType, false)
 	if eResult != nil {
 		l.setFeatureValue(eObject, eFeature, eResult, -1)
 		l.objects = append(l.objects, eResult)
@@ -346,7 +405,7 @@ func (l *xmlLoadImpl) handleFeature(space string, local string) {
 	}
 
 	if eObject != nil {
-		eFeature := l.getFeature(eObject, local)
+		eFeature := l.getFeature(eObject, space, local)
 		if eFeature != nil {
 			xsiType := l.interfaces.(xmlLoadInternal).getXSIType()
 			if len(xsiType) > 0 {
@@ -441,7 +500,7 @@ func (l *xmlLoadImpl) handleAttributes(eObject EObject) {
 			value := attr.Value
 			if name == href {
 				l.handleProxy(eObject, value)
-			} else if uri != xmlNS && l.isUserAttribute(attr.Name) {
+			} else if name != xmlNS && uri != xmlNS && l.isUserAttribute(attr.Name) {
 				l.setAttributeValue(eObject, name, value)
 			}
 		}
@@ -474,10 +533,13 @@ func (l *xmlLoadImpl) getFactoryForSpace(space string) EFactory {
 
 func (l *xmlLoadImpl) setAttributeValue(eObject EObject, qname string, value string) {
 	local := qname
+	prefix := ""
 	if index := strings.Index(qname, ":"); index > 0 {
 		local = qname[index+1:]
+		prefix = qname[:index-1]
 	}
-	eFeature := l.getFeature(eObject, local)
+	space, _ := l.namespaces.getURI(prefix)
+	eFeature := l.getFeature(eObject, space, local)
 	if eFeature != nil {
 		kind := l.getLoadFeatureKind(eFeature)
 		if kind == single || kind == many {
@@ -565,14 +627,18 @@ func (l *xmlLoadImpl) setValueFromId(eObject EObject, eReference EReference, ids
 }
 
 func (l *xmlLoadImpl) handleProxy(eProxy EObject, id string) {
+	resourceURI := l.resource.GetURI()
 	uri, ok := url.Parse(id)
-	if ok != nil {
+	if ok != nil || resourceURI == nil {
 		return
 	}
+	// resolve reference uri
+	uri = resourceURI.ResolveReference(uri)
 
+	// set object proxy uri
 	eProxy.(EObjectInternal).ESetProxyURI(uri)
 
-	if (l.resource.GetURI() == &url.URL{Scheme: uri.Scheme,
+	if (*resourceURI == url.URL{Scheme: uri.Scheme,
 		User:       uri.User,
 		Host:       uri.Host,
 		Path:       uri.Path,
@@ -655,10 +721,38 @@ func (l *xmlLoadImpl) handleReferences() {
 	}
 }
 
-func (l *xmlLoadImpl) getFeature(eObject EObject, name string) EStructuralFeature {
+func (l *xmlLoadImpl) recordSchemaLocations(eObject EObject) {
+	if l.extendedMetaData != nil && eObject != nil {
+		eClass := eObject.EClass()
+		if xmlnsPrefixMapFeature := l.extendedMetaData.GetXMLNSPrefixMapFeature(eClass); xmlnsPrefixMapFeature != nil {
+			m := eObject.EGet(xmlnsPrefixMapFeature).(EMap)
+			for prefix, nsURI := range l.prefixesToURI {
+				m.Put(prefix, nsURI)
+			}
+		}
+	}
+}
+
+func (l *xmlLoadImpl) getFeature(eObject EObject, space, name string) EStructuralFeature {
 	eClass := eObject.EClass()
 	eFeature := eClass.GetEStructuralFeatureFromName(name)
+	if eFeature == nil && l.extendedMetaData != nil {
+		features := eClass.GetEAllStructuralFeatures()
+		for it := features.Iterator(); it.HasNext(); {
+			feature := it.Next().(EStructuralFeature)
+			if name == l.extendedMetaData.GetName(feature) {
+				return feature
+			}
+		}
+	}
 	return eFeature
+}
+
+func (l *xmlLoadImpl) getType(ePackage EPackage, name string) EClassifier {
+	if l.extendedMetaData != nil {
+		return l.extendedMetaData.GetType(ePackage, name)
+	}
+	return ePackage.GetEClassifier(name)
 }
 
 func (l *xmlLoadImpl) handleUnknownFeature(name string) {
@@ -697,6 +791,7 @@ type xmlStringSegment struct {
 type xmlString struct {
 	segments           []*xmlStringSegment
 	currentSegment     *xmlStringSegment
+	firstElementMark   *xmlStringSegment
 	lineWidth          int
 	depth              int
 	indentation        string
@@ -750,8 +845,9 @@ func (s *xmlString) startElement(name string) {
 		s.add("<")
 		s.add(name)
 		s.lastElementIsStart = true
-	} else {
-		s.add(s.getElementIndentWithExtra(1))
+		if s.firstElementMark == nil {
+			s.firstElementMark = s.mark()
+		}
 	}
 }
 
@@ -884,6 +980,10 @@ func (s *xmlString) mark() *xmlStringSegment {
 	return r
 }
 
+func (s *xmlString) resetToFirstElementMark() {
+	s.resetToMark(s.firstElementMark)
+}
+
 func (s *xmlString) resetToMark(segment *xmlStringSegment) {
 	if segment != nil {
 		s.currentSegment = segment
@@ -921,18 +1021,18 @@ const (
 )
 
 type xmlSaveImpl struct {
-	interfaces    interface{}
-	resource      xmlResource
-	str           *xmlString
-	packages      map[EPackage]string
-	uriToPrefixes map[string][]string
-	prefixesToURI map[string]string
-	featureKinds  map[EStructuralFeature]int
-	namespaces    *xmlNamespaces
-	keepDefaults  bool
+	interfaces       interface{}
+	resource         xmlResource
+	str              *xmlString
+	packages         map[EPackage]string
+	uriToPrefixes    map[string][]string
+	prefixesToURI    map[string]string
+	featureKinds     map[EStructuralFeature]int
+	extendedMetaData *ExtendedMetaData
+	keepDefaults     bool
 }
 
-func newXMLSaveImpl() *xmlSaveImpl {
+func newXMLSaveImpl(options map[string]interface{}) *xmlSaveImpl {
 	s := new(xmlSaveImpl)
 	s.interfaces = s
 	s.str = newXmlString()
@@ -940,7 +1040,14 @@ func newXMLSaveImpl() *xmlSaveImpl {
 	s.uriToPrefixes = make(map[string][]string)
 	s.prefixesToURI = make(map[string]string)
 	s.featureKinds = make(map[EStructuralFeature]int)
-	s.namespaces = newXmlNamespaces()
+	if options != nil {
+		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
+			s.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
+		}
+	}
+	if s.extendedMetaData == nil {
+		s.extendedMetaData = NewExtendedMetaData()
+	}
 	return s
 }
 
@@ -955,11 +1062,21 @@ func (s *xmlSaveImpl) save(resource xmlResource, w io.Writer) {
 	s.saveHeader()
 
 	// top object
-	object := c.Get(0).(EObject)
-	mark := s.saveTopObject(object)
+	eObject := c.Get(0).(EObject)
+
+	// initialize prefixes if any in top
+	if s.extendedMetaData != nil {
+		eClass := eObject.EClass()
+		if ePrefixMapFeature := s.extendedMetaData.GetXMLNSPrefixMapFeature(eClass); ePrefixMapFeature != nil {
+			m := eObject.EGet(ePrefixMapFeature).(EMap)
+			s.setPrefixToNamespace(m)
+		}
+	}
+
+	s.saveTopObject(eObject)
 
 	// namespaces
-	s.str.resetToMark(mark)
+	s.str.resetToFirstElementMark()
 	s.interfaces.(xmlSaveInternal).saveNamespaces()
 
 	// write result
@@ -971,14 +1088,47 @@ func (s *xmlSaveImpl) saveHeader() {
 	s.str.addLine()
 }
 
-func (s *xmlSaveImpl) saveTopObject(eObject EObject) *xmlStringSegment {
+func (s *xmlSaveImpl) saveTopObject(eObject EObject) {
 	eClass := eObject.EClass()
-	name := s.getQName(eClass)
-	s.str.startElement(name)
-	mark := s.str.mark()
+	if s.extendedMetaData == nil || s.extendedMetaData.GetDocumentRoot(eClass.GetEPackage()) != eClass {
+		var name string
+		if rootFeature := s.getRootFeature(eClass); rootFeature != nil {
+			name = s.getFeatureQName(rootFeature)
+		} else {
+			name = s.getClassQName(eClass)
+		}
+		s.str.startElement(name)
+	} else {
+		s.str.startElement("")
+	}
 	s.saveElementID(eObject)
 	s.saveFeatures(eObject, false)
-	return mark
+}
+
+func (s *xmlSaveImpl) getRootFeature(eClassifier EClassifier) EStructuralFeature {
+	if s.extendedMetaData != nil {
+		for eClassifier != nil {
+			if eClass := s.extendedMetaData.GetDocumentRoot(eClassifier.GetEPackage()); eClass != nil {
+				for it := eClass.GetEStructuralFeatures().Iterator(); it.HasNext(); {
+					eFeature := it.Next().(EStructuralFeature)
+					if eFeature.GetEType() == eClassifier && eFeature.IsChangeable() {
+						return eFeature
+					}
+				}
+			}
+			if eClass, _ := eClassifier.(EClass); eClass != nil {
+				eSuperTypes := eClass.GetESuperTypes()
+				if eSuperTypes.Empty() {
+					eClassifier = nil
+				} else {
+					eClassifier = eSuperTypes.Get(0).(EClass)
+				}
+			} else {
+				eClassifier = nil
+			}
+		}
+	}
+	return nil
 }
 
 func (s *xmlSaveImpl) saveNamespaces() {
@@ -988,7 +1138,11 @@ func (s *xmlSaveImpl) saveNamespaces() {
 	}
 	sort.Strings(prefixes)
 	for _, prefix := range prefixes {
-		s.str.addAttribute("xmlns:"+prefix, s.prefixesToURI[prefix])
+		attribute := "xmlns"
+		if len(prefix) > 0 {
+			attribute += ":" + prefix
+		}
+		s.str.addAttribute(attribute, s.prefixesToURI[prefix])
 	}
 }
 
@@ -1241,7 +1395,7 @@ func (s *xmlSaveImpl) saveEObject(o EObject, f EStructuralFeature) {
 }
 
 func (s *xmlSaveImpl) saveTypeAttribute(eClass EClass) {
-	s.str.addAttribute("xsi:type", s.getQName(eClass))
+	s.str.addAttribute("xsi:type", s.getClassQName(eClass))
 	s.uriToPrefixes[xsiURI] = []string{xsiNS}
 	s.prefixesToURI[xsiNS] = xsiURI
 }
@@ -1429,8 +1583,23 @@ func (s *xmlSaveImpl) getSaveResourceKindMany(eObject EObject, eFeature EStructu
 	return same
 }
 
-func (s *xmlSaveImpl) getQName(eClass EClass) string {
-	return s.getElementQName(eClass.GetEPackage(), eClass.GetName(), false)
+func (s *xmlSaveImpl) getClassQName(eClass EClass) string {
+	return s.getElementQName(eClass.GetEPackage(), s.getXmlName(eClass), false)
+}
+
+func (s *xmlSaveImpl) getFeatureQName(eFeature EStructuralFeature) string {
+	if s.extendedMetaData != nil {
+		name := s.extendedMetaData.GetName(eFeature)
+		namespace := s.extendedMetaData.GetNamespace(eFeature)
+		ePackage := s.getPackageForSpace(namespace)
+		if ePackage != nil {
+			return s.getElementQName(ePackage, name, false)
+		} else {
+			return name
+		}
+	} else {
+		return eFeature.GetName()
+	}
 }
 
 func (s *xmlSaveImpl) getElementQName(ePackage EPackage, name string, mustHavePrefix bool) string {
@@ -1444,8 +1613,11 @@ func (s *xmlSaveImpl) getElementQName(ePackage EPackage, name string, mustHavePr
 	}
 }
 
-func (s *xmlSaveImpl) getFeatureQName(eFeature EStructuralFeature) string {
-	return eFeature.GetName()
+func (s *xmlSaveImpl) getXmlName(eElement ENamedElement) string {
+	if s.extendedMetaData != nil {
+		return s.extendedMetaData.GetName(eElement)
+	}
+	return eElement.GetName()
 }
 
 func (s *xmlSaveImpl) getPrefix(ePackage EPackage, mustHavePrefix bool) string {
@@ -1464,10 +1636,6 @@ func (s *xmlSaveImpl) getPrefix(ePackage EPackage, mustHavePrefix bool) string {
 			}
 		}
 		if !found {
-			nsPrefix, ok = s.namespaces.getPrefix(nsURI)
-			if ok {
-				return nsPrefix
-			}
 			nsPrefix = ePackage.GetNsPrefix()
 			if len(nsPrefix) == 0 && mustHavePrefix {
 				nsPrefix = "_"
@@ -1486,6 +1654,27 @@ func (s *xmlSaveImpl) getPrefix(ePackage EPackage, mustHavePrefix bool) string {
 		s.packages[ePackage] = nsPrefix
 	}
 	return nsPrefix
+}
+
+func (s *xmlSaveImpl) setPrefixToNamespace(prefixToNamespaceMap EMap) {
+	for it := prefixToNamespaceMap.Iterator(); it.HasNext(); {
+		entry := it.Next().(EMapEntry)
+		prefix := entry.GetKey().(string)
+		nsURI := entry.GetValue().(string)
+		if ePackage := s.getPackageForSpace(nsURI); ePackage != nil {
+			s.packages[ePackage] = prefix
+		}
+		s.prefixesToURI[prefix] = nsURI
+		s.uriToPrefixes[nsURI] = append(s.uriToPrefixes[nsURI], prefix)
+	}
+}
+
+func (s *xmlSaveImpl) getPackageForSpace(nsURI string) EPackage {
+	packageRegistry := GetPackageRegistry()
+	if s.resource.GetResourceSet() != nil {
+		packageRegistry = s.resource.GetResourceSet().GetPackageRegistry()
+	}
+	return packageRegistry.GetPackage(nsURI)
 }
 
 func (s *xmlSaveImpl) getDataType(value interface{}, f EStructuralFeature, isAttribute bool) (string, bool) {
@@ -1533,32 +1722,32 @@ func (s *xmlSaveImpl) getIDRef(eObject EObject) string {
 }
 
 type xmlResourceImpl struct {
-	*EResourceImpl
+	EResourceImpl
 }
 
 func newXMLResourceImpl() *xmlResourceImpl {
 	r := new(xmlResourceImpl)
-	r.EResourceImpl = NewEResourceImpl()
 	r.SetInterfaces(r)
+	r.Initialize()
 	return r
 }
 
-func (r *xmlResourceImpl) DoLoad(rd io.Reader) {
+func (r *xmlResourceImpl) DoLoad(rd io.Reader, options map[string]interface{}) {
 	resource := r.GetInterfaces().(xmlResource)
-	l := resource.createLoad()
+	l := resource.createLoad(options)
 	l.load(resource, rd)
 }
 
-func (r *xmlResourceImpl) DoSave(w io.Writer) {
+func (r *xmlResourceImpl) DoSave(w io.Writer, options map[string]interface{}) {
 	resource := r.GetInterfaces().(xmlResource)
-	s := resource.createSave()
+	s := resource.createSave(options)
 	s.save(resource, w)
 }
 
-func (r *xmlResourceImpl) createLoad() xmlLoad {
-	return newXMLLoadImpl()
+func (r *xmlResourceImpl) createLoad(options map[string]interface{}) xmlLoad {
+	return newXMLLoadImpl(options)
 }
 
-func (r *xmlResourceImpl) createSave() xmlSave {
-	return newXMLSaveImpl()
+func (r *xmlResourceImpl) createSave(options map[string]interface{}) xmlSave {
+	return newXMLSaveImpl(options)
 }

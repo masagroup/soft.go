@@ -24,6 +24,14 @@ func TestMockEPackageRegistryRegisterPackage(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, rp, p)
 }
 
+func TestMockEPackageRegistryRegisterPackageWithURI(t *testing.T) {
+	rp := &MockEPackageRegistry{}
+	p := &MockEPackage{}
+	rp.On("RegisterPackageWithURI", p, "nsURI").Once()
+	rp.RegisterPackageWithURI(p, "nsURI")
+	mock.AssertExpectationsForObjects(t, rp, p)
+}
+
 func TestMockEPackageRegistryUnRegisterPackage(t *testing.T) {
 	rp := &MockEPackageRegistry{}
 	p := &MockEPackage{}

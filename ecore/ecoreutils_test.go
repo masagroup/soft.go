@@ -322,3 +322,46 @@ func TestEcoreUtilsCopyReal(t *testing.T) {
 	eClassCopy := Copy(eClass)
 	assert.True(t, Equals(eClass, eClassCopy))
 }
+
+func TestEcoreUtils_GetURI(t *testing.T) {
+	mockURI, _ := url.Parse("test://file.t")
+	mockEObject := &MockEObjectInternal{}
+	mockEObject.On("EIsProxy").Return(true).Once()
+	mockEObject.On("EProxyURI").Return(mockURI).Once()
+	assert.Equal(t, mockURI, GetURI(mockEObject))
+}
+
+func TestEcoreUtils_Remove(t *testing.T) {
+	mockObject := &MockEObjectInternal{}
+	mockReference := &MockEReference{}
+	mockContainer := &MockEObject{}
+
+	// resource - container - feature single
+	mockObject.On("EInternalContainer").Return(mockContainer).Once()
+	mockObject.On("EContainmentFeature").Return(mockReference).Once()
+	mockReference.On("IsMany").Return(false).Once()
+	mockContainer.On("EUnset", mockReference).Once()
+	mockObject.On("EInternalResource").Return(nil)
+	Remove(mockObject)
+	mock.AssertExpectationsForObjects(t, mockObject, mockReference, mockContainer)
+
+	// resource - container - feature many
+	mockList := &MockEList{}
+	mockObject.On("EInternalContainer").Return(mockContainer).Once()
+	mockObject.On("EContainmentFeature").Return(mockReference).Once()
+	mockReference.On("IsMany").Return(true).Once()
+	mockContainer.On("EGet", mockReference).Return(mockList).Once()
+	mockList.On("Remove", mockObject).Return(true).Once()
+	mockObject.On("EInternalResource").Return(nil)
+	Remove(mockObject)
+	mock.AssertExpectationsForObjects(t, mockObject, mockReference, mockContainer)
+
+	// resource - no container
+	mockResource := &MockEResource{}
+	mockObject.On("EInternalContainer").Return(nil).Once()
+	mockObject.On("EInternalResource").Return(mockResource)
+	mockResource.On("GetContents").Return(mockList).Once()
+	mockList.On("Remove", mockObject).Return(true).Once()
+	Remove(mockObject)
+	mock.AssertExpectationsForObjects(t, mockObject, mockReference, mockContainer)
+}

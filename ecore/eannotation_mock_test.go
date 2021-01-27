@@ -42,10 +42,10 @@ func TestMockEAnnotationGetContents(t *testing.T) {
 // TestMockEAnnotationGetDetails tests method GetDetails
 func TestMockEAnnotationGetDetails(t *testing.T) {
 	o := &MockEAnnotation{}
-	l := &MockEList{}
+	l := &MockEMap{}
 	// return a value
 	o.On("GetDetails").Once().Return(l)
-	o.On("GetDetails").Once().Return(func() EList {
+	o.On("GetDetails").Once().Return(func() EMap {
 		return l
 	})
 	assert.Equal(t, l, o.GetDetails())

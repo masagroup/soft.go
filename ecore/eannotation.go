@@ -22,7 +22,7 @@ type EAnnotation interface {
 	GetSource() string
 	SetSource(string)
 
-	GetDetails() EList
+	GetDetails() EMap
 
 	GetEModelElement() EModelElement
 	SetEModelElement(EModelElement)

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func m(a, b interface{}) []interface{} {
@@ -243,4 +244,34 @@ func TestXmlLoadSaveLibraryComplexWithOptions(t *testing.T) {
 	bytes, err := ioutil.ReadFile("testdata/library.complex.noroot.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
+}
+
+func TestXmlResourceIDManager(t *testing.T) {
+	// load libray simple ecore	package
+	ePackage := loadPackage("library.simple.ecore")
+	assert.NotNil(t, ePackage)
+
+	// create a resource with an id manager
+	mockIDManager := &MockEResourceIDManager{}
+	eResource := newXMLResourceImpl()
+	eResource.SetIDManager(mockIDManager)
+
+	// create a library and add it to resource
+	eFactory := ePackage.GetEFactoryInstance()
+	eLibraryClass := ePackage.GetEClassifier("Library").(EClass)
+	eLibrary := eFactory.Create(eLibraryClass)
+	mockIDManager.On("Register", eLibrary).Once()
+	eResource.GetContents().Add(eLibrary)
+	mock.AssertExpectationsForObjects(t, mockIDManager)
+
+	// create 2 books and add them to library
+	eBookClass := ePackage.GetEClassifier("Book").(EClass)
+	eLibraryBooksReference := eLibraryClass.GetEStructuralFeatureFromName("books").(EReference)
+	eBookList := eLibrary.EGet(eLibraryBooksReference).(EList)
+	eBook1 := eFactory.Create(eBookClass)
+	eBook2 := eFactory.Create(eBookClass)
+	mockIDManager.On("Register", eBook1).Once()
+	mockIDManager.On("Register", eBook2).Once()
+	eBookList.AddAll(NewImmutableEList([]interface{}{eBook1, eBook2}))
+	mock.AssertExpectationsForObjects(t, mockIDManager)
 }

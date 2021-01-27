@@ -97,7 +97,7 @@ func TestReflectiveEObjectImpl_ESetResource(t *testing.T) {
 	// set resource with container feature which is a reference proxy
 	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Once()
 	mockReference.On("IsResolveProxies").Return(true).Once()
-	mockContainer.On("EInternalResource").Return(mockResource).Once()
+	mockContainer.On("EResource").Return(mockResource).Once()
 	mockResource.On("Detached", o).Once()
 	assert.Equal(t, mockNotifications, o.ESetResource(mockResource, mockNotifications))
 	mock.AssertExpectationsForObjects(t, mockResource, mockContainer, mockReference, mockClass, mockNotifications)
@@ -105,7 +105,7 @@ func TestReflectiveEObjectImpl_ESetResource(t *testing.T) {
 	// reset resource with container feature as a reference proxy
 	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Once()
 	mockReference.On("IsResolveProxies").Return(true).Once()
-	mockContainer.On("EInternalResource").Return(mockResource).Once()
+	mockContainer.On("EResource").Return(mockResource).Once()
 	mockResource.On("Attached", o).Once()
 	assert.Equal(t, mockNotifications, o.ESetResource(nil, mockNotifications))
 	mock.AssertExpectationsForObjects(t, mockResource, mockContainer, mockReference, mockClass, mockNotifications)
@@ -114,7 +114,7 @@ func TestReflectiveEObjectImpl_ESetResource(t *testing.T) {
 	mockClass.On("GetEStructuralFeature", 0).Return(mockReference).Twice()
 	mockReference.On("IsResolveProxies").Return(false).Once()
 	mockReference.On("GetEOpposite").Return(nil).Once()
-	mockContainer.On("EInternalResource").Return(mockResource).Once()
+	mockContainer.On("EResource").Return(mockResource).Once()
 	mockResource.On("Detached", o).Once()
 	assert.Equal(t, mockNotifications, o.ESetResource(mockResource, mockNotifications))
 	mock.AssertExpectationsForObjects(t, mockResource, mockContainer, mockReference, mockClass, mockNotifications)
@@ -306,7 +306,7 @@ func TestReflectiveEObjectImpl_SetContainer(t *testing.T) {
 	o.SetEClass(mockClass)
 
 	// set reference as mockObject
-	mockObject.On("EInternalResource").Return(nil).Once()
+	mockObject.On("EResource").Return(nil).Once()
 	mockObject.On("EInverseAdd", o, 0, nil).Return(nil).Once()
 	mockObject.On("EClass").Return(mockObjectClass).Once()
 	mockOpposite.On("IsContainment").Return(true).Once()
@@ -336,7 +336,7 @@ func TestReflectiveEObjectImpl_SetContainer(t *testing.T) {
 
 	// set reference as nil
 	mockObject.On("EInverseRemove", o.GetInterfaces(), 0, nil).Return(nil).Once()
-	mockObject.On("EInternalResource").Return(nil).Once()
+	mockObject.On("EResource").Return(nil).Once()
 	mockOpposite.On("IsContainment").Return(true).Once()
 	mockOpposite.On("GetFeatureID").Return(0).Once()
 	mockReference.On("GetEOpposite").Return(mockOpposite).Twice()
@@ -366,7 +366,7 @@ func TestReflectiveEObjectImpl_UnSetContainer(t *testing.T) {
 	o.SetEClass(mockClass)
 
 	// set reference as mockObject
-	mockObject.On("EInternalResource").Return(nil).Once()
+	mockObject.On("EResource").Return(nil).Once()
 	mockObject.On("EInverseAdd", o, 0, nil).Return(nil).Once()
 	mockObject.On("EClass").Return(mockObjectClass).Once()
 	mockOpposite.On("IsContainment").Return(true).Once()
@@ -379,7 +379,7 @@ func TestReflectiveEObjectImpl_UnSetContainer(t *testing.T) {
 
 	// unset
 	mockObject.On("EInverseRemove", o.GetInterfaces(), 0, nil).Return(nil).Once()
-	mockObject.On("EInternalResource").Return(nil).Once()
+	mockObject.On("EResource").Return(nil).Once()
 	mockOpposite.On("IsContainment").Return(true).Once()
 	mockOpposite.On("GetFeatureID").Return(0).Once()
 	mockReference.On("GetEOpposite").Return(mockOpposite).Twice()

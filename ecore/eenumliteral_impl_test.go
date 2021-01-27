@@ -189,16 +189,16 @@ func TestEEnumLiteralEBasicInverseAdd(t *testing.T) {
 	}
 	{
 		mockObject := new(MockEEnum)
-		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EResource").Return(nil).Once()
 		mockObject.On("EIsProxy").Return(false).Once()
 		o.EBasicInverseAdd(mockObject, EENUM_LITERAL__EENUM, nil)
 		assert.Equal(t, mockObject, o.GetEEnum())
 		mock.AssertExpectationsForObjects(t, mockObject)
 
 		mockOther := new(MockEEnum)
-		mockOther.On("EInternalResource").Return(nil).Once()
+		mockOther.On("EResource").Return(nil).Once()
 		mockOther.On("EIsProxy").Return(false).Once()
-		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EResource").Return(nil).Once()
 		mockObject.On("EInverseRemove", o, EENUM__ELITERALS, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, EENUM_LITERAL__EENUM, nil)
 		assert.Equal(t, mockOther, o.GetEEnum())

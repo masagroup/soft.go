@@ -316,16 +316,16 @@ func TestEPackageEBasicInverseAdd(t *testing.T) {
 	}
 	{
 		mockObject := new(MockEPackage)
-		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EResource").Return(nil).Once()
 		mockObject.On("EIsProxy").Return(false).Once()
 		o.EBasicInverseAdd(mockObject, EPACKAGE__ESUPER_PACKAGE, nil)
 		assert.Equal(t, mockObject, o.GetESuperPackage())
 		mock.AssertExpectationsForObjects(t, mockObject)
 
 		mockOther := new(MockEPackage)
-		mockOther.On("EInternalResource").Return(nil).Once()
+		mockOther.On("EResource").Return(nil).Once()
 		mockOther.On("EIsProxy").Return(false).Once()
-		mockObject.On("EInternalResource").Return(nil).Once()
+		mockObject.On("EResource").Return(nil).Once()
 		mockObject.On("EInverseRemove", o, EPACKAGE__ESUB_PACKAGES, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, EPACKAGE__ESUPER_PACKAGE, nil)
 		assert.Equal(t, mockOther, o.GetESuperPackage())

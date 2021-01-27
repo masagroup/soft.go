@@ -210,7 +210,7 @@ func (o *AbstractEObject) EContainerFeatureID() int {
 func (o *AbstractEObject) EResource() EResource {
 	resource := o.AsEObjectInternal().EInternalResource()
 	if resource == nil {
-		if container := o.AsEObjectInternal().EInternalContainer(); container != nil {
+		if container := o.AsEObjectInternal().EInternalContainer(); container != nil && container != o.AsEObject() {
 			resource = container.EResource()
 		}
 	}
@@ -232,7 +232,7 @@ func (o *AbstractEObject) ESetResource(newResource EResource, n ENotificationCha
 	if eContainer != nil {
 		if o.EContainmentFeature().IsResolveProxies() {
 			if eContainerInternal, _ := eContainer.(EObjectInternal); eContainerInternal != nil {
-				oldContainerResource := eContainerInternal.EInternalResource()
+				oldContainerResource := eContainerInternal.EResource()
 				if oldContainerResource != nil {
 					if newResource == nil {
 						// If we're not setting a new resource, attach it to the old container's resource.
@@ -877,17 +877,17 @@ func (o *AbstractEObject) EBasicSetContainer(newContainer EObject, newContainerF
 			list := oldResource.GetContents().(ENotifyingList)
 			notifications = list.RemoveWithNotification(o.AsEObject(), notifications)
 			objInternal.ESetInternalResource(nil)
-			newResource = newContainerInternal.EInternalResource()
+			newResource = newContainerInternal.EResource()
 		} else {
 			oldResource = nil
 		}
 	} else {
 		if oldContainerInternal != nil {
-			oldResource = oldContainerInternal.EInternalResource()
+			oldResource = oldContainerInternal.EResource()
 		}
 
 		if newContainerInternal != nil {
-			newResource = newContainerInternal.EInternalResource()
+			newResource = newContainerInternal.EResource()
 		}
 	}
 

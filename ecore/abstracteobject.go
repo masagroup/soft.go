@@ -976,15 +976,16 @@ func (o *AbstractEObject) EObjectForFragmentSegment(uriSegment string) EObject {
 			pos, _ := strconv.Atoi(uriSegment[index+1:])
 			eFeatureName := uriSegment[1:index]
 			eFeature := o.eStructuralFeature(eFeatureName)
-			list := o.AsEObject().EGetResolve(eFeature, false).(EList)
-			if pos < list.Size() {
+			list, _ := o.AsEObject().EGetResolve(eFeature, false).(EList)
+			if list != nil && pos < list.Size() {
 				return list.Get(pos).(EObject)
 			}
 		}
 	}
 	if index == -1 {
 		eFeature := o.eStructuralFeature(uriSegment[1:])
-		return o.AsEObject().EGetResolve(eFeature, false).(EObject)
+		eObject, _ := o.AsEObject().EGetResolve(eFeature, false).(EObject)
+		return eObject
 	}
 	return nil
 }

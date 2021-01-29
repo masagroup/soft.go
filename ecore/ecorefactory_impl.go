@@ -180,17 +180,17 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEDataTypeFromContainerAndClassID
 	return element
 }
 func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEEnum() EEnum {
-	return newEEnumImpl()
+	return newEEnumExt()
 }
 func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEEnumFromContainer(eContainer EPackage) EEnum {
-	element := newEEnumImpl()
+	element := newEEnumExt()
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)
 	}
 	return element
 }
 func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEEnumFromContainerAndClassID(eContainer EPackage, classID int) EEnum {
-	element := newEEnumImpl()
+	element := newEEnumExt()
 	element.SetClassifierID(classID)
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)

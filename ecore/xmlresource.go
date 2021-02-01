@@ -127,6 +127,11 @@ const (
 	other    = iota
 )
 
+const (
+	load_object_type = "object"
+	load_error_type  = "error"
+)
+
 type reference struct {
 	object  EObject
 	feature EStructuralFeature
@@ -142,8 +147,10 @@ type xmlLoadImpl struct {
 	isSuppressDocumentRoot bool
 	elements               []string
 	objects                []EObject
+	types                  []interface{}
 	attributes             []xml.Attr
 	references             []reference
+	textBuilder            *strings.Builder
 	namespaces             *xmlNamespaces
 	prefixesToURI          map[string]string
 	spacesToFactories      map[string]EFactory
@@ -214,15 +221,38 @@ func (l *xmlLoadImpl) startElement(e xml.StartElement) {
 }
 
 func (l *xmlLoadImpl) endElement(e xml.EndElement) {
-	// remove last object
-	var eRoot EObject
-	if len(l.objects) > 0 {
-		eRoot = l.objects[0]
-		l.objects = l.objects[:len(l.objects)-1]
-	}
 	if len(l.elements) > 0 {
 		l.elements = l.elements[:len(l.elements)-1]
 	}
+
+	// remove last object
+	var eRoot EObject
+	var eObject EObject
+	if len(l.objects) > 0 {
+		eRoot = l.objects[0]
+		eObject = l.objects[len(l.objects)-1]
+		l.objects = l.objects[:len(l.objects)-1]
+	}
+
+	// remove last type
+	var eType interface{}
+	if len(l.types) > 0 {
+		eType = l.types[len(l.types)-1]
+		l.types = l.types[:len(l.types)-1]
+	}
+	if l.textBuilder != nil {
+		if eType == load_object_type {
+			if l.textBuilder.Len() > 0 {
+				l.handleProxy(eObject, l.textBuilder.String())
+			}
+		} else if eType != load_error_type {
+			if eObject == nil && len(l.objects) > 0 {
+				eObject = l.objects[len(l.objects)-1]
+			}
+			l.setFeatureValue(eObject, eType.(EStructuralFeature), l.textBuilder.String(), -1)
+		}
+	}
+	l.textBuilder = nil
 
 	// end of the document
 	if len(l.elements) == 0 {
@@ -312,6 +342,15 @@ func (l *xmlLoadImpl) processElement(space string, local string) {
 	}
 }
 
+func (l *xmlLoadImpl) processObject(eObject EObject) {
+	if eObject != nil {
+		l.objects = append(l.objects, eObject)
+		l.types = append(l.types, load_object_type)
+	} else {
+		l.types = append(l.types, load_error_type)
+	}
+}
+
 func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 	eFactory := l.getFactoryForSpace(space)
 	if eFactory != nil {
@@ -320,11 +359,14 @@ func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 			eClass := l.extendedMetaData.GetDocumentRoot(ePackage)
 			// add document root to object list & handle its features
 			eObject := l.createObjectWithFactory(eFactory, eClass, true)
-			l.objects = append(l.objects, eObject)
+			l.processObject(eObject)
 			l.handleFeature(space, local)
 			if l.isSuppressDocumentRoot {
 				// remove document root from object list
 				l.objects = l.objects[1:]
+				// remove type info from type list
+				l.types = l.types[1:]
+
 				// consider new child object as the future new root
 				// remove it from document root
 				if len(l.objects) > 0 {
@@ -337,7 +379,7 @@ func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 		} else {
 			eType := l.getType(ePackage, local)
 			eObject := l.createObjectWithFactory(eFactory, eType, false)
-			l.objects = append(l.objects, eObject)
+			l.processObject(eObject)
 			return eObject
 		}
 	} else {
@@ -370,8 +412,8 @@ func (l *xmlLoadImpl) createObjectFromFeatureType(eObject EObject, eFeature EStr
 	}
 	if eResult != nil {
 		l.setFeatureValue(eObject, eFeature, eResult, -1)
-		l.objects = append(l.objects, eResult)
 	}
+	l.processObject(eResult)
 	return eResult
 }
 
@@ -393,8 +435,8 @@ func (l *xmlLoadImpl) createObjectFromTypeName(eObject EObject, qname string, eF
 	eResult := l.createObjectWithFactory(eFactory, eType, false)
 	if eResult != nil {
 		l.setFeatureValue(eObject, eFeature, eResult, -1)
-		l.objects = append(l.objects, eResult)
 	}
+	l.processObject(eResult)
 	return eResult
 }
 
@@ -403,20 +445,26 @@ func (l *xmlLoadImpl) handleFeature(space string, local string) {
 	if len(l.objects) > 0 {
 		eObject = l.objects[len(l.objects)-1]
 	}
-
 	if eObject != nil {
 		eFeature := l.getFeature(eObject, space, local)
 		if eFeature != nil {
-			xsiType := l.interfaces.(xmlLoadInternal).getXSIType()
-			if len(xsiType) > 0 {
-				l.createObjectFromTypeName(eObject, xsiType, eFeature)
+			if featureKind := l.getLoadFeatureKind(eFeature); featureKind == single || featureKind == many {
+				l.textBuilder = &strings.Builder{}
+				l.types = append(l.types, eFeature)
+				l.objects = append(l.objects, nil)
 			} else {
-				l.createObjectFromFeatureType(eObject, eFeature)
+				xsiType := l.interfaces.(xmlLoadInternal).getXSIType()
+				if len(xsiType) > 0 {
+					l.createObjectFromTypeName(eObject, xsiType, eFeature)
+				} else {
+					l.createObjectFromFeatureType(eObject, eFeature)
+				}
 			}
 		} else {
 			l.handleUnknownFeature(local)
 		}
 	} else {
+		l.types = append(l.types, load_error_type)
 		l.handleUnknownFeature(local)
 	}
 
@@ -772,6 +820,9 @@ func (l *xmlLoadImpl) warning(diagnostic EDiagnostic) {
 }
 
 func (l *xmlLoadImpl) text(data string) {
+	if l.textBuilder != nil {
+		l.textBuilder.WriteString(data)
+	}
 }
 
 func (l *xmlLoadImpl) comment(comment string) {

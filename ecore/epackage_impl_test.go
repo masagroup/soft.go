@@ -125,16 +125,16 @@ func TestEPackageESuperPackageGet(t *testing.T) {
 func TestEPackageNsPrefixGet(t *testing.T) {
 	o := newEPackageImpl()
 	// get default value
-	assert.Equal(t, "", o.GetNsPrefix())
+	assert.Equal(t, string(""), o.GetNsPrefix())
 	// get initialized value
-	v := "Test String"
+	v := string("Test String")
 	o.nsPrefix = v
 	assert.Equal(t, v, o.GetNsPrefix())
 }
 
 func TestEPackageNsPrefixSet(t *testing.T) {
 	o := newEPackageImpl()
-	v := "Test String"
+	v := string("Test String")
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -146,16 +146,16 @@ func TestEPackageNsPrefixSet(t *testing.T) {
 func TestEPackageNsURIGet(t *testing.T) {
 	o := newEPackageImpl()
 	// get default value
-	assert.Equal(t, "", o.GetNsURI())
+	assert.Equal(t, string(""), o.GetNsURI())
 	// get initialized value
-	v := "Test String"
+	v := string("Test String")
 	o.nsURI = v
 	assert.Equal(t, v, o.GetNsURI())
 }
 
 func TestEPackageNsURISet(t *testing.T) {
 	o := newEPackageImpl()
-	v := "Test String"
+	v := string("Test String")
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -219,12 +219,12 @@ func TestEPackageESetFromID(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockValue)
 	}
 	{
-		v := "Test String"
+		v := string("Test String")
 		o.ESetFromID(EPACKAGE__NS_PREFIX, v)
 		assert.Equal(t, v, o.EGetFromID(EPACKAGE__NS_PREFIX, false))
 	}
 	{
-		v := "Test String"
+		v := string("Test String")
 		o.ESetFromID(EPACKAGE__NS_URI, v)
 		assert.Equal(t, v, o.EGetFromID(EPACKAGE__NS_URI, false))
 	}
@@ -266,12 +266,12 @@ func TestEPackageEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(EPACKAGE__NS_PREFIX)
 		v := o.EGetFromID(EPACKAGE__NS_PREFIX, false)
-		assert.Equal(t, "", v)
+		assert.Equal(t, string(""), v)
 	}
 	{
 		o.EUnsetFromID(EPACKAGE__NS_URI)
 		v := o.EGetFromID(EPACKAGE__NS_URI, false)
-		assert.Equal(t, "", v)
+		assert.Equal(t, string(""), v)
 	}
 }
 

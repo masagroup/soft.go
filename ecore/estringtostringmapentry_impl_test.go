@@ -57,16 +57,16 @@ func TestEStringToStringMapEntryGetValue(t *testing.T) {
 func TestEStringToStringMapEntryKeyGet(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
 	// get default value
-	assert.Equal(t, "", o.GetStringKey())
+	assert.Equal(t, string(""), o.GetStringKey())
 	// get initialized value
-	v := "Test String"
+	v := string("Test String")
 	o.key = v
 	assert.Equal(t, v, o.GetStringKey())
 }
 
 func TestEStringToStringMapEntryKeySet(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
-	v := "Test String"
+	v := string("Test String")
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -78,16 +78,16 @@ func TestEStringToStringMapEntryKeySet(t *testing.T) {
 func TestEStringToStringMapEntryValueGet(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
 	// get default value
-	assert.Equal(t, "", o.GetStringValue())
+	assert.Equal(t, string(""), o.GetStringValue())
 	// get initialized value
-	v := "Test String"
+	v := string("Test String")
 	o.value = v
 	assert.Equal(t, v, o.GetStringValue())
 }
 
 func TestEStringToStringMapEntryValueSet(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
-	v := "Test String"
+	v := string("Test String")
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -107,12 +107,12 @@ func TestEStringToStringMapEntryESetFromID(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
-		v := "Test String"
+		v := string("Test String")
 		o.ESetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, v)
 		assert.Equal(t, v, o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, false))
 	}
 	{
-		v := "Test String"
+		v := string("Test String")
 		o.ESetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, v)
 		assert.Equal(t, v, o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, false))
 	}
@@ -132,11 +132,11 @@ func TestEStringToStringMapEntryEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY)
 		v := o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, false)
-		assert.Equal(t, "", v)
+		assert.Equal(t, string(""), v)
 	}
 	{
 		o.EUnsetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE)
 		v := o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, false)
-		assert.Equal(t, "", v)
+		assert.Equal(t, string(""), v)
 	}
 }

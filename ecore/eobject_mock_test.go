@@ -93,7 +93,7 @@ func TestMockEObjectEContainmentFeature(t *testing.T) {
 // TestMockEObjectEContents tests method EContents
 func TestMockEObjectEContents(t *testing.T) {
 	o := &MockEObject{}
-	r := NewEmptyBasicEList()
+	r := EList(NewEmptyBasicEList())
 	o.On("EContents").Return(r).Once()
 	o.On("EContents").Return(func() EList {
 		return r
@@ -106,7 +106,7 @@ func TestMockEObjectEContents(t *testing.T) {
 // TestMockEObjectECrossReferences tests method ECrossReferences
 func TestMockEObjectECrossReferences(t *testing.T) {
 	o := &MockEObject{}
-	r := NewEmptyBasicEList()
+	r := EList(NewEmptyBasicEList())
 	o.On("ECrossReferences").Return(r).Once()
 	o.On("ECrossReferences").Return(func() EList {
 		return r
@@ -134,7 +134,7 @@ func TestMockEObjectEGet(t *testing.T) {
 func TestMockEObjectEGetResolve(t *testing.T) {
 	o := &MockEObject{}
 	feature := new(MockEStructuralFeature)
-	resolve := true
+	resolve := bool(true)
 	r := interface{}(nil)
 	o.On("EGetResolve", feature, resolve).Return(r).Once()
 	o.On("EGetResolve", feature, resolve).Return(func() interface{} {
@@ -149,7 +149,7 @@ func TestMockEObjectEGetResolve(t *testing.T) {
 func TestMockEObjectEInvoke(t *testing.T) {
 	o := &MockEObject{}
 	operation := new(MockEOperation)
-	arguments := NewEmptyBasicEList()
+	arguments := EList(NewEmptyBasicEList())
 	r := interface{}(nil)
 	o.On("EInvoke", operation, arguments).Return(r).Once()
 	o.On("EInvoke", operation, arguments).Return(func() interface{} {
@@ -163,7 +163,7 @@ func TestMockEObjectEInvoke(t *testing.T) {
 // TestMockEObjectEIsProxy tests method EIsProxy
 func TestMockEObjectEIsProxy(t *testing.T) {
 	o := &MockEObject{}
-	r := true
+	r := bool(true)
 	o.On("EIsProxy").Return(r).Once()
 	o.On("EIsProxy").Return(func() bool {
 		return r
@@ -177,7 +177,7 @@ func TestMockEObjectEIsProxy(t *testing.T) {
 func TestMockEObjectEIsSet(t *testing.T) {
 	o := &MockEObject{}
 	feature := new(MockEStructuralFeature)
-	r := true
+	r := bool(true)
 	o.On("EIsSet", feature).Return(r).Once()
 	o.On("EIsSet", feature).Return(func() bool {
 		return r

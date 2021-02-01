@@ -42,7 +42,7 @@ func TestMockEEnumGetELiterals(t *testing.T) {
 // TestMockEEnumGetEEnumLiteralByLiteral tests method GetEEnumLiteralByLiteral
 func TestMockEEnumGetEEnumLiteralByLiteral(t *testing.T) {
 	o := &MockEEnum{}
-	literal := "Test String"
+	literal := string("Test String")
 	r := new(MockEEnumLiteral)
 	o.On("GetEEnumLiteralByLiteral", literal).Return(r).Once()
 	o.On("GetEEnumLiteralByLiteral", literal).Return(func() EEnumLiteral {
@@ -56,7 +56,7 @@ func TestMockEEnumGetEEnumLiteralByLiteral(t *testing.T) {
 // TestMockEEnumGetEEnumLiteralByName tests method GetEEnumLiteralByName
 func TestMockEEnumGetEEnumLiteralByName(t *testing.T) {
 	o := &MockEEnum{}
-	name := "Test String"
+	name := string("Test String")
 	r := new(MockEEnumLiteral)
 	o.On("GetEEnumLiteralByName", name).Return(r).Once()
 	o.On("GetEEnumLiteralByName", name).Return(func() EEnumLiteral {
@@ -70,7 +70,7 @@ func TestMockEEnumGetEEnumLiteralByName(t *testing.T) {
 // TestMockEEnumGetEEnumLiteralByValue tests method GetEEnumLiteralByValue
 func TestMockEEnumGetEEnumLiteralByValue(t *testing.T) {
 	o := &MockEEnum{}
-	value := 45
+	value := int(45)
 	r := new(MockEEnumLiteral)
 	o.On("GetEEnumLiteralByValue", value).Return(r).Once()
 	o.On("GetEEnumLiteralByValue", value).Return(func() EEnumLiteral {

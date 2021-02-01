@@ -28,7 +28,7 @@ func discardMockEClass() {
 // TestMockEClassIsAbstract tests method IsAbstract
 func TestMockEClassIsAbstract(t *testing.T) {
 	o := &MockEClass{}
-	r := true
+	r := bool(true)
 	o.On("IsAbstract").Once().Return(r)
 	o.On("IsAbstract").Once().Return(func() bool {
 		return r
@@ -41,7 +41,7 @@ func TestMockEClassIsAbstract(t *testing.T) {
 // TestMockEClassSetAbstract tests method SetAbstract
 func TestMockEClassSetAbstract(t *testing.T) {
 	o := &MockEClass{}
-	v := true
+	v := bool(true)
 	o.On("SetAbstract", v).Once()
 	o.SetAbstract(v)
 	o.AssertExpectations(t)
@@ -245,7 +245,7 @@ func TestMockEClassGetESuperTypes(t *testing.T) {
 // TestMockEClassIsInterface tests method IsInterface
 func TestMockEClassIsInterface(t *testing.T) {
 	o := &MockEClass{}
-	r := true
+	r := bool(true)
 	o.On("IsInterface").Once().Return(r)
 	o.On("IsInterface").Once().Return(func() bool {
 		return r
@@ -258,7 +258,7 @@ func TestMockEClassIsInterface(t *testing.T) {
 // TestMockEClassSetInterface tests method SetInterface
 func TestMockEClassSetInterface(t *testing.T) {
 	o := &MockEClass{}
-	v := true
+	v := bool(true)
 	o.On("SetInterface", v).Once()
 	o.SetInterface(v)
 	o.AssertExpectations(t)
@@ -267,7 +267,7 @@ func TestMockEClassSetInterface(t *testing.T) {
 // TestMockEClassGetEOperation tests method GetEOperation
 func TestMockEClassGetEOperation(t *testing.T) {
 	o := &MockEClass{}
-	operationID := 45
+	operationID := int(45)
 	r := new(MockEOperation)
 	o.On("GetEOperation", operationID).Return(r).Once()
 	o.On("GetEOperation", operationID).Return(func() EOperation {
@@ -281,7 +281,7 @@ func TestMockEClassGetEOperation(t *testing.T) {
 // TestMockEClassGetEStructuralFeature tests method GetEStructuralFeature
 func TestMockEClassGetEStructuralFeature(t *testing.T) {
 	o := &MockEClass{}
-	featureID := 45
+	featureID := int(45)
 	r := new(MockEStructuralFeature)
 	o.On("GetEStructuralFeature", featureID).Return(r).Once()
 	o.On("GetEStructuralFeature", featureID).Return(func() EStructuralFeature {
@@ -295,7 +295,7 @@ func TestMockEClassGetEStructuralFeature(t *testing.T) {
 // TestMockEClassGetEStructuralFeatureFromName tests method GetEStructuralFeatureFromName
 func TestMockEClassGetEStructuralFeatureFromName(t *testing.T) {
 	o := &MockEClass{}
-	featureName := "Test String"
+	featureName := string("Test String")
 	r := new(MockEStructuralFeature)
 	o.On("GetEStructuralFeatureFromName", featureName).Return(r).Once()
 	o.On("GetEStructuralFeatureFromName", featureName).Return(func() EStructuralFeature {
@@ -309,7 +309,7 @@ func TestMockEClassGetEStructuralFeatureFromName(t *testing.T) {
 // TestMockEClassGetFeatureCount tests method GetFeatureCount
 func TestMockEClassGetFeatureCount(t *testing.T) {
 	o := &MockEClass{}
-	r := 45
+	r := int(45)
 	o.On("GetFeatureCount").Return(r).Once()
 	o.On("GetFeatureCount").Return(func() int {
 		return r
@@ -323,7 +323,7 @@ func TestMockEClassGetFeatureCount(t *testing.T) {
 func TestMockEClassGetFeatureID(t *testing.T) {
 	o := &MockEClass{}
 	feature := new(MockEStructuralFeature)
-	r := 45
+	r := int(45)
 	o.On("GetFeatureID", feature).Return(r).Once()
 	o.On("GetFeatureID", feature).Return(func() int {
 		return r
@@ -350,7 +350,7 @@ func TestMockEClassGetFeatureType(t *testing.T) {
 // TestMockEClassGetOperationCount tests method GetOperationCount
 func TestMockEClassGetOperationCount(t *testing.T) {
 	o := &MockEClass{}
-	r := 45
+	r := int(45)
 	o.On("GetOperationCount").Return(r).Once()
 	o.On("GetOperationCount").Return(func() int {
 		return r
@@ -364,7 +364,7 @@ func TestMockEClassGetOperationCount(t *testing.T) {
 func TestMockEClassGetOperationID(t *testing.T) {
 	o := &MockEClass{}
 	operation := new(MockEOperation)
-	r := 45
+	r := int(45)
 	o.On("GetOperationID", operation).Return(r).Once()
 	o.On("GetOperationID", operation).Return(func() int {
 		return r
@@ -392,7 +392,7 @@ func TestMockEClassGetOverride(t *testing.T) {
 func TestMockEClassIsSuperTypeOf(t *testing.T) {
 	o := &MockEClass{}
 	someClass := new(MockEClass)
-	r := true
+	r := bool(true)
 	o.On("IsSuperTypeOf", someClass).Return(r).Once()
 	o.On("IsSuperTypeOf", someClass).Return(func() bool {
 		return r

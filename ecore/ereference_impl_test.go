@@ -114,16 +114,16 @@ func TestEReferenceContainerGet(t *testing.T) {
 func TestEReferenceContainmentGet(t *testing.T) {
 	o := newEReferenceImpl()
 	// get default value
-	assert.Equal(t, false, o.IsContainment())
+	assert.Equal(t, bool(false), o.IsContainment())
 	// get initialized value
-	v := true
+	v := bool(true)
 	o.isContainment = v
 	assert.Equal(t, v, o.IsContainment())
 }
 
 func TestEReferenceContainmentSet(t *testing.T) {
 	o := newEReferenceImpl()
-	v := true
+	v := bool(true)
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -135,16 +135,16 @@ func TestEReferenceContainmentSet(t *testing.T) {
 func TestEReferenceResolveProxiesGet(t *testing.T) {
 	o := newEReferenceImpl()
 	// get default value
-	assert.Equal(t, true, o.IsResolveProxies())
+	assert.Equal(t, bool(true), o.IsResolveProxies())
 	// get initialized value
-	v := true
+	v := bool(true)
 	o.isResolveProxies = v
 	assert.Equal(t, v, o.IsResolveProxies())
 }
 
 func TestEReferenceResolveProxiesSet(t *testing.T) {
 	o := newEReferenceImpl()
-	v := true
+	v := bool(true)
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -171,7 +171,7 @@ func TestEReferenceESetFromID(t *testing.T) {
 	o := newEReferenceImpl()
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
-		v := true
+		v := bool(true)
 		o.ESetFromID(EREFERENCE__CONTAINMENT, v)
 		assert.Equal(t, v, o.EGetFromID(EREFERENCE__CONTAINMENT, false))
 	}
@@ -194,7 +194,7 @@ func TestEReferenceESetFromID(t *testing.T) {
 		assert.Equal(t, v, o.EGetFromID(EREFERENCE__EOPPOSITE, false))
 	}
 	{
-		v := true
+		v := bool(true)
 		o.ESetFromID(EREFERENCE__RESOLVE_PROXIES, v)
 		assert.Equal(t, v, o.EGetFromID(EREFERENCE__RESOLVE_PROXIES, false))
 	}
@@ -218,7 +218,7 @@ func TestEReferenceEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(EREFERENCE__CONTAINMENT)
 		v := o.EGetFromID(EREFERENCE__CONTAINMENT, false)
-		assert.Equal(t, false, v)
+		assert.Equal(t, bool(false), v)
 	}
 	{
 		o.EUnsetFromID(EREFERENCE__EKEYS)
@@ -234,6 +234,6 @@ func TestEReferenceEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(EREFERENCE__RESOLVE_PROXIES)
 		v := o.EGetFromID(EREFERENCE__RESOLVE_PROXIES, false)
-		assert.Equal(t, true, v)
+		assert.Equal(t, bool(true), v)
 	}
 }

@@ -134,16 +134,16 @@ func TestEAnnotationReferencesGet(t *testing.T) {
 func TestEAnnotationSourceGet(t *testing.T) {
 	o := newEAnnotationImpl()
 	// get default value
-	assert.Equal(t, "", o.GetSource())
+	assert.Equal(t, string(""), o.GetSource())
 	// get initialized value
-	v := "Test String"
+	v := string("Test String")
 	o.source = v
 	assert.Equal(t, v, o.GetSource())
 }
 
 func TestEAnnotationSourceSet(t *testing.T) {
 	o := newEAnnotationImpl()
-	v := "Test String"
+	v := string("Test String")
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -184,8 +184,8 @@ func TestEAnnotationESetFromID(t *testing.T) {
 		mockMap := &MockEMap{}
 		mockEntry := &MockEMapEntry{}
 		mockIterator := &MockEIterator{}
-		mockKey := "Test String"
-		mockValue := "Test String"
+		mockKey := string("Test String")
+		mockValue := string("Test String")
 		mockMap.On("Iterator").Return(mockIterator).Once()
 		mockIterator.On("HasNext").Return(true).Once()
 		mockIterator.On("Next").Return(mockEntry).Once()
@@ -221,7 +221,7 @@ func TestEAnnotationESetFromID(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockValue)
 	}
 	{
-		v := "Test String"
+		v := string("Test String")
 		o.ESetFromID(EANNOTATION__SOURCE, v)
 		assert.Equal(t, v, o.EGetFromID(EANNOTATION__SOURCE, false))
 	}
@@ -269,7 +269,7 @@ func TestEAnnotationEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(EANNOTATION__SOURCE)
 		v := o.EGetFromID(EANNOTATION__SOURCE, false)
-		assert.Equal(t, "", v)
+		assert.Equal(t, string(""), v)
 	}
 }
 

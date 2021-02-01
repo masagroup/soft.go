@@ -63,7 +63,7 @@ func TestMockEEnumLiteralSetInstance(t *testing.T) {
 // TestMockEEnumLiteralGetLiteral tests method GetLiteral
 func TestMockEEnumLiteralGetLiteral(t *testing.T) {
 	o := &MockEEnumLiteral{}
-	r := "Test String"
+	r := string("Test String")
 	o.On("GetLiteral").Once().Return(r)
 	o.On("GetLiteral").Once().Return(func() string {
 		return r
@@ -76,7 +76,7 @@ func TestMockEEnumLiteralGetLiteral(t *testing.T) {
 // TestMockEEnumLiteralSetLiteral tests method SetLiteral
 func TestMockEEnumLiteralSetLiteral(t *testing.T) {
 	o := &MockEEnumLiteral{}
-	v := "Test String"
+	v := string("Test String")
 	o.On("SetLiteral", v).Once()
 	o.SetLiteral(v)
 	o.AssertExpectations(t)
@@ -85,7 +85,7 @@ func TestMockEEnumLiteralSetLiteral(t *testing.T) {
 // TestMockEEnumLiteralGetValue tests method GetValue
 func TestMockEEnumLiteralGetValue(t *testing.T) {
 	o := &MockEEnumLiteral{}
-	r := 45
+	r := int(45)
 	o.On("GetValue").Once().Return(r)
 	o.On("GetValue").Once().Return(func() int {
 		return r
@@ -98,7 +98,7 @@ func TestMockEEnumLiteralGetValue(t *testing.T) {
 // TestMockEEnumLiteralSetValue tests method SetValue
 func TestMockEEnumLiteralSetValue(t *testing.T) {
 	o := &MockEEnumLiteral{}
-	v := 45
+	v := int(45)
 	o.On("SetValue", v).Once()
 	o.SetValue(v)
 	o.AssertExpectations(t)

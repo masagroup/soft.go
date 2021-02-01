@@ -82,16 +82,16 @@ func TestEEnumLiteralInstanceSet(t *testing.T) {
 func TestEEnumLiteralLiteralGet(t *testing.T) {
 	o := newEEnumLiteralImpl()
 	// get default value
-	assert.Equal(t, "", o.GetLiteral())
+	assert.Equal(t, string(""), o.GetLiteral())
 	// get initialized value
-	v := "Test String"
+	v := string("Test String")
 	o.literal = v
 	assert.Equal(t, v, o.GetLiteral())
 }
 
 func TestEEnumLiteralLiteralSet(t *testing.T) {
 	o := newEEnumLiteralImpl()
-	v := "Test String"
+	v := string("Test String")
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -103,16 +103,16 @@ func TestEEnumLiteralLiteralSet(t *testing.T) {
 func TestEEnumLiteralValueGet(t *testing.T) {
 	o := newEEnumLiteralImpl()
 	// get default value
-	assert.Equal(t, 0, o.GetValue())
+	assert.Equal(t, int(0), o.GetValue())
 	// get initialized value
-	v := 45
+	v := int(45)
 	o.value = v
 	assert.Equal(t, v, o.GetValue())
 }
 
 func TestEEnumLiteralValueSet(t *testing.T) {
 	o := newEEnumLiteralImpl()
-	v := 45
+	v := int(45)
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -139,12 +139,12 @@ func TestEEnumLiteralESetFromID(t *testing.T) {
 		assert.Equal(t, v, o.EGetFromID(EENUM_LITERAL__INSTANCE, false))
 	}
 	{
-		v := "Test String"
+		v := string("Test String")
 		o.ESetFromID(EENUM_LITERAL__LITERAL, v)
 		assert.Equal(t, v, o.EGetFromID(EENUM_LITERAL__LITERAL, false))
 	}
 	{
-		v := 45
+		v := int(45)
 		o.ESetFromID(EENUM_LITERAL__VALUE, v)
 		assert.Equal(t, v, o.EGetFromID(EENUM_LITERAL__VALUE, false))
 	}
@@ -171,12 +171,12 @@ func TestEEnumLiteralEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(EENUM_LITERAL__LITERAL)
 		v := o.EGetFromID(EENUM_LITERAL__LITERAL, false)
-		assert.Equal(t, "", v)
+		assert.Equal(t, string(""), v)
 	}
 	{
 		o.EUnsetFromID(EENUM_LITERAL__VALUE)
 		v := o.EGetFromID(EENUM_LITERAL__VALUE, false)
-		assert.Equal(t, 0, v)
+		assert.Equal(t, int(0), v)
 	}
 }
 

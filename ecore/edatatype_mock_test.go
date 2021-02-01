@@ -28,7 +28,7 @@ func discardMockEDataType() {
 // TestMockEDataTypeIsSerializable tests method IsSerializable
 func TestMockEDataTypeIsSerializable(t *testing.T) {
 	o := &MockEDataType{}
-	r := true
+	r := bool(true)
 	o.On("IsSerializable").Once().Return(r)
 	o.On("IsSerializable").Once().Return(func() bool {
 		return r
@@ -41,7 +41,7 @@ func TestMockEDataTypeIsSerializable(t *testing.T) {
 // TestMockEDataTypeSetSerializable tests method SetSerializable
 func TestMockEDataTypeSetSerializable(t *testing.T) {
 	o := &MockEDataType{}
-	v := true
+	v := bool(true)
 	o.On("SetSerializable", v).Once()
 	o.SetSerializable(v)
 	o.AssertExpectations(t)

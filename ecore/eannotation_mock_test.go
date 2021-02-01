@@ -92,7 +92,7 @@ func TestMockEAnnotationGetReferences(t *testing.T) {
 // TestMockEAnnotationGetSource tests method GetSource
 func TestMockEAnnotationGetSource(t *testing.T) {
 	o := &MockEAnnotation{}
-	r := "Test String"
+	r := string("Test String")
 	o.On("GetSource").Once().Return(r)
 	o.On("GetSource").Once().Return(func() string {
 		return r
@@ -105,7 +105,7 @@ func TestMockEAnnotationGetSource(t *testing.T) {
 // TestMockEAnnotationSetSource tests method SetSource
 func TestMockEAnnotationSetSource(t *testing.T) {
 	o := &MockEAnnotation{}
-	v := "Test String"
+	v := string("Test String")
 	o.On("SetSource", v).Once()
 	o.SetSource(v)
 	o.AssertExpectations(t)

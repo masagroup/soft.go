@@ -24,20 +24,36 @@ func TestMockEPackageRegistryRegisterPackage(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, rp, p)
 }
 
-func TestMockEPackageRegistryRegisterPackageWithURI(t *testing.T) {
-	rp := &MockEPackageRegistry{}
-	p := &MockEPackage{}
-	rp.On("RegisterPackageWithURI", p, "nsURI").Once()
-	rp.RegisterPackageWithURI(p, "nsURI")
-	mock.AssertExpectationsForObjects(t, rp, p)
-}
-
 func TestMockEPackageRegistryUnRegisterPackage(t *testing.T) {
 	rp := &MockEPackageRegistry{}
 	p := &MockEPackage{}
 	rp.On("UnregisterPackage", p).Once()
 	rp.UnregisterPackage(p)
 	mock.AssertExpectationsForObjects(t, rp, p)
+}
+
+func TestMockEPackageRegistryPutPackage(t *testing.T) {
+	rp := &MockEPackageRegistry{}
+	p := &MockEPackage{}
+	rp.On("PutPackage", "nsURI", p).Once()
+	rp.PutPackage("nsURI", p)
+	mock.AssertExpectationsForObjects(t, rp, p)
+}
+
+func TestMockEPackageRegistryPutSupplier(t *testing.T) {
+	rp := &MockEPackageRegistry{}
+	rp.On("PutSupplier", "nsURI", mock.AnythingOfType("func() ecore.EPackage")).Once()
+	rp.PutSupplier("nsURI", func() EPackage {
+		return nil
+	})
+	mock.AssertExpectationsForObjects(t, rp)
+}
+
+func TestMockEPackageRegistryRemove(t *testing.T) {
+	rp := &MockEPackageRegistry{}
+	rp.On("Remove", "nsURI").Once()
+	rp.Remove("nsURI")
+	mock.AssertExpectationsForObjects(t, rp)
 }
 
 func TestMockEPackageRegistryGetPackage(t *testing.T) {

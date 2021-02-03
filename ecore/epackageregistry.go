@@ -1,8 +1,11 @@
 package ecore
 
 type EPackageRegistry interface {
+	PutPackage(nsURI string, pack EPackage)
+	PutSupplier(nsURI string, supplier func() EPackage)
+	Remove(nsURI string)
+
 	RegisterPackage(pack EPackage)
-	RegisterPackageWithURI(pack EPackage, nsURI string)
 	UnregisterPackage(pack EPackage)
 
 	GetPackage(nsURI string) EPackage

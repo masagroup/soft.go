@@ -58,7 +58,7 @@ func (rs *EResourceSetImpl) Initialize() {
 	rs.ENotifierImpl.Initialize()
 	rs.resources = newResourcesList(rs)
 	rs.uriConverter = NewEURIConverterImpl()
-	rs.resourceFactoryRegistry = GetResourceFactoryRegistry()
+	rs.resourceFactoryRegistry = NewEResourceFactoryRegistryImplWithDelegate(GetResourceFactoryRegistry())
 	rs.packageRegistry = NewEPackageRegistryImplWithDelegate(GetPackageRegistry())
 }
 

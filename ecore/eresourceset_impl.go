@@ -92,6 +92,11 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 		}
 	}
 
+	ePackage := r.packageRegistry.GetPackage(uri.String())
+	if ePackage != nil {
+		return ePackage.EResource()
+	}
+
 	if loadOnDemand {
 		resource := r.CreateResource(uri)
 		if resource != nil {

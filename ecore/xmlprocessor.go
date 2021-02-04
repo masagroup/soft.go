@@ -13,7 +13,14 @@ type XMLProcessor struct {
 }
 
 func NewXMLProcessor(packages []EPackage) *XMLProcessor {
-	return &XMLProcessor{extendMetaData: NewExtendedMetaData(), packages: packages}
+	p := new(XMLProcessor)
+	p.Initialize(packages)
+	return p
+}
+
+func (p *XMLProcessor) Initialize(packages []EPackage) {
+	p.extendMetaData = NewExtendedMetaData()
+	p.packages = packages
 }
 
 func (p *XMLProcessor) Load(uri *url.URL) EResource {

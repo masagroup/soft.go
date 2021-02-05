@@ -365,3 +365,36 @@ func TestEcoreUtils_Remove(t *testing.T) {
 	Remove(mockObject)
 	mock.AssertExpectationsForObjects(t, mockObject, mockReference, mockContainer)
 }
+
+func TestEcoreUtils_GetAncestor(t *testing.T) {
+
+	mockObject0 := &MockEObject{}
+	mockObject1 := &MockEObject{}
+	mockObject2 := &MockEObject{}
+	mockClass := &MockEClass{}
+	mockOtherClass := &MockEClass{}
+
+	mockObject0.On("EClass").Return(mockOtherClass).Once()
+	mockObject0.On("EContainer").Return(mockObject1).Once()
+	mockObject1.On("EClass").Return(mockOtherClass).Once()
+	mockObject1.On("EContainer").Return(mockObject2).Once()
+	mockObject2.On("EClass").Return(mockClass).Once()
+	assert.Equal(t, mockObject2, GetAncestor(mockObject0, mockClass))
+	mock.AssertExpectationsForObjects(t, mockObject0, mockObject1, mockObject2, mockClass, mockOtherClass)
+
+	mockObject0.On("EClass").Return(mockOtherClass).Once()
+	mockObject0.On("EContainer").Return(mockObject1).Once()
+	mockObject1.On("EClass").Return(mockOtherClass).Once()
+	mockObject1.On("EContainer").Return(mockObject2).Once()
+	mockObject2.On("EClass").Return(mockOtherClass).Once()
+	mockObject2.On("EContainer").Return(nil).Once()
+	assert.Equal(t, nil, GetAncestor(mockObject0, mockClass))
+	mock.AssertExpectationsForObjects(t, mockObject0, mockObject1, mockObject2, mockClass, mockOtherClass)
+
+	assert.Equal(t, nil, GetAncestor(nil, mockClass))
+	mock.AssertExpectationsForObjects(t, mockClass)
+
+	mockObject0.On("EClass").Return(mockClass).Once()
+	assert.Equal(t, mockObject0, GetAncestor(mockObject0, mockClass))
+	mock.AssertExpectationsForObjects(t, mockObject0, mockClass)
+}

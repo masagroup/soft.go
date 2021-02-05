@@ -189,3 +189,11 @@ func Remove(eObject EObject) {
 		}
 	}
 }
+
+func GetAncestor(eObject EObject, eClass EClass) EObject {
+	eCurrent := eObject
+	for eCurrent != nil && eCurrent.EClass() != eClass {
+		eCurrent = eCurrent.EContainer()
+	}
+	return eCurrent
+}

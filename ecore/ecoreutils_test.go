@@ -398,3 +398,22 @@ func TestEcoreUtils_GetAncestor(t *testing.T) {
 	assert.Equal(t, mockObject0, GetAncestor(mockObject0, mockClass))
 	mock.AssertExpectationsForObjects(t, mockObject0, mockClass)
 }
+
+func TestEcoreUtils_IsAncestor(t *testing.T) {
+
+	mockObject0 := &MockEObject{}
+	mockObject1 := &MockEObject{}
+	mockObject2 := &MockEObject{}
+
+	assert.True(t, IsAncestor(nil, nil))
+
+	mockObject0.On("EContainer").Return(mockObject1).Once()
+	mockObject1.On("EContainer").Return(mockObject2).Once()
+	assert.True(t, IsAncestor(mockObject2, mockObject0))
+	mock.AssertExpectationsForObjects(t, mockObject0, mockObject1, mockObject2)
+
+	mockObject0.On("EContainer").Return(mockObject1).Once()
+	mockObject1.On("EContainer").Return(nil).Once()
+	assert.False(t, IsAncestor(mockObject2, mockObject0))
+	mock.AssertExpectationsForObjects(t, mockObject0, mockObject1, mockObject2)
+}

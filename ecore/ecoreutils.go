@@ -197,3 +197,11 @@ func GetAncestor(eObject EObject, eClass EClass) EObject {
 	}
 	return eCurrent
 }
+
+func IsAncestor(eAncestor EObject, eObject EObject) bool {
+	eCurrent := eObject
+	for eCurrent != nil && eCurrent != eAncestor {
+		eCurrent = eCurrent.EContainer()
+	}
+	return eCurrent == eAncestor
+}

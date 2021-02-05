@@ -66,7 +66,7 @@ func TestMockEFactoryConvertToString(t *testing.T) {
 func TestMockEFactoryCreate(t *testing.T) {
 	o := &MockEFactory{}
 	eClass := new(MockEClass)
-	r := new(MockEObject)
+	r := new(MockEObjectInternal)
 	o.On("Create", eClass).Return(r).Once()
 	o.On("Create", eClass).Return(func() EObject {
 		return r

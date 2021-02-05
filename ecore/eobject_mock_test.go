@@ -54,7 +54,7 @@ func TestMockEObjectEClass(t *testing.T) {
 // TestMockEObjectEContainer tests method EContainer
 func TestMockEObjectEContainer(t *testing.T) {
 	o := &MockEObject{}
-	r := new(MockEObject)
+	r := new(MockEObjectInternal)
 	o.On("EContainer").Return(r).Once()
 	o.On("EContainer").Return(func() EObject {
 		return r

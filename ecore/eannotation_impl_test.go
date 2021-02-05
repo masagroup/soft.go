@@ -169,8 +169,9 @@ func TestEAnnotationESetFromID(t *testing.T) {
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
 		// list with a value
-		mockValue := new(MockEObject)
+		mockValue := new(MockEObjectInternal)
 		l := NewImmutableEList([]interface{}{mockValue})
+		mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EANNOTATION__CONTENTS, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
 		o.ESetFromID(EANNOTATION__CONTENTS, l)
@@ -209,7 +210,7 @@ func TestEAnnotationESetFromID(t *testing.T) {
 	}
 	{
 		// list with a value
-		mockValue := new(MockEObject)
+		mockValue := new(MockEObjectInternal)
 		l := NewImmutableEList([]interface{}{mockValue})
 		mockValue.On("EIsProxy").Return(false).Once()
 
@@ -309,7 +310,8 @@ func TestEAnnotationEBasicInverseRemove(t *testing.T) {
 	}
 	{
 		// initialize list with a mock object
-		mockObject := new(MockEObject)
+		mockObject := new(MockEObjectInternal)
+		mockObject.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EANNOTATION__CONTENTS, mock.Anything).Return(nil).Once()
 
 		l := o.GetContents()
 		l.Add(mockObject)

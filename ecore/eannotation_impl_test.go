@@ -134,16 +134,16 @@ func TestEAnnotationReferencesGet(t *testing.T) {
 func TestEAnnotationSourceGet(t *testing.T) {
 	o := newEAnnotationImpl()
 	// get default value
-	assert.Equal(t, "", o.GetSource())
+	assert.Equal(t, string(""), o.GetSource())
 	// get initialized value
-	v := "Test String"
+	v := string("Test String")
 	o.source = v
 	assert.Equal(t, v, o.GetSource())
 }
 
 func TestEAnnotationSourceSet(t *testing.T) {
 	o := newEAnnotationImpl()
-	v := "Test String"
+	v := string("Test String")
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -169,8 +169,9 @@ func TestEAnnotationESetFromID(t *testing.T) {
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
 		// list with a value
-		mockValue := new(MockEObject)
+		mockValue := new(MockEObjectInternal)
 		l := NewImmutableEList([]interface{}{mockValue})
+		mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EANNOTATION__CONTENTS, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
 		o.ESetFromID(EANNOTATION__CONTENTS, l)
@@ -184,8 +185,8 @@ func TestEAnnotationESetFromID(t *testing.T) {
 		mockMap := &MockEMap{}
 		mockEntry := &MockEMapEntry{}
 		mockIterator := &MockEIterator{}
-		mockKey := "Test String"
-		mockValue := "Test String"
+		mockKey := string("Test String")
+		mockValue := string("Test String")
 		mockMap.On("Iterator").Return(mockIterator).Once()
 		mockIterator.On("HasNext").Return(true).Once()
 		mockIterator.On("Next").Return(mockEntry).Once()
@@ -209,7 +210,7 @@ func TestEAnnotationESetFromID(t *testing.T) {
 	}
 	{
 		// list with a value
-		mockValue := new(MockEObject)
+		mockValue := new(MockEObjectInternal)
 		l := NewImmutableEList([]interface{}{mockValue})
 		mockValue.On("EIsProxy").Return(false).Once()
 
@@ -221,7 +222,7 @@ func TestEAnnotationESetFromID(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockValue)
 	}
 	{
-		v := "Test String"
+		v := string("Test String")
 		o.ESetFromID(EANNOTATION__SOURCE, v)
 		assert.Equal(t, v, o.EGetFromID(EANNOTATION__SOURCE, false))
 	}
@@ -269,7 +270,7 @@ func TestEAnnotationEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(EANNOTATION__SOURCE)
 		v := o.EGetFromID(EANNOTATION__SOURCE, false)
-		assert.Equal(t, "", v)
+		assert.Equal(t, string(""), v)
 	}
 }
 
@@ -309,7 +310,8 @@ func TestEAnnotationEBasicInverseRemove(t *testing.T) {
 	}
 	{
 		// initialize list with a mock object
-		mockObject := new(MockEObject)
+		mockObject := new(MockEObjectInternal)
+		mockObject.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EANNOTATION__CONTENTS, mock.Anything).Return(nil).Once()
 
 		l := o.GetContents()
 		l.Add(mockObject)

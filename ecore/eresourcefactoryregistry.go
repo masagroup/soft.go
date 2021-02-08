@@ -18,6 +18,10 @@ var resourceFactoryRegistryInstance EResourceFactoryRegistry
 func GetResourceFactoryRegistry() EResourceFactoryRegistry {
 	if resourceFactoryRegistryInstance == nil {
 		resourceFactoryRegistryInstance = NewEResourceFactoryRegistryImpl()
+		// initialize with default factories
+		extensionToFactories := resourceFactoryRegistryInstance.GetExtensionToFactoryMap()
+		extensionToFactories["ecore"] = &XMIResourceFactory{}
+		extensionToFactories["xml"] = &XMLResourceFactory{}
 	}
 	return resourceFactoryRegistryInstance
 }

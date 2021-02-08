@@ -118,16 +118,16 @@ func TestETypedElementManyGet(t *testing.T) {
 func TestETypedElementOrderedGet(t *testing.T) {
 	o := newETypedElementImpl()
 	// get default value
-	assert.Equal(t, true, o.IsOrdered())
+	assert.Equal(t, bool(true), o.IsOrdered())
 	// get initialized value
-	v := true
+	v := bool(true)
 	o.isOrdered = v
 	assert.Equal(t, v, o.IsOrdered())
 }
 
 func TestETypedElementOrderedSet(t *testing.T) {
 	o := newETypedElementImpl()
-	v := true
+	v := bool(true)
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -144,16 +144,16 @@ func TestETypedElementRequiredGet(t *testing.T) {
 func TestETypedElementUniqueGet(t *testing.T) {
 	o := newETypedElementImpl()
 	// get default value
-	assert.Equal(t, true, o.IsUnique())
+	assert.Equal(t, bool(true), o.IsUnique())
 	// get initialized value
-	v := true
+	v := bool(true)
 	o.isUnique = v
 	assert.Equal(t, v, o.IsUnique())
 }
 
 func TestETypedElementUniqueSet(t *testing.T) {
 	o := newETypedElementImpl()
-	v := true
+	v := bool(true)
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -165,16 +165,16 @@ func TestETypedElementUniqueSet(t *testing.T) {
 func TestETypedElementLowerBoundGet(t *testing.T) {
 	o := newETypedElementImpl()
 	// get default value
-	assert.Equal(t, 0, o.GetLowerBound())
+	assert.Equal(t, int(0), o.GetLowerBound())
 	// get initialized value
-	v := 45
+	v := int(45)
 	o.lowerBound = v
 	assert.Equal(t, v, o.GetLowerBound())
 }
 
 func TestETypedElementLowerBoundSet(t *testing.T) {
 	o := newETypedElementImpl()
-	v := 45
+	v := int(45)
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -186,16 +186,16 @@ func TestETypedElementLowerBoundSet(t *testing.T) {
 func TestETypedElementUpperBoundGet(t *testing.T) {
 	o := newETypedElementImpl()
 	// get default value
-	assert.Equal(t, 1, o.GetUpperBound())
+	assert.Equal(t, int(1), o.GetUpperBound())
 	// get initialized value
-	v := 45
+	v := int(45)
 	o.upperBound = v
 	assert.Equal(t, v, o.GetUpperBound())
 }
 
 func TestETypedElementUpperBoundSet(t *testing.T) {
 	o := newETypedElementImpl()
-	v := 45
+	v := int(45)
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -227,22 +227,22 @@ func TestETypedElementESetFromID(t *testing.T) {
 		assert.Equal(t, v, o.EGetFromID(ETYPED_ELEMENT__ETYPE, false))
 	}
 	{
-		v := 45
+		v := int(45)
 		o.ESetFromID(ETYPED_ELEMENT__LOWER_BOUND, v)
 		assert.Equal(t, v, o.EGetFromID(ETYPED_ELEMENT__LOWER_BOUND, false))
 	}
 	{
-		v := true
+		v := bool(true)
 		o.ESetFromID(ETYPED_ELEMENT__ORDERED, v)
 		assert.Equal(t, v, o.EGetFromID(ETYPED_ELEMENT__ORDERED, false))
 	}
 	{
-		v := true
+		v := bool(true)
 		o.ESetFromID(ETYPED_ELEMENT__UNIQUE, v)
 		assert.Equal(t, v, o.EGetFromID(ETYPED_ELEMENT__UNIQUE, false))
 	}
 	{
-		v := 45
+		v := int(45)
 		o.ESetFromID(ETYPED_ELEMENT__UPPER_BOUND, v)
 		assert.Equal(t, v, o.EGetFromID(ETYPED_ELEMENT__UPPER_BOUND, false))
 	}
@@ -271,21 +271,21 @@ func TestETypedElementEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(ETYPED_ELEMENT__LOWER_BOUND)
 		v := o.EGetFromID(ETYPED_ELEMENT__LOWER_BOUND, false)
-		assert.Equal(t, 0, v)
+		assert.Equal(t, int(0), v)
 	}
 	{
 		o.EUnsetFromID(ETYPED_ELEMENT__ORDERED)
 		v := o.EGetFromID(ETYPED_ELEMENT__ORDERED, false)
-		assert.Equal(t, true, v)
+		assert.Equal(t, bool(true), v)
 	}
 	{
 		o.EUnsetFromID(ETYPED_ELEMENT__UNIQUE)
 		v := o.EGetFromID(ETYPED_ELEMENT__UNIQUE, false)
-		assert.Equal(t, true, v)
+		assert.Equal(t, bool(true), v)
 	}
 	{
 		o.EUnsetFromID(ETYPED_ELEMENT__UPPER_BOUND)
 		v := o.EGetFromID(ETYPED_ELEMENT__UPPER_BOUND, false)
-		assert.Equal(t, 1, v)
+		assert.Equal(t, int(1), v)
 	}
 }

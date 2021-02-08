@@ -78,16 +78,16 @@ func TestEOperationEParametersGet(t *testing.T) {
 func TestEOperationOperationIDGet(t *testing.T) {
 	o := newEOperationImpl()
 	// get default value
-	assert.Equal(t, -1, o.GetOperationID())
+	assert.Equal(t, int(-1), o.GetOperationID())
 	// get initialized value
-	v := 45
+	v := int(45)
 	o.operationID = v
 	assert.Equal(t, v, o.GetOperationID())
 }
 
 func TestEOperationOperationIDSet(t *testing.T) {
 	o := newEOperationImpl()
-	v := 45
+	v := int(45)
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -142,7 +142,7 @@ func TestEOperationESetFromID(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockValue)
 	}
 	{
-		v := 45
+		v := int(45)
 		o.ESetFromID(EOPERATION__OPERATION_ID, v)
 		assert.Equal(t, v, o.EGetFromID(EOPERATION__OPERATION_ID, false))
 	}
@@ -178,7 +178,7 @@ func TestEOperationEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(EOPERATION__OPERATION_ID)
 		v := o.EGetFromID(EOPERATION__OPERATION_ID, false)
-		assert.Equal(t, -1, v)
+		assert.Equal(t, int(-1), v)
 	}
 }
 

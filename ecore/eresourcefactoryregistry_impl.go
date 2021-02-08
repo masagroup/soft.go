@@ -9,15 +9,22 @@ import (
 type EResourceFactoryRegistryImpl struct {
 	protocolToFactory  map[string]EResourceFactory
 	extensionToFactory map[string]EResourceFactory
+	delegate           EResourceFactoryRegistry
 }
 
 func NewEResourceFactoryRegistryImpl() *EResourceFactoryRegistryImpl {
-	r := new(EResourceFactoryRegistryImpl)
-	r.protocolToFactory = make(map[string]EResourceFactory)
-	r.extensionToFactory = make(map[string]EResourceFactory)
-	r.extensionToFactory["ecore"] = &XMIResourceFactory{}
-	r.extensionToFactory["xml"] = &XMLResourceFactory{}
-	return r
+	return &EResourceFactoryRegistryImpl{
+		protocolToFactory:  make(map[string]EResourceFactory),
+		extensionToFactory: make(map[string]EResourceFactory),
+	}
+}
+
+func NewEResourceFactoryRegistryImplWithDelegate(delegate EResourceFactoryRegistry) *EResourceFactoryRegistryImpl {
+	return &EResourceFactoryRegistryImpl{
+		protocolToFactory:  make(map[string]EResourceFactory),
+		extensionToFactory: make(map[string]EResourceFactory),
+		delegate:           delegate,
+	}
 }
 
 func (r *EResourceFactoryRegistryImpl) GetFactory(uri *url.URL) EResourceFactory {
@@ -34,6 +41,9 @@ func (r *EResourceFactoryRegistryImpl) GetFactory(uri *url.URL) EResourceFactory
 	}
 	if factory, ok := r.extensionToFactory[DEFAULT_EXTENSION]; ok {
 		return factory
+	}
+	if r.delegate != nil {
+		return r.delegate.GetFactory(uri)
 	}
 	return nil
 }

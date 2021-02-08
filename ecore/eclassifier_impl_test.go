@@ -48,16 +48,16 @@ func TestEClassifierFeatureCount(t *testing.T) {
 func TestEClassifierClassifierIDGet(t *testing.T) {
 	o := newEClassifierImpl()
 	// get default value
-	assert.Equal(t, -1, o.GetClassifierID())
+	assert.Equal(t, int(-1), o.GetClassifierID())
 	// get initialized value
-	v := 45
+	v := int(45)
 	o.classifierID = v
 	assert.Equal(t, v, o.GetClassifierID())
 }
 
 func TestEClassifierClassifierIDSet(t *testing.T) {
 	o := newEClassifierImpl()
-	v := 45
+	v := int(45)
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -90,14 +90,14 @@ func TestEClassifierInstanceClassGet(t *testing.T) {
 	// get default value
 	assert.Nil(t, o.GetInstanceClass())
 	// get initialized value
-	v := reflect.TypeOf("")
+	v := reflect.Type(reflect.TypeOf(""))
 	o.instanceClass = v
 	assert.Equal(t, v, o.GetInstanceClass())
 }
 
 func TestEClassifierInstanceClassSet(t *testing.T) {
 	o := newEClassifierImpl()
-	v := reflect.TypeOf("")
+	v := reflect.Type(reflect.TypeOf(""))
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -109,16 +109,16 @@ func TestEClassifierInstanceClassSet(t *testing.T) {
 func TestEClassifierInstanceTypeNameGet(t *testing.T) {
 	o := newEClassifierImpl()
 	// get default value
-	assert.Equal(t, "", o.GetInstanceTypeName())
+	assert.Equal(t, string(""), o.GetInstanceTypeName())
 	// get initialized value
-	v := "Test String"
+	v := string("Test String")
 	o.instanceTypeName = v
 	assert.Equal(t, v, o.GetInstanceTypeName())
 }
 
 func TestEClassifierInstanceTypeNameSet(t *testing.T) {
 	o := newEClassifierImpl()
-	v := "Test String"
+	v := string("Test String")
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -147,17 +147,17 @@ func TestEClassifierESetFromID(t *testing.T) {
 	o := newEClassifierImpl()
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
-		v := 45
+		v := int(45)
 		o.ESetFromID(ECLASSIFIER__CLASSIFIER_ID, v)
 		assert.Equal(t, v, o.EGetFromID(ECLASSIFIER__CLASSIFIER_ID, false))
 	}
 	{
-		v := reflect.TypeOf("")
+		v := reflect.Type(reflect.TypeOf(""))
 		o.ESetFromID(ECLASSIFIER__INSTANCE_CLASS, v)
 		assert.Equal(t, v, o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, false))
 	}
 	{
-		v := "Test String"
+		v := string("Test String")
 		o.ESetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, v)
 		assert.Equal(t, v, o.EGetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, false))
 	}
@@ -180,7 +180,7 @@ func TestEClassifierEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(ECLASSIFIER__CLASSIFIER_ID)
 		v := o.EGetFromID(ECLASSIFIER__CLASSIFIER_ID, false)
-		assert.Equal(t, -1, v)
+		assert.Equal(t, int(-1), v)
 	}
 	{
 		o.EUnsetFromID(ECLASSIFIER__INSTANCE_CLASS)
@@ -190,7 +190,7 @@ func TestEClassifierEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME)
 		v := o.EGetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, false)
-		assert.Equal(t, "", v)
+		assert.Equal(t, string(""), v)
 	}
 }
 

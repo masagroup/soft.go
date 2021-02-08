@@ -29,7 +29,7 @@ func discardMockEClassifier() {
 // TestMockEClassifierGetClassifierID tests method GetClassifierID
 func TestMockEClassifierGetClassifierID(t *testing.T) {
 	o := &MockEClassifier{}
-	r := 45
+	r := int(45)
 	o.On("GetClassifierID").Once().Return(r)
 	o.On("GetClassifierID").Once().Return(func() int {
 		return r
@@ -42,7 +42,7 @@ func TestMockEClassifierGetClassifierID(t *testing.T) {
 // TestMockEClassifierSetClassifierID tests method SetClassifierID
 func TestMockEClassifierSetClassifierID(t *testing.T) {
 	o := &MockEClassifier{}
-	v := 45
+	v := int(45)
 	o.On("SetClassifierID", v).Once()
 	o.SetClassifierID(v)
 	o.AssertExpectations(t)
@@ -77,7 +77,7 @@ func TestMockEClassifierGetEPackage(t *testing.T) {
 // TestMockEClassifierGetInstanceClass tests method GetInstanceClass
 func TestMockEClassifierGetInstanceClass(t *testing.T) {
 	o := &MockEClassifier{}
-	r := reflect.TypeOf("")
+	r := reflect.Type(reflect.TypeOf(""))
 	o.On("GetInstanceClass").Once().Return(r)
 	o.On("GetInstanceClass").Once().Return(func() reflect.Type {
 		return r
@@ -90,7 +90,7 @@ func TestMockEClassifierGetInstanceClass(t *testing.T) {
 // TestMockEClassifierSetInstanceClass tests method SetInstanceClass
 func TestMockEClassifierSetInstanceClass(t *testing.T) {
 	o := &MockEClassifier{}
-	v := reflect.TypeOf("")
+	v := reflect.Type(reflect.TypeOf(""))
 	o.On("SetInstanceClass", v).Once()
 	o.SetInstanceClass(v)
 	o.AssertExpectations(t)
@@ -99,7 +99,7 @@ func TestMockEClassifierSetInstanceClass(t *testing.T) {
 // TestMockEClassifierGetInstanceTypeName tests method GetInstanceTypeName
 func TestMockEClassifierGetInstanceTypeName(t *testing.T) {
 	o := &MockEClassifier{}
-	r := "Test String"
+	r := string("Test String")
 	o.On("GetInstanceTypeName").Once().Return(r)
 	o.On("GetInstanceTypeName").Once().Return(func() string {
 		return r
@@ -112,7 +112,7 @@ func TestMockEClassifierGetInstanceTypeName(t *testing.T) {
 // TestMockEClassifierSetInstanceTypeName tests method SetInstanceTypeName
 func TestMockEClassifierSetInstanceTypeName(t *testing.T) {
 	o := &MockEClassifier{}
-	v := "Test String"
+	v := string("Test String")
 	o.On("SetInstanceTypeName", v).Once()
 	o.SetInstanceTypeName(v)
 	o.AssertExpectations(t)
@@ -122,7 +122,7 @@ func TestMockEClassifierSetInstanceTypeName(t *testing.T) {
 func TestMockEClassifierIsInstance(t *testing.T) {
 	o := &MockEClassifier{}
 	object := interface{}(nil)
-	r := true
+	r := bool(true)
 	o.On("IsInstance", object).Return(r).Once()
 	o.On("IsInstance", object).Return(func() bool {
 		return r

@@ -3,11 +3,13 @@ package ecore
 import (
 	"io/ioutil"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func m(a, b interface{}) []interface{} {
@@ -76,9 +78,8 @@ func TestXmlNamespacesContextNoRemap(t *testing.T) {
 }
 
 func loadPackage(packageFileName string) EPackage {
-	eResource := newXMIResourceImpl()
-	eResource.SetURI(&url.URL{Path: "testdata/" + packageFileName})
-	eResource.Load()
+	xmiProcessor := NewXMIProcessor()
+	eResource := xmiProcessor.Load(&url.URL{Path: "testdata/" + packageFileName})
 	if eResource.IsLoaded() && eResource.GetContents().Size() > 0 {
 		ePackage, _ := eResource.GetContents().Get(0).(EPackage)
 		ePackage.SetEFactoryInstance(NewEFactoryExt())
@@ -89,21 +90,14 @@ func loadPackage(packageFileName string) EPackage {
 }
 
 func TestXmlLoadLibraryNoRoot(t *testing.T) {
+	// load package
 	ePackage := loadPackage("library.noroot.ecore")
 	assert.NotNil(t, ePackage)
 
-	// create a resource set
-	eResourceSet := NewEResourceSetImpl()
-	eResourceSet.GetPackageRegistry().RegisterPackage(GetPackage())
-	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-
-	// create a resource
-	eResource := newXMLResourceImpl()
-	eResourceSet.GetResources().Add(eResource)
-
-	// load it
-	eResource.SetURI(&url.URL{Path: "testdata/library.noroot.xml"})
-	eResource.Load()
+	// load resource
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.Load(&url.URL{Path: "testdata/library.noroot.xml"})
+	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
@@ -119,21 +113,74 @@ func TestXmlLoadLibraryNoRoot(t *testing.T) {
 	assert.Equal(t, "My Library", eLibrary.EGet(eLibraryNameAttribute))
 }
 
+func TestXmlLoadSaveLibraryNoRootWithOptions(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.noroot.ecore")
+	assert.NotNil(t, ePackage)
+
+	// load resource
+	options := map[string]interface{}{OPTION_SUPPRESS_DOCUMENT_ROOT: true, OPTION_EXTENDED_META_DATA: NewExtendedMetaData()}
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.LoadWithOptions(&url.URL{Path: "testdata/library.noroot.xml"}, options)
+	require.NotNil(t, eResource)
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	// save
+	eResource.SetURI(&url.URL{Path: "testdata/library.noroot.result.xml"})
+	xmlProcessor.SaveWithOptions(eResource, options)
+
+	// result
+	src, err := ioutil.ReadFile("testdata/library.noroot.xml")
+	assert.Nil(t, err)
+
+	result, err := ioutil.ReadFile("testdata/library.noroot.xml")
+	assert.Nil(t, err)
+	assert.Equal(t, strings.ReplaceAll(string(src), "\r\n", "\n"), strings.ReplaceAll(string(result), "\r\n", "\n"))
+}
+
+func TestXmlLoadSaveLibraryNoRootWithReaderWriter(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.noroot.ecore")
+	assert.NotNil(t, ePackage)
+
+	// xml processor
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	options := map[string]interface{}{OPTION_SUPPRESS_DOCUMENT_ROOT: true, OPTION_EXTENDED_META_DATA: NewExtendedMetaData()}
+
+	// load resource
+	reader, error := os.Open("testdata/library.noroot.xml")
+	require.Nil(t, error)
+	eResource := xmlProcessor.LoadWithReader(reader, options)
+	require.NotNil(t, eResource)
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	// save
+	writer, error := os.Create("testdata/library.noroot.result.xml")
+	require.Nil(t, error)
+	xmlProcessor.SaveWithWriter(writer, eResource, options)
+
+	// result
+	src, err := ioutil.ReadFile("testdata/library.noroot.xml")
+	assert.Nil(t, err)
+
+	result, err := ioutil.ReadFile("testdata/library.noroot.xml")
+	assert.Nil(t, err)
+	assert.Equal(t, strings.ReplaceAll(string(src), "\r\n", "\n"), strings.ReplaceAll(string(result), "\r\n", "\n"))
+}
+
 func TestXmlLoadLibraryComplex(t *testing.T) {
+	// load package
 	ePackage := loadPackage("library.complex.ecore")
 	assert.NotNil(t, ePackage)
 
-	// create a resource set
-	eResourceSet := NewEResourceSetImpl()
-	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-
-	// create a resource
-	eResource := newXMLResourceImpl()
-	eResourceSet.GetResources().Add(eResource)
-
-	// load it
-	eResource.SetURI(&url.URL{Path: "testdata/library.complex.xml"})
-	eResource.Load()
+	// load resource
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.Load(&url.URL{Path: "testdata/library.complex.xml"})
+	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
@@ -157,23 +204,14 @@ func TestXmlLoadLibraryComplex(t *testing.T) {
 }
 
 func TestXmlLoadLibraryComplexWithOptions(t *testing.T) {
+	// load package
 	ePackage := loadPackage("library.complex.ecore")
 	assert.NotNil(t, ePackage)
 
-	// create a resource set
-	eResourceSet := NewEResourceSetImpl()
-	eResourceSet.GetPackageRegistry().RegisterPackage(GetPackage())
-	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-
-	// create a resource
-	eResource := newXMLResourceImpl()
-	eResourceSet.GetResources().Add(eResource)
-
-	extendedMetaData := NewExtendedMetaData()
-
-	// load it
-	eResource.SetURI(&url.URL{Path: "testdata/library.complex.noroot.xml"})
-	eResource.LoadWithOptions(map[string]interface{}{OPTION_SUPPRESS_DOCUMENT_ROOT: true, OPTION_EXTENDED_META_DATA: extendedMetaData})
+	// load resource
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.LoadWithOptions(&url.URL{Path: "testdata/library.complex.noroot.xml"}, map[string]interface{}{OPTION_SUPPRESS_DOCUMENT_ROOT: true, OPTION_EXTENDED_META_DATA: NewExtendedMetaData()})
+	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
@@ -190,60 +228,46 @@ func TestXmlLoadLibraryComplexWithOptions(t *testing.T) {
 }
 
 func TestXmlLoadSaveLibraryComplex(t *testing.T) {
+	// load package
 	ePackage := loadPackage("library.complex.ecore")
 	assert.NotNil(t, ePackage)
 
-	// create a resource set
-	eResourceSet := NewEResourceSetImpl()
-	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-
-	// create a resource
-	eResource := newXMLResourceImpl()
-	eResourceSet.GetResources().Add(eResource)
-
-	// load it
-	eResource.SetURI(&url.URL{Path: "testdata/library.complex.xml"})
-	eResource.Load()
+	// load resource
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.Load(&url.URL{Path: "testdata/library.complex.xml"})
+	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
-
-	var strbuff strings.Builder
-	eResource.SaveWithWriter(&strbuff, nil)
+	// save resource
+	result := xmlProcessor.SaveToString(eResource, nil)
 
 	bytes, err := ioutil.ReadFile("testdata/library.complex.xml")
 	assert.Nil(t, err)
-	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
 
 func TestXmlLoadSaveLibraryComplexWithOptions(t *testing.T) {
+	// load package
 	ePackage := loadPackage("library.complex.ecore")
 	assert.NotNil(t, ePackage)
 
-	// create a resource set
-	eResourceSet := NewEResourceSetImpl()
-	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+	options := map[string]interface{}{OPTION_SUPPRESS_DOCUMENT_ROOT: true, OPTION_EXTENDED_META_DATA: NewExtendedMetaData()}
 
-	// create a resource
-	eResource := newXMLResourceImpl()
-	eResourceSet.GetResources().Add(eResource)
-
-	extendedMetaData := NewExtendedMetaData()
-	options := map[string]interface{}{OPTION_SUPPRESS_DOCUMENT_ROOT: true, OPTION_EXTENDED_META_DATA: extendedMetaData}
-	// load it
-	eResource.SetURI(&url.URL{Path: "testdata/library.complex.noroot.xml"})
-	eResource.LoadWithOptions(options)
+	// load resource
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.LoadWithOptions(&url.URL{Path: "testdata/library.complex.noroot.xml"}, options)
+	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	// save it
-	var strbuff strings.Builder
-	eResource.SaveWithWriter(&strbuff, options)
+	// save resource
+	result := xmlProcessor.SaveToString(eResource, options)
 
 	bytes, err := ioutil.ReadFile("testdata/library.complex.noroot.xml")
 	assert.Nil(t, err)
-	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
 
 func TestXmlResourceIDManager(t *testing.T) {

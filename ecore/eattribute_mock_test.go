@@ -41,7 +41,7 @@ func TestMockEAttributeGetEAttributeType(t *testing.T) {
 // TestMockEAttributeIsID tests method IsID
 func TestMockEAttributeIsID(t *testing.T) {
 	o := &MockEAttribute{}
-	r := true
+	r := bool(true)
 	o.On("IsID").Once().Return(r)
 	o.On("IsID").Once().Return(func() bool {
 		return r
@@ -54,7 +54,7 @@ func TestMockEAttributeIsID(t *testing.T) {
 // TestMockEAttributeSetID tests method SetID
 func TestMockEAttributeSetID(t *testing.T) {
 	o := &MockEAttribute{}
-	v := true
+	v := bool(true)
 	o.On("SetID", v).Once()
 	o.SetID(v)
 	o.AssertExpectations(t)

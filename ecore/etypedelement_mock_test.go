@@ -58,7 +58,7 @@ func TestMockETypedElementUnsetEType(t *testing.T) {
 // TestMockETypedElementGetLowerBound tests method GetLowerBound
 func TestMockETypedElementGetLowerBound(t *testing.T) {
 	o := &MockETypedElement{}
-	r := 45
+	r := int(45)
 	o.On("GetLowerBound").Once().Return(r)
 	o.On("GetLowerBound").Once().Return(func() int {
 		return r
@@ -71,7 +71,7 @@ func TestMockETypedElementGetLowerBound(t *testing.T) {
 // TestMockETypedElementSetLowerBound tests method SetLowerBound
 func TestMockETypedElementSetLowerBound(t *testing.T) {
 	o := &MockETypedElement{}
-	v := 45
+	v := int(45)
 	o.On("SetLowerBound", v).Once()
 	o.SetLowerBound(v)
 	o.AssertExpectations(t)
@@ -80,7 +80,7 @@ func TestMockETypedElementSetLowerBound(t *testing.T) {
 // TestMockETypedElementIsMany tests method IsMany
 func TestMockETypedElementIsMany(t *testing.T) {
 	o := &MockETypedElement{}
-	r := true
+	r := bool(true)
 	o.On("IsMany").Once().Return(r)
 	o.On("IsMany").Once().Return(func() bool {
 		return r
@@ -93,7 +93,7 @@ func TestMockETypedElementIsMany(t *testing.T) {
 // TestMockETypedElementIsOrdered tests method IsOrdered
 func TestMockETypedElementIsOrdered(t *testing.T) {
 	o := &MockETypedElement{}
-	r := true
+	r := bool(true)
 	o.On("IsOrdered").Once().Return(r)
 	o.On("IsOrdered").Once().Return(func() bool {
 		return r
@@ -106,7 +106,7 @@ func TestMockETypedElementIsOrdered(t *testing.T) {
 // TestMockETypedElementSetOrdered tests method SetOrdered
 func TestMockETypedElementSetOrdered(t *testing.T) {
 	o := &MockETypedElement{}
-	v := true
+	v := bool(true)
 	o.On("SetOrdered", v).Once()
 	o.SetOrdered(v)
 	o.AssertExpectations(t)
@@ -115,7 +115,7 @@ func TestMockETypedElementSetOrdered(t *testing.T) {
 // TestMockETypedElementIsRequired tests method IsRequired
 func TestMockETypedElementIsRequired(t *testing.T) {
 	o := &MockETypedElement{}
-	r := true
+	r := bool(true)
 	o.On("IsRequired").Once().Return(r)
 	o.On("IsRequired").Once().Return(func() bool {
 		return r
@@ -128,7 +128,7 @@ func TestMockETypedElementIsRequired(t *testing.T) {
 // TestMockETypedElementIsUnique tests method IsUnique
 func TestMockETypedElementIsUnique(t *testing.T) {
 	o := &MockETypedElement{}
-	r := true
+	r := bool(true)
 	o.On("IsUnique").Once().Return(r)
 	o.On("IsUnique").Once().Return(func() bool {
 		return r
@@ -141,7 +141,7 @@ func TestMockETypedElementIsUnique(t *testing.T) {
 // TestMockETypedElementSetUnique tests method SetUnique
 func TestMockETypedElementSetUnique(t *testing.T) {
 	o := &MockETypedElement{}
-	v := true
+	v := bool(true)
 	o.On("SetUnique", v).Once()
 	o.SetUnique(v)
 	o.AssertExpectations(t)
@@ -150,7 +150,7 @@ func TestMockETypedElementSetUnique(t *testing.T) {
 // TestMockETypedElementGetUpperBound tests method GetUpperBound
 func TestMockETypedElementGetUpperBound(t *testing.T) {
 	o := &MockETypedElement{}
-	r := 45
+	r := int(45)
 	o.On("GetUpperBound").Once().Return(r)
 	o.On("GetUpperBound").Once().Return(func() int {
 		return r
@@ -163,7 +163,7 @@ func TestMockETypedElementGetUpperBound(t *testing.T) {
 // TestMockETypedElementSetUpperBound tests method SetUpperBound
 func TestMockETypedElementSetUpperBound(t *testing.T) {
 	o := &MockETypedElement{}
-	v := 45
+	v := int(45)
 	o.On("SetUpperBound", v).Once()
 	o.SetUpperBound(v)
 	o.AssertExpectations(t)

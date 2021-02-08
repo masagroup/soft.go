@@ -58,7 +58,7 @@ func (rs *EResourceSetImpl) Initialize() {
 	rs.ENotifierImpl.Initialize()
 	rs.resources = newResourcesList(rs)
 	rs.uriConverter = NewEURIConverterImpl()
-	rs.resourceFactoryRegistry = GetResourceFactoryRegistry()
+	rs.resourceFactoryRegistry = NewEResourceFactoryRegistryImplWithDelegate(GetResourceFactoryRegistry())
 	rs.packageRegistry = NewEPackageRegistryImplWithDelegate(GetPackageRegistry())
 }
 
@@ -90,6 +90,11 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 			}
 			return resource
 		}
+	}
+
+	ePackage := r.packageRegistry.GetPackage(uri.String())
+	if ePackage != nil {
+		return ePackage.EResource()
 	}
 
 	if loadOnDemand {

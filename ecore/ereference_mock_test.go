@@ -28,7 +28,7 @@ func discardMockEReference() {
 // TestMockEReferenceIsContainer tests method IsContainer
 func TestMockEReferenceIsContainer(t *testing.T) {
 	o := &MockEReference{}
-	r := true
+	r := bool(true)
 	o.On("IsContainer").Once().Return(r)
 	o.On("IsContainer").Once().Return(func() bool {
 		return r
@@ -41,7 +41,7 @@ func TestMockEReferenceIsContainer(t *testing.T) {
 // TestMockEReferenceIsContainment tests method IsContainment
 func TestMockEReferenceIsContainment(t *testing.T) {
 	o := &MockEReference{}
-	r := true
+	r := bool(true)
 	o.On("IsContainment").Once().Return(r)
 	o.On("IsContainment").Once().Return(func() bool {
 		return r
@@ -54,7 +54,7 @@ func TestMockEReferenceIsContainment(t *testing.T) {
 // TestMockEReferenceSetContainment tests method SetContainment
 func TestMockEReferenceSetContainment(t *testing.T) {
 	o := &MockEReference{}
-	v := true
+	v := bool(true)
 	o.On("SetContainment", v).Once()
 	o.SetContainment(v)
 	o.AssertExpectations(t)
@@ -112,7 +112,7 @@ func TestMockEReferenceGetEReferenceType(t *testing.T) {
 // TestMockEReferenceIsResolveProxies tests method IsResolveProxies
 func TestMockEReferenceIsResolveProxies(t *testing.T) {
 	o := &MockEReference{}
-	r := true
+	r := bool(true)
 	o.On("IsResolveProxies").Once().Return(r)
 	o.On("IsResolveProxies").Once().Return(func() bool {
 		return r
@@ -125,7 +125,7 @@ func TestMockEReferenceIsResolveProxies(t *testing.T) {
 // TestMockEReferenceSetResolveProxies tests method SetResolveProxies
 func TestMockEReferenceSetResolveProxies(t *testing.T) {
 	o := &MockEReference{}
-	v := true
+	v := bool(true)
 	o.On("SetResolveProxies", v).Once()
 	o.SetResolveProxies(v)
 	o.AssertExpectations(t)

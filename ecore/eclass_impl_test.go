@@ -117,16 +117,16 @@ func TestEClassESuperTypesGet(t *testing.T) {
 func TestEClassAbstractGet(t *testing.T) {
 	o := newEClassImpl()
 	// get default value
-	assert.Equal(t, false, o.IsAbstract())
+	assert.Equal(t, bool(false), o.IsAbstract())
 	// get initialized value
-	v := true
+	v := bool(true)
 	o.isAbstract = v
 	assert.Equal(t, v, o.IsAbstract())
 }
 
 func TestEClassAbstractSet(t *testing.T) {
 	o := newEClassImpl()
-	v := true
+	v := bool(true)
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -138,16 +138,16 @@ func TestEClassAbstractSet(t *testing.T) {
 func TestEClassInterfaceGet(t *testing.T) {
 	o := newEClassImpl()
 	// get default value
-	assert.Equal(t, false, o.IsInterface())
+	assert.Equal(t, bool(false), o.IsInterface())
 	// get initialized value
-	v := true
+	v := bool(true)
 	o.isInterface = v
 	assert.Equal(t, v, o.IsInterface())
 }
 
 func TestEClassInterfaceSet(t *testing.T) {
 	o := newEClassImpl()
-	v := true
+	v := bool(true)
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -236,7 +236,7 @@ func TestEClassESetFromID(t *testing.T) {
 	o := newEClassImpl()
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
-		v := true
+		v := bool(true)
 		o.ESetFromID(ECLASS__ABSTRACT, v)
 		assert.Equal(t, v, o.EGetFromID(ECLASS__ABSTRACT, false))
 	}
@@ -280,7 +280,7 @@ func TestEClassESetFromID(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockValue)
 	}
 	{
-		v := true
+		v := bool(true)
 		o.ESetFromID(ECLASS__INTERFACE, v)
 		assert.Equal(t, v, o.EGetFromID(ECLASS__INTERFACE, false))
 	}
@@ -314,7 +314,7 @@ func TestEClassEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(ECLASS__ABSTRACT)
 		v := o.EGetFromID(ECLASS__ABSTRACT, false)
-		assert.Equal(t, false, v)
+		assert.Equal(t, bool(false), v)
 	}
 	{
 		o.EUnsetFromID(ECLASS__EOPERATIONS)
@@ -340,7 +340,7 @@ func TestEClassEUnsetFromID(t *testing.T) {
 	{
 		o.EUnsetFromID(ECLASS__INTERFACE)
 		v := o.EGetFromID(ECLASS__INTERFACE, false)
-		assert.Equal(t, false, v)
+		assert.Equal(t, bool(false), v)
 	}
 }
 

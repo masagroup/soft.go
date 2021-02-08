@@ -15,18 +15,38 @@ func TestMockEPackageRegistryImpl_RegisterPackage(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, p)
 }
 
-func TestMockEPackageRegistryImpl_RegisterPackageWithURI(t *testing.T) {
-	rp := NewEPackageRegistryImpl()
-	p := &MockEPackage{}
-	rp.RegisterPackageWithURI(p, "nsURI")
-}
-
 func TestMockEPackageRegistryImpl_UnRegisterPackage(t *testing.T) {
 	rp := NewEPackageRegistryImpl()
 	p := &MockEPackage{}
 	p.On("GetNsURI").Return("uri").Once()
 	rp.UnregisterPackage(p)
 	mock.AssertExpectationsForObjects(t, p)
+}
+
+func TestMockEPackageRegistryImpl_RegisterPutPackage(t *testing.T) {
+	rp := NewEPackageRegistryImpl()
+	p := &MockEPackage{}
+	rp.PutPackage("nsURI", p)
+	assert.Equal(t, p, rp.GetPackage("nsURI"))
+}
+
+func TestMockEPackageRegistryImpl_RegisterPutSupplier(t *testing.T) {
+	rp := NewEPackageRegistryImpl()
+	p := &MockEPackage{}
+	f := func() EPackage {
+		return p
+	}
+	rp.PutSupplier("nsURI", f)
+	assert.Equal(t, p, rp.GetPackage("nsURI"))
+}
+
+func TestMockEPackageRegistryImpl_Remove(t *testing.T) {
+	rp := NewEPackageRegistryImpl()
+	p := &MockEPackage{}
+	rp.PutPackage("nsURI", p)
+	assert.Equal(t, p, rp.GetPackage("nsURI"))
+	rp.Remove("nsURI")
+	assert.Nil(t, rp.GetPackage("nsURI"))
 }
 
 func TestMockEPackageRegistryImpl_GetPackage(t *testing.T) {

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func diagnosticError(errors EList) string {
@@ -18,9 +19,9 @@ func diagnosticError(errors EList) string {
 }
 
 func TestXMIResourceLoadLibrarySimple(t *testing.T) {
-	resource := newXMIResourceImpl()
-	resource.SetURI(&url.URL{Path: "testdata/library.simple.ecore"})
-	resource.Load()
+	xmiProcessor := NewXMIProcessor()
+	resource := xmiProcessor.Load(&url.URL{Path: "testdata/library.simple.ecore"})
+	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
@@ -86,9 +87,9 @@ func TestXMIResourceLoadLibrarySimple(t *testing.T) {
 }
 
 func TestXMIResourceLoadLibraryNoRoot(t *testing.T) {
-	resource := newXMIResourceImpl()
-	resource.SetURI(&url.URL{Path: "testdata/library.noroot.ecore"})
-	resource.Load()
+	xmiProcessor := NewXMIProcessor()
+	resource, _ := xmiProcessor.Load(&url.URL{Path: "testdata/library.noroot.ecore"}).(xmiResource)
+	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
@@ -121,9 +122,9 @@ func TestXMIResourceLoadLibraryNoRoot(t *testing.T) {
 }
 
 func TestXMIResourceLoadLibraryComplex(t *testing.T) {
-	resource := newXMIResourceImpl()
-	resource.SetURI(&url.URL{Path: "testdata/library.complex.ecore"})
-	resource.Load()
+	xmiProcessor := NewXMIProcessor()
+	resource, _ := xmiProcessor.Load(&url.URL{Path: "testdata/library.complex.ecore"}).(xmiResource)
+	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
@@ -149,45 +150,39 @@ func TestXMIResourceLoadLibraryComplex(t *testing.T) {
 }
 
 func TestXMIResourceSaveLibrarySimple(t *testing.T) {
-
-	resource := newXMIResourceImpl()
-	resource.SetURI(&url.URL{Path: "testdata/library.simple.ecore"})
-	resource.Load()
-
-	var strbuff strings.Builder
-	resource.SaveWithWriter(&strbuff, nil)
-
+	// load/save
+	xmiProcessor := NewXMIProcessor()
+	resource := xmiProcessor.Load(&url.URL{Path: "testdata/library.simple.ecore"})
+	require.NotNil(t, resource)
+	result := xmiProcessor.SaveToString(resource, nil)
+	// check
 	bytes, err := ioutil.ReadFile("testdata/library.simple.ecore")
 	assert.Nil(t, err)
-	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
 
 func TestXMIResourceSaveLibraryNoRoot(t *testing.T) {
-
-	resource := newXMIResourceImpl()
-	resource.SetURI(&url.URL{Path: "testdata/library.noroot.ecore"})
-	resource.Load()
-
-	var strbuff strings.Builder
-	resource.SaveWithWriter(&strbuff, nil)
-
+	// load/save
+	xmiProcessor := NewXMIProcessor()
+	resource := xmiProcessor.Load(&url.URL{Path: "testdata/library.noroot.ecore"})
+	require.NotNil(t, resource)
+	result := xmiProcessor.SaveToString(resource, nil)
+	// check
 	bytes, err := ioutil.ReadFile("testdata/library.noroot.ecore")
 	assert.Nil(t, err)
-	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
 
 func TestXMIResourceSaveLibraryComplex(t *testing.T) {
-
-	resource := newXMIResourceImpl()
-	resource.SetURI(&url.URL{Path: "testdata/library.complex.ecore"})
-	resource.Load()
-
-	var strbuff strings.Builder
-	resource.SaveWithWriter(&strbuff, nil)
-
+	// load/save
+	xmiProcessor := NewXMIProcessor()
+	resource := xmiProcessor.Load(&url.URL{Path: "testdata/library.complex.ecore"})
+	require.NotNil(t, resource)
+	result := xmiProcessor.SaveToString(resource, nil)
+	// check
 	bytes, err := ioutil.ReadFile("testdata/library.complex.ecore")
 	assert.Nil(t, err)
-	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
 
 func BenchmarkXMIResourceLoadSaveLibrarySimple(b *testing.B) {

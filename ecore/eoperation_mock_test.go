@@ -77,7 +77,7 @@ func TestMockEOperationGetEParameters(t *testing.T) {
 // TestMockEOperationGetOperationID tests method GetOperationID
 func TestMockEOperationGetOperationID(t *testing.T) {
 	o := &MockEOperation{}
-	r := 45
+	r := int(45)
 	o.On("GetOperationID").Once().Return(r)
 	o.On("GetOperationID").Once().Return(func() int {
 		return r
@@ -90,7 +90,7 @@ func TestMockEOperationGetOperationID(t *testing.T) {
 // TestMockEOperationSetOperationID tests method SetOperationID
 func TestMockEOperationSetOperationID(t *testing.T) {
 	o := &MockEOperation{}
-	v := 45
+	v := int(45)
 	o.On("SetOperationID", v).Once()
 	o.SetOperationID(v)
 	o.AssertExpectations(t)
@@ -100,7 +100,7 @@ func TestMockEOperationSetOperationID(t *testing.T) {
 func TestMockEOperationIsOverrideOf(t *testing.T) {
 	o := &MockEOperation{}
 	someOperation := new(MockEOperation)
-	r := true
+	r := bool(true)
 	o.On("IsOverrideOf", someOperation).Return(r).Once()
 	o.On("IsOverrideOf", someOperation).Return(func() bool {
 		return r

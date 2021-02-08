@@ -91,7 +91,7 @@ func TestMockEPackageGetESuperPackage(t *testing.T) {
 // TestMockEPackageGetNsPrefix tests method GetNsPrefix
 func TestMockEPackageGetNsPrefix(t *testing.T) {
 	o := &MockEPackage{}
-	r := "Test String"
+	r := string("Test String")
 	o.On("GetNsPrefix").Once().Return(r)
 	o.On("GetNsPrefix").Once().Return(func() string {
 		return r
@@ -104,7 +104,7 @@ func TestMockEPackageGetNsPrefix(t *testing.T) {
 // TestMockEPackageSetNsPrefix tests method SetNsPrefix
 func TestMockEPackageSetNsPrefix(t *testing.T) {
 	o := &MockEPackage{}
-	v := "Test String"
+	v := string("Test String")
 	o.On("SetNsPrefix", v).Once()
 	o.SetNsPrefix(v)
 	o.AssertExpectations(t)
@@ -113,7 +113,7 @@ func TestMockEPackageSetNsPrefix(t *testing.T) {
 // TestMockEPackageGetNsURI tests method GetNsURI
 func TestMockEPackageGetNsURI(t *testing.T) {
 	o := &MockEPackage{}
-	r := "Test String"
+	r := string("Test String")
 	o.On("GetNsURI").Once().Return(r)
 	o.On("GetNsURI").Once().Return(func() string {
 		return r
@@ -126,7 +126,7 @@ func TestMockEPackageGetNsURI(t *testing.T) {
 // TestMockEPackageSetNsURI tests method SetNsURI
 func TestMockEPackageSetNsURI(t *testing.T) {
 	o := &MockEPackage{}
-	v := "Test String"
+	v := string("Test String")
 	o.On("SetNsURI", v).Once()
 	o.SetNsURI(v)
 	o.AssertExpectations(t)
@@ -135,7 +135,7 @@ func TestMockEPackageSetNsURI(t *testing.T) {
 // TestMockEPackageGetEClassifier tests method GetEClassifier
 func TestMockEPackageGetEClassifier(t *testing.T) {
 	o := &MockEPackage{}
-	name := "Test String"
+	name := string("Test String")
 	r := new(MockEClassifier)
 	o.On("GetEClassifier", name).Return(r).Once()
 	o.On("GetEClassifier", name).Return(func() EClassifier {

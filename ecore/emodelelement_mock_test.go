@@ -42,7 +42,7 @@ func TestMockEModelElementGetEAnnotations(t *testing.T) {
 // TestMockEModelElementGetEAnnotation tests method GetEAnnotation
 func TestMockEModelElementGetEAnnotation(t *testing.T) {
 	o := &MockEModelElement{}
-	source := "Test String"
+	source := string("Test String")
 	r := new(MockEAnnotation)
 	o.On("GetEAnnotation", source).Return(r).Once()
 	o.On("GetEAnnotation", source).Return(func() EAnnotation {

@@ -384,7 +384,7 @@ func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 		}
 	} else {
 		prefix, _ := l.namespaces.getPrefix(space)
-		l.handleUnknownPackage(prefix)
+		l.handleUnknownPackage(prefix, space)
 		return nil
 	}
 }
@@ -427,7 +427,7 @@ func (l *xmlLoadImpl) createObjectFromTypeName(eObject EObject, qname string, eF
 	space, _ := l.namespaces.getURI(prefix)
 	eFactory := l.getFactoryForSpace(space)
 	if eFactory == nil {
-		l.handleUnknownPackage(prefix)
+		l.handleUnknownPackage(prefix, space)
 		return nil
 	}
 
@@ -807,8 +807,8 @@ func (l *xmlLoadImpl) handleUnknownFeature(name string) {
 	l.error(NewEDiagnosticImpl("Feature "+name+" not found", l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
 }
 
-func (l *xmlLoadImpl) handleUnknownPackage(name string) {
-	l.error(NewEDiagnosticImpl("Package "+name+" not found", l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
+func (l *xmlLoadImpl) handleUnknownPackage(name, space string) {
+	l.error(NewEDiagnosticImpl("Package {'"+name+"'='"+space+"'} not found", l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
 }
 
 func (l *xmlLoadImpl) error(diagnostic EDiagnostic) {

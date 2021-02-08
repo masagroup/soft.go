@@ -52,7 +52,7 @@ func TestMockEFactoryConvertToString(t *testing.T) {
 	o := &MockEFactory{}
 	eDataType := new(MockEDataType)
 	instanceValue := interface{}(nil)
-	r := "Test String"
+	r := string("Test String")
 	o.On("ConvertToString", eDataType, instanceValue).Return(r).Once()
 	o.On("ConvertToString", eDataType, instanceValue).Return(func() string {
 		return r
@@ -66,7 +66,7 @@ func TestMockEFactoryConvertToString(t *testing.T) {
 func TestMockEFactoryCreate(t *testing.T) {
 	o := &MockEFactory{}
 	eClass := new(MockEClass)
-	r := new(MockEObject)
+	r := new(MockEObjectInternal)
 	o.On("Create", eClass).Return(r).Once()
 	o.On("Create", eClass).Return(func() EObject {
 		return r
@@ -80,7 +80,7 @@ func TestMockEFactoryCreate(t *testing.T) {
 func TestMockEFactoryCreateFromString(t *testing.T) {
 	o := &MockEFactory{}
 	eDataType := new(MockEDataType)
-	literalValue := "Test String"
+	literalValue := string("Test String")
 	r := interface{}(nil)
 	o.On("CreateFromString", eDataType, literalValue).Return(r).Once()
 	o.On("CreateFromString", eDataType, literalValue).Return(func() interface{} {

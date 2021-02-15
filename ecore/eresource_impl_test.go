@@ -42,3 +42,8 @@ func TestResourceContents(t *testing.T) {
 	mockEObjectInternal.On("ESetResource", nil, mock.Anything).Return(nil)
 	r.GetContents().Remove(mockEObjectInternal)
 }
+
+func TestResourceGetEObject(t *testing.T) {
+	r := NewEResourceImpl()
+	assert.Nil(t, r.GetEObject("Test"))
+}

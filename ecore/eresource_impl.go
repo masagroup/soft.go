@@ -133,7 +133,7 @@ func (r *EResourceImpl) GetAllContents() EIterator {
 }
 
 func (r *EResourceImpl) getAllContentsResolve(resolve bool) EIterator {
-	return newTreeIterator(r, false, func(o interface{}) EIterator {
+	return newTreeIterator(r.GetInterfaces(), false, func(o interface{}) EIterator {
 		if o == r.GetInterfaces() {
 			return o.(EResource).GetContents().Iterator()
 		}

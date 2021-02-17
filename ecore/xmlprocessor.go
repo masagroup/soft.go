@@ -28,7 +28,7 @@ func (p *XMLProcessor) Load(uri *url.URL) EResource {
 }
 
 func (p *XMLProcessor) LoadWithOptions(uri *url.URL, options map[string]interface{}) EResource {
-	rs := p.createEResourceSet()
+	rs := p.CreateEResourceSet()
 	r := rs.CreateResource(uri)
 	o := map[string]interface{}{OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
@@ -41,7 +41,7 @@ func (p *XMLProcessor) LoadWithOptions(uri *url.URL, options map[string]interfac
 }
 
 func (p *XMLProcessor) LoadWithReader(r io.Reader, options map[string]interface{}) EResource {
-	rs := p.createEResourceSet()
+	rs := p.CreateEResourceSet()
 	rc := rs.CreateResource(&url.URL{Path: "*.xml"})
 	o := map[string]interface{}{OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
@@ -83,7 +83,7 @@ func (p *XMLProcessor) SaveToString(resource EResource, options map[string]inter
 	return strbuff.String()
 }
 
-func (p *XMLProcessor) createEResourceSet() EResourceSet {
+func (p *XMLProcessor) CreateEResourceSet() EResourceSet {
 	rs := NewEResourceSetImpl()
 	// packages
 	packageRegistry := rs.GetPackageRegistry()

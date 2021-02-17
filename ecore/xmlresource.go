@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"golang.org/x/net/html"
 	"golang.org/x/net/html/charset"
 )
 
@@ -1340,7 +1341,7 @@ func (s *xmlSaveImpl) saveDataTypeSingle(eObject EObject, eFeature EStructuralFe
 	val := eObject.EGetResolve(eFeature, false)
 	str, ok := s.getDataType(val, eFeature, true)
 	if ok {
-		s.str.addAttribute(s.getFeatureQName(eFeature), str)
+		s.str.addAttribute(s.getFeatureQName(eFeature), html.EscapeString(str))
 	}
 }
 

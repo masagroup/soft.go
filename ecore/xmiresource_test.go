@@ -33,7 +33,7 @@ func TestXMIResourceLoadLibrarySimple(t *testing.T) {
 	assert.NotNil(t, ePackage)
 	assert.Equal(t, "library", ePackage.GetName())
 	assert.Equal(t, "lib", ePackage.GetNsPrefix())
-	assert.Equal(t, "http:///com.ibm.dynamic.example.library.ecore", ePackage.GetNsURI())
+	assert.Equal(t, "http:///org/eclipse/emf/examples/library/library.simple.ecore/1.0.0", ePackage.GetNsURI())
 
 	eClassifiers := ePackage.GetEClassifiers()
 	assert.Equal(t, 2, eClassifiers.Size())

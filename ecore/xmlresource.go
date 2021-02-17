@@ -187,10 +187,10 @@ func (l *xmlLoadImpl) load(resource xmlResource, r io.Reader) {
 	for {
 		t, tokenErr := l.decoder.Token()
 		if tokenErr != nil {
-			if tokenErr == io.EOF {
-				break
+			if tokenErr != io.EOF {
+				l.error(NewEDiagnosticImpl(tokenErr.Error(), l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
 			}
-			// handle error
+			break
 		}
 		switch t := t.(type) {
 		case xml.StartElement:

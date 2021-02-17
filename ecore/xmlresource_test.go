@@ -299,3 +299,15 @@ func TestXmlResourceIDManager(t *testing.T) {
 	eBookList.AddAll(NewImmutableEList([]interface{}{eBook1, eBook2}))
 	mock.AssertExpectationsForObjects(t, mockIDManager)
 }
+
+func TestSerializationLoadSimpleInvalidXML(t *testing.T) {
+	// load libray simple ecore	package
+	ePackage := loadPackage("library.simple.ecore")
+	assert.NotNil(t, ePackage)
+
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.Load(&url.URL{Path: "testdata/library.simple.invalid.xml"})
+	require.NotNil(t, eResource)
+	assert.True(t, eResource.IsLoaded())
+	assert.False(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+}

@@ -299,3 +299,63 @@ func TestXmlResourceIDManager(t *testing.T) {
 	eBookList.AddAll(NewImmutableEList([]interface{}{eBook1, eBook2}))
 	mock.AssertExpectationsForObjects(t, mockIDManager)
 }
+
+func TestSerializationLoadSimpleInvalidXML(t *testing.T) {
+	// load libray simple ecore	package
+	ePackage := loadPackage("library.simple.ecore")
+	assert.NotNil(t, ePackage)
+
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.Load(&url.URL{Path: "testdata/library.simple.invalid.xml"})
+	require.NotNil(t, eResource)
+	assert.True(t, eResource.IsLoaded())
+	assert.False(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+}
+
+func TestSerializationLoadSimpleEscapeXML(t *testing.T) {
+	// load libray simple ecore	package
+	ePackage := loadPackage("library.simple.ecore")
+	assert.NotNil(t, ePackage)
+
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.Load(&url.URL{Path: "testdata/library.simple.escape.xml"})
+	require.NotNil(t, eResource)
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	// retrive library class & library name attribute
+	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	assert.NotNil(t, eLibraryClass)
+	eLibraryLocationAttribute, _ := eLibraryClass.GetEStructuralFeatureFromName("location").(EAttribute)
+	assert.NotNil(t, eLibraryLocationAttribute)
+
+	// check library name
+	eLibrary, _ := eResource.GetContents().Get(0).(EObject)
+	assert.Equal(t, "a<b", eLibrary.EGet(eLibraryLocationAttribute))
+}
+
+func TestSerializationSaveSimpleEscapeXML(t *testing.T) {
+	// load libray simple ecore	package
+	ePackage := loadPackage("library.simple.ecore")
+	assert.NotNil(t, ePackage)
+
+	// retrive library class & library name attribute
+	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	assert.NotNil(t, eLibraryClass)
+	eLibraryLocationAttribute, _ := eLibraryClass.GetEStructuralFeatureFromName("location").(EAttribute)
+	assert.NotNil(t, eLibraryLocationAttribute)
+
+	eFactory := ePackage.GetEFactoryInstance()
+	eLibrary := eFactory.Create(eLibraryClass)
+	eLibrary.ESet(eLibraryLocationAttribute, "a<b")
+
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.CreateEResourceSet().CreateResource(&url.URL{Path: "testdata/library.simple.escape.output.xml"})
+	eResource.GetContents().Add(eLibrary)
+	result := xmlProcessor.SaveToString(eResource, nil)
+
+	bytes, err := ioutil.ReadFile("testdata/library.simple.escape.xml")
+	assert.Nil(t, err)
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
+
+}

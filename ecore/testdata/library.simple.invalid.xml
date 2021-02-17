@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Library xmlns="http:///org/eclipse/emf/examples/library/library.simple.ecore/1.0.0" location="My Library Adress">
+  <books publication-date="2015-09-06T04:24:46Z" copies="4" title="Title 0" pages="336"
+</Library>

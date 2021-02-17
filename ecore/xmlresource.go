@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"golang.org/x/net/html"
 	"golang.org/x/net/html/charset"
 )
 
@@ -187,10 +188,10 @@ func (l *xmlLoadImpl) load(resource xmlResource, r io.Reader) {
 	for {
 		t, tokenErr := l.decoder.Token()
 		if tokenErr != nil {
-			if tokenErr == io.EOF {
-				break
+			if tokenErr != io.EOF {
+				l.error(NewEDiagnosticImpl(tokenErr.Error(), l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
 			}
-			// handle error
+			break
 		}
 		switch t := t.(type) {
 		case xml.StartElement:
@@ -1340,7 +1341,7 @@ func (s *xmlSaveImpl) saveDataTypeSingle(eObject EObject, eFeature EStructuralFe
 	val := eObject.EGetResolve(eFeature, false)
 	str, ok := s.getDataType(val, eFeature, true)
 	if ok {
-		s.str.addAttribute(s.getFeatureQName(eFeature), str)
+		s.str.addAttribute(s.getFeatureQName(eFeature), html.EscapeString(str))
 	}
 }
 

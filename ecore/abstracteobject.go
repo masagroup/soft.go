@@ -934,8 +934,8 @@ func (o *AbstractEObject) EBasicRemoveFromContainer(notifications ENotificationC
 	if objInternal.EInternalContainerFeatureID() >= 0 {
 		return o.EBasicRemoveFromContainerFeature(notifications)
 	} else {
-		if objInternal.EInternalContainer() != nil {
-			return o.AsEObjectInternal().EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-objInternal.EInternalContainerFeatureID(), notifications)
+		if containerInternal, _ := objInternal.EInternalContainer().(EObjectInternal); containerInternal != nil {
+			return containerInternal.EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-objInternal.EInternalContainerFeatureID(), notifications)
 		}
 	}
 	return notifications

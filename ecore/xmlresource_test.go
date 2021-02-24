@@ -247,6 +247,46 @@ func TestXmlLoadSaveLibraryComplex(t *testing.T) {
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
 
+func TestXmlLoadSaveLibraryComplexSubElement(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	assert.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.Load(&url.URL{Path: "testdata/library.complex.xml"})
+	require.NotNil(t, eResource)
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	eObject := eResource.GetEObject("//@library/@employees.0")
+	require.NotNil(t, eObject)
+	eContainer := eObject.EContainer()
+	require.NotNil(t, eContainer)
+
+	// create a new resource
+	eNewResource := eResource.GetResourceSet().CreateResource(&url.URL{Path: "testdata/library.complex.sub.xml"})
+	// add object to new resource
+	eNewResource.GetContents().Add(eObject)
+	// save it
+	result := xmlProcessor.SaveToString(eNewResource, nil)
+
+	// check result
+	bytes, err := ioutil.ReadFile("testdata/library.complex.sub.xml")
+	assert.Nil(t, err)
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
+
+	// attach to original resource
+	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eLibraryClass)
+	eLibraryEmployeesFeature := eLibraryClass.GetEStructuralFeatureFromName("employees")
+	require.NotNil(t, eLibraryEmployeesFeature)
+	eList := eContainer.EGet(eLibraryEmployeesFeature).(EList)
+	eList.Add(eObject)
+	assert.Equal(t, eResource, eObject.EResource())
+}
+
 func TestXmlLoadSaveLibraryComplexWithOptions(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")

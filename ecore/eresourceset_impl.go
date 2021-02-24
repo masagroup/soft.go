@@ -2,6 +2,10 @@ package ecore
 
 import "net/url"
 
+type resourceSetInternal interface {
+	LoadResource(resource EResource)
+}
+
 type resourcesList struct {
 	*BasicENotifyingList
 	resourceSet EResourceSet
@@ -83,7 +87,7 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 		resourceURI := r.uriConverter.Normalize(resource.GetURI())
 		if *resourceURI == *normalizedURI {
 			if loadOnDemand && !resource.IsLoaded() {
-				resource.Load()
+				r.GetInterfaces().(resourceSetInternal).LoadResource(resource)
 			}
 			if r.uriResourceMap != nil {
 				r.uriResourceMap[uri] = resource
@@ -100,7 +104,10 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 	if loadOnDemand {
 		resource := r.CreateResource(uri)
 		if resource != nil {
-			resource.Load()
+			r.GetInterfaces().(resourceSetInternal).LoadResource(resource)
+			if r.uriResourceMap != nil {
+				r.uriResourceMap[uri] = resource
+			}
 		}
 		return resource
 	}
@@ -165,4 +172,8 @@ func (r *EResourceSetImpl) SetURIResourceMap(uriResourceMap map[*url.URL]EResour
 
 func (r *EResourceSetImpl) GetURIResourceMap() map[*url.URL]EResource {
 	return r.uriResourceMap
+}
+
+func (r *EResourceSetImpl) LoadResource(resource EResource) {
+	resource.Load()
 }

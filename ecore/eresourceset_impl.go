@@ -7,15 +7,16 @@ type resourceSetInternal interface {
 }
 
 type resourcesList struct {
-	*BasicENotifyingList
+	BasicENotifyingList
 	resourceSet EResourceSet
 }
 
 func newResourcesList(resourceSet EResourceSet) *resourcesList {
 	l := new(resourcesList)
-	l.BasicENotifyingList = NewBasicENotifyingList()
-	l.resourceSet = resourceSet
 	l.interfaces = l
+	l.data = []interface{}{}
+	l.isUnique = true
+	l.resourceSet = resourceSet
 	return l
 }
 

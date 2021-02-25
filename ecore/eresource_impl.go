@@ -49,15 +49,16 @@ func newResourceNotification(notifier ENotifier, featureID int, eventType EventT
 }
 
 type resourceContents struct {
-	*BasicENotifyingList
+	BasicENotifyingList
 	resource EResource
 }
 
 func newResourceContents(resource EResource) *resourceContents {
 	rc := new(resourceContents)
-	rc.BasicENotifyingList = NewBasicENotifyingList()
-	rc.resource = resource
 	rc.interfaces = rc
+	rc.data = []interface{}{}
+	rc.isUnique = true
+	rc.resource = resource
 	return rc
 }
 

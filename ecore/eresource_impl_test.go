@@ -47,3 +47,11 @@ func TestResourceGetEObject(t *testing.T) {
 	r := NewEResourceImpl()
 	assert.Nil(t, r.GetEObject("Test"))
 }
+
+func TestResourceLoadInvalid(t *testing.T) {
+	r := NewEResourceImpl()
+	r.SetURI(&url.URL{Path: "testdata/invalid.xml"})
+	r.Load()
+	assert.False(t, r.IsLoaded())
+	assert.False(t, r.GetErrors().Empty())
+}

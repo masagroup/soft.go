@@ -278,8 +278,10 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 	if !r.isLoaded {
 		uriConverter := r.getURIConverter()
 		if uriConverter != nil {
-			rd := uriConverter.CreateReader(r.uri)
-			if rd != nil {
+			rd, err := uriConverter.CreateReader(r.uri)
+			if err != nil {
+				r.GetErrors().Add(NewEDiagnosticImpl("Unable to create reader for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
+			} else if rd != nil {
 				r.LoadWithReader(rd, options)
 				rd.Close()
 			}
@@ -330,8 +332,10 @@ func (r *EResourceImpl) Save() {
 func (r *EResourceImpl) SaveWithOptions(options map[string]interface{}) {
 	uriConverter := r.getURIConverter()
 	if uriConverter != nil {
-		w := uriConverter.CreateWriter(r.uri)
-		if w != nil {
+		w, err := uriConverter.CreateWriter(r.uri)
+		if err != nil {
+			r.GetErrors().Add(NewEDiagnosticImpl("Unable to create writer for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
+		} else if w != nil {
 			r.SaveWithWriter(w, options)
 			w.Close()
 		}

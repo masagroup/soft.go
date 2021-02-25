@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"fmt"
 	"io"
 	"net/url"
 )
@@ -15,20 +16,20 @@ func NewEURIConverterImpl() *EURIConverterImpl {
 	return r
 }
 
-func (r *EURIConverterImpl) CreateReader(uri *url.URL) io.ReadCloser {
+func (r *EURIConverterImpl) CreateReader(uri *url.URL) (io.ReadCloser, error) {
 	uriHandler := r.GetURIHandler(uri)
-	if uriHandler != nil {
-		return uriHandler.CreateReader(uri)
+	if uriHandler == nil {
+		return nil, fmt.Errorf("URIHandler for URI '%s' not found", uri.String())
 	}
-	return nil
+	return uriHandler.CreateReader(uri)
 }
 
-func (r *EURIConverterImpl) CreateWriter(uri *url.URL) io.WriteCloser {
+func (r *EURIConverterImpl) CreateWriter(uri *url.URL) (io.WriteCloser, error) {
 	uriHandler := r.GetURIHandler(uri)
-	if uriHandler != nil {
-		return uriHandler.CreateWriter(uri)
+	if uriHandler == nil {
+		return nil, fmt.Errorf("URIHandler for URI '%s' not found", uri.String())
 	}
-	return nil
+	return uriHandler.CreateWriter(uri)
 }
 
 func (r *EURIConverterImpl) Normalize(uri *url.URL) *url.URL {

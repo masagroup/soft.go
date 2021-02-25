@@ -59,15 +59,10 @@ func NewEResourceSetImpl() *EResourceSetImpl {
 	return rs
 }
 
-func (rs *EResourceSetImpl) Initialize() {
-	rs.ENotifierImpl.Initialize()
-	rs.resources = newResourcesList(rs)
-	rs.uriConverter = NewEURIConverterImpl()
-	rs.resourceFactoryRegistry = NewEResourceFactoryRegistryImplWithDelegate(GetResourceFactoryRegistry())
-	rs.packageRegistry = NewEPackageRegistryImplWithDelegate(GetPackageRegistry())
-}
-
 func (r *EResourceSetImpl) GetResources() EList {
+	if r.resources == nil {
+		r.resources = newResourcesList(r)
+	}
 	return r.resources
 }
 
@@ -82,10 +77,10 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 		}
 	}
 
-	normalizedURI := r.uriConverter.Normalize(uri)
-	for it := r.resources.Iterator(); it.HasNext(); {
+	normalizedURI := r.GetURIConverter().Normalize(uri)
+	for it := r.GetResources().Iterator(); it.HasNext(); {
 		resource := it.Next().(EResource)
-		resourceURI := r.uriConverter.Normalize(resource.GetURI())
+		resourceURI := r.GetURIConverter().Normalize(resource.GetURI())
 		if *resourceURI == *normalizedURI {
 			if loadOnDemand && !resource.IsLoaded() {
 				r.GetInterfaces().(resourceSetInternal).LoadResource(resource)
@@ -97,7 +92,7 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 		}
 	}
 
-	ePackage := r.packageRegistry.GetPackage(uri.String())
+	ePackage := r.GetPackageRegistry().GetPackage(uri.String())
 	if ePackage != nil {
 		return ePackage.EResource()
 	}
@@ -117,10 +112,10 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 }
 
 func (r *EResourceSetImpl) CreateResource(uri *url.URL) EResource {
-	resourceFactory := r.resourceFactoryRegistry.GetFactory(uri)
+	resourceFactory := r.GetResourceFactoryRegistry().GetFactory(uri)
 	if resourceFactory != nil {
 		resource := resourceFactory.CreateResource(uri)
-		r.resources.Add(resource)
+		r.GetResources().Add(resource)
 		return resource
 	}
 	return nil
@@ -144,6 +139,9 @@ func (r *EResourceSetImpl) GetEObject(uri *url.URL, loadOnDemand bool) EObject {
 }
 
 func (r *EResourceSetImpl) GetURIConverter() EURIConverter {
+	if r.uriConverter == nil {
+		r.uriConverter = NewEURIConverterImpl()
+	}
 	return r.uriConverter
 }
 
@@ -152,6 +150,9 @@ func (r *EResourceSetImpl) SetURIConverter(uriConverter EURIConverter) {
 }
 
 func (r *EResourceSetImpl) GetPackageRegistry() EPackageRegistry {
+	if r.packageRegistry == nil {
+		r.packageRegistry = NewEPackageRegistryImplWithDelegate(GetPackageRegistry())
+	}
 	return r.packageRegistry
 }
 
@@ -160,6 +161,9 @@ func (r *EResourceSetImpl) SetPackageRegistry(packageRegistry EPackageRegistry) 
 }
 
 func (r *EResourceSetImpl) GetResourceFactoryRegistry() EResourceFactoryRegistry {
+	if r.resourceFactoryRegistry == nil {
+		r.resourceFactoryRegistry = NewEResourceFactoryRegistryImplWithDelegate(GetResourceFactoryRegistry())
+	}
 	return r.resourceFactoryRegistry
 }
 

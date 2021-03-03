@@ -682,18 +682,14 @@ func (l *xmlLoadImpl) handleProxy(eProxy EObject, id string) {
 		return
 	}
 	// resolve reference uri
-	uri = resourceURI.ResolveReference(uri)
+	if !uri.IsAbs() {
+		uri = resourceURI.ResolveReference(uri)
+	}
 
 	// set object proxy uri
 	eProxy.(EObjectInternal).ESetProxyURI(uri)
 
-	if (*resourceURI == url.URL{Scheme: uri.Scheme,
-		User:       uri.User,
-		Host:       uri.Host,
-		Path:       uri.Path,
-		ForceQuery: uri.ForceQuery,
-		RawPath:    uri.RawPath,
-		RawQuery:   uri.RawQuery}) {
+	if *resourceURI == *trimFragment(uri) {
 		l.sameDocumentProxies = append(l.sameDocumentProxies, eProxy)
 	}
 }

@@ -124,15 +124,7 @@ func ResolveInResourceSet(proxy EObject, resourceSet EResourceSet) EObject {
 		if resourceSet != nil {
 			resolved = resourceSet.GetEObject(proxyURI, true)
 		} else {
-			trim := &url.URL{
-				Scheme:     proxyURI.Scheme,
-				User:       proxyURI.User,
-				Host:       proxyURI.Host,
-				Path:       proxyURI.Path,
-				RawPath:    proxyURI.RawPath,
-				ForceQuery: proxyURI.ForceQuery,
-				RawQuery:   proxyURI.RawQuery,
-			}
+			trim := trimFragment(proxyURI)
 			ePackage := GetPackageRegistry().GetPackage(trim.String())
 			if ePackage != nil {
 				eResource := ePackage.EResource()

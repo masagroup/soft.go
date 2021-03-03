@@ -15,35 +15,37 @@ type MockEURIConverter struct {
 }
 
 // CreateReader provides a mock function with given fields: uri
-func (_m *MockEURIConverter) CreateReader(uri *url.URL) io.ReadCloser {
+func (_m *MockEURIConverter) CreateReader(uri *url.URL) (io.ReadCloser, error) {
 	ret := _m.Called(uri)
 
 	var r0 io.ReadCloser
-	if rf, ok := ret.Get(0).(func(*url.URL) io.ReadCloser); ok {
-		r0 = rf(uri)
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*url.URL) (io.ReadCloser, error)); ok {
+		r0, r1 = rf(uri)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(io.ReadCloser)
 		}
+		r1 = ret.Error(1)
 	}
-
-	return r0
+	return r0, r1
 }
 
 // CreateWriter provides a mock function with given fields: uri
-func (_m *MockEURIConverter) CreateWriter(uri *url.URL) io.WriteCloser {
+func (_m *MockEURIConverter) CreateWriter(uri *url.URL) (io.WriteCloser, error) {
 	ret := _m.Called(uri)
 
 	var r0 io.WriteCloser
-	if rf, ok := ret.Get(0).(func(*url.URL) io.WriteCloser); ok {
-		r0 = rf(uri)
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*url.URL) (io.WriteCloser, error)); ok {
+		r0, r1 = rf(uri)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(io.WriteCloser)
 		}
+		r1 = ret.Error(1)
 	}
-
-	return r0
+	return r0, r1
 }
 
 // GetURIHandler provides a mock function with given fields: uri

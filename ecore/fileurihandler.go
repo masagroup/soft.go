@@ -14,26 +14,26 @@ func (fuh *FileURIHandler) CanHandle(uri *url.URL) bool {
 	return uri.Scheme == "file" || (len(uri.Scheme) == 0 && len(uri.Host) == 0 && len(uri.RawQuery) == 0)
 }
 
-func (fuh *FileURIHandler) CreateReader(uri *url.URL) io.ReadCloser {
+func (fuh *FileURIHandler) CreateReader(uri *url.URL) (io.ReadCloser, error) {
 	fileName := uri.Path
 	if fileName[0] == '/' {
 		fileName = fileName[1:]
 	}
-	f, error := os.Open(fileName)
-	if error != nil {
-		return nil
+	f, err := os.Open(fileName)
+	if err != nil {
+		return nil, err
 	}
-	return f
+	return f, nil
 }
 
-func (fuh *FileURIHandler) CreateWriter(uri *url.URL) io.WriteCloser {
+func (fuh *FileURIHandler) CreateWriter(uri *url.URL) (io.WriteCloser, error) {
 	fileName := uri.Path
 	if fileName[0] == '/' {
 		fileName = fileName[1:]
 	}
-	f, error := os.Create(fileName)
-	if error != nil {
-		return nil
+	f, err := os.Create(fileName)
+	if err != nil {
+		return nil, err
 	}
-	return f
+	return f, nil
 }

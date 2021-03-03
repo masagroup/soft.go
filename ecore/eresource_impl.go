@@ -49,15 +49,16 @@ func newResourceNotification(notifier ENotifier, featureID int, eventType EventT
 }
 
 type resourceContents struct {
-	*BasicENotifyingList
+	BasicENotifyingList
 	resource EResource
 }
 
 func newResourceContents(resource EResource) *resourceContents {
 	rc := new(resourceContents)
-	rc.BasicENotifyingList = NewBasicENotifyingList()
-	rc.resource = resource
 	rc.interfaces = rc
+	rc.data = []interface{}{}
+	rc.isUnique = true
+	rc.resource = resource
 	return rc
 }
 
@@ -277,8 +278,10 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 	if !r.isLoaded {
 		uriConverter := r.getURIConverter()
 		if uriConverter != nil {
-			rd := uriConverter.CreateReader(r.uri)
-			if rd != nil {
+			rd, err := uriConverter.CreateReader(r.uri)
+			if err != nil {
+				r.GetErrors().Add(NewEDiagnosticImpl("Unable to create reader for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
+			} else if rd != nil {
 				r.LoadWithReader(rd, options)
 				rd.Close()
 			}
@@ -329,8 +332,10 @@ func (r *EResourceImpl) Save() {
 func (r *EResourceImpl) SaveWithOptions(options map[string]interface{}) {
 	uriConverter := r.getURIConverter()
 	if uriConverter != nil {
-		w := uriConverter.CreateWriter(r.uri)
-		if w != nil {
+		w, err := uriConverter.CreateWriter(r.uri)
+		if err != nil {
+			r.GetErrors().Add(NewEDiagnosticImpl("Unable to create writer for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
+		} else if w != nil {
 			r.SaveWithWriter(w, options)
 			w.Close()
 		}

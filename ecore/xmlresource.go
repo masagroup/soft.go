@@ -343,6 +343,12 @@ func (l *xmlLoadImpl) processElement(space string, local string) {
 	}
 }
 
+func (l *xmlLoadImpl) validateObject(eObject EObject, space, typeName string) {
+	if eObject == nil {
+		l.error(NewEDiagnosticImpl("Class {'"+space+"':'"+typeName+"'} not found", l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
+	}
+}
+
 func (l *xmlLoadImpl) processObject(eObject EObject) {
 	if eObject != nil {
 		l.objects = append(l.objects, eObject)
@@ -380,6 +386,7 @@ func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 		} else {
 			eType := l.getType(ePackage, local)
 			eObject := l.createObjectWithFactory(eFactory, eType, false)
+			l.validateObject(eObject, space, local)
 			l.processObject(eObject)
 			return eObject
 		}
@@ -434,6 +441,7 @@ func (l *xmlLoadImpl) createObjectFromTypeName(eObject EObject, qname string, eF
 
 	eType := l.getType(eFactory.GetEPackage(), local)
 	eResult := l.createObjectWithFactory(eFactory, eType, false)
+	l.validateObject(eObject, space, local)
 	if eResult != nil {
 		l.setFeatureValue(eObject, eFeature, eResult, -1)
 	}

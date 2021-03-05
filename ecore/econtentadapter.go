@@ -14,7 +14,8 @@ package ecore
 // It can be installed for an {@link EObject}, a {@link Resource}, or a {@link ResourceSet}.
 type EContentAdapter struct {
 	AbstractEAdapter
-	interfaces interface{}
+	interfaces     interface{}
+	resolveProxies bool
 }
 
 func NewEContentAdapter() *EContentAdapter {
@@ -27,24 +28,43 @@ func (adapter *EContentAdapter) SetInterfaces(interfaces interface{}) {
 	adapter.interfaces = interfaces
 }
 
+func (adapter *EContentAdapter) SetResolveProxies(resolveProxies bool) {
+	adapter.resolveProxies = resolveProxies
+}
+
+func (adapter *EContentAdapter) GetResolveProxies() bool {
+	return adapter.resolveProxies
+}
+
 func (adapter *EContentAdapter) NotifyChanged(notification ENotification) {
 	adapter.selfAdapt(notification)
 }
 
 func (adapter *EContentAdapter) SetTarget(notifier ENotifier) {
 	adapter.AbstractEAdapter.SetTarget(notifier)
-	var it EIterator
-	switch t := notifier.(type) {
-	case EObject:
-		it = t.EContents().Iterator()
-	case EResource:
-		it = t.GetContents().Iterator()
-	case EResourceSet:
-		it = t.GetResources().Iterator()
-	}
-	for it.HasNext() {
-		n := it.Next().(ENotifier)
-		adapter.addAdapter(n)
+	if eObject, _ := notifier.(EObject); eObject != nil && !adapter.resolveProxies {
+		l := eObject.EContents().(EObjectList)
+		l = l.GetUnResolvedList().(EObjectList)
+		for it := l.Iterator(); it.HasNext(); {
+			n := it.Next().(EObject)
+			if !n.EIsProxy() {
+				adapter.addAdapter(n)
+			}
+		}
+	} else {
+		var it EIterator
+		switch t := notifier.(type) {
+		case EObject:
+			it = t.EContents().Iterator()
+		case EResource:
+			it = t.GetContents().Iterator()
+		case EResourceSet:
+			it = t.GetResources().Iterator()
+		}
+		for it.HasNext() {
+			n := it.Next().(ENotifier)
+			adapter.addAdapter(n)
+		}
 	}
 }
 

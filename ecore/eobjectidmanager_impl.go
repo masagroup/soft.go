@@ -67,7 +67,10 @@ func (m *EObjectIDManagerImpl) UnRegister(eObject EObject) {
 }
 
 func (m *EObjectIDManagerImpl) GetID(eObject EObject) interface{} {
-	return m.objectToID[eObject]
+	if id, isPresent := m.objectToID[eObject]; isPresent {
+		return id
+	}
+	return nil
 }
 
 func (m *EObjectIDManagerImpl) GetEObject(id interface{}) EObject {

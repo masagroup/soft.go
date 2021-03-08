@@ -45,9 +45,9 @@ func TestEObjectIDManagerImplRegisterNoID(t *testing.T) {
 
 	m.Register(mockObject)
 
-	assert.Equal(t, "", m.GetID(mockObject))
-	assert.Equal(t, "", m.GetID(mockChild1))
-	assert.Equal(t, "", m.GetID(mockChild2))
+	assert.Nil(t, m.GetID(mockObject))
+	assert.Nil(t, m.GetID(mockChild1))
+	assert.Nil(t, m.GetID(mockChild2))
 	mock.AssertExpectationsForObjects(t, mockObject)
 	mock.AssertExpectationsForObjects(t, mockChildren.ToArray()...)
 
@@ -103,13 +103,13 @@ func TestEObjectIDManagerImplUnRegisterWithID(t *testing.T) {
 
 	m.UnRegister(mockObject)
 
-	assert.Equal(t, "", m.GetID(mockObject))
-	assert.Equal(t, "", m.GetID(mockChild1))
-	assert.Equal(t, "", m.GetID(mockChild2))
+	assert.Nil(t, m.GetID(mockObject))
+	assert.Nil(t, m.GetID(mockChild1))
+	assert.Nil(t, m.GetID(mockChild2))
 
-	assert.Equal(t, nil, m.GetEObject("id"))
-	assert.Equal(t, nil, m.GetEObject("id1"))
-	assert.Equal(t, nil, m.GetEObject("id2"))
+	assert.Nil(t, m.GetEObject("id"))
+	assert.Nil(t, m.GetEObject("id1"))
+	assert.Nil(t, m.GetEObject("id2"))
 
 	mock.AssertExpectationsForObjects(t, mockObject)
 	mock.AssertExpectationsForObjects(t, mockChildren.ToArray()...)

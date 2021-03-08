@@ -18,29 +18,92 @@ import (
 
 func TestEContentAdapter_SetTarget_EObject(t *testing.T) {
 	adapter := NewEContentAdapter()
+	// create a hierarchy of objects
 	nb := rand.Intn(10) + 1
+	mockObjects := []*MockEObject{}
+	mockLists := []*MockEList{}
 	children := []interface{}{}
 	for i := 0; i < nb; i++ {
 		mockObject := new(MockEObject)
 		mockAdapters := new(MockEList)
-
-		mockObject.On("EAdapters").Return(mockAdapters)
-		mockAdapters.On("Contains", adapter).Return(false)
-		mockAdapters.On("Add", adapter).Return(true)
-		mockAdapters.On("Remove", adapter).Return(true)
+		mockLists = append(mockLists, mockAdapters)
+		mockObjects = append(mockObjects, mockObject)
 		children = append(children, mockObject)
 	}
-
 	mockChildren := NewImmutableEList(children)
 	mockObject := new(MockEObject)
-	mockObject.On("EContents").Return(mockChildren)
 
 	// set adapter target -> this should recursively register adapter on all object children
+	for i := 0; i < nb; i++ {
+		mockObject := mockObjects[i]
+		mockAdapters := mockLists[i]
+		if i%2 == 0 {
+			mockObject.On("EIsProxy").Return(false).Once()
+			mockObject.On("EAdapters").Return(mockAdapters).Once()
+			mockAdapters.On("Contains", adapter).Return(false).Once()
+			mockAdapters.On("Add", adapter).Return(true).Once()
+		} else {
+			mockObject.On("EIsProxy").Return(true).Once()
+		}
+	}
+	mockObject.On("EContents").Return(mockChildren).Once()
 	adapter.SetTarget(mockObject)
+	mock.AssertExpectationsForObjects(t, children...)
+	mock.AssertExpectationsForObjects(t, mockObject)
 
 	// unset adapter target -> this should recursively unregister adapter on all object children
+	for i := 0; i < nb; i++ {
+		mockObject := mockObjects[i]
+		mockAdapters := mockLists[i]
+		mockObject.On("EAdapters").Return(mockAdapters).Once()
+		mockAdapters.On("Remove", adapter).Return(true).Once()
+	}
+	mockObject.On("EContents").Return(mockChildren).Once()
 	adapter.UnSetTarget(mockObject)
+	mock.AssertExpectationsForObjects(t, children...)
+	mock.AssertExpectationsForObjects(t, mockObject)
+}
 
+func TestEContentAdapter_SetTarget_EObject_ResolveProxies(t *testing.T) {
+	adapter := NewEContentAdapter()
+	// create a hierarchy of objects
+	nb := rand.Intn(10) + 1
+	mockObjects := []*MockEObject{}
+	mockLists := []*MockEList{}
+	children := []interface{}{}
+	for i := 0; i < nb; i++ {
+		mockObject := new(MockEObject)
+		mockAdapters := new(MockEList)
+		mockLists = append(mockLists, mockAdapters)
+		mockObjects = append(mockObjects, mockObject)
+		children = append(children, mockObject)
+	}
+	mockChildren := NewImmutableEList(children)
+	mockObject := new(MockEObject)
+
+	// set adapter target -> this should recursively register adapter on all object children
+	for i := 0; i < nb; i++ {
+		mockObject := mockObjects[i]
+		mockAdapters := mockLists[i]
+		mockObject.On("EIsProxy").Return(false).Once()
+		mockObject.On("EAdapters").Return(mockAdapters).Once()
+		mockAdapters.On("Contains", adapter).Return(false).Once()
+		mockAdapters.On("Add", adapter).Return(true).Once()
+	}
+	mockObject.On("EContents").Return(mockChildren).Once()
+	adapter.SetTarget(mockObject)
+	mock.AssertExpectationsForObjects(t, children...)
+	mock.AssertExpectationsForObjects(t, mockObject)
+
+	// unset adapter target -> this should recursively unregister adapter on all object children
+	for i := 0; i < nb; i++ {
+		mockObject := mockObjects[i]
+		mockAdapters := mockLists[i]
+		mockObject.On("EAdapters").Return(mockAdapters).Once()
+		mockAdapters.On("Remove", adapter).Return(true).Once()
+	}
+	mockObject.On("EContents").Return(mockChildren).Once()
+	adapter.UnSetTarget(mockObject)
 	mock.AssertExpectationsForObjects(t, children...)
 	mock.AssertExpectationsForObjects(t, mockObject)
 }

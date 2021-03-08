@@ -90,7 +90,7 @@ func (rc *resourceContents) inverseRemove(object interface{}, notifications ENot
 type EResourceImpl struct {
 	ENotifierImpl
 	resourceSet       EResourceSet
-	resourceIDManager EResourceIDManager
+	resourceIDManager EObjectIDManager
 	uri               *url.URL
 	contents          EList
 	errors            EList
@@ -394,10 +394,10 @@ func (r *EResourceImpl) basicSetResourceSet(resourceSet EResourceSet, msgs ENoti
 	return notifications
 }
 
-func (r *EResourceImpl) SetIDManager(resourceIDManager EResourceIDManager) {
+func (r *EResourceImpl) SetObjectIDManager(resourceIDManager EObjectIDManager) {
 	r.resourceIDManager = resourceIDManager
 }
 
-func (r *EResourceImpl) GetIDManager() EResourceIDManager {
+func (r *EResourceImpl) GetObjectIDManager() EObjectIDManager {
 	return r.resourceIDManager
 }

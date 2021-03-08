@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -16,6 +17,7 @@ const (
 	OPTION_EXTENDED_META_DATA        = "EXTENDED_META_DATA"
 	OPTION_SUPPRESS_DOCUMENT_ROOT    = "SUPPRESS_DOCUMENT_ROOT"
 	OPTION_IDREF_RESOLUTION_DEFERRED = "IDREF_RESOLUTION_DEFERRED"
+	OPTION_ID_ATTRIBUTE_NAME         = "ID_ATTRIBUTE_NAME"
 )
 
 type xmlLoad interface {
@@ -158,6 +160,7 @@ type xmlLoadImpl struct {
 	sameDocumentProxies    []EObject
 	notFeatures            []xml.Name
 	extendedMetaData       *ExtendedMetaData
+	idAttributeName        string
 }
 
 func newXMLLoadImpl(options map[string]interface{}) *xmlLoadImpl {
@@ -168,6 +171,7 @@ func newXMLLoadImpl(options map[string]interface{}) *xmlLoadImpl {
 	l.spacesToFactories = make(map[string]EFactory)
 	l.notFeatures = append(l.notFeatures, xml.Name{Space: xsiURI, Local: typeAttrib}, xml.Name{Space: xsiURI, Local: schemaLocationAttrib}, xml.Name{Space: xsiURI, Local: noNamespaceSchemaLocationAttrib})
 	if options != nil {
+		l.idAttributeName, _ = options[OPTION_ID_ATTRIBUTE_NAME].(string)
 		l.isResolveDeferred = options[OPTION_IDREF_RESOLUTION_DEFERRED] == true
 		l.isSuppressDocumentRoot = options[OPTION_SUPPRESS_DOCUMENT_ROOT] == true
 		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
@@ -343,6 +347,12 @@ func (l *xmlLoadImpl) processElement(space string, local string) {
 	}
 }
 
+func (l *xmlLoadImpl) validateObject(eObject EObject, space, typeName string) {
+	if eObject == nil {
+		l.error(NewEDiagnosticImpl("Class {'"+space+"':'"+typeName+"'} not found", l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
+	}
+}
+
 func (l *xmlLoadImpl) processObject(eObject EObject) {
 	if eObject != nil {
 		l.objects = append(l.objects, eObject)
@@ -380,6 +390,7 @@ func (l *xmlLoadImpl) createTopObject(space string, local string) EObject {
 		} else {
 			eType := l.getType(ePackage, local)
 			eObject := l.createObjectWithFactory(eFactory, eType, false)
+			l.validateObject(eObject, space, local)
 			l.processObject(eObject)
 			return eObject
 		}
@@ -434,6 +445,7 @@ func (l *xmlLoadImpl) createObjectFromTypeName(eObject EObject, qname string, eF
 
 	eType := l.getType(eFactory.GetEPackage(), local)
 	eResult := l.createObjectWithFactory(eFactory, eType, false)
+	l.validateObject(eObject, space, local)
 	if eResult != nil {
 		l.setFeatureValue(eObject, eFeature, eResult, -1)
 	}
@@ -547,7 +559,11 @@ func (l *xmlLoadImpl) handleAttributes(eObject EObject) {
 			name := attr.Name.Local
 			uri := attr.Name.Space
 			value := attr.Value
-			if name == href {
+			if name == l.idAttributeName {
+				if idManager := l.resource.GetObjectIDManager(); idManager != nil {
+					idManager.SetID(eObject, value)
+				}
+			} else if name == href {
 				l.handleProxy(eObject, value)
 			} else if name != xmlNS && uri != xmlNS && l.isUserAttribute(attr.Name) {
 				l.setAttributeValue(eObject, name, value)
@@ -1078,6 +1094,7 @@ type xmlSaveImpl struct {
 	featureKinds     map[EStructuralFeature]int
 	extendedMetaData *ExtendedMetaData
 	keepDefaults     bool
+	idAttributeName  string
 }
 
 func newXMLSaveImpl(options map[string]interface{}) *xmlSaveImpl {
@@ -1089,6 +1106,7 @@ func newXMLSaveImpl(options map[string]interface{}) *xmlSaveImpl {
 	s.prefixesToURI = make(map[string]string)
 	s.featureKinds = make(map[EStructuralFeature]int)
 	if options != nil {
+		s.idAttributeName, _ = options[OPTION_ID_ATTRIBUTE_NAME].(string)
 		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
 			s.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
 		}
@@ -1195,6 +1213,22 @@ func (s *xmlSaveImpl) saveNamespaces() {
 }
 
 func (s *xmlSaveImpl) saveElementID(eObject EObject) {
+	if idManager := s.resource.GetObjectIDManager(); len(s.idAttributeName) > 0 && idManager != nil {
+		id := idManager.GetID(eObject)
+		var objectID string
+		switch id.(type) {
+		case nil:
+			objectID = ""
+		case int:
+			objectID = strconv.Itoa(id.(int))
+		case string:
+			objectID = id.(string)
+		}
+		if len(objectID) > 0 {
+			s.str.addAttribute(s.idAttributeName, objectID)
+		}
+	}
+
 }
 
 func (s *xmlSaveImpl) saveFeatures(eObject EObject, attributesOnly bool) bool {

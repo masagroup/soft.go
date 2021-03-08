@@ -19,10 +19,8 @@ const (
 type EventType int
 
 const (
-	// CREATE An event type indicating that the notifier has been created.
-	CREATE EventType = iota
 	// SET An event type indicating that a feature of the notifier has been set.
-	SET
+	SET EventType = iota
 	// UNSET An event type indicating that a feature of the notifier has been set.
 	UNSET
 	// ADD An event type indicating that a feature of the notifier has been unset.

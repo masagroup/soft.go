@@ -219,21 +219,21 @@ func TestMockEResourceIsLoaded(t *testing.T) {
 
 func TestMockEResourceGetIDManager(t *testing.T) {
 	r := &MockEResource{}
-	m := &MockEResourceIDManager{}
-	r.On("GetIDManager").Return(m).Once()
-	r.On("GetIDManager").Return(func() EResourceIDManager {
+	m := &MockEObjectIDManager{}
+	r.On("GetObjectIDManager").Return(m).Once()
+	r.On("GetObjectIDManager").Return(func() EObjectIDManager {
 		return m
 	}).Once()
-	assert.Equal(t, m, r.GetIDManager())
-	assert.Equal(t, m, r.GetIDManager())
+	assert.Equal(t, m, r.GetObjectIDManager())
+	assert.Equal(t, m, r.GetObjectIDManager())
 	r.AssertExpectations(t)
 }
 
 func TestMockEResourceSetIDManager(t *testing.T) {
 	r := &MockEResource{}
-	m := &MockEResourceIDManager{}
-	r.On("SetIDManager", m).Once()
-	r.SetIDManager(m)
+	m := &MockEObjectIDManager{}
+	r.On("SetObjectIDManager", m).Once()
+	r.SetObjectIDManager(m)
 	r.AssertExpectations(t)
 
 }

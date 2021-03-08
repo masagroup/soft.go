@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lib:Library xmlns:lib="http:///org/eclipse/emf/examples/library/library.simple.ecore/1.0.0" id="0" owner="Owner" location="Location">
+  <books id="1" name="Book 0"/>
+  <books id="2" name="Book 1"/>
+  <books id="3" name="Book 2"/>
+  <books id="4" name="Book 4"/>
+</lib:Library>

@@ -397,5 +397,63 @@ func TestSerializationSaveSimpleEscapeXML(t *testing.T) {
 	bytes, err := ioutil.ReadFile("testdata/library.simple.escape.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
+}
 
+func TestSerializationLoadSimpleXMLWithIDs(t *testing.T) {
+	idManager := NewIncrementalIDManager()
+
+	// load libray simple ecore	package
+	ePackage := loadPackage("library.simple.ecore")
+	assert.NotNil(t, ePackage)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+	eResource := eResourceSet.CreateResource(&url.URL{Path: "testdata/library.simple.ids.xml"})
+	require.NotNil(t, eResource)
+	eResource.SetObjectIDManager(idManager)
+	eResource.LoadWithOptions(map[string]interface{}{OPTION_ID_ATTRIBUTE_NAME: "id"})
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	// retrive library class & library name attribute
+	libraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, libraryClass)
+	libraryBooksFeature := libraryClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, libraryBooksFeature)
+
+	require.Equal(t, 1, eResource.GetContents().Size())
+	eLibrary, _ := eResource.GetContents().Get(0).(EObject)
+	require.NotNil(t, eLibrary)
+	assert.Equal(t, 0, idManager.GetID(eLibrary))
+
+	eBooks, _ := eLibrary.EGet(libraryBooksFeature).(EList)
+	require.NotNil(t, eBooks)
+	require.Equal(t, 4, eBooks.Size())
+	assert.Equal(t, 1, idManager.GetID(eBooks.Get(0).(EObject)))
+	assert.Equal(t, 2, idManager.GetID(eBooks.Get(1).(EObject)))
+	assert.Equal(t, 3, idManager.GetID(eBooks.Get(2).(EObject)))
+	assert.Equal(t, 4, idManager.GetID(eBooks.Get(3).(EObject)))
+}
+
+func TestSerializationSaveSimpleXMLWithIDs(t *testing.T) {
+
+	// load libray simple ecore	package
+	ePackage := loadPackage("library.simple.ecore")
+	assert.NotNil(t, ePackage)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+	eResource := eResourceSet.CreateResource(&url.URL{Path: "testdata/library.simple.xml"})
+	require.NotNil(t, eResource)
+	eResource.SetObjectIDManager(NewIncrementalIDManager())
+	eResource.Load()
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	var strbuff strings.Builder
+	eResource.SaveWithWriter(&strbuff, map[string]interface{}{OPTION_ID_ATTRIBUTE_NAME: "id"})
+
+	bytes, err := ioutil.ReadFile("testdata/library.simple.ids.xml")
+	assert.Nil(t, err)
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }

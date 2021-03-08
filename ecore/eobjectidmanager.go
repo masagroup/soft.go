@@ -1,6 +1,6 @@
 package ecore
 
-type EResourceIDManager interface {
+type EObjectIDManager interface {
 	Clear()
 
 	Register(EObject)

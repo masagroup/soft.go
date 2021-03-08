@@ -85,15 +85,15 @@ func (_m *MockEResource) GetErrors() EList {
 }
 
 // GetIDManager provides a mock function with given fields:
-func (_m *MockEResource) GetIDManager() EResourceIDManager {
+func (_m *MockEResource) GetObjectIDManager() EObjectIDManager {
 	ret := _m.Called()
 
-	var r0 EResourceIDManager
-	if rf, ok := ret.Get(0).(func() EResourceIDManager); ok {
+	var r0 EObjectIDManager
+	if rf, ok := ret.Get(0).(func() EObjectIDManager); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(EResourceIDManager)
+			r0 = ret.Get(0).(EObjectIDManager)
 		}
 	}
 
@@ -205,7 +205,7 @@ func (_m *MockEResource) SaveWithWriter(w io.Writer, o map[string]interface{}) {
 }
 
 // SetIDManager provides a mock function with given fields: _a0
-func (_m *MockEResource) SetIDManager(_a0 EResourceIDManager) {
+func (_m *MockEResource) SetObjectIDManager(_a0 EObjectIDManager) {
 	_m.Called(_a0)
 }
 

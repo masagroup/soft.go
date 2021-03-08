@@ -316,9 +316,9 @@ func TestXmlResourceIDManager(t *testing.T) {
 	assert.NotNil(t, ePackage)
 
 	// create a resource with an id manager
-	mockIDManager := &MockEResourceIDManager{}
+	mockIDManager := &MockEObjectIDManager{}
 	eResource := newXMLResourceImpl()
-	eResource.SetIDManager(mockIDManager)
+	eResource.SetObjectIDManager(mockIDManager)
 
 	// create a library and add it to resource
 	eFactory := ePackage.GetEFactoryInstance()

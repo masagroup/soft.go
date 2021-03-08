@@ -8,14 +8,14 @@ import (
 )
 
 func TestMockEResourceIDManagerClear(t *testing.T) {
-	rm := &MockEResourceIDManager{}
+	rm := &MockEObjectIDManager{}
 	rm.On("Clear").Once()
 	rm.Clear()
 	mock.AssertExpectationsForObjects(t, rm)
 }
 
 func TestMockEResourceIDManagerRegister(t *testing.T) {
-	rm := &MockEResourceIDManager{}
+	rm := &MockEObjectIDManager{}
 	o := &MockEObject{}
 	rm.On("Register", o).Once()
 	rm.Register(o)
@@ -23,7 +23,7 @@ func TestMockEResourceIDManagerRegister(t *testing.T) {
 }
 
 func TestMockEResourceIDManagerUnRegister(t *testing.T) {
-	rm := &MockEResourceIDManager{}
+	rm := &MockEObjectIDManager{}
 	o := &MockEObject{}
 	rm.On("UnRegister", o).Once()
 	rm.UnRegister(o)
@@ -31,7 +31,7 @@ func TestMockEResourceIDManagerUnRegister(t *testing.T) {
 }
 
 func TestMockEResourceIDManagerGetID(t *testing.T) {
-	rm := &MockEResourceIDManager{}
+	rm := &MockEObjectIDManager{}
 	o := &MockEObject{}
 	rm.On("GetID", o).Return("id1").Once()
 	rm.On("GetID", o).Return(func(EObject) string {
@@ -43,7 +43,7 @@ func TestMockEResourceIDManagerGetID(t *testing.T) {
 }
 
 func TestMockEResourceIDManagerGetEObject(t *testing.T) {
-	rm := &MockEResourceIDManager{}
+	rm := &MockEObjectIDManager{}
 	o := &MockEObject{}
 	rm.On("GetEObject", "id1").Return(o).Once()
 	rm.On("GetEObject", "id2").Return(func(string) EObject {

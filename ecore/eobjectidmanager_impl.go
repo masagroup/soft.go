@@ -5,7 +5,7 @@ type EResourceIDManagerImpl struct {
 	idToObject map[string]EObject
 }
 
-func NewEResourceIDManagerImpl() EResourceIDManager {
+func NewEResourceIDManagerImpl() EObjectIDManager {
 	return &EResourceIDManagerImpl{
 		objectToID: make(map[EObject]string),
 		idToObject: make(map[string]EObject),

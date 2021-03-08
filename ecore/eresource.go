@@ -47,6 +47,6 @@ type EResource interface {
 	GetErrors() EList
 	GetWarnings() EList
 
-	SetIDManager(EResourceIDManager)
-	GetIDManager() EResourceIDManager
+	SetObjectIDManager(EObjectIDManager)
+	GetObjectIDManager() EObjectIDManager
 }

@@ -7,14 +7,14 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestMockEResourceIDManagerClear(t *testing.T) {
+func TestMockEObjectIDManagerClear(t *testing.T) {
 	rm := &MockEObjectIDManager{}
 	rm.On("Clear").Once()
 	rm.Clear()
 	mock.AssertExpectationsForObjects(t, rm)
 }
 
-func TestMockEResourceIDManagerRegister(t *testing.T) {
+func TestMockEObjectIDManagerRegister(t *testing.T) {
 	rm := &MockEObjectIDManager{}
 	o := &MockEObject{}
 	rm.On("Register", o).Once()
@@ -22,7 +22,7 @@ func TestMockEResourceIDManagerRegister(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, rm, o)
 }
 
-func TestMockEResourceIDManagerUnRegister(t *testing.T) {
+func TestMockEObjectIDManagerUnRegister(t *testing.T) {
 	rm := &MockEObjectIDManager{}
 	o := &MockEObject{}
 	rm.On("UnRegister", o).Once()
@@ -30,11 +30,11 @@ func TestMockEResourceIDManagerUnRegister(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, rm, o)
 }
 
-func TestMockEResourceIDManagerGetID(t *testing.T) {
+func TestMockEObjectIDManagerGetID(t *testing.T) {
 	rm := &MockEObjectIDManager{}
 	o := &MockEObject{}
 	rm.On("GetID", o).Return("id1").Once()
-	rm.On("GetID", o).Return(func(EObject) string {
+	rm.On("GetID", o).Return(func(EObject) interface{} {
 		return "id2"
 	}).Once()
 	assert.Equal(t, "id1", rm.GetID(o))
@@ -42,11 +42,11 @@ func TestMockEResourceIDManagerGetID(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, rm, o)
 }
 
-func TestMockEResourceIDManagerGetEObject(t *testing.T) {
+func TestMockEObjectIDManagerGetEObject(t *testing.T) {
 	rm := &MockEObjectIDManager{}
 	o := &MockEObject{}
 	rm.On("GetEObject", "id1").Return(o).Once()
-	rm.On("GetEObject", "id2").Return(func(string) EObject {
+	rm.On("GetEObject", "id2").Return(func(interface{}) EObject {
 		return o
 	}).Once()
 	assert.Equal(t, o, rm.GetEObject("id1"))

@@ -1,23 +1,23 @@
 package ecore
 
-type EResourceIDManagerImpl struct {
+type EObjectIDManagerImpl struct {
 	objectToID map[EObject]string
 	idToObject map[string]EObject
 }
 
-func NewEResourceIDManagerImpl() EObjectIDManager {
-	return &EResourceIDManagerImpl{
+func NewEObjectIDManagerImpl() EObjectIDManager {
+	return &EObjectIDManagerImpl{
 		objectToID: make(map[EObject]string),
 		idToObject: make(map[string]EObject),
 	}
 }
 
-func (m *EResourceIDManagerImpl) Clear() {
+func (m *EObjectIDManagerImpl) Clear() {
 	m.objectToID = make(map[EObject]string)
 	m.idToObject = make(map[string]EObject)
 }
 
-func (m *EResourceIDManagerImpl) Register(eObject EObject) {
+func (m *EObjectIDManagerImpl) Register(eObject EObject) {
 	id := GetEObjectID(eObject)
 	if len(id) > 0 {
 		m.idToObject[id] = eObject
@@ -30,7 +30,31 @@ func (m *EResourceIDManagerImpl) Register(eObject EObject) {
 	}
 }
 
-func (m *EResourceIDManagerImpl) UnRegister(eObject EObject) {
+func (m *EObjectIDManagerImpl) SetID(eObject EObject, id interface{}) {
+	if id == nil {
+		id = ""
+	}
+	if newID, isString := id.(string); isString {
+		SetEObjectID(eObject, newID)
+
+		oldID := m.objectToID[eObject]
+		if len(newID) > 0 {
+			m.objectToID[eObject] = newID
+		} else {
+			delete(m.objectToID, eObject)
+		}
+
+		if len(oldID) > 0 {
+			delete(m.idToObject, oldID)
+		}
+
+		if len(newID) > 0 {
+			m.idToObject[newID] = eObject
+		}
+	}
+}
+
+func (m *EObjectIDManagerImpl) UnRegister(eObject EObject) {
 	if id, isPresent := m.objectToID[eObject]; isPresent {
 		delete(m.idToObject, id)
 		delete(m.objectToID, eObject)
@@ -42,10 +66,15 @@ func (m *EResourceIDManagerImpl) UnRegister(eObject EObject) {
 	}
 }
 
-func (m *EResourceIDManagerImpl) GetID(eObject EObject) string {
+func (m *EObjectIDManagerImpl) GetID(eObject EObject) interface{} {
 	return m.objectToID[eObject]
 }
 
-func (m *EResourceIDManagerImpl) GetEObject(id string) EObject {
-	return m.idToObject[id]
+func (m *EObjectIDManagerImpl) GetEObject(id interface{}) EObject {
+	switch id.(type) {
+	case string:
+		return m.idToObject[id.(string)]
+	default:
+		return nil
+	}
 }

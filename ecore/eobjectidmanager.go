@@ -6,6 +6,8 @@ type EObjectIDManager interface {
 	Register(EObject)
 	UnRegister(EObject)
 
-	GetID(EObject) string
-	GetEObject(string) EObject
+	SetID(EObject, interface{})
+
+	GetID(EObject) interface{}
+	GetEObject(interface{}) EObject
 }

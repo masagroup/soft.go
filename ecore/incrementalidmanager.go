@@ -1,5 +1,7 @@
 package ecore
 
+import "strconv"
+
 type IncrementalIDManager struct {
 	detachedToID map[EObject]int
 	objectToID   map[EObject]int
@@ -47,24 +49,28 @@ func (m *IncrementalIDManager) Register(eObject EObject) {
 }
 
 func (m *IncrementalIDManager) SetID(eObject EObject, id interface{}) {
-	if id == nil {
-		id = -1
+	var newID int
+	switch id.(type) {
+	case nil:
+		newID = -1
+	case string:
+		newID, _ = strconv.Atoi(id.(string))
+	case int:
+		newID = id.(int)
 	}
-	if newID, isInt := id.(int); isInt {
-		oldID, isOldID := m.objectToID[eObject]
-		if newID >= 0 {
-			m.objectToID[eObject] = newID
-		} else {
-			delete(m.objectToID, eObject)
-		}
+	oldID, isOldID := m.objectToID[eObject]
+	if newID >= 0 {
+		m.objectToID[eObject] = newID
+	} else {
+		delete(m.objectToID, eObject)
+	}
 
-		if isOldID {
-			delete(m.idToObject, oldID)
-		}
+	if isOldID {
+		delete(m.idToObject, oldID)
+	}
 
-		if newID >= 0 {
-			m.idToObject[newID] = eObject
-		}
+	if newID >= 0 {
+		m.idToObject[newID] = eObject
 	}
 }
 

@@ -57,3 +57,17 @@ func TestIncrementalIDManagerUnRegister(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockObject, mockChild1, mockChild2)
 	assert.Equal(t, 2, m.GetID(mockChild2))
 }
+
+func TestIncrementalIDManagerSetID(t *testing.T) {
+	m := NewIncrementalIDManager()
+	mockObject := &MockEObject{}
+
+	m.SetID(mockObject, 2)
+	assert.Equal(t, 2, m.GetID(mockObject))
+
+	m.SetID(mockObject, nil)
+	assert.Equal(t, nil, m.GetID(mockObject))
+
+	m.SetID(mockObject, "2")
+	assert.Equal(t, 2, m.GetID(mockObject))
+}

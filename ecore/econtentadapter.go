@@ -61,7 +61,7 @@ func (adapter *EContentAdapter) SetTarget(notifier ENotifier) {
 		case EResourceSet:
 			it = t.GetResources().Iterator()
 		}
-		for it.HasNext() {
+		for it != nil && it.HasNext() {
 			n := it.Next().(ENotifier)
 			adapter.addAdapter(n)
 		}

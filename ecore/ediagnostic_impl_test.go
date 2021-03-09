@@ -21,4 +21,5 @@ func TestEDiagnostic(t *testing.T) {
 	assert.Equal(t, "location", d.GetLocation())
 	assert.Equal(t, 10, d.GetLine())
 	assert.Equal(t, 20, d.GetColumn())
+	assert.Equal(t, "location(10,20):message", d.Error())
 }

@@ -67,3 +67,16 @@ func TestMockEDiagnosticGetColumn(t *testing.T) {
 	assert.Equal(t, v, o.GetColumn())
 	o.AssertExpectations(t)
 }
+
+func TestMockEDiagnosticError(t *testing.T) {
+	o := &MockEDiagnostic{}
+	v := "error"
+	o.On("Error").Once().Return(v)
+	assert.Equal(t, v, o.Error())
+
+	o.On("Error").Once().Return(func() string {
+		return v
+	})
+	assert.Equal(t, v, o.Error())
+	o.AssertExpectations(t)
+}

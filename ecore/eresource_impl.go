@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"fmt"
 	"io"
 	"net/url"
 	"strconv"
@@ -89,13 +90,13 @@ func (rc *resourceContents) inverseRemove(object interface{}, notifications ENot
 //EResource ...
 type EResourceImpl struct {
 	ENotifierImpl
-	resourceSet       EResourceSet
-	resourceIDManager EObjectIDManager
-	uri               *url.URL
-	contents          EList
-	errors            EList
-	warnings          EList
-	isLoaded          bool
+	resourceSet     EResourceSet
+	objectIDManager EObjectIDManager
+	uri             *url.URL
+	contents        EList
+	errors          EList
+	warnings        EList
+	isLoaded        bool
 }
 
 // NewBasicEObject is BasicEObject constructor
@@ -175,7 +176,7 @@ func (r *EResourceImpl) GetURIFragment(eObject EObject) string {
 			fragmentPath := []string{}
 			isContained := false
 			for eContainer, _ := internalEObject.EInternalContainer().(EObjectInternal); eContainer != nil; eContainer, _ = internalEObject.EInternalContainer().(EObjectInternal) {
-				if len(id) == 0 {
+				if id = r.getIDForObject(eObject); len(id) == 0 {
 					fragmentPath = append([]string{eContainer.EURIFragmentSegment(internalEObject.EContainingFeature(), internalEObject)}, fragmentPath...)
 				}
 				internalEObject = eContainer
@@ -189,11 +190,11 @@ func (r *EResourceImpl) GetURIFragment(eObject EObject) string {
 			}
 			if len(id) == 0 {
 				fragmentPath = append([]string{r.getURIFragmentRootSegment(internalEObject)}, fragmentPath...)
+				fragmentPath = append([]string{""}, fragmentPath...)
+				return strings.Join(fragmentPath, "/")
 			} else {
-				fragmentPath = append([]string{"?" + id}, fragmentPath...)
+				return id
 			}
-			fragmentPath = append([]string{""}, fragmentPath...)
-			return strings.Join(fragmentPath, "/")
 		}
 	}
 }
@@ -207,9 +208,18 @@ func (r *EResourceImpl) getURIFragmentRootSegment(eObject EObject) string {
 	}
 }
 
+func (r *EResourceImpl) getIDForObject(eObject EObject) string {
+	if r.objectIDManager != nil {
+		if id := r.objectIDManager.GetID(eObject); id != nil {
+			return fmt.Sprintf("%v", id)
+		}
+	}
+	return GetEObjectID(eObject)
+}
+
 func (r *EResourceImpl) getObjectByID(id string) EObject {
-	if r.resourceIDManager != nil {
-		return r.resourceIDManager.GetEObject(id)
+	if r.objectIDManager != nil {
+		return r.objectIDManager.GetEObject(id)
 	}
 	for it := r.getAllContentsResolve(false); it.HasNext(); {
 		eObject := it.Next().(EObject)
@@ -250,14 +260,14 @@ func (r *EResourceImpl) getObjectForRootSegment(rootSegment string) EObject {
 }
 
 func (r *EResourceImpl) Attached(object EObject) {
-	if r.resourceIDManager != nil {
-		r.resourceIDManager.Register(object)
+	if r.objectIDManager != nil {
+		r.objectIDManager.Register(object)
 	}
 }
 
 func (r *EResourceImpl) Detached(object EObject) {
-	if r.resourceIDManager != nil {
-		r.resourceIDManager.UnRegister(object)
+	if r.objectIDManager != nil {
+		r.objectIDManager.UnRegister(object)
 	}
 }
 
@@ -316,8 +326,8 @@ func (r *EResourceImpl) DoUnload() {
 	r.contents = nil
 	r.errors = nil
 	r.warnings = nil
-	if r.resourceIDManager != nil {
-		r.resourceIDManager.Clear()
+	if r.objectIDManager != nil {
+		r.objectIDManager.Clear()
 	}
 }
 
@@ -394,10 +404,10 @@ func (r *EResourceImpl) basicSetResourceSet(resourceSet EResourceSet, msgs ENoti
 	return notifications
 }
 
-func (r *EResourceImpl) SetObjectIDManager(resourceIDManager EObjectIDManager) {
-	r.resourceIDManager = resourceIDManager
+func (r *EResourceImpl) SetObjectIDManager(objectIDManager EObjectIDManager) {
+	r.objectIDManager = objectIDManager
 }
 
 func (r *EResourceImpl) GetObjectIDManager() EObjectIDManager {
-	return r.resourceIDManager
+	return r.objectIDManager
 }

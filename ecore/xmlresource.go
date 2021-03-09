@@ -706,7 +706,7 @@ func (l *xmlLoadImpl) handleProxy(eProxy EObject, id string) {
 	// set object proxy uri
 	eProxy.(EObjectInternal).ESetProxyURI(uri)
 
-	if *resourceURI == *trimFragment(uri) {
+	if *resourceURI == *TrimURIFragment(uri) {
 		l.sameDocumentProxies = append(l.sameDocumentProxies, eProxy)
 	}
 }
@@ -1796,7 +1796,7 @@ func (s *xmlSaveImpl) getHRef(eObject EObject) string {
 }
 
 func (s *xmlSaveImpl) getResourceHRef(resource EResource, object EObject) string {
-	uri := resource.GetURI()
+	uri := CloneURI(resource.GetURI())
 	uri.Fragment = resource.GetURIFragment(object)
 	return uri.String()
 }

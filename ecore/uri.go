@@ -5,14 +5,29 @@ import (
 	"path/filepath"
 )
 
-func trimFragment(uri *url.URL) *url.URL {
-	return &url.URL{Scheme: uri.Scheme,
+func TrimURIFragment(uri *url.URL) *url.URL {
+	return &url.URL{
+		Scheme:     uri.Scheme,
 		User:       uri.User,
 		Host:       uri.Host,
 		Path:       uri.Path,
 		ForceQuery: uri.ForceQuery,
 		RawPath:    uri.RawPath,
-		RawQuery:   uri.RawQuery}
+		RawQuery:   uri.RawQuery,
+	}
+}
+
+func CloneURI(uri *url.URL) *url.URL {
+	return &url.URL{
+		Scheme:     uri.Scheme,
+		User:       uri.User,
+		Host:       uri.Host,
+		Path:       uri.Path,
+		Fragment:   uri.Fragment,
+		ForceQuery: uri.ForceQuery,
+		RawPath:    uri.RawPath,
+		RawQuery:   uri.RawQuery,
+	}
 }
 
 func CreateFileURI(path string) *url.URL {

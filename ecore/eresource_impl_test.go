@@ -84,8 +84,8 @@ func TestResourceGetURIFragment(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockObject)
 
 		mockClass := &MockEClass{}
-		mockObject.On("EClass").Return(mockClass).Once()
-		mockClass.On("GetEIDAttribute").Return(nil).Once()
+		mockObject.On("EClass").Return(mockClass).Twice()
+		mockClass.On("GetEIDAttribute").Return(nil).Twice()
 		mockObject.On("EInternalResource").Return(r).Once()
 
 		assert.Equal(t, "/", r.GetURIFragment(mockObject))
@@ -102,8 +102,8 @@ func TestResourceGetURIFragment(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockObject1, mockObject2)
 
 		mockClass := &MockEClass{}
-		mockObject1.On("EClass").Return(mockClass).Once()
-		mockClass.On("GetEIDAttribute").Return(nil).Once()
+		mockObject1.On("EClass").Return(mockClass).Twice()
+		mockClass.On("GetEIDAttribute").Return(nil).Twice()
 		mockObject1.On("EInternalResource").Return(r).Once()
 
 		assert.Equal(t, "/0", r.GetURIFragment(mockObject1))

@@ -171,7 +171,11 @@ func (r *EResourceImpl) GetURIFragment(eObject EObject) string {
 	} else {
 		internalEObject := eObject.(EObjectInternal)
 		if internalEObject.EInternalResource() == r.interfaces {
-			return "/" + r.getURIFragmentRootSegment(eObject)
+			if id = r.getIDForObject(eObject); len(id) > 0 {
+				return id
+			} else {
+				return "/" + r.getURIFragmentRootSegment(eObject)
+			}
 		} else {
 			fragmentPath := []string{}
 			isContained := false

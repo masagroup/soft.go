@@ -6,7 +6,7 @@ type notifierAdapterList struct {
 }
 
 type notifierNotification struct {
-	abstractNotification
+	AbstractNotification
 	notifier *AbstractENotifier
 }
 

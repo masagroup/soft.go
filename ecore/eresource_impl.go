@@ -20,7 +20,7 @@ type EResourceInternal interface {
 }
 
 type resourceNotification struct {
-	abstractNotification
+	AbstractNotification
 	notifier  ENotifier
 	featureID int
 }
@@ -37,15 +37,17 @@ func (n *resourceNotification) GetFeatureID() int {
 	return n.featureID
 }
 
-func newResourceNotification(notifier ENotifier, featureID int, eventType EventType, oldValue interface{}, newValue interface{}, position int) *resourceNotification {
+func newResourceNotification(
+	notifier ENotifier,
+	featureID int,
+	eventType EventType,
+	oldValue interface{},
+	newValue interface{},
+	position int) *resourceNotification {
 	n := new(resourceNotification)
-	n.eventType = eventType
-	n.oldValue = oldValue
-	n.newValue = newValue
-	n.position = position
+	n.Initialize(n, eventType, oldValue, newValue, position)
 	n.notifier = notifier
 	n.featureID = featureID
-	n.interfaces = n
 	return n
 }
 

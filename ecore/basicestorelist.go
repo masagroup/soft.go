@@ -75,7 +75,7 @@ func (list *BasicEStoreList) GetStore() EStore {
 }
 
 type basicEStoreListNotification struct {
-	abstractNotification
+	AbstractNotification
 	list *BasicEStoreList
 }
 
@@ -93,12 +93,8 @@ func (notif *basicEStoreListNotification) GetFeatureID() int {
 
 func (list *BasicEStoreList) createNotification(eventType EventType, oldValue interface{}, newValue interface{}, position int) ENotification {
 	n := new(basicEStoreListNotification)
-	n.eventType = eventType
-	n.oldValue = oldValue
-	n.newValue = newValue
-	n.position = position
+	n.Initialize(n, eventType, oldValue, newValue, position)
 	n.list = list
-	n.interfaces = n
 	return n
 }
 

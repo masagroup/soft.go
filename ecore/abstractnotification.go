@@ -1,6 +1,6 @@
 package ecore
 
-type abstractNotification struct {
+type AbstractNotification struct {
 	interfaces interface{}
 	eventType  EventType
 	oldValue   interface{}
@@ -9,23 +9,36 @@ type abstractNotification struct {
 	next       ENotificationChain
 }
 
-func (notif *abstractNotification) GetEventType() EventType {
+func (notif *AbstractNotification) Initialize(
+	interfaces interface{},
+	eventType EventType,
+	oldValue interface{},
+	newValue interface{},
+	position int) {
+	notif.interfaces = interfaces
+	notif.eventType = eventType
+	notif.oldValue = oldValue
+	notif.newValue = newValue
+	notif.position = position
+}
+
+func (notif *AbstractNotification) GetEventType() EventType {
 	return notif.eventType
 }
 
-func (notif *abstractNotification) GetOldValue() interface{} {
+func (notif *AbstractNotification) GetOldValue() interface{} {
 	return notif.oldValue
 }
 
-func (notif *abstractNotification) GetNewValue() interface{} {
+func (notif *AbstractNotification) GetNewValue() interface{} {
 	return notif.newValue
 }
 
-func (notif *abstractNotification) GetPosition() int {
+func (notif *AbstractNotification) GetPosition() int {
 	return notif.position
 }
 
-func (notif *abstractNotification) Merge(eOther ENotification) bool {
+func (notif *AbstractNotification) Merge(eOther ENotification) bool {
 	eNotif := notif.interfaces.(ENotification)
 	switch ev := notif.eventType; ev {
 	case SET, UNSET:
@@ -104,7 +117,7 @@ func (notif *abstractNotification) Merge(eOther ENotification) bool {
 	return false
 }
 
-func (notif *abstractNotification) Add(eOther ENotification) bool {
+func (notif *AbstractNotification) Add(eOther ENotification) bool {
 	if eOther == nil {
 		return false
 	}
@@ -125,7 +138,7 @@ func (notif *abstractNotification) Add(eOther ENotification) bool {
 	}
 }
 
-func (notif *abstractNotification) Dispatch() {
+func (notif *AbstractNotification) Dispatch() {
 	notification := notif.interfaces.(ENotification)
 	notifier := notification.GetNotifier()
 	if notifier != nil && notif.eventType != -1 {

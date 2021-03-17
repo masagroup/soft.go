@@ -9,10 +9,10 @@ type EResourceSetInternal interface {
 
 type resourcesList struct {
 	BasicENotifyingList
-	resourceSet EResourceSet
+	resourceSet *EResourceSetImpl
 }
 
-func newResourcesList(resourceSet EResourceSet) *resourcesList {
+func newResourcesList(resourceSet *EResourceSetImpl) *resourcesList {
 	l := new(resourcesList)
 	l.interfaces = l
 	l.data = []interface{}{}
@@ -22,7 +22,7 @@ func newResourcesList(resourceSet EResourceSet) *resourcesList {
 }
 
 func (l *resourcesList) GetNotifier() ENotifier {
-	return l.resourceSet
+	return l.resourceSet.AsENotifier()
 }
 
 func (l *resourcesList) GetFeatureID() int {

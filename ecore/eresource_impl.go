@@ -51,10 +51,10 @@ func newResourceNotification(notifier ENotifier, featureID int, eventType EventT
 
 type resourceContents struct {
 	BasicENotifyingList
-	resource EResource
+	resource *EResourceImpl
 }
 
-func newResourceContents(resource EResource) *resourceContents {
+func newResourceContents(resource *EResourceImpl) *resourceContents {
 	rc := new(resourceContents)
 	rc.interfaces = rc
 	rc.data = []interface{}{}
@@ -64,7 +64,7 @@ func newResourceContents(resource EResource) *resourceContents {
 }
 
 func (rc *resourceContents) GetNotifier() ENotifier {
-	return rc.resource
+	return rc.resource.AsENotifier()
 }
 
 func (rc *resourceContents) GetFeatureID() int {
@@ -73,15 +73,17 @@ func (rc *resourceContents) GetFeatureID() int {
 
 func (rc *resourceContents) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {
 	eObject := object.(EObjectInternal)
+	eResource := rc.resource.AsEResource()
 	n := notifications
-	n = eObject.ESetResource(rc.resource, n)
-	rc.resource.Attached(eObject)
+	n = eObject.ESetResource(eResource, n)
+	eResource.Attached(eObject)
 	return n
 }
 
 func (rc *resourceContents) inverseRemove(object interface{}, notifications ENotificationChain) ENotificationChain {
 	eObject := object.(EObjectInternal)
-	rc.resource.Detached(eObject)
+	eResource := rc.resource.AsEResource()
+	eResource.Detached(eObject)
 	n := notifications
 	n = eObject.ESetResource(nil, n)
 	return n
@@ -107,6 +109,10 @@ func NewEResourceImpl() *EResourceImpl {
 	return r
 }
 
+func (r *EResourceImpl) AsEResource() EResource {
+	return r.GetInterfaces().(EResource)
+}
+
 func (r *EResourceImpl) GetResourceSet() EResourceSet {
 	return r.resourceSet
 }
@@ -119,13 +125,13 @@ func (r *EResourceImpl) SetURI(uri *url.URL) {
 	oldURI := r.uri
 	r.uri = uri
 	if r.ENotificationRequired() {
-		r.ENotify(newResourceNotification(r.GetInterfaces().(ENotifier), RESOURCE__URI, SET, oldURI, uri, -1))
+		r.ENotify(newResourceNotification(r.AsENotifier(), RESOURCE__URI, SET, oldURI, uri, -1))
 	}
 }
 
 func (r *EResourceImpl) GetContents() EList {
 	if r.contents == nil {
-		r.contents = newResourceContents(r.GetInterfaces().(EResource))
+		r.contents = newResourceContents(r)
 	}
 	return r.contents
 }

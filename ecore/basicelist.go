@@ -89,6 +89,10 @@ func getNonDuplicates(list EList, ref EList) *basicEList {
 	return newList
 }
 
+func (list *basicEList) SetInterfaces(interfaces interface{}) {
+	list.interfaces = interfaces
+}
+
 func (list *basicEList) Add(elem interface{}) bool {
 	if list.isUnique && list.Contains(elem) {
 		return false

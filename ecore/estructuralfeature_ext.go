@@ -66,7 +66,7 @@ func (eStructuralFeature *eStructuralFeatureExt) SetDefaultValueLiteral(newDefau
 	eStructuralFeature.eStructuralFeatureImpl.SetDefaultValueLiteral(newDefaultValueLiteral)
 }
 
-func isBidirectional(feature EStructuralFeature) bool {
+func IsBidirectional(feature EStructuralFeature) bool {
 	ref, isRef := feature.(EReference)
 	if isRef {
 		return ref.GetEOpposite() != nil
@@ -74,7 +74,7 @@ func isBidirectional(feature EStructuralFeature) bool {
 	return false
 }
 
-func isContainer(feature EStructuralFeature) bool {
+func IsContainer(feature EStructuralFeature) bool {
 	ref, isRef := feature.(EReference)
 	if isRef {
 		opposite := ref.GetEOpposite()
@@ -85,7 +85,7 @@ func isContainer(feature EStructuralFeature) bool {
 	return false
 }
 
-func isContains(feature EStructuralFeature) bool {
+func IsContains(feature EStructuralFeature) bool {
 	ref, isRef := feature.(EReference)
 	if isRef {
 		return ref.IsContainment()
@@ -93,7 +93,7 @@ func isContains(feature EStructuralFeature) bool {
 	return false
 }
 
-func isProxy(feature EStructuralFeature) bool {
+func IsProxy(feature EStructuralFeature) bool {
 	ref, isRef := feature.(EReference)
 	if isRef {
 		return ref.IsResolveProxies()
@@ -101,7 +101,7 @@ func isProxy(feature EStructuralFeature) bool {
 	return false
 }
 
-func isMapType(feature EStructuralFeature) bool {
+func IsMapType(feature EStructuralFeature) bool {
 	if eType := feature.GetEType(); eType != nil {
 		return eType.GetInstanceTypeName() == "ecore.EMapEntry"
 	}

@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"fmt"
 	"io"
 	"net/url"
 	"strconv"
@@ -50,10 +51,10 @@ func newResourceNotification(notifier ENotifier, featureID int, eventType EventT
 
 type resourceContents struct {
 	BasicENotifyingList
-	resource EResource
+	resource *EResourceImpl
 }
 
-func newResourceContents(resource EResource) *resourceContents {
+func newResourceContents(resource *EResourceImpl) *resourceContents {
 	rc := new(resourceContents)
 	rc.interfaces = rc
 	rc.data = []interface{}{}
@@ -63,7 +64,7 @@ func newResourceContents(resource EResource) *resourceContents {
 }
 
 func (rc *resourceContents) GetNotifier() ENotifier {
-	return rc.resource
+	return rc.resource.AsENotifier()
 }
 
 func (rc *resourceContents) GetFeatureID() int {
@@ -72,15 +73,17 @@ func (rc *resourceContents) GetFeatureID() int {
 
 func (rc *resourceContents) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {
 	eObject := object.(EObjectInternal)
+	eResource := rc.resource.AsEResource()
 	n := notifications
-	n = eObject.ESetResource(rc.resource, n)
-	rc.resource.Attached(eObject)
+	n = eObject.ESetResource(eResource, n)
+	eResource.Attached(eObject)
 	return n
 }
 
 func (rc *resourceContents) inverseRemove(object interface{}, notifications ENotificationChain) ENotificationChain {
 	eObject := object.(EObjectInternal)
-	rc.resource.Detached(eObject)
+	eResource := rc.resource.AsEResource()
+	eResource.Detached(eObject)
 	n := notifications
 	n = eObject.ESetResource(nil, n)
 	return n
@@ -89,13 +92,13 @@ func (rc *resourceContents) inverseRemove(object interface{}, notifications ENot
 //EResource ...
 type EResourceImpl struct {
 	ENotifierImpl
-	resourceSet       EResourceSet
-	resourceIDManager EObjectIDManager
-	uri               *url.URL
-	contents          EList
-	errors            EList
-	warnings          EList
-	isLoaded          bool
+	resourceSet     EResourceSet
+	objectIDManager EObjectIDManager
+	uri             *url.URL
+	contents        EList
+	errors          EList
+	warnings        EList
+	isLoaded        bool
 }
 
 // NewBasicEObject is BasicEObject constructor
@@ -104,6 +107,10 @@ func NewEResourceImpl() *EResourceImpl {
 	r.SetInterfaces(r)
 	r.Initialize()
 	return r
+}
+
+func (r *EResourceImpl) AsEResource() EResource {
+	return r.GetInterfaces().(EResource)
 }
 
 func (r *EResourceImpl) GetResourceSet() EResourceSet {
@@ -118,13 +125,13 @@ func (r *EResourceImpl) SetURI(uri *url.URL) {
 	oldURI := r.uri
 	r.uri = uri
 	if r.ENotificationRequired() {
-		r.ENotify(newResourceNotification(r.GetInterfaces().(ENotifier), RESOURCE__URI, SET, oldURI, uri, -1))
+		r.ENotify(newResourceNotification(r.AsENotifier(), RESOURCE__URI, SET, oldURI, uri, -1))
 	}
 }
 
 func (r *EResourceImpl) GetContents() EList {
 	if r.contents == nil {
-		r.contents = newResourceContents(r.GetInterfaces().(EResource))
+		r.contents = newResourceContents(r)
 	}
 	return r.contents
 }
@@ -170,12 +177,16 @@ func (r *EResourceImpl) GetURIFragment(eObject EObject) string {
 	} else {
 		internalEObject := eObject.(EObjectInternal)
 		if internalEObject.EInternalResource() == r.interfaces {
-			return "/" + r.getURIFragmentRootSegment(eObject)
+			if id = r.getIDForObject(eObject); len(id) > 0 {
+				return id
+			} else {
+				return "/" + r.getURIFragmentRootSegment(eObject)
+			}
 		} else {
 			fragmentPath := []string{}
 			isContained := false
 			for eContainer, _ := internalEObject.EInternalContainer().(EObjectInternal); eContainer != nil; eContainer, _ = internalEObject.EInternalContainer().(EObjectInternal) {
-				if len(id) == 0 {
+				if id = r.getIDForObject(eObject); len(id) == 0 {
 					fragmentPath = append([]string{eContainer.EURIFragmentSegment(internalEObject.EContainingFeature(), internalEObject)}, fragmentPath...)
 				}
 				internalEObject = eContainer
@@ -189,11 +200,11 @@ func (r *EResourceImpl) GetURIFragment(eObject EObject) string {
 			}
 			if len(id) == 0 {
 				fragmentPath = append([]string{r.getURIFragmentRootSegment(internalEObject)}, fragmentPath...)
+				fragmentPath = append([]string{""}, fragmentPath...)
+				return strings.Join(fragmentPath, "/")
 			} else {
-				fragmentPath = append([]string{"?" + id}, fragmentPath...)
+				return id
 			}
-			fragmentPath = append([]string{""}, fragmentPath...)
-			return strings.Join(fragmentPath, "/")
 		}
 	}
 }
@@ -207,9 +218,18 @@ func (r *EResourceImpl) getURIFragmentRootSegment(eObject EObject) string {
 	}
 }
 
+func (r *EResourceImpl) getIDForObject(eObject EObject) string {
+	if r.objectIDManager != nil {
+		if id := r.objectIDManager.GetID(eObject); id != nil {
+			return fmt.Sprintf("%v", id)
+		}
+	}
+	return GetEObjectID(eObject)
+}
+
 func (r *EResourceImpl) getObjectByID(id string) EObject {
-	if r.resourceIDManager != nil {
-		return r.resourceIDManager.GetEObject(id)
+	if r.objectIDManager != nil {
+		return r.objectIDManager.GetEObject(id)
 	}
 	for it := r.getAllContentsResolve(false); it.HasNext(); {
 		eObject := it.Next().(EObject)
@@ -250,14 +270,14 @@ func (r *EResourceImpl) getObjectForRootSegment(rootSegment string) EObject {
 }
 
 func (r *EResourceImpl) Attached(object EObject) {
-	if r.resourceIDManager != nil {
-		r.resourceIDManager.Register(object)
+	if r.objectIDManager != nil {
+		r.objectIDManager.Register(object)
 	}
 }
 
 func (r *EResourceImpl) Detached(object EObject) {
-	if r.resourceIDManager != nil {
-		r.resourceIDManager.UnRegister(object)
+	if r.objectIDManager != nil {
+		r.objectIDManager.UnRegister(object)
 	}
 }
 
@@ -316,8 +336,8 @@ func (r *EResourceImpl) DoUnload() {
 	r.contents = nil
 	r.errors = nil
 	r.warnings = nil
-	if r.resourceIDManager != nil {
-		r.resourceIDManager.Clear()
+	if r.objectIDManager != nil {
+		r.objectIDManager.Clear()
 	}
 }
 
@@ -394,10 +414,10 @@ func (r *EResourceImpl) basicSetResourceSet(resourceSet EResourceSet, msgs ENoti
 	return notifications
 }
 
-func (r *EResourceImpl) SetObjectIDManager(resourceIDManager EObjectIDManager) {
-	r.resourceIDManager = resourceIDManager
+func (r *EResourceImpl) SetObjectIDManager(objectIDManager EObjectIDManager) {
+	r.objectIDManager = objectIDManager
 }
 
 func (r *EResourceImpl) GetObjectIDManager() EObjectIDManager {
-	return r.resourceIDManager
+	return r.objectIDManager
 }

@@ -1,5 +1,7 @@
 package ecore
 
+import "fmt"
+
 type EDiagnosticImpl struct {
 	message  string
 	location string
@@ -30,4 +32,8 @@ func (d *EDiagnosticImpl) GetLine() int {
 
 func (d *EDiagnosticImpl) GetColumn() int {
 	return d.column
+}
+
+func (d *EDiagnosticImpl) Error() string {
+	return fmt.Sprintf("%v(%v,%v):%v", d.location, d.line, d.column, d.message)
 }

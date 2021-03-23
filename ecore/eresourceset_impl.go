@@ -9,10 +9,10 @@ type EResourceSetInternal interface {
 
 type resourcesList struct {
 	BasicENotifyingList
-	resourceSet EResourceSet
+	resourceSet *EResourceSetImpl
 }
 
-func newResourcesList(resourceSet EResourceSet) *resourcesList {
+func newResourcesList(resourceSet *EResourceSetImpl) *resourcesList {
 	l := new(resourcesList)
 	l.interfaces = l
 	l.data = []interface{}{}
@@ -22,7 +22,7 @@ func newResourcesList(resourceSet EResourceSet) *resourcesList {
 }
 
 func (l *resourcesList) GetNotifier() ENotifier {
-	return l.resourceSet
+	return l.resourceSet.AsENotifier()
 }
 
 func (l *resourcesList) GetFeatureID() int {
@@ -65,6 +65,10 @@ func (r *EResourceSetImpl) Initialize() {
 	r.resources = newResourcesList(r)
 }
 
+func (r *EResourceSetImpl) AsEResourceSet() EResourceSet {
+	return r.interfaces.(EResourceSet)
+}
+
 func (r *EResourceSetImpl) AsEResourceSetInternal() EResourceSetInternal {
 	return r.interfaces.(EResourceSetInternal)
 }
@@ -74,6 +78,7 @@ func (r *EResourceSetImpl) GetResources() EList {
 }
 
 func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResource {
+	resourceInternal := r.AsEResourceSetInternal()
 	if r.uriResourceMap != nil {
 		resource := r.uriResourceMap[uri]
 		if resource != nil {
@@ -90,7 +95,7 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 		resourceURI := r.GetURIConverter().Normalize(resource.GetURI())
 		if *resourceURI == *normalizedURI {
 			if loadOnDemand && !resource.IsLoaded() {
-				r.AsEResourceSetInternal().LoadResource(resource)
+				resourceInternal.LoadResource(resource)
 			}
 			if r.uriResourceMap != nil {
 				r.uriResourceMap[uri] = resource
@@ -105,9 +110,9 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 	}
 
 	if loadOnDemand {
-		resource := r.CreateResource(uri)
+		resource := resourceInternal.CreateResource(uri)
 		if resource != nil {
-			r.AsEResourceSetInternal().LoadResource(resource)
+			resourceInternal.LoadResource(resource)
 			if r.uriResourceMap != nil {
 				r.uriResourceMap[uri] = resource
 			}
@@ -129,15 +134,7 @@ func (r *EResourceSetImpl) CreateResource(uri *url.URL) EResource {
 }
 
 func (r *EResourceSetImpl) GetEObject(uri *url.URL, loadOnDemand bool) EObject {
-	trim := &url.URL{
-		Scheme:     uri.Scheme,
-		User:       uri.User,
-		Host:       uri.Host,
-		Path:       uri.Path,
-		RawPath:    uri.RawPath,
-		ForceQuery: uri.ForceQuery,
-		RawQuery:   uri.RawQuery,
-	}
+	trim := TrimURIFragment(uri)
 	resource := r.GetResource(trim, loadOnDemand)
 	if resource != nil {
 		return resource.GetEObject(uri.Fragment)

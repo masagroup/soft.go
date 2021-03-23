@@ -14,10 +14,11 @@ import (
 )
 
 const (
-	OPTION_EXTENDED_META_DATA        = "EXTENDED_META_DATA"
-	OPTION_SUPPRESS_DOCUMENT_ROOT    = "SUPPRESS_DOCUMENT_ROOT"
-	OPTION_IDREF_RESOLUTION_DEFERRED = "IDREF_RESOLUTION_DEFERRED"
-	OPTION_ID_ATTRIBUTE_NAME         = "ID_ATTRIBUTE_NAME"
+	OPTION_EXTENDED_META_DATA        = "EXTENDED_META_DATA"        // ExtendedMetaData pointer
+	OPTION_SUPPRESS_DOCUMENT_ROOT    = "SUPPRESS_DOCUMENT_ROOT"    // if true , suppress document root if found
+	OPTION_IDREF_RESOLUTION_DEFERRED = "IDREF_RESOLUTION_DEFERRED" // if true , defer id ref resolution
+	OPTION_ID_ATTRIBUTE_NAME         = "ID_ATTRIBUTE_NAME"         // value of the id attribute
+	OPTION_ROOT_OBJECTS              = "ROOT_OBJECTS"              // list of root objects to save
 )
 
 type xmlLoad interface {
@@ -705,7 +706,7 @@ func (l *xmlLoadImpl) handleProxy(eProxy EObject, id string) {
 	// set object proxy uri
 	eProxy.(EObjectInternal).ESetProxyURI(uri)
 
-	if *resourceURI == *trimFragment(uri) {
+	if *resourceURI == *TrimURIFragment(uri) {
 		l.sameDocumentProxies = append(l.sameDocumentProxies, eProxy)
 	}
 }
@@ -1095,6 +1096,7 @@ type xmlSaveImpl struct {
 	extendedMetaData *ExtendedMetaData
 	keepDefaults     bool
 	idAttributeName  string
+	roots            EList
 }
 
 func newXMLSaveImpl(options map[string]interface{}) *xmlSaveImpl {
@@ -1107,6 +1109,7 @@ func newXMLSaveImpl(options map[string]interface{}) *xmlSaveImpl {
 	s.featureKinds = make(map[EStructuralFeature]int)
 	if options != nil {
 		s.idAttributeName, _ = options[OPTION_ID_ATTRIBUTE_NAME].(string)
+		s.roots, _ = options[OPTION_ROOT_OBJECTS].(EList)
 		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
 			s.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
 		}
@@ -1119,8 +1122,11 @@ func newXMLSaveImpl(options map[string]interface{}) *xmlSaveImpl {
 
 func (s *xmlSaveImpl) save(resource xmlResource, w io.Writer) {
 	s.resource = resource
-	c := s.resource.GetContents()
-	if c.Empty() {
+	contents := s.roots
+	if contents == nil {
+		contents = s.resource.GetContents()
+	}
+	if contents.Empty() {
 		return
 	}
 
@@ -1128,7 +1134,7 @@ func (s *xmlSaveImpl) save(resource xmlResource, w io.Writer) {
 	s.saveHeader()
 
 	// top object
-	eObject := c.Get(0).(EObject)
+	eObject := contents.Get(0).(EObject)
 
 	// initialize prefixes if any in top
 	if s.extendedMetaData != nil {
@@ -1790,7 +1796,7 @@ func (s *xmlSaveImpl) getHRef(eObject EObject) string {
 }
 
 func (s *xmlSaveImpl) getResourceHRef(resource EResource, object EObject) string {
-	uri := resource.GetURI()
+	uri := CloneURI(resource.GetURI())
 	uri.Fragment = resource.GetURIFragment(object)
 	return uri.String()
 }

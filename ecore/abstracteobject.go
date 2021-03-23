@@ -357,7 +357,7 @@ func (o *AbstractEObject) EGetFromID(featureID int, resolve bool) interface{} {
 }
 
 func (o *AbstractEObject) eDynamicPropertiesGet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, resolve bool) interface{} {
-	if isContainer(dynamicFeature) {
+	if IsContainer(dynamicFeature) {
 		objInternal := o.AsEObjectInternal()
 		featureID := objInternal.EClass().GetFeatureID(dynamicFeature)
 		if objInternal.EInternalContainerFeatureID() == featureID {
@@ -372,7 +372,7 @@ func (o *AbstractEObject) eDynamicPropertiesGet(properties EDynamicProperties, d
 		result := properties.EDynamicGet(dynamicFeatureID)
 		if result == nil {
 			if dynamicFeature.IsMany() {
-				if isMapType(dynamicFeature) {
+				if IsMapType(dynamicFeature) {
 					result = o.eDynamicPropertiesCreateMap(dynamicFeature)
 				} else {
 					result = o.eDynamicPropertiesCreateList(dynamicFeature)
@@ -381,16 +381,16 @@ func (o *AbstractEObject) eDynamicPropertiesGet(properties EDynamicProperties, d
 			} else if defaultValue := dynamicFeature.GetDefaultValue(); defaultValue != nil {
 				result = defaultValue
 			}
-		} else if resolve && isProxy(dynamicFeature) {
+		} else if resolve && IsProxy(dynamicFeature) {
 			oldValue, _ := result.(EObject)
 			if oldValue != nil && oldValue.EIsProxy() {
 				newValue := o.EResolveProxy(oldValue)
 				result = newValue
 				if oldValue != newValue {
 					properties.EDynamicSet(dynamicFeatureID, newValue)
-					if isContains(dynamicFeature) {
+					if IsContains(dynamicFeature) {
 						var notifications ENotificationChain
-						if !isBidirectional(dynamicFeature) {
+						if !IsBidirectional(dynamicFeature) {
 							featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
 							if oldValue != nil {
 								oldObject := oldValue.(EObjectInternal)
@@ -501,7 +501,7 @@ func (o *AbstractEObject) ESetFromID(featureID int, newValue interface{}) {
 }
 
 func (o *AbstractEObject) eDynamicPropertiesSet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, newValue interface{}) {
-	if isContainer(dynamicFeature) {
+	if IsContainer(dynamicFeature) {
 		// container
 		objInternal := o.AsEObjectInternal()
 		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
@@ -524,7 +524,7 @@ func (o *AbstractEObject) eDynamicPropertiesSet(properties EDynamicProperties, d
 		} else if o.ENotificationRequired() {
 			o.ENotify(NewNotificationByFeature(o.AsEObject(), SET, dynamicFeature, newValue, newValue, NO_INDEX))
 		}
-	} else if isBidirectional(dynamicFeature) || isContains(dynamicFeature) {
+	} else if IsBidirectional(dynamicFeature) || IsContains(dynamicFeature) {
 		// inverse - opposite
 		oldValue := properties.EDynamicGet(dynamicFeatureID)
 		if oldValue != newValue {
@@ -532,7 +532,7 @@ func (o *AbstractEObject) eDynamicPropertiesSet(properties EDynamicProperties, d
 			oldObject, _ := oldValue.(EObject)
 			newObject, _ := newValue.(EObject)
 
-			if !isBidirectional(dynamicFeature) {
+			if !IsBidirectional(dynamicFeature) {
 				featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
 				if oldObject != nil {
 					notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
@@ -611,7 +611,7 @@ func (o *AbstractEObject) EIsSetFromID(featureID int) bool {
 }
 
 func (o *AbstractEObject) eDynamicPropertiesIsSet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int) bool {
-	if isContainer(dynamicFeature) {
+	if IsContainer(dynamicFeature) {
 		objInternal := o.AsEObjectInternal()
 		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
 		return objInternal.EInternalContainerFeatureID() == featureID && objInternal.EInternalContainer() != nil
@@ -650,7 +650,7 @@ func (o *AbstractEObject) EUnsetFromID(featureID int) {
 }
 
 func (o *AbstractEObject) eDynamicPropertiesUnset(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int) {
-	if isContainer(dynamicFeature) {
+	if IsContainer(dynamicFeature) {
 		if o.AsEObjectInternal().EInternalContainer() != nil {
 			featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
 			notifications := o.EBasicRemoveFromContainer(nil)
@@ -661,14 +661,14 @@ func (o *AbstractEObject) eDynamicPropertiesUnset(properties EDynamicProperties,
 		} else if o.ENotificationRequired() {
 			o.ENotify(NewNotificationByFeature(o.AsEObject(), SET, dynamicFeature, nil, nil, NO_INDEX))
 		}
-	} else if isBidirectional(dynamicFeature) || isContains(dynamicFeature) {
+	} else if IsBidirectional(dynamicFeature) || IsContains(dynamicFeature) {
 		// inverse - opposite
 		oldValue := properties.EDynamicGet(dynamicFeatureID)
 		if oldValue != nil {
 			var notifications ENotificationChain
 			oldObject, _ := oldValue.(EObject)
 
-			if !isBidirectional(dynamicFeature) {
+			if !IsBidirectional(dynamicFeature) {
 				if oldObject != nil {
 					featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
 					notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
@@ -779,7 +779,7 @@ func (o *AbstractEObject) eDynamicPropertiesInverseAdd(properties EDynamicProper
 		}
 		list := value.(ENotifyingList)
 		return list.AddWithNotification(otherEnd, notifications)
-	} else if isContainer(dynamicFeature) {
+	} else if IsContainer(dynamicFeature) {
 		msgs := notifications
 		if o.AsEObjectInternal().EInternalContainer() != nil {
 			msgs = o.EBasicRemoveFromContainer(msgs)
@@ -791,10 +791,10 @@ func (o *AbstractEObject) eDynamicPropertiesInverseAdd(properties EDynamicProper
 		oldValue := properties.EDynamicGet(dynamicFeatureID)
 		oldObject, _ := oldValue.(EObject)
 		if oldObject != nil {
-			if isContains(dynamicFeature) {
+			if IsContains(dynamicFeature) {
 				featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
 				notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
-			} else if isBidirectional(dynamicFeature) {
+			} else if IsBidirectional(dynamicFeature) {
 				dynamicReference := dynamicFeature.(EReference)
 				reverseFeature := dynamicReference.GetEOpposite()
 				featureID := oldObject.EClass().GetFeatureID(reverseFeature)
@@ -840,7 +840,7 @@ func (o *AbstractEObject) eDynamicPropertiesInverseRemove(properties EDynamicPro
 			list := value.(ENotifyingList)
 			return list.RemoveWithNotification(otherEnd, notifications)
 		}
-	} else if isContainer(dynamicFeature) {
+	} else if IsContainer(dynamicFeature) {
 		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
 		return o.EBasicSetContainer(nil, featureID, notifications)
 	} else {

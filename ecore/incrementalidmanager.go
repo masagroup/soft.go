@@ -24,6 +24,19 @@ func (m *IncrementalIDManager) newID() int {
 	return id
 }
 
+func (m *IncrementalIDManager) getID(id interface{}) int {
+	switch v := id.(type) {
+	case string:
+		newID, err := strconv.Atoi(v)
+		if err == nil {
+			return newID
+		}
+	case int:
+		return v
+	}
+	return -1
+}
+
 func (m *IncrementalIDManager) Clear() {
 	m.detachedToID = make(map[EObject]int)
 	m.objectToID = make(map[EObject]int)
@@ -49,15 +62,7 @@ func (m *IncrementalIDManager) Register(eObject EObject) {
 }
 
 func (m *IncrementalIDManager) SetID(eObject EObject, id interface{}) {
-	var newID int
-	switch id.(type) {
-	case nil:
-		newID = -1
-	case string:
-		newID, _ = strconv.Atoi(id.(string))
-	case int:
-		newID = id.(int)
-	}
+	newID := m.getID(id)
 	oldID, isOldID := m.objectToID[eObject]
 	if newID >= 0 {
 		m.objectToID[eObject] = newID
@@ -96,10 +101,8 @@ func (m *IncrementalIDManager) GetID(eObject EObject) interface{} {
 }
 
 func (m *IncrementalIDManager) GetEObject(id interface{}) EObject {
-	switch id.(type) {
-	case int:
-		return m.idToObject[id.(int)]
-	default:
-		return nil
+	if v := m.getID(id); v >= 0 {
+		return m.idToObject[v]
 	}
+	return nil
 }

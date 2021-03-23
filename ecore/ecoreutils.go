@@ -43,7 +43,7 @@ func GetURI(eObject EObject) *url.URL {
 	} else {
 		resource := eObject.EResource()
 		if resource != nil {
-			uri := resource.GetURI()
+			uri := CloneURI(resource.GetURI())
 			uri.Fragment = resource.GetURIFragment(eObject)
 			return uri
 		} else {
@@ -124,7 +124,7 @@ func ResolveInResourceSet(proxy EObject, resourceSet EResourceSet) EObject {
 		if resourceSet != nil {
 			resolved = resourceSet.GetEObject(proxyURI, true)
 		} else {
-			trim := trimFragment(proxyURI)
+			trim := TrimURIFragment(proxyURI)
 			ePackage := GetPackageRegistry().GetPackage(trim.String())
 			if ePackage != nil {
 				eResource := ePackage.EResource()

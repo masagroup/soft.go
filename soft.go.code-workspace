@@ -4,10 +4,10 @@
 			"path": "ecore"
 		},
 		{
-			"path": "library"
+			"path": "test\\library"
 		},
 		{
-			"path": "tournament"
+			"path": "test\\tournament"
 		}
 	]
 }

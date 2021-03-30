@@ -2,11 +2,6 @@ package ecore
 
 import "net/url"
 
-type EResourceSetInternal interface {
-	EResourceSet
-	LoadResource(resource EResource)
-}
-
 type resourcesList struct {
 	BasicENotifyingList
 	resourceSet *EResourceSetImpl
@@ -69,16 +64,11 @@ func (r *EResourceSetImpl) AsEResourceSet() EResourceSet {
 	return r.interfaces.(EResourceSet)
 }
 
-func (r *EResourceSetImpl) AsEResourceSetInternal() EResourceSetInternal {
-	return r.interfaces.(EResourceSetInternal)
-}
-
 func (r *EResourceSetImpl) GetResources() EList {
 	return r.resources
 }
 
 func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResource {
-	resourceInternal := r.AsEResourceSetInternal()
 	if r.uriResourceMap != nil {
 		resource := r.uriResourceMap[uri]
 		if resource != nil {
@@ -95,7 +85,7 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 		resourceURI := r.GetURIConverter().Normalize(resource.GetURI())
 		if *resourceURI == *normalizedURI {
 			if loadOnDemand && !resource.IsLoaded() {
-				resourceInternal.LoadResource(resource)
+				resource.Load()
 			}
 			if r.uriResourceMap != nil {
 				r.uriResourceMap[uri] = resource
@@ -110,9 +100,9 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 	}
 
 	if loadOnDemand {
-		resource := resourceInternal.CreateResource(uri)
+		resource := r.AsEResourceSet().CreateResource(uri)
 		if resource != nil {
-			resourceInternal.LoadResource(resource)
+			resource.Load()
 			if r.uriResourceMap != nil {
 				r.uriResourceMap[uri] = resource
 			}
@@ -181,8 +171,4 @@ func (r *EResourceSetImpl) SetURIResourceMap(uriResourceMap map[*url.URL]EResour
 
 func (r *EResourceSetImpl) GetURIResourceMap() map[*url.URL]EResource {
 	return r.uriResourceMap
-}
-
-func (r *EResourceSetImpl) LoadResource(resource EResource) {
-	resource.Load()
 }

@@ -41,6 +41,14 @@ func (r *EURIConverterImpl) GetURIMap() map[url.URL]url.URL {
 }
 
 func (r *EURIConverterImpl) Normalize(uri *url.URL) *url.URL {
+	normalized := r.getURIFromMap(uri)
+	if normalized == uri || *normalized == *uri {
+		return normalized
+	}
+	return r.Normalize(normalized)
+}
+
+func (r *EURIConverterImpl) getURIFromMap(uri *url.URL) *url.URL {
 	for oldPrefix, newPrefix := range r.uriMap {
 		if r := ReplacePrefixURI(uri, &oldPrefix, &newPrefix); r != nil {
 			return r

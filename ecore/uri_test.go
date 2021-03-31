@@ -8,6 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestParseURI(t *testing.T) {
+	assert.Equal(t, &URI{Scheme: "file", Path: "file.txt", Query: "query", Fragment: "fragment"}, NewURI("file://file.txt?query#fragment"))
+	//assert.Equal(t, &URI{Scheme: "file", Path: "/file.txt", Query: "query", Fragment: "fragment"}, NewURI("file:///file.txt?query#fragment"))
+}
+
 func TestCreateFileURI(t *testing.T) {
 	assert.Equal(t, &url.URL{Scheme: "file", Path: "C:/path/file.xml"}, CreateFileURI("C:/path/file.xml"))
 	assert.Equal(t, &url.URL{Scheme: "file", Path: "C:/path/file.xml"}, CreateFileURI("C:\\path\\file.xml"))

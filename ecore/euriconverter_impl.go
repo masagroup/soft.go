@@ -14,6 +14,7 @@ type EURIConverterImpl struct {
 func NewEURIConverterImpl() *EURIConverterImpl {
 	r := new(EURIConverterImpl)
 	r.uriHandlers = NewImmutableEList([]interface{}{new(FileURIHandler)})
+	r.uriMap = make(map[url.URL]url.URL)
 	return r
 }
 

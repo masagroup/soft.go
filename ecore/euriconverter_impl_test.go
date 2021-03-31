@@ -54,6 +54,32 @@ func TestEURIConverterCreateReader(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockHandler)
 }
 
+func TestEURIConverterCreateReaderWithMapping(t *testing.T) {
+	mockHandler := &MockEURIHandler{}
+	c := NewEURIConverterImpl()
+	c.uriHandlers = NewImmutableEList([]interface{}{mockHandler})
+	c.uriMap = map[url.URL]url.URL{{Scheme: "test"}: {Scheme: "file"}}
+	uri, _ := url.Parse("test:///file.ext")
+	normalized, _ := url.Parse("file:///file.ext")
+	mockFile, _ := os.Open(normalized.String())
+	mockHandler.On("CanHandle", normalized).Return(true).Once()
+	mockHandler.On("CreateReader", normalized).Return(mockFile, nil).Once()
+	{
+		r, err := c.CreateReader(uri)
+		assert.Nil(t, err)
+		assert.Equal(t, mockFile, r)
+	}
+	mock.AssertExpectationsForObjects(t, mockHandler)
+
+	mockHandler.On("CanHandle", normalized).Return(false).Once()
+	{
+		r, err := c.CreateReader(uri)
+		assert.NotNil(t, err)
+		assert.Equal(t, nil, r)
+	}
+	mock.AssertExpectationsForObjects(t, mockHandler)
+}
+
 func TestEURIConverterCreateWriter(t *testing.T) {
 	mockHandler := &MockEURIHandler{}
 	c := NewEURIConverterImpl()

@@ -19,19 +19,21 @@ func NewEURIConverterImpl() *EURIConverterImpl {
 }
 
 func (r *EURIConverterImpl) CreateReader(uri *url.URL) (io.ReadCloser, error) {
-	uriHandler := r.GetURIHandler(uri)
+	normalized := r.Normalize(uri)
+	uriHandler := r.GetURIHandler(normalized)
 	if uriHandler == nil {
-		return nil, fmt.Errorf("URIHandler for URI '%s' not found", uri.String())
+		return nil, fmt.Errorf("URIHandler for URI '%s' not found", normalized.String())
 	}
-	return uriHandler.CreateReader(uri)
+	return uriHandler.CreateReader(normalized)
 }
 
 func (r *EURIConverterImpl) CreateWriter(uri *url.URL) (io.WriteCloser, error) {
-	uriHandler := r.GetURIHandler(uri)
+	normalized := r.Normalize(uri)
+	uriHandler := r.GetURIHandler(normalized)
 	if uriHandler == nil {
-		return nil, fmt.Errorf("URIHandler for URI '%s' not found", uri.String())
+		return nil, fmt.Errorf("URIHandler for URI '%s' not found", normalized.String())
 	}
-	return uriHandler.CreateWriter(uri)
+	return uriHandler.CreateWriter(normalized)
 }
 
 func (r *EURIConverterImpl) GetURIMap() map[url.URL]url.URL {

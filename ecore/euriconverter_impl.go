@@ -8,6 +8,7 @@ import (
 
 type EURIConverterImpl struct {
 	uriHandlers EList
+	uriMap      map[url.URL]url.URL
 }
 
 func NewEURIConverterImpl() *EURIConverterImpl {
@@ -32,7 +33,16 @@ func (r *EURIConverterImpl) CreateWriter(uri *url.URL) (io.WriteCloser, error) {
 	return uriHandler.CreateWriter(uri)
 }
 
+func (r *EURIConverterImpl) GetURIMap() map[url.URL]url.URL {
+	return r.uriMap
+}
+
 func (r *EURIConverterImpl) Normalize(uri *url.URL) *url.URL {
+	for oldPrefix, newPrefix := range r.uriMap {
+		if r := ReplacePrefixURI(uri, &oldPrefix, &newPrefix); r != nil {
+			return r
+		}
+	}
 	return uri
 }
 

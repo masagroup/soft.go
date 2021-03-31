@@ -11,6 +11,8 @@ type EURIConverter interface {
 
 	CreateWriter(uri *url.URL) (io.WriteCloser, error)
 
+	GetURIMap() map[url.URL]url.URL
+
 	Normalize(uri *url.URL) *url.URL
 
 	GetURIHandler(uri *url.URL) EURIHandler

@@ -95,3 +95,19 @@ func (_m *MockEURIConverter) Normalize(uri *url.URL) *url.URL {
 
 	return r0
 }
+
+// GetURIMap provides a mock function with given fields:
+func (_m *MockEURIConverter) GetURIMap() map[url.URL]url.URL {
+	ret := _m.Called()
+
+	var r0 map[url.URL]url.URL
+	if rf, ok := ret.Get(0).(func() map[url.URL]url.URL); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[url.URL]url.URL)
+		}
+	}
+
+	return r0
+}

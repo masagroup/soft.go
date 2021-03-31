@@ -42,3 +42,21 @@ func CreateFileURI(path string) *url.URL {
 		}
 	}
 }
+
+func ReplacePrefixURI(uri *url.URL, oldPrefix *url.URL, newPrefix *url.URL) *url.URL {
+	if uri.Scheme != oldPrefix.Scheme ||
+		uri.Host != oldPrefix.Host ||
+		(uri.User != oldPrefix.User || uri.User != nil && oldPrefix.User != nil && *uri.User == *oldPrefix.User) {
+		return nil
+	}
+	if oldLen := len(oldPrefix.Path); len(uri.Path) >= oldLen && uri.Path[0:oldLen] == oldPrefix.Path {
+		return &url.URL{Scheme: newPrefix.Scheme,
+			User:     newPrefix.User,
+			Host:     newPrefix.Host,
+			Path:     newPrefix.Path + uri.Path[oldLen:],
+			RawQuery: uri.RawQuery,
+			Fragment: uri.Fragment}
+	}
+	return nil
+
+}

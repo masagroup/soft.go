@@ -1,7 +1,7 @@
 package ecore
 
 type EDiagnostic interface {
-	Error() string
+	error
 	GetMessage() string
 	GetLocation() string
 	GetLine() int

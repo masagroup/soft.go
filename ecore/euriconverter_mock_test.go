@@ -64,6 +64,18 @@ func TestMockEURIConverterCreateWriter(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, h)
 }
 
+func TestMockEURIConverterGetURIMap(t *testing.T) {
+	h := &MockEURIConverter{}
+	m := map[url.URL]url.URL{{Path: "toto"}: {Path: "tata"}}
+	h.On("GetURIMap").Return(m).Once()
+	h.On("GetURIMap").Return(func() map[url.URL]url.URL {
+		return m
+	}).Once()
+	assert.Equal(t, m, h.GetURIMap())
+	assert.Equal(t, m, h.GetURIMap())
+	mock.AssertExpectationsForObjects(t, h)
+}
+
 func TestMockEURIConverterNormalize(t *testing.T) {
 	h := &MockEURIConverter{}
 	uri1, _ := url.Parse("test://file.t")

@@ -118,7 +118,12 @@ func TestEURIConverterNormalize(t *testing.T) {
 		assert.Equal(t, &url.URL{Scheme: "test2", Path: "file.ext"}, c.Normalize(&url.URL{Scheme: "test", Path: "file.ext"}))
 		assert.Equal(t, &url.URL{Scheme: "bla", Path: "file.ext"}, c.Normalize(&url.URL{Scheme: "bla", Path: "file.ext"}))
 	}
-
+	{
+		c := NewEURIConverterImpl()
+		c.GetURIMap()[url.URL{Scheme: "test"}] = url.URL{Scheme: "test2"}
+		c.GetURIMap()[url.URL{Scheme: "test2"}] = url.URL{Scheme: "test3"}
+		assert.Equal(t, &url.URL{Scheme: "test3", Path: "file.ext"}, c.Normalize(&url.URL{Scheme: "test", Path: "file.ext"}))
+	}
 }
 
 func TestEURIConverterURIMap(t *testing.T) {

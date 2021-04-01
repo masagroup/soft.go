@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -275,11 +274,11 @@ func TestMockEObjectInternal_EURIFragmentSegment(t *testing.T) {
 
 func TestMockEObjectInternal_EProxyURI(t *testing.T) {
 	o := &MockEObjectInternal{}
-	uri, _ := url.Parse("test://file.t")
+	uri := NewURI("test:///file.t")
 
 	// return a value
 	o.On("EProxyURI").Once().Return(uri)
-	o.On("EProxyURI").Once().Return(func() *url.URL {
+	o.On("EProxyURI").Once().Return(func() *URI {
 		return uri
 	})
 	assert.Equal(t, uri, o.EProxyURI())
@@ -289,11 +288,11 @@ func TestMockEObjectInternal_EProxyURI(t *testing.T) {
 
 func TestMockEObjectInternal_ESetProxyURI(t *testing.T) {
 	o := &MockEObjectInternal{}
-	uri, _ := url.Parse("test://file.t")
+	mockURI := NewURI("test:///file.t")
 
 	// return a value
-	o.On("ESetProxyURI", uri).Once()
-	o.ESetProxyURI(uri)
+	o.On("ESetProxyURI", mockURI).Once()
+	o.ESetProxyURI(mockURI)
 	mock.AssertExpectationsForObjects(t, o)
 }
 

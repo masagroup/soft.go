@@ -2,20 +2,19 @@ package ecore
 
 import (
 	"io"
-	"net/url"
 )
 
 //URIConverter ...
 type EURIConverter interface {
-	CreateReader(uri *url.URL) (io.ReadCloser, error)
+	CreateReader(uri *URI) (io.ReadCloser, error)
 
-	CreateWriter(uri *url.URL) (io.WriteCloser, error)
+	CreateWriter(uri *URI) (io.WriteCloser, error)
 
-	GetURIMap() map[url.URL]url.URL
+	GetURIMap() map[URI]URI
 
-	Normalize(uri *url.URL) *url.URL
+	Normalize(uri *URI) *URI
 
-	GetURIHandler(uri *url.URL) EURIHandler
+	GetURIHandler(uri *URI) EURIHandler
 
 	GetURIHandlers() EList
 }

@@ -12,8 +12,6 @@
 package ecore
 
 import (
-	url "net/url"
-
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -23,11 +21,11 @@ type MockEResourceFactory struct {
 }
 
 // CreateResource provides a mock function with given fields: uri
-func (_m *MockEResourceFactory) CreateResource(uri *url.URL) EResource {
+func (_m *MockEResourceFactory) CreateResource(uri *URI) EResource {
 	ret := _m.Called(uri)
 
 	var r0 EResource
-	if rf, ok := ret.Get(0).(func(*url.URL) EResource); ok {
+	if rf, ok := ret.Get(0).(func(*URI) EResource); ok {
 		r0 = rf(uri)
 	} else {
 		if ret.Get(0) != nil {

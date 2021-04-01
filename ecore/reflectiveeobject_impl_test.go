@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -49,7 +48,7 @@ func TestReflectiveEObjectImpl_EContainer(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockClass, mockContainer, mockAdapter)
 
 	// proxy
-	mockURI, _ := url.Parse("test://file.t")
+	mockURI, _ := ParseURI("test://file.t")
 	mockResolved := new(MockEObjectInternal)
 	mockResolved.On("EProxyURI").Return(nil).Once()
 	mockResource.On("GetResourceSet").Return(mockResourceSet).Once()
@@ -411,7 +410,7 @@ func TestReflectiveEObjectImpl_GetReferenceProxy(t *testing.T) {
 	mockReference := new(MockEReference)
 	mockResource := new(MockEResource)
 	mockResourceSet := new(MockEResourceSet)
-	mockURI, _ := url.Parse("test://file.t")
+	mockURI, _ := ParseURI("test://file.t")
 	mockResolved := new(MockEObjectInternal)
 
 	o := NewReflectiveEObjectImpl()
@@ -458,7 +457,7 @@ func TestReflectiveEObjectImpl_GetReferenceProxyContainment(t *testing.T) {
 	mockReference := new(MockEReference)
 	mockResource := new(MockEResource)
 	mockResourceSet := new(MockEResourceSet)
-	mockURI, _ := url.Parse("test://file.t")
+	mockURI, _ := ParseURI("test://file.t")
 	mockResolved := new(MockEObjectInternal)
 
 	o := NewReflectiveEObjectImpl()
@@ -510,7 +509,7 @@ func TestReflectiveEObjectImpl_GetReferenceProxyContainmentBidirectional(t *test
 	mockOpposite := new(MockEReference)
 	mockResource := new(MockEResource)
 	mockResourceSet := new(MockEResourceSet)
-	mockURI, _ := url.Parse("test://file.t")
+	mockURI, _ := ParseURI("test://file.t")
 	mockResolved := new(MockEObjectInternal)
 	mockResolvedClass := new(MockEClass)
 

@@ -2,7 +2,6 @@ package ecore
 
 import (
 	"io/ioutil"
-	"net/url"
 	"strings"
 	"testing"
 
@@ -20,7 +19,7 @@ func diagnosticError(errors EList) string {
 
 func TestXMIResourceLoadLibrarySimple(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&url.URL{Path: "testdata/library.simple.ecore"})
+	resource := xmiProcessor.Load(&URI{Path: "testdata/library.simple.ecore"})
 	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
@@ -88,7 +87,7 @@ func TestXMIResourceLoadLibrarySimple(t *testing.T) {
 
 func TestXMIResourceLoadLibraryNoRoot(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
-	resource, _ := xmiProcessor.Load(&url.URL{Path: "testdata/library.noroot.ecore"}).(xmiResource)
+	resource, _ := xmiProcessor.Load(&URI{Path: "testdata/library.noroot.ecore"}).(xmiResource)
 	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
@@ -123,7 +122,7 @@ func TestXMIResourceLoadLibraryNoRoot(t *testing.T) {
 
 func TestXMIResourceLoadLibraryComplex(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
-	resource, _ := xmiProcessor.Load(&url.URL{Path: "testdata/library.complex.ecore"}).(xmiResource)
+	resource, _ := xmiProcessor.Load(&URI{Path: "testdata/library.complex.ecore"}).(xmiResource)
 	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
@@ -152,7 +151,7 @@ func TestXMIResourceLoadLibraryComplex(t *testing.T) {
 func TestXMIResourceSaveLibrarySimple(t *testing.T) {
 	// load/save
 	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&url.URL{Path: "testdata/library.simple.ecore"})
+	resource := xmiProcessor.Load(&URI{Path: "testdata/library.simple.ecore"})
 	require.NotNil(t, resource)
 	result := xmiProcessor.SaveToString(resource, nil)
 	// check
@@ -164,7 +163,7 @@ func TestXMIResourceSaveLibrarySimple(t *testing.T) {
 func TestXMIResourceSaveLibraryNoRoot(t *testing.T) {
 	// load/save
 	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&url.URL{Path: "testdata/library.noroot.ecore"})
+	resource := xmiProcessor.Load(&URI{Path: "testdata/library.noroot.ecore"})
 	require.NotNil(t, resource)
 	result := xmiProcessor.SaveToString(resource, nil)
 	// check
@@ -176,7 +175,7 @@ func TestXMIResourceSaveLibraryNoRoot(t *testing.T) {
 func TestXMIResourceSaveLibraryComplex(t *testing.T) {
 	// load/save
 	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&url.URL{Path: "testdata/library.complex.ecore"})
+	resource := xmiProcessor.Load(&URI{Path: "testdata/library.complex.ecore"})
 	require.NotNil(t, resource)
 	result := xmiProcessor.SaveToString(resource, nil)
 	// check
@@ -189,7 +188,7 @@ func BenchmarkXMIResourceLoadSaveLibrarySimple(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		resource := newXMIResourceImpl()
-		resource.SetURI(&url.URL{Path: "testdata/library.simple.ecore"})
+		resource.SetURI(&URI{Path: "testdata/library.simple.ecore"})
 		resource.Load()
 
 		var strbuff strings.Builder
@@ -202,7 +201,7 @@ func BenchmarkXMIResourceLoadSaveLibraryNoRoot(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		resource := newXMIResourceImpl()
-		resource.SetURI(&url.URL{Path: "testdata/library.noroot.ecore"})
+		resource.SetURI(&URI{Path: "testdata/library.noroot.ecore"})
 		resource.Load()
 
 		var strbuff strings.Builder

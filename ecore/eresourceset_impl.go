@@ -1,7 +1,5 @@
 package ecore
 
-import "net/url"
-
 type resourcesList struct {
 	BasicENotifyingList
 	resourceSet *EResourceSetImpl
@@ -43,7 +41,7 @@ type EResourceSetImpl struct {
 	ENotifierImpl
 	resources               EList
 	uriConverter            EURIConverter
-	uriResourceMap          map[*url.URL]EResource
+	uriResourceMap          map[*URI]EResource
 	resourceFactoryRegistry EResourceFactoryRegistry
 	packageRegistry         EPackageRegistry
 }
@@ -68,7 +66,7 @@ func (r *EResourceSetImpl) GetResources() EList {
 	return r.resources
 }
 
-func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResource {
+func (r *EResourceSetImpl) GetResource(uri *URI, loadOnDemand bool) EResource {
 	if r.uriResourceMap != nil {
 		resource := r.uriResourceMap[uri]
 		if resource != nil {
@@ -113,7 +111,7 @@ func (r *EResourceSetImpl) GetResource(uri *url.URL, loadOnDemand bool) EResourc
 	return nil
 }
 
-func (r *EResourceSetImpl) CreateResource(uri *url.URL) EResource {
+func (r *EResourceSetImpl) CreateResource(uri *URI) EResource {
 	resourceFactory := r.GetResourceFactoryRegistry().GetFactory(uri)
 	if resourceFactory != nil {
 		resource := resourceFactory.CreateResource(uri)
@@ -123,8 +121,8 @@ func (r *EResourceSetImpl) CreateResource(uri *url.URL) EResource {
 	return nil
 }
 
-func (r *EResourceSetImpl) GetEObject(uri *url.URL, loadOnDemand bool) EObject {
-	trim := TrimURIFragment(uri)
+func (r *EResourceSetImpl) GetEObject(uri *URI, loadOnDemand bool) EObject {
+	trim := uri.TrimFragment()
 	resource := r.GetResource(trim, loadOnDemand)
 	if resource != nil {
 		return resource.GetEObject(uri.Fragment)
@@ -165,10 +163,10 @@ func (r *EResourceSetImpl) SetResourceFactoryRegistry(resourceFactoryRegistry ER
 	r.resourceFactoryRegistry = resourceFactoryRegistry
 }
 
-func (r *EResourceSetImpl) SetURIResourceMap(uriResourceMap map[*url.URL]EResource) {
+func (r *EResourceSetImpl) SetURIResourceMap(uriResourceMap map[*URI]EResource) {
 	r.uriResourceMap = uriResourceMap
 }
 
-func (r *EResourceSetImpl) GetURIResourceMap() map[*url.URL]EResource {
+func (r *EResourceSetImpl) GetURIResourceMap() map[*URI]EResource {
 	return r.uriResourceMap
 }

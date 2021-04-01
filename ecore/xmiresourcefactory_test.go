@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,7 +17,7 @@ import (
 
 func TestXMIResourceFactoryCreate(t *testing.T) {
 	f := &XMIResourceFactory{}
-	uri := &url.URL{}
+	uri := &URI{}
 	r := f.CreateResource(uri)
 	assert.NotNil(t, r)
 	assert.Equal(t, uri, r.GetURI())

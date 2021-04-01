@@ -11,7 +11,6 @@ package ecore
 
 import (
 	"math/bits"
-	"net/url"
 )
 
 type CompactEObjectImpl struct {
@@ -194,15 +193,15 @@ func (o *CompactEObjectImpl) EIsProxy() bool {
 }
 
 // EProxyURI ...
-func (o *CompactEObjectImpl) EProxyURI() *url.URL {
+func (o *CompactEObjectImpl) EProxyURI() *URI {
 	if proxyURI := o.getField(proxy_flag); proxyURI != nil {
-		return proxyURI.(*url.URL)
+		return proxyURI.(*URI)
 	}
 	return nil
 }
 
 // ESetProxyURI ...
-func (o *CompactEObjectImpl) ESetProxyURI(uri *url.URL) {
+func (o *CompactEObjectImpl) ESetProxyURI(uri *URI) {
 	o.setField(proxy_flag, uri)
 }
 

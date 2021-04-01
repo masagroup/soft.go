@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -694,19 +693,19 @@ func (l *xmlLoadImpl) setValueFromId(eObject EObject, eReference EReference, ids
 
 func (l *xmlLoadImpl) handleProxy(eProxy EObject, id string) {
 	resourceURI := l.resource.GetURI()
-	uri, ok := url.Parse(id)
+	uri, ok := ParseURI(id)
 	if ok != nil || resourceURI == nil {
 		return
 	}
 	// resolve reference uri
-	if !uri.IsAbs() {
-		uri = resourceURI.ResolveReference(uri)
+	if !uri.IsAbsolute() {
+		uri = resourceURI.Resolve(uri)
 	}
 
 	// set object proxy uri
 	eProxy.(EObjectInternal).ESetProxyURI(uri)
 
-	if *resourceURI == *TrimURIFragment(uri) {
+	if *resourceURI == *uri.TrimFragment() {
 		l.sameDocumentProxies = append(l.sameDocumentProxies, eProxy)
 	}
 }
@@ -1796,7 +1795,7 @@ func (s *xmlSaveImpl) getHRef(eObject EObject) string {
 }
 
 func (s *xmlSaveImpl) getResourceHRef(resource EResource, object EObject) string {
-	uri := CloneURI(resource.GetURI())
+	uri := resource.GetURI().Copy()
 	uri.Fragment = resource.GetURIFragment(object)
 	return uri.String()
 }

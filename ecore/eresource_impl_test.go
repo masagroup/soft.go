@@ -1,7 +1,6 @@
 package ecore
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +8,7 @@ import (
 )
 
 func TestResourceURI(t *testing.T) {
-	u, err := url.Parse("https://example.com/foo%2fbar")
+	u, err := ParseURI("https://example.com/foo%2fbar")
 	assert.Nil(t, err)
 	r := NewEResourceImpl()
 	r.SetURI(u)
@@ -23,7 +22,7 @@ func TestResourceURINotifications(t *testing.T) {
 	r.EAdapters().Add(mockEAdapter)
 	mock.AssertExpectationsForObjects(t, mockEAdapter)
 
-	u, err := url.Parse("https://example.com/foo%2fbar")
+	u, err := ParseURI("https://example.com/foo%2fbar")
 	assert.Nil(t, err)
 
 	mockEAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -45,7 +44,7 @@ func TestResourceContents(t *testing.T) {
 
 func TestResourceLoadInvalid(t *testing.T) {
 	r := NewEResourceImpl()
-	r.SetURI(&url.URL{Path: "testdata/invalid.xml"})
+	r.SetURI(&URI{Path: "testdata/invalid.xml"})
 	r.Load()
 	assert.False(t, r.IsLoaded())
 	assert.False(t, r.GetErrors().Empty())

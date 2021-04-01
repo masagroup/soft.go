@@ -31,7 +31,7 @@ import (
 // func TestAbstractEObjectEIsProxy(t *testing.T) {
 // 	o := NewAbstractEObject()
 // 	assert.False(t, o.EIsProxy())
-// 	o.ESetProxyURI(&url.URL{})
+// 	o.ESetProxyURI(&URI{})
 // 	assert.True(t, o.EIsProxy())
 // }
 

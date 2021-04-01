@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"strconv"
 	"strings"
 	"unicode"
@@ -204,8 +203,8 @@ type EObjectInternal interface {
 	EObjectForFragmentSegment(string) EObject
 	EURIFragmentSegment(EStructuralFeature, EObject) string
 
-	EProxyURI() *url.URL
-	ESetProxyURI(uri *url.URL)
+	EProxyURI() *URI
+	ESetProxyURI(uri *URI)
 	EResolveProxy(proxy EObject) EObject
 }
 

@@ -14,7 +14,6 @@ package ecore
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"net/url"
 	"testing"
 )
 
@@ -22,7 +21,6 @@ func discardETypedElement() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
-	_ = url.Parse
 }
 
 func TestETypedElementAsETypedElement(t *testing.T) {
@@ -67,7 +65,7 @@ func TestETypedElementETypeGet(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockValue, mockAdapter, mockResource, mockResourceSet)
 
 	// get a resolved value
-	mockURI, _ := url.Parse("test://file.t")
+	mockURI := NewURI("test:///file.t")
 	mockResolved := new(MockEClassifier)
 	mockResolved.On("EProxyURI").Return(nil).Once()
 	mockResource.On("GetResourceSet").Return(mockResourceSet).Once()

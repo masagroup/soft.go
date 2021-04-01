@@ -3,7 +3,6 @@ package ecore
 import (
 	"fmt"
 	"io"
-	"net/url"
 	"strconv"
 	"strings"
 )
@@ -96,7 +95,7 @@ type EResourceImpl struct {
 	ENotifierImpl
 	resourceSet     EResourceSet
 	objectIDManager EObjectIDManager
-	uri             *url.URL
+	uri             *URI
 	contents        EList
 	errors          EList
 	warnings        EList
@@ -119,11 +118,11 @@ func (r *EResourceImpl) GetResourceSet() EResourceSet {
 	return r.resourceSet
 }
 
-func (r *EResourceImpl) GetURI() *url.URL {
+func (r *EResourceImpl) GetURI() *URI {
 	return r.uri
 }
 
-func (r *EResourceImpl) SetURI(uri *url.URL) {
+func (r *EResourceImpl) SetURI(uri *URI) {
 	oldURI := r.uri
 	r.uri = uri
 	if r.ENotificationRequired() {

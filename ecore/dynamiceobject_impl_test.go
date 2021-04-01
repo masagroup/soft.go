@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -161,14 +160,14 @@ func TestDynamicEObject_Proxy(t *testing.T) {
 
 	// add to resource to enable proxy resolution
 	resource := NewEResourceImpl()
-	resource.SetURI(&url.URL{Path: "r"})
+	resource.SetURI(&URI{Path: "r"})
 	resource.GetContents().AddAll(NewImmutableEList([]interface{}{o1, o3}))
 
 	resourceSet := NewEResourceSetImpl()
 	resourceSet.GetResources().Add(resource)
 
 	oproxy := NewDynamicEObjectImpl()
-	oproxy.ESetProxyURI(&url.URL{Path: "r", Fragment: "//@r1.1"})
+	oproxy.ESetProxyURI(&URI{Path: "r", Fragment: "//@r1.1"})
 	assert.False(t, o3.EIsSet(r3))
 
 	o3.ESet(r3, oproxy)

@@ -2,7 +2,6 @@ package ecore
 
 import (
 	"io"
-	"net/url"
 	"strings"
 )
 
@@ -23,11 +22,11 @@ func (p *XMLProcessor) Initialize(packages []EPackage) {
 	p.packages = packages
 }
 
-func (p *XMLProcessor) Load(uri *url.URL) EResource {
+func (p *XMLProcessor) Load(uri *URI) EResource {
 	return p.LoadWithOptions(uri, nil)
 }
 
-func (p *XMLProcessor) LoadWithOptions(uri *url.URL, options map[string]interface{}) EResource {
+func (p *XMLProcessor) LoadWithOptions(uri *URI, options map[string]interface{}) EResource {
 	rs := p.CreateEResourceSet()
 	r := rs.CreateResource(uri)
 	o := map[string]interface{}{OPTION_EXTENDED_META_DATA: p.extendMetaData}
@@ -42,7 +41,7 @@ func (p *XMLProcessor) LoadWithOptions(uri *url.URL, options map[string]interfac
 
 func (p *XMLProcessor) LoadWithReader(r io.Reader, options map[string]interface{}) EResource {
 	rs := p.CreateEResourceSet()
-	rc := rs.CreateResource(&url.URL{Path: "*.xml"})
+	rc := rs.CreateResource(&URI{Path: "*.xml"})
 	o := map[string]interface{}{OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
 		for k, v := range options {

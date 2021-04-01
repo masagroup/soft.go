@@ -2,7 +2,6 @@ package ecore
 
 import (
 	"io"
-	"net/url"
 )
 
 const (
@@ -21,8 +20,8 @@ type EResource interface {
 
 	GetResourceSet() EResourceSet
 
-	GetURI() *url.URL
-	SetURI(*url.URL)
+	GetURI() *URI
+	SetURI(*URI)
 
 	GetContents() EList
 	GetAllContents() EIterator

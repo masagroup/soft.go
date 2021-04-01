@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"os"
 	"testing"
 
@@ -20,7 +19,7 @@ import (
 
 func TestMockEResourceInternalDoLoad(t *testing.T) {
 	r := &MockEResourceInternal{}
-	uri, _ := url.Parse("test://file.t")
+	uri, _ := ParseURI("test://file.t")
 	f, _ := os.Open(uri.String())
 	m := make(map[string]interface{})
 	r.On("DoLoad", f, m).Once()
@@ -30,7 +29,7 @@ func TestMockEResourceInternalDoLoad(t *testing.T) {
 
 func TestMockEResourceInternalDoSave(t *testing.T) {
 	r := &MockEResourceInternal{}
-	uri, _ := url.Parse("test://file.t")
+	uri, _ := ParseURI("test://file.t")
 	f, _ := os.Create(uri.String())
 	m := make(map[string]interface{})
 	r.On("DoSave", f, m).Once()

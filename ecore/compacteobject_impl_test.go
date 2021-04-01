@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -161,7 +160,7 @@ func TestCompactEObject_EProxy(t *testing.T) {
 	assert.False(t, o.EIsProxy())
 	assert.Nil(t, o.EProxyURI())
 
-	mockURI, _ := url.Parse("test://file.t")
+	mockURI := NewURI("test:///file.t")
 	o.ESetProxyURI(mockURI)
 	assert.True(t, o.EIsProxy())
 	assert.Equal(t, mockURI, o.EProxyURI())

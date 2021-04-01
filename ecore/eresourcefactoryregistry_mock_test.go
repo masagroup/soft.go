@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,9 +19,9 @@ import (
 func TestMockEResourceFactoryRegistryGetFactory(t *testing.T) {
 	f := &MockEResourceFactoryRegistry{}
 	r := &MockEResourceFactory{}
-	uri, _ := url.Parse("test://file.t")
+	uri := NewURI("test:///file.t")
 	f.On("GetFactory", uri).Return(r).Once()
-	f.On("GetFactory", uri).Return(func(*url.URL) EResourceFactory {
+	f.On("GetFactory", uri).Return(func(*URI) EResourceFactory {
 		return r
 	}).Once()
 	assert.Equal(t, r, f.GetFactory(uri))

@@ -43,6 +43,20 @@ func TestURI_IsEmpty(t *testing.T) {
 	}
 }
 
+func TestURI_Copy(t *testing.T) {
+	uri := &URI{
+		Scheme:   "scheme",
+		Username: "username",
+		Password: "password",
+		Host:     "host",
+		Port:     10,
+		Path:     "path",
+		Query:    "query",
+		Fragment: "fragment",
+	}
+	assert.Equal(t, uri, uri.Copy())
+}
+
 func TestURI_Normalize(t *testing.T) {
 	assert.Equal(t, NewURI("http://host:10020"), NewURI("http://host:10020").Normalize())
 	assert.Equal(t, NewURI("http://host:10020/"), NewURI("http://host:10020/").Normalize())

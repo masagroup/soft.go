@@ -25,7 +25,8 @@ func TestReplacePrefix(t *testing.T) {
 	{
 		uri := ReplacePrefixURI(&url.URL{Scheme: "test", Path: "toto"}, &url.URL{Scheme: "test"}, &url.URL{Scheme: "file"})
 		require.NotNil(t, uri)
-		assert.Equal(t, "test", uri.Path)
+		assert.Equal(t, "file", uri.Scheme)
+		assert.Equal(t, "toto", uri.Path)
 	}
 	{
 		uri := ReplacePrefixURI(&url.URL{Path: ""}, &url.URL{Path: ""}, &url.URL{Path: "test"})

@@ -17,33 +17,91 @@ import (
 	"unicode/utf8"
 )
 
-func newContentsList(adapter *contentsListAdapter, resolve bool) *immutableEList {
-	data := []interface{}{}
-	o := adapter.obj
-	features := adapter.getFeaturesFn(o.EClass())
-	for it := features.Iterator(); it.HasNext(); {
-		feature := it.Next().(EStructuralFeature)
-		if o.EIsSet(feature) {
-			value := o.EGetResolve(feature, resolve)
-			if feature.IsMany() {
-				l := value.(EList)
-				data = append(data, l.ToArray()...)
-			} else if value != nil {
-				data = append(data, value)
+type contentsList struct {
+	immutableEList
+	adapter *contentsListAdapter
+	resolve bool
+}
+
+func newContentsList(adapter *contentsListAdapter, resolve bool) *contentsList {
+	return &contentsList{
+		adapter: adapter,
+		resolve: resolve,
+	}
+}
+
+// Get an element of the array
+func (l *contentsList) Get(index int) interface{} {
+	l.computeData()
+	return l.immutableEList.Get(index)
+}
+
+// Size count the number of element in the array
+func (l *contentsList) Size() int {
+	l.computeData()
+	return l.immutableEList.Size()
+}
+
+// Empty return true if the array contains 0 element
+func (l *contentsList) Empty() bool {
+	return l.Size() == 0
+}
+
+// Contains return if an array contains or not an element
+func (l *contentsList) Contains(elem interface{}) bool {
+	return l.IndexOf(elem) != -1
+}
+
+// IndexOf return the index on an element in an array, else return -1
+func (l *contentsList) IndexOf(elem interface{}) int {
+	l.computeData()
+	return l.immutableEList.IndexOf(elem)
+}
+
+// Iterator through the array
+func (l *contentsList) Iterator() EIterator {
+	return &listIterator{list: l}
+}
+
+// ToArray convert to array
+func (l *contentsList) ToArray() []interface{} {
+	l.computeData()
+	return l.immutableEList.ToArray()
+}
+
+func (l *contentsList) GetUnResolvedList() EList {
+	return l
+}
+
+func (l *contentsList) computeData() {
+	if l.data == nil {
+		data := []interface{}{}
+		o := l.adapter.obj
+		features := l.adapter.getFeaturesFn(o.EClass())
+		for it := features.Iterator(); it.HasNext(); {
+			feature := it.Next().(EStructuralFeature)
+			if o.EIsSet(feature) {
+				value := o.EGetResolve(feature, l.resolve)
+				if feature.IsMany() {
+					l := value.(EList)
+					data = append(data, l.ToArray()...)
+				} else if value != nil {
+					data = append(data, value)
+				}
 			}
 		}
+		l.data = data
 	}
-	return NewImmutableEList(data)
 }
 
 // An unresolved content list
 type unResolvedContentsList struct {
-	*immutableEList
+	*contentsList
 }
 
 func newUnResolvedContentsList(adapter *contentsListAdapter) *unResolvedContentsList {
 	l := new(unResolvedContentsList)
-	l.immutableEList = newContentsList(adapter, false)
+	l.contentsList = newContentsList(adapter, false)
 	return l
 }
 
@@ -53,13 +111,13 @@ func (l *unResolvedContentsList) GetUnResolvedList() EList {
 
 // An resolved content list
 type resolvedContentsList struct {
-	*immutableEList
+	*contentsList
 	adapter *contentsListAdapter
 }
 
 func newResolvedContentsList(adapter *contentsListAdapter) *resolvedContentsList {
 	l := new(resolvedContentsList)
-	l.immutableEList = newContentsList(adapter, true)
+	l.contentsList = newContentsList(adapter, true)
 	l.adapter = adapter
 	return l
 }

@@ -389,7 +389,7 @@ func TestSerializationSaveSimpleEscapeXML(t *testing.T) {
 	eLibrary.ESet(eLibraryLocationAttribute, "a<b")
 
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.CreateEResourceSet().CreateResource(&URI{Path: "testdata/library.simple.escape.output.xml"})
+	eResource := xmlProcessor.GetResourceSet().CreateResource(&URI{Path: "testdata/library.simple.escape.output.xml"})
 	eResource.GetContents().Add(eLibrary)
 	result := xmlProcessor.SaveToString(eResource, nil)
 

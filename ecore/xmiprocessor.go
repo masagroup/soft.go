@@ -14,5 +14,14 @@ type XMIProcessor struct {
 }
 
 func NewXMIProcessor() *XMIProcessor {
-	return &XMIProcessor{}
+	return &XMIProcessor{XMLProcessor{
+		extendMetaData: NewExtendedMetaData(),
+	}}
+}
+
+func NewSharedXMIProcessor(resourceSet EResourceSet) *XMIProcessor {
+	return &XMIProcessor{XMLProcessor{
+		extendMetaData: NewExtendedMetaData(),
+		resourceSet:    resourceSet,
+	}}
 }

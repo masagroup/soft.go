@@ -35,3 +35,16 @@ type EResourceSet interface {
 	SetURIResourceMap(uriMap map[*URI]EResource)
 	GetURIResourceMap() map[*URI]EResource
 }
+
+func CreateEResourceSet(packages []EPackage) EResourceSet {
+	rs := NewEResourceSetImpl()
+	// packages
+	packageRegistry := rs.GetPackageRegistry()
+	packageRegistry.RegisterPackage(GetPackage())
+	if packages != nil {
+		for _, pack := range packages {
+			packageRegistry.RegisterPackage(pack)
+		}
+	}
+	return rs
+}

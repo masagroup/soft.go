@@ -40,6 +40,7 @@ func NewEPackageExt() *EPackageExt {
 
 func (pack *EPackageExt) Initialize() {
 	pack.ePackageImpl.Initialize()
+	pack.SetEFactoryInstance(NewEFactoryExt())
 	pack.adapter = &ePackageExtAdapter{pack: pack}
 	pack.EAdapters().Add(pack.adapter)
 }

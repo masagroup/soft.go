@@ -12,6 +12,7 @@ package ecore
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,9 +40,11 @@ func Test_EAllContents(t *testing.T) {
 	ordersRoot, _ := ordersResource.GetContents().Get(0).(EObject)
 	require.NotNil(t, ordersRoot)
 
+	i := 0
 	for it := ordersResource.GetAllContents(); it.HasNext(); {
 		eObject, _ := it.Next().(EObject)
 		require.NotNil(t, eObject)
+		i++
 	}
-
+	assert.Equal(t, 11, i)
 }

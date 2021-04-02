@@ -84,7 +84,9 @@ func (o *BasicEObjectImpl) ESetProxyURI(uri *URI) {
 // EContents ...
 func (o *BasicEObjectImpl) EContents() EList {
 	if o.getObjectProperties().contents == nil {
-		o.getObjectProperties().contents = newContentsListAdapter(&o.AbstractEObject, func(eClass EClass) EList { return eClass.GetEContainmentFeatures() })
+		o.getObjectProperties().contents = newContentsListAdapter(&o.AbstractEObject, func(eClass EClass) EList {
+			return eClass.GetEContainmentFeatures()
+		})
 	}
 	return o.getObjectProperties().contents.GetList()
 }

@@ -76,7 +76,7 @@ func (l *contentsList) computeData() {
 	if l.data == nil {
 		data := []interface{}{}
 		o := l.adapter.obj
-		features := l.adapter.getFeaturesFn(o.EClass())
+		features := l.adapter.getFeaturesFn(o.AsEObject().EClass())
 		for it := features.Iterator(); it.HasNext(); {
 			feature := it.Next().(EStructuralFeature)
 			if o.EIsSet(feature) {

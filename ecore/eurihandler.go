@@ -2,14 +2,13 @@ package ecore
 
 import (
 	"io"
-	"net/url"
 )
 
 //URIHandler ...
 type EURIHandler interface {
-	CanHandle(uri *url.URL) bool
+	CanHandle(uri *URI) bool
 
-	CreateReader(uri *url.URL) (io.ReadCloser, error)
+	CreateReader(uri *URI) (io.ReadCloser, error)
 
-	CreateWriter(uri *url.URL) (io.WriteCloser, error)
+	CreateWriter(uri *URI) (io.WriteCloser, error)
 }

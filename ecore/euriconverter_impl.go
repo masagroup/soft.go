@@ -3,22 +3,21 @@ package ecore
 import (
 	"fmt"
 	"io"
-	"net/url"
 )
 
 type EURIConverterImpl struct {
 	uriHandlers EList
-	uriMap      map[url.URL]url.URL
+	uriMap      map[URI]URI
 }
 
 func NewEURIConverterImpl() *EURIConverterImpl {
 	r := new(EURIConverterImpl)
 	r.uriHandlers = NewImmutableEList([]interface{}{new(FileURIHandler)})
-	r.uriMap = make(map[url.URL]url.URL)
+	r.uriMap = make(map[URI]URI)
 	return r
 }
 
-func (r *EURIConverterImpl) CreateReader(uri *url.URL) (io.ReadCloser, error) {
+func (r *EURIConverterImpl) CreateReader(uri *URI) (io.ReadCloser, error) {
 	normalized := r.Normalize(uri)
 	uriHandler := r.GetURIHandler(normalized)
 	if uriHandler == nil {
@@ -27,7 +26,7 @@ func (r *EURIConverterImpl) CreateReader(uri *url.URL) (io.ReadCloser, error) {
 	return uriHandler.CreateReader(normalized)
 }
 
-func (r *EURIConverterImpl) CreateWriter(uri *url.URL) (io.WriteCloser, error) {
+func (r *EURIConverterImpl) CreateWriter(uri *URI) (io.WriteCloser, error) {
 	normalized := r.Normalize(uri)
 	uriHandler := r.GetURIHandler(normalized)
 	if uriHandler == nil {
@@ -36,11 +35,11 @@ func (r *EURIConverterImpl) CreateWriter(uri *url.URL) (io.WriteCloser, error) {
 	return uriHandler.CreateWriter(normalized)
 }
 
-func (r *EURIConverterImpl) GetURIMap() map[url.URL]url.URL {
+func (r *EURIConverterImpl) GetURIMap() map[URI]URI {
 	return r.uriMap
 }
 
-func (r *EURIConverterImpl) Normalize(uri *url.URL) *url.URL {
+func (r *EURIConverterImpl) Normalize(uri *URI) *URI {
 	normalized := r.getURIFromMap(uri)
 	if normalized == uri || *normalized == *uri {
 		return normalized
@@ -48,16 +47,16 @@ func (r *EURIConverterImpl) Normalize(uri *url.URL) *url.URL {
 	return r.Normalize(normalized)
 }
 
-func (r *EURIConverterImpl) getURIFromMap(uri *url.URL) *url.URL {
+func (r *EURIConverterImpl) getURIFromMap(uri *URI) *URI {
 	for oldPrefix, newPrefix := range r.uriMap {
-		if r := ReplacePrefixURI(uri, &oldPrefix, &newPrefix); r != nil {
+		if r := uri.ReplacePrefix(&oldPrefix, &newPrefix); r != nil {
 			return r
 		}
 	}
 	return uri
 }
 
-func (r *EURIConverterImpl) GetURIHandler(uri *url.URL) EURIHandler {
+func (r *EURIConverterImpl) GetURIHandler(uri *URI) EURIHandler {
 	if uri != nil {
 		for it := r.uriHandlers.Iterator(); it.HasNext(); {
 			uriHandler := it.Next().(EURIHandler)

@@ -1,7 +1,6 @@
 package library
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/masagroup/soft.go/ecore"
@@ -66,7 +65,7 @@ func TestEContentAdapterEObjectChildChanged(t *testing.T) {
 func TestEContentAdapterResource(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/library.complex.xml"}
+	fileURI := ecore.CreateFileURI("testdata/library.complex.xml")
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()

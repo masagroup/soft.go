@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"strings"
 )
 
@@ -36,7 +35,7 @@ func NewEResourceFactoryRegistryImplWithDelegate(delegate EResourceFactoryRegist
 	}
 }
 
-func (r *EResourceFactoryRegistryImpl) GetFactory(uri *url.URL) EResourceFactory {
+func (r *EResourceFactoryRegistryImpl) GetFactory(uri *URI) EResourceFactory {
 	if factory, ok := r.protocolToFactory[uri.Scheme]; ok {
 		return factory
 	}

@@ -12,8 +12,6 @@
 package ecore
 
 import (
-	url "net/url"
-
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -39,11 +37,11 @@ func (_m *MockEResourceFactoryRegistry) GetExtensionToFactoryMap() map[string]ER
 }
 
 // GetFactory provides a mock function with given fields: uri
-func (_m *MockEResourceFactoryRegistry) GetFactory(uri *url.URL) EResourceFactory {
+func (_m *MockEResourceFactoryRegistry) GetFactory(uri *URI) EResourceFactory {
 	ret := _m.Called(uri)
 
 	var r0 EResourceFactory
-	if rf, ok := ret.Get(0).(func(*url.URL) EResourceFactory); ok {
+	if rf, ok := ret.Get(0).(func(*URI) EResourceFactory); ok {
 		r0 = rf(uri)
 	} else {
 		if ret.Get(0) != nil {

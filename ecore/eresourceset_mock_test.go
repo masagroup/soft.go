@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,9 +31,9 @@ func TestMockEResourceSetGetResources(t *testing.T) {
 func TestMockEResourceSetGetResource(t *testing.T) {
 	rs := &MockEResourceSet{}
 	r := &MockEResource{}
-	uri, _ := url.Parse("test://file.t")
+	uri, _ := ParseURI("test://file.t")
 	rs.On("GetResource", uri, false).Return(r).Once()
-	rs.On("GetResource", uri, true).Return(func(uri *url.URL, loadOnDemand bool) EResource {
+	rs.On("GetResource", uri, true).Return(func(uri *URI, loadOnDemand bool) EResource {
 		return r
 	}).Once()
 	assert.Equal(t, r, rs.GetResource(uri, false))
@@ -45,9 +44,9 @@ func TestMockEResourceSetGetResource(t *testing.T) {
 func TestMockEResourceSetCreateResource(t *testing.T) {
 	rs := &MockEResourceSet{}
 	r := &MockEResource{}
-	uri, _ := url.Parse("test://file.t")
+	uri, _ := ParseURI("test://file.t")
 	rs.On("CreateResource", uri).Return(r).Once()
-	rs.On("CreateResource", uri).Return(func(uri *url.URL) EResource {
+	rs.On("CreateResource", uri).Return(func(uri *URI) EResource {
 		return r
 	}).Once()
 	assert.Equal(t, r, rs.CreateResource(uri))
@@ -58,9 +57,9 @@ func TestMockEResourceSetCreateResource(t *testing.T) {
 func TestMockEResourceSetGetEObject(t *testing.T) {
 	rs := &MockEResourceSet{}
 	o := &MockEObject{}
-	uri, _ := url.Parse("test://file.t")
+	uri, _ := ParseURI("test://file.t")
 	rs.On("GetEObject", uri, false).Return(o).Once()
-	rs.On("GetEObject", uri, true).Return(func(uri *url.URL, loadOnDemand bool) EObject {
+	rs.On("GetEObject", uri, true).Return(func(uri *URI, loadOnDemand bool) EObject {
 		return o
 	}).Once()
 	assert.Equal(t, o, rs.GetEObject(uri, false))
@@ -130,9 +129,9 @@ func TestMockEResourceSetSetResourceFactoryRegistry(t *testing.T) {
 
 func TestMockEResourceSetGetURIResourceMap(t *testing.T) {
 	rs := &MockEResourceSet{}
-	pr := make(map[*url.URL]EResource)
+	pr := make(map[*URI]EResource)
 	rs.On("GetURIResourceMap").Return(pr).Once()
-	rs.On("GetURIResourceMap").Return(func() map[*url.URL]EResource {
+	rs.On("GetURIResourceMap").Return(func() map[*URI]EResource {
 		return pr
 	}).Once()
 	assert.Equal(t, pr, rs.GetURIResourceMap())
@@ -142,7 +141,7 @@ func TestMockEResourceSetGetURIResourceMap(t *testing.T) {
 
 func TestMockEResourceSetSetURIResourceMap(t *testing.T) {
 	rs := &MockEResourceSet{}
-	pr := make(map[*url.URL]EResource)
+	pr := make(map[*URI]EResource)
 	rs.On("SetURIResourceMap", pr).Once()
 	rs.SetURIResourceMap(pr)
 	mock.AssertExpectationsForObjects(t, rs)

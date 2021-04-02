@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,8 +21,8 @@ func TestEResourceFactoryRegistryGetFactoryProtocol(t *testing.T) {
 	rfr := NewEResourceFactoryRegistryImpl()
 	rfr.GetProtocolToFactoryMap()["test"] = mockFactory
 
-	assert.Equal(t, mockFactory, rfr.GetFactory(&url.URL{Scheme: "test", Path: "//file.t"}))
-	assert.Nil(t, rfr.GetFactory(&url.URL{Scheme: "file", Path: "//file.t"}))
+	assert.Equal(t, mockFactory, rfr.GetFactory(&URI{Scheme: "test", Path: "//file.t"}))
+	assert.Nil(t, rfr.GetFactory(&URI{Scheme: "file", Path: "//file.t"}))
 }
 
 func TestEResourceFactoryRegistryGetFactoryExtension(t *testing.T) {
@@ -32,6 +31,6 @@ func TestEResourceFactoryRegistryGetFactoryExtension(t *testing.T) {
 	rfr := NewEResourceFactoryRegistryImpl()
 	rfr.GetExtensionToFactoryMap()["test"] = mockFactory
 
-	assert.Equal(t, mockFactory, rfr.GetFactory(&url.URL{Scheme: "file", Path: "//file.test"}))
-	assert.Nil(t, rfr.GetFactory(&url.URL{Scheme: "file", Path: "//file.t"}))
+	assert.Equal(t, mockFactory, rfr.GetFactory(&URI{Scheme: "file", Path: "//file.test"}))
+	assert.Nil(t, rfr.GetFactory(&URI{Scheme: "file", Path: "//file.t"}))
 }

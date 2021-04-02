@@ -9,10 +9,8 @@
 
 package ecore
 
-import "net/url"
-
 type basicEObjectImplProperties struct {
-	proxyURI        *url.URL
+	proxyURI        *URI
 	contents        *contentsListAdapter
 	crossReferenceS *contentsListAdapter
 }
@@ -69,7 +67,7 @@ func (o *BasicEObjectImpl) EIsProxy() bool {
 }
 
 // EProxyURI ...
-func (o *BasicEObjectImpl) EProxyURI() *url.URL {
+func (o *BasicEObjectImpl) EProxyURI() *URI {
 	if o.proxy {
 		return o.getObjectProperties().proxyURI
 	} else {
@@ -78,7 +76,7 @@ func (o *BasicEObjectImpl) EProxyURI() *url.URL {
 }
 
 // ESetProxyURI ...
-func (o *BasicEObjectImpl) ESetProxyURI(uri *url.URL) {
+func (o *BasicEObjectImpl) ESetProxyURI(uri *URI) {
 	o.proxy = uri != nil
 	o.getObjectProperties().proxyURI = uri
 }
@@ -86,7 +84,9 @@ func (o *BasicEObjectImpl) ESetProxyURI(uri *url.URL) {
 // EContents ...
 func (o *BasicEObjectImpl) EContents() EList {
 	if o.getObjectProperties().contents == nil {
-		o.getObjectProperties().contents = newContentsListAdapter(&o.AbstractEObject, func(eClass EClass) EList { return eClass.GetEContainmentFeatures() })
+		o.getObjectProperties().contents = newContentsListAdapter(&o.AbstractEObject, func(eClass EClass) EList {
+			return eClass.GetEContainmentFeatures()
+		})
 	}
 	return o.getObjectProperties().contents.GetList()
 }

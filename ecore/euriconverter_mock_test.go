@@ -12,7 +12,6 @@ package ecore
 import (
 	"errors"
 	"io"
-	"net/url"
 	"os"
 	"testing"
 
@@ -22,10 +21,10 @@ import (
 
 func TestMockEURIConverterCreateReader(t *testing.T) {
 	h := &MockEURIConverter{}
-	uri, _ := url.Parse("test://file.t")
+	uri := NewURI("test:///file.t")
 	f, _ := os.Open(uri.String())
 	h.On("CreateReader", uri).Return(f, nil).Once()
-	h.On("CreateReader", uri).Return(func(*url.URL) (io.ReadCloser, error) {
+	h.On("CreateReader", uri).Return(func(*URI) (io.ReadCloser, error) {
 		return nil, errors.New("error")
 	}).Once()
 	{
@@ -44,10 +43,10 @@ func TestMockEURIConverterCreateReader(t *testing.T) {
 
 func TestMockEURIConverterCreateWriter(t *testing.T) {
 	h := &MockEURIConverter{}
-	uri, _ := url.Parse("test://file.t")
+	uri := NewURI("test:///file.t")
 	f, _ := os.Create(uri.String())
 	h.On("CreateWriter", uri).Return(f, nil).Once()
-	h.On("CreateWriter", uri).Return(func(*url.URL) (io.WriteCloser, error) {
+	h.On("CreateWriter", uri).Return(func(*URI) (io.WriteCloser, error) {
 		return nil, errors.New("error")
 	}).Once()
 	{
@@ -66,9 +65,9 @@ func TestMockEURIConverterCreateWriter(t *testing.T) {
 
 func TestMockEURIConverterGetURIMap(t *testing.T) {
 	h := &MockEURIConverter{}
-	m := map[url.URL]url.URL{{Path: "toto"}: {Path: "tata"}}
+	m := map[URI]URI{{Path: "toto"}: {Path: "tata"}}
 	h.On("GetURIMap").Return(m).Once()
-	h.On("GetURIMap").Return(func() map[url.URL]url.URL {
+	h.On("GetURIMap").Return(func() map[URI]URI {
 		return m
 	}).Once()
 	assert.Equal(t, m, h.GetURIMap())
@@ -78,10 +77,10 @@ func TestMockEURIConverterGetURIMap(t *testing.T) {
 
 func TestMockEURIConverterNormalize(t *testing.T) {
 	h := &MockEURIConverter{}
-	uri1, _ := url.Parse("test://file.t")
-	uri2, _ := url.Parse("test://file.t")
+	uri1 := NewURI("test:///file.t")
+	uri2 := NewURI("test:///file.t")
 	h.On("Normalize", uri1).Return(uri2).Once()
-	h.On("Normalize", uri1).Return(func(*url.URL) *url.URL {
+	h.On("Normalize", uri1).Return(func(*URI) *URI {
 		return uri2
 	}).Once()
 	assert.Equal(t, uri2, h.Normalize(uri1))
@@ -92,9 +91,9 @@ func TestMockEURIConverterNormalize(t *testing.T) {
 func TestMockEURIConverterGetURIHandler(t *testing.T) {
 	h := &MockEURIConverter{}
 	u := &MockEURIHandler{}
-	uri, _ := url.Parse("test://file.t")
+	uri := NewURI("test:///file.t")
 	h.On("GetURIHandler", uri).Return(u).Once()
-	h.On("GetURIHandler", uri).Return(func(*url.URL) EURIHandler {
+	h.On("GetURIHandler", uri).Return(func(*URI) EURIHandler {
 		return u
 	}).Once()
 	assert.Equal(t, u, h.GetURIHandler(uri))

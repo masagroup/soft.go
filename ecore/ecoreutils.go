@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"strings"
 )
 
@@ -46,21 +45,21 @@ func CreateFromString(eDataType EDataType, literal string) interface{} {
 	return eFactory.CreateFromString(eDataType, literal)
 }
 
-func GetURI(eObject EObject) *url.URL {
+func GetURI(eObject EObject) *URI {
 	if eObject.EIsProxy() {
 		return eObject.(EObjectInternal).EProxyURI()
 	} else {
 		resource := eObject.EResource()
 		if resource != nil {
-			uri := CloneURI(resource.GetURI())
+			uri := resource.GetURI().Copy()
 			uri.Fragment = resource.GetURIFragment(eObject)
 			return uri
 		} else {
 			id := GetEObjectID(eObject)
 			if len(id) == 0 {
-				return &url.URL{Fragment: "//" + getRelativeURIFragmentPath(nil, eObject, false)}
+				return &URI{Fragment: "//" + getRelativeURIFragmentPath(nil, eObject, false)}
 			} else {
-				return &url.URL{Fragment: id}
+				return &URI{Fragment: id}
 			}
 		}
 	}
@@ -123,7 +122,6 @@ func ResolveInResource(proxy EObject, resource EResource) EObject {
 	} else {
 		return ResolveInResourceSet(proxy, nil)
 	}
-
 }
 
 func ResolveInResourceSet(proxy EObject, resourceSet EResourceSet) EObject {
@@ -133,7 +131,7 @@ func ResolveInResourceSet(proxy EObject, resourceSet EResourceSet) EObject {
 		if resourceSet != nil {
 			resolved = resourceSet.GetEObject(proxyURI, true)
 		} else {
-			trim := TrimURIFragment(proxyURI)
+			trim := proxyURI.TrimFragment()
 			ePackage := GetPackageRegistry().GetPackage(trim.String())
 			if ePackage != nil {
 				eResource := ePackage.EResource()

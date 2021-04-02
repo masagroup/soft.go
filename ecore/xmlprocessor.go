@@ -2,33 +2,42 @@ package ecore
 
 import (
 	"io"
-	"net/url"
 	"strings"
 )
 
 type XMLProcessor struct {
 	extendMetaData *ExtendedMetaData
 	packages       []EPackage
-	factories      map[string]EResourceFactory
+	resourceSet    EResourceSet
 }
 
 func NewXMLProcessor(packages []EPackage) *XMLProcessor {
-	p := new(XMLProcessor)
-	p.Initialize(packages)
-	return p
+	return &XMLProcessor{
+		extendMetaData: NewExtendedMetaData(),
+		packages:       packages,
+	}
 }
 
-func (p *XMLProcessor) Initialize(packages []EPackage) {
-	p.extendMetaData = NewExtendedMetaData()
-	p.packages = packages
+func NewSharedXMLProcessor(resourceSet EResourceSet) *XMLProcessor {
+	return &XMLProcessor{
+		extendMetaData: NewExtendedMetaData(),
+		resourceSet:    resourceSet,
+	}
 }
 
-func (p *XMLProcessor) Load(uri *url.URL) EResource {
+func (p *XMLProcessor) GetResourceSet() EResourceSet {
+	if p.resourceSet == nil {
+		return CreateEResourceSet(p.packages)
+	}
+	return p.resourceSet
+}
+
+func (p *XMLProcessor) Load(uri *URI) EResource {
 	return p.LoadWithOptions(uri, nil)
 }
 
-func (p *XMLProcessor) LoadWithOptions(uri *url.URL, options map[string]interface{}) EResource {
-	rs := p.CreateEResourceSet()
+func (p *XMLProcessor) LoadWithOptions(uri *URI, options map[string]interface{}) EResource {
+	rs := p.GetResourceSet()
 	r := rs.CreateResource(uri)
 	o := map[string]interface{}{OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
@@ -41,8 +50,8 @@ func (p *XMLProcessor) LoadWithOptions(uri *url.URL, options map[string]interfac
 }
 
 func (p *XMLProcessor) LoadWithReader(r io.Reader, options map[string]interface{}) EResource {
-	rs := p.CreateEResourceSet()
-	rc := rs.CreateResource(&url.URL{Path: "*.xml"})
+	rs := p.GetResourceSet()
+	rc := rs.CreateResource(&URI{Path: "*.xml"})
 	o := map[string]interface{}{OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
 		for k, v := range options {
@@ -81,26 +90,4 @@ func (p *XMLProcessor) SaveToString(resource EResource, options map[string]inter
 	var strbuff strings.Builder
 	p.SaveWithWriter(&strbuff, resource, options)
 	return strbuff.String()
-}
-
-func (p *XMLProcessor) CreateEResourceSet() EResourceSet {
-	rs := NewEResourceSetImpl()
-	// packages
-	packageRegistry := rs.GetPackageRegistry()
-	packageRegistry.RegisterPackage(GetPackage())
-	if p.packages != nil {
-		for _, pack := range p.packages {
-			packageRegistry.RegisterPackage(pack)
-		}
-	}
-	// factories
-	extensionToFactories := rs.GetResourceFactoryRegistry().GetExtensionToFactoryMap()
-	extensionToFactories["ecore"] = &XMIResourceFactory{}
-	extensionToFactories["xml"] = &XMLResourceFactory{}
-	if p.factories != nil {
-		for ext, factory := range p.factories {
-			extensionToFactories[ext] = factory
-		}
-	}
-	return rs
 }

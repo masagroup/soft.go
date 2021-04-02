@@ -2,7 +2,6 @@ package library
 
 import (
 	"io/ioutil"
-	"net/url"
 	"strings"
 	"testing"
 
@@ -21,7 +20,7 @@ func diagnosticError(errors ecore.EList) string {
 func TestSerializationLoadSimpleDefaultXML(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/library.simple.default.xml"}
+	fileURI := ecore.CreateFileURI("testdata/library.simple.default.xml")
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()
@@ -33,7 +32,7 @@ func TestSerializationLoadSimpleDefaultXML(t *testing.T) {
 func TestSerializationLoadSimplePrefixXML(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/library.simple.prefix.xml"}
+	fileURI := ecore.CreateFileURI("testdata/library.simple.prefix.xml")
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()
@@ -45,7 +44,7 @@ func TestSerializationLoadSimplePrefixXML(t *testing.T) {
 func TestSerializationLoadOwnerXML(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/library.owner.xml"}
+	fileURI := ecore.CreateFileURI("testdata/library.owner.xml")
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()
@@ -57,7 +56,7 @@ func TestSerializationLoadOwnerXML(t *testing.T) {
 func TestSerializationLoadComplexXML(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/library.complex.xml"}
+	fileURI := ecore.CreateFileURI("testdata/library.complex.xml")
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()
@@ -82,7 +81,7 @@ func TestSerializationSaveSimpleXml(t *testing.T) {
 
 	// save library model with a resource
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
-	fileURI := &url.URL{Path: "testdata/dynamic.simple.output.xml"}
+	fileURI := ecore.CreateFileURI("testdata/dynamic.simple.output.xml")
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.GetContents().Add(root)
@@ -99,7 +98,7 @@ func TestSerializationSaveSimpleXml(t *testing.T) {
 func TestSerializationLoadSaveSimpleXML(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/library.simple.default.xml"}
+	fileURI := ecore.CreateFileURI("testdata/library.simple.default.xml")
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()
@@ -115,7 +114,7 @@ func TestSerializationLoadSaveSimpleXML(t *testing.T) {
 func TestSerializationLoadSavePrefixXML(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/library.simple.prefix.xml"}
+	fileURI := ecore.CreateFileURI("testdata/library.simple.prefix.xml")
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()
@@ -131,7 +130,7 @@ func TestSerializationLoadSavePrefixXML(t *testing.T) {
 func TestSerializationLoadSaveComplexXML(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/library.complex.xml"}
+	fileURI := ecore.CreateFileURI("testdata/library.complex.xml")
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()
@@ -147,7 +146,7 @@ func TestSerializationLoadSaveComplexXML(t *testing.T) {
 func TestDeepOperations(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
-	fileURI := &url.URL{Path: "testdata/library.complex.xml"}
+	fileURI := ecore.CreateFileURI("testdata/library.complex.xml")
 	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
 	resource := resourceFactory.CreateResource(fileURI)
 	resource.Load()

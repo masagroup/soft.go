@@ -2,7 +2,6 @@ package ecore
 
 import (
 	"io"
-	"net/url"
 	"os"
 )
 
@@ -10,11 +9,11 @@ import (
 type FileURIHandler struct {
 }
 
-func (fuh *FileURIHandler) CanHandle(uri *url.URL) bool {
-	return uri.Scheme == "file" || (len(uri.Scheme) == 0 && len(uri.Host) == 0 && len(uri.RawQuery) == 0)
+func (fuh *FileURIHandler) CanHandle(uri *URI) bool {
+	return uri.Scheme == "file" || (!uri.IsAbsolute() && len(uri.Query) == 0)
 }
 
-func (fuh *FileURIHandler) CreateReader(uri *url.URL) (io.ReadCloser, error) {
+func (fuh *FileURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {
 	fileName := uri.Path
 	if fileName[0] == '/' {
 		fileName = fileName[1:]
@@ -26,7 +25,7 @@ func (fuh *FileURIHandler) CreateReader(uri *url.URL) (io.ReadCloser, error) {
 	return f, nil
 }
 
-func (fuh *FileURIHandler) CreateWriter(uri *url.URL) (io.WriteCloser, error) {
+func (fuh *FileURIHandler) CreateWriter(uri *URI) (io.WriteCloser, error) {
 	fileName := uri.Path
 	if fileName[0] == '/' {
 		fileName = fileName[1:]

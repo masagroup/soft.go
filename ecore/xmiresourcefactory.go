@@ -9,12 +9,10 @@
 
 package ecore
 
-import "net/url"
-
 type XMIResourceFactory struct {
 }
 
-func (f *XMIResourceFactory) CreateResource(uri *url.URL) EResource {
+func (f *XMIResourceFactory) CreateResource(uri *URI) EResource {
 	r := newXMIResourceImpl()
 	r.SetURI(uri)
 	return r

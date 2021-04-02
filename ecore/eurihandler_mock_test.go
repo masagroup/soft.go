@@ -12,7 +12,6 @@ package ecore
 import (
 	"errors"
 	"io"
-	"net/url"
 	"os"
 	"testing"
 
@@ -22,9 +21,9 @@ import (
 
 func TestMockEURIHandlerCanHandle(t *testing.T) {
 	h := &MockEURIHandler{}
-	uri, _ := url.Parse("test://file.t")
+	uri := NewURI("test:///file.t")
 	h.On("CanHandle", uri).Return(true).Once()
-	h.On("CanHandle", uri).Return(func(*url.URL) bool {
+	h.On("CanHandle", uri).Return(func(*URI) bool {
 		return false
 	}).Once()
 	assert.True(t, h.CanHandle(uri))
@@ -34,10 +33,10 @@ func TestMockEURIHandlerCanHandle(t *testing.T) {
 
 func TestMockEURIHandlerCreateReader(t *testing.T) {
 	h := &MockEURIHandler{}
-	uri, _ := url.Parse("test://file.t")
+	uri := NewURI("test:///file.t")
 	f, _ := os.Open(uri.String())
 	h.On("CreateReader", uri).Return(f, nil).Once()
-	h.On("CreateReader", uri).Return(func(*url.URL) (io.ReadCloser, error) {
+	h.On("CreateReader", uri).Return(func(*URI) (io.ReadCloser, error) {
 		return nil, errors.New("error")
 	}).Once()
 	{
@@ -56,10 +55,10 @@ func TestMockEURIHandlerCreateReader(t *testing.T) {
 
 func TestMockEURIHandlerCreateWriter(t *testing.T) {
 	h := &MockEURIHandler{}
-	uri, _ := url.Parse("test://file.t")
+	uri := NewURI("test:///file.t")
 	f, _ := os.Create(uri.String())
 	h.On("CreateWriter", uri).Return(f, nil).Once()
-	h.On("CreateWriter", uri).Return(func(*url.URL) (io.WriteCloser, error) {
+	h.On("CreateWriter", uri).Return(func(*URI) (io.WriteCloser, error) {
 		return nil, errors.New("error")
 	}).Once()
 	{

@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -43,7 +42,7 @@ func TestEResourceSetCreateResource(t *testing.T) {
 	mockResourceFactoryRegistry := new(MockEResourceFactoryRegistry)
 	mockResourceFactory := new(MockEResourceFactory)
 	mockResource := new(MockEResourceInternal)
-	uri, _ := url.Parse("test://file.t")
+	uri, _ := ParseURI("test://file.t")
 	rs := NewEResourceSetImpl()
 	rs.SetResourceFactoryRegistry(mockResourceFactoryRegistry)
 
@@ -57,7 +56,7 @@ func TestEResourceSetGetResource(t *testing.T) {
 	mockResourceFactoryRegistry := new(MockEResourceFactoryRegistry)
 	mockResourceFactory := new(MockEResourceFactory)
 	mockResource := new(MockEResourceInternal)
-	uri, _ := url.Parse("test://file.t")
+	uri, _ := ParseURI("test://file.t")
 	rs := NewEResourceSetImpl()
 	rs.SetResourceFactoryRegistry(mockResourceFactoryRegistry)
 
@@ -71,7 +70,7 @@ func TestEResourceSetGetResource(t *testing.T) {
 
 func TestEResourceSetGetRegisteredResource(t *testing.T) {
 
-	uri, _ := url.Parse("test://file.t")
+	uri, _ := ParseURI("test://file.t")
 	rs := NewEResourceSetImpl()
 
 	// register resource
@@ -94,8 +93,8 @@ func TestEResourceSetGetEObject(t *testing.T) {
 	mockResourceFactory := new(MockEResourceFactory)
 	mockResource := new(MockEResourceInternal)
 	mockObject := new(MockEObject)
-	uriObject, _ := url.Parse("test://file.t#//@first/second")
-	uriResource, _ := url.Parse("test://file.t")
+	uriObject, _ := ParseURI("test://file.t#//@first/second")
+	uriResource, _ := ParseURI("test://file.t")
 	rs := NewEResourceSetImpl()
 	rs.SetResourceFactoryRegistry(mockResourceFactoryRegistry)
 

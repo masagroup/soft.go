@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -119,17 +118,17 @@ func TestEcoreUtilsEqualsProxy(t *testing.T) {
 	obj1 := &MockEObjectInternal{}
 	obj2 := &MockEObjectInternal{}
 	obj1.On("EIsProxy").Once().Return(true)
-	obj1.On("EProxyURI").Once().Return(&url.URL{Path: "test"})
-	obj2.On("EProxyURI").Once().Return(&url.URL{Path: "test"})
+	obj1.On("EProxyURI").Once().Return(&URI{Path: "test"})
+	obj2.On("EProxyURI").Once().Return(&URI{Path: "test"})
 	assert.True(t, Equals(obj1, obj2))
 
 	obj1.On("EIsProxy").Once().Return(true)
-	obj1.On("EProxyURI").Once().Return(&url.URL{Path: "test1"})
-	obj2.On("EProxyURI").Once().Return(&url.URL{Path: "test2"})
+	obj1.On("EProxyURI").Once().Return(&URI{Path: "test1"})
+	obj2.On("EProxyURI").Once().Return(&URI{Path: "test2"})
 	assert.False(t, Equals(obj1, obj2))
 
 	obj1.On("EIsProxy").Once().Return(true)
-	obj1.On("EProxyURI").Once().Return(&url.URL{Path: "test"})
+	obj1.On("EProxyURI").Once().Return(&URI{Path: "test"})
 	obj2.On("EProxyURI").Once().Return(nil)
 	assert.False(t, Equals(obj1, obj2))
 
@@ -311,7 +310,7 @@ func TestEcoreUtilsCopyProxy(t *testing.T) {
 
 	// the model
 	eObject := eFactory.Create(eClass)
-	eObject.(EObjectInternal).ESetProxyURI(&url.URL{Path: "testPath"})
+	eObject.(EObjectInternal).ESetProxyURI(&URI{Path: "testPath"})
 
 	eObjectCopy := Copy(eObject)
 	assert.True(t, Equals(eObject, eObjectCopy))
@@ -324,7 +323,7 @@ func TestEcoreUtilsCopyReal(t *testing.T) {
 }
 
 func TestEcoreUtils_GetURI(t *testing.T) {
-	mockURI, _ := url.Parse("test://file.t")
+	mockURI, _ := ParseURI("test://file.t")
 	mockEObject := &MockEObjectInternal{}
 	mockEObject.On("EIsProxy").Return(true).Once()
 	mockEObject.On("EProxyURI").Return(mockURI).Once()

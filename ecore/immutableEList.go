@@ -11,7 +11,98 @@ package ecore
 
 import "strconv"
 
+type emptyImmutableEList struct {
+}
+
+func (l *emptyImmutableEList) Add(elem interface{}) bool {
+	panic("Immutable list can't be modified")
+}
+
+func (l *emptyImmutableEList) AddAll(list EList) bool {
+	panic("Immutable list can't be modified")
+}
+
+func (l *emptyImmutableEList) Insert(index int, elem interface{}) bool {
+	panic("Immutable list can't be modified")
+}
+
+func (l *emptyImmutableEList) InsertAll(index int, list EList) bool {
+	panic("Immutable list can't be modified")
+}
+
+func (l *emptyImmutableEList) MoveObject(newIndex int, elem interface{}) {
+	panic("Immutable list can't be modified")
+}
+
+func (l *emptyImmutableEList) Move(oldIndex, newIndex int) interface{} {
+	panic("Immutable list can't be modified")
+}
+
+// Get an element of the array
+func (l *emptyImmutableEList) Get(index int) interface{} {
+	panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(l.Size()))
+}
+
+func (l *emptyImmutableEList) Set(index int, elem interface{}) interface{} {
+	panic("Immutable list can't be modified")
+}
+
+func (l *emptyImmutableEList) RemoveAt(index int) interface{} {
+	panic("Immutable list can't be modified")
+}
+
+func (l *emptyImmutableEList) Remove(elem interface{}) bool {
+	panic("Immutable list can't be modified")
+}
+
+func (l *emptyImmutableEList) RemoveAll(collection EList) bool {
+	panic("Immutable list can't be modified")
+}
+
+// Size count the number of element in the array
+func (l *emptyImmutableEList) Size() int {
+	return 0
+}
+
+func (l *emptyImmutableEList) Clear() {
+	panic("Immutable list can't be modified")
+}
+
+// Empty return true if the array contains 0 element
+func (l *emptyImmutableEList) Empty() bool {
+	return true
+}
+
+// Contains return if an array contains or not an element
+func (l *emptyImmutableEList) Contains(elem interface{}) bool {
+	return false
+}
+
+// IndexOf return the index on an element in an array, else return -1
+func (l *emptyImmutableEList) IndexOf(elem interface{}) int {
+	return -1
+}
+
+// Iterator through the array
+func (l *emptyImmutableEList) Iterator() EIterator {
+	return &listIterator{list: l}
+}
+
+// ToArray convert to array
+func (l *emptyImmutableEList) ToArray() []interface{} {
+	return []interface{}{}
+}
+
+func (l *emptyImmutableEList) GetUnResolvedList() EList {
+	return l
+}
+
+func NewEmptyImmtutableEList() *emptyImmutableEList {
+	return &emptyImmutableEList{}
+}
+
 type immutableEList struct {
+	emptyImmutableEList
 	data []interface{}
 }
 
@@ -24,30 +115,6 @@ func NewEmptyImmutableEList() *immutableEList {
 	return &immutableEList{data: []interface{}{}}
 }
 
-func (l *immutableEList) Add(elem interface{}) bool {
-	panic("Immutable list can't be modified")
-}
-
-func (l *immutableEList) AddAll(list EList) bool {
-	panic("Immutable list can't be modified")
-}
-
-func (l *immutableEList) Insert(index int, elem interface{}) bool {
-	panic("Immutable list can't be modified")
-}
-
-func (l *immutableEList) InsertAll(index int, list EList) bool {
-	panic("Immutable list can't be modified")
-}
-
-func (l *immutableEList) MoveObject(newIndex int, elem interface{}) {
-	panic("Immutable list can't be modified")
-}
-
-func (l *immutableEList) Move(oldIndex, newIndex int) interface{} {
-	panic("Immutable list can't be modified")
-}
-
 // Get an element of the array
 func (l *immutableEList) Get(index int) interface{} {
 	if index < 0 || index >= l.Size() {
@@ -56,29 +123,9 @@ func (l *immutableEList) Get(index int) interface{} {
 	return l.data[index]
 }
 
-func (l *immutableEList) Set(index int, elem interface{}) interface{} {
-	panic("Immutable list can't be modified")
-}
-
-func (l *immutableEList) RemoveAt(index int) interface{} {
-	panic("Immutable list can't be modified")
-}
-
-func (l *immutableEList) Remove(elem interface{}) bool {
-	panic("Immutable list can't be modified")
-}
-
-func (l *immutableEList) RemoveAll(collection EList) bool {
-	panic("Immutable list can't be modified")
-}
-
 // Size count the number of element in the array
 func (l *immutableEList) Size() int {
 	return len(l.data)
-}
-
-func (l *immutableEList) Clear() {
-	panic("Immutable list can't be modified")
 }
 
 // Empty return true if the array contains 0 element

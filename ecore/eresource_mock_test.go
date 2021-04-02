@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,9 +31,9 @@ func TestMockEResourceGetResourceSet(t *testing.T) {
 // TestMockEResourceGetURI tests method GetURI
 func TestMockEResourceGetURI(t *testing.T) {
 	r := &MockEResource{}
-	uri := &url.URL{}
+	uri := &URI{}
 	r.On("GetURI").Return(uri).Once()
-	r.On("GetURI").Return(func() *url.URL {
+	r.On("GetURI").Return(func() *URI {
 		return uri
 	}).Once()
 	assert.Equal(t, uri, r.GetURI())
@@ -45,7 +44,7 @@ func TestMockEResourceGetURI(t *testing.T) {
 // TestMockEResourceSetURI tests method SetURI
 func TestMockEResourceSetURI(t *testing.T) {
 	r := &MockEResource{}
-	uri := &url.URL{}
+	uri := &URI{}
 	r.On("SetURI", uri).Once()
 	r.SetURI(uri)
 	r.AssertExpectations(t)

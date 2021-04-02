@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -418,10 +417,11 @@ func (l *xmlLoadImpl) createObjectWithFactory(eFactory EFactory, eType EClassifi
 
 func (l *xmlLoadImpl) createObjectFromFeatureType(eObject EObject, eFeature EStructuralFeature) EObject {
 	var eResult EObject
-	if eFeature != nil && eFeature.GetEType() != nil {
-		eType := eFeature.GetEType()
-		eFactory := eType.GetEPackage().GetEFactoryInstance()
-		eResult = l.createObjectWithFactory(eFactory, eType, false)
+	if eFeature != nil {
+		if eType := eFeature.GetEType(); eType != nil {
+			eFactory := eType.GetEPackage().GetEFactoryInstance()
+			eResult = l.createObjectWithFactory(eFactory, eType, false)
+		}
 	}
 	if eResult != nil {
 		l.setFeatureValue(eObject, eFeature, eResult, -1)
@@ -694,19 +694,19 @@ func (l *xmlLoadImpl) setValueFromId(eObject EObject, eReference EReference, ids
 
 func (l *xmlLoadImpl) handleProxy(eProxy EObject, id string) {
 	resourceURI := l.resource.GetURI()
-	uri, ok := url.Parse(id)
+	uri, ok := ParseURI(id)
 	if ok != nil || resourceURI == nil {
 		return
 	}
 	// resolve reference uri
-	if !uri.IsAbs() {
-		uri = resourceURI.ResolveReference(uri)
+	if !uri.IsAbsolute() {
+		uri = resourceURI.Resolve(uri)
 	}
 
 	// set object proxy uri
 	eProxy.(EObjectInternal).ESetProxyURI(uri)
 
-	if *resourceURI == *TrimURIFragment(uri) {
+	if *resourceURI == *uri.TrimFragment() {
 		l.sameDocumentProxies = append(l.sameDocumentProxies, eProxy)
 	}
 }
@@ -1780,25 +1780,30 @@ func (s *xmlSaveImpl) getDataType(value interface{}, f EStructuralFeature, isAtt
 func (s *xmlSaveImpl) getHRef(eObject EObject) string {
 	eInternal, _ := eObject.(EObjectInternal)
 	if eInternal != nil {
-		uri := eInternal.EProxyURI()
-		if uri == nil {
-			eResource := eObject.EResource()
-			if eResource == nil {
-				return ""
+		objectURI := eInternal.EProxyURI()
+		if objectURI == nil {
+			eOtherResource := eObject.EResource()
+			if eOtherResource == nil {
+				if s.resource != nil && s.resource.GetObjectIDManager() != nil && s.resource.GetObjectIDManager().GetID(eObject) != nil {
+					objectURI = s.getResourceHRef(s.resource, eObject)
+				} else {
+					s.handleDanglingHREF(eObject)
+					return ""
+				}
 			} else {
-				return s.getResourceHRef(eResource, eObject)
+				objectURI = s.getResourceHRef(eOtherResource, eObject)
 			}
-		} else {
-			return uri.String()
 		}
+		objectURI = s.resource.GetURI().Relativize(objectURI)
+		return objectURI.String()
 	}
 	return ""
 }
 
-func (s *xmlSaveImpl) getResourceHRef(resource EResource, object EObject) string {
-	uri := CloneURI(resource.GetURI())
+func (s *xmlSaveImpl) getResourceHRef(resource EResource, object EObject) *URI {
+	uri := resource.GetURI().Copy()
 	uri.Fragment = resource.GetURIFragment(object)
-	return uri.String()
+	return uri
 }
 
 func (s *xmlSaveImpl) getIDRef(eObject EObject) string {
@@ -1807,6 +1812,14 @@ func (s *xmlSaveImpl) getIDRef(eObject EObject) string {
 	} else {
 		return "#" + s.resource.GetURIFragment(eObject)
 	}
+}
+
+func (s *xmlSaveImpl) handleDanglingHREF(eObject EObject) {
+	s.error(NewEDiagnosticImpl(fmt.Sprintf("Object '%p' is not contained in a resource.", eObject), s.resource.GetURI().String(), 0, 0))
+}
+
+func (s *xmlSaveImpl) error(diagnostic EDiagnostic) {
+	s.resource.GetErrors().Add(diagnostic)
 }
 
 type xmlResourceImpl struct {

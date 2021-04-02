@@ -23,7 +23,7 @@ func TestEResourceSetConstructor(t *testing.T) {
 func TestEResourceSetResourcesWithMock(t *testing.T) {
 	rs := NewEResourceSetImpl()
 	r := new(MockEResourceInternal)
-	r.On("basicSetResourceSet", rs, nil).Return(nil)
+	r.On("BasicSetResourceSet", rs, nil).Return(nil)
 	rs.GetResources().Add(r)
 }
 
@@ -48,7 +48,7 @@ func TestEResourceSetCreateResource(t *testing.T) {
 
 	mockResourceFactoryRegistry.On("GetFactory", uri).Return(mockResourceFactory)
 	mockResourceFactory.On("CreateResource", uri).Return(mockResource)
-	mockResource.On("basicSetResourceSet", rs, nil).Return(nil)
+	mockResource.On("BasicSetResourceSet", rs, nil).Return(nil)
 	assert.NotNil(t, mockResource, rs.CreateResource(uri))
 }
 
@@ -62,7 +62,7 @@ func TestEResourceSetGetResource(t *testing.T) {
 
 	mockResourceFactoryRegistry.On("GetFactory", uri).Return(mockResourceFactory)
 	mockResourceFactory.On("CreateResource", uri).Return(mockResource)
-	mockResource.On("basicSetResourceSet", rs, nil).Return(nil)
+	mockResource.On("BasicSetResourceSet", rs, nil).Return(nil)
 	mockResource.On("Load").Once()
 
 	assert.Equal(t, mockResource, rs.GetResource(uri, true))
@@ -75,7 +75,7 @@ func TestEResourceSetGetRegisteredResource(t *testing.T) {
 
 	// register resource
 	mockResource := new(MockEResourceInternal)
-	mockResource.On("basicSetResourceSet", rs, nil).Return(nil)
+	mockResource.On("BasicSetResourceSet", rs, nil).Return(nil)
 	rs.GetResources().Add(mockResource)
 
 	// get registered resource - no loading
@@ -100,7 +100,7 @@ func TestEResourceSetGetEObject(t *testing.T) {
 
 	mockResourceFactoryRegistry.On("GetFactory", uriResource).Return(mockResourceFactory)
 	mockResourceFactory.On("CreateResource", uriResource).Return(mockResource)
-	mockResource.On("basicSetResourceSet", rs, nil).Return(nil)
+	mockResource.On("BasicSetResourceSet", rs, nil).Return(nil)
 	mockResource.On("Load").Once()
 	mockResource.On("GetEObject", "//@first/second").Return(mockObject)
 

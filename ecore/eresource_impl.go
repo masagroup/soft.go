@@ -14,8 +14,8 @@ type EResourceInternal interface {
 	DoSave(rd io.Writer, options map[string]interface{})
 	DoUnload()
 
-	basicSetLoaded(bool, ENotificationChain) ENotificationChain
-	basicSetResourceSet(EResourceSet, ENotificationChain) ENotificationChain
+	BasicSetLoaded(bool, ENotificationChain) ENotificationChain
+	BasicSetResourceSet(EResourceSet, ENotificationChain) ENotificationChain
 }
 
 type resourceNotification struct {
@@ -312,7 +312,7 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 
 func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]interface{}) {
 	if !r.isLoaded {
-		n := r.basicSetLoaded(true, nil)
+		n := r.BasicSetLoaded(true, nil)
 		r.GetInterfaces().(EResourceInternal).DoLoad(rd, options)
 		if n != nil {
 			n.Dispatch()
@@ -325,7 +325,7 @@ func (r *EResourceImpl) DoLoad(rd io.Reader, options map[string]interface{}) {
 
 func (r *EResourceImpl) Unload() {
 	if r.isLoaded {
-		n := r.basicSetLoaded(false, nil)
+		n := r.BasicSetLoaded(false, nil)
 		r.GetInterfaces().(EResourceInternal).DoUnload()
 		if n != nil {
 			n.Dispatch()
@@ -385,7 +385,7 @@ func (r *EResourceImpl) GetWarnings() EList {
 	return r.warnings
 }
 
-func (r *EResourceImpl) basicSetLoaded(isLoaded bool, msgs ENotificationChain) ENotificationChain {
+func (r *EResourceImpl) BasicSetLoaded(isLoaded bool, msgs ENotificationChain) ENotificationChain {
 	notifications := msgs
 	oldLoaded := r.isLoaded
 	r.isLoaded = isLoaded
@@ -398,7 +398,7 @@ func (r *EResourceImpl) basicSetLoaded(isLoaded bool, msgs ENotificationChain) E
 	return notifications
 }
 
-func (r *EResourceImpl) basicSetResourceSet(resourceSet EResourceSet, msgs ENotificationChain) ENotificationChain {
+func (r *EResourceImpl) BasicSetResourceSet(resourceSet EResourceSet, msgs ENotificationChain) ENotificationChain {
 	notifications := msgs
 	oldAbstractResourceSet := r.resourceSet
 	if oldAbstractResourceSet != nil {

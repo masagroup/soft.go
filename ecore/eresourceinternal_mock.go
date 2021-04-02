@@ -33,8 +33,8 @@ func (_m *MockEResourceInternal) DoUnload() {
 	_m.Called()
 }
 
-// basicSetLoaded provides a mock function with given fields: _a0, _a1
-func (_m *MockEResourceInternal) basicSetLoaded(_a0 bool, _a1 ENotificationChain) ENotificationChain {
+// BasicSetLoaded provides a mock function with given fields: _a0, _a1
+func (_m *MockEResourceInternal) BasicSetLoaded(_a0 bool, _a1 ENotificationChain) ENotificationChain {
 	ret := _m.Called(_a0, _a1)
 
 	var r0 ENotificationChain
@@ -49,8 +49,8 @@ func (_m *MockEResourceInternal) basicSetLoaded(_a0 bool, _a1 ENotificationChain
 	return r0
 }
 
-// basicSetResourceSet provides a mock function with given fields: _a0, _a1
-func (_m *MockEResourceInternal) basicSetResourceSet(_a0 EResourceSet, _a1 ENotificationChain) ENotificationChain {
+// BasicSetResourceSet provides a mock function with given fields: _a0, _a1
+func (_m *MockEResourceInternal) BasicSetResourceSet(_a0 EResourceSet, _a1 ENotificationChain) ENotificationChain {
 	ret := _m.Called(_a0, _a1)
 
 	var r0 ENotificationChain

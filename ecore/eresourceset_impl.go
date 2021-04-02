@@ -25,14 +25,14 @@ func (l *resourcesList) GetFeatureID() int {
 func (l *resourcesList) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {
 	eResource := object.(EResourceInternal)
 	n := notifications
-	n = eResource.basicSetResourceSet(l.resourceSet, n)
+	n = eResource.BasicSetResourceSet(l.resourceSet, n)
 	return n
 }
 
 func (l *resourcesList) inverseRemove(object interface{}, notifications ENotificationChain) ENotificationChain {
 	eResource := object.(EResourceInternal)
 	n := notifications
-	n = eResource.basicSetResourceSet(nil, n)
+	n = eResource.BasicSetResourceSet(nil, n)
 	return n
 }
 

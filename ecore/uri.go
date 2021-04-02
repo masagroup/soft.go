@@ -1,9 +1,8 @@
 package ecore
 
 import (
-	"errors"
+	"net/url"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -19,54 +18,31 @@ type URI struct {
 	Fragment string
 }
 
-var uriRegExp = regexp.MustCompile(
-	"(([a-zA-Z][a-zA-Z0-9+.-]*):)?" + // scheme:
-		"([^?#]*)" + // authority and path
-		"(?:\\?([^#]*))?" + //?query
-		"(?:#(.*))?", // #fragment
-)
-
-var authorityAndPathRegExp = regexp.MustCompile("//([^/]*)(/.*)?")
-
-var authorityRegExp = regexp.MustCompile(
-	"(?:([^@:]*)(?::([^@]*))?@)?" + // username, password
-		"(\\[[^\\]]*\\]|[^\\[:]*)" + // host (IP-literal (e.g. '['+IPv6+']',dotted-IPv4, or named host)
-		"(?::(\\d*))?", // port
-)
-
 func NewURI(rawURI string) *URI {
 	uri, _ := ParseURI(rawURI)
 	return uri
 }
 
 func ParseURI(rawURI string) (*URI, error) {
-	uriMatches := uriRegExp.FindStringSubmatch(rawURI)
-	if uriMatches == nil {
-		return nil, errors.New("invalid URI :'" + rawURI + "'")
-	}
-	uri := &URI{}
-	uri.Scheme = strings.ToLower(uriMatches[2])
-	authorityAndPath := uriMatches[3]
-	autorityAndPathMatches := authorityAndPathRegExp.FindStringSubmatch(authorityAndPath)
-	if autorityAndPathMatches == nil {
-		uri.Path = authorityAndPath
+	if url, err := url.Parse(rawURI); err != nil {
+		return nil, err
 	} else {
-		authority := autorityAndPathMatches[1]
-		autorityMatches := authorityRegExp.FindStringSubmatch(authority)
-		if autorityMatches == nil {
-			return nil, errors.New("invalid URI authority " + authority)
+		uri := &URI{Scheme: url.Scheme, Path: url.Path, Fragment: url.Fragment, Query: url.RawQuery}
+		if url.User != nil {
+			uri.Username = url.User.Username()
+			uri.Password, _ = url.User.Password()
 		}
-		uri.Username = autorityMatches[1]
-		uri.Password = autorityMatches[2]
-		uri.Host = autorityMatches[3]
-		if portStr := autorityMatches[4]; len(portStr) > 0 {
-			uri.Port, _ = strconv.Atoi(portStr)
+		if i := strings.IndexByte(url.Host, ':'); i >= 0 {
+			uri.Host = url.Host[0:i]
+			uri.Port, err = strconv.Atoi(url.Host[i+1:])
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			uri.Host = url.Host
 		}
-		uri.Path = autorityAndPathMatches[2]
+		return uri, nil
 	}
-	uri.Query = uriMatches[4]
-	uri.Fragment = uriMatches[5]
-	return uri, nil
 }
 
 func (uri *URI) IsAbsolute() bool {
@@ -531,7 +507,8 @@ func relativize(base *URI, child *URI) *URI {
 	cp := normalize(child.Path)
 	if bp != cp {
 		if !strings.HasSuffix(bp, "/") {
-			bp = bp + "/"
+			i := strings.LastIndexByte(bp, '/')
+			bp = bp[0 : i+1]
 		}
 
 		if !strings.HasPrefix(cp, bp) {

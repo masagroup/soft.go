@@ -12,7 +12,6 @@ func TestURI_Constructor(t *testing.T) {
 	assert.Equal(t, &URI{Scheme: "http", Host: "host"}, NewURI("http://host"))
 	assert.Equal(t, &URI{Scheme: "http", Host: "host", Port: 10020}, NewURI("http://host:10020"))
 	assert.Equal(t, &URI{Scheme: "http", Host: "host", Port: 10020, Path: "/path/path2"}, NewURI("http://host:10020/path/path2"))
-	assert.Equal(t, &URI{Scheme: "http", Host: "host", Port: 10020, Path: "/path/path2"}, NewURI("http://host:10020/path/path2"))
 	assert.Equal(t, &URI{Scheme: "http", Host: "host", Port: 10020, Path: "/path/path2", Query: "key1=foo&key2=&key3&=bar&=bar="}, NewURI("http://host:10020/path/path2?key1=foo&key2=&key3&=bar&=bar="))
 	assert.Equal(t, &URI{Scheme: "http", Host: "host", Port: 10020, Path: "/path/path2", Fragment: "fragment"}, NewURI("http://host:10020/path/path2#fragment"))
 	assert.Equal(t, &URI{Scheme: "file", Host: "file.txt", Query: "query", Fragment: "fragment"}, NewURI("file://file.txt?query#fragment"))
@@ -20,6 +19,14 @@ func TestURI_Constructor(t *testing.T) {
 	assert.Equal(t, &URI{Fragment: "fragment"}, NewURI("//#fragment"))
 	assert.Equal(t, &URI{Path: "path"}, NewURI("path"))
 	assert.Equal(t, &URI{Path: "./path"}, NewURI("./path"))
+}
+
+func TestURI_ParseURI(t *testing.T) {
+	{
+		uri, err := ParseURI("2http:///file.txt")
+		assert.NotNil(t, err)
+		assert.Nil(t, uri)
+	}
 }
 
 func TestURI_IsAbsolute(t *testing.T) {
@@ -76,6 +83,7 @@ func TestURI_Resolve(t *testing.T) {
 
 func TestURI_Relativize(t *testing.T) {
 	assert.Equal(t, NewURI("path2"), NewURI("http://host:10020/path/").Relativize(NewURI("http://host:10020/path/path2")))
+	assert.Equal(t, NewURI("path1"), NewURI("testdata/path2").Relativize(NewURI("testdata/path1")))
 }
 
 func TestURI_ReplacePrefix(t *testing.T) {

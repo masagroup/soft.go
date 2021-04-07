@@ -137,7 +137,7 @@ func (adapter *EContentAdapter) handleContainment(notification ENotification) {
 		newNotifier, _ := notification.GetNewValue().(ENotifier)
 		adapter.addAdapter(newNotifier)
 	case ADD_MANY:
-		newValues := notification.GetNewValue().([]interface{})
+		newValues, _ := notification.GetNewValue().([]interface{})
 		for _, notifier := range newValues {
 			newNotifier, _ := notifier.(ENotifier)
 			adapter.addAdapter(newNotifier)
@@ -150,7 +150,7 @@ func (adapter *EContentAdapter) handleContainment(notification ENotification) {
 	case REMOVE_MANY:
 		_, checkContainer := notification.GetNotifier().(EResource)
 		checkResource := notification.GetFeature() != nil
-		oldValues := notification.GetOldValue().([]interface{})
+		oldValues, _ := notification.GetOldValue().([]interface{})
 		for _, notifier := range oldValues {
 			oldNotifier, _ := notifier.(ENotifier)
 			adapter.removeAdapterWithChecks(oldNotifier, checkContainer, checkResource)

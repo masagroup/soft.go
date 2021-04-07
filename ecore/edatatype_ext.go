@@ -33,3 +33,7 @@ func (eDataType *eDataTypeExt) SetDefaultValue(newDefaultValue interface{}) {
 		eDataType.ENotify(NewNotificationByFeatureID(eDataType.AsEObject(), SET, EDATA_TYPE__DEFAULT_VALUE, oldDefaultValue, newDefaultValue, NO_INDEX))
 	}
 }
+
+func (eDataType *eDataTypeExt) GetDefaultValue() interface{} {
+	return eDataType.defaultValue
+}

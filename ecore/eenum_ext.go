@@ -20,6 +20,14 @@ func newEEnumExt() *eEnumExt {
 	return eEnum
 }
 
+func (eEnum *eEnumExt) GetDefaultValue() interface{} {
+	if eLiterals := eEnum.GetELiterals(); !eLiterals.Empty() {
+		eLiteral := eLiterals.Get(0).(EEnumLiteral)
+		return eLiteral.GetValue()
+	}
+	return nil
+}
+
 // GetEEnumLiteralByName default implementation
 func (eEnum *eEnumExt) GetEEnumLiteralByName(name string) EEnumLiteral {
 	for it := eEnum.GetELiterals().Iterator(); it.HasNext(); {

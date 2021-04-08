@@ -73,17 +73,17 @@ func (adapter *EContentAdapter) UnSetTarget(notifier ENotifier) {
 	switch t := notifier.(type) {
 	case EObject:
 		for it := t.EContents().Iterator(); it.HasNext(); {
-			notifier := it.Next().(ENotifier)
+			notifier, _ := it.Next().(ENotifier)
 			adapter.removeAdapterWithChecks(notifier, false, true)
 		}
 	case EResource:
 		for it := t.GetContents().Iterator(); it.HasNext(); {
-			notifier := it.Next().(ENotifier)
+			notifier, _ := it.Next().(ENotifier)
 			adapter.removeAdapterWithChecks(notifier, true, false)
 		}
 	case EResourceSet:
 		for it := t.GetResources().Iterator(); it.HasNext(); {
-			notifier := it.Next().(ENotifier)
+			notifier, _ := it.Next().(ENotifier)
 			adapter.removeAdapterWithChecks(notifier, false, false)
 		}
 	}
@@ -118,37 +118,42 @@ func (adapter *EContentAdapter) handleContainment(notification ENotification) {
 		// and also attaching it again as we walk the eContents() later.
 		// Checking here avoids having to check during addAdapter.
 		//
-		oldNotifier := notification.GetOldValue().(ENotifier)
-		if oldNotifier.EAdapters().Contains(adapter) {
+		oldNotifier, _ := notification.GetOldValue().(ENotifier)
+		if oldNotifier != nil && oldNotifier.EAdapters().Contains(adapter) {
 			adapter.removeAdapter(oldNotifier)
 			adapter.addAdapter(notification.GetNewValue().(ENotifier))
 		}
 	case UNSET:
-		adapter.removeAdapterWithChecks(notification.GetOldValue().(ENotifier), false, true)
-		adapter.addAdapter(notification.GetNewValue().(ENotifier))
+		oldNotifier, _ := notification.GetOldValue().(ENotifier)
+		newNotifier, _ := notification.GetNewValue().(ENotifier)
+		adapter.removeAdapterWithChecks(oldNotifier, false, true)
+		adapter.addAdapter(newNotifier)
 	case SET:
-		adapter.removeAdapterWithChecks(notification.GetOldValue().(ENotifier), false, true)
-		adapter.addAdapter(notification.GetNewValue().(ENotifier))
+		oldNotifier, _ := notification.GetOldValue().(ENotifier)
+		newNotifier, _ := notification.GetNewValue().(ENotifier)
+		adapter.removeAdapterWithChecks(oldNotifier, false, true)
+		adapter.addAdapter(newNotifier)
 	case ADD:
-		adapter.addAdapter(notification.GetNewValue().(ENotifier))
+		newNotifier, _ := notification.GetNewValue().(ENotifier)
+		adapter.addAdapter(newNotifier)
 	case ADD_MANY:
-		newValues := notification.GetNewValue().([]interface{})
+		newValues, _ := notification.GetNewValue().([]interface{})
 		for _, notifier := range newValues {
-			adapter.addAdapter(notifier.(ENotifier))
+			newNotifier, _ := notifier.(ENotifier)
+			adapter.addAdapter(newNotifier)
 		}
 	case REMOVE:
-		oldValue := notification.GetOldValue().(ENotifier)
-		if oldValue != nil {
-			_, checkContainer := notification.GetNotifier().(EResource)
-			checkResource := notification.GetFeature() != nil
-			adapter.removeAdapterWithChecks(oldValue, checkContainer, checkResource)
-		}
+		oldNotifier, _ := notification.GetOldValue().(ENotifier)
+		_, checkContainer := notification.GetNotifier().(EResource)
+		checkResource := notification.GetFeature() != nil
+		adapter.removeAdapterWithChecks(oldNotifier, checkContainer, checkResource)
 	case REMOVE_MANY:
 		_, checkContainer := notification.GetNotifier().(EResource)
 		checkResource := notification.GetFeature() != nil
-		oldValues := notification.GetOldValue().([]interface{})
+		oldValues, _ := notification.GetOldValue().([]interface{})
 		for _, notifier := range oldValues {
-			adapter.removeAdapterWithChecks(notifier.(ENotifier), checkContainer, checkResource)
+			oldNotifier, _ := notifier.(ENotifier)
+			adapter.removeAdapterWithChecks(oldNotifier, checkContainer, checkResource)
 		}
 	}
 }

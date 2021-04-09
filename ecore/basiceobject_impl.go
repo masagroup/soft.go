@@ -11,8 +11,8 @@ package ecore
 
 type basicEObjectImplProperties struct {
 	proxyURI        *URI
-	contents        *eContentsList
-	crossReferenceS *eContentsList
+	contents        *eContentsListAdapter
+	crossReferences *eContentsListAdapter
 }
 
 type BasicEObjectImpl struct {
@@ -83,22 +83,20 @@ func (o *BasicEObjectImpl) ESetProxyURI(uri *URI) {
 
 // EContents ...
 func (o *BasicEObjectImpl) EContents() EList {
-	if o.getObjectProperties().contents == nil {
-		eObject := o.AsEObject()
-		eFeatures := eObject.EClass().GetEContainmentFeatures()
-		o.getObjectProperties().contents = newEContentsList(eObject, eFeatures, true)
+	properties := o.getObjectProperties()
+	if properties.contents == nil {
+		properties.contents = newContentsListAdapter(o.AsEObject(), func(c EClass) EList { return c.GetEContainmentFeatures() })
 	}
-	return o.getObjectProperties().contents
+	return properties.contents.GetList()
 }
 
 // ECrossReferences ...
 func (o *BasicEObjectImpl) ECrossReferences() EList {
-	if o.getObjectProperties().crossReferenceS == nil {
-		eObject := o.AsEObject()
-		eFeatures := eObject.EClass().GetECrossReferenceFeatures()
-		o.getObjectProperties().crossReferenceS = newEContentsList(eObject, eFeatures, true)
+	properties := o.getObjectProperties()
+	if properties.crossReferences == nil {
+		properties.crossReferences = newContentsListAdapter(o.AsEObject(), func(c EClass) EList { return c.GetECrossReferenceFeatures() })
 	}
-	return o.getObjectProperties().crossReferenceS
+	return properties.crossReferences.GetList()
 }
 
 // ESetContainer ...

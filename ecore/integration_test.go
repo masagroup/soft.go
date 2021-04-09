@@ -23,7 +23,7 @@ func assertResource(t *testing.T, resource EResource) {
 	require.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
 }
 
-func Test_EAllContents(t *testing.T) {
+func TestEAllContents(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
 	shopEcoreResource := xmiProcessor.Load(CreateFileURI("testdata/shop.ecore"))
 	assertResource(t, shopEcoreResource)
@@ -47,4 +47,12 @@ func Test_EAllContents(t *testing.T) {
 		i++
 	}
 	assert.Equal(t, 11, i)
+}
+
+func TestGetEObjectInResource(t *testing.T) {
+	xmiProcessor := NewXMIProcessor()
+	shopEcoreResource := xmiProcessor.Load(CreateFileURI("testdata/shop.ecore"))
+	assertResource(t, shopEcoreResource)
+	eProductClass := shopEcoreResource.GetEObject("//Product")
+	require.NotNil(t, eProductClass)
 }

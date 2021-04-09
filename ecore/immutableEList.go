@@ -97,7 +97,7 @@ func (l *emptyImmutableEList) GetUnResolvedList() EList {
 	return l
 }
 
-func NewEmptyImmutableList() *emptyImmutableEList {
+func NewEmptyImmutableEList() *emptyImmutableEList {
 	return &emptyImmutableEList{}
 }
 

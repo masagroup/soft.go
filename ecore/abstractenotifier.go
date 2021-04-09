@@ -103,7 +103,7 @@ func (notifier *AbstractENotifier) EBasicHasAdapters() bool {
 }
 
 func (notifier *AbstractENotifier) EAdapters() EList {
-	return NewEmptyImmutableList()
+	return NewEmptyImmutableEList()
 }
 
 func (notifier *AbstractENotifier) EDeliver() bool {

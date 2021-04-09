@@ -11,7 +11,7 @@ import (
 func TestEContentsListNoFeatures(t *testing.T) {
 	mockObject := &MockEObject{}
 	value := struct{}{}
-	mockList := NewEmptyImmutableList()
+	mockList := NewEmptyImmutableEList()
 	l := newEContentsList(mockObject, mockList, false)
 	assert.Equal(t, 0, l.Size())
 	assert.Equal(t, -1, l.IndexOf(value))

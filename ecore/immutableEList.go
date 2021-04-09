@@ -97,7 +97,7 @@ func (l *emptyImmutableEList) GetUnResolvedList() EList {
 	return l
 }
 
-func NewEmptyImmtutableEList() *emptyImmutableEList {
+func NewEmptyImmutableList() *emptyImmutableEList {
 	return &emptyImmutableEList{}
 }
 
@@ -109,10 +109,6 @@ type immutableEList struct {
 // NewImmutableEList return a new ImmutableEList
 func NewImmutableEList(data []interface{}) *immutableEList {
 	return &immutableEList{data: data}
-}
-
-func NewEmptyImmutableEList() *immutableEList {
-	return &immutableEList{data: []interface{}{}}
 }
 
 // Get an element of the array

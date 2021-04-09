@@ -14,8 +14,8 @@ func TestUniqueIDManagerRegister(t *testing.T) {
 	mockChild2 := &MockEObject{}
 	mockOther := &MockEObject{}
 	mockObject.On("EContents").Return(NewImmutableEList([]interface{}{mockChild1, mockChild2})).Once()
-	mockChild1.On("EContents").Return(NewEmptyImmutableEList()).Once()
-	mockChild2.On("EContents").Return(NewEmptyImmutableEList()).Once()
+	mockChild1.On("EContents").Return(NewEmptyImmutableList()).Once()
+	mockChild2.On("EContents").Return(NewEmptyImmutableList()).Once()
 	m.Register(mockObject)
 	mock.AssertExpectationsForObjects(t, mockObject, mockChild1, mockChild2, mockOther)
 
@@ -43,21 +43,21 @@ func TestUniqueIDManagerUnRegister(t *testing.T) {
 	mockChild1 := &MockEObject{}
 	mockChild2 := &MockEObject{}
 	mockObject.On("EContents").Return(NewImmutableEList([]interface{}{mockChild1, mockChild2})).Once()
-	mockChild1.On("EContents").Return(NewEmptyImmutableEList()).Once()
-	mockChild2.On("EContents").Return(NewEmptyImmutableEList()).Once()
+	mockChild1.On("EContents").Return(NewEmptyImmutableList()).Once()
+	mockChild2.On("EContents").Return(NewEmptyImmutableList()).Once()
 	m.Register(mockObject)
 	mock.AssertExpectationsForObjects(t, mockObject, mockChild1, mockChild2)
 	id2 := m.GetID(mockChild2)
 	assert.NotNil(t, id2)
 
 	// unregister one child
-	mockChild2.On("EContents").Return(NewEmptyImmutableEList()).Once()
+	mockChild2.On("EContents").Return(NewEmptyImmutableList()).Once()
 	m.UnRegister(mockChild2)
 	assert.Nil(t, m.GetID(mockChild2))
 	mock.AssertExpectationsForObjects(t, mockObject, mockChild1, mockChild2)
 
 	// register this child again and check it was detached
-	mockChild2.On("EContents").Return(NewEmptyImmutableEList()).Once()
+	mockChild2.On("EContents").Return(NewEmptyImmutableList()).Once()
 	m.Register(mockChild2)
 	mock.AssertExpectationsForObjects(t, mockObject, mockChild1, mockChild2)
 	assert.Equal(t, id2, m.GetID(mockChild2))

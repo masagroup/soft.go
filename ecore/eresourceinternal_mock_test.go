@@ -70,3 +70,30 @@ func TestMockEResourceInternalBasicSetResourceSet(t *testing.T) {
 	assert.Equal(t, n2, r.BasicSetResourceSet(rs, n1))
 	mock.AssertExpectationsForObjects(t, r, rs, n1, n2)
 }
+
+func TestMockEResourceInternalDoAttached(t *testing.T) {
+	r := &MockEResourceInternal{}
+	o := &MockEObject{}
+	r.On("DoAttached", o)
+	r.DoAttached(o)
+	r.AssertExpectations(t)
+}
+
+func TestMockEResourceInternalDetached(t *testing.T) {
+	r := &MockEResourceInternal{}
+	o := &MockEObject{}
+	r.On("DoDetached", o)
+	r.DoDetached(o)
+	r.AssertExpectations(t)
+}
+
+func TestMockEResourceInternalIsAttachedDetachedRequired(t *testing.T) {
+	r := &MockEResourceInternal{}
+	r.On("IsAttachedDetachedRequired").Return(true).Once()
+	r.On("IsAttachedDetachedRequired").Return(func() bool {
+		return false
+	}).Once()
+	assert.True(t, r.IsAttachedDetachedRequired())
+	assert.False(t, r.IsAttachedDetachedRequired())
+	mock.AssertExpectationsForObjects(t, r)
+}

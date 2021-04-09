@@ -209,20 +209,24 @@ func (o *CompactEObjectImpl) ESetProxyURI(uri *URI) {
 func (o *CompactEObjectImpl) EContents() EList {
 	contents := o.getField(contents_flag)
 	if contents == nil {
-		contents = newContentsListAdapter(&o.AbstractEObject, func(eClass EClass) EList { return eClass.GetEContainmentFeatures() })
+		eObject := o.AsEObject()
+		eFeatures := eObject.EClass().GetEContainmentFeatures()
+		contents = newEContentsList(eObject, eFeatures, true)
 		o.setField(contents_flag, contents)
 	}
-	return contents.(*contentsListAdapter).GetList()
+	return contents.(EList)
 }
 
 // ECrossReferences ...
 func (o *CompactEObjectImpl) ECrossReferences() EList {
 	crossReferences := o.getField(cross_flag)
 	if crossReferences == nil {
-		crossReferences = newContentsListAdapter(&o.AbstractEObject, func(eClass EClass) EList { return eClass.GetECrossReferenceFeatures() })
-		o.setField(cross_flag, crossReferences)
+		eObject := o.AsEObject()
+		eFeatures := eObject.EClass().GetECrossReferenceFeatures()
+		crossReferences = newEContentsList(eObject, eFeatures, true)
+		o.setField(contents_flag, crossReferences)
 	}
-	return crossReferences.(*contentsListAdapter).GetList()
+	return crossReferences.(EList)
 }
 
 // ESetContainer ...

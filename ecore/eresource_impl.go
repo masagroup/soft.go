@@ -14,6 +14,10 @@ type EResourceInternal interface {
 	DoSave(rd io.Writer, options map[string]interface{})
 	DoUnload()
 
+	IsAttachedDetachedRequired() bool
+	DoAttached(o EObject)
+	DoDetached(o EObject)
+
 	BasicSetLoaded(bool, ENotificationChain) ENotificationChain
 	BasicSetResourceSet(EResourceSet, ENotificationChain) ENotificationChain
 }
@@ -114,6 +118,10 @@ func (r *EResourceImpl) AsEResource() EResource {
 	return r.GetInterfaces().(EResource)
 }
 
+func (r *EResourceImpl) AsEResourceInternal() EResourceInternal {
+	return r.GetInterfaces().(EResourceInternal)
+}
+
 func (r *EResourceImpl) GetResourceSet() EResourceSet {
 	return r.resourceSet
 }
@@ -138,11 +146,11 @@ func (r *EResourceImpl) GetContents() EList {
 }
 
 func (r *EResourceImpl) GetAllContents() EIterator {
-	return r.getAllContentsResolve(true)
+	return r.getAllContentsResolve(r.GetInterfaces(), true)
 }
 
-func (r *EResourceImpl) getAllContentsResolve(resolve bool) EIterator {
-	return newTreeIterator(r.GetInterfaces(), false, func(o interface{}) EIterator {
+func (r *EResourceImpl) getAllContentsResolve(root interface{}, resolve bool) EIterator {
+	return newTreeIterator(root, false, func(o interface{}) EIterator {
 		if o == r.GetInterfaces() {
 			return o.(EResource).GetContents().Iterator()
 		}
@@ -232,7 +240,7 @@ func (r *EResourceImpl) getObjectByID(id string) EObject {
 	if r.objectIDManager != nil {
 		return r.objectIDManager.GetEObject(id)
 	}
-	for it := r.getAllContentsResolve(false); it.HasNext(); {
+	for it := r.getAllContentsResolve(r.GetInterfaces(), false); it.HasNext(); {
 		eObject := it.Next().(EObject)
 		objectID := GetEObjectID(eObject)
 		if id == objectID {
@@ -270,13 +278,39 @@ func (r *EResourceImpl) getObjectForRootSegment(rootSegment string) EObject {
 	return nil
 }
 
+func (r *EResourceImpl) IsAttachedDetachedRequired() bool {
+	return r.objectIDManager != nil
+}
+
 func (r *EResourceImpl) Attached(object EObject) {
+	if resourceInternal := r.AsEResourceInternal(); resourceInternal.IsAttachedDetachedRequired() {
+		resourceInternal.DoAttached(object)
+		for it := r.getAllContentsResolve(object, false); it.HasNext(); {
+			if o, _ := it.Next().(EObject); o != nil {
+				resourceInternal.DoAttached(o)
+			}
+		}
+	}
+}
+
+func (r *EResourceImpl) DoAttached(object EObject) {
 	if r.objectIDManager != nil {
 		r.objectIDManager.Register(object)
 	}
 }
 
 func (r *EResourceImpl) Detached(object EObject) {
+	if resourceInternal := r.AsEResourceInternal(); resourceInternal.IsAttachedDetachedRequired() {
+		resourceInternal.DoDetached(object)
+		for it := r.getAllContentsResolve(object, false); it.HasNext(); {
+			if o, _ := it.Next().(EObject); o != nil {
+				resourceInternal.DoDetached(o)
+			}
+		}
+	}
+}
+
+func (r *EResourceImpl) DoDetached(object EObject) {
 	if r.objectIDManager != nil {
 		r.objectIDManager.UnRegister(object)
 	}

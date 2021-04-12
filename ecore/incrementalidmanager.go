@@ -97,6 +97,9 @@ func (m *IncrementalIDManager) GetID(eObject EObject) interface{} {
 	if id, isPresent := m.objectToID[eObject]; isPresent {
 		return id
 	}
+	if id, isDetached := m.detachedToID[eObject]; isDetached {
+		return id
+	}
 	return nil
 }
 

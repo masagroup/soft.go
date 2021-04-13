@@ -10,4 +10,6 @@ type EObjectIDManager interface {
 
 	GetID(EObject) interface{}
 	GetEObject(interface{}) EObject
+
+	GetDetachedID(EObject) interface{}
 }

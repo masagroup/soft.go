@@ -53,12 +53,6 @@ func (m *IncrementalIDManager) Register(eObject EObject) {
 		}
 		m.SetID(eObject, newID)
 	}
-	// register children
-	eChildren := eObject.EContents().(EObjectList).GetUnResolvedList()
-	for it := eChildren.Iterator(); it.HasNext(); {
-		eChild := it.Next().(EObject)
-		m.Register(eChild)
-	}
 }
 
 func (m *IncrementalIDManager) SetID(eObject EObject, id interface{}) {
@@ -85,18 +79,16 @@ func (m *IncrementalIDManager) UnRegister(eObject EObject) {
 		delete(m.objectToID, eObject)
 		m.detachedToID[eObject] = id
 	}
-	// unregister children
-	eChildren := eObject.EContents().(EObjectList).GetUnResolvedList()
-	for it := eChildren.Iterator(); it.HasNext(); {
-		eChild := it.Next().(EObject)
-		m.UnRegister(eChild)
-	}
 }
 
 func (m *IncrementalIDManager) GetID(eObject EObject) interface{} {
 	if id, isPresent := m.objectToID[eObject]; isPresent {
 		return id
 	}
+	return nil
+}
+
+func (m *IncrementalIDManager) GetDetachedID(eObject EObject) interface{} {
 	if id, isDetached := m.detachedToID[eObject]; isDetached {
 		return id
 	}

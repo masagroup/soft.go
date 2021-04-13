@@ -44,6 +44,19 @@ func (_m *MockEObjectIDManager) GetID(_a0 EObject) interface{} {
 	return r0
 }
 
+func (_m *MockEObjectIDManager) GetDetachedID(_a0 EObject) interface{} {
+	ret := _m.Called(_a0)
+
+	var r0 interface{}
+	if rf, ok := ret.Get(0).(func(EObject) interface{}); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Get(0)
+	}
+
+	return r0
+}
+
 // Register provides a mock function with given fields: _a0
 func (_m *MockEObjectIDManager) Register(_a0 EObject) {
 	_m.Called(_a0)

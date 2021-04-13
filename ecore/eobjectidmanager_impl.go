@@ -23,11 +23,6 @@ func (m *EObjectIDManagerImpl) Register(eObject EObject) {
 		m.idToObject[id] = eObject
 		m.objectToID[eObject] = id
 	}
-	eChildren := eObject.EContents().(EObjectList).GetUnResolvedList()
-	for it := eChildren.Iterator(); it.HasNext(); {
-		eChild := it.Next().(EObject)
-		m.Register(eChild)
-	}
 }
 
 func (m *EObjectIDManagerImpl) SetID(eObject EObject, id interface{}) {
@@ -59,11 +54,6 @@ func (m *EObjectIDManagerImpl) UnRegister(eObject EObject) {
 		delete(m.idToObject, id)
 		delete(m.objectToID, eObject)
 	}
-	eChildren := eObject.EContents().(EObjectList).GetUnResolvedList()
-	for it := eChildren.Iterator(); it.HasNext(); {
-		eChild := it.Next().(EObject)
-		m.UnRegister(eChild)
-	}
 }
 
 func (m *EObjectIDManagerImpl) GetID(eObject EObject) interface{} {
@@ -71,6 +61,10 @@ func (m *EObjectIDManagerImpl) GetID(eObject EObject) interface{} {
 		return id
 	}
 	return nil
+}
+
+func (m *EObjectIDManagerImpl) GetDetachedID(eObject EObject) interface{} {
+	return GetEObjectID(eObject)
 }
 
 func (m *EObjectIDManagerImpl) GetEObject(id interface{}) EObject {

@@ -36,21 +36,9 @@ func TestEObjectIDManagerImplRegisterNoID(t *testing.T) {
 	m := NewEObjectIDManagerImpl()
 
 	mockObject := createMockEObjectWithID("")
-	mockChild1 := createMockEObjectWithID("")
-	mockChild2 := createMockEObjectWithID("")
-	mockChildren := NewImmutableEList([]interface{}{mockChild1, mockChild2})
-	mockObject.On("EContents").Return(mockChildren)
-	mockChild1.On("EContents").Return(NewImmutableEList([]interface{}{}))
-	mockChild2.On("EContents").Return(NewImmutableEList([]interface{}{}))
-
 	m.Register(mockObject)
-
 	assert.Nil(t, m.GetID(mockObject))
-	assert.Nil(t, m.GetID(mockChild1))
-	assert.Nil(t, m.GetID(mockChild2))
 	mock.AssertExpectationsForObjects(t, mockObject)
-	mock.AssertExpectationsForObjects(t, mockChildren.ToArray()...)
-
 }
 
 func TestEObjectIDManagerImplRegisterWithID(t *testing.T) {
@@ -58,61 +46,20 @@ func TestEObjectIDManagerImplRegisterWithID(t *testing.T) {
 	m := NewEObjectIDManagerImpl()
 
 	mockObject := createMockEObjectWithID("id")
-	mockChild1 := createMockEObjectWithID("id1")
-	mockChild2 := createMockEObjectWithID("id2")
-	mockChildren := NewImmutableEList([]interface{}{mockChild1, mockChild2})
-	mockObject.On("EContents").Return(mockChildren)
-	mockChild1.On("EContents").Return(NewImmutableEList([]interface{}{}))
-	mockChild2.On("EContents").Return(NewImmutableEList([]interface{}{}))
-
 	m.Register(mockObject)
-
 	assert.Equal(t, "id", m.GetID(mockObject))
-	assert.Equal(t, "id1", m.GetID(mockChild1))
-	assert.Equal(t, "id2", m.GetID(mockChild2))
-
-	assert.Equal(t, mockObject, m.GetEObject("id"))
-	assert.Equal(t, mockChild1, m.GetEObject("id1"))
-	assert.Equal(t, mockChild2, m.GetEObject("id2"))
-
 	mock.AssertExpectationsForObjects(t, mockObject)
-	mock.AssertExpectationsForObjects(t, mockChildren.ToArray()...)
 }
 
 func TestEObjectIDManagerImplUnRegisterWithID(t *testing.T) {
-
 	m := NewEObjectIDManagerImpl()
-
 	mockObject := createMockEObjectWithID("id")
-	mockChild1 := createMockEObjectWithID("id1")
-	mockChild2 := createMockEObjectWithID("id2")
-	mockChildren := NewImmutableEList([]interface{}{mockChild1, mockChild2})
-	mockObject.On("EContents").Return(mockChildren)
-	mockChild1.On("EContents").Return(NewImmutableEList([]interface{}{}))
-	mockChild2.On("EContents").Return(NewImmutableEList([]interface{}{}))
-
 	m.Register(mockObject)
-
 	assert.Equal(t, "id", m.GetID(mockObject))
-	assert.Equal(t, "id1", m.GetID(mockChild1))
-	assert.Equal(t, "id2", m.GetID(mockChild2))
-
-	assert.Equal(t, mockObject, m.GetEObject("id"))
-	assert.Equal(t, mockChild1, m.GetEObject("id1"))
-	assert.Equal(t, mockChild2, m.GetEObject("id2"))
-
 	m.UnRegister(mockObject)
-
 	assert.Nil(t, m.GetID(mockObject))
-	assert.Nil(t, m.GetID(mockChild1))
-	assert.Nil(t, m.GetID(mockChild2))
-
-	assert.Nil(t, m.GetEObject("id"))
-	assert.Nil(t, m.GetEObject("id1"))
-	assert.Nil(t, m.GetEObject("id2"))
-
+	assert.Equal(t, "id", m.GetDetachedID(mockObject))
 	mock.AssertExpectationsForObjects(t, mockObject)
-	mock.AssertExpectationsForObjects(t, mockChildren.ToArray()...)
 }
 
 func TestEObjectIDManagerSetID(t *testing.T) {

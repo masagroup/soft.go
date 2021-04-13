@@ -63,12 +63,6 @@ func (m *UniqueIDManager) Register(eObject EObject) {
 		}
 		m.SetID(eObject, newID)
 	}
-	// register children
-	eChildren := eObject.EContents().(EObjectList).GetUnResolvedList()
-	for it := eChildren.Iterator(); it.HasNext(); {
-		eChild := it.Next().(EObject)
-		m.Register(eChild)
-	}
 }
 
 func (m *UniqueIDManager) SetID(eObject EObject, id interface{}) {
@@ -99,24 +93,21 @@ func (m *UniqueIDManager) UnRegister(eObject EObject) {
 		delete(m.objectToID, eObject)
 		m.detachedToID[eObject] = id
 	}
-	// unregister children
-	eChildren := eObject.EContents().(EObjectList).GetUnResolvedList()
-	for it := eChildren.Iterator(); it.HasNext(); {
-		eChild := it.Next().(EObject)
-		m.UnRegister(eChild)
-	}
 }
 
 func (m *UniqueIDManager) GetID(eObject EObject) interface{} {
 	if id, isPresent := m.objectToID[eObject]; isPresent {
 		return id
 	}
+	return nil
+}
+
+func (m *UniqueIDManager) GetDetachedID(eObject EObject) interface{} {
 	if id, isDetached := m.detachedToID[eObject]; isDetached {
 		return id
 	}
 	return nil
 }
-
 func (m *UniqueIDManager) GetEObject(id interface{}) EObject {
 	switch id.(type) {
 	case string:

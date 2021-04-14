@@ -81,15 +81,15 @@ func TestBasicEListRemoveAll(t *testing.T) {
 	assert.Equal(t, []interface{}{7}, arr.ToArray())
 }
 
-func TestBasicEListMoveObjectAfter(t *testing.T) {
+func TestBasicEListMoveObjectBefore(t *testing.T) {
 	arr := NewBasicEList([]interface{}{2, 4, 6, 8, 10})
 	arr.MoveObject(3, 4)
-	assert.Equal(t, []interface{}{2, 6, 4, 8, 10}, arr.ToArray())
+	assert.Equal(t, []interface{}{2, 6, 8, 4, 10}, arr.ToArray())
 }
 
-func TestBasicEListMoveObjectBegin(t *testing.T) {
+func TestBasicEListMoveObjectAfter(t *testing.T) {
 	arr := NewBasicEList([]interface{}{2, 4, 6, 8, 10})
-	arr.MoveObject(5, 4)
+	arr.MoveObject(4, 4)
 	assert.Equal(t, []interface{}{2, 6, 8, 10, 4}, arr.ToArray())
 }
 
@@ -113,6 +113,36 @@ func TestBasicEListMoveObjectInvalid(t *testing.T) {
 func TestBasicEListMoveInvalid(t *testing.T) {
 	arr := NewBasicEList([]interface{}{2, 4, 6, 8, 10})
 	assert.Panics(t, func() { arr.Move(1, 7) })
+}
+
+func TestBasicEListMoveBorders(t *testing.T) {
+	arr := NewBasicEList([]interface{}{2, 4})
+	arr.Move(0, 1)
+	assert.Equal(t, []interface{}{4, 2}, arr.ToArray())
+}
+
+func TestBasicEListMoveBordersInverse(t *testing.T) {
+	arr := NewBasicEList([]interface{}{2, 4})
+	arr.Move(1, 0)
+	assert.Equal(t, []interface{}{4, 2}, arr.ToArray())
+}
+
+func TestBasicEListMoveComplex(t *testing.T) {
+	arr := NewBasicEList([]interface{}{2, 4, 6, 8, 10})
+	arr.Move(0, 3)
+	assert.Equal(t, []interface{}{4, 6, 8, 2, 10}, arr.ToArray())
+}
+
+func TestBasicEListMoveComplexEnd(t *testing.T) {
+	arr := NewBasicEList([]interface{}{2, 4, 6, 8, 10})
+	arr.Move(0, 4)
+	assert.Equal(t, []interface{}{4, 6, 8, 10, 2}, arr.ToArray())
+}
+
+func TestBasicEListMoveComplexInverse(t *testing.T) {
+	arr := NewBasicEList([]interface{}{2, 4, 6, 8, 10})
+	arr.Move(3, 1)
+	assert.Equal(t, []interface{}{2, 8, 4, 6, 10}, arr.ToArray())
 }
 
 func TestBasicEListRemoveBegin(t *testing.T) {

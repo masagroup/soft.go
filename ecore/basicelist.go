@@ -203,13 +203,17 @@ func (list *basicEList) doMove(oldIndex, newIndex int) interface{} {
 		newIndex < 0 || newIndex > list.Size() {
 		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(list.Size()))
 	}
+
 	object := list.data[oldIndex]
-	copy(list.data[oldIndex:], list.data[oldIndex+1:])
-	if newIndex > oldIndex {
-		newIndex--
+	if oldIndex != newIndex {
+		if newIndex < oldIndex {
+			copy(list.data[newIndex+1:], list.data[newIndex:oldIndex])
+		} else {
+			copy(list.data[oldIndex:], list.data[oldIndex+1:newIndex+1])
+		}
 	}
-	copy(list.data[newIndex+1:], list.data[newIndex:])
 	list.data[newIndex] = object
+
 	// events
 	interfaces := list.interfaces.(abstractEList)
 	interfaces.didMove(newIndex, object, oldIndex)

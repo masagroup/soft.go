@@ -10,6 +10,7 @@ import (
 type EResourceInternal interface {
 	EResource
 
+	IsLoading() bool
 	DoLoad(rd io.Reader, options map[string]interface{})
 	DoSave(rd io.Writer, options map[string]interface{})
 	DoUnload()
@@ -104,6 +105,7 @@ type EResourceImpl struct {
 	errors          EList
 	warnings        EList
 	isLoaded        bool
+	isLoading       bool
 }
 
 // NewBasicEObject is BasicEObject constructor
@@ -349,6 +351,7 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]interface{}) {
 	if !r.isLoaded {
 		n := r.BasicSetLoaded(true, nil)
+		r.isLoading = true
 		if r.errors != nil {
 			r.errors.Clear()
 		}
@@ -359,6 +362,7 @@ func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]interfac
 		if n != nil {
 			n.Dispatch()
 		}
+		r.isLoading = false
 	}
 }
 
@@ -386,6 +390,10 @@ func (r *EResourceImpl) DoUnload() {
 
 func (r *EResourceImpl) IsLoaded() bool {
 	return r.isLoaded
+}
+
+func (r *EResourceImpl) IsLoading() bool {
+	return r.isLoading
 }
 
 func (r *EResourceImpl) Save() {

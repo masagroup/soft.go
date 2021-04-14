@@ -335,7 +335,9 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 		if uriConverter != nil {
 			rd, err := uriConverter.CreateReader(r.uri)
 			if err != nil {
-				r.GetErrors().Add(NewEDiagnosticImpl("Unable to create reader for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
+				errors := r.GetErrors()
+				errors.Clear()
+				errors.Add(NewEDiagnosticImpl("Unable to create reader for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
 			} else if rd != nil {
 				r.LoadWithReader(rd, options)
 				rd.Close()
@@ -347,6 +349,12 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]interface{}) {
 	if !r.isLoaded {
 		n := r.BasicSetLoaded(true, nil)
+		if r.errors != nil {
+			r.errors.Clear()
+		}
+		if r.warnings != nil {
+			r.warnings.Clear()
+		}
 		r.GetInterfaces().(EResourceInternal).DoLoad(rd, options)
 		if n != nil {
 			n.Dispatch()
@@ -389,7 +397,9 @@ func (r *EResourceImpl) SaveWithOptions(options map[string]interface{}) {
 	if uriConverter != nil {
 		w, err := uriConverter.CreateWriter(r.uri)
 		if err != nil {
-			r.GetErrors().Add(NewEDiagnosticImpl("Unable to create writer for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
+			errors := r.GetErrors()
+			errors.Clear()
+			errors.Add(NewEDiagnosticImpl("Unable to create writer for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
 		} else if w != nil {
 			r.SaveWithWriter(w, options)
 			w.Close()
@@ -398,6 +408,12 @@ func (r *EResourceImpl) SaveWithOptions(options map[string]interface{}) {
 }
 
 func (r *EResourceImpl) SaveWithWriter(w io.Writer, options map[string]interface{}) {
+	if r.errors != nil {
+		r.errors.Clear()
+	}
+	if r.warnings != nil {
+		r.warnings.Clear()
+	}
 	r.GetInterfaces().(EResourceInternal).DoSave(w, options)
 }
 

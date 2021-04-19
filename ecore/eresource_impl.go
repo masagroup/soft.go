@@ -95,6 +95,30 @@ func (rc *resourceContents) inverseRemove(object interface{}, notifications ENot
 	return n
 }
 
+type resourceDiagnostics struct {
+	BasicENotifyingList
+	resource  *EResourceImpl
+	featureID int
+}
+
+func newResourceDiagnostics(resource *EResourceImpl, featureID int) *resourceDiagnostics {
+	rd := new(resourceDiagnostics)
+	rd.interfaces = rd
+	rd.data = []interface{}{}
+	rd.isUnique = true
+	rd.resource = resource
+	rd.featureID = featureID
+	return rd
+}
+
+func (rd *resourceDiagnostics) GetNotifier() ENotifier {
+	return rd.resource.AsENotifier()
+}
+
+func (rd *resourceDiagnostics) GetFeatureID() int {
+	return rd.featureID
+}
+
 //EResource ...
 type EResourceImpl struct {
 	ENotifierImpl
@@ -435,14 +459,14 @@ func (r *EResourceImpl) DoSave(rd io.Writer, options map[string]interface{}) {
 
 func (r *EResourceImpl) GetErrors() EList {
 	if r.errors == nil {
-		r.errors = NewEmptyBasicEList()
+		r.errors = newResourceDiagnostics(r, RESOURCE__ERRORS)
 	}
 	return r.errors
 }
 
 func (r *EResourceImpl) GetWarnings() EList {
 	if r.warnings == nil {
-		r.warnings = NewEmptyBasicEList()
+		r.warnings = newResourceDiagnostics(r, RESOURCE__WARNINGS)
 	}
 	return r.warnings
 }

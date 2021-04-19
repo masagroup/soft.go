@@ -12,6 +12,10 @@ const (
 	RESOURCE__CONTENTS = 2
 
 	RESOURCE__IS_LOADED = 4
+
+	RESOURCE__ERRORS = 5
+
+	RESOURCE__WARNINGS = 6
 )
 
 //EResource ...

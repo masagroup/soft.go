@@ -17,6 +17,18 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// TestMockEResourceIsLoading tests method IsLoaded
+func TestMockEResourceIsLoading(t *testing.T) {
+	r := &MockEResourceInternal{}
+	r.On("IsLoading").Return(true).Once()
+	r.On("IsLoading").Return(func() bool {
+		return false
+	}).Once()
+	assert.True(t, r.IsLoading())
+	assert.False(t, r.IsLoading())
+	r.AssertExpectations(t)
+}
+
 func TestMockEResourceInternalDoLoad(t *testing.T) {
 	r := &MockEResourceInternal{}
 	uri, _ := ParseURI("test://file.t")

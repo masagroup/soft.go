@@ -11,6 +11,20 @@ type MockEResourceInternal struct {
 	MockEResource
 }
 
+// IsLoading provides a mock function with given fields:
+func (_m *MockEResourceInternal) IsLoading() bool {
+	ret := _m.Called()
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // BasicSetLoaded provides a mock function with given fields: _a0, _a1
 func (_m *MockEResourceInternal) BasicSetLoaded(_a0 bool, _a1 ENotificationChain) ENotificationChain {
 	ret := _m.Called(_a0, _a1)

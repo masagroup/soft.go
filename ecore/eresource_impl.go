@@ -10,6 +10,7 @@ import (
 type EResourceInternal interface {
 	EResource
 
+	IsLoading() bool
 	DoLoad(rd io.Reader, options map[string]interface{})
 	DoSave(rd io.Writer, options map[string]interface{})
 	DoUnload()
@@ -94,6 +95,30 @@ func (rc *resourceContents) inverseRemove(object interface{}, notifications ENot
 	return n
 }
 
+type resourceDiagnostics struct {
+	BasicENotifyingList
+	resource  *EResourceImpl
+	featureID int
+}
+
+func newResourceDiagnostics(resource *EResourceImpl, featureID int) *resourceDiagnostics {
+	rd := new(resourceDiagnostics)
+	rd.interfaces = rd
+	rd.data = []interface{}{}
+	rd.isUnique = true
+	rd.resource = resource
+	rd.featureID = featureID
+	return rd
+}
+
+func (rd *resourceDiagnostics) GetNotifier() ENotifier {
+	return rd.resource.AsENotifier()
+}
+
+func (rd *resourceDiagnostics) GetFeatureID() int {
+	return rd.featureID
+}
+
 //EResource ...
 type EResourceImpl struct {
 	ENotifierImpl
@@ -104,6 +129,7 @@ type EResourceImpl struct {
 	errors          EList
 	warnings        EList
 	isLoaded        bool
+	isLoading       bool
 }
 
 // NewBasicEObject is BasicEObject constructor
@@ -335,7 +361,9 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 		if uriConverter != nil {
 			rd, err := uriConverter.CreateReader(r.uri)
 			if err != nil {
-				r.GetErrors().Add(NewEDiagnosticImpl("Unable to create reader for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
+				errors := r.GetErrors()
+				errors.Clear()
+				errors.Add(NewEDiagnosticImpl("Unable to create reader for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
 			} else if rd != nil {
 				r.LoadWithReader(rd, options)
 				rd.Close()
@@ -346,11 +374,19 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 
 func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]interface{}) {
 	if !r.isLoaded {
+		r.isLoading = true
 		n := r.BasicSetLoaded(true, nil)
+		if r.errors != nil {
+			r.errors.Clear()
+		}
+		if r.warnings != nil {
+			r.warnings.Clear()
+		}
 		r.GetInterfaces().(EResourceInternal).DoLoad(rd, options)
 		if n != nil {
 			n.Dispatch()
 		}
+		r.isLoading = false
 	}
 }
 
@@ -380,6 +416,14 @@ func (r *EResourceImpl) IsLoaded() bool {
 	return r.isLoaded
 }
 
+func (r *EResourceImpl) IsLoading() bool {
+	return r.isLoading
+}
+
+func (r *EResourceImpl) SetLoading(isLoading bool) {
+	r.isLoading = isLoading
+}
+
 func (r *EResourceImpl) Save() {
 	r.SaveWithOptions(nil)
 }
@@ -389,7 +433,9 @@ func (r *EResourceImpl) SaveWithOptions(options map[string]interface{}) {
 	if uriConverter != nil {
 		w, err := uriConverter.CreateWriter(r.uri)
 		if err != nil {
-			r.GetErrors().Add(NewEDiagnosticImpl("Unable to create writer for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
+			errors := r.GetErrors()
+			errors.Clear()
+			errors.Add(NewEDiagnosticImpl("Unable to create writer for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
 		} else if w != nil {
 			r.SaveWithWriter(w, options)
 			w.Close()
@@ -398,6 +444,12 @@ func (r *EResourceImpl) SaveWithOptions(options map[string]interface{}) {
 }
 
 func (r *EResourceImpl) SaveWithWriter(w io.Writer, options map[string]interface{}) {
+	if r.errors != nil {
+		r.errors.Clear()
+	}
+	if r.warnings != nil {
+		r.warnings.Clear()
+	}
 	r.GetInterfaces().(EResourceInternal).DoSave(w, options)
 }
 
@@ -407,14 +459,14 @@ func (r *EResourceImpl) DoSave(rd io.Writer, options map[string]interface{}) {
 
 func (r *EResourceImpl) GetErrors() EList {
 	if r.errors == nil {
-		r.errors = NewEmptyBasicEList()
+		r.errors = newResourceDiagnostics(r, RESOURCE__ERRORS)
 	}
 	return r.errors
 }
 
 func (r *EResourceImpl) GetWarnings() EList {
 	if r.warnings == nil {
-		r.warnings = NewEmptyBasicEList()
+		r.warnings = newResourceDiagnostics(r, RESOURCE__WARNINGS)
 	}
 	return r.warnings
 }

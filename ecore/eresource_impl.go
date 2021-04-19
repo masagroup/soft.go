@@ -350,8 +350,8 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 
 func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]interface{}) {
 	if !r.isLoaded {
-		n := r.BasicSetLoaded(true, nil)
 		r.isLoading = true
+		n := r.BasicSetLoaded(true, nil)
 		if r.errors != nil {
 			r.errors.Clear()
 		}
@@ -394,6 +394,10 @@ func (r *EResourceImpl) IsLoaded() bool {
 
 func (r *EResourceImpl) IsLoading() bool {
 	return r.isLoading
+}
+
+func (r *EResourceImpl) SetLoading(isLoading bool) {
+	r.isLoading = isLoading
 }
 
 func (r *EResourceImpl) Save() {

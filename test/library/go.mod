@@ -1,4 +1,4 @@
-module github.com/masagroup/soft.go/library
+module github.com/masagroup/soft.go/test/library
 
 go 1.12
 

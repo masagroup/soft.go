@@ -1,4 +1,4 @@
-module github.com/masagroup/soft.go/tournament
+module github.com/masagroup/soft.go/test/tournament
 
 go 1.14
 

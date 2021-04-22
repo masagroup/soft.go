@@ -3,6 +3,13 @@ all: image ecore library tournament empty
 
 
 pwd := $(shell pwd)
+generate = docker run --rm -v $(pwd):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/$(2) -o $(1) -ps /pwd/generator.properties
+go_fmt   = docker run --rm -v $(pwd):/pwd -w $(1) masagroup/soft.go go fmt ./...
+go_build = docker run --rm -v $(pwd):/pwd -w $(1) masagroup/soft.go go build ./...
+go_test  = docker run --rm -v $(pwd):/pwd -w $(1) --env CGO_ENABLED=0 masagroup/soft.go\
+					 sh -c 'mkdir -p /pwd/coverage &&\
+					 		go test -coverprofile /pwd/coverage/$(2)-coverage ./... &&\
+				   		    go tool cover -html=/pwd/coverage/$(2)-coverage -o /pwd/coverage/$(2)-coverage.html'
 
 image:
 	@docker build --file Dockerfile --tag masagroup/soft.go .
@@ -11,70 +18,71 @@ ecore: ecore.gen ecore.fmt ecore.build ecore.tests
 
 ecore.gen:
 	@echo "[ecore.gen]"
-	@docker run --rm -v $(pwd):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/ecore.ecore -o /pwd/ -ps /pwd/generator.properties
+	@$(call generate,/pwd,ecore.ecore)
 
 ecore.fmt:
 	@echo "[ecore.fmt]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd masagroup/soft.go go fmt ./...
-
+	@$(call go_fmt,/pwd)
+	
 ecore.build:
 	@echo "[ecore.build]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd masagroup/soft.go go build ./...
-
+	@$(call go_build,/pwd)
+	
 ecore.tests:
 	@echo "[ecore.tests]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd --env CGO_ENABLED=0 masagroup/soft.go go test ./...
+	@$(call go_test,/pwd,ecore)
 
 library: library.gen library.fmt library.build library.tests
 
 library.gen:
 	@echo "[library.gen]"
-	@docker run --rm -v $(pwd):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/library.ecore -o /pwd/test -ps /pwd/generator.properties
+	@$(call generate,/pwd/test,library.ecore)
 
 library.fmt:
 	@echo "[library.fmt]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd/test/library masagroup/soft.go go fmt ./...
+	@$(call go_fmt,/pwd/test/library)
 
 library.build:
 	@echo "[library.build]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd/test/library masagroup/soft.go go build ./...
+	@$(call go_build,/pwd/test/library)
 
 library.tests:
 	@echo "[library.tests]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd/test/library --env CGO_ENABLED=0 masagroup/soft.go go test ./...
+	@$(call go_test,/pwd/test/library,library)
 
 tournament: tournament.gen tournament.fmt tournament.build tournament.tests
 
 tournament.gen:
 	@echo "[tournament.gen]"
-	@docker run --rm -v $(pwd):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/tournament.ecore -o /pwd/test -ps /pwd/generator.properties
+	@$(call generate,/pwd/test,tournament.ecore)
 
 tournament.fmt:
 	@echo "[tournament.fmt]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd/test/tournament masagroup/soft.go go fmt ./...
+	@$(call go_fmt,/pwd/test/tournament)
 
 tournament.build:
 	@echo "[tournament.build]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd/test/tournament masagroup/soft.go go build ./...
+	@$(call go_build,/pwd/test/tournament)
 
 tournament.tests:
 	@echo "[tournament.tests]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd/test/tournament --env CGO_ENABLED=0 masagroup/soft.go go test ./...
+	@$(call go_test,/pwd/test/tournament,tournament)
 
 empty: empty.gen empty.fmt empty.build empty.tests
 
 empty.gen:
 	@echo "[empty.gen]"
-	@docker run --rm -v $(pwd):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/empty.ecore -o /pwd/test -ps /pwd/generator.properties
+	@$(call generate,/pwd/test,empty.ecore)
 
 empty.fmt:
 	@echo "[empty.fmt]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd/test/empty masagroup/soft.go go fmt ./...
+	@$(call go_fmt,/pwd/test/empty)
 
 empty.build:
 	@echo "[empty.build]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd/test/empty masagroup/soft.go go build ./...
+	@$(call go_build,/pwd/test/empty)
 
 empty.tests:
 	@echo "[empty.tests]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd/test/empty --env CGO_ENABLED=0 masagroup/soft.go go test ./...
+	@$(call go_test,/pwd/test/empty,empty)
+

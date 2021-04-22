@@ -1,4 +1,4 @@
-module github.com/masagroup/soft.go/ecore
+module github.com/masagroup/soft.go
 
 go 1.12
 

@@ -1,4 +1,11 @@
-
+# *****************************************************************************
+# Copyright(c) 2021 MASA Group
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+#
+# *****************************************************************************
 
 GENERATE = docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/$(2) -o /pwd/$(1) -ps /pwd/generator.properties
 

@@ -1,42 +1,65 @@
 
-.PHONY: all generate fmt build test coverage.console coverage.html
 
-all: image generate fmt build test
+GENERATE = docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/$(2) -o /pwd/$(1) -ps /pwd/generator.properties
 
-pwd := $(CURDIR)
-generate = docker run --rm -v $(pwd):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/$(2) -o $(1) -ps /pwd/generator.properties
+# os detection
+ifeq (${OS},Windows_NT)
+MKDIR = mkdir $(subst /,\,$(1)) > nul 2>&1 || (exit 0)
+WHICH := where
+DEVNUL := NUL
+else
+MKDIR = mkdir -p $(1)
+WHICH := which
+DEVNUL := /dev/null
+endif
 
-image:
-	@docker build --file Dockerfile --tag masagroup/soft.go.dev .
+# detect go
+ifneq ($(shell $(WHICH) go 2>$(DEVNUL)),)
+GO := go
+else 
+ifneq ($(shell $(WHICH) go.exe 2>$(DEVNUL)),)
+GO := go.exe
+else
+$(error "go is not in your system PATH")
+endif
+endif
 
+.PHONY: all
+all: generate fmt build test
+
+.PHONY: generate 
 generate:
 	@echo "[generate]"
-	@$(call generate,/pwd,ecore.ecore)
-	@$(call generate,/pwd/test,library.ecore)
-	@$(call generate,/pwd/test,tournament.ecore)
-	@$(call generate,/pwd/test,empty.ecore)
+	@$(call GENERATE,,ecore.ecore)
+	@$(call GENERATE,test,library.ecore)
+	@$(call GENERATE,test,tournament.ecore)
+	@$(call GENERATE,test,empty.ecore)
 
+.PHONY: fmt
 fmt:
 	@echo "[fmt]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd masagroup/soft.go.dev go fmt ./...
+	@$(GO) fmt ./...
 
+.PHONY: build
 build:
 	@echo "[build]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd masagroup/soft.go.dev go build ./...
+	@$(GO) build ./...
 
+.PHONY: test
 test:
 	@echo "[test]"
-	@docker run --rm -p 8080:80 -v $(pwd):/pwd -w /pwd masagroup/soft.go.dev go test -covermode=atomic ./...
+	@$(GO) test -covermode=atomic ./...
 
+.PHONY: coverage.console
 coverage.console:
 	@echo "[coverage.console]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd masagroup/soft.go.dev \
-			sh -c 'mkdir -p /pwd/coverage &&\
-					go test -coverprofile /pwd/coverage/coverage.out ./... &&\
-					go tool cover -func=/pwd/coverage/coverage.out'
+	@$(call MKDIR,coverage)
+	@$(GO) test -coverprofile coverage/coverage.out ./...
+	@$(GO) tool cover -func=coverage/coverage.out
+
+.PHONY: coverage.html
 coverage.html:
 	@echo "[coverage.html]"
-	@docker run --rm -v $(pwd):/pwd -w /pwd masagroup/soft.go.dev \
-			sh -c 'mkdir -p /pwd/coverage &&\
-					go test -coverprofile /pwd/coverage/coverage.out ./... &&\
-					go tool cover -html=/pwd/coverage/coverage.out -o /pwd/coverage/coverage.html'
+	@$(call MKDIR,coverage)
+	@$(GO) test -coverprofile coverage/coverage.out ./...
+	@$(GO) tool cover -html=coverage/coverage.out -o coverage/coverage.html

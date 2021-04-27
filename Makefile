@@ -6,22 +6,22 @@ GENERATE = docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -w
 ifeq (${OS},Windows_NT)
 MKDIR = mkdir $(subst /,\,$(1)) > nul 2>&1 || (exit 0)
 WHICH := where
-DEVNUL := NUL
+DEVNULL := NUL
 else
 MKDIR = mkdir -p $(1)
 WHICH := which
-DEVNUL := /dev/null
+DEVNULL := /dev/null
 endif
 
 # detect go
-ifneq ($(shell $(WHICH) go 2>$(DEVNUL)),)
-GO := go
+ifneq ($(shell $(WHICH) go 2>$(DEVNULL)),)
+	GO := go
 else 
-ifneq ($(shell $(WHICH) go.exe 2>$(DEVNUL)),)
-GO := go.exe
-else
-$(error "go is not in your system PATH")
-endif
+	ifneq ($(shell $(WHICH) go.exe 2>$(DEVNULL)),)
+		GO := go.exe
+	else
+		$(error "go is not in your system PATH")
+	endif
 endif
 
 .PHONY: all

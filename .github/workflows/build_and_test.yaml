@@ -21,7 +21,16 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
-    - name: Checkout code
+    - name: Checkout Go
       uses: actions/checkout@v2
+      with:
+        path: go
+    - name: Checkout Models
+      uses: actions/checkout@v2
+      with:
+        repository: masagroup/soft.models
+        ref: 0105c44ad195c59872eee3fa7ad16b0bca6a37c7
+        path: models
     - name: Build And Test
+      working-directory: go
       run: make

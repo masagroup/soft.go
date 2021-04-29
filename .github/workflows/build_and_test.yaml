@@ -1,0 +1,36 @@
+name: Build and Test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: [1.16.x]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Checkout Go
+      uses: actions/checkout@v2
+      with:
+        path: go
+    - name: Checkout Models
+      uses: actions/checkout@v2
+      with:
+        repository: masagroup/soft.models
+        ref: 0105c44ad195c59872eee3fa7ad16b0bca6a37c7
+        path: models
+    - name: Build And Test
+      working-directory: go
+      run: make generate build test

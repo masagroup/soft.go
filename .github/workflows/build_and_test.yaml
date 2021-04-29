@@ -33,4 +33,4 @@ jobs:
         path: models
     - name: Build And Test
       working-directory: go
-      run: make
+      run: make generate build test

@@ -23,6 +23,12 @@ func TestBasicEListGet(t *testing.T) {
 	assert.Panics(t, func() { arr.Get(3) })
 }
 
+func TestBasicSetInterafaces(t *testing.T) {
+	arr := NewEmptyBasicEList()
+	arr.SetInterfaces(arr)
+	assert.Equal(t, arr, arr.interfaces)
+}
+
 func TestBasicEListSet(t *testing.T) {
 	arr := NewBasicEList([]interface{}{3, 5, 7})
 	arr.Set(0, 4)

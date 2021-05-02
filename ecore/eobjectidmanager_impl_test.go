@@ -96,3 +96,14 @@ func TestEObjectIDManagerSetID(t *testing.T) {
 	m.SetID(mockObject, nil)
 	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockAttribute, mockDataType, mockPackage, mockFactory)
 }
+
+func TestEObjectIDManagerGetEObjectInvalidID(t *testing.T) {
+	m := NewEObjectIDManagerImpl()
+	assert.Nil(t, m.GetEObject(1))
+}
+
+func TestEObjectIDManagerClear(t *testing.T) {
+	m := NewEObjectIDManagerImpl()
+	m.Clear()
+	assert.Nil(t, m.GetID(&MockEObject{}))
+}

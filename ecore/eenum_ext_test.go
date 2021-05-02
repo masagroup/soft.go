@@ -66,3 +66,17 @@ func TestEEnumExt_GetEEnumLiteralByLiteral(t *testing.T) {
 	assert.Equal(t, mockEnumLiteral, eEnum.GetEEnumLiteralByLiteral("literal"))
 	mock.AssertExpectationsForObjects(t, mockEnumLiteral)
 }
+
+func TestEEnumExt_GetDefaultValue(t *testing.T) {
+	eEnum := newEEnumExt()
+
+	mockEnumLiteral := &MockEEnumLiteral{}
+	mockEnumLiteral.On("EInverseAdd", eEnum, EENUM_LITERAL__EENUM, nil).Return(nil).Once()
+	eEnum.GetELiterals().Add(mockEnumLiteral)
+	mock.AssertExpectationsForObjects(t, mockEnumLiteral)
+
+	mockValue := 2
+	mockEnumLiteral.On("GetValue").Return(mockValue).Once()
+	assert.Equal(t, mockValue, eEnum.GetDefaultValue())
+	mock.AssertExpectationsForObjects(t, mockEnumLiteral)
+}

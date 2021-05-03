@@ -12,6 +12,7 @@ package ecore
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -28,4 +29,11 @@ func TestEDataTypeExtSetDefaultValue(t *testing.T) {
 	})).Once()
 	d.SetDefaultValue(mockValue)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
+}
+
+func TestEDataTypeExtGetDefaultValue(t *testing.T) {
+	d := newEDataTypeExt()
+	value := &MockEDataType{}
+	d.defaultValue = value
+	assert.Equal(t, value, d.GetDefaultValue())
 }

@@ -1,6 +1,7 @@
 [![](https://img.shields.io/github/license/masagroup/soft.go.svg)](https://github.com/masagroup/soft.go/blob/master/LICENSE)
-![](https://img.shields.io/github/v/release/masagroup/soft.go)
+![](https://github.com/masagroup/soft.go/actions/workflows/build_and_test.yaml/badge.svg)
 [![Go](https://img.shields.io/github/go-mod/go-version/masagroup/soft.go)](https://github.com/masagroup/soft.go)
+![](https://img.shields.io/github/v/release/masagroup/soft.go)
 # Soft Go #
 
 Soft Go is an implementation of the EMF Ecore library in Golang. This library is partially generated and referenced by the [Soft Go Generator](https://github.com/masagroup/soft.gen)

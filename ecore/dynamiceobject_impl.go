@@ -28,6 +28,7 @@ func (adapter *dynamicFeaturesAdapter) NotifyChanged(notification ENotification)
 		featureID := notification.GetFeatureID()
 		if featureID == ECLASS__ESTRUCTURAL_FEATURES {
 			adapter.object.resizeProperties()
+			adapter.object.resetContentsLists()
 		}
 	}
 }

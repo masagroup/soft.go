@@ -1,39 +1,5 @@
 package ecore
 
-// listen to object features modifications & maintain a list of object contents
-type eContentsListAdapter struct {
-	AbstractEAdapter
-	obj           EObject
-	getFeaturesFn func(EClass) EList
-	list          EList
-}
-
-func newContentsListAdapter(obj EObject, getFeaturesFn func(EClass) EList) *eContentsListAdapter {
-	a := new(eContentsListAdapter)
-	a.obj = obj
-	a.getFeaturesFn = getFeaturesFn
-	obj.EAdapters().Add(a)
-	return a
-}
-
-func (a *eContentsListAdapter) NotifyChanged(notification ENotification) {
-	if a.list != nil {
-		feature := notification.GetFeature()
-		features := a.getFeaturesFn(a.obj.EClass())
-		if features.Contains(feature) {
-			a.list = nil
-		}
-	}
-}
-
-func (a *eContentsListAdapter) GetList() EList {
-	if a.list == nil {
-		features := a.getFeaturesFn(a.obj.EClass())
-		a.list = newEContentsList(a.obj, features, true)
-	}
-	return a.list
-}
-
 type eContentsList struct {
 	emptyImmutableEList
 	o        EObject

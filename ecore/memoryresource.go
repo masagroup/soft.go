@@ -18,33 +18,22 @@ func newMemoryResourceImpl() *memoryResourceImpl {
 }
 
 func (r *memoryResourceImpl) Load() {
-	panic("operation not supported")
 }
 
 func (r *memoryResourceImpl) LoadWithOptions(options map[string]interface{}) {
-	panic("operation not supported")
 }
 
 func (r *memoryResourceImpl) LoadWithReader(rd io.Reader, options map[string]interface{}) {
-	panic("operation not supported")
 }
 
 func (r *memoryResourceImpl) Unload() {
-	panic("operation not supported")
-}
-
-func (r *memoryResourceImpl) IsLoaded() bool {
-	return true
 }
 
 func (r *memoryResourceImpl) Save() {
-	panic("operation not supported")
 }
 
 func (r *memoryResourceImpl) SaveWithOptions(options map[string]interface{}) {
-	panic("operation not supported")
 }
 
 func (r *memoryResourceImpl) SaveWithWriter(w io.Writer, options map[string]interface{}) {
-	panic("operation not supported")
 }

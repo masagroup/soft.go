@@ -618,3 +618,12 @@ func CreateFileURI(path string) *URI {
 		}
 	}
 }
+
+func CreateMemoryURI(path string) *URI {
+	p := filepath.ToSlash(path)
+	if len(p) == 0 {
+		return nil
+	} else {
+		return &URI{Scheme: "memory", Path: path}
+	}
+}

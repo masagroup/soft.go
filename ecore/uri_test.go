@@ -126,3 +126,14 @@ func TestURI_ReplacePrefix(t *testing.T) {
 		assert.Equal(t, "test2/toto", uri.Path)
 	}
 }
+
+func TestCreateFileURI(t *testing.T) {
+	assert.Equal(t, &URI{}, CreateFileURI(""))
+	assert.Equal(t, &URI{Path: "test/toto"}, CreateFileURI("test\\toto"))
+	assert.Equal(t, &URI{Scheme: "file", Path: "D:/test/toto"}, CreateFileURI("D:\\test\\toto"))
+}
+
+func TestCreateMemoryURI(t *testing.T) {
+	assert.Nil(t, CreateMemoryURI(""))
+	assert.Equal(t, &URI{Scheme: "memory", Path: "path"}, CreateMemoryURI("path"))
+}

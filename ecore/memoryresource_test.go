@@ -4,39 +4,23 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestMemoryResourceIsLoaded(t *testing.T) {
-	r := newMemoryResourceImpl()
-	assert.True(t, r.IsLoaded())
+func TestMemoryResourceConstructor(t *testing.T) {
+	require.NotNil(t, newMemoryResourceImpl())
 }
 
-func TestMemoryResourceLoad(t *testing.T) {
+func TestMemoryLoad(t *testing.T) {
 	r := newMemoryResourceImpl()
-	assert.Panics(t, func() { r.Load() })
+	r.SetURI(CreateMemoryURI("memory"))
+	r.Load()
+	assert.True(t, r.GetErrors().Empty(), diagnosticError(r.GetErrors()))
 }
 
-func TestMemoryResourceLoadWithOptions(t *testing.T) {
+func TestMemorySave(t *testing.T) {
 	r := newMemoryResourceImpl()
-	assert.Panics(t, func() { r.LoadWithOptions(nil) })
-}
-
-func TestMemoryResourceLoadWithWriter(t *testing.T) {
-	r := newMemoryResourceImpl()
-	assert.Panics(t, func() { r.LoadWithReader(nil, nil) })
-}
-
-func TestMemoryResourceSave(t *testing.T) {
-	r := newMemoryResourceImpl()
-	assert.Panics(t, func() { r.Save() })
-}
-
-func TestMemoryResourceSaveWithOptions(t *testing.T) {
-	r := newMemoryResourceImpl()
-	assert.Panics(t, func() { r.SaveWithOptions(nil) })
-}
-
-func TestMemoryResourceSaveWithWriter(t *testing.T) {
-	r := newMemoryResourceImpl()
-	assert.Panics(t, func() { r.SaveWithWriter(nil, nil) })
+	r.SetURI(CreateMemoryURI("memory"))
+	r.Save()
+	assert.True(t, r.GetErrors().Empty(), diagnosticError(r.GetErrors()))
 }

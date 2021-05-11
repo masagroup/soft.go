@@ -10,6 +10,7 @@
 package ecore
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -129,8 +130,13 @@ func TestURI_ReplacePrefix(t *testing.T) {
 
 func TestCreateFileURI(t *testing.T) {
 	assert.Equal(t, &URI{}, CreateFileURI(""))
-	assert.Equal(t, &URI{Path: "test/toto"}, CreateFileURI("test\\toto"))
-	assert.Equal(t, &URI{Scheme: "file", Path: "D:/test/toto"}, CreateFileURI("D:\\test\\toto"))
+	if runtime.GOOS == "windows" {
+		assert.Equal(t, &URI{Path: "test/toto"}, CreateFileURI("test\\toto"))
+		assert.Equal(t, &URI{Scheme: "file", Path: "D:/test/toto"}, CreateFileURI("D:\\test\\toto"))
+	} else {
+		assert.Equal(t, &URI{Path: "test/toto"}, CreateFileURI("test/toto"))
+		assert.Equal(t, &URI{Scheme: "file", Path: "/test/toto"}, CreateFileURI("/test/toto"))
+	}
 }
 
 func TestCreateMemoryURI(t *testing.T) {

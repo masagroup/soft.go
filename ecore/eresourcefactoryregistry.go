@@ -29,6 +29,9 @@ func GetResourceFactoryRegistry() EResourceFactoryRegistry {
 		extensionToFactories := resourceFactoryRegistryInstance.GetExtensionToFactoryMap()
 		extensionToFactories["ecore"] = &XMIResourceFactory{}
 		extensionToFactories["xml"] = &XMLResourceFactory{}
+
+		protocolToFactories := resourceFactoryRegistryInstance.GetProtocolToFactoryMap()
+		protocolToFactories["memory"] = &MemoryResourceFactory{}
 	}
 	return resourceFactoryRegistryInstance
 }

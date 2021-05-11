@@ -91,3 +91,14 @@ func (p *XMLProcessor) SaveToString(resource EResource, options map[string]inter
 	p.SaveWithWriter(&strbuff, resource, options)
 	return strbuff.String()
 }
+
+func (p *XMLProcessor) SaveObject(uri *URI, eObject EObject) EResource {
+	rs := p.GetResourceSet()
+	rc := rs.CreateResource(uri)
+	if rc != nil {
+		eCopy := Copy(eObject)
+		rc.GetContents().Add(eCopy)
+		rc.Save()
+	}
+	return rc
+}

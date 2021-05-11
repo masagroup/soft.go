@@ -142,4 +142,5 @@ func TestCreateFileURI(t *testing.T) {
 func TestCreateMemoryURI(t *testing.T) {
 	assert.Nil(t, CreateMemoryURI(""))
 	assert.Equal(t, &URI{Scheme: "memory", Path: "path"}, CreateMemoryURI("path"))
+	assert.Equal(t, "memory:path", CreateMemoryURI("path").String())
 }

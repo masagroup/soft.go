@@ -50,6 +50,9 @@ func ParseURI(rawURI string) (*URI, error) {
 		} else {
 			uri.Host = url.Host
 		}
+		if len(url.Opaque) > 0 {
+			uri.Path = url.Opaque
+		}
 		return uri, nil
 	}
 }

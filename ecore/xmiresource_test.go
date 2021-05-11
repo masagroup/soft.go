@@ -87,7 +87,7 @@ func TestXMIResourceLoadLibrarySimple(t *testing.T) {
 
 func TestXMIResourceLoadLibraryNoRoot(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
-	resource, _ := xmiProcessor.Load(&URI{Path: "testdata/library.noroot.ecore"}).(xmiResource)
+	resource, _ := xmiProcessor.Load(&URI{Path: "testdata/library.noroot.ecore"}).(XMIResource)
 	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
@@ -122,7 +122,7 @@ func TestXMIResourceLoadLibraryNoRoot(t *testing.T) {
 
 func TestXMIResourceLoadLibraryComplex(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
-	resource, _ := xmiProcessor.Load(&URI{Path: "testdata/library.complex.ecore"}).(xmiResource)
+	resource, _ := xmiProcessor.Load(&URI{Path: "testdata/library.complex.ecore"}).(XMIResource)
 	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))

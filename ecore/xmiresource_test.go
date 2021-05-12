@@ -93,6 +93,8 @@ func TestXMIResourceLoadLibraryNoRoot(t *testing.T) {
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
 	assert.Equal(t, "2.0", resource.GetXMIVersion())
+	assert.Equal(t, "1.0", resource.GetXMLVersion())
+	assert.Equal(t, "UTF-8", resource.GetEncoding())
 
 	contents := resource.GetContents()
 	assert.Equal(t, 1, contents.Size())

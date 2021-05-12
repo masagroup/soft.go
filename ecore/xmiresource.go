@@ -72,30 +72,30 @@ type XMIResource interface {
 	GetXMIVersion() string
 }
 
-type xmiResourceImpl struct {
-	xmlResourceImpl
+type XMIResourceImpl struct {
+	XMLResourceImpl
 	xmiVersion string
 }
 
-func newXMIResourceImpl() *xmiResourceImpl {
-	r := new(xmiResourceImpl)
+func NewXMIResourceImpl() *XMIResourceImpl {
+	r := new(XMIResourceImpl)
 	r.SetInterfaces(r)
 	r.Initialize()
 	return r
 }
 
-func (r *xmiResourceImpl) SetXMIVersion(xmiVersion string) {
+func (r *XMIResourceImpl) SetXMIVersion(xmiVersion string) {
 	r.xmiVersion = xmiVersion
 }
 
-func (r *xmiResourceImpl) GetXMIVersion() string {
+func (r *XMIResourceImpl) GetXMIVersion() string {
 	return r.xmiVersion
 }
 
-func (r *xmiResourceImpl) createLoad(options map[string]interface{}) xmlLoad {
+func (r *XMIResourceImpl) createLoad(options map[string]interface{}) xmlLoad {
 	return newXMILoadImpl(options)
 }
 
-func (r *xmiResourceImpl) createSave(options map[string]interface{}) xmlSave {
+func (r *XMIResourceImpl) createSave(options map[string]interface{}) xmlSave {
 	return newXMISaveImpl(options)
 }

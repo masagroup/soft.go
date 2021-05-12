@@ -189,7 +189,7 @@ func TestXMIResourceSaveLibraryComplex(t *testing.T) {
 func BenchmarkXMIResourceLoadSaveLibrarySimple(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		resource := newXMIResourceImpl()
+		resource := NewXMIResourceImpl()
 		resource.SetURI(&URI{Path: "testdata/library.simple.ecore"})
 		resource.Load()
 
@@ -202,7 +202,7 @@ func BenchmarkXMIResourceLoadSaveLibrarySimple(b *testing.B) {
 func BenchmarkXMIResourceLoadSaveLibraryNoRoot(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		resource := newXMIResourceImpl()
+		resource := NewXMIResourceImpl()
 		resource.SetURI(&URI{Path: "testdata/library.noroot.ecore"})
 		resource.Load()
 

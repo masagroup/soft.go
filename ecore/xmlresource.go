@@ -34,6 +34,67 @@ type xmlResourceInternal interface {
 	createSave(options map[string]interface{}) xmlSave
 }
 
+type XMLResourceImpl struct {
+	EResourceImpl
+	xmlVersion string
+	encoding   string
+}
+
+func NewXMLResourceImpl() *XMLResourceImpl {
+	r := new(XMLResourceImpl)
+	r.SetInterfaces(r)
+	r.Initialize()
+	return r
+}
+
+func (r *XMLResourceImpl) Initialize() {
+	r.EResourceImpl.Initialize()
+	r.xmlVersion = "1.0"
+	r.encoding = "UTF-8"
+}
+
+func (r *XMLResourceImpl) GetXMLVersion() string {
+	return r.xmlVersion
+}
+
+func (r *XMLResourceImpl) SetXMLVersion(xmlVersion string) {
+	r.xmlVersion = xmlVersion
+}
+
+func (r *XMLResourceImpl) GetEncoding() string {
+	return r.encoding
+}
+
+func (r *XMLResourceImpl) SetEncoding(encoding string) {
+	r.encoding = encoding
+}
+
+func (r *XMLResourceImpl) AsXMLResource() XMLResource {
+	return r.GetInterfaces().(XMLResource)
+}
+
+func (r *XMLResourceImpl) AsXMLResourceInternal() xmlResourceInternal {
+	return r.GetInterfaces().(xmlResourceInternal)
+}
+
+func (r *XMLResourceImpl) DoLoad(rd io.Reader, options map[string]interface{}) {
+	l := r.AsXMLResourceInternal().createLoad(options)
+	l.load(r.AsXMLResource(), rd)
+}
+
+func (r *XMLResourceImpl) DoSave(wd io.Writer, options map[string]interface{}) {
+	l := r.AsXMLResourceInternal().createSave(options)
+	l.save(r.AsXMLResource(), wd)
+}
+
+func (r *XMLResourceImpl) createLoad(options map[string]interface{}) xmlLoad {
+	return newXMLLoadImpl(options)
+}
+
+func (r *XMLResourceImpl) createSave(options map[string]interface{}) xmlSave {
+	return newXMLSaveImpl(options)
+}
+
 type xmlLoad interface {
 	load(resource XMLResource, w io.Reader)
 }
@@ -1859,65 +1920,4 @@ func (s *xmlSaveImpl) handleDanglingHREF(eObject EObject) {
 
 func (s *xmlSaveImpl) error(diagnostic EDiagnostic) {
 	s.resource.GetErrors().Add(diagnostic)
-}
-
-type xmlResourceImpl struct {
-	EResourceImpl
-	xmlVersion string
-	encoding   string
-}
-
-func newXMLResourceImpl() *xmlResourceImpl {
-	r := new(xmlResourceImpl)
-	r.SetInterfaces(r)
-	r.Initialize()
-	return r
-}
-
-func (r *xmlResourceImpl) Initialize() {
-	r.EResourceImpl.Initialize()
-	r.xmlVersion = "1.0"
-	r.encoding = "UTF-8"
-}
-
-func (r *xmlResourceImpl) GetXMLVersion() string {
-	return r.xmlVersion
-}
-
-func (r *xmlResourceImpl) SetXMLVersion(xmlVersion string) {
-	r.xmlVersion = xmlVersion
-}
-
-func (r *xmlResourceImpl) GetEncoding() string {
-	return r.encoding
-}
-
-func (r *xmlResourceImpl) SetEncoding(encoding string) {
-	r.encoding = encoding
-}
-
-func (r *xmlResourceImpl) AsXMLResource() XMLResource {
-	return r.GetInterfaces().(XMLResource)
-}
-
-func (r *xmlResourceImpl) AsXMLResourceInternal() xmlResourceInternal {
-	return r.GetInterfaces().(xmlResourceInternal)
-}
-
-func (r *xmlResourceImpl) DoLoad(rd io.Reader, options map[string]interface{}) {
-	l := r.AsXMLResourceInternal().createLoad(options)
-	l.load(r.AsXMLResource(), rd)
-}
-
-func (r *xmlResourceImpl) DoSave(wd io.Writer, options map[string]interface{}) {
-	l := r.AsXMLResourceInternal().createSave(options)
-	l.save(r.AsXMLResource(), wd)
-}
-
-func (r *xmlResourceImpl) createLoad(options map[string]interface{}) xmlLoad {
-	return newXMLLoadImpl(options)
-}
-
-func (r *xmlResourceImpl) createSave(options map[string]interface{}) xmlSave {
-	return newXMLSaveImpl(options)
 }

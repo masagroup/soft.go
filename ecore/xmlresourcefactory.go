@@ -13,7 +13,7 @@ type XMLResourceFactory struct {
 }
 
 func (f *XMLResourceFactory) CreateResource(uri *URI) EResource {
-	r := newXMLResourceImpl()
+	r := NewXMLResourceImpl()
 	r.SetURI(uri)
 	return r
 }

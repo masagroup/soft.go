@@ -13,7 +13,7 @@ type XMIResourceFactory struct {
 }
 
 func (f *XMIResourceFactory) CreateResource(uri *URI) EResource {
-	r := newXMIResourceImpl()
+	r := NewXMIResourceImpl()
 	r.SetURI(uri)
 	return r
 }

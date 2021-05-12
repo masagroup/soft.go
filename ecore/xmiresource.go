@@ -42,7 +42,7 @@ func (l *xmiLoadImpl) getXSIType() string {
 func (l *xmiLoadImpl) handleAttributes(object EObject) {
 	version := l.getAttributeValue(xmiURI, versionAttrib)
 	if len(version) > 0 {
-		l.resource.(xmiResource).SetXMIVersion(version)
+		l.resource.(XMIResource).SetXMIVersion(version)
 	}
 	l.xmlLoadImpl.handleAttributes(object)
 }
@@ -60,42 +60,42 @@ func newXMISaveImpl(options map[string]interface{}) *xmiSaveImpl {
 }
 
 func (s *xmiSaveImpl) saveNamespaces() {
-	s.str.addAttribute(xmiNS+":"+versionAttrib, s.resource.(xmiResource).GetXMIVersion())
+	s.str.addAttribute(xmiNS+":"+versionAttrib, s.resource.(XMIResource).GetXMIVersion())
 	s.str.addAttribute(xmlNS+":"+xmiNS, xmiURI)
 	s.xmlSaveImpl.saveNamespaces()
 }
 
-type xmiResource interface {
-	xmlResource
+type XMIResource interface {
+	XMLResource
 
 	SetXMIVersion(version string)
 	GetXMIVersion() string
 }
 
-type xmiResourceImpl struct {
-	xmlResourceImpl
+type XMIResourceImpl struct {
+	XMLResourceImpl
 	xmiVersion string
 }
 
-func newXMIResourceImpl() *xmiResourceImpl {
-	r := new(xmiResourceImpl)
+func NewXMIResourceImpl() *XMIResourceImpl {
+	r := new(XMIResourceImpl)
 	r.SetInterfaces(r)
 	r.Initialize()
 	return r
 }
 
-func (r *xmiResourceImpl) SetXMIVersion(xmiVersion string) {
+func (r *XMIResourceImpl) SetXMIVersion(xmiVersion string) {
 	r.xmiVersion = xmiVersion
 }
 
-func (r *xmiResourceImpl) GetXMIVersion() string {
+func (r *XMIResourceImpl) GetXMIVersion() string {
 	return r.xmiVersion
 }
 
-func (r *xmiResourceImpl) createLoad(options map[string]interface{}) xmlLoad {
+func (r *XMIResourceImpl) createLoad(options map[string]interface{}) xmlLoad {
 	return newXMILoadImpl(options)
 }
 
-func (r *xmiResourceImpl) createSave(options map[string]interface{}) xmlSave {
+func (r *XMIResourceImpl) createSave(options map[string]interface{}) xmlSave {
 	return newXMISaveImpl(options)
 }

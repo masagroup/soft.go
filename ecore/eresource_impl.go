@@ -358,7 +358,7 @@ func (r *EResourceImpl) Load() {
 func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 	if !r.isLoaded {
 		uriConverter := r.getURIConverter()
-		if uriConverter != nil {
+		if uriConverter != nil && r.uri != nil {
 			rd, err := uriConverter.CreateReader(r.uri)
 			if err != nil {
 				errors := r.GetErrors()
@@ -430,7 +430,7 @@ func (r *EResourceImpl) Save() {
 
 func (r *EResourceImpl) SaveWithOptions(options map[string]interface{}) {
 	uriConverter := r.getURIConverter()
-	if uriConverter != nil {
+	if uriConverter != nil && r.uri != nil {
 		w, err := uriConverter.CreateWriter(r.uri)
 		if err != nil {
 			errors := r.GetErrors()

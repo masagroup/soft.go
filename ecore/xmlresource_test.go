@@ -95,11 +95,13 @@ func TestXmlLoadLibraryNoRoot(t *testing.T) {
 
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.Load(&URI{Path: "testdata/library.noroot.xml"})
+	eResource, _ := xmlProcessor.Load(&URI{Path: "testdata/library.noroot.xml"}).(XMLResource)
 	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+	assert.Equal(t, "1.0", eResource.GetXMLVersion())
+	assert.Equal(t, "UTF-8", eResource.GetEncoding())
 
 	// retrive library class & library name attribute
 	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
@@ -316,7 +318,7 @@ func TestXmlResourceIDManager(t *testing.T) {
 
 	// create a resource with an id manager
 	mockIDManager := &MockEObjectIDManager{}
-	eResource := newXMLResourceImpl()
+	eResource := NewXMLResourceImpl()
 	eResource.SetObjectIDManager(mockIDManager)
 
 	// create a library and add it to resource

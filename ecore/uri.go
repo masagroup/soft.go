@@ -50,6 +50,9 @@ func ParseURI(rawURI string) (*URI, error) {
 		} else {
 			uri.Host = url.Host
 		}
+		if len(url.Opaque) > 0 {
+			uri.Path = url.Opaque
+		}
 		return uri, nil
 	}
 }
@@ -616,5 +619,14 @@ func CreateFileURI(path string) *URI {
 		} else {
 			return &URI{Path: p}
 		}
+	}
+}
+
+func CreateMemoryURI(path string) *URI {
+	p := filepath.ToSlash(path)
+	if len(p) == 0 {
+		return nil
+	} else {
+		return &URI{Scheme: "memory", Path: path}
 	}
 }

@@ -20,8 +20,83 @@ const (
 	OPTION_ROOT_OBJECTS              = "ROOT_OBJECTS"              // list of root objects to save
 )
 
+type XMLResource interface {
+	EResource
+	GetXMLVersion() string
+	SetXMLVersion(version string)
+
+	GetEncoding() string
+	SetEncoding(encoding string)
+}
+
+type xmlResourceInternal interface {
+	createLoad(options map[string]interface{}) xmlLoad
+	createSave(options map[string]interface{}) xmlSave
+}
+
+type XMLResourceImpl struct {
+	EResourceImpl
+	xmlVersion string
+	encoding   string
+}
+
+func NewXMLResourceImpl() *XMLResourceImpl {
+	r := new(XMLResourceImpl)
+	r.SetInterfaces(r)
+	r.Initialize()
+	return r
+}
+
+func (r *XMLResourceImpl) Initialize() {
+	r.EResourceImpl.Initialize()
+	r.xmlVersion = "1.0"
+	r.encoding = "UTF-8"
+}
+
+func (r *XMLResourceImpl) GetXMLVersion() string {
+	return r.xmlVersion
+}
+
+func (r *XMLResourceImpl) SetXMLVersion(xmlVersion string) {
+	r.xmlVersion = xmlVersion
+}
+
+func (r *XMLResourceImpl) GetEncoding() string {
+	return r.encoding
+}
+
+func (r *XMLResourceImpl) SetEncoding(encoding string) {
+	r.encoding = encoding
+}
+
+func (r *XMLResourceImpl) AsXMLResource() XMLResource {
+	return r.GetInterfaces().(XMLResource)
+}
+
+func (r *XMLResourceImpl) AsXMLResourceInternal() xmlResourceInternal {
+	return r.GetInterfaces().(xmlResourceInternal)
+}
+
+func (r *XMLResourceImpl) DoLoad(rd io.Reader, options map[string]interface{}) {
+	l := r.AsXMLResourceInternal().createLoad(options)
+	l.load(r.AsXMLResource(), rd)
+}
+
+func (r *XMLResourceImpl) DoSave(wd io.Writer, options map[string]interface{}) {
+	l := r.AsXMLResourceInternal().createSave(options)
+	l.save(r.AsXMLResource(), wd)
+}
+
+func (r *XMLResourceImpl) createLoad(options map[string]interface{}) xmlLoad {
+	return newXMLLoadImpl(options)
+}
+
+func (r *XMLResourceImpl) createSave(options map[string]interface{}) xmlSave {
+	return newXMLSaveImpl(options)
+}
+
 type xmlLoad interface {
-	load(resource xmlResource, w io.Reader)
+	load(resource XMLResource, w io.Reader)
 }
 
 type xmlLoadInternal interface {
@@ -30,17 +105,11 @@ type xmlLoadInternal interface {
 }
 
 type xmlSave interface {
-	save(resource xmlResource, w io.Writer)
+	save(resource XMLResource, w io.Writer)
 }
 
 type xmlSaveInternal interface {
 	saveNamespaces()
-}
-
-type xmlResource interface {
-	EResourceInternal
-	createLoad(options map[string]interface{}) xmlLoad
-	createSave(options map[string]interface{}) xmlSave
 }
 
 type pair [2]interface{}
@@ -145,7 +214,7 @@ type reference struct {
 type xmlLoadImpl struct {
 	interfaces             interface{}
 	decoder                *xml.Decoder
-	resource               xmlResource
+	resource               XMLResource
 	isResolveDeferred      bool
 	isSuppressDocumentRoot bool
 	elements               []string
@@ -184,7 +253,7 @@ func newXMLLoadImpl(options map[string]interface{}) *xmlLoadImpl {
 	return l
 }
 
-func (l *xmlLoadImpl) load(resource xmlResource, r io.Reader) {
+func (l *xmlLoadImpl) load(resource XMLResource, r io.Reader) {
 	l.decoder = xml.NewDecoder(r)
 	l.decoder.CharsetReader = charset.NewReaderLabel
 	l.resource = resource
@@ -843,6 +912,37 @@ func (l *xmlLoadImpl) comment(comment string) {
 }
 
 func (l *xmlLoadImpl) processingInstruction(procInst xml.ProcInst) {
+	if procInst.Target == "xml" {
+		content := string(procInst.Inst)
+		if ver := l.procInst("version", content); ver != "" {
+			l.resource.SetXMLVersion(ver)
+		}
+		if encoding := l.procInst("encoding", content); encoding != "" {
+			l.resource.SetEncoding(encoding)
+		}
+	}
+}
+
+func (l *xmlLoadImpl) procInst(param, s string) string {
+	// TODO: this parsing is somewhat lame and not exact.
+	// It works for all actual cases, though.
+	param = param + "="
+	idx := strings.Index(s, param)
+	if idx == -1 {
+		return ""
+	}
+	v := s[idx+len(param):]
+	if v == "" {
+		return ""
+	}
+	if v[0] != '\'' && v[0] != '"' {
+		return ""
+	}
+	idx = strings.IndexRune(v[1:], rune(v[0]))
+	if idx == -1 {
+		return ""
+	}
+	return v[1 : idx+1]
 }
 
 func (l *xmlLoadImpl) directive(directive string) {
@@ -1087,7 +1187,7 @@ const (
 
 type xmlSaveImpl struct {
 	interfaces       interface{}
-	resource         xmlResource
+	resource         XMLResource
 	str              *xmlString
 	packages         map[EPackage]string
 	uriToPrefixes    map[string][]string
@@ -1120,7 +1220,7 @@ func newXMLSaveImpl(options map[string]interface{}) *xmlSaveImpl {
 	return s
 }
 
-func (s *xmlSaveImpl) save(resource xmlResource, w io.Writer) {
+func (s *xmlSaveImpl) save(resource XMLResource, w io.Writer) {
 	s.resource = resource
 	contents := s.roots
 	if contents == nil {
@@ -1156,7 +1256,7 @@ func (s *xmlSaveImpl) save(resource xmlResource, w io.Writer) {
 }
 
 func (s *xmlSaveImpl) saveHeader() {
-	s.str.add("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+	s.str.add(fmt.Sprintf("<?xml version=\"%v\" encoding=\"%v\"?>", s.resource.GetXMLVersion(), s.resource.GetEncoding()))
 	s.str.addLine()
 }
 
@@ -1820,35 +1920,4 @@ func (s *xmlSaveImpl) handleDanglingHREF(eObject EObject) {
 
 func (s *xmlSaveImpl) error(diagnostic EDiagnostic) {
 	s.resource.GetErrors().Add(diagnostic)
-}
-
-type xmlResourceImpl struct {
-	EResourceImpl
-}
-
-func newXMLResourceImpl() *xmlResourceImpl {
-	r := new(xmlResourceImpl)
-	r.SetInterfaces(r)
-	r.Initialize()
-	return r
-}
-
-func (r *xmlResourceImpl) DoLoad(rd io.Reader, options map[string]interface{}) {
-	resource := r.GetInterfaces().(xmlResource)
-	l := resource.createLoad(options)
-	l.load(resource, rd)
-}
-
-func (r *xmlResourceImpl) DoSave(w io.Writer, options map[string]interface{}) {
-	resource := r.GetInterfaces().(xmlResource)
-	s := resource.createSave(options)
-	s.save(resource, w)
-}
-
-func (r *xmlResourceImpl) createLoad(options map[string]interface{}) xmlLoad {
-	return newXMLLoadImpl(options)
-}
-
-func (r *xmlResourceImpl) createSave(options map[string]interface{}) xmlSave {
-	return newXMLSaveImpl(options)
 }

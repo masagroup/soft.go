@@ -1,15 +1,15 @@
 package ecore
 
-type memoryResource interface {
+type MemoryResource interface {
 	EResource
 }
 
-type memoryResourceImpl struct {
+type MemoryResourceImpl struct {
 	EResourceImpl
 }
 
-func newMemoryResourceImpl() *memoryResourceImpl {
-	r := &memoryResourceImpl{}
+func NewMemoryResourceImpl() *MemoryResourceImpl {
+	r := &MemoryResourceImpl{}
 	r.SetInterfaces(r)
 	r.Initialize()
 	return r

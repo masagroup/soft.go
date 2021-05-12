@@ -8,18 +8,18 @@ import (
 )
 
 func TestMemoryResourceConstructor(t *testing.T) {
-	require.NotNil(t, newMemoryResourceImpl())
+	require.NotNil(t, NewMemoryResourceImpl())
 }
 
 func TestMemoryLoad(t *testing.T) {
-	r := newMemoryResourceImpl()
+	r := NewMemoryResourceImpl()
 	r.SetURI(CreateMemoryURI("memory"))
 	r.Load()
 	assert.True(t, r.GetErrors().Empty(), diagnosticError(r.GetErrors()))
 }
 
 func TestMemorySave(t *testing.T) {
-	r := newMemoryResourceImpl()
+	r := NewMemoryResourceImpl()
 	r.SetURI(CreateMemoryURI("memory"))
 	r.Save()
 	assert.True(t, r.GetErrors().Empty(), diagnosticError(r.GetErrors()))

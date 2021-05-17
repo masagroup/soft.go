@@ -211,13 +211,13 @@ func (list *basicEList) doMove(oldIndex, newIndex int) interface{} {
 		} else {
 			copy(list.data[oldIndex:], list.data[oldIndex+1:newIndex+1])
 		}
-	}
-	list.data[newIndex] = object
+		list.data[newIndex] = object
 
-	// events
-	interfaces := list.interfaces.(abstractEList)
-	interfaces.didMove(newIndex, object, oldIndex)
-	interfaces.didChange()
+		// events
+		interfaces := list.interfaces.(abstractEList)
+		interfaces.didMove(newIndex, object, oldIndex)
+		interfaces.didChange()
+	}
 	return object
 }
 

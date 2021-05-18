@@ -19,7 +19,7 @@ type BasicEObjectImpl struct {
 	AbstractEObject
 	deliver            bool
 	proxy              bool
-	adapters           *notifierAdapterList
+	adapters           EList
 	resource           EResource
 	container          EObject
 	containerFeatureID int

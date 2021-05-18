@@ -12,7 +12,7 @@ package ecore
 type ENotifierImpl struct {
 	AbstractENotifier
 	deliver  bool
-	adapters *notifierAdapterList
+	adapters EList
 }
 
 func (notifier *ENotifierImpl) Initialize() {

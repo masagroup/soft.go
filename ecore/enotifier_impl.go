@@ -28,9 +28,6 @@ func (notifier *ENotifierImpl) EAdapters() EList {
 }
 
 func (notifier *ENotifierImpl) EBasicAdapters() EList {
-	if notifier.adapters == nil {
-		return nil
-	}
 	return notifier.adapters
 }
 

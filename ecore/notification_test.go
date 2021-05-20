@@ -69,7 +69,10 @@ func TestNotificationGetFeatureID(t *testing.T) {
 		assert.Equal(t, 5, notification.GetFeatureID())
 		mockFeature.AssertExpectations(t)
 	}
-
+	{
+		notification := NewNotificationByFeature(mockObject, ADD, nil, 1, 2, NO_INDEX)
+		assert.Equal(t, -1, notification.GetFeatureID())
+	}
 }
 
 func TestNotificationGetFeature(t *testing.T) {

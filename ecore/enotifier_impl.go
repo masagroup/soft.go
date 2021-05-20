@@ -12,7 +12,7 @@ package ecore
 type ENotifierImpl struct {
 	AbstractENotifier
 	deliver  bool
-	adapters *notifierAdapterList
+	adapters EList
 }
 
 func (notifier *ENotifierImpl) Initialize() {
@@ -28,9 +28,6 @@ func (notifier *ENotifierImpl) EAdapters() EList {
 }
 
 func (notifier *ENotifierImpl) EBasicAdapters() EList {
-	if notifier.adapters == nil {
-		return nil
-	}
 	return notifier.adapters
 }
 

@@ -59,6 +59,7 @@ func (m *EPackageExtentedMetaDataImpl) getType(name string) EClassifier {
 				nameToClassifierMap[eClassifierName] = eClassifier
 				if eClassifierName == name {
 					eResult = eClassifier
+					break
 				}
 			}
 			m.nameToClassifierMap = nameToClassifierMap

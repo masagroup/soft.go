@@ -55,8 +55,8 @@ func TestExtendedMetatData_GetType(t *testing.T) {
 	mockAnnotation.On("GetDetails").Return(mockDetails).Once()
 	mockDetails.On("GetValue", "name").Return("classifier2").Once()
 
-	assert.Equal(t, mockClassifier1, m.GetType(mockPackage, "classifier1"))
 	assert.Equal(t, mockClassifier2, m.GetType(mockPackage, "classifier2"))
+	assert.Equal(t, mockClassifier1, m.GetType(mockPackage, "classifier1"))
 	mock.AssertExpectationsForObjects(t, mockPackage, mockClassifier1, mockClassifier2, mockAnnotation, mockDetails)
 }
 

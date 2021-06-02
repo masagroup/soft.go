@@ -41,6 +41,7 @@ func (m *IncrementalIDManager) Clear() {
 	m.detachedToID = make(map[EObject]int)
 	m.objectToID = make(map[EObject]int)
 	m.idToObject = make(map[int]EObject)
+	m.currentID = 0
 }
 
 func (m *IncrementalIDManager) Register(eObject EObject) {

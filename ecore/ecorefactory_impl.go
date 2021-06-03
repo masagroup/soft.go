@@ -12,6 +12,7 @@
 package ecore
 
 import "strconv"
+import "time"
 
 type ecoreFactoryInternal interface {
 	createEBigDecimalFromString(eDataType EDataType, literalValue string) interface{}
@@ -194,10 +195,10 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEEnumFromContainerAndClassID(eCo
 	return element
 }
 func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEEnumLiteral() EEnumLiteral {
-	return newEEnumLiteralImpl()
+	return newEEnumLiteralExt()
 }
 func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEEnumLiteralFromContainer(eContainer EEnum) EEnumLiteral {
-	element := newEEnumLiteralImpl()
+	element := newEEnumLiteralExt()
 	if eContainer != nil {
 		eContainer.GetELiterals().Add(element)
 	}
@@ -491,12 +492,18 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) convertECharacterObjectToString(eDataT
 	return string([]byte{b})
 }
 
+const (
+	dateFormat string = "2006-01-02T15:04:05.999Z"
+)
+
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEDateFromString(eDataType EDataType, literalValue string) interface{} {
-	panic("NotImplementedException")
+	t, _ := time.Parse(dateFormat, literalValue)
+	return &t
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDateToString(eDataType EDataType, instanceValue interface{}) string {
-	panic("NotImplementedException")
+	t, _ := instanceValue.(*time.Time)
+	return t.Format(dateFormat)
 }
 
 func (ecoreFactoryImpl *ecoreFactoryImpl) createEDoubleFromString(eDataType EDataType, literalValue string) interface{} {

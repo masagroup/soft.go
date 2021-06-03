@@ -9,6 +9,8 @@
 
 package ecore
 
+import "strconv"
+
 // EFactoryExt is the extension of the model object 'EFactory'
 type EFactoryExt struct {
 	eFactoryImpl
@@ -30,4 +32,54 @@ func (eFactory *EFactoryExt) Create(eClass EClass) EObject {
 	eObject := NewDynamicEObjectImpl()
 	eObject.SetEClass(eClass)
 	return eObject
+}
+
+// CreateFromString default implementation
+func (eFactory *EFactoryExt) CreateFromString(eDataType EDataType, literalValue string) interface{} {
+	if eFactory.GetEPackage() != eDataType.GetEPackage() {
+		panic("The datatype '" + eDataType.GetName() + "' is not a valid classifier")
+	}
+
+	if eEnum := eDataType.(EEnum); eEnum != nil {
+		result := eEnum.GetEEnumLiteralByLiteral(literalValue)
+		if result == nil {
+			panic("The value '" + literalValue + "' is not a valid enumerator of '" + eDataType.GetName() + "'")
+		}
+		return result.GetValue()
+	}
+
+	switch eDataType.GetInstanceTypeName() {
+	case "float64":
+		value, _ := strconv.ParseFloat(literalValue, 64)
+		return value
+	case "float32":
+		value, _ := strconv.ParseFloat(literalValue, 32)
+		return float32(value)
+	case "int":
+		value, _ := strconv.Atoi(literalValue)
+		return value
+	case "int64":
+		value, _ := strconv.ParseInt(literalValue, 10, 64)
+		return value
+	case "int32":
+		value, _ := strconv.ParseInt(literalValue, 10, 32)
+		return int32(value)
+	case "int16":
+		value, _ := strconv.ParseInt(literalValue, 10, 16)
+		return int16(value)
+	case "int8":
+		value, _ := strconv.ParseInt(literalValue, 10, 8)
+		return int8(value)
+	case "bool":
+		value, _ := strconv.ParseBool(literalValue)
+		return value
+	case "string":
+		return literalValue
+	}
+
+	panic("CreateFromString not implemented")
+}
+
+func (eFactory *EFactoryExt) ConvertToString(eDataType EDataType, instanceValue interface{}) string {
+	panic("ConvertToString not implemented")
 }

@@ -494,3 +494,17 @@ func TestSerializationSaveSimpleXMLRootObjects(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
+
+func TestSerializationLibraryComplexBig(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	assert.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/library.complex.big.xml"}, nil)
+	require.NotNil(t, eResource)
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+}

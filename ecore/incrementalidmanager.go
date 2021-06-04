@@ -56,21 +56,25 @@ func (m *IncrementalIDManager) Register(eObject EObject) {
 	}
 }
 
-func (m *IncrementalIDManager) SetID(eObject EObject, id interface{}) {
-	newID := m.getID(id)
-	oldID, isOldID := m.objectToID[eObject]
-	if newID >= 0 {
-		m.objectToID[eObject] = newID
-	} else {
-		delete(m.objectToID, eObject)
+func max(x, y int) int {
+	if x < y {
+		return y
 	}
+	return x
+}
 
-	if isOldID {
+func (m *IncrementalIDManager) SetID(eObject EObject, id interface{}) {
+	if oldID, isOldID := m.objectToID[eObject]; isOldID {
 		delete(m.idToObject, oldID)
 	}
 
+	newID := m.getID(id)
 	if newID >= 0 {
+		m.currentID = max(m.currentID, newID+1)
+		m.objectToID[eObject] = newID
 		m.idToObject[newID] = eObject
+	} else {
+		delete(m.objectToID, eObject)
 	}
 }
 

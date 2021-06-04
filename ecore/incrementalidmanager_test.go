@@ -53,3 +53,14 @@ func TestIncrementalIDManagerSetID(t *testing.T) {
 	m.SetID(mockObject, "2")
 	assert.Equal(t, 2, m.GetID(mockObject))
 }
+
+func TestIncrementalIDManagerClear(t *testing.T) {
+	m := NewIncrementalIDManager()
+	mockObject := &MockEObject{}
+
+	m.SetID(mockObject, 2)
+	assert.Equal(t, 2, m.GetID(mockObject))
+
+	m.Clear()
+	assert.Equal(t, nil, m.GetID(mockObject))
+}

@@ -16,6 +16,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"time"
 )
 
 func TestFactoryCreateFromEClass(t *testing.T) {
@@ -480,13 +481,18 @@ func TestFactoryConvert(t *testing.T) {
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EDATE)
-		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
+		date := factory.CreateFromString(mockEDataType, "2007-06-02T10:26:13.000Z")
+		expected := time.Date(2007, time.June, 2, 10, 26, 13, 0, time.UTC)
+		assert.Equal(t, &expected, date)
 		mockEDataType.AssertExpectations(t)
 	}
 	{
 		mockEDataType := &MockEDataType{}
 		mockEDataType.On("GetClassifierID").Return(EDATE)
-		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
+		date := time.Date(2020, time.May, 12, 17, 33, 10, 770000000, time.UTC)
+		dateStr := factory.ConvertToString(mockEDataType, &date)
+		expected := "2020-05-12T17:33:10.77Z"
+		assert.Equal(t, expected, dateStr)
 		mockEDataType.AssertExpectations(t)
 	}
 	{

@@ -9,13 +9,20 @@
 
 package ecore
 
-type ecoreFactoryExt struct {
-	ecoreFactoryImpl
+type eEnumLiteralExt struct {
+	eEnumLiteralImpl
 }
 
-func newEcoreFactoryExt() *ecoreFactoryExt {
-	factory := new(ecoreFactoryExt)
-	factory.SetInterfaces(factory)
-	factory.Initialize()
-	return factory
+func newEEnumLiteralExt() *eEnumLiteralExt {
+	eEnumLiteral := new(eEnumLiteralExt)
+	eEnumLiteral.SetInterfaces(eEnumLiteral)
+	eEnumLiteral.Initialize()
+	return eEnumLiteral
+}
+
+func (eEnumLiteral *eEnumLiteralExt) GetLiteral() string {
+	if len(eEnumLiteral.literal) == 0 {
+		return eEnumLiteral.GetName()
+	}
+	return eEnumLiteral.literal
 }

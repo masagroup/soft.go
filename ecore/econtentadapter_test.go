@@ -13,7 +13,9 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEContentAdapter_SetTarget_EObject(t *testing.T) {
@@ -501,4 +503,52 @@ func TestEContentAdapterIntegration(t *testing.T) {
 	})).Once()
 	rs.GetResources().Remove(r)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
+}
+
+type testContentAdapter struct {
+	EContentAdapter
+}
+
+func BenchmarkEContentAdapterWithBigModel(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		// load package
+		ePackage := loadPackage("library.complex.ecore")
+		assert.NotNil(b, ePackage)
+
+		// load resource
+		xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+		eResource := xmlProcessor.Load(&URI{Path: "testdata/library.complex.big.xml"})
+		require.NotNil(b, eResource)
+		assert.True(b, eResource.IsLoaded())
+		assert.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+		assert.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+		adapter := new(testContentAdapter)
+		adapter.SetInterfaces(adapter)
+
+		eResource.EAdapters().Add(adapter)
+		eResource.EAdapters().Remove(adapter)
+	}
+}
+
+func BenchmarkEContentAdapterWithTreeModel(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		// load package
+		ePackage := loadPackage("tree.ecore")
+		assert.NotNil(b, ePackage)
+
+		// load resource
+		xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+		eResource := xmlProcessor.Load(&URI{Path: "testdata/tree.xml"})
+		require.NotNil(b, eResource)
+		assert.True(b, eResource.IsLoaded())
+		assert.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+		assert.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+		adapter := new(testContentAdapter)
+		adapter.SetInterfaces(adapter)
+
+		eResource.EAdapters().Add(adapter)
+		eResource.EAdapters().Remove(adapter)
+	}
 }

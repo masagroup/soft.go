@@ -9,7 +9,10 @@
 
 package ecore
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 // EFactoryExt is the extension of the model object 'EFactory'
 type EFactoryExt struct {
@@ -37,13 +40,14 @@ func (eFactory *EFactoryExt) Create(eClass EClass) EObject {
 // CreateFromString default implementation
 func (eFactory *EFactoryExt) CreateFromString(eDataType EDataType, literalValue string) interface{} {
 	if eFactory.GetEPackage() != eDataType.GetEPackage() {
-		panic("The datatype '" + eDataType.GetName() + "' is not a valid classifier")
+		panic(fmt.Sprintf("The datatype '%v' is not a valid classifier", eDataType.GetName()))
 	}
 
 	if eEnum := eDataType.(EEnum); eEnum != nil {
 		result := eEnum.GetEEnumLiteralByLiteral(literalValue)
 		if result == nil {
-			panic("The value '" + literalValue + "' is not a valid enumerator of '" + eDataType.GetName() + "'")
+			panic(fmt.Sprintf("The value '%v' is not a valid enumerator of '%v'", literalValue, eDataType.GetName()))
+
 		}
 		return result.GetValue()
 	}
@@ -81,5 +85,46 @@ func (eFactory *EFactoryExt) CreateFromString(eDataType EDataType, literalValue 
 }
 
 func (eFactory *EFactoryExt) ConvertToString(eDataType EDataType, instanceValue interface{}) string {
+	if eFactory.GetEPackage() != eDataType.GetEPackage() {
+		panic(fmt.Sprintf("The datatype '%v' is not a valid classifier", eDataType.GetName()))
+	}
+
+	if eEnum := eDataType.(EEnum); eEnum != nil {
+		result := eEnum.GetEEnumLiteralByValue(instanceValue.(int))
+		if result == nil {
+			panic(fmt.Sprintf("The value '%v' is not a valid enumerator of '%v'", instanceValue, eDataType.GetName()))
+		}
+		return result.GetLiteral()
+	}
+
+	switch eDataType.GetInstanceTypeName() {
+	case "float64":
+		v, _ := instanceValue.(float64)
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	case "float32":
+		v, _ := instanceValue.(float64)
+		return strconv.FormatFloat(v, 'f', -1, 32)
+	case "int":
+		v, _ := instanceValue.(int)
+		return strconv.Itoa(v)
+	case "int64":
+		v, _ := instanceValue.(int64)
+		return strconv.FormatInt(v, 10)
+	case "int32":
+		v, _ := instanceValue.(int32)
+		return strconv.FormatInt(int64(v), 10)
+	case "int16":
+		v, _ := instanceValue.(int16)
+		return strconv.FormatInt(int64(v), 10)
+	case "int8":
+		v, _ := instanceValue.(int8)
+		return strconv.FormatInt(int64(v), 10)
+	case "bool":
+		v, _ := instanceValue.(bool)
+		return strconv.FormatBool(v)
+	case "string":
+		return instanceValue.(string)
+	}
+
 	panic("ConvertToString not implemented")
 }

@@ -65,11 +65,8 @@ func TestSerializationSaveSimpleXml(t *testing.T) {
 	library.GetEmployees().Add(employee)
 
 	// save library model with a resource
-	resource := ecore.NewEResourceImpl()
-	resource.GetContents().Add(root)
-	resource.SetURI(ecore.CreateFileURI("testdata/dynamic.simple.output.xml"))
 	xmlProcessor := ecore.NewXMLProcessor([]ecore.EPackage{GetPackage()})
-	xmlProcessor.Save(resource)
+	xmlProcessor.SaveObject(ecore.CreateFileURI("testdata/dynamic.simple.output.xml"), root)
 
 	bytesInput, errInput := ioutil.ReadFile("testdata/dynamic.simple.result.xml")
 	assert.Nil(t, errInput)

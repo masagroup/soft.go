@@ -10,7 +10,7 @@ func NewXMIEncoder(options map[string]interface{}) *XMIEncoder {
 	s.XMLEncoder = NewXMLEncoder(options)
 	s.interfaces = s
 	s.extendedMetaData = nil
-	s.xmiVersion = "1.0"
+	s.xmiVersion = "2.0"
 	return s
 }
 

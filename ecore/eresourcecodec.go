@@ -8,7 +8,7 @@ const (
 	OPTION_ROOT_OBJECTS              = "ROOT_OBJECTS"              // list of root objects to save
 )
 
-type EResourceDriver interface {
+type EResourceCodec interface {
 	NewEncoder(options map[string]interface{}) EResourceEncoder
 	NewDecoder(options map[string]interface{}) EResourceDecoder
 }

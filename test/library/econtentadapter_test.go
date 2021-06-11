@@ -66,8 +66,8 @@ func TestEContentAdapterResource(t *testing.T) {
 	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
 
 	fileURI := ecore.CreateFileURI("testdata/library.complex.xml")
-	resourceFactory := ecore.GetResourceFactoryRegistry().GetFactory(fileURI)
-	resource := resourceFactory.CreateResource(fileURI)
+	resource := ecore.NewEResourceImpl()
+	resource.SetURI(fileURI)
 	resource.Load()
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty())

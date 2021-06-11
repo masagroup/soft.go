@@ -114,6 +114,7 @@ func (r *EResourceSetImpl) GetResource(uri *URI, loadOnDemand bool) EResource {
 func (r *EResourceSetImpl) CreateResource(uri *URI) EResource {
 	resource := NewEResourceImpl()
 	resource.SetURI(uri)
+	r.resources.Add(resource)
 	return resource
 }
 

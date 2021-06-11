@@ -39,29 +39,29 @@ func TestEResourceSetResourcesNoMock(t *testing.T) {
 }
 
 func TestEResourceSetCreateResource(t *testing.T) {
-	mockResourceFactoryRegistry := new(MockEResourceFactoryRegistry)
-	mockResourceFactory := new(MockEResourceFactory)
+	mockResourceCodecRegistry := new(MockEResourceCodecRegistry)
+	mockResourceCodec := new(MockEResourceCodec)
 	mockResource := new(MockEResourceInternal)
 	uri, _ := ParseURI("test://file.t")
 	rs := NewEResourceSetImpl()
-	rs.SetResourceFactoryRegistry(mockResourceFactoryRegistry)
+	rs.SetResourceCodecRegistry(mockResourceCodecRegistry)
 
-	mockResourceFactoryRegistry.On("GetFactory", uri).Return(mockResourceFactory)
-	mockResourceFactory.On("CreateResource", uri).Return(mockResource)
+	mockResourceCodecRegistry.On("GetCodec", uri).Return(mockResourceCodec)
+	mockResourceCodec.On("CreateResource", uri).Return(mockResource)
 	mockResource.On("BasicSetResourceSet", rs, nil).Return(nil)
 	assert.NotNil(t, mockResource, rs.CreateResource(uri))
 }
 
 func TestEResourceSetGetResource(t *testing.T) {
-	mockResourceFactoryRegistry := new(MockEResourceFactoryRegistry)
-	mockResourceFactory := new(MockEResourceFactory)
+	mockResourceCodecRegistry := new(MockEResourceCodecRegistry)
+	mockResourceCodec := new(MockEResourceCodec)
 	mockResource := new(MockEResourceInternal)
 	uri, _ := ParseURI("test://file.t")
 	rs := NewEResourceSetImpl()
-	rs.SetResourceFactoryRegistry(mockResourceFactoryRegistry)
+	rs.SetResourceCodecRegistry(mockResourceCodecRegistry)
 
-	mockResourceFactoryRegistry.On("GetFactory", uri).Return(mockResourceFactory)
-	mockResourceFactory.On("CreateResource", uri).Return(mockResource)
+	mockResourceCodecRegistry.On("GetCodec", uri).Return(mockResourceCodec)
+	mockResourceCodec.On("CreateResource", uri).Return(mockResource)
 	mockResource.On("BasicSetResourceSet", rs, nil).Return(nil)
 	mockResource.On("Load").Once()
 
@@ -89,17 +89,17 @@ func TestEResourceSetGetRegisteredResource(t *testing.T) {
 }
 
 func TestEResourceSetGetEObject(t *testing.T) {
-	mockResourceFactoryRegistry := new(MockEResourceFactoryRegistry)
-	mockResourceFactory := new(MockEResourceFactory)
+	mockResourceCodecRegistry := new(MockEResourceCodecRegistry)
+	mockResourceCodec := new(MockEResourceCodec)
 	mockResource := new(MockEResourceInternal)
 	mockObject := new(MockEObject)
 	uriObject, _ := ParseURI("test://file.t#//@first/second")
 	uriResource, _ := ParseURI("test://file.t")
 	rs := NewEResourceSetImpl()
-	rs.SetResourceFactoryRegistry(mockResourceFactoryRegistry)
+	rs.SetResourceCodecRegistry(mockResourceCodecRegistry)
 
-	mockResourceFactoryRegistry.On("GetFactory", uriResource).Return(mockResourceFactory)
-	mockResourceFactory.On("CreateResource", uriResource).Return(mockResource)
+	mockResourceCodecRegistry.On("GetCodec", uriResource).Return(mockResourceCodec)
+	mockResourceCodec.On("CreateResource", uriResource).Return(mockResource)
 	mockResource.On("BasicSetResourceSet", rs, nil).Return(nil)
 	mockResource.On("Load").Once()
 	mockResource.On("GetEObject", "//@first/second").Return(mockObject)

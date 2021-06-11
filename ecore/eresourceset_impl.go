@@ -39,11 +39,11 @@ func (l *resourcesList) inverseRemove(object interface{}, notifications ENotific
 //EResourceSetImpl ...
 type EResourceSetImpl struct {
 	ENotifierImpl
-	resources               EList
-	uriConverter            EURIConverter
-	uriResourceMap          map[*URI]EResource
-	resourceFactoryRegistry EResourceFactoryRegistry
-	packageRegistry         EPackageRegistry
+	resources             EList
+	uriConverter          EURIConverter
+	uriResourceMap        map[*URI]EResource
+	resourceCodecRegistry EResourceCodecRegistry
+	packageRegistry       EPackageRegistry
 }
 
 func NewEResourceSetImpl() *EResourceSetImpl {
@@ -112,13 +112,9 @@ func (r *EResourceSetImpl) GetResource(uri *URI, loadOnDemand bool) EResource {
 }
 
 func (r *EResourceSetImpl) CreateResource(uri *URI) EResource {
-	resourceFactory := r.GetResourceFactoryRegistry().GetFactory(uri)
-	if resourceFactory != nil {
-		resource := resourceFactory.CreateResource(uri)
-		r.resources.Add(resource)
-		return resource
-	}
-	return nil
+	resource := NewEResourceImpl()
+	resource.SetURI(uri)
+	return resource
 }
 
 func (r *EResourceSetImpl) GetEObject(uri *URI, loadOnDemand bool) EObject {
@@ -152,15 +148,15 @@ func (r *EResourceSetImpl) SetPackageRegistry(packageRegistry EPackageRegistry) 
 	r.packageRegistry = packageRegistry
 }
 
-func (r *EResourceSetImpl) GetResourceFactoryRegistry() EResourceFactoryRegistry {
-	if r.resourceFactoryRegistry == nil {
-		r.resourceFactoryRegistry = NewEResourceFactoryRegistryImplWithDelegate(GetResourceFactoryRegistry())
+func (r *EResourceSetImpl) GetResourceCodecRegistry() EResourceCodecRegistry {
+	if r.resourceCodecRegistry == nil {
+		r.resourceCodecRegistry = NewEResourceCodecRegistryImplWithDelegate(GetResourceCodecRegistry())
 	}
-	return r.resourceFactoryRegistry
+	return r.resourceCodecRegistry
 }
 
-func (r *EResourceSetImpl) SetResourceFactoryRegistry(resourceFactoryRegistry EResourceFactoryRegistry) {
-	r.resourceFactoryRegistry = resourceFactoryRegistry
+func (r *EResourceSetImpl) SetResourceCodecRegistry(resourceCodecRegistry EResourceCodecRegistry) {
+	r.resourceCodecRegistry = resourceCodecRegistry
 }
 
 func (r *EResourceSetImpl) SetURIResourceMap(uriResourceMap map[*URI]EResource) {

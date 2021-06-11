@@ -1,5 +1,9 @@
 package ecore
 
+const (
+	DEFAULT_EXTENSION = "*"
+)
+
 type EResourceCodecRegistry interface {
 	GetCodec(uri *URI) EResourceCodec
 	GetProtocolToCodecMap() map[string]EResourceCodec

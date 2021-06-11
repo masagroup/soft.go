@@ -11,6 +11,10 @@ var resourceDriverRegistryInstance EResourceDriverRegistry
 func GetResourceDriverRegistry() EResourceDriverRegistry {
 	if resourceDriverRegistryInstance == nil {
 		resourceDriverRegistryInstance = NewEResourceDriverRegistryImpl()
+		// initialize with default factories
+		extensionToDrivers := resourceDriverRegistryInstance.GetExtensionToDriverMap()
+		extensionToDrivers["ecore"] = &XMIDriver{}
+		extensionToDrivers["xml"] = &XMLDriver{}
 	}
 	return resourceDriverRegistryInstance
 }

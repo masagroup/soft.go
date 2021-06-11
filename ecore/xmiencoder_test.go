@@ -57,7 +57,7 @@ func TestXMIEncoderLibraryComplex(t *testing.T) {
 func BenchmarkXMIEncoderLibrarySimple(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		resource := NewXMIResourceImpl()
+		resource := NewEResourceImpl()
 		resource.SetURI(&URI{Path: "testdata/library.simple.ecore"})
 		resource.Load()
 
@@ -70,7 +70,7 @@ func BenchmarkXMIEncoderLibrarySimple(b *testing.B) {
 func BenchmarkXMIEncoderLibraryNoRoot(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		resource := NewXMIResourceImpl()
+		resource := NewEResourceImpl()
 		resource.SetURI(&URI{Path: "testdata/library.noroot.ecore"})
 		resource.Load()
 

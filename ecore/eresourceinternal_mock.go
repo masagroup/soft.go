@@ -68,13 +68,13 @@ func (_m *MockEResourceInternal) DoDetached(o EObject) {
 }
 
 // DoLoad provides a mock function with given fields: rd, options
-func (_m *MockEResourceInternal) DoLoad(rd io.Reader, options map[string]interface{}) {
-	_m.Called(rd, options)
+func (_m *MockEResourceInternal) DoLoad(rd io.Reader, d EResourceDecoder) {
+	_m.Called(rd, d)
 }
 
 // DoSave provides a mock function with given fields: rd, options
-func (_m *MockEResourceInternal) DoSave(rd io.Writer, options map[string]interface{}) {
-	_m.Called(rd, options)
+func (_m *MockEResourceInternal) DoSave(rd io.Writer, e EResourceEncoder) {
+	_m.Called(rd, e)
 }
 
 // DoUnload provides a mock function with given fields:

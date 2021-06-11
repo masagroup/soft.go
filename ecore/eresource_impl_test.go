@@ -162,7 +162,7 @@ func TestResourceIDManager(t *testing.T) {
 
 	// create a resource with an id manager
 	mockIDManager := &MockEObjectIDManager{}
-	eResource := NewXMLResourceImpl()
+	eResource := NewEResourceImpl()
 	eResource.SetObjectIDManager(mockIDManager)
 
 	// create a library and add it to resource

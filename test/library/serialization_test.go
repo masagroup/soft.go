@@ -52,6 +52,7 @@ func TestSerializationLoadComplexXML(t *testing.T) {
 func TestSerializationSaveSimpleXml(t *testing.T) {
 	// create a library model with a single employee
 	root := GetFactory().CreateDocumentRoot()
+
 	library := GetFactory().CreateLibrary()
 	library.SetName("My Library")
 	library.SetAddress("My Library Adress")
@@ -64,8 +65,11 @@ func TestSerializationSaveSimpleXml(t *testing.T) {
 	library.GetEmployees().Add(employee)
 
 	// save library model with a resource
+	resource := ecore.NewEResourceImpl()
+	resource.GetContents().Add(root)
+	resource.SetURI(ecore.CreateFileURI("testdata/dynamic.simple.output.xml"))
 	xmlProcessor := ecore.NewXMLProcessor([]ecore.EPackage{GetPackage()})
-	xmlProcessor.SaveObject(ecore.CreateFileURI("testdata/library.complex.xml"), root)
+	xmlProcessor.Save(resource)
 
 	bytesInput, errInput := ioutil.ReadFile("testdata/dynamic.simple.result.xml")
 	assert.Nil(t, errInput)

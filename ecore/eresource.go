@@ -36,16 +36,19 @@ type EResource interface {
 	Attached(object EObject)
 	Detached(object EObject)
 
+	IsLoaded() bool
+
 	Load()
 	LoadWithOptions(options map[string]interface{})
 	LoadWithReader(r io.Reader, options map[string]interface{})
+	LoadWithDecoder(r io.Reader, decoder EResourceDecoder)
 
 	Unload()
-	IsLoaded() bool
 
 	Save()
 	SaveWithOptions(options map[string]interface{})
 	SaveWithWriter(w io.Writer, options map[string]interface{})
+	SaveWithEncoder(w io.Writer, encoder EResourceEncoder)
 
 	GetErrors() EList
 	GetWarnings() EList

@@ -11,13 +11,6 @@ package ecore
 
 import "encoding/xml"
 
-const (
-	xmiURI        = "http://www.omg.org/XMI"
-	xmiNS         = "xmi"
-	versionAttrib = "version"
-	uuidAttrib    = "uuid"
-)
-
 type xmiLoadImpl struct {
 	*xmlLoadImpl
 }

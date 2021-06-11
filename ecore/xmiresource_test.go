@@ -9,14 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func diagnosticError(errors EList) string {
-	if errors.Empty() {
-		return ""
-	} else {
-		return errors.Get(0).(EDiagnostic).GetMessage()
-	}
-}
-
 func TestXMIResourceLoadLibrarySimple(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
 	resource := xmiProcessor.Load(&URI{Path: "testdata/library.simple.ecore"})

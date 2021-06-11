@@ -28,21 +28,17 @@ func (dC *deepCopy) copy(eObject EObject) EObject {
 		copyEObject := dC.createCopy(eObject)
 		if copyEObject != nil {
 			dC.objects[eObject] = copyEObject
-
 			eClass := eObject.EClass()
-			for it := eClass.GetEAttributes().Iterator(); it.HasNext(); {
-				eAttribute := it.Next().(EAttribute)
-				if eAttribute.IsChangeable() && !eAttribute.IsDerived() {
-					dC.copyAttribute(eAttribute, eObject, copyEObject)
+			for it := eClass.GetEAllStructuralFeatures().Iterator(); it.HasNext(); {
+				eFeature := it.Next().(EStructuralFeature)
+				if eFeature.IsChangeable() && !eFeature.IsDerived() {
+					if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
+						dC.copyAttribute(eAttribute, eObject, copyEObject)
+					} else if eReference, _ := eFeature.(EReference); eReference != nil && eReference.IsContainment() {
+						dC.copyContainment(eReference, eObject, copyEObject)
+					}
 				}
 			}
-			for it := eClass.GetEReferences().Iterator(); it.HasNext(); {
-				eReference := it.Next().(EReference)
-				if eReference.IsChangeable() && !eReference.IsDerived() && eReference.IsContainment() {
-					dC.copyContainment(eReference, eObject, copyEObject)
-				}
-			}
-
 			dC.copyProxyURI(eObject, copyEObject)
 		}
 		return copyEObject

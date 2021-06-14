@@ -9,7 +9,10 @@
 
 package ecore
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"io"
+)
 
 const (
 	xmiURI        = "http://www.omg.org/XMI"
@@ -23,9 +26,9 @@ type XMIDecoder struct {
 	xmiVersion string
 }
 
-func NewXMIDecoder(options map[string]interface{}) *XMIDecoder {
+func NewXMIDecoder(r io.Reader, options map[string]interface{}) *XMIDecoder {
 	l := new(XMIDecoder)
-	l.XMLDecoder = NewXMLDecoder(options)
+	l.XMLDecoder = NewXMLDecoder(r, options)
 	l.notFeatures = append(l.notFeatures,
 		xml.Name{Space: xmiURI, Local: typeAttrib},
 		xml.Name{Space: xmiURI, Local: versionAttrib},

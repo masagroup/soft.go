@@ -9,14 +9,16 @@
 
 package ecore
 
+import "io"
+
 type XMIEncoder struct {
 	*XMLEncoder
 	xmiVersion string
 }
 
-func NewXMIEncoder(options map[string]interface{}) *XMIEncoder {
+func NewXMIEncoder(w io.Writer, options map[string]interface{}) *XMIEncoder {
 	s := new(XMIEncoder)
-	s.XMLEncoder = NewXMLEncoder(options)
+	s.XMLEncoder = NewXMLEncoder(w, options)
 	s.interfaces = s
 	s.extendedMetaData = nil
 	s.xmiVersion = "2.0"

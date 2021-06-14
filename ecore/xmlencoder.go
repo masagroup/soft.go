@@ -55,6 +55,7 @@ type xmlEncoderInternal interface {
 
 type XMLEncoder struct {
 	interfaces       interface{}
+	w                io.Writer
 	resource         EResource
 	str              *xmlString
 	packages         map[EPackage]string
@@ -69,9 +70,10 @@ type XMLEncoder struct {
 	encoding         string
 }
 
-func NewXMLEncoder(options map[string]interface{}) *XMLEncoder {
+func NewXMLEncoder(w io.Writer, options map[string]interface{}) *XMLEncoder {
 	s := new(XMLEncoder)
 	s.interfaces = s
+	s.w = w
 	s.xmlVersion = "1.0"
 	s.encoding = "UTF-8"
 	s.str = newXmlString()
@@ -100,7 +102,7 @@ func (s *XMLEncoder) SetXMLVersion(xmlVersion string) {
 	s.xmlVersion = xmlVersion
 }
 
-func (s *XMLEncoder) Encode(resource EResource, w io.Writer) {
+func (s *XMLEncoder) Encode(resource EResource) {
 	s.resource = resource
 	contents := s.roots
 	if contents == nil {
@@ -132,7 +134,7 @@ func (s *XMLEncoder) Encode(resource EResource, w io.Writer) {
 	s.interfaces.(xmlEncoderInternal).saveNamespaces()
 
 	// write result
-	s.str.write(w)
+	s.str.write(s.w)
 }
 
 func (s *XMLEncoder) saveHeader() {

@@ -3,12 +3,13 @@ package ecore
 import "io"
 
 type BinaryDecoder struct {
+	r io.Reader
 }
 
-func NewBinaryDecoder(options map[string]interface{}) *BinaryDecoder {
+func NewBinaryDecoder(r io.Reader, options map[string]interface{}) *BinaryDecoder {
 	return &BinaryDecoder{}
 }
 
-func (bd *BinaryDecoder) Decode(resource EResource, r io.Reader) {
+func (bd *BinaryDecoder) Decode(resource EResource) {
 
 }

@@ -9,6 +9,8 @@
 
 package ecore
 
+import "io"
+
 const (
 	OPTION_EXTENDED_META_DATA        = "EXTENDED_META_DATA"        // ExtendedMetaData pointer
 	OPTION_SUPPRESS_DOCUMENT_ROOT    = "SUPPRESS_DOCUMENT_ROOT"    // if true , suppress document root if found
@@ -18,6 +20,6 @@ const (
 )
 
 type EResourceCodec interface {
-	NewEncoder(options map[string]interface{}) EResourceEncoder
-	NewDecoder(options map[string]interface{}) EResourceDecoder
+	NewEncoder(w io.Writer, options map[string]interface{}) EResourceEncoder
+	NewDecoder(r io.Reader, options map[string]interface{}) EResourceDecoder
 }

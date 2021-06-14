@@ -10,14 +10,12 @@
 package ecore
 
 import (
-	"io"
 	"testing"
 )
 
 func TestMockEResourceDecoder_Decode(t *testing.T) {
 	mockDecoder := &MockEResourceDecoder{}
 	mockResource := &MockEResource{}
-	var mockReader io.Reader = nil
-	mockDecoder.On("Decode", mockResource, mockReader).Once()
-	mockDecoder.Decode(mockResource, mockReader)
+	mockDecoder.On("Decode", mockResource).Once()
+	mockDecoder.Decode(mockResource)
 }

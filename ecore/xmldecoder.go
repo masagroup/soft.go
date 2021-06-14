@@ -76,9 +76,11 @@ type XMLDecoder struct {
 	xmlVersion             string
 }
 
-func NewXMLDecoder(options map[string]interface{}) *XMLDecoder {
+func NewXMLDecoder(r io.Reader, options map[string]interface{}) *XMLDecoder {
 	l := new(XMLDecoder)
 	l.interfaces = l
+	l.decoder = xml.NewDecoder(r)
+	l.decoder.CharsetReader = charset.NewReaderLabel
 	l.namespaces = newXmlNamespaces()
 	l.prefixesToURI = make(map[string]string)
 	l.spacesToFactories = make(map[string]EFactory)
@@ -105,11 +107,8 @@ func (l *XMLDecoder) GetEncoding() string {
 	return l.encoding
 }
 
-func (l *XMLDecoder) Decode(resource EResource, r io.Reader) {
-	l.decoder = xml.NewDecoder(r)
-	l.decoder.CharsetReader = charset.NewReaderLabel
+func (l *XMLDecoder) Decode(resource EResource) {
 	l.resource = resource
-
 	for {
 		t, tokenErr := l.decoder.Token()
 		if tokenErr != nil {

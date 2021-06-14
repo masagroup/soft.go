@@ -10,14 +10,12 @@
 package ecore
 
 import (
-	"io"
 	"testing"
 )
 
 func TestMockEResourceEncoder_Encode(t *testing.T) {
 	mockEncoder := &MockEResourceEncoder{}
 	mockResource := &MockEResource{}
-	var mockWriter io.Writer = nil
-	mockEncoder.On("Encode", mockResource, mockWriter).Once()
-	mockEncoder.Encode(mockResource, mockWriter)
+	mockEncoder.On("Encode", mockResource).Once()
+	mockEncoder.Encode(mockResource)
 }

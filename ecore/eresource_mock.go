@@ -190,8 +190,8 @@ func (_m *MockEResource) LoadWithReader(r io.Reader, o map[string]interface{}) {
 }
 
 // LoadWithDecoder provides a mock function with given fields: r , d
-func (_m *MockEResource) LoadWithDecoder(r io.Reader, d EResourceDecoder) {
-	_m.Called(r, d)
+func (_m *MockEResource) LoadWithDecoder(d EResourceDecoder) {
+	_m.Called(d)
 }
 
 // Save provides a mock function with given fields:
@@ -209,8 +209,8 @@ func (_m *MockEResource) SaveWithWriter(w io.Writer, o map[string]interface{}) {
 }
 
 // SaveWithWriter provides a mock function with given fields: w
-func (_m *MockEResource) SaveWithEncoder(w io.Writer, e EResourceEncoder) {
-	_m.Called(w, e)
+func (_m *MockEResource) SaveWithEncoder(e EResourceEncoder) {
+	_m.Called(e)
 }
 
 // SetIDManager provides a mock function with given fields: _a0

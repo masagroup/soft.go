@@ -9,12 +9,14 @@
 
 package ecore
 
+import "io"
+
 type XMLCodec struct {
 }
 
-func (d *XMLCodec) NewEncoder(options map[string]interface{}) EResourceEncoder {
-	return NewXMLEncoder(options)
+func (d *XMLCodec) NewEncoder(w io.Writer, options map[string]interface{}) EResourceEncoder {
+	return NewXMLEncoder(w, options)
 }
-func (d *XMLCodec) NewDecoder(options map[string]interface{}) EResourceDecoder {
-	return NewXMLDecoder(options)
+func (d *XMLCodec) NewDecoder(r io.Reader, options map[string]interface{}) EResourceDecoder {
+	return NewXMLDecoder(r, options)
 }

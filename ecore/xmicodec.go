@@ -9,12 +9,14 @@
 
 package ecore
 
+import "io"
+
 type XMICodec struct {
 }
 
-func (d *XMICodec) NewEncoder(options map[string]interface{}) EResourceEncoder {
-	return NewXMIEncoder(options)
+func (d *XMICodec) NewEncoder(w io.Writer, options map[string]interface{}) EResourceEncoder {
+	return NewXMIEncoder(w, options)
 }
-func (d *XMICodec) NewDecoder(options map[string]interface{}) EResourceDecoder {
-	return NewXMIDecoder(options)
+func (d *XMICodec) NewDecoder(r io.Reader, options map[string]interface{}) EResourceDecoder {
+	return NewXMIDecoder(r, options)
 }

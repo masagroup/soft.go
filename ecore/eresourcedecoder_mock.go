@@ -9,22 +9,18 @@ type MockEResourceDecoder struct {
 	mock.Mock
 }
 
-// DecodeObject provides a mock function with given fields: resource
-func (_m *MockEResourceDecoder) DecodeObject(resource EResource) (EObject, error) {
-	ret := _m.Called(resource)
+// DecodeObject provides a mock function with given fields: object, resource
+func (_m *MockEResourceDecoder) DecodeObject(object *EObject, resource EResource) error {
+	ret := _m.Called(object, resource)
 
-	var r0 EObject
-	var r1 error
-	if rf, ok := ret.Get(0).(func(EResource) (EObject, error)); ok {
-		r0, r1 = rf(resource)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*EObject, EResource) error); ok {
+		r0 = rf(object, resource)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(EObject)
-		}
-		r1 = ret.Error(1)
+		r0 = ret.Error(0)
 	}
 
-	return r0, r1
+	return r0
 }
 
 // DecodeResource provides a mock function with given fields: resource

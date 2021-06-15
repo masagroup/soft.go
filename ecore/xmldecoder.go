@@ -134,8 +134,8 @@ func (l *XMLDecoder) DecodeResource(resource EResource) {
 	}
 }
 
-func (l *XMLDecoder) DecodeObject(resource EResource) (EObject, error) {
-	return nil, nil
+func (l *XMLDecoder) DecodeObject(object *EObject, resource EResource) error {
+	return nil
 }
 
 func (l *XMLDecoder) startElement(e xml.StartElement) {

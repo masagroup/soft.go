@@ -11,5 +11,5 @@ package ecore
 
 type EResourceEncoder interface {
 	EncodeResource(resource EResource)
-	EncodeObject(object EObject) error
+	EncodeObject(object EObject, context EResource) error
 }

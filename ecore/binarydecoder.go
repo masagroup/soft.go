@@ -14,6 +14,6 @@ func (bd *BinaryDecoder) DecodeResource(resource EResource) {
 
 }
 
-func (bd *BinaryDecoder) DecodeObject(resource EResource) (EObject, error) {
-	return nil, nil
+func (bd *BinaryDecoder) DecodeObject(object *EObject, resource EResource) error {
+	return nil
 }

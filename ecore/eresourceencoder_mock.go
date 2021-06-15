@@ -9,13 +9,13 @@ type MockEResourceEncoder struct {
 	mock.Mock
 }
 
-// EncodeObject provides a mock function with given fields: object
-func (_m *MockEResourceEncoder) EncodeObject(object EObject) error {
-	ret := _m.Called(object)
+// EncodeObject provides a mock function with given fields: object, context
+func (_m *MockEResourceEncoder) EncodeObject(object EObject, context EResource) error {
+	ret := _m.Called(object, context)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(EObject) error); ok {
-		r0 = rf(object)
+	if rf, ok := ret.Get(0).(func(EObject, EResource) error); ok {
+		r0 = rf(object, context)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -137,7 +137,7 @@ func (s *XMLEncoder) EncodeResource(resource EResource) {
 	s.str.write(s.w)
 }
 
-func (s *XMLEncoder) EncodeObject(object EObject) error {
+func (s *XMLEncoder) EncodeObject(object EObject, context EResource) error {
 	return nil
 }
 

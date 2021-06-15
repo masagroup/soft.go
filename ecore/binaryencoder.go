@@ -32,7 +32,7 @@ func (be *BinaryEncoder) EncodeResource(resource EResource) {
 	be.encodeVersion()
 }
 
-func (be *BinaryEncoder) EncodeObject(object EObject) error {
+func (be *BinaryEncoder) EncodeObject(object EObject, context EResource) error {
 	return nil
 }
 

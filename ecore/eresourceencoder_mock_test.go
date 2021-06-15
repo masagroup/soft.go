@@ -25,6 +25,7 @@ func TestMockEResourceEncoder_EncodeResource(t *testing.T) {
 func TestMockEResourceEncoder_EncodeObject(t *testing.T) {
 	mockEncoder := &MockEResourceEncoder{}
 	mockObject := &MockEObject{}
-	mockEncoder.On("EncodeObject", mockObject).Return(nil).Once()
-	assert.Nil(t, mockEncoder.EncodeObject(mockObject))
+	mockResource := &MockEResource{}
+	mockEncoder.On("EncodeObject", mockObject, mockResource).Return(nil).Once()
+	assert.Nil(t, mockEncoder.EncodeObject(mockObject, mockResource))
 }

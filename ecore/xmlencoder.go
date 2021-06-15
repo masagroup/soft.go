@@ -68,6 +68,7 @@ type XMLEncoder struct {
 	roots            EList
 	xmlVersion       string
 	encoding         string
+	errorFn          func(diagnostic EDiagnostic)
 }
 
 func NewXMLEncoder(w io.Writer, options map[string]interface{}) *XMLEncoder {
@@ -104,6 +105,9 @@ func (s *XMLEncoder) SetXMLVersion(xmlVersion string) {
 
 func (s *XMLEncoder) EncodeResource(resource EResource) {
 	s.resource = resource
+	s.errorFn = func(diagnostic EDiagnostic) {
+		s.resource.GetErrors().Add(diagnostic)
+	}
 	contents := s.roots
 	if contents == nil {
 		contents = s.resource.GetContents()
@@ -111,12 +115,22 @@ func (s *XMLEncoder) EncodeResource(resource EResource) {
 	if contents.Empty() {
 		return
 	}
+	s.encodeTopObject(contents.Get(0).(EObject))
+}
 
-	// header
+func (s *XMLEncoder) EncodeObject(eObject EObject, context EResource) (err error) {
+	s.resource = context
+	s.errorFn = func(diagnostic EDiagnostic) {
+		if err == nil {
+			err = diagnostic
+		}
+	}
+	s.encodeTopObject(eObject)
+	return
+}
+
+func (s *XMLEncoder) encodeTopObject(eObject EObject) {
 	s.saveHeader()
-
-	// top object
-	eObject := contents.Get(0).(EObject)
 
 	// initialize prefixes if any in top
 	if s.extendedMetaData != nil {
@@ -135,10 +149,6 @@ func (s *XMLEncoder) EncodeResource(resource EResource) {
 
 	// write result
 	s.str.write(s.w)
-}
-
-func (s *XMLEncoder) EncodeObject(object EObject, context EResource) error {
-	return nil
 }
 
 func (s *XMLEncoder) saveHeader() {
@@ -805,5 +815,5 @@ func (s *XMLEncoder) handleDanglingHREF(eObject EObject) {
 }
 
 func (s *XMLEncoder) error(diagnostic EDiagnostic) {
-	s.resource.GetErrors().Add(diagnostic)
+	s.errorFn(diagnostic)
 }

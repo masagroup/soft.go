@@ -9,6 +9,7 @@
 package ecore
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -192,4 +193,30 @@ func TestXMLDecoderLibraryComplexBig(t *testing.T) {
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+}
+
+func TestXMLDecoderSimpleObject(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.simple.ecore")
+	require.NotNil(t, ePackage)
+
+	eBookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eBookClass)
+	eBookNameAttribute, _ := eBookClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	require.NotNil(t, eBookNameAttribute)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+	eResource := eResourceSet.CreateResource(&URI{Path: "$tmp.xml"})
+
+	f, err := os.Open("testdata/book.simple.xml")
+	require.NotNil(t, f)
+	require.Nil(t, err)
+
+	var eObject EObject
+	decoder := NewXMLDecoder(f, nil)
+	err = decoder.DecodeObject(&eObject, eResource)
+	require.Nil(t, err)
+	require.NotNil(t, eObject)
+	assert.Equal(t, "Book 1", eObject.EGet(eBookNameAttribute))
 }

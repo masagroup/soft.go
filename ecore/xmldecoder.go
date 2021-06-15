@@ -107,7 +107,7 @@ func (l *XMLDecoder) GetEncoding() string {
 	return l.encoding
 }
 
-func (l *XMLDecoder) Decode(resource EResource) {
+func (l *XMLDecoder) DecodeResource(resource EResource) {
 	l.resource = resource
 	for {
 		t, tokenErr := l.decoder.Token()
@@ -132,6 +132,10 @@ func (l *XMLDecoder) Decode(resource EResource) {
 			l.directive(string([]byte(t)))
 		}
 	}
+}
+
+func (l *XMLDecoder) DecodeObject(resource EResource) (EObject, error) {
+	return nil, nil
 }
 
 func (l *XMLDecoder) startElement(e xml.StartElement) {

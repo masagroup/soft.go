@@ -10,6 +10,10 @@ func NewBinaryDecoder(r io.Reader, options map[string]interface{}) *BinaryDecode
 	return &BinaryDecoder{}
 }
 
-func (bd *BinaryDecoder) Decode(resource EResource) {
+func (bd *BinaryDecoder) DecodeResource(resource EResource) {
 
+}
+
+func (bd *BinaryDecoder) DecodeObject(resource EResource) (EObject, error) {
+	return nil, nil
 }

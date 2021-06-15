@@ -102,7 +102,7 @@ func (s *XMLEncoder) SetXMLVersion(xmlVersion string) {
 	s.xmlVersion = xmlVersion
 }
 
-func (s *XMLEncoder) Encode(resource EResource) {
+func (s *XMLEncoder) EncodeResource(resource EResource) {
 	s.resource = resource
 	contents := s.roots
 	if contents == nil {
@@ -135,6 +135,10 @@ func (s *XMLEncoder) Encode(resource EResource) {
 
 	// write result
 	s.str.write(s.w)
+}
+
+func (s *XMLEncoder) EncodeObject(object EObject) error {
+	return nil
 }
 
 func (s *XMLEncoder) saveHeader() {

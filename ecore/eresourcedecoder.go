@@ -10,5 +10,6 @@
 package ecore
 
 type EResourceDecoder interface {
-	Decode(resource EResource)
+	DecodeResource(resource EResource)
+	DecodeObject(resource EResource) (EObject, error)
 }

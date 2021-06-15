@@ -25,11 +25,15 @@ func NewBinaryEncoder(w io.Writer, options map[string]interface{}) *BinaryEncode
 	return &BinaryEncoder{w: w}
 }
 
-func (be *BinaryEncoder) Encode(resource EResource) {
+func (be *BinaryEncoder) EncodeResource(resource EResource) {
 	be.resource = resource
 	be.encoder = codec.NewEncoder(be.w, &codec.MsgpackHandle{})
 	be.encodeSignature()
 	be.encodeVersion()
+}
+
+func (be *BinaryEncoder) EncodeObject(object EObject) error {
+	return nil
 }
 
 func (be *BinaryEncoder) encodeSignature() {

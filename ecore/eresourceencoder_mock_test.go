@@ -11,11 +11,20 @@ package ecore
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestMockEResourceEncoder_Encode(t *testing.T) {
+func TestMockEResourceEncoder_EncodeResource(t *testing.T) {
 	mockEncoder := &MockEResourceEncoder{}
 	mockResource := &MockEResource{}
-	mockEncoder.On("Encode", mockResource).Once()
-	mockEncoder.Encode(mockResource)
+	mockEncoder.On("EncodeResource", mockResource).Once()
+	mockEncoder.EncodeResource(mockResource)
+}
+
+func TestMockEResourceEncoder_EncodeObject(t *testing.T) {
+	mockEncoder := &MockEResourceEncoder{}
+	mockObject := &MockEObject{}
+	mockEncoder.On("EncodeObject", mockObject).Return(nil).Once()
+	assert.Nil(t, mockEncoder.EncodeObject(mockObject))
 }

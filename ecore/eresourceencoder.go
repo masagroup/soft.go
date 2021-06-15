@@ -10,5 +10,6 @@
 package ecore
 
 type EResourceEncoder interface {
-	Encode(resource EResource)
+	EncodeResource(resource EResource)
+	EncodeObject(object EObject) error
 }

@@ -415,7 +415,7 @@ func (r *EResourceImpl) LoadWithDecoder(decoder EResourceDecoder) {
 }
 
 func (r *EResourceImpl) DoLoad(decoder EResourceDecoder) {
-	decoder.Decode(r.AsEResource())
+	decoder.DecodeResource(r.AsEResource())
 }
 
 func (r *EResourceImpl) Unload() {
@@ -494,7 +494,7 @@ func (r *EResourceImpl) SaveWithEncoder(encoder EResourceEncoder) {
 }
 
 func (r *EResourceImpl) DoSave(encoder EResourceEncoder) {
-	encoder.Encode(r.AsEResource())
+	encoder.EncodeResource(r.AsEResource())
 }
 
 func (r *EResourceImpl) GetErrors() EList {

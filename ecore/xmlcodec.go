@@ -11,6 +11,15 @@ package ecore
 
 import "io"
 
+const (
+	XML_OPTION_EXTENDED_META_DATA            = "EXTENDED_META_DATA"            // ExtendedMetaData pointer
+	XML_OPTION_SUPPRESS_DOCUMENT_ROOT        = "SUPPRESS_DOCUMENT_ROOT"        // if true , suppress document root if found
+	XML_OPTION_DEFERRED_REFERENCE_RESOLUTION = "DEFERRED_REFERENCE_RESOLUTION" // if true , defer id ref resolution
+	XML_OPTION_DEFERRED_ROOT_ATTACHMENT      = "DEFERRED_ROOT_ATTACHMENT"      // if true , defer id ref resolution
+	XML_OPTION_ID_ATTRIBUTE_NAME             = "ID_ATTRIBUTE_NAME"             // value of the id attribute
+	XML_OPTION_ROOT_OBJECTS                  = "ROOT_OBJECTS"                  // list of root objects to save
+)
+
 type XMLCodec struct {
 }
 

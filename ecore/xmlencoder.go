@@ -83,9 +83,9 @@ func NewXMLEncoder(w io.Writer, options map[string]interface{}) *XMLEncoder {
 	s.prefixesToURI = make(map[string]string)
 	s.featureKinds = make(map[EStructuralFeature]int)
 	if options != nil {
-		s.idAttributeName, _ = options[OPTION_ID_ATTRIBUTE_NAME].(string)
-		s.roots, _ = options[OPTION_ROOT_OBJECTS].(EList)
-		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
+		s.idAttributeName, _ = options[XML_OPTION_ID_ATTRIBUTE_NAME].(string)
+		s.roots, _ = options[XML_OPTION_ROOT_OBJECTS].(EList)
+		if extendedMetaData := options[XML_OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
 			s.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
 		}
 	}

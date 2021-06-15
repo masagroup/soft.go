@@ -48,7 +48,7 @@ func (p *XMLProcessor) Load(uri *URI) EResource {
 func (p *XMLProcessor) LoadWithOptions(uri *URI, options map[string]interface{}) EResource {
 	rs := p.GetResourceSet()
 	r := rs.CreateResource(uri)
-	o := map[string]interface{}{OPTION_EXTENDED_META_DATA: p.extendMetaData}
+	o := map[string]interface{}{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
 		for k, v := range options {
 			o[k] = v
@@ -61,7 +61,7 @@ func (p *XMLProcessor) LoadWithOptions(uri *URI, options map[string]interface{})
 func (p *XMLProcessor) LoadWithReader(r io.Reader, options map[string]interface{}) EResource {
 	rs := p.GetResourceSet()
 	rc := rs.CreateResource(&URI{Path: "*.xml"})
-	o := map[string]interface{}{OPTION_EXTENDED_META_DATA: p.extendMetaData}
+	o := map[string]interface{}{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
 		for k, v := range options {
 			o[k] = v
@@ -76,7 +76,7 @@ func (p *XMLProcessor) Save(resource EResource) {
 }
 
 func (p *XMLProcessor) SaveWithOptions(resource EResource, options map[string]interface{}) {
-	o := map[string]interface{}{OPTION_EXTENDED_META_DATA: p.extendMetaData}
+	o := map[string]interface{}{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
 		for k, v := range options {
 			o[k] = v
@@ -86,7 +86,7 @@ func (p *XMLProcessor) SaveWithOptions(resource EResource, options map[string]in
 }
 
 func (p *XMLProcessor) SaveWithWriter(w io.Writer, resource EResource, options map[string]interface{}) {
-	o := map[string]interface{}{OPTION_EXTENDED_META_DATA: p.extendMetaData}
+	o := map[string]interface{}{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
 		for k, v := range options {
 			o[k] = v

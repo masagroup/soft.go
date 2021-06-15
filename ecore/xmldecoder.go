@@ -60,6 +60,7 @@ type XMLDecoder struct {
 	isResolveDeferred      bool
 	isSuppressDocumentRoot bool
 	elements               []string
+	deferred               []EObject
 	objects                []EObject
 	types                  []interface{}
 	attributes             []xml.Attr
@@ -74,6 +75,8 @@ type XMLDecoder struct {
 	idAttributeName        string
 	encoding               string
 	xmlVersion             string
+	errorFn                func(diagnostic EDiagnostic)
+	attachFn               func(object EObject)
 }
 
 func NewXMLDecoder(r io.Reader, options map[string]interface{}) *XMLDecoder {
@@ -86,11 +89,14 @@ func NewXMLDecoder(r io.Reader, options map[string]interface{}) *XMLDecoder {
 	l.spacesToFactories = make(map[string]EFactory)
 	l.notFeatures = append(l.notFeatures, xml.Name{Space: xsiURI, Local: typeAttrib}, xml.Name{Space: xsiURI, Local: schemaLocationAttrib}, xml.Name{Space: xsiURI, Local: noNamespaceSchemaLocationAttrib})
 	if options != nil {
-		l.idAttributeName, _ = options[OPTION_ID_ATTRIBUTE_NAME].(string)
-		l.isResolveDeferred = options[OPTION_IDREF_RESOLUTION_DEFERRED] == true
-		l.isSuppressDocumentRoot = options[OPTION_SUPPRESS_DOCUMENT_ROOT] == true
-		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
+		l.idAttributeName, _ = options[XML_OPTION_ID_ATTRIBUTE_NAME].(string)
+		l.isResolveDeferred = options[XML_OPTION_DEFERRED_REFERENCE_RESOLUTION] == true
+		l.isSuppressDocumentRoot = options[XML_OPTION_SUPPRESS_DOCUMENT_ROOT] == true
+		if extendedMetaData := options[XML_OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
 			l.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
+		}
+		if options[XML_OPTION_DEFERRED_ROOT_ATTACHMENT] == true {
+			l.deferred = []EObject{}
 		}
 	}
 	if l.extendedMetaData == nil {
@@ -109,6 +115,32 @@ func (l *XMLDecoder) GetEncoding() string {
 
 func (l *XMLDecoder) DecodeResource(resource EResource) {
 	l.resource = resource
+	l.attachFn = func(object EObject) {
+		l.resource.GetContents().Add(object)
+	}
+	l.errorFn = func(diagnostic EDiagnostic) {
+		l.resource.GetErrors().Add(diagnostic)
+	}
+	l.decodeTopObject()
+}
+
+func (l *XMLDecoder) DecodeObject(object *EObject, resource EResource) (err error) {
+	l.resource = resource
+	l.attachFn = func(o EObject) {
+		if *object == nil {
+			*object = o
+		}
+	}
+	l.errorFn = func(diagnostic EDiagnostic) {
+		if err == nil {
+			err = diagnostic
+		}
+	}
+	l.decodeTopObject()
+	return
+}
+
+func (l *XMLDecoder) decodeTopObject() {
 	for {
 		t, tokenErr := l.decoder.Token()
 		if tokenErr != nil {
@@ -132,10 +164,6 @@ func (l *XMLDecoder) DecodeResource(resource EResource) {
 			l.directive(string([]byte(t)))
 		}
 	}
-}
-
-func (l *XMLDecoder) DecodeObject(object *EObject, resource EResource) error {
-	return nil
 }
 
 func (l *XMLDecoder) startElement(e xml.StartElement) {
@@ -185,6 +213,9 @@ func (l *XMLDecoder) endElement(e xml.EndElement) {
 
 	// end of the document
 	if len(l.elements) == 0 {
+		for _, deferred := range l.deferred {
+			l.resource.GetContents().Add(deferred)
+		}
 		l.handleReferences()
 		l.recordSchemaLocations(eRoot)
 	}
@@ -264,7 +295,11 @@ func (l *XMLDecoder) processElement(space string, local string) {
 	if len(l.objects) == 0 {
 		eObject := l.createTopObject(space, local)
 		if eObject != nil {
-			l.resource.GetContents().Add(eObject)
+			if l.deferred != nil {
+				l.deferred = append(l.deferred, eObject)
+			} else {
+				l.attachFn(eObject)
+			}
 		}
 	} else {
 		l.handleFeature(space, local)
@@ -750,11 +785,7 @@ func (l *XMLDecoder) handleUnknownPackage(name, space string) {
 }
 
 func (l *XMLDecoder) error(diagnostic EDiagnostic) {
-	l.resource.GetErrors().Add(diagnostic)
-}
-
-func (l *XMLDecoder) warning(diagnostic EDiagnostic) {
-	l.resource.GetWarnings().Add(diagnostic)
+	l.errorFn(diagnostic)
 }
 
 func (l *XMLDecoder) text(data string) {

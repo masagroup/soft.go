@@ -244,3 +244,39 @@ func TestXMLEncoderSimpleXMLRootObjects(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
+
+func TestXMLEncoderSimpleObject(t *testing.T) {
+	// load libray simple ecore	package
+	ePackage := loadPackage("library.simple.ecore")
+	assert.NotNil(t, ePackage)
+
+	// load model file
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.Load(&URI{Path: "testdata/library.simple.xml"})
+	require.NotNil(t, eResource)
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	// retrieve second book
+	libraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, libraryClass)
+	libraryBooksFeature := libraryClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, libraryBooksFeature)
+
+	require.Equal(t, 1, eResource.GetContents().Size())
+	eLibrary, _ := eResource.GetContents().Get(0).(EObject)
+	require.NotNil(t, eLibrary)
+
+	eBooks, _ := eLibrary.EGet(libraryBooksFeature).(EList)
+	require.NotNil(t, eBooks)
+	require.Equal(t, 4, eBooks.Size())
+	eBook := eBooks.Get(1).(EObject)
+
+	var strbuff strings.Builder
+	encoder := NewXMLEncoder(&strbuff, nil)
+	encoder.EncodeObject(eBook, eResource)
+
+	bytes, err := ioutil.ReadFile("testdata/book.simple.xml")
+	assert.Nil(t, err)
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
+}

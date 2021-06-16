@@ -1,23 +1,22 @@
+// *****************************************************************************
+// Copyright(c) 2021 MASA Group
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+// *****************************************************************************
+
 package ecore
 
 import (
-	"io/ioutil"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func diagnosticError(errors EList) string {
-	if errors.Empty() {
-		return ""
-	} else {
-		return errors.Get(0).(EDiagnostic).GetMessage()
-	}
-}
-
-func TestXMIResourceLoadLibrarySimple(t *testing.T) {
+func TestXMIDecoderLibrarySimple(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
 	resource := xmiProcessor.Load(&URI{Path: "testdata/library.simple.ecore"})
 	require.NotNil(t, resource)
@@ -85,16 +84,13 @@ func TestXMIResourceLoadLibrarySimple(t *testing.T) {
 	assert.Equal(t, eBookClass, eBooksReference.GetEReferenceType())
 }
 
-func TestXMIResourceLoadLibraryNoRoot(t *testing.T) {
+func TestXMIDecoderLibraryNoRoot(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
-	resource, _ := xmiProcessor.Load(&URI{Path: "testdata/library.noroot.ecore"}).(XMIResource)
+	resource := xmiProcessor.Load(&URI{Path: "testdata/library.noroot.ecore"})
 	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
-	assert.Equal(t, "2.0", resource.GetXMIVersion())
-	assert.Equal(t, "1.0", resource.GetXMLVersion())
-	assert.Equal(t, "UTF-8", resource.GetEncoding())
 
 	contents := resource.GetContents()
 	assert.Equal(t, 1, contents.Size())
@@ -122,14 +118,13 @@ func TestXMIResourceLoadLibraryNoRoot(t *testing.T) {
 	assert.Equal(t, "true", eAnnotation.GetDetails().GetValue("extension"))
 }
 
-func TestXMIResourceLoadLibraryComplex(t *testing.T) {
+func TestXMIDecoderLibraryComplex(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
-	resource, _ := xmiProcessor.Load(&URI{Path: "testdata/library.complex.ecore"}).(XMIResource)
+	resource := xmiProcessor.Load(&URI{Path: "testdata/library.complex.ecore"})
 	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
-	assert.Equal(t, "2.0", resource.GetXMIVersion())
 
 	contents := resource.GetContents()
 	assert.Equal(t, 1, contents.Size())
@@ -148,66 +143,4 @@ func TestXMIResourceLoadLibraryComplex(t *testing.T) {
 	assert.NotNil(t, eType)
 	assert.Equal(t, "EStringToStringMapEntry", eType.GetName())
 	assert.False(t, eType.EIsProxy())
-}
-
-func TestXMIResourceSaveLibrarySimple(t *testing.T) {
-	// load/save
-	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&URI{Path: "testdata/library.simple.ecore"})
-	require.NotNil(t, resource)
-	result := xmiProcessor.SaveToString(resource, nil)
-	// check
-	bytes, err := ioutil.ReadFile("testdata/library.simple.ecore")
-	assert.Nil(t, err)
-	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
-}
-
-func TestXMIResourceSaveLibraryNoRoot(t *testing.T) {
-	// load/save
-	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&URI{Path: "testdata/library.noroot.ecore"})
-	require.NotNil(t, resource)
-	result := xmiProcessor.SaveToString(resource, nil)
-	// check
-	bytes, err := ioutil.ReadFile("testdata/library.noroot.ecore")
-	assert.Nil(t, err)
-	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
-}
-
-func TestXMIResourceSaveLibraryComplex(t *testing.T) {
-	// load/save
-	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&URI{Path: "testdata/library.complex.ecore"})
-	require.NotNil(t, resource)
-	result := xmiProcessor.SaveToString(resource, nil)
-	// check
-	bytes, err := ioutil.ReadFile("testdata/library.complex.ecore")
-	assert.Nil(t, err)
-	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
-}
-
-func BenchmarkXMIResourceLoadSaveLibrarySimple(b *testing.B) {
-	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
-		resource := NewXMIResourceImpl()
-		resource.SetURI(&URI{Path: "testdata/library.simple.ecore"})
-		resource.Load()
-
-		var strbuff strings.Builder
-		resource.SaveWithWriter(&strbuff, nil)
-		resource = nil
-	}
-}
-
-func BenchmarkXMIResourceLoadSaveLibraryNoRoot(b *testing.B) {
-	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
-		resource := NewXMIResourceImpl()
-		resource.SetURI(&URI{Path: "testdata/library.noroot.ecore"})
-		resource.Load()
-
-		var strbuff strings.Builder
-		resource.SaveWithWriter(&strbuff, nil)
-		resource = nil
-	}
 }

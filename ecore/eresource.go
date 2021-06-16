@@ -36,12 +36,13 @@ type EResource interface {
 	Attached(object EObject)
 	Detached(object EObject)
 
+	IsLoaded() bool
+
 	Load()
 	LoadWithOptions(options map[string]interface{})
 	LoadWithReader(r io.Reader, options map[string]interface{})
 
 	Unload()
-	IsLoaded() bool
 
 	Save()
 	SaveWithOptions(options map[string]interface{})

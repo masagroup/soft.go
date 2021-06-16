@@ -9,11 +9,7 @@
 
 package ecore
 
-type XMLResourceFactory struct {
-}
-
-func (f *XMLResourceFactory) CreateResource(uri *URI) EResource {
-	r := NewXMLResourceImpl()
-	r.SetURI(uri)
-	return r
+type EResourceEncoder interface {
+	Encode()
+	EncodeObject(object EObject) error
 }

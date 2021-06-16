@@ -11,8 +11,8 @@ type EResourceInternal interface {
 	EResource
 
 	IsLoading() bool
-	DoLoad(rd io.Reader, options map[string]interface{})
-	DoSave(rd io.Writer, options map[string]interface{})
+	DoLoad(decoder EResourceDecoder)
+	DoSave(encoder EResourceEncoder)
 	DoUnload()
 
 	IsAttachedDetachedRequired() bool
@@ -351,6 +351,13 @@ func (r *EResourceImpl) getURIConverter() EURIConverter {
 	return defaultURIConverter
 }
 
+func (r *EResourceImpl) getResourceCodecRegistry() EResourceCodecRegistry {
+	if r.resourceSet != nil {
+		return r.resourceSet.GetResourceCodecRegistry()
+	}
+	return GetResourceCodecRegistry()
+}
+
 func (r *EResourceImpl) Load() {
 	r.LoadWithOptions(nil)
 }
@@ -374,23 +381,35 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 
 func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]interface{}) {
 	if !r.isLoaded {
-		r.isLoading = true
-		n := r.BasicSetLoaded(true, nil)
-		if r.errors != nil {
-			r.errors.Clear()
+		codecs := r.getResourceCodecRegistry()
+		if codec := codecs.GetCodec(r.uri); codec == nil {
+			errors := r.GetErrors()
+			errors.Clear()
+			errors.Add(NewEDiagnosticImpl("Unable to find codec for '"+r.uri.String()+"'", r.uri.String(), 0, 0))
+		} else if decoder := codec.NewDecoder(r.AsEResource(), rd, options); decoder == nil {
+			errors := r.GetErrors()
+			errors.Clear()
+			errors.Add(NewEDiagnosticImpl("Unable to create decoder for '"+r.uri.String()+"'", r.uri.String(), 0, 0))
+		} else {
+			r.isLoading = true
+			n := r.BasicSetLoaded(true, nil)
+			if r.errors != nil {
+				r.errors.Clear()
+			}
+			if r.warnings != nil {
+				r.warnings.Clear()
+			}
+			r.GetInterfaces().(EResourceInternal).DoLoad(decoder)
+			if n != nil {
+				n.Dispatch()
+			}
+			r.isLoading = false
 		}
-		if r.warnings != nil {
-			r.warnings.Clear()
-		}
-		r.GetInterfaces().(EResourceInternal).DoLoad(rd, options)
-		if n != nil {
-			n.Dispatch()
-		}
-		r.isLoading = false
 	}
 }
 
-func (r *EResourceImpl) DoLoad(rd io.Reader, options map[string]interface{}) {
+func (r *EResourceImpl) DoLoad(decoder EResourceDecoder) {
+	decoder.Decode()
 }
 
 func (r *EResourceImpl) Unload() {
@@ -444,17 +463,28 @@ func (r *EResourceImpl) SaveWithOptions(options map[string]interface{}) {
 }
 
 func (r *EResourceImpl) SaveWithWriter(w io.Writer, options map[string]interface{}) {
-	if r.errors != nil {
-		r.errors.Clear()
+	codecs := r.getResourceCodecRegistry()
+	if codec := codecs.GetCodec(r.uri); codec == nil {
+		errors := r.GetErrors()
+		errors.Clear()
+		errors.Add(NewEDiagnosticImpl("Unable to find codec for '"+r.uri.String()+"'", r.uri.String(), 0, 0))
+	} else if encoder := codec.NewEncoder(r.AsEResource(), w, options); encoder == nil {
+		errors := r.GetErrors()
+		errors.Clear()
+		errors.Add(NewEDiagnosticImpl("Unable to create encoder for '"+r.uri.String()+"'", r.uri.String(), 0, 0))
+	} else {
+		if r.errors != nil {
+			r.errors.Clear()
+		}
+		if r.warnings != nil {
+			r.warnings.Clear()
+		}
+		r.GetInterfaces().(EResourceInternal).DoSave(encoder)
 	}
-	if r.warnings != nil {
-		r.warnings.Clear()
-	}
-	r.GetInterfaces().(EResourceInternal).DoSave(w, options)
 }
 
-func (r *EResourceImpl) DoSave(rd io.Writer, options map[string]interface{}) {
-
+func (r *EResourceImpl) DoSave(encoder EResourceEncoder) {
+	encoder.Encode()
 }
 
 func (r *EResourceImpl) GetErrors() EList {

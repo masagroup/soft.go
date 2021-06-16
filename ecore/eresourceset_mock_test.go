@@ -107,23 +107,23 @@ func TestMockEResourceSetSetPackageRegistry(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, rs, pr)
 }
 
-func TestMockEResourceSetGetResourceFactoryRegistry(t *testing.T) {
+func TestMockEResourceSetGetResourceCodecRegistry(t *testing.T) {
 	rs := &MockEResourceSet{}
-	pr := &MockEResourceFactoryRegistry{}
-	rs.On("GetResourceFactoryRegistry").Return(pr).Once()
-	rs.On("GetResourceFactoryRegistry").Return(func() EResourceFactoryRegistry {
+	pr := &MockEResourceCodecRegistry{}
+	rs.On("GetResourceCodecRegistry").Return(pr).Once()
+	rs.On("GetResourceCodecRegistry").Return(func() EResourceCodecRegistry {
 		return pr
 	}).Once()
-	assert.Equal(t, pr, rs.GetResourceFactoryRegistry())
-	assert.Equal(t, pr, rs.GetResourceFactoryRegistry())
+	assert.Equal(t, pr, rs.GetResourceCodecRegistry())
+	assert.Equal(t, pr, rs.GetResourceCodecRegistry())
 	mock.AssertExpectationsForObjects(t, rs, pr)
 }
 
-func TestMockEResourceSetSetResourceFactoryRegistry(t *testing.T) {
+func TestMockEResourceSetSetResourceCodecRegistry(t *testing.T) {
 	rs := &MockEResourceSet{}
-	pr := &MockEResourceFactoryRegistry{}
-	rs.On("SetResourceFactoryRegistry", pr).Once()
-	rs.SetResourceFactoryRegistry(pr)
+	pr := &MockEResourceCodecRegistry{}
+	rs.On("SetResourceCodecRegistry", pr).Once()
+	rs.SetResourceCodecRegistry(pr)
 	mock.AssertExpectationsForObjects(t, rs, pr)
 }
 

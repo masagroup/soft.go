@@ -54,7 +54,7 @@ func (eModelElement *eModelElementExt) EObjectForFragmentSegment(uriFragmentSegm
 					hasCount = uriFragmentSegment[index+1] == '.'
 					if index == len(uriFragmentSegment)-1 || hasCount {
 
-						// Decode all encoded characters.
+						// DecodeResource all encoded characters.
 						source := ""
 						if encodedSource := uriFragmentSegment[1:index]; encodedSource != "%" {
 							source, _ = url.PathUnescape(encodedSource)

@@ -9,16 +9,7 @@
 
 package ecore
 
-import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-)
-
-func TestXMLResourceFactoryCreate(t *testing.T) {
-	f := &XMLResourceFactory{}
-	uri := &URI{}
-	r := f.CreateResource(uri)
-	assert.NotNil(t, r)
-	assert.Equal(t, uri, r.GetURI())
+type EResourceDecoder interface {
+	Decode()
+	DecodeObject() (EObject, error)
 }

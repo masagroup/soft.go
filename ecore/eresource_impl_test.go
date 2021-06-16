@@ -154,3 +154,33 @@ func TestResourceGetEObject(t *testing.T) {
 		assert.Nil(t, r.GetEObject("Test"))
 	}
 }
+
+func TestResourceIDManager(t *testing.T) {
+	// load libray simple ecore	package
+	ePackage := loadPackage("library.simple.ecore")
+	assert.NotNil(t, ePackage)
+
+	// create a resource with an id manager
+	mockIDManager := &MockEObjectIDManager{}
+	eResource := NewEResourceImpl()
+	eResource.SetObjectIDManager(mockIDManager)
+
+	// create a library and add it to resource
+	eFactory := ePackage.GetEFactoryInstance()
+	eLibraryClass := ePackage.GetEClassifier("Library").(EClass)
+	eLibrary := eFactory.Create(eLibraryClass)
+	mockIDManager.On("Register", eLibrary).Once()
+	eResource.GetContents().Add(eLibrary)
+	mock.AssertExpectationsForObjects(t, mockIDManager)
+
+	// create 2 books and add them to library
+	eBookClass := ePackage.GetEClassifier("Book").(EClass)
+	eLibraryBooksReference := eLibraryClass.GetEStructuralFeatureFromName("books").(EReference)
+	eBookList := eLibrary.EGet(eLibraryBooksReference).(EList)
+	eBook1 := eFactory.Create(eBookClass)
+	eBook2 := eFactory.Create(eBookClass)
+	mockIDManager.On("Register", eBook1).Once()
+	mockIDManager.On("Register", eBook2).Once()
+	eBookList.AddAll(NewImmutableEList([]interface{}{eBook1, eBook2}))
+	mock.AssertExpectationsForObjects(t, mockIDManager)
+}

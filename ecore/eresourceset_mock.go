@@ -78,16 +78,16 @@ func (_m *MockEResourceSet) GetResource(uri *URI, loadOnDemand bool) EResource {
 	return r0
 }
 
-// GetResourceFactoryRegistry provides a mock function with given fields:
-func (_m *MockEResourceSet) GetResourceFactoryRegistry() EResourceFactoryRegistry {
+// GetResourceCodecRegistry provides a mock function with given fields:
+func (_m *MockEResourceSet) GetResourceCodecRegistry() EResourceCodecRegistry {
 	ret := _m.Called()
 
-	var r0 EResourceFactoryRegistry
-	if rf, ok := ret.Get(0).(func() EResourceFactoryRegistry); ok {
+	var r0 EResourceCodecRegistry
+	if rf, ok := ret.Get(0).(func() EResourceCodecRegistry); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(EResourceFactoryRegistry)
+			r0 = ret.Get(0).(EResourceCodecRegistry)
 		}
 	}
 
@@ -147,9 +147,9 @@ func (_m *MockEResourceSet) SetPackageRegistry(packageregistry EPackageRegistry)
 	_m.Called(packageregistry)
 }
 
-// SetResourceFactoryRegistry provides a mock function with given fields: resourceFactoryRegistry
-func (_m *MockEResourceSet) SetResourceFactoryRegistry(resourceFactoryRegistry EResourceFactoryRegistry) {
-	_m.Called(resourceFactoryRegistry)
+// SetResourceCodecRegistry provides a mock function with given fields: resourceCodecRegistry
+func (_m *MockEResourceSet) SetResourceCodecRegistry(resourceCodecRegistry EResourceCodecRegistry) {
+	_m.Called(resourceCodecRegistry)
 }
 
 // SetURIConverter provides a mock function with given fields: uriConverter

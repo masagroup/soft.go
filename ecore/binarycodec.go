@@ -9,16 +9,14 @@
 
 package ecore
 
-import (
-	"testing"
+import "io"
 
-	"github.com/stretchr/testify/assert"
-)
+type BinaryCodec struct {
+}
 
-func TestXMIResourceFactoryCreate(t *testing.T) {
-	f := &XMIResourceFactory{}
-	uri := &URI{}
-	r := f.CreateResource(uri)
-	assert.NotNil(t, r)
-	assert.Equal(t, uri, r.GetURI())
+func (bc *BinaryCodec) NewEncoder(resource EResource, w io.Writer, options map[string]interface{}) EResourceEncoder {
+	return NewBinaryEncoder(resource, w, options)
+}
+func (bc *BinaryCodec) NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EResourceDecoder {
+	return NewBinaryDecoder(resource, r, options)
 }

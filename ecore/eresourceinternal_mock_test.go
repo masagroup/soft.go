@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,21 +30,17 @@ func TestMockEResourceIsLoading(t *testing.T) {
 
 func TestMockEResourceInternalDoLoad(t *testing.T) {
 	r := &MockEResourceInternal{}
-	uri, _ := ParseURI("test://file.t")
-	f, _ := os.Open(uri.String())
-	m := make(map[string]interface{})
-	r.On("DoLoad", f, m).Once()
-	r.DoLoad(f, m)
+	mockDecoder := &MockEResourceDecoder{}
+	r.On("DoLoad", mockDecoder).Once()
+	r.DoLoad(mockDecoder)
 	mock.AssertExpectationsForObjects(t, r)
 }
 
 func TestMockEResourceInternalDoSave(t *testing.T) {
 	r := &MockEResourceInternal{}
-	uri, _ := ParseURI("test://file.t")
-	f, _ := os.Create(uri.String())
-	m := make(map[string]interface{})
-	r.On("DoSave", f, m).Once()
-	r.DoSave(f, m)
+	mockEncoder := &MockEResourceEncoder{}
+	r.On("DoSave", mockEncoder).Once()
+	r.DoSave(mockEncoder)
 	mock.AssertExpectationsForObjects(t, r)
 }
 

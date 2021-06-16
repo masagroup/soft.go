@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEResourceSetConstructor(t *testing.T) {
@@ -39,33 +40,11 @@ func TestEResourceSetResourcesNoMock(t *testing.T) {
 }
 
 func TestEResourceSetCreateResource(t *testing.T) {
-	mockResourceFactoryRegistry := new(MockEResourceFactoryRegistry)
-	mockResourceFactory := new(MockEResourceFactory)
-	mockResource := new(MockEResourceInternal)
 	uri, _ := ParseURI("test://file.t")
 	rs := NewEResourceSetImpl()
-	rs.SetResourceFactoryRegistry(mockResourceFactoryRegistry)
-
-	mockResourceFactoryRegistry.On("GetFactory", uri).Return(mockResourceFactory)
-	mockResourceFactory.On("CreateResource", uri).Return(mockResource)
-	mockResource.On("BasicSetResourceSet", rs, nil).Return(nil)
-	assert.NotNil(t, mockResource, rs.CreateResource(uri))
-}
-
-func TestEResourceSetGetResource(t *testing.T) {
-	mockResourceFactoryRegistry := new(MockEResourceFactoryRegistry)
-	mockResourceFactory := new(MockEResourceFactory)
-	mockResource := new(MockEResourceInternal)
-	uri, _ := ParseURI("test://file.t")
-	rs := NewEResourceSetImpl()
-	rs.SetResourceFactoryRegistry(mockResourceFactoryRegistry)
-
-	mockResourceFactoryRegistry.On("GetFactory", uri).Return(mockResourceFactory)
-	mockResourceFactory.On("CreateResource", uri).Return(mockResource)
-	mockResource.On("BasicSetResourceSet", rs, nil).Return(nil)
-	mockResource.On("Load").Once()
-
-	assert.Equal(t, mockResource, rs.GetResource(uri, true))
+	r := rs.CreateResource(uri)
+	require.NotNil(t, r)
+	assert.Equal(t, rs, r.GetResourceSet())
 }
 
 func TestEResourceSetGetRegisteredResource(t *testing.T) {
@@ -86,23 +65,4 @@ func TestEResourceSetGetRegisteredResource(t *testing.T) {
 	mockResource.On("IsLoaded").Once().Return(false)
 	mockResource.On("Load").Once()
 	assert.Equal(t, mockResource, rs.GetResource(uri, true))
-}
-
-func TestEResourceSetGetEObject(t *testing.T) {
-	mockResourceFactoryRegistry := new(MockEResourceFactoryRegistry)
-	mockResourceFactory := new(MockEResourceFactory)
-	mockResource := new(MockEResourceInternal)
-	mockObject := new(MockEObject)
-	uriObject, _ := ParseURI("test://file.t#//@first/second")
-	uriResource, _ := ParseURI("test://file.t")
-	rs := NewEResourceSetImpl()
-	rs.SetResourceFactoryRegistry(mockResourceFactoryRegistry)
-
-	mockResourceFactoryRegistry.On("GetFactory", uriResource).Return(mockResourceFactory)
-	mockResourceFactory.On("CreateResource", uriResource).Return(mockResource)
-	mockResource.On("BasicSetResourceSet", rs, nil).Return(nil)
-	mockResource.On("Load").Once()
-	mockResource.On("GetEObject", "//@first/second").Return(mockObject)
-
-	assert.Equal(t, mockObject, rs.GetEObject(uriObject, true))
 }

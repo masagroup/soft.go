@@ -13,17 +13,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestMockEResourceFactoryCreateResource(t *testing.T) {
-	f := &MockEResourceFactory{}
-	r := &MockEResource{}
-	uri := NewURI("test:///file.t")
-	f.On("CreateResource", uri).Return(r).Once()
-	f.On("CreateResource", uri).Return(func(*URI) EResource {
-		return r
-	}).Once()
-	assert.Equal(t, r, f.CreateResource(uri))
-	assert.Equal(t, r, f.CreateResource(uri))
-	r.AssertExpectations(t)
+func TestResoureCodecRegistrySingleton(t *testing.T) {
+	r := GetResourceCodecRegistry()
+	require.NotNil(t, r)
+	assert.NotNil(t, r.GetExtensionToCodecMap()["ecore"])
+	assert.NotNil(t, r.GetExtensionToCodecMap()["xml"])
+}
+
+func TestResoureCodecRegistrySingletonGetCodec(t *testing.T) {
+	r := GetResourceCodecRegistry()
+	assert.NotNil(t, r.GetCodec(&URI{Path: "*.xml"}))
+	assert.NotNil(t, r.GetCodec(&URI{Path: "*.ecore"}))
 }

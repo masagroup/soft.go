@@ -26,9 +26,9 @@ type XMIDecoder struct {
 	xmiVersion string
 }
 
-func NewXMIDecoder(r io.Reader, options map[string]interface{}) *XMIDecoder {
+func NewXMIDecoder(resource EResource, r io.Reader, options map[string]interface{}) *XMIDecoder {
 	l := new(XMIDecoder)
-	l.XMLDecoder = NewXMLDecoder(r, options)
+	l.XMLDecoder = NewXMLDecoder(resource, r, options)
 	l.notFeatures = append(l.notFeatures,
 		xml.Name{Space: xmiURI, Local: typeAttrib},
 		xml.Name{Space: xmiURI, Local: versionAttrib},

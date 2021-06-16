@@ -41,14 +41,12 @@ type EResource interface {
 	Load()
 	LoadWithOptions(options map[string]interface{})
 	LoadWithReader(r io.Reader, options map[string]interface{})
-	LoadWithDecoder(decoder EResourceDecoder)
 
 	Unload()
 
 	Save()
 	SaveWithOptions(options map[string]interface{})
 	SaveWithWriter(w io.Writer, options map[string]interface{})
-	SaveWithEncoder(encoder EResourceEncoder)
 
 	GetErrors() EList
 	GetWarnings() EList

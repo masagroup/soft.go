@@ -213,9 +213,8 @@ func TestXMLDecoderSimpleObject(t *testing.T) {
 	require.NotNil(t, f)
 	require.Nil(t, err)
 
-	var eObject EObject
-	decoder := NewXMLDecoder(f, nil)
-	err = decoder.DecodeObject(&eObject, eResource)
+	decoder := NewXMLDecoder(eResource, f, nil)
+	eObject, err := decoder.DecodeObject()
 	require.Nil(t, err)
 	require.NotNil(t, eObject)
 	assert.Equal(t, "Book 1", eObject.EGet(eBookNameAttribute))

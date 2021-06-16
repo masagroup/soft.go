@@ -71,9 +71,10 @@ type XMLEncoder struct {
 	errorFn          func(diagnostic EDiagnostic)
 }
 
-func NewXMLEncoder(w io.Writer, options map[string]interface{}) *XMLEncoder {
+func NewXMLEncoder(resource EResource, w io.Writer, options map[string]interface{}) *XMLEncoder {
 	s := new(XMLEncoder)
 	s.interfaces = s
+	s.resource = resource
 	s.w = w
 	s.xmlVersion = "1.0"
 	s.encoding = "UTF-8"
@@ -103,8 +104,7 @@ func (s *XMLEncoder) SetXMLVersion(xmlVersion string) {
 	s.xmlVersion = xmlVersion
 }
 
-func (s *XMLEncoder) EncodeResource(resource EResource) {
-	s.resource = resource
+func (s *XMLEncoder) Encode() {
 	s.errorFn = func(diagnostic EDiagnostic) {
 		s.resource.GetErrors().Add(diagnostic)
 	}
@@ -118,8 +118,7 @@ func (s *XMLEncoder) EncodeResource(resource EResource) {
 	s.encodeTopObject(contents.Get(0).(EObject))
 }
 
-func (s *XMLEncoder) EncodeObject(eObject EObject, context EResource) (err error) {
-	s.resource = context
+func (s *XMLEncoder) EncodeObject(eObject EObject) (err error) {
 	s.errorFn = func(diagnostic EDiagnostic) {
 		if err == nil {
 			err = diagnostic

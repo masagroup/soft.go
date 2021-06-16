@@ -21,18 +21,17 @@ type BinaryEncoder struct {
 	version  int
 }
 
-func NewBinaryEncoder(w io.Writer, options map[string]interface{}) *BinaryEncoder {
-	return &BinaryEncoder{w: w}
+func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]interface{}) *BinaryEncoder {
+	return &BinaryEncoder{w: w, resource: resource}
 }
 
-func (be *BinaryEncoder) EncodeResource(resource EResource) {
-	be.resource = resource
+func (be *BinaryEncoder) Encode() {
 	be.encoder = codec.NewEncoder(be.w, &codec.MsgpackHandle{})
 	be.encodeSignature()
 	be.encodeVersion()
 }
 
-func (be *BinaryEncoder) EncodeObject(object EObject, context EResource) error {
+func (be *BinaryEncoder) EncodeObject(object EObject) error {
 	return nil
 }
 

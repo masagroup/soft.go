@@ -17,19 +17,25 @@ import (
 
 func TestMockEResourceDecoder_DecodeResource(t *testing.T) {
 	mockDecoder := &MockEResourceDecoder{}
-	mockResource := &MockEResource{}
-	mockDecoder.On("DecodeResource", mockResource).Once()
-	mockDecoder.DecodeResource(mockResource)
+	mockDecoder.On("Decode").Once()
+	mockDecoder.Decode()
 }
 
 func TestMockEResourceDecoder_DecodeObject(t *testing.T) {
 	mockDecoder := &MockEResourceDecoder{}
-	mockResource := &MockEResource{}
-	var mockObject EObject
-	mockDecoder.On("DecodeObject", &mockObject, mockResource).Return(nil).Once()
-	mockDecoder.On("DecodeObject", &mockObject, mockResource).Return(func(*EObject, EResource) error {
-		return nil
+	mockObject := &MockEObject{}
+	mockDecoder.On("DecodeObject").Return(mockObject, nil).Once()
+	mockDecoder.On("DecodeObject").Return(func() (EObject, error) {
+		return mockObject, nil
 	}).Once()
-	assert.Nil(t, mockDecoder.DecodeObject(&mockObject, mockResource))
-	assert.Nil(t, mockDecoder.DecodeObject(&mockObject, mockResource))
+	{
+		obj, err := mockDecoder.DecodeObject()
+		assert.Equal(t, mockObject, obj)
+		assert.Nil(t, err)
+	}
+	{
+		obj, err := mockDecoder.DecodeObject()
+		assert.Equal(t, mockObject, obj)
+		assert.Nil(t, err)
+	}
 }

@@ -3,10 +3,10 @@ package ecore
 type NoDecoder struct {
 }
 
-func (de *NoDecoder) DecodeResource(resource EResource) {
+func (de *NoDecoder) Decode() {
 
 }
 
-func (de *NoDecoder) DecodeObject(object *EObject, resource EResource) error {
-	return nil
+func (de *NoDecoder) DecodeObject() (EObject, error) {
+	return nil, nil
 }

@@ -79,9 +79,10 @@ type XMLDecoder struct {
 	attachFn               func(object EObject)
 }
 
-func NewXMLDecoder(r io.Reader, options map[string]interface{}) *XMLDecoder {
+func NewXMLDecoder(resource EResource, r io.Reader, options map[string]interface{}) *XMLDecoder {
 	l := new(XMLDecoder)
 	l.interfaces = l
+	l.resource = resource
 	l.decoder = xml.NewDecoder(r)
 	l.decoder.CharsetReader = charset.NewReaderLabel
 	l.namespaces = newXmlNamespaces()
@@ -113,8 +114,7 @@ func (l *XMLDecoder) GetEncoding() string {
 	return l.encoding
 }
 
-func (l *XMLDecoder) DecodeResource(resource EResource) {
-	l.resource = resource
+func (l *XMLDecoder) Decode() {
 	l.attachFn = func(object EObject) {
 		l.resource.GetContents().Add(object)
 	}
@@ -124,11 +124,10 @@ func (l *XMLDecoder) DecodeResource(resource EResource) {
 	l.decodeTopObject()
 }
 
-func (l *XMLDecoder) DecodeObject(object *EObject, resource EResource) (err error) {
-	l.resource = resource
+func (l *XMLDecoder) DecodeObject() (eObject EObject, err error) {
 	l.attachFn = func(o EObject) {
-		if *object == nil {
-			*object = o
+		if eObject == nil {
+			eObject = o
 		}
 	}
 	l.errorFn = func(diagnostic EDiagnostic) {

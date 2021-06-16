@@ -15,17 +15,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMockEResourceEncoder_EncodeResource(t *testing.T) {
+func TestMockEResourceEncoder_Encode(t *testing.T) {
 	mockEncoder := &MockEResourceEncoder{}
-	mockResource := &MockEResource{}
-	mockEncoder.On("EncodeResource", mockResource).Once()
-	mockEncoder.EncodeResource(mockResource)
+	mockEncoder.On("Encode").Once()
+	mockEncoder.Encode()
 }
 
 func TestMockEResourceEncoder_EncodeObject(t *testing.T) {
 	mockEncoder := &MockEResourceEncoder{}
 	mockObject := &MockEObject{}
-	mockResource := &MockEResource{}
-	mockEncoder.On("EncodeObject", mockObject, mockResource).Return(nil).Once()
-	assert.Nil(t, mockEncoder.EncodeObject(mockObject, mockResource))
+	mockEncoder.On("EncodeObject", mockObject).Return(nil).Once()
+	assert.Nil(t, mockEncoder.EncodeObject(mockObject))
 }

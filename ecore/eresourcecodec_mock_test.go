@@ -20,23 +20,25 @@ import (
 func TestMockEResourceCodec_NewDecoder(t *testing.T) {
 	mockCodec := &MockEResourceCodec{}
 	mockDecoder := &MockEResourceDecoder{}
+	mockResource := &MockEResource{}
 	options := map[string]interface{}{}
 	var r io.Reader = nil
-	mockCodec.On("NewDecoder", r, options).Return(mockDecoder).Once()
-	mockCodec.On("NewDecoder", r, options).Return(func(io.Reader, map[string]interface{}) EResourceDecoder { return mockDecoder }).Once()
-	assert.Equal(t, mockDecoder, mockCodec.NewDecoder(r, options))
-	assert.Equal(t, mockDecoder, mockCodec.NewDecoder(r, options))
+	mockCodec.On("NewDecoder", mockResource, r, options).Return(mockDecoder).Once()
+	mockCodec.On("NewDecoder", mockResource, r, options).Return(func(EResource, io.Reader, map[string]interface{}) EResourceDecoder { return mockDecoder }).Once()
+	assert.Equal(t, mockDecoder, mockCodec.NewDecoder(mockResource, r, options))
+	assert.Equal(t, mockDecoder, mockCodec.NewDecoder(mockResource, r, options))
 	mock.AssertExpectationsForObjects(t, mockCodec)
 }
 
 func TestMockEResourceCodec_NewEncoder(t *testing.T) {
 	mockCodec := &MockEResourceCodec{}
 	mockEncoder := &MockEResourceEncoder{}
+	mockResource := &MockEResource{}
 	options := map[string]interface{}{}
 	var w io.Writer = nil
-	mockCodec.On("NewEncoder", w, options).Return(mockEncoder).Once()
-	mockCodec.On("NewEncoder", w, options).Return(func(io.Writer, map[string]interface{}) EResourceEncoder { return mockEncoder }).Once()
-	assert.Equal(t, mockEncoder, mockCodec.NewEncoder(w, options))
-	assert.Equal(t, mockEncoder, mockCodec.NewEncoder(w, options))
+	mockCodec.On("NewEncoder", mockResource, w, options).Return(mockEncoder).Once()
+	mockCodec.On("NewEncoder", mockResource, w, options).Return(func(EResource, io.Writer, map[string]interface{}) EResourceEncoder { return mockEncoder }).Once()
+	assert.Equal(t, mockEncoder, mockCodec.NewEncoder(mockResource, w, options))
+	assert.Equal(t, mockEncoder, mockCodec.NewEncoder(mockResource, w, options))
 	mock.AssertExpectationsForObjects(t, mockCodec)
 }

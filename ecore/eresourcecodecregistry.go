@@ -24,10 +24,12 @@ var resourceCodecRegistryInstance EResourceCodecRegistry
 func GetResourceCodecRegistry() EResourceCodecRegistry {
 	if resourceCodecRegistryInstance == nil {
 		resourceCodecRegistryInstance = NewEResourceCodecRegistryImpl()
-		// initialize with default factories
+		// initialize with default codecs
 		extensionToCodecs := resourceCodecRegistryInstance.GetExtensionToCodecMap()
 		extensionToCodecs["ecore"] = &XMICodec{}
 		extensionToCodecs["xml"] = &XMLCodec{}
+		protocolToCodecs := resourceCodecRegistryInstance.GetProtocolToCodecMap()
+		protocolToCodecs["memory"] = &NoCodec{}
 	}
 	return resourceCodecRegistryInstance
 }

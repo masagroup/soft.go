@@ -11,7 +11,6 @@ package ecore
 
 import (
 	"io"
-	"time"
 
 	"github.com/ugorji/go/codec"
 )
@@ -225,8 +224,7 @@ func (be *BinaryEncoder) encodeFeatureValue(eObject EObjectInternal, featureID i
 		case enum:
 			be.encoder.Encode(value)
 		case date:
-			t := value.(*time.Time)
-			be.encoder.Encode(t.Unix())
+			be.encoder.Encode(value)
 		case primitive:
 			be.encoder.Encode(value)
 		}

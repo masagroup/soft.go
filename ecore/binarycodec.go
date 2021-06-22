@@ -24,26 +24,21 @@ func (bc *BinaryCodec) NewDecoder(resource EResource, r io.Reader, options map[s
 }
 
 const (
-	object_container       = iota
-	object_container_proxy = iota
-
-	object       = iota
-	object_proxy = iota
-
-	object_list       = iota
-	object_list_proxy = iota
-
-	object_containment       = iota
-	object_containment_proxy = iota
-
+	object_container              = iota
+	object_container_proxy        = iota
+	object                        = iota
+	object_proxy                  = iota
+	object_list                   = iota
+	object_list_proxy             = iota
+	object_containment            = iota
+	object_containment_proxy      = iota
 	object_containment_list       = iota
 	object_containment_list_proxy = iota
-
-	data      = iota
-	data_list = iota
-	enum      = iota
-	date      = iota
-	primitive = iota
+	data                          = iota
+	data_list                     = iota
+	enum                          = iota
+	date                          = iota
+	primitive                     = iota
 )
 
 func getBinaryCodecFeatureKind(eFeature EStructuralFeature) int {
@@ -72,7 +67,7 @@ func getBinaryCodecFeatureKind(eFeature EStructuralFeature) int {
 			if eReference.IsMany() {
 				return object_list_proxy
 			} else {
-				return object_list
+				return object_proxy
 			}
 		} else {
 			if eReference.IsMany() {
@@ -86,7 +81,7 @@ func getBinaryCodecFeatureKind(eFeature EStructuralFeature) int {
 			return data_list
 		} else {
 			eDataType := eAttribute.GetEAttributeType()
-			if eEnum := eDataType.(EEnum); eEnum != nil {
+			if eEnum, _ := eDataType.(EEnum); eEnum != nil {
 				return enum
 			}
 			instanceTypeName := eDataType.GetInstanceTypeName()

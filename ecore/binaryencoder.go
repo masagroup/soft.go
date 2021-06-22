@@ -56,6 +56,7 @@ type BinaryEncoder struct {
 	classDataMap   map[EClass]*binaryEncoderClassData
 	packageDataMap map[EPackage]*binaryEncoderPackageData
 	uriToIDMap     map[string]int
+	errorFn        func(diagnostic EDiagnostic)
 }
 
 func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]interface{}) *BinaryEncoder {
@@ -83,12 +84,21 @@ func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[st
 }
 
 func (be *BinaryEncoder) Encode() {
+	be.errorFn = func(diagnostic EDiagnostic) {
+		be.resource.GetErrors().Add(diagnostic)
+	}
 	contents := be.resource.GetContents()
 	be.encodeObjects(contents, checkContainer)
 }
 
-func (be *BinaryEncoder) EncodeObject(object EObject) error {
-	return nil
+func (be *BinaryEncoder) EncodeObject(object EObject) (err error) {
+	be.errorFn = func(diagnostic EDiagnostic) {
+		if err == nil {
+			err = diagnostic
+		}
+	}
+	be.encodeObject(object, checkContainer)
+	return
 }
 
 func (be *BinaryEncoder) encodeSignature() {

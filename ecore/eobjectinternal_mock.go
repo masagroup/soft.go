@@ -46,6 +46,20 @@ func (_m *MockEObjectInternal) EBasicInverseRemove(otherEnd EObject, featureID i
 	return r0
 }
 
+// EFeatureID provides a mock function with given fields: feature
+func (_m *MockEObjectInternal) EFeatureID(feature EStructuralFeature) int {
+	ret := _m.Called(feature)
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func(EStructuralFeature) int); ok {
+		r0 = rf(feature)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	return r0
+}
+
 // EDerivedFeatureID provides a mock function with given fields: container, featureID
 func (_m *MockEObjectInternal) EDerivedFeatureID(container EObject, featureID int) int {
 	ret := _m.Called(container, featureID)
@@ -53,6 +67,20 @@ func (_m *MockEObjectInternal) EDerivedFeatureID(container EObject, featureID in
 	var r0 int
 	if rf, ok := ret.Get(0).(func(EObject, int) int); ok {
 		r0 = rf(container, featureID)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	return r0
+}
+
+// EFeatureID provides a mock function with given fields: feature
+func (_m *MockEObjectInternal) EOperationID(operation EOperation) int {
+	ret := _m.Called(operation)
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func(EOperation) int); ok {
+		r0 = rf(operation)
 	} else {
 		r0 = ret.Get(0).(int)
 	}

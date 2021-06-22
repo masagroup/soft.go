@@ -72,6 +72,7 @@ func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[st
 		objectToID:     map[EObject]int{},
 		classDataMap:   map[EClass]*binaryEncoderClassData{},
 		packageDataMap: map[EPackage]*binaryEncoderPackageData{},
+		uriToIDMap:     map[string]int{},
 	}
 	if uri := resource.GetURI(); uri != nil && uri.IsAbsolute() {
 		e.baseURI = uri
@@ -228,9 +229,10 @@ func (be *BinaryEncoder) encodeClass(eClass EClass) *binaryEncoderClassData {
 		be.encoder.Encode(eClassData.packageID)
 		be.encoder.Encode(eClassData.id)
 	} else {
-		eClassData := be.newClassData(eClass)
+		eClassData = be.newClassData(eClass)
 		be.encoder.Encode(eClassData.id)
 		be.encoder.Encode(eClass.GetName())
+		be.classDataMap[eClass] = eClassData
 	}
 	return eClassData
 }
@@ -240,7 +242,7 @@ func (be *BinaryEncoder) encodePackage(ePackage EPackage) *binaryEncoderPackageD
 	if ePackageData != nil {
 		be.encoder.Encode(ePackageData.id)
 	} else {
-		ePackageData := be.newPackageData(ePackage)
+		ePackageData = be.newPackageData(ePackage)
 		be.encoder.Encode(ePackageData.id)
 		be.encoder.Encode(ePackage.GetNsURI())
 		be.encodeURI(GetURI(ePackage))
@@ -268,7 +270,7 @@ func (be *BinaryEncoder) encodeURIWithFragment(uri *URI, fragment string) {
 			id := len(be.uriToIDMap)
 			be.uriToIDMap[uriPath] = id
 			be.encoder.Encode(id)
-			be.encoder.Encode(be.relativizeURI(uri))
+			be.encoder.Encode(be.relativizeURI(uri).String())
 		}
 		be.encoder.Encode(fragment)
 	}
@@ -304,7 +306,7 @@ func (be *BinaryEncoder) newClassData(eClass EClass) *binaryEncoderClassData {
 		id:          be.newClassID(ePackageData),
 		featureData: []*binaryEncoderFeatureData{},
 	}
-	for it := eClass.GetEStructuralFeatures().Iterator(); it.HasNext(); {
+	for it := eClass.GetEAllStructuralFeatures().Iterator(); it.HasNext(); {
 		eFeature := it.Next().(EStructuralFeature)
 		eClassData.featureData = append(eClassData.featureData, be.newFeatureData(eFeature))
 	}
@@ -320,7 +322,7 @@ func (be *BinaryEncoder) newFeatureData(eFeature EStructuralFeature) *binaryEnco
 		eFeatureData.isTransient = eReference.IsTransient() || (eReference.IsContainer() && !eReference.IsResolveProxies())
 	} else if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
 		eDataType := eAttribute.GetEAttributeType()
-		eFeatureData.isTransient = eReference.IsTransient()
+		eFeatureData.isTransient = eAttribute.IsTransient()
 		eFeatureData.dataType = eDataType
 		eFeatureData.factory = eDataType.GetEPackage().GetEFactoryInstance()
 	}

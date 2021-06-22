@@ -26,4 +26,5 @@ func TestBinaryEncoder_ComplexBig(t *testing.T) {
 
 	binaryEncoder := NewBinaryEncoder(eResource, f, nil)
 	binaryEncoder.Encode()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 }

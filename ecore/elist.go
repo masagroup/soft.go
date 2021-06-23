@@ -21,7 +21,7 @@ type EList interface {
 
 	MoveObject(int, interface{})
 
-	Move(int, int) interface{}
+	Move(oldIndex int, newIndex int) interface{}
 
 	Get(int) interface{}
 

@@ -42,7 +42,7 @@ type binaryEncoderClassData struct {
 type binaryEncoderFeatureData struct {
 	name        string
 	isTransient bool
-	featureKind int
+	featureKind binaryFeatureKind
 	factory     EFactory
 	dataType    EDataType
 }
@@ -190,7 +190,7 @@ func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
 		}
 		// object feature values
 		for featureID, featureData := range eClassData.featureData {
-			if saveFeatureValues && !featureData.isTransient && (check == checkContainer || featureData.featureKind != object_container_proxy) {
+			if saveFeatureValues && !featureData.isTransient && (check == checkContainer || featureData.featureKind != bfkObjectContainerProxy) {
 				e.encodeFeatureValue(eObjectInternal, featureID, featureData)
 			}
 		}
@@ -207,28 +207,28 @@ func (e *BinaryEncoder) encodeFeatureValue(eObject EObjectInternal, featureID in
 		}
 		value := eObject.EGetFromID(featureID, false)
 		switch featureData.featureKind {
-		case object:
+		case bfkObject:
 			fallthrough
-		case object_containment:
+		case bfkObjectContainment:
 			e.encodeObject(value.(EObject), checkNothing)
-		case object_container_proxy:
+		case bfkObjectContainerProxy:
 			e.encodeObject(value.(EObject), checkResource)
-		case object_containment_proxy:
+		case bfkObjectContainmentProxy:
 			e.encodeObject(value.(EObject), checkDirectResource)
-		case object_proxy:
+		case bfkObjectProxy:
 			e.encodeObject(value.(EObject), checkResource)
-		case object_list:
+		case bfkObjectList:
 			fallthrough
-		case object_containment_list:
+		case bfkObjectContainmentList:
 			e.encodeObjects(value.(EList), checkNothing)
-		case object_containment_list_proxy:
+		case bfkObjectContainmentListProxy:
 			e.encodeObjects(value.(EList), checkDirectResource)
-		case object_list_proxy:
+		case bfkObjectListProxy:
 			e.encodeObjects(value.(EList), checkResource)
-		case data:
+		case bfkData:
 			valueStr := featureData.factory.ConvertToString(featureData.dataType, value)
 			e.encode(valueStr)
-		case data_list:
+		case bfkDataList:
 			valuesStr := []string{}
 			for it := value.(EList).Iterator(); it.HasNext(); {
 				value := it.Next()
@@ -236,11 +236,11 @@ func (e *BinaryEncoder) encodeFeatureValue(eObject EObjectInternal, featureID in
 				valuesStr = append(valuesStr, valueStr)
 			}
 			e.encode(valuesStr)
-		case enum:
+		case bfkEnum:
 			e.encode(value)
-		case date:
+		case bfkDate:
 			e.encode(value)
-		case primitive:
+		case bfkPrimitive:
 			e.encode(value)
 		}
 	}

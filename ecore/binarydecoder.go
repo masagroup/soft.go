@@ -33,7 +33,7 @@ type binaryDecoderClassData struct {
 type binaryDecoderFeatureData struct {
 	featureID   int
 	eFeature    EStructuralFeature
-	featureKind int
+	featureKind binaryFeatureKind
 	eFactory    EFactory
 	eDataType   EDataType
 }
@@ -229,32 +229,32 @@ func (d *BinaryDecoder) decodeObjects(list EList) {
 
 func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData *binaryDecoderFeatureData) {
 	switch featureData.featureKind {
-	case object_container:
+	case bfkObjectContainer:
 		fallthrough
-	case object_container_proxy:
+	case bfkObjectContainerProxy:
 		fallthrough
-	case object:
+	case bfkObject:
 		fallthrough
-	case object_proxy:
+	case bfkObjectProxy:
 		fallthrough
-	case object_containment:
+	case bfkObjectContainment:
 		fallthrough
-	case object_containment_proxy:
+	case bfkObjectContainmentProxy:
 		eObject.ESetFromID(featureData.featureID, d.decodeObject())
-	case object_list:
+	case bfkObjectList:
 		fallthrough
-	case object_list_proxy:
+	case bfkObjectListProxy:
 		fallthrough
-	case object_containment_list:
+	case bfkObjectContainmentList:
 		fallthrough
-	case object_containment_list_proxy:
+	case bfkObjectContainmentListProxy:
 		l := eObject.EGetFromID(featureData.featureID, false).(EList)
 		d.decodeObjects(l)
-	case data:
+	case bfkData:
 		valueStr := d.decodeString()
 		value := featureData.eFactory.CreateFromString(featureData.eDataType, valueStr)
 		eObject.ESetFromID(featureData.featureID, value)
-	case data_list:
+	case bfkDataList:
 		values := []interface{}{}
 		var valuesStr []string
 		d.decode(&valuesStr)
@@ -263,13 +263,13 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 			values = append(values, value)
 		}
 		eObject.ESetFromID(featureData.featureID, values)
-	case enum:
+	case bfkEnum:
 		eObject.ESetFromID(featureData.featureID, d.decodeInt())
-	case date:
+	case bfkDate:
 		var t time.Time
 		d.decode(&t)
 		eObject.ESetFromID(featureData.featureID, t)
-	case primitive:
+	case bfkPrimitive:
 		var i interface{}
 		d.decode(&i)
 		eObject.ESetFromID(featureData.featureID, i)

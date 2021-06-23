@@ -23,66 +23,68 @@ func (bc *BinaryCodec) NewDecoder(resource EResource, r io.Reader, options map[s
 	return NewBinaryDecoder(resource, r, options)
 }
 
+type binaryFeatureKind int
+
 const (
-	object_container              = iota
-	object_container_proxy        = iota
-	object                        = iota
-	object_proxy                  = iota
-	object_list                   = iota
-	object_list_proxy             = iota
-	object_containment            = iota
-	object_containment_proxy      = iota
-	object_containment_list       = iota
-	object_containment_list_proxy = iota
-	data                          = iota
-	data_list                     = iota
-	enum                          = iota
-	date                          = iota
-	primitive                     = iota
+	bfkObjectContainer binaryFeatureKind = iota
+	bfkObjectContainerProxy
+	bfkObject
+	bfkObjectProxy
+	bfkObjectList
+	bfkObjectListProxy
+	bfkObjectContainment
+	bfkObjectContainmentProxy
+	bfkObjectContainmentList
+	bfkObjectContainmentListProxy
+	bfkData
+	bfkDataList
+	bfkEnum
+	bfkDate
+	bfkPrimitive
 )
 
-func getBinaryCodecFeatureKind(eFeature EStructuralFeature) int {
+func getBinaryCodecFeatureKind(eFeature EStructuralFeature) binaryFeatureKind {
 	if eReference, _ := eFeature.(EReference); eReference != nil {
 		if eReference.IsContainment() {
 			if eReference.IsResolveProxies() {
 				if eReference.IsMany() {
-					return object_containment_list_proxy
+					return bfkObjectContainmentListProxy
 				} else {
-					return object_containment_proxy
+					return bfkObjectContainmentProxy
 				}
 			} else {
 				if eReference.IsMany() {
-					return object_containment_list
+					return bfkObjectContainmentList
 				} else {
-					return object_containment
+					return bfkObjectContainment
 				}
 			}
 		} else if eReference.IsContainer() {
 			if eReference.IsResolveProxies() {
-				return object_container_proxy
+				return bfkObjectContainerProxy
 			} else {
-				return object_container
+				return bfkObjectContainer
 			}
 		} else if eReference.IsResolveProxies() {
 			if eReference.IsMany() {
-				return object_list_proxy
+				return bfkObjectListProxy
 			} else {
-				return object_proxy
+				return bfkObjectProxy
 			}
 		} else {
 			if eReference.IsMany() {
-				return object_list
+				return bfkObjectList
 			} else {
-				return object
+				return bfkObject
 			}
 		}
 	} else if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
 		if eAttribute.IsMany() {
-			return data_list
+			return bfkDataList
 		} else {
 			eDataType := eAttribute.GetEAttributeType()
 			if eEnum, _ := eDataType.(EEnum); eEnum != nil {
-				return enum
+				return bfkEnum
 			}
 			instanceTypeName := eDataType.GetInstanceTypeName()
 			if instanceTypeName == "float64" ||
@@ -93,12 +95,12 @@ func getBinaryCodecFeatureKind(eFeature EStructuralFeature) int {
 				instanceTypeName == "int16" ||
 				instanceTypeName == "bool" ||
 				instanceTypeName == "string" {
-				return primitive
+				return bfkPrimitive
 			}
 			if instanceTypeName == "*time.Time" {
-				return date
+				return bfkDate
 			}
-			return data
+			return bfkData
 		}
 	}
 	return -1

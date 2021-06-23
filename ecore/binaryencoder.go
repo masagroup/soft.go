@@ -329,6 +329,7 @@ func (e *BinaryEncoder) newClassData(eClass EClass) *binaryEncoderClassData {
 		id:          e.newClassID(ePackageData),
 		featureData: []*binaryEncoderFeatureData{},
 	}
+	ePackageData.classData[eClassData.id] = eClassData
 	for it := eClass.GetEAllStructuralFeatures().Iterator(); it.HasNext(); {
 		eFeature := it.Next().(EStructuralFeature)
 		eClassData.featureData = append(eClassData.featureData, e.newFeatureData(eFeature))

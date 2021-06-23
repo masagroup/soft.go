@@ -36,11 +36,20 @@ const (
 	bfkObjectContainmentProxy
 	bfkObjectContainmentList
 	bfkObjectContainmentListProxy
+	bfkFloat64
+	bfkFloat32
+	bfkInt
+	bfkInt64
+	bfkInt32
+	bfkInt16
+	bfkByte
+	bfkBool
+	bfkString
+	bfkByteArray
 	bfkData
 	bfkDataList
 	bfkEnum
 	bfkDate
-	bfkPrimitive
 )
 
 func getBinaryCodecFeatureKind(eFeature EStructuralFeature) binaryFeatureKind {
@@ -86,20 +95,32 @@ func getBinaryCodecFeatureKind(eFeature EStructuralFeature) binaryFeatureKind {
 			if eEnum, _ := eDataType.(EEnum); eEnum != nil {
 				return bfkEnum
 			}
-			instanceTypeName := eDataType.GetInstanceTypeName()
-			if instanceTypeName == "float64" ||
-				instanceTypeName == "float32" ||
-				instanceTypeName == "int" ||
-				instanceTypeName == "int64" ||
-				instanceTypeName == "int32" ||
-				instanceTypeName == "int16" ||
-				instanceTypeName == "bool" ||
-				instanceTypeName == "string" {
-				return bfkPrimitive
-			}
-			if instanceTypeName == "*time.Time" {
+
+			switch eDataType.GetInstanceTypeName() {
+			case "float64":
+				return bfkFloat64
+			case "float32":
+				return bfkFloat32
+			case "int":
+				return bfkInt
+			case "int64":
+				return bfkInt64
+			case "int32":
+				return bfkInt32
+			case "int16":
+				return bfkInt16
+			case "byte":
+				return bfkByte
+			case "bool":
+				return bfkBool
+			case "string":
+				return bfkString
+			case "[]byte":
+				return bfkByteArray
+			case "*time.Time":
 				return bfkDate
 			}
+
 			return bfkData
 		}
 	}

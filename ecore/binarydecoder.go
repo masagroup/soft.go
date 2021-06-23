@@ -266,13 +266,49 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 	case bfkEnum:
 		eObject.ESetFromID(featureData.featureID, d.decodeInt())
 	case bfkDate:
-		var t time.Time
-		d.decode(&t)
-		eObject.ESetFromID(featureData.featureID, t)
-	case bfkPrimitive:
-		var i interface{}
-		d.decode(&i)
-		eObject.ESetFromID(featureData.featureID, i)
+		var v time.Time
+		d.decode(&v)
+		eObject.ESetFromID(featureData.featureID, &v)
+	case bfkFloat64:
+		var v float64
+		d.decode(&v)
+		eObject.ESetFromID(featureData.featureID, v)
+	case bfkFloat32:
+		var v float32
+		d.decode(&v)
+		eObject.ESetFromID(featureData.featureID, v)
+	case bfkInt:
+		var v int
+		d.decode(&v)
+		eObject.ESetFromID(featureData.featureID, v)
+	case bfkInt64:
+		var v int64
+		d.decode(&v)
+		eObject.ESetFromID(featureData.featureID, v)
+	case bfkInt32:
+		var v int32
+		d.decode(&v)
+		eObject.ESetFromID(featureData.featureID, v)
+	case bfkInt16:
+		var v int16
+		d.decode(&v)
+		eObject.ESetFromID(featureData.featureID, v)
+	case bfkByte:
+		var v byte
+		d.decode(&v)
+		eObject.ESetFromID(featureData.featureID, v)
+	case bfkBool:
+		var v bool
+		d.decode(&v)
+		eObject.ESetFromID(featureData.featureID, v)
+	case bfkString:
+		var v string
+		d.decode(&v)
+		eObject.ESetFromID(featureData.featureID, v)
+	case bfkByteArray:
+		var v []byte
+		d.decode(&v)
+		eObject.ESetFromID(featureData.featureID, v)
 	}
 }
 

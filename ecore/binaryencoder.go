@@ -10,6 +10,7 @@
 package ecore
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/ugorji/go/codec"
@@ -237,11 +238,31 @@ func (e *BinaryEncoder) encodeFeatureValue(eObject EObjectInternal, featureID in
 			}
 			e.encode(valuesStr)
 		case bfkEnum:
-			e.encode(value)
+			fallthrough
 		case bfkDate:
+			fallthrough
+		case bfkFloat64:
+			fallthrough
+		case bfkFloat32:
+			fallthrough
+		case bfkInt:
+			fallthrough
+		case bfkInt64:
+			fallthrough
+		case bfkInt32:
+			fallthrough
+		case bfkInt16:
+			fallthrough
+		case bfkByte:
+			fallthrough
+		case bfkBool:
+			fallthrough
+		case bfkString:
+			fallthrough
+		case bfkByteArray:
 			e.encode(value)
-		case bfkPrimitive:
-			e.encode(value)
+		default:
+			panic(fmt.Sprintf("feature with feature kind '%v' is not supported", featureData.featureKind))
 		}
 	}
 }

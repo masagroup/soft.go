@@ -167,21 +167,21 @@ func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
 		switch check {
 		case checkDirectResource:
 			if eResource := eObjectInternal.EInternalResource(); eResource != nil {
-				e.encode(0)
+				e.encode(-1)
 				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
 				saveFeatureValues = false
 			} else if eObjectInternal.EIsProxy() {
-				e.encode(0)
+				e.encode(-1)
 				e.encodeURI(eObjectInternal.EProxyURI())
 				saveFeatureValues = false
 			}
 		case checkResource:
 			if eResource := eObjectInternal.EResource(); eResource != nil && eResource != e.resource {
-				e.encode(0)
+				e.encode(-1)
 				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
 				saveFeatureValues = false
 			} else if eObjectInternal.EIsProxy() {
-				e.encode(0)
+				e.encode(-1)
 				e.encodeURI(eObjectInternal.EProxyURI())
 				saveFeatureValues = false
 			}
@@ -194,13 +194,13 @@ func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
 				e.encodeFeatureValue(eObjectInternal, featureID, featureData)
 			}
 		}
-		e.encode(1)
+		e.encode(0)
 	}
 }
 
 func (e *BinaryEncoder) encodeFeatureValue(eObject EObjectInternal, featureID int, featureData *binaryEncoderFeatureData) {
 	if eObject.EIsSetFromID(featureID) {
-		e.encode(featureID)
+		e.encode(featureID + 1)
 		if len(featureData.name) > 0 {
 			e.encode(featureData.name)
 			featureData.name = ""

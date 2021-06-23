@@ -28,12 +28,14 @@ const (
 	xmlNS                           = "xmlns"
 )
 
+type xmlLoadFeatureKind int
+
 const (
-	single   = iota
-	many     = iota
-	manyAdd  = iota
-	manyMove = iota
-	other    = iota
+	xlfkSingle xmlLoadFeatureKind = iota
+	xlfkMany
+	xlfkManyAdd
+	xlfkManyMove
+	xlfkOther
 )
 
 const (
@@ -420,7 +422,7 @@ func (l *XMLDecoder) handleFeature(space string, local string) {
 	if eObject != nil {
 		eFeature := l.getFeature(eObject, space, local)
 		if eFeature != nil {
-			if featureKind := l.getLoadFeatureKind(eFeature); featureKind == single || featureKind == many {
+			if featureKind := l.getLoadFeatureKind(eFeature); featureKind == xlfkSingle || featureKind == xlfkMany {
 				l.textBuilder = &strings.Builder{}
 				l.types = append(l.types, eFeature)
 				l.objects = append(l.objects, nil)
@@ -448,7 +450,7 @@ func (l *XMLDecoder) setFeatureValue(eObject EObject,
 	position int) {
 	kind := l.getLoadFeatureKind(eFeature)
 	switch kind {
-	case single:
+	case xlfkSingle:
 		eClassifier := eFeature.GetEType()
 		eDataType := eClassifier.(EDataType)
 		eFactory := eDataType.GetEPackage().GetEFactoryInstance()
@@ -458,7 +460,7 @@ func (l *XMLDecoder) setFeatureValue(eObject EObject,
 			eObject.ESet(eFeature, eFactory.CreateFromString(eDataType, value.(string)))
 		}
 
-	case many:
+	case xlfkMany:
 		eClassifier := eFeature.GetEType()
 		eDataType := eClassifier.(EDataType)
 		eFactory := eDataType.GetEPackage().GetEFactoryInstance()
@@ -469,9 +471,9 @@ func (l *XMLDecoder) setFeatureValue(eObject EObject,
 		} else {
 			eList.Add(eFactory.CreateFromString(eDataType, value.(string)))
 		}
-	case manyAdd:
+	case xlfkManyAdd:
 		fallthrough
-	case manyMove:
+	case xlfkManyMove:
 		eList := eObject.EGetResolve(eFeature, false).(EList)
 		if position == -1 {
 			eList.Add(value)
@@ -484,7 +486,7 @@ func (l *XMLDecoder) setFeatureValue(eObject EObject,
 			} else {
 				eList.Move(position, index)
 			}
-		} else if kind == manyAdd {
+		} else if kind == xlfkManyAdd {
 			eList.Add(value)
 		} else {
 			eList.MoveObject(position, value)
@@ -494,22 +496,22 @@ func (l *XMLDecoder) setFeatureValue(eObject EObject,
 	}
 }
 
-func (l *XMLDecoder) getLoadFeatureKind(eFeature EStructuralFeature) int {
+func (l *XMLDecoder) getLoadFeatureKind(eFeature EStructuralFeature) xmlLoadFeatureKind {
 	eClassifier := eFeature.GetEType()
 	if eDataType, _ := eClassifier.(EDataType); eDataType != nil {
 		if eFeature.IsMany() {
-			return many
+			return xlfkMany
 		}
-		return single
+		return xlfkSingle
 	} else if eFeature.IsMany() {
 		eReference := eFeature.(EReference)
 		eOpposite := eReference.GetEOpposite()
 		if eOpposite == nil || eOpposite.IsTransient() || !eOpposite.IsMany() {
-			return manyAdd
+			return xlfkManyAdd
 		}
-		return manyMove
+		return xlfkManyMove
 	}
-	return other
+	return xlfkOther
 }
 
 func (l *XMLDecoder) handleAttributes(eObject EObject) {
@@ -566,7 +568,7 @@ func (l *XMLDecoder) setAttributeValue(eObject EObject, qname string, value stri
 	eFeature := l.getFeature(eObject, space, local)
 	if eFeature != nil {
 		kind := l.getLoadFeatureKind(eFeature)
-		if kind == single || kind == many {
+		if kind == xlfkSingle || kind == xlfkMany {
 			l.setFeatureValue(eObject, eFeature, value, -2)
 		} else {
 			l.setValueFromId(eObject, eFeature.(EReference), value)

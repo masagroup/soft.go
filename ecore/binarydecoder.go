@@ -9,20 +9,77 @@
 
 package ecore
 
-import "io"
+import (
+	"bytes"
+	"errors"
+	"io"
+
+	"github.com/ugorji/go/codec"
+)
 
 type BinaryDecoder struct {
-	r io.Reader
+	resource EResource
+	r        io.Reader
+	decoder  *codec.Decoder
+	baseURI  *URI
 }
 
 func NewBinaryDecoder(resource EResource, r io.Reader, options map[string]interface{}) *BinaryDecoder {
-	return &BinaryDecoder{}
+	mh := &codec.MsgpackHandle{}
+	d := &BinaryDecoder{
+		resource: resource,
+		r:        r,
+		decoder:  codec.NewDecoder(r, mh),
+	}
+	if uri := resource.GetURI(); uri != nil && uri.IsAbsolute() {
+		d.baseURI = uri
+	}
+	return d
 }
 
-func (bd *BinaryDecoder) Decode() {
-
+func (d *BinaryDecoder) Decode() {
+	defer func() {
+		if err, _ := recover().(error); err != nil {
+			resourcePath := ""
+			if d.resource.GetURI() != nil {
+				resourcePath = d.resource.GetURI().String()
+			}
+			d.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), resourcePath, 0, 0))
+		}
+	}()
+	d.decodeSignature()
+	d.decodeVersion()
 }
 
-func (bd *BinaryDecoder) DecodeObject() (EObject, error) {
-	return nil, nil
+func (d *BinaryDecoder) DecodeObject() (eObject EObject, err error) {
+	defer func() {
+		if panicErr, _ := recover().(error); panicErr != nil {
+			err = panicErr
+		}
+	}()
+	d.decodeSignature()
+	d.decodeVersion()
+	return
+}
+
+func (d *BinaryDecoder) decode(v interface{}) {
+	if err := d.decoder.Decode(v); err != nil {
+		panic(err)
+	}
+}
+
+func (d *BinaryDecoder) decodeSignature() {
+	signature := make([]byte, 8)
+	d.decode(signature)
+	if bytes.Compare(signature, binarySignature) != 0 {
+		panic(errors.New("Invalid signature for a binary EMF serialization"))
+	}
+}
+
+func (d *BinaryDecoder) decodeVersion() {
+	var version int
+	d.decode(&version)
+	if version != binaryVersion {
+		panic(errors.New("Invalid version for binary EMF serialization"))
+	}
 }

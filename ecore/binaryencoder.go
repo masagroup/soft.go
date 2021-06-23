@@ -24,7 +24,9 @@ const (
 	checkContainer
 )
 
-const encoderVersion = 0
+var binaryVersion int = 0
+
+var binarySignature []byte = []byte{'\211', 'e', 'm', 'f', '\n', '\r', '\032', '\n'}
 
 type binaryEncoderPackageData struct {
 	id        int
@@ -59,7 +61,7 @@ type BinaryEncoder struct {
 }
 
 func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]interface{}) *BinaryEncoder {
-	return NewBinaryEncoderWithVersion(resource, w, options, encoderVersion)
+	return NewBinaryEncoderWithVersion(resource, w, options, binaryVersion)
 }
 
 func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[string]interface{}, version int) *BinaryEncoder {
@@ -83,11 +85,15 @@ func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[st
 func (e *BinaryEncoder) Encode() {
 	defer func() {
 		if err, _ := recover().(error); err != nil {
-			e.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), e.resource.GetURI().String(), 0, 0))
+			resourcePath := ""
+			if e.resource.GetURI() != nil {
+				resourcePath = e.resource.GetURI().String()
+			}
+			e.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), resourcePath, 0, 0))
 		}
 	}()
-	e.encodeVersion()
 	e.encodeSignature()
+	e.encodeVersion()
 	e.encodeObjects(e.resource.GetContents(), checkContainer)
 }
 
@@ -97,8 +103,8 @@ func (e *BinaryEncoder) EncodeObject(object EObject) (err error) {
 			err = panicErr
 		}
 	}()
-	e.encodeVersion()
 	e.encodeSignature()
+	e.encodeVersion()
 	e.encodeObject(object, checkContainer)
 	return
 }
@@ -113,7 +119,7 @@ func (e *BinaryEncoder) encodeSignature() {
 	// Write a signature that will e obviously corrupt
 	// if the binary contents end up eing UTF-8 encoded
 	// or altered by line feed or carriage return changes.
-	e.encode([]byte{'\211', 'e', 'm', 'f', '\n', '\r', '\032', '\n'})
+	e.encode(binarySignature)
 }
 
 func (e *BinaryEncoder) encodeVersion() {

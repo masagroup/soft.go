@@ -7,14 +7,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBinaryEncoder_ComplexBig(t *testing.T) {
+func TestBinaryEncoder_Complex(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
 
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/library.complex.big.xml"}, nil)
+	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/library.complex.xml"}, nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))

@@ -137,8 +137,8 @@ func (d *BinaryDecoder) decodeObject() EObject {
 	var iid interface{}
 	d.decode(&iid)
 	switch id := iid.(type) {
-	case int:
-		if len(d.objects) <= id {
+	case int64:
+		if len(d.objects) <= int(id) {
 			var eResult EObject
 			eClassData := d.decodeClass()
 			eObject := eClassData.eFactory.Create(eClassData.eClass).(EObjectInternal)
@@ -318,9 +318,9 @@ func (d *BinaryDecoder) decodeURI() *URI {
 	var iid interface{}
 	d.decode(&iid)
 	switch id := iid.(type) {
-	case int:
+	case int64:
 		var uri *URI
-		if len(d.uris) <= id {
+		if len(d.uris) <= int(id) {
 			// build uri
 			uriStr := d.decodeString()
 			uri = d.resolveURI(NewURI(uriStr))

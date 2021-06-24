@@ -50,16 +50,16 @@ type binaryEncoderFeatureData struct {
 }
 
 type BinaryEncoder struct {
-	w              io.Writer
-	resource       EResource
-	encoder        *msgpack.Encoder
-	baseURI        *URI
-	version        int
-	objectToID     map[EObject]int
-	classDataMap   map[EClass]*binaryEncoderClassData
-	packageDataMap map[EPackage]*binaryEncoderPackageData
-	uriToIDMap     map[string]int
-	errorFn        func(diagnostic EDiagnostic)
+	w                  io.Writer
+	resource           EResource
+	encoder            *msgpack.Encoder
+	baseURI            *URI
+	version            int
+	objectToID         map[EObject]int
+	classDataMap       map[EClass]*binaryEncoderClassData
+	packageDataMap     map[EPackage]*binaryEncoderPackageData
+	uriToIDMap         map[string]int
+	enumLiteralToIDMap map[string]int
 }
 
 func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]interface{}) *BinaryEncoder {
@@ -68,14 +68,15 @@ func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]interf
 
 func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[string]interface{}, version int) *BinaryEncoder {
 	e := &BinaryEncoder{
-		w:              w,
-		resource:       resource,
-		encoder:        msgpack.NewEncoder(w),
-		version:        version,
-		objectToID:     map[EObject]int{},
-		classDataMap:   map[EClass]*binaryEncoderClassData{},
-		packageDataMap: map[EPackage]*binaryEncoderPackageData{},
-		uriToIDMap:     map[string]int{},
+		w:                  w,
+		resource:           resource,
+		encoder:            msgpack.NewEncoder(w),
+		version:            version,
+		objectToID:         map[EObject]int{},
+		classDataMap:       map[EClass]*binaryEncoderClassData{},
+		packageDataMap:     map[EPackage]*binaryEncoderPackageData{},
+		uriToIDMap:         map[string]int{},
+		enumLiteralToIDMap: map[string]int{},
 	}
 	if uri := resource.GetURI(); uri != nil && uri.IsAbsolute() {
 		e.baseURI = uri
@@ -278,8 +279,15 @@ func (e *BinaryEncoder) encodeFeatureValue(eObject EObjectInternal, featureID in
 				e.encodeString(valueStr)
 			}
 		case bfkEnum:
-			valueStr := featureData.factory.ConvertToString(featureData.dataType, value)
-			e.encodeString(valueStr)
+			literalStr := featureData.factory.ConvertToString(featureData.dataType, value)
+			if enumID, isID := e.enumLiteralToIDMap[literalStr]; isID {
+				e.encodeInt(enumID)
+			} else {
+				enumID := len(e.enumLiteralToIDMap)
+				e.enumLiteralToIDMap[literalStr] = enumID
+				e.encodeInt(enumID)
+				e.encodeString(literalStr)
+			}
 		case bfkDate:
 			e.encodeDate(value.(*time.Time))
 		case bfkFloat64:

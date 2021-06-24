@@ -46,17 +46,19 @@ type BinaryDecoder struct {
 	objects          []EObject
 	uris             []*URI
 	packageData      []*binaryDecoderPackageData
+	enumLiterals     []string
 	isResolveProxies bool
 }
 
 func NewBinaryDecoder(resource EResource, r io.Reader, options map[string]interface{}) *BinaryDecoder {
 	d := &BinaryDecoder{
-		resource:    resource,
-		r:           r,
-		decoder:     msgpack.NewDecoder(r),
-		objects:     []EObject{},
-		uris:        []*URI{},
-		packageData: []*binaryDecoderPackageData{},
+		resource:     resource,
+		r:            r,
+		decoder:      msgpack.NewDecoder(r),
+		objects:      []EObject{},
+		uris:         []*URI{},
+		packageData:  []*binaryDecoderPackageData{},
+		enumLiterals: []string{},
 	}
 	if uri := resource.GetURI(); uri != nil && uri.IsAbsolute() {
 		d.baseURI = uri
@@ -315,7 +317,14 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 		}
 		eObject.ESetFromID(featureData.featureID, values)
 	case bfkEnum:
-		valueStr := d.decodeString()
+		var valueStr string
+		id := d.decodeInt()
+		if len(d.enumLiterals) <= id {
+			valueStr = d.decodeString()
+			d.enumLiterals = append(d.enumLiterals, valueStr)
+		} else {
+			valueStr = d.enumLiterals[id]
+		}
 		value := featureData.eFactory.CreateFromString(featureData.eDataType, valueStr)
 		eObject.ESetFromID(featureData.featureID, value)
 	case bfkDate:

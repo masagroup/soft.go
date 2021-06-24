@@ -59,6 +59,8 @@ func TestBinaryDecoder_Complex(t *testing.T) {
 	require.NotNil(t, eBookTitleAttribute)
 	eBookDateAttribute, _ := eBookClass.GetEStructuralFeatureFromName("publicationDate").(EAttribute)
 	require.NotNil(t, eBookDateAttribute)
+	eBookCategoryAttribute, _ := eBookClass.GetEStructuralFeatureFromName("category").(EAttribute)
+	require.NotNil(t, eBookCategoryAttribute)
 
 	// retrive book
 	eBooks, _ := eLibrary.EGet(eLibraryBooksRefeference).(EList)
@@ -78,6 +80,10 @@ func TestBinaryDecoder_Complex(t *testing.T) {
 	assert.Equal(t, 6, date.Hour())
 	assert.Equal(t, 24, date.Minute())
 	assert.Equal(t, 46, date.Second())
+
+	// check book category
+	category := eBook.EGet(eBookCategoryAttribute)
+	assert.Equal(t, 2, category)
 }
 
 func TestBinaryDecoder_ComplexBig(t *testing.T) {

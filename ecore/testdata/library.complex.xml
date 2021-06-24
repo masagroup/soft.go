@@ -3,6 +3,6 @@
   <writers address="Adress 0" first-name="First Name 0" last-name="Last Name 0" books="#//@library/@books.0 #//@library/@books.1"/>
   <employees address="Adress 0" first-name="First Name 0" last-name="Last Name 0"/>
   <employees address="Adress 1" first-name="First Name 1" last-name="Last Name 1" manager="#//@library/@employees.0"/>
-  <books publication-date="2015-09-06T04:24:46Z" copies="4" title="Title 0" pages="336" author="#//@library/@writers.0"/>
+  <books publication-date="2015-09-06T04:24:46Z" copies="4" title="Title 0" pages="336" category="Biography" author="#//@library/@writers.0"/>
   <books publication-date="2015-09-07T04:24:46Z" copies="3" title="Title 1" pages="337" author="#//@library/@writers.0"/>
 </library>

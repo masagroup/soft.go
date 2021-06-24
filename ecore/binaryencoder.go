@@ -278,7 +278,8 @@ func (e *BinaryEncoder) encodeFeatureValue(eObject EObjectInternal, featureID in
 				e.encodeString(valueStr)
 			}
 		case bfkEnum:
-			e.encodeInt(value.(int))
+			valueStr := featureData.factory.ConvertToString(featureData.dataType, value)
+			e.encodeString(valueStr)
 		case bfkDate:
 			e.encodeDate(value.(*time.Time))
 		case bfkFloat64:

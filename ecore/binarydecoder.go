@@ -315,7 +315,9 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 		}
 		eObject.ESetFromID(featureData.featureID, values)
 	case bfkEnum:
-		eObject.ESetFromID(featureData.featureID, d.decodeInt())
+		valueStr := d.decodeString()
+		value := featureData.eFactory.CreateFromString(featureData.eDataType, valueStr)
+		eObject.ESetFromID(featureData.featureID, value)
 	case bfkDate:
 		eObject.ESetFromID(featureData.featureID, d.decodeDate())
 	case bfkFloat64:

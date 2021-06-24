@@ -16,7 +16,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/ugorji/go/codec"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type binaryDecoderPackageData struct {
@@ -41,7 +41,7 @@ type binaryDecoderFeatureData struct {
 type BinaryDecoder struct {
 	resource         EResource
 	r                io.Reader
-	decoder          *codec.Decoder
+	decoder          *msgpack.Decoder
 	baseURI          *URI
 	objects          []EObject
 	uris             []*URI
@@ -50,11 +50,10 @@ type BinaryDecoder struct {
 }
 
 func NewBinaryDecoder(resource EResource, r io.Reader, options map[string]interface{}) *BinaryDecoder {
-	mh := &codec.MsgpackHandle{}
 	d := &BinaryDecoder{
 		resource:    resource,
 		r:           r,
-		decoder:     codec.NewDecoder(r, mh),
+		decoder:     msgpack.NewDecoder(r),
 		objects:     []EObject{},
 		uris:        []*URI{},
 		packageData: []*binaryDecoderPackageData{},
@@ -101,27 +100,80 @@ func (d *BinaryDecoder) DecodeObject() (eObject EObject, err error) {
 	return
 }
 
-func (d *BinaryDecoder) decode(v interface{}) {
-	if err := d.decoder.Decode(v); err != nil {
+func (e *BinaryDecoder) haltOnError(err error) {
+	if err != nil {
 		panic(err)
 	}
 }
 
 func (d *BinaryDecoder) decodeInt() int {
-	var i int
-	d.decode(&i)
+	i, err := d.decoder.DecodeInt()
+	d.haltOnError(err)
 	return i
 }
 
+func (d *BinaryDecoder) decodeInt64() int64 {
+	i, err := d.decoder.DecodeInt64()
+	d.haltOnError(err)
+	return i
+}
+
+func (d *BinaryDecoder) decodeInt32() int32 {
+	i, err := d.decoder.DecodeInt32()
+	d.haltOnError(err)
+	return i
+}
+
+func (d *BinaryDecoder) decodeInt16() int16 {
+	i, err := d.decoder.DecodeInt16()
+	d.haltOnError(err)
+	return i
+}
+
+func (d *BinaryDecoder) decodeByte() byte {
+	i, err := d.decoder.DecodeUint8()
+	d.haltOnError(err)
+	return i
+}
+
+func (d *BinaryDecoder) decodeBool() bool {
+	b, err := d.decoder.DecodeBool()
+	d.haltOnError(err)
+	return b
+}
+
 func (d *BinaryDecoder) decodeString() string {
-	var s string
-	d.decode(&s)
+	s, err := d.decoder.DecodeString()
+	d.haltOnError(err)
 	return s
 }
 
+func (d *BinaryDecoder) decodeBytes() []byte {
+	bytes, err := d.decoder.DecodeBytes()
+	d.haltOnError(err)
+	return bytes
+}
+
+func (d *BinaryDecoder) decodeDate() *time.Time {
+	t, err := d.decoder.DecodeTime()
+	d.haltOnError(err)
+	return &t
+}
+
+func (d *BinaryDecoder) decodeFloat64() float64 {
+	f, err := d.decoder.DecodeFloat64()
+	d.haltOnError(err)
+	return f
+}
+
+func (d *BinaryDecoder) decodeFloat32() float32 {
+	f, err := d.decoder.DecodeFloat32()
+	d.haltOnError(err)
+	return f
+}
+
 func (d *BinaryDecoder) decodeSignature() {
-	signature := make([]byte, 8)
-	d.decode(signature)
+	signature := d.decodeBytes()
 	if bytes.Compare(signature, binarySignature) != 0 {
 		panic(errors.New("Invalid signature for a binary EMF serialization"))
 	}
@@ -134,10 +186,11 @@ func (d *BinaryDecoder) decodeVersion() {
 }
 
 func (d *BinaryDecoder) decodeObject() EObject {
-	var iid interface{}
-	d.decode(&iid)
-	switch id := iid.(type) {
-	case int64:
+	id := d.decodeInt()
+	switch id {
+	case -1:
+		return nil
+	default:
 		if len(d.objects) <= int(id) {
 			var eResult EObject
 			eClassData := d.decodeClass()
@@ -172,8 +225,6 @@ func (d *BinaryDecoder) decodeObject() EObject {
 		} else {
 			return d.objects[id]
 		}
-	default:
-		return nil
 	}
 }
 
@@ -255,10 +306,10 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 		value := featureData.eFactory.CreateFromString(featureData.eDataType, valueStr)
 		eObject.ESetFromID(featureData.featureID, value)
 	case bfkDataList:
-		values := []interface{}{}
-		var valuesStr []string
-		d.decode(&valuesStr)
-		for _, valueStr := range valuesStr {
+		size := d.decodeInt()
+		values := make([]interface{}, size)
+		for i := 0; i < size; i++ {
+			valueStr := d.decodeString()
 			value := featureData.eFactory.CreateFromString(featureData.eDataType, valueStr)
 			values = append(values, value)
 		}
@@ -266,49 +317,27 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 	case bfkEnum:
 		eObject.ESetFromID(featureData.featureID, d.decodeInt())
 	case bfkDate:
-		var v time.Time
-		d.decode(&v)
-		eObject.ESetFromID(featureData.featureID, &v)
+		eObject.ESetFromID(featureData.featureID, d.decodeDate())
 	case bfkFloat64:
-		var v float64
-		d.decode(&v)
-		eObject.ESetFromID(featureData.featureID, v)
+		eObject.ESetFromID(featureData.featureID, d.decodeFloat64())
 	case bfkFloat32:
-		var v float32
-		d.decode(&v)
-		eObject.ESetFromID(featureData.featureID, v)
+		eObject.ESetFromID(featureData.featureID, d.decodeFloat32())
 	case bfkInt:
-		var v int
-		d.decode(&v)
-		eObject.ESetFromID(featureData.featureID, v)
+		eObject.ESetFromID(featureData.featureID, d.decodeInt())
 	case bfkInt64:
-		var v int64
-		d.decode(&v)
-		eObject.ESetFromID(featureData.featureID, v)
+		eObject.ESetFromID(featureData.featureID, d.decodeInt64())
 	case bfkInt32:
-		var v int32
-		d.decode(&v)
-		eObject.ESetFromID(featureData.featureID, v)
+		eObject.ESetFromID(featureData.featureID, d.decodeInt32())
 	case bfkInt16:
-		var v int16
-		d.decode(&v)
-		eObject.ESetFromID(featureData.featureID, v)
+		eObject.ESetFromID(featureData.featureID, d.decodeInt16())
 	case bfkByte:
-		var v byte
-		d.decode(&v)
-		eObject.ESetFromID(featureData.featureID, v)
+		eObject.ESetFromID(featureData.featureID, d.decodeByte())
 	case bfkBool:
-		var v bool
-		d.decode(&v)
-		eObject.ESetFromID(featureData.featureID, v)
+		eObject.ESetFromID(featureData.featureID, d.decodeBool())
 	case bfkString:
-		var v string
-		d.decode(&v)
-		eObject.ESetFromID(featureData.featureID, v)
+		eObject.ESetFromID(featureData.featureID, d.decodeString())
 	case bfkByteArray:
-		var v []byte
-		d.decode(&v)
-		eObject.ESetFromID(featureData.featureID, v)
+		eObject.ESetFromID(featureData.featureID, d.decodeBytes())
 	}
 }
 
@@ -351,10 +380,11 @@ func (d *BinaryDecoder) decodePackage() *binaryDecoderPackageData {
 }
 
 func (d *BinaryDecoder) decodeURI() *URI {
-	var iid interface{}
-	d.decode(&iid)
-	switch id := iid.(type) {
-	case int64:
+	id := d.decodeInt()
+	switch id {
+	case -1:
+		return nil
+	default:
 		var uri *URI
 		if len(d.uris) <= int(id) {
 			// build uri
@@ -365,10 +395,8 @@ func (d *BinaryDecoder) decodeURI() *URI {
 		} else {
 			uri = d.uris[id]
 		}
-		d.decode(&uri.Fragment)
+		uri.Fragment = d.decodeString()
 		return uri
-	default:
-		return nil
 	}
 }
 

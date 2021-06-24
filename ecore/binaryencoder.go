@@ -128,10 +128,6 @@ func (e *BinaryEncoder) encodeBytes(bytes []byte) {
 	e.haltOnError(e.encoder.EncodeBytes(bytes))
 }
 
-func (e *BinaryEncoder) encodeSize(size int) {
-	e.haltOnError(e.encoder.EncodeArrayLen(size))
-}
-
 func (e *BinaryEncoder) encodeDate(date *time.Time) {
 	e.haltOnError(e.encoder.EncodeTime(*date))
 }
@@ -275,7 +271,7 @@ func (e *BinaryEncoder) encodeFeatureValue(eObject EObjectInternal, featureID in
 			e.encodeString(valueStr)
 		case bfkDataList:
 			l := value.(EList)
-			e.encodeSize(l.Size())
+			e.encodeInt(l.Size())
 			for it := l.Iterator(); it.HasNext(); {
 				value := it.Next()
 				valueStr := featureData.factory.ConvertToString(featureData.dataType, value)

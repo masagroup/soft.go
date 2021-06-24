@@ -50,3 +50,25 @@ func TestBinaryEncoder_ComplexBig(t *testing.T) {
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 }
+
+func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(b, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/library.complex.big.xml"}, nil)
+	require.NotNil(b, eResource)
+	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	for i := 0; i < b.N; i++ {
+		// file
+		f, err := os.Create("testdata/library.complex.big.result.bin")
+		require.Nil(b, err)
+
+		binaryEncoder := NewBinaryEncoder(eResource, f, nil)
+		binaryEncoder.Encode()
+		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	}
+}

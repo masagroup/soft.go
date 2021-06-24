@@ -1,12 +1,15 @@
 package library
 
 import (
+	"bytes"
+	"io"
 	"io/ioutil"
 	"strings"
 	"testing"
 
 	"github.com/masagroup/soft.go/ecore"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func diagnosticError(errors ecore.EList) string {
@@ -119,4 +122,50 @@ func TestDeepOperations(t *testing.T) {
 	eObject := resource.GetContents().Get(0).(ecore.EObject)
 	eCopyObject := ecore.Copy(eObject)
 	assert.True(t, ecore.Equals(eObject, eCopyObject))
+}
+
+func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
+
+	// create resource
+	uri := &ecore.URI{Path: "testdata/library.complex.xml"}
+	eResource := ecore.NewEResourceImpl()
+	eResource.SetURI(uri)
+	eResourceSet := ecore.NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(eResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(GetPackage())
+
+	// get file content
+	content, err := ioutil.ReadFile(uri.Path)
+	require.Nil(b, err)
+	r := bytes.NewReader(content)
+
+	for i := 0; i < b.N; i++ {
+		r.Seek(0, io.SeekStart)
+		xmlDecoder := ecore.NewXMLDecoder(eResource, r, nil)
+		xmlDecoder.Decode()
+		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	}
+}
+
+func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
+
+	// create resource
+	uri := &ecore.URI{Path: "testdata/library.complex.bin"}
+	eResource := ecore.NewEResourceImpl()
+	eResource.SetURI(uri)
+	eResourceSet := ecore.NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(eResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(GetPackage())
+
+	// get file content
+	content, err := ioutil.ReadFile(uri.Path)
+	require.Nil(b, err)
+	r := bytes.NewReader(content)
+
+	for i := 0; i < b.N; i++ {
+		r.Seek(0, io.SeekStart)
+		xmlDecoder := ecore.NewBinaryDecoder(eResource, r, nil)
+		xmlDecoder.Decode()
+		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	}
 }

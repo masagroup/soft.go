@@ -31,6 +31,14 @@ func (m *IncrementalIDManager) getID(id interface{}) int {
 		if err == nil {
 			return newID
 		}
+	case int64:
+		return int(v)
+	case int32:
+		return int(v)
+	case int16:
+		return int(v)
+	case int8:
+		return int(v)
 	case int:
 		return v
 	}

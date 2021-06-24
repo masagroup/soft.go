@@ -1,6 +1,9 @@
 package ecore
 
 import (
+	"bytes"
+	"io"
+	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -104,7 +107,7 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(b, ePackage)
 
-	//
+	// create resource
 	uri := &URI{Path: "testdata/library.complex.big.bin"}
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
@@ -112,12 +115,15 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	eResourceSet.GetResources().Add(eResource)
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 
-	for i := 0; i < b.N; i++ {
-		// file
-		f, err := os.Open(uri.Path)
-		require.Nil(b, err)
+	// get file content
+	content, err := ioutil.ReadFile(uri.Path)
+	require.Nil(b, err)
+	require.Nil(b, err)
+	r := bytes.NewReader(content)
 
-		binaryDecoder := NewBinaryDecoder(eResource, f, nil)
+	for i := 0; i < b.N; i++ {
+		r.Seek(0, io.SeekStart)
+		binaryDecoder := NewBinaryDecoder(eResource, r, nil)
 		binaryDecoder.Decode()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}

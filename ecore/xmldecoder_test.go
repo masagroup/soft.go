@@ -9,6 +9,9 @@
 package ecore
 
 import (
+	"bytes"
+	"io"
+	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -250,11 +253,24 @@ func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(b, ePackage)
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+
+	// create resource
+	uri := &URI{Path: "testdata/library.complex.big.xml"}
+	eResource := NewEResourceImpl()
+	eResource.SetURI(uri)
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(eResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	// get file content
+	content, err := ioutil.ReadFile(uri.Path)
+	require.Nil(b, err)
+	r := bytes.NewReader(content)
 
 	for i := 0; i < b.N; i++ {
-		eResource := xmlProcessor.Load(&URI{Path: "testdata/library.complex.big.xml"})
-		require.NotNil(b, eResource)
-		eResource = nil
+		r.Seek(0, io.SeekStart)
+		xmlDecoder := NewXMLDecoder(eResource, r, nil)
+		xmlDecoder.Decode()
+		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}
 }

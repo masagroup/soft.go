@@ -245,3 +245,16 @@ func TestXMLDecoderSimpleObject(t *testing.T) {
 	require.NotNil(t, eObject)
 	assert.Equal(t, "Book 1", eObject.EGet(eBookNameAttribute))
 }
+
+func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(b, ePackage)
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+
+	for i := 0; i < b.N; i++ {
+		eResource := xmlProcessor.Load(&URI{Path: "testdata/library.complex.big.xml"})
+		require.NotNil(b, eResource)
+		eResource = nil
+	}
+}

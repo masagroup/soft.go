@@ -94,3 +94,27 @@ func TestBinaryDecoder_ComplexBig(t *testing.T) {
 	binaryDecoder.Decode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 }
+
+func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(b, ePackage)
+
+	//
+	uri := &URI{Path: "testdata/library.complex.big.bin"}
+	eResource := NewEResourceImpl()
+	eResource.SetURI(uri)
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(eResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	for i := 0; i < b.N; i++ {
+		// file
+		f, err := os.Open(uri.Path)
+		require.Nil(b, err)
+
+		binaryDecoder := NewBinaryDecoder(eResource, f, nil)
+		binaryDecoder.Decode()
+		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	}
+}

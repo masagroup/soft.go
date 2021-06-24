@@ -125,7 +125,6 @@ func TestDeepOperations(t *testing.T) {
 }
 
 func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
-
 	// create resource
 	uri := &ecore.URI{Path: "testdata/library.complex.xml"}
 	eResource := ecore.NewEResourceImpl()
@@ -147,8 +146,22 @@ func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 	}
 }
 
-func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
+func BenchmarkXMLEncoderLibraryComplexBig(b *testing.B) {
+	// load resource
+	xmlProcessor := ecore.NewXMLProcessor([]ecore.EPackage{GetPackage()})
+	eResource := xmlProcessor.LoadWithOptions(&ecore.URI{Path: "testdata/library.complex.xml"}, nil)
+	require.NotNil(b, eResource)
+	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
+	for i := 0; i < b.N; i++ {
+		var strbuff strings.Builder
+		binaryEncoder := ecore.NewXMLEncoder(eResource, &strbuff, nil)
+		binaryEncoder.Encode()
+		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	}
+}
+
+func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	// create resource
 	uri := &ecore.URI{Path: "testdata/library.complex.bin"}
 	eResource := ecore.NewEResourceImpl()
@@ -166,6 +179,21 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 		r.Seek(0, io.SeekStart)
 		xmlDecoder := ecore.NewBinaryDecoder(eResource, r, nil)
 		xmlDecoder.Decode()
+		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	}
+}
+
+func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
+	// load resource
+	xmlProcessor := ecore.NewXMLProcessor([]ecore.EPackage{GetPackage()})
+	eResource := xmlProcessor.LoadWithOptions(&ecore.URI{Path: "testdata/library.complex.xml"}, nil)
+	require.NotNil(b, eResource)
+	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	for i := 0; i < b.N; i++ {
+		var strbuff strings.Builder
+		binaryEncoder := ecore.NewBinaryEncoder(eResource, &strbuff, nil)
+		binaryEncoder.Encode()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}
 }

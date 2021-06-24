@@ -1,10 +1,12 @@
 package ecore
 
 import (
-	"os"
+	"bytes"
+	"io/ioutil"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,13 +23,15 @@ func TestBinaryEncoder_Complex(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	// file
-	f, err := os.Create("testdata/library.complex.bin")
-	require.Nil(t, err)
-
-	binaryEncoder := NewBinaryEncoder(eResource, f, nil)
+	// w, err := os.Create("testdata/library.complex.bin")
+	w := &bytes.Buffer{}
+	binaryEncoder := NewBinaryEncoder(eResource, w, nil)
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	bytes, err := ioutil.ReadFile("testdata/library.complex.bin")
+	assert.Nil(t, err)
+	assert.Equal(t, bytes, w.Bytes())
 }
 
 func TestBinaryEncoder_ComplexBig(t *testing.T) {
@@ -43,13 +47,15 @@ func TestBinaryEncoder_ComplexBig(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	// file
-	f, err := os.Create("testdata/library.complex.big.bin")
-	require.Nil(t, err)
-
-	binaryEncoder := NewBinaryEncoder(eResource, f, nil)
+	// w, err := os.Create("testdata/library.complex.big.bin")
+	w := &bytes.Buffer{}
+	binaryEncoder := NewBinaryEncoder(eResource, w, nil)
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	bytes, err := ioutil.ReadFile("testdata/library.complex.big.bin")
+	assert.Nil(t, err)
+	assert.Equal(t, bytes, w.Bytes())
 }
 
 func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {

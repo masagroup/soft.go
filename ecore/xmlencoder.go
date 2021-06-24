@@ -19,34 +19,36 @@ import (
 	"golang.org/x/net/html"
 )
 
+type xmlSaveFeatureKind int
+
 const (
-	transient                              = iota
-	datatype_single                        = iota
-	datatype_element_single                = iota
-	datatype_content_single                = iota
-	datatype_single_nillable               = iota
-	datatype_many                          = iota
-	object_contain_single                  = iota
-	object_contain_many                    = iota
-	object_href_single                     = iota
-	object_href_many                       = iota
-	object_contain_single_unsettable       = iota
-	object_contain_many_unsettable         = iota
-	object_href_single_unsettable          = iota
-	object_href_many_unsettable            = iota
-	object_element_single                  = iota
-	object_element_single_unsettable       = iota
-	object_element_many                    = iota
-	object_element_idref_single            = iota
-	object_element_idref_single_unsettable = iota
-	object_element_idref_many              = iota
-	attribute_feature_map                  = iota
-	element_feature_map                    = iota
-	object_attribute_single                = iota
-	object_attribute_many                  = iota
-	object_attribute_idref_single          = iota
-	object_attribute_idref_many            = iota
-	datatype_attribute_many                = iota
+	xsfkTransient xmlSaveFeatureKind = iota
+	xsfkDataTypeSingle
+	xsfkDataTypeElementSingle
+	xsfkDataTypeContentSingle
+	xsfkDataTypeSingleNillable
+	xsfkDataTypeMany
+	xsfkObjectContainSingle
+	xsfkObjectContainMany
+	xsfkObjectHrefSingle
+	xsfkObjectHrefMany
+	xsfkObjectContainSingleUnsettable
+	xsfkObjectContainManyUnsettable
+	xsfkObjectHrefSingleUnsettable
+	xsfkObjectHrefManyUnsettable
+	xsfkObjectElementSingle
+	xsfkObjectElementSingleUnsettable
+	xsfkObjectElementMany
+	xsfkObjectElementIDRefSingle
+	xsfkObjectElementIDRefSingleUnsettable
+	xsfkObjectElementIDRefMany
+	xsfkAttributeFeatureMap
+	xsfkElementFeatureMap
+	xsfkObjectAttributeSingle
+	xsfkObjectAttributeMany
+	xsfkObjectAttributeIDRefSingle
+	xsfkObjectAttributeIDRefMany
+	xsfkDataTypeAttributeMany
 )
 
 type xmlEncoderInternal interface {
@@ -61,7 +63,7 @@ type XMLEncoder struct {
 	packages         map[EPackage]string
 	uriToPrefixes    map[string][]string
 	prefixesToURI    map[string]string
-	featureKinds     map[EStructuralFeature]int
+	featureKinds     map[EStructuralFeature]xmlSaveFeatureKind
 	extendedMetaData *ExtendedMetaData
 	keepDefaults     bool
 	idAttributeName  string
@@ -82,7 +84,7 @@ func NewXMLEncoder(resource EResource, w io.Writer, options map[string]interface
 	s.packages = make(map[EPackage]string)
 	s.uriToPrefixes = make(map[string][]string)
 	s.prefixesToURI = make(map[string]string)
-	s.featureKinds = make(map[EStructuralFeature]int)
+	s.featureKinds = make(map[EStructuralFeature]xmlSaveFeatureKind)
 	if options != nil {
 		s.idAttributeName, _ = options[XML_OPTION_ID_ATTRIBUTE_NAME].(string)
 		s.roots, _ = options[XML_OPTION_ROOT_OBJECTS].(EList)
@@ -248,27 +250,27 @@ func (s *XMLEncoder) saveFeatures(eObject EObject, attributesOnly bool) bool {
 			s.featureKinds[eFeature] = kind
 		}
 
-		if kind != transient && s.shouldSaveFeature(eObject, eFeature) {
+		if kind != xsfkTransient && s.shouldSaveFeature(eObject, eFeature) {
 			switch kind {
-			case datatype_single:
+			case xsfkDataTypeSingle:
 				s.saveDataTypeSingle(eObject, eFeature)
 				continue
-			case datatype_single_nillable:
+			case xsfkDataTypeSingleNillable:
 				if !s.isNil(eObject, eFeature) {
 					s.saveDataTypeSingle(eObject, eFeature)
 					continue
 				}
-			case object_contain_many_unsettable:
+			case xsfkObjectContainManyUnsettable:
 				fallthrough
-			case datatype_many:
+			case xsfkDataTypeMany:
 				if s.isEmpty(eObject, eFeature) {
 					s.saveManyEmpty(eObject, eFeature)
 					continue
 				}
-			case object_contain_single_unsettable:
-			case object_contain_single:
-			case object_contain_many:
-			case object_href_single_unsettable:
+			case xsfkObjectContainSingleUnsettable:
+			case xsfkObjectContainSingle:
+			case xsfkObjectContainMany:
+			case xsfkObjectHrefSingleUnsettable:
 				if !s.isNil(eObject, eFeature) {
 					switch s.getSaveResourceKindSingle(eObject, eFeature) {
 					case cross:
@@ -279,7 +281,7 @@ func (s *XMLEncoder) saveFeatures(eObject EObject, attributesOnly bool) bool {
 						continue
 					}
 				}
-			case object_href_single:
+			case xsfkObjectHrefSingle:
 				switch s.getSaveResourceKindSingle(eObject, eFeature) {
 				case cross:
 				case same:
@@ -288,7 +290,7 @@ func (s *XMLEncoder) saveFeatures(eObject EObject, attributesOnly bool) bool {
 				default:
 					continue
 				}
-			case object_href_many_unsettable:
+			case xsfkObjectHrefManyUnsettable:
 				if s.isEmpty(eObject, eFeature) {
 					s.saveManyEmpty(eObject, eFeature)
 					continue
@@ -303,7 +305,7 @@ func (s *XMLEncoder) saveFeatures(eObject EObject, attributesOnly bool) bool {
 					}
 				}
 
-			case object_href_many:
+			case xsfkObjectHrefMany:
 				switch s.getSaveResourceKindMany(eObject, eFeature) {
 				case cross:
 				case same:
@@ -333,33 +335,33 @@ func (s *XMLEncoder) saveFeatures(eObject EObject, attributesOnly bool) bool {
 		eFeature := eAllFeatures.Get(elementFeatures[i]).(EStructuralFeature)
 		kind := s.featureKinds[eFeature]
 		switch kind {
-		case datatype_single_nillable:
+		case xsfkDataTypeSingleNillable:
 			s.saveNil(eObject, eFeature)
-		case datatype_many:
+		case xsfkDataTypeMany:
 			s.saveDataTypeMany(eObject, eFeature)
-		case object_contain_single_unsettable:
+		case xsfkObjectContainSingleUnsettable:
 			if s.isNil(eObject, eFeature) {
 				s.saveNil(eObject, eFeature)
 			} else {
 				s.saveContainedSingle(eObject, eFeature)
 			}
-		case object_contain_single:
+		case xsfkObjectContainSingle:
 			s.saveContainedSingle(eObject, eFeature)
-		case object_contain_many_unsettable:
+		case xsfkObjectContainManyUnsettable:
 			fallthrough
-		case object_contain_many:
+		case xsfkObjectContainMany:
 			s.saveContainedMany(eObject, eFeature)
-		case object_href_single_unsettable:
+		case xsfkObjectHrefSingleUnsettable:
 			if s.isNil(eObject, eFeature) {
 				s.saveNil(eObject, eFeature)
 			} else {
 				s.saveHRefSingle(eObject, eFeature)
 			}
-		case object_href_single:
+		case xsfkObjectHrefSingle:
 			s.saveHRefSingle(eObject, eFeature)
-		case object_href_many_unsettable:
+		case xsfkObjectHrefManyUnsettable:
 			fallthrough
-		case object_href_many:
+		case xsfkObjectHrefMany:
 			s.saveHRefMany(eObject, eFeature)
 		}
 	}
@@ -564,9 +566,9 @@ func (s *XMLEncoder) shouldSaveFeature(o EObject, f EStructuralFeature) bool {
 	return o.EIsSet(f) || (s.keepDefaults && f.GetDefaultValueLiteral() != "")
 }
 
-func (s *XMLEncoder) getSaveFeatureKind(f EStructuralFeature) int {
+func (s *XMLEncoder) getSaveFeatureKind(f EStructuralFeature) xmlSaveFeatureKind {
 	if f.IsTransient() {
-		return transient
+		return xsfkTransient
 	}
 
 	isMany := f.IsMany()
@@ -576,48 +578,48 @@ func (s *XMLEncoder) getSaveFeatureKind(f EStructuralFeature) int {
 		if r.IsContainment() {
 			if isMany {
 				if isUnsettable {
-					return object_contain_many_unsettable
+					return xsfkObjectContainManyUnsettable
 				} else {
-					return object_contain_many
+					return xsfkObjectContainMany
 				}
 			} else {
 				if isUnsettable {
-					return object_contain_single_unsettable
+					return xsfkObjectContainSingleUnsettable
 				} else {
-					return object_contain_single
+					return xsfkObjectContainSingle
 				}
 			}
 		}
 		opposite := r.GetEOpposite()
 		if opposite != nil && opposite.IsContainment() {
-			return transient
+			return xsfkTransient
 		}
 		if isMany {
 			if isUnsettable {
-				return object_href_many_unsettable
+				return xsfkObjectHrefManyUnsettable
 			} else {
-				return object_href_many
+				return xsfkObjectHrefMany
 			}
 		} else {
 			if isUnsettable {
-				return object_href_single_unsettable
+				return xsfkObjectHrefSingleUnsettable
 			} else {
-				return object_href_single
+				return xsfkObjectHrefSingle
 			}
 		}
 	} else {
 		// Attribute
 		d, _ := f.GetEType().(EDataType)
 		if !d.IsSerializable() {
-			return transient
+			return xsfkTransient
 		}
 		if isMany {
-			return datatype_many
+			return xsfkDataTypeMany
 		}
 		if isUnsettable {
-			return datatype_single_nillable
+			return xsfkDataTypeSingleNillable
 		}
-		return datatype_single
+		return xsfkDataTypeSingle
 
 	}
 

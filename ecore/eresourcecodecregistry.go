@@ -28,6 +28,7 @@ func GetResourceCodecRegistry() EResourceCodecRegistry {
 		extensionToCodecs := resourceCodecRegistryInstance.GetExtensionToCodecMap()
 		extensionToCodecs["ecore"] = &XMICodec{}
 		extensionToCodecs["xml"] = &XMLCodec{}
+		extensionToCodecs["bin"] = &BinaryCodec{}
 		protocolToCodecs := resourceCodecRegistryInstance.GetProtocolToCodecMap()
 		protocolToCodecs["memory"] = &NoCodec{}
 	}

@@ -78,20 +78,22 @@ func (rc *resourceContents) GetFeatureID() int {
 }
 
 func (rc *resourceContents) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {
-	eObject := object.(EObjectInternal)
-	eResource := rc.resource.AsEResource()
 	n := notifications
-	n = eObject.ESetResource(eResource, n)
-	eResource.Attached(eObject)
+	if eObject, _ := object.(EObjectInternal); eObject != nil {
+		eResource := rc.resource.AsEResource()
+		n = eObject.ESetResource(eResource, n)
+		eResource.Attached(eObject)
+	}
 	return n
 }
 
 func (rc *resourceContents) inverseRemove(object interface{}, notifications ENotificationChain) ENotificationChain {
-	eObject := object.(EObjectInternal)
-	eResource := rc.resource.AsEResource()
-	eResource.Detached(eObject)
 	n := notifications
-	n = eObject.ESetResource(nil, n)
+	if eObject, _ := object.(EObjectInternal); eObject != nil {
+		eResource := rc.resource.AsEResource()
+		eResource.Detached(eObject)
+		n = eObject.ESetResource(nil, n)
+	}
 	return n
 }
 

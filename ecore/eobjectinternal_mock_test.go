@@ -155,6 +155,20 @@ func TestMockEObjectInternal_EBasicInverseRemove(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, o, obj, n)
 }
 
+func TestMockEObjectInternal_EFeatureID(t *testing.T) {
+	mockObject := &MockEObjectInternal{}
+	mockFeature := &MockEStructuralFeature{}
+
+	// return a value
+	mockObject.On("EFeatureID", mockFeature).Once().Return(2)
+	mockObject.On("EFeatureID", mockFeature).Once().Return(func(EStructuralFeature) int {
+		return 2
+	})
+	assert.Equal(t, 2, mockObject.EFeatureID(mockFeature))
+	assert.Equal(t, 2, mockObject.EFeatureID(mockFeature))
+	mock.AssertExpectationsForObjects(t, mockObject, mockFeature)
+}
+
 func TestMockEObjectInternal_EDerivedFeatureID(t *testing.T) {
 	o := &MockEObjectInternal{}
 	obj := &MockEObject{}
@@ -167,6 +181,20 @@ func TestMockEObjectInternal_EDerivedFeatureID(t *testing.T) {
 	assert.Equal(t, 2, o.EDerivedFeatureID(obj, 1))
 	assert.Equal(t, 2, o.EDerivedFeatureID(obj, 1))
 	mock.AssertExpectationsForObjects(t, o, obj)
+}
+
+func TestMockEObjectInternal_EOperationID(t *testing.T) {
+	mockObject := &MockEObjectInternal{}
+	mockOperation := &MockEOperation{}
+
+	// return a value
+	mockObject.On("EOperationID", mockOperation).Once().Return(2)
+	mockObject.On("EOperationID", mockOperation).Once().Return(func(EOperation) int {
+		return 2
+	})
+	assert.Equal(t, 2, mockObject.EOperationID(mockOperation))
+	assert.Equal(t, 2, mockObject.EOperationID(mockOperation))
+	mock.AssertExpectationsForObjects(t, mockObject, mockOperation)
 }
 
 func TestMockEObjectInternal_EDerivedOperationID(t *testing.T) {

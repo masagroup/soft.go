@@ -280,3 +280,17 @@ func TestXMLEncoderSimpleObject(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
+
+func BenchmarkXMLEncoderLibraryComplexBig(b *testing.B) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(b, ePackage)
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.Load(&URI{Path: "testdata/library.complex.big.xml"})
+	require.NotNil(b, eResource)
+	for i := 0; i < b.N; i++ {
+		var strbuff strings.Builder
+		eResource.SaveWithWriter(&strbuff, nil)
+		assert.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	}
+}

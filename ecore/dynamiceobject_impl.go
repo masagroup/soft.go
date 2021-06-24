@@ -93,6 +93,14 @@ func (o *DynamicEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	o.properties[dynamicFeatureID] = nil
 }
 
+func (o *DynamicEObjectImpl) EFeatureID(feature EStructuralFeature) int {
+	return o.EClass().GetFeatureID(feature)
+}
+
+func (o *DynamicEObjectImpl) EOperationID(operation EOperation) int {
+	return o.EClass().GetOperationID(operation)
+}
+
 func (o *DynamicEObjectImpl) resizeProperties() {
 	newSize := o.EClass().GetFeatureCount()
 	newProperties := make([]interface{}, newSize)

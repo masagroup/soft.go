@@ -2,6 +2,7 @@ package ecore
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -63,11 +64,8 @@ func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
 	for i := 0; i < b.N; i++ {
-		// file
-		f, err := os.Create("testdata/library.complex.big.result.bin")
-		require.Nil(b, err)
-
-		binaryEncoder := NewBinaryEncoder(eResource, f, nil)
+		var strbuff strings.Builder
+		binaryEncoder := NewBinaryEncoder(eResource, &strbuff, nil)
 		binaryEncoder.Encode()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}

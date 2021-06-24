@@ -288,9 +288,9 @@ func BenchmarkXMLEncoderLibraryComplexBig(b *testing.B) {
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
 	eResource := xmlProcessor.Load(&URI{Path: "testdata/library.complex.big.xml"})
 	require.NotNil(b, eResource)
-	eResource.SetURI(&URI{Path: "testdata/library.complex.big.result.xml"})
 	for i := 0; i < b.N; i++ {
-		eResource.Save()
+		var strbuff strings.Builder
+		eResource.SaveWithWriter(&strbuff, nil)
 		assert.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}
 }

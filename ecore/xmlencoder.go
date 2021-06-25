@@ -166,11 +166,12 @@ func (s *XMLEncoder) saveTopObject(eObject EObject) {
 			name = s.getClassQName(eClass)
 		}
 		s.str.startElement(name)
+		s.saveElementID(eObject)
+		s.saveFeatures(eObject, false)
 	} else {
 		s.str.startElement("")
+		s.saveFeatures(eObject, false)
 	}
-	s.saveElementID(eObject)
-	s.saveFeatures(eObject, false)
 }
 
 func (s *XMLEncoder) getRootFeature(eClassifier EClassifier) EStructuralFeature {

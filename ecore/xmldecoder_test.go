@@ -199,15 +199,15 @@ func TestXMLDecoderSimpleXMLWithIDs(t *testing.T) {
 	require.Equal(t, 1, eResource.GetContents().Size())
 	eLibrary, _ := eResource.GetContents().Get(0).(EObject)
 	require.NotNil(t, eLibrary)
-	assert.Equal(t, 0, idManager.GetID(eLibrary))
+	assert.Equal(t, int64(0), idManager.GetID(eLibrary))
 
 	eBooks, _ := eLibrary.EGet(libraryBooksFeature).(EList)
 	require.NotNil(t, eBooks)
 	require.Equal(t, 4, eBooks.Size())
-	assert.Equal(t, 1, idManager.GetID(eBooks.Get(0).(EObject)))
-	assert.Equal(t, 2, idManager.GetID(eBooks.Get(1).(EObject)))
-	assert.Equal(t, 3, idManager.GetID(eBooks.Get(2).(EObject)))
-	assert.Equal(t, 4, idManager.GetID(eBooks.Get(3).(EObject)))
+	assert.Equal(t, int64(1), idManager.GetID(eBooks.Get(0).(EObject)))
+	assert.Equal(t, int64(2), idManager.GetID(eBooks.Get(1).(EObject)))
+	assert.Equal(t, int64(3), idManager.GetID(eBooks.Get(2).(EObject)))
+	assert.Equal(t, int64(4), idManager.GetID(eBooks.Get(3).(EObject)))
 }
 
 func TestXMLDecoderLibraryComplexBig(t *testing.T) {

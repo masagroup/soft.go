@@ -3,7 +3,6 @@ package ecore
 import (
 	"bytes"
 	"io/ioutil"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -104,8 +103,8 @@ func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
 	for i := 0; i < b.N; i++ {
-		var strbuff strings.Builder
-		binaryEncoder := NewBinaryEncoder(eResource, &strbuff, nil)
+		var buffer bytes.Buffer
+		binaryEncoder := NewBinaryEncoder(eResource, &buffer, nil)
 		binaryEncoder.Encode()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}

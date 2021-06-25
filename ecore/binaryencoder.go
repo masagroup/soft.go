@@ -89,15 +89,17 @@ func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[st
 }
 
 func (e *BinaryEncoder) Encode() {
-	defer func() {
-		if err, _ := recover().(error); err != nil {
-			resourcePath := ""
-			if e.resource.GetURI() != nil {
-				resourcePath = e.resource.GetURI().String()
+	if !binaryDebug {
+		defer func() {
+			if err, _ := recover().(error); err != nil {
+				resourcePath := ""
+				if e.resource.GetURI() != nil {
+					resourcePath = e.resource.GetURI().String()
+				}
+				e.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), resourcePath, 0, 0))
 			}
-			e.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), resourcePath, 0, 0))
-		}
-	}()
+		}()
+	}
 	e.encodeSignature()
 	e.encodeVersion()
 	e.encodeObjects(e.resource.GetContents(), checkContainer)

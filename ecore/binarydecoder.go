@@ -67,15 +67,17 @@ func NewBinaryDecoder(resource EResource, r io.Reader, options map[string]interf
 }
 
 func (d *BinaryDecoder) Decode() {
-	defer func() {
-		if err, _ := recover().(error); err != nil {
-			resourcePath := ""
-			if d.resource.GetURI() != nil {
-				resourcePath = d.resource.GetURI().String()
+	if !binaryDebug {
+		defer func() {
+			if err, _ := recover().(error); err != nil {
+				resourcePath := ""
+				if d.resource.GetURI() != nil {
+					resourcePath = d.resource.GetURI().String()
+				}
+				d.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), resourcePath, 0, 0))
 			}
-			d.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), resourcePath, 0, 0))
-		}
-	}()
+		}()
+	}
 	d.decodeSignature()
 	d.decodeVersion()
 
@@ -425,6 +427,7 @@ func (d *BinaryDecoder) decodeURI() *URI {
 		} else {
 			uri = d.uris[id]
 		}
+		uri = uri.Copy()
 		uri.Fragment = d.decodeString()
 		return uri
 	}

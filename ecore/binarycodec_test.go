@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -177,5 +178,35 @@ func TestBinaryCodec_GetFeatureKind_Attribute(t *testing.T) {
 	mockDataType.On("GetInstanceTypeName").Return("data").Once()
 	assert.Equal(t, bfkData, getBinaryCodecFeatureKind(mockAttribute))
 	mock.AssertExpectationsForObjects(t, mockAttribute, mockDataType)
+}
+
+func TestBinaryCodec_EncodeDecodeEcore(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.simple.ecore")
+	require.NotNil(t, ePackage)
+
+	// encode package resource in binary format
+	buffer := bytes.Buffer{}
+	c := &BinaryCodec{}
+	encoder := c.NewEncoder(ePackage.EResource(), &buffer, nil)
+	encoder.Encode()
+
+	// decode buffer into another resource
+	eNewResource := NewEResourceImpl()
+	decoder := c.NewDecoder(eNewResource, &buffer, nil)
+	decoder.Decode()
+	require.True(t, eNewResource.GetErrors().Empty(), diagnosticError(eNewResource.GetErrors()))
+
+	eNewPackage, _ := eNewResource.GetContents().Get(0).(EPackage)
+	require.NotNil(t, eNewPackage)
+
+	// retrieve document root class , library class & library name attribute
+	eLibraryClass, _ := eNewPackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eLibraryClass)
+	eLibraryOwnerAttribute, _ := eLibraryClass.GetEStructuralFeatureFromName("owner").(EAttribute)
+	require.NotNil(t, eLibraryOwnerAttribute)
+	eDataType := eLibraryOwnerAttribute.GetEAttributeType()
+	require.NotNil(t, eDataType)
+	assert.Equal(t, "EString", eDataType.GetName())
 
 }

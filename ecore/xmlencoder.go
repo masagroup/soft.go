@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"io"
 	"sort"
-	"strconv"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -217,21 +216,10 @@ func (s *XMLEncoder) saveNamespaces() {
 
 func (s *XMLEncoder) saveElementID(eObject EObject) {
 	if idManager := s.resource.GetObjectIDManager(); len(s.idAttributeName) > 0 && idManager != nil {
-		id := idManager.GetID(eObject)
-		var objectID string
-		switch id.(type) {
-		case nil:
-			objectID = ""
-		case int:
-			objectID = strconv.Itoa(id.(int))
-		case string:
-			objectID = id.(string)
-		}
-		if len(objectID) > 0 {
-			s.str.addAttribute(s.idAttributeName, objectID)
+		if id := idManager.GetID(eObject); id != nil {
+			s.str.addAttribute(s.idAttributeName, fmt.Sprintf("%v", id))
 		}
 	}
-
 }
 
 func (s *XMLEncoder) saveFeatures(eObject EObject, attributesOnly bool) bool {

@@ -81,8 +81,7 @@ func TestEObjectIDManagerSetID(t *testing.T) {
 	mockDataType.On("GetEPackage").Return(mockPackage).Once()
 	mockPackage.On("GetEFactoryInstance").Return(mockFactory).Once()
 	mockFactory.On("CreateFromString", mockDataType, "id1").Return(mockIDValue).Once()
-
-	m.SetID(mockObject, "id1")
+	assert.Nil(t, m.SetID(mockObject, "id1"))
 
 	assert.Equal(t, "id1", m.GetID(mockObject))
 	assert.Equal(t, "id1", m.GetID(mockObject))
@@ -93,7 +92,7 @@ func TestEObjectIDManagerSetID(t *testing.T) {
 	mockObject.On("EClass").Return(mockClass).Once()
 	mockClass.On("GetEIDAttribute").Return(mockAttribute).Once()
 	mockObject.On("EUnset", mockAttribute).Once()
-	m.SetID(mockObject, nil)
+	assert.Nil(t, m.SetID(mockObject, nil))
 	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockAttribute, mockDataType, mockPackage, mockFactory)
 }
 

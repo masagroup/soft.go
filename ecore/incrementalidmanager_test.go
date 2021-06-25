@@ -12,7 +12,7 @@ func TestIncrementalIDManagerRegister(t *testing.T) {
 	mockOther := &MockEObject{}
 	m.Register(mockObject)
 
-	assert.Equal(t, 0, m.GetID(mockObject))
+	assert.Equal(t, int64(0), m.GetID(mockObject))
 	assert.Nil(t, m.GetID(mockOther))
 
 	assert.Equal(t, mockObject, m.GetEObject(0))
@@ -44,14 +44,16 @@ func TestIncrementalIDManagerSetID(t *testing.T) {
 	m := NewIncrementalIDManager()
 	mockObject := &MockEObject{}
 
-	m.SetID(mockObject, 2)
-	assert.Equal(t, 2, m.GetID(mockObject))
+	assert.Nil(t, m.SetID(mockObject, 2))
+	assert.Equal(t, int64(2), m.GetID(mockObject))
 
-	m.SetID(mockObject, nil)
+	assert.Nil(t, m.SetID(mockObject, nil))
 	assert.Equal(t, nil, m.GetID(mockObject))
 
-	m.SetID(mockObject, "2")
-	assert.Equal(t, 2, m.GetID(mockObject))
+	assert.Nil(t, m.SetID(mockObject, "2"))
+	assert.Equal(t, int64(2), m.GetID(mockObject))
+
+	assert.NotNil(t, m.SetID(mockObject, mockObject))
 }
 
 func TestIncrementalIDManagerClear(t *testing.T) {
@@ -59,7 +61,7 @@ func TestIncrementalIDManagerClear(t *testing.T) {
 	mockObject := &MockEObject{}
 
 	m.SetID(mockObject, 2)
-	assert.Equal(t, 2, m.GetID(mockObject))
+	assert.Equal(t, int64(2), m.GetID(mockObject))
 
 	m.Clear()
 	assert.Equal(t, nil, m.GetID(mockObject))

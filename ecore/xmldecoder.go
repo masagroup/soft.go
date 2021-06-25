@@ -522,7 +522,9 @@ func (l *XMLDecoder) handleAttributes(eObject EObject) {
 			value := attr.Value
 			if name == l.idAttributeName {
 				if idManager := l.resource.GetObjectIDManager(); idManager != nil {
-					idManager.SetID(eObject, value)
+					if err := idManager.SetID(eObject, value); err != nil {
+						l.error(NewEDiagnosticImpl(err.Error(), l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
+					}
 				}
 			} else if name == href {
 				l.handleProxy(eObject, value)

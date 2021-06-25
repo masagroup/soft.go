@@ -44,7 +44,7 @@ func TestBinaryDecoder_Complex(t *testing.T) {
 	assert.NotNil(t, eLibraryNameAttribute)
 
 	// check library name
-	eDocumentRoot := eResource.GetContents().Get(0).(EObject)
+	eDocumentRoot, _ := eResource.GetContents().Get(0).(EObject)
 	assert.NotNil(t, eDocumentRoot)
 	eLibrary, _ := eDocumentRoot.EGet(eDocumentRootLibraryFeature).(EObject)
 	assert.NotNil(t, eLibrary)
@@ -79,6 +79,45 @@ func TestBinaryDecoder_Complex(t *testing.T) {
 	// check book category
 	category := eBook.EGet(eBookCategoryAttribute)
 	assert.Equal(t, 2, category)
+}
+
+func TestBinaryDecoder_ComplexWithID(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	//
+	uri := &URI{Path: "testdata/library.complex.id.bin"}
+	idManager := NewUniqueIDManager(20)
+	eResource := NewEResourceImpl()
+	eResource.SetURI(uri)
+	eResource.SetObjectIDManager(idManager)
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(eResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	// file
+	f, err := os.Open(uri.Path)
+	require.Nil(t, err)
+
+	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
+	binaryDecoder.Decode()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	// retrieve document root class , library class & library name attribute
+	eDocumentRootClass, _ := ePackage.GetEClassifier("DocumentRoot").(EClass)
+	require.NotNil(t, eDocumentRootClass)
+	eDocumentRootLibraryFeature, _ := eDocumentRootClass.GetEStructuralFeatureFromName("library").(EReference)
+	require.NotNil(t, eDocumentRootLibraryFeature)
+
+	// check ids for document root and library
+	eDocumentRoot, _ := eResource.GetContents().Get(0).(EObject)
+	require.NotNil(t, eDocumentRoot)
+	eLibrary, _ := eDocumentRoot.EGet(eDocumentRootLibraryFeature).(EObject)
+	require.NotNil(t, eLibrary)
+	assert.Equal(t, "h0Rz1FjVeBXUgaW3OzT2frUce90=", idManager.GetID(eDocumentRoot))
+	assert.Equal(t, "d13pf-ypXLeIySkWAX03JcP-TbA=", idManager.GetID(eLibrary))
+
 }
 
 func TestBinaryDecoder_ComplexBig(t *testing.T) {

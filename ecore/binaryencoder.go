@@ -50,16 +50,17 @@ type binaryEncoderFeatureData struct {
 }
 
 type BinaryEncoder struct {
-	w                  io.Writer
-	resource           EResource
-	encoder            *msgpack.Encoder
-	baseURI            *URI
-	version            int
-	objectToID         map[EObject]int
-	classDataMap       map[EClass]*binaryEncoderClassData
-	packageDataMap     map[EPackage]*binaryEncoderPackageData
-	uriToIDMap         map[string]int
-	enumLiteralToIDMap map[string]int
+	w                    io.Writer
+	resource             EResource
+	encoder              *msgpack.Encoder
+	baseURI              *URI
+	version              int
+	objectToID           map[EObject]int
+	classDataMap         map[EClass]*binaryEncoderClassData
+	packageDataMap       map[EPackage]*binaryEncoderPackageData
+	uriToIDMap           map[string]int
+	enumLiteralToIDMap   map[string]int
+	isIDAttributeEncoded bool
 }
 
 func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]interface{}) *BinaryEncoder {
@@ -80,6 +81,9 @@ func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[st
 	}
 	if uri := resource.GetURI(); uri != nil && uri.IsAbsolute() {
 		e.baseURI = uri
+	}
+	if options != nil {
+		e.isIDAttributeEncoded = options[BINARY_OPTION_ID_ATTRIBUTE] == true
 	}
 	return e
 }
@@ -161,6 +165,10 @@ func (e *BinaryEncoder) encodeByte(b byte) {
 	e.haltOnError(e.encoder.EncodeUint8(b))
 }
 
+func (e *BinaryEncoder) encode(i interface{}) {
+	e.haltOnError(e.encoder.Encode(i))
+}
+
 func (e *BinaryEncoder) encodeBool(b bool) {
 	e.haltOnError(e.encoder.EncodeBool(b))
 }
@@ -198,6 +206,12 @@ func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
 		// object class
 		eClass := eObject.EClass()
 		eClassData := e.encodeClass(eClass)
+
+		// object id attribute
+		if objectIDManager := e.resource.GetObjectIDManager(); e.isIDAttributeEncoded && objectIDManager != nil {
+			e.encodeInt(-2)
+			e.encode(objectIDManager.GetID(eObject))
+		}
 
 		saveFeatureValues := true
 		eObjectInternal, _ := eObject.(EObjectInternal)

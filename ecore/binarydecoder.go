@@ -177,6 +177,12 @@ func (d *BinaryDecoder) decodeFloat32() float32 {
 	return f
 }
 
+func (d *BinaryDecoder) decodeInterface() interface{} {
+	i, err := d.decoder.DecodeInterface()
+	d.haltOnError(err)
+	return i
+}
+
 func (d *BinaryDecoder) decodeSignature() {
 	signature := d.decodeBytes()
 	if bytes.Compare(signature, binarySignature) != 0 {
@@ -202,6 +208,16 @@ func (d *BinaryDecoder) decodeObject() EObject {
 			eObject := eClassData.eFactory.Create(eClassData.eClass).(EObjectInternal)
 			eResult = eObject
 			featureID := d.decodeInt() - 1
+
+			if featureID == -3 {
+				// object id attribute
+				objectID := d.decodeInterface()
+				if objectIDManager := d.resource.GetObjectIDManager(); objectIDManager != nil {
+					objectIDManager.SetID(eObject, objectID)
+				}
+				featureID = d.decodeInt() - 1
+			}
+
 			if featureID == -2 {
 				// proxy object
 				eProxyURI := d.decodeURI()

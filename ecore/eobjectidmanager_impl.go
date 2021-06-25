@@ -1,5 +1,10 @@
 package ecore
 
+import (
+	"errors"
+	"fmt"
+)
+
 type EObjectIDManagerImpl struct {
 	objectToID map[EObject]string
 	idToObject map[string]EObject
@@ -25,7 +30,7 @@ func (m *EObjectIDManagerImpl) Register(eObject EObject) {
 	}
 }
 
-func (m *EObjectIDManagerImpl) SetID(eObject EObject, id interface{}) {
+func (m *EObjectIDManagerImpl) SetID(eObject EObject, id interface{}) error {
 	if id == nil {
 		id = ""
 	}
@@ -46,7 +51,9 @@ func (m *EObjectIDManagerImpl) SetID(eObject EObject, id interface{}) {
 		if len(newID) > 0 {
 			m.idToObject[newID] = eObject
 		}
+		return nil
 	}
+	return errors.New(fmt.Sprintf("id :'%v' not supported by EObjectIDManager", id))
 }
 
 func (m *EObjectIDManagerImpl) UnRegister(eObject EObject) {

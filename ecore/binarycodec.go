@@ -13,6 +13,10 @@ import (
 	"io"
 )
 
+const (
+	BINARY_OPTION_ID_ATTRIBUTE = "ID_ATTRIBUTE" // if true, save id attribute of the object
+)
+
 type BinaryCodec struct {
 }
 

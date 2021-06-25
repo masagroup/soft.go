@@ -67,6 +67,17 @@ func (_m *MockEObjectIDManager) UnRegister(_a0 EObject) {
 	_m.Called(_a0)
 }
 
-func (_m *MockEObjectIDManager) SetID(_a0 EObject, _a1 interface{}) {
-	_m.Called(_a0, _a1)
+func (_m *MockEObjectIDManager) SetID(_a0 EObject, _a1 interface{}) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(EObject, interface{}) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(error)
+		}
+	}
+
+	return r0
 }

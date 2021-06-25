@@ -3,6 +3,8 @@ package ecore
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
+	"fmt"
 )
 
 // Adapted from https://neilmadden.blog/2018/08/30/moving-away-from-uuids/
@@ -65,11 +67,11 @@ func (m *UniqueIDManager) Register(eObject EObject) {
 	}
 }
 
-func (m *UniqueIDManager) SetID(eObject EObject, id interface{}) {
+func (m *UniqueIDManager) SetID(eObject EObject, id interface{}) error {
 	if id == nil {
 		id = ""
 	}
-	if newID, isInt := id.(string); isInt {
+	if newID, isString := id.(string); isString {
 		oldID, isOldID := m.objectToID[eObject]
 		if len(newID) > 0 {
 			m.objectToID[eObject] = newID
@@ -84,7 +86,9 @@ func (m *UniqueIDManager) SetID(eObject EObject, id interface{}) {
 		if len(newID) > 0 {
 			m.idToObject[newID] = eObject
 		}
+		return nil
 	}
+	return errors.New(fmt.Sprintf("id:'%v' not supported by UniqueIDManager", id))
 }
 
 func (m *UniqueIDManager) UnRegister(eObject EObject) {

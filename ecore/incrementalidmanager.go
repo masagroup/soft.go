@@ -1,46 +1,67 @@
 package ecore
 
-import "strconv"
+import (
+	"errors"
+	"fmt"
+	"strconv"
+)
 
 type IncrementalIDManager struct {
-	detachedToID map[EObject]int
-	objectToID   map[EObject]int
-	idToObject   map[int]EObject
-	currentID    int
+	detachedToID map[EObject]int64
+	objectToID   map[EObject]int64
+	idToObject   map[int64]EObject
+	currentID    int64
 }
 
 func NewIncrementalIDManager() *IncrementalIDManager {
 	return &IncrementalIDManager{
-		detachedToID: make(map[EObject]int),
-		objectToID:   make(map[EObject]int),
-		idToObject:   make(map[int]EObject),
+		detachedToID: make(map[EObject]int64),
+		objectToID:   make(map[EObject]int64),
+		idToObject:   make(map[int64]EObject),
 		currentID:    0,
 	}
 }
 
-func (m *IncrementalIDManager) newID() int {
+func (m *IncrementalIDManager) newID() int64 {
 	id := m.currentID
 	m.currentID++
 	return id
 }
 
-func (m *IncrementalIDManager) getID(id interface{}) int {
+func (m *IncrementalIDManager) getID(id interface{}) (int64, error) {
 	switch v := id.(type) {
+	case nil:
+		return -1, nil
 	case string:
-		newID, err := strconv.Atoi(v)
-		if err == nil {
-			return newID
-		}
+		return strconv.ParseInt(v, 10, 64)
+	case uint:
+		return int64(v), nil
+	case uint64:
+		return int64(v), nil
+	case uint32:
+		return int64(v), nil
+	case uint16:
+		return int64(v), nil
+	case uint8:
+		return int64(v), nil
 	case int:
-		return v
+		return int64(v), nil
+	case int64:
+		return v, nil
+	case int32:
+		return int64(v), nil
+	case int16:
+		return int64(v), nil
+	case int8:
+		return int64(v), nil
 	}
-	return -1
+	return 0, errors.New(fmt.Sprintf("id:'%v' not supported by IncrementalIDManager", id))
 }
 
 func (m *IncrementalIDManager) Clear() {
-	m.detachedToID = make(map[EObject]int)
-	m.objectToID = make(map[EObject]int)
-	m.idToObject = make(map[int]EObject)
+	m.detachedToID = make(map[EObject]int64)
+	m.objectToID = make(map[EObject]int64)
+	m.idToObject = make(map[int64]EObject)
 	m.currentID = 0
 }
 
@@ -56,26 +77,28 @@ func (m *IncrementalIDManager) Register(eObject EObject) {
 	}
 }
 
-func max(x, y int) int {
+func max(x, y int64) int64 {
 	if x < y {
 		return y
 	}
 	return x
 }
 
-func (m *IncrementalIDManager) SetID(eObject EObject, id interface{}) {
+func (m *IncrementalIDManager) SetID(eObject EObject, id interface{}) error {
 	if oldID, isOldID := m.objectToID[eObject]; isOldID {
 		delete(m.idToObject, oldID)
 	}
-
-	newID := m.getID(id)
-	if newID >= 0 {
-		m.currentID = max(m.currentID, newID+1)
-		m.objectToID[eObject] = newID
-		m.idToObject[newID] = eObject
-	} else {
-		delete(m.objectToID, eObject)
+	newID, err := m.getID(id)
+	if err == nil {
+		if newID >= 0 {
+			m.currentID = max(m.currentID, newID+1)
+			m.objectToID[eObject] = newID
+			m.idToObject[newID] = eObject
+		} else {
+			delete(m.objectToID, eObject)
+		}
 	}
+	return err
 }
 
 func (m *IncrementalIDManager) UnRegister(eObject EObject) {
@@ -101,7 +124,7 @@ func (m *IncrementalIDManager) GetDetachedID(eObject EObject) interface{} {
 }
 
 func (m *IncrementalIDManager) GetEObject(id interface{}) EObject {
-	if v := m.getID(id); v >= 0 {
+	if v, err := m.getID(id); err == nil {
 		return m.idToObject[v]
 	}
 	return nil

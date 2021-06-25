@@ -178,7 +178,7 @@ func (d *BinaryDecoder) decodeFloat32() float32 {
 }
 
 func (d *BinaryDecoder) decodeInterface() interface{} {
-	i, err := d.decoder.DecodeInterfaceLoose()
+	i, err := d.decoder.DecodeInterface()
 	d.haltOnError(err)
 	return i
 }

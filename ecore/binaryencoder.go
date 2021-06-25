@@ -82,6 +82,9 @@ func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[st
 	if uri := resource.GetURI(); uri != nil && uri.IsAbsolute() {
 		e.baseURI = uri
 	}
+	if options != nil {
+		e.isIDAttributeEncoded = options[BINARY_OPTION_ID_ATTRIBUTE] == true
+	}
 	return e
 }
 

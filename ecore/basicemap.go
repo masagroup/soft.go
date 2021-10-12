@@ -76,7 +76,11 @@ func (m *BasicEMap) GetValue(value interface{}) interface{} {
 
 func (m *BasicEMap) Put(key interface{}, value interface{}) {
 	m.mapData[key] = value
-	m.Add(m.newEntry(key, value))
+	if e := m.getEntryForKey(key); e != nil {
+		e.SetValue(value)
+	} else {
+		m.Add(m.newEntry(key, value))
+	}
 }
 
 type eMapEntryImpl struct {

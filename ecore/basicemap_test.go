@@ -51,6 +51,16 @@ func TestBasicEMap_RemoveKey(t *testing.T) {
 	assert.Nil(t, m.RemoveKey(2))
 }
 
+func TestBasicEMap_PutOverwrite(t *testing.T) {
+	m := NewBasicEMap()
+	assert.Nil(t, m.GetValue(2))
+	m.Put(2, "3")
+	assert.Equal(t, "3", m.GetValue(2))
+	m.Put(2, "2")
+	assert.Equal(t, "2", m.GetValue(2))
+	assert.Equalf(t, 1, m.Size(), "Don't store old cell.")
+}
+
 func TestBasicEMap_ContainsKey(t *testing.T) {
 	m := NewBasicEMap()
 	assert.False(t, m.ContainsKey(2))

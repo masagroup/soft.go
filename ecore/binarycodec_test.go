@@ -211,7 +211,7 @@ func TestBinaryCodec_EncodeDecodeEcore(t *testing.T) {
 
 }
 
-func loadTestPackage(t *testing.T, resourceSet EResourceSet, packageURI *URI) EPackage {
+func loadTestPackage(t *testing.T, resourceSet EResourceSet, packageURI *URI) (EResource, EPackage) {
 	// load package
 	r := resourceSet.GetResource(packageURI, true)
 	require.NotNil(t, r)
@@ -225,10 +225,10 @@ func loadTestPackage(t *testing.T, resourceSet EResourceSet, packageURI *URI) EP
 	ePackage.SetEFactoryInstance(NewEFactoryExt())
 
 	resourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-	return ePackage
+	return r, ePackage
 }
 
-func loadModel(t *testing.T, resourceSet EResourceSet, modelURI *URI) EObject {
+func loadTestModel(t *testing.T, resourceSet EResourceSet, modelURI *URI) (EResource, EObject) {
 	// load package
 	r := resourceSet.GetResource(modelURI, true)
 	require.NotNil(t, r)
@@ -238,27 +238,42 @@ func loadModel(t *testing.T, resourceSet EResourceSet, modelURI *URI) EObject {
 	require.Equal(t, 1, r.GetContents().Size())
 
 	// retrieve root object
-	return r.GetContents().Get(0).(EObject)
+	return r, r.GetContents().Get(0).(EObject)
 }
 
 func TestBinaryCodec_EncodeDecodeWithReferences(t *testing.T) {
 	eResourceSet := NewEResourceSetImpl()
 
-	// load packages
-	eShopPackage := loadTestPackage(t, eResourceSet, NewURI("testdata/shop.ecore"))
+	// load packages & models
+	eShopPackageResource, eShopPackage := loadTestPackage(t, eResourceSet, NewURI("testdata/shop.ecore"))
 	require.NotNil(t, eShopPackage)
-	eShopClass, _ := eShopPackage.GetEClassifier("Shop").(EClass)
-	require.NotNil(t, eShopClass)
-	eProductsReference, _ := eShopClass.GetEStructuralFeatureFromName("products").(EReference)
-	require.NotNil(t, eProductsReference)
-	eProductClass, _ := eShopPackage.GetEClassifier("Product").(EClass)
-	require.NotNil(t, eProductClass)
-	eProductNameAttribute, _ := eProductClass.GetEStructuralFeatureFromName("name").(EAttribute)
-	require.NotNil(t, eProductNameAttribute)
+	require.NotNil(t, eShopPackageResource)
+	eShopModelResource, eShopModel := loadTestModel(t, eResourceSet, NewURI("testdata/shop.xml"))
+	require.NotNil(t, eShopModel)
+	require.NotNil(t, eShopModelResource)
 
-	require.NotNil(t, eShopPackage)
-	eOrdersPackage := loadTestPackage(t, eResourceSet, NewURI("testdata/orders.ecore"))
+	eOrdersPackageResource, eOrdersPackage := loadTestPackage(t, eResourceSet, NewURI("testdata/orders.ecore"))
+	require.NotNil(t, eOrdersPackageResource)
 	require.NotNil(t, eOrdersPackage)
+	eOrdersModelResource, eOrdersModel := loadTestModel(t, eResourceSet, NewURI("testdata/orders.xml"))
+	require.NotNil(t, eOrdersModelResource)
+	require.NotNil(t, eOrdersModel)
+
+	// encode orders resource
+	var buffer bytes.Buffer
+	binaryEncoder := NewBinaryEncoder(eOrdersModelResource, &buffer, nil)
+	binaryEncoder.Encode()
+	require.True(t, eOrdersModelResource.GetErrors().Empty(), diagnosticError(eOrdersModelResource.GetErrors()))
+	eResourceSet.GetResources().Remove(eOrdersModelResource)
+
+	// decode orders resource
+	eOrdersModelResource = NewEResourceImpl()
+	eOrdersModelResource.SetURI(NewURI("testdata/orders.xml"))
+	eResourceSet.GetResources().Add(eOrdersModelResource)
+	binaryDecoder := NewBinaryDecoder(eOrdersModelResource, &buffer, nil)
+	binaryDecoder.Decode()
+	require.True(t, eOrdersModelResource.GetErrors().Empty(), diagnosticError(eOrdersModelResource.GetErrors()))
+
 	eOrdersClass, _ := eOrdersPackage.GetEClassifier("Orders").(EClass)
 	require.NotNil(t, eOrdersClass)
 	eOrderReference, _ := eOrdersClass.GetEStructuralFeatureFromName("order").(EReference)
@@ -267,4 +282,18 @@ func TestBinaryCodec_EncodeDecodeWithReferences(t *testing.T) {
 	require.NotNil(t, eOrderClass)
 	eProductReference, _ := eOrderClass.GetEStructuralFeatureFromName("product").(EReference)
 	require.NotNil(t, eProductReference)
+
+	eOrders, _ := eOrdersModelResource.GetContents().Get(0).(EObject)
+	require.NotNil(t, eOrders)
+	assert.Equal(t, eOrdersClass, eOrders.EClass())
+
+	eOrderList, _ := eOrders.EGet(eOrderReference).(EList)
+	require.NotNil(t, eOrderList)
+	eOrder, _ := eOrderList.Get(0).(EObject)
+	require.NotNil(t, eOrder)
+	assert.Equal(t, eOrderClass, eOrder.EClass())
+
+	eOrderProduct, _ := eOrder.EGet(eProductReference).(EObject)
+	require.NotNil(t, eOrderProduct)
+
 }

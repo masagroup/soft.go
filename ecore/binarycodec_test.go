@@ -210,3 +210,61 @@ func TestBinaryCodec_EncodeDecodeEcore(t *testing.T) {
 	assert.Equal(t, "EString", eDataType.GetName())
 
 }
+
+func loadTestPackage(t *testing.T, resourceSet EResourceSet, packageURI *URI) EPackage {
+	// load package
+	r := resourceSet.GetResource(packageURI, true)
+	require.NotNil(t, r)
+	assert.True(t, r.IsLoaded())
+	assert.True(t, r.GetErrors().Empty(), diagnosticError(r.GetErrors()))
+	assert.True(t, r.GetWarnings().Empty(), diagnosticError(r.GetWarnings()))
+
+	// retrieve package
+	ePackage, _ := r.GetContents().Get(0).(EPackage)
+	require.NotNil(t, ePackage)
+	ePackage.SetEFactoryInstance(NewEFactoryExt())
+
+	resourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+	return ePackage
+}
+
+func loadModel(t *testing.T, resourceSet EResourceSet, modelURI *URI) EObject {
+	// load package
+	r := resourceSet.GetResource(modelURI, true)
+	require.NotNil(t, r)
+	require.True(t, r.IsLoaded())
+	require.True(t, r.GetErrors().Empty(), diagnosticError(r.GetErrors()))
+	require.True(t, r.GetWarnings().Empty(), diagnosticError(r.GetWarnings()))
+	require.Equal(t, 1, r.GetContents().Size())
+
+	// retrieve root object
+	return r.GetContents().Get(0).(EObject)
+}
+
+func TestBinaryCodec_EncodeDecodeWithReferences(t *testing.T) {
+	eResourceSet := NewEResourceSetImpl()
+
+	// load packages
+	eShopPackage := loadTestPackage(t, eResourceSet, NewURI("testdata/shop.ecore"))
+	require.NotNil(t, eShopPackage)
+	eShopClass, _ := eShopPackage.GetEClassifier("Shop").(EClass)
+	require.NotNil(t, eShopClass)
+	eProductsReference, _ := eShopClass.GetEStructuralFeatureFromName("products").(EReference)
+	require.NotNil(t, eProductsReference)
+	eProductClass, _ := eShopPackage.GetEClassifier("Product").(EClass)
+	require.NotNil(t, eProductClass)
+	eProductNameAttribute, _ := eProductClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	require.NotNil(t, eProductNameAttribute)
+
+	require.NotNil(t, eShopPackage)
+	eOrdersPackage := loadTestPackage(t, eResourceSet, NewURI("testdata/orders.ecore"))
+	require.NotNil(t, eOrdersPackage)
+	eOrdersClass, _ := eOrdersPackage.GetEClassifier("Orders").(EClass)
+	require.NotNil(t, eOrdersClass)
+	eOrderReference, _ := eOrdersClass.GetEStructuralFeatureFromName("order").(EReference)
+	require.NotNil(t, eOrderReference)
+	eOrderClass, _ := eOrdersPackage.GetEClassifier("Order").(EClass)
+	require.NotNil(t, eOrderClass)
+	eProductReference, _ := eOrderClass.GetEStructuralFeatureFromName("product").(EReference)
+	require.NotNil(t, eProductReference)
+}

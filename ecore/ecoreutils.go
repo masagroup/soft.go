@@ -204,3 +204,31 @@ func IsAncestor(eAncestor EObject, eObject EObject) bool {
 	}
 	return eCurrent == eAncestor
 }
+
+func ResolveAllInResourceSet(resourceSet EResourceSet) {
+	for it := resourceSet.GetResources().Iterator(); it.HasNext(); {
+		resource := it.Next().(EResource)
+		ResolveAllInResource(resource)
+	}
+}
+
+func ResolveAllInResource(resource EResource) {
+	for it := resource.GetContents().Iterator(); it.HasNext(); {
+		object := it.Next().(EObject)
+		ResolveAll(object)
+	}
+}
+
+func ResolveAll(eObject EObject) {
+	resolveCrossReferences(eObject)
+	for it := eObject.EAllContents(); it.HasNext(); {
+		childEObject := it.Next().(EObject)
+		resolveCrossReferences(childEObject)
+	}
+}
+
+func resolveCrossReferences(eObject EObject) {
+	for it := eObject.ECrossReferences().Iterator(); it.HasNext(); it.Next() {
+		// The loop resolves the cross references by visiting them.
+	}
+}

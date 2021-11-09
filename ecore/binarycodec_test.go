@@ -213,8 +213,9 @@ func TestBinaryCodec_EncodeDecodeEcore(t *testing.T) {
 
 func loadTestPackage(t *testing.T, resourceSet EResourceSet, packageURI *URI) (EResource, EPackage) {
 	// load package
-	r := resourceSet.GetResource(packageURI, true)
-	require.NotNil(t, r)
+	r := resourceSet.CreateResource(packageURI)
+	r.SetObjectIDManager(NewIncrementalIDManager())
+	r.Load()
 	assert.True(t, r.IsLoaded())
 	assert.True(t, r.GetErrors().Empty(), diagnosticError(r.GetErrors()))
 	assert.True(t, r.GetWarnings().Empty(), diagnosticError(r.GetWarnings()))
@@ -230,8 +231,9 @@ func loadTestPackage(t *testing.T, resourceSet EResourceSet, packageURI *URI) (E
 
 func loadTestModel(t *testing.T, resourceSet EResourceSet, modelURI *URI) (EResource, EObject) {
 	// load package
-	r := resourceSet.GetResource(modelURI, true)
-	require.NotNil(t, r)
+	r := resourceSet.CreateResource(modelURI)
+	r.SetObjectIDManager(NewIncrementalIDManager())
+	r.Load()
 	require.True(t, r.IsLoaded())
 	require.True(t, r.GetErrors().Empty(), diagnosticError(r.GetErrors()))
 	require.True(t, r.GetWarnings().Empty(), diagnosticError(r.GetWarnings()))
@@ -243,7 +245,7 @@ func loadTestModel(t *testing.T, resourceSet EResourceSet, modelURI *URI) (EReso
 
 func TestBinaryCodec_EncodeDecodeWithReferences(t *testing.T) {
 	eResourceSet := NewEResourceSetImpl()
-
+	binaryCodecOptions := map[string]interface{}{BINARY_OPTION_ID_ATTRIBUTE: true}
 	// load packages & models
 	eShopPackageResource, eShopPackage := loadTestPackage(t, eResourceSet, NewURI("testdata/shop.ecore"))
 	require.NotNil(t, eShopPackage)
@@ -258,21 +260,29 @@ func TestBinaryCodec_EncodeDecodeWithReferences(t *testing.T) {
 	eOrdersModelResource, eOrdersModel := loadTestModel(t, eResourceSet, NewURI("testdata/orders.xml"))
 	require.NotNil(t, eOrdersModelResource)
 	require.NotNil(t, eOrdersModel)
+	ResolveAll(eShopModel)
+	ResolveAll(eOrdersModel)
 
 	// encode orders resource
 	var buffer bytes.Buffer
-	binaryEncoder := NewBinaryEncoder(eOrdersModelResource, &buffer, nil)
+	binaryEncoder := NewBinaryEncoder(eOrdersModelResource, &buffer, binaryCodecOptions)
 	binaryEncoder.Encode()
 	require.True(t, eOrdersModelResource.GetErrors().Empty(), diagnosticError(eOrdersModelResource.GetErrors()))
 	eResourceSet.GetResources().Remove(eOrdersModelResource)
 
 	// decode orders resource
 	eOrdersModelResource = NewEResourceImpl()
+	eOrdersModelResource.SetObjectIDManager(NewIncrementalIDManager())
 	eOrdersModelResource.SetURI(NewURI("testdata/orders.xml"))
 	eResourceSet.GetResources().Add(eOrdersModelResource)
-	binaryDecoder := NewBinaryDecoder(eOrdersModelResource, &buffer, nil)
+	binaryDecoder := NewBinaryDecoder(eOrdersModelResource, &buffer, binaryCodecOptions)
 	binaryDecoder.Decode()
 	require.True(t, eOrdersModelResource.GetErrors().Empty(), diagnosticError(eOrdersModelResource.GetErrors()))
+
+	eProducClass, _ := eShopPackage.GetEClassifier("Product").(EClass)
+	require.NotNil(t, eProducClass)
+	eProductNameAttribute, _ := eProducClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	require.NotNil(t, eProductNameAttribute)
 
 	eOrdersClass, _ := eOrdersPackage.GetEClassifier("Orders").(EClass)
 	require.NotNil(t, eOrdersClass)
@@ -295,5 +305,7 @@ func TestBinaryCodec_EncodeDecodeWithReferences(t *testing.T) {
 
 	eOrderProduct, _ := eOrder.EGet(eProductReference).(EObject)
 	require.NotNil(t, eOrderProduct)
-
+	assert.False(t, eOrderProduct.EIsProxy())
+	eOrderProductName, _ := eOrderProduct.EGet(eProductNameAttribute).(string)
+	assert.Equal(t, "Product 0", eOrderProductName)
 }

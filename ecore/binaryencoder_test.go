@@ -62,6 +62,8 @@ func TestBinaryEncoder_ComplexWithID(t *testing.T) {
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
+	//ioutil.WriteFile("testdata/library.complex.id.bin", w.Bytes(), 0644)
+
 	bytes, err := ioutil.ReadFile("testdata/library.complex.id.bin")
 	assert.Nil(t, err)
 	assert.Equal(t, bytes, w.Bytes())
@@ -85,6 +87,8 @@ func TestBinaryEncoder_ComplexBig(t *testing.T) {
 	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]interface{}{})
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	//ioutil.WriteFile("testdata/library.complex.big.bin", w.Bytes(), 0644)
 
 	bytes, err := ioutil.ReadFile("testdata/library.complex.big.bin")
 	assert.Nil(t, err)

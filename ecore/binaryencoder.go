@@ -199,7 +199,7 @@ func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
 		e.encodeInt(-1)
 	} else if id, isID := e.objectToID[eObject]; isID {
 		e.encodeInt(id)
-	} else {
+	} else if eObjectInternal, _ := eObject.(EObjectInternal); eObjectInternal != nil {
 		// object id
 		objectID := len(e.objectToID)
 		e.objectToID[eObject] = objectID
@@ -209,37 +209,26 @@ func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
 		eClass := eObject.EClass()
 		eClassData := e.encodeClass(eClass)
 
-		// object id attribute
-		if objectIDManager := e.resource.GetObjectIDManager(); e.isIDAttributeEncoded && objectIDManager != nil {
-			e.encodeInt(-2)
-			e.encode(objectIDManager.GetID(eObject))
-		}
-
-		saveFeatureValues := true
-		eObjectInternal, _ := eObject.(EObjectInternal)
-		if eObjectInternal == nil {
-			return
-		}
-
 		// object uri if reference or proxy
+		saveFeatureValues := true
 		switch check {
 		case checkDirectResource:
 			if eResource := eObjectInternal.EInternalResource(); eResource != nil {
-				e.encodeInt(-1)
+				e.encodeInt(-2)
 				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
 				saveFeatureValues = false
 			} else if eObjectInternal.EIsProxy() {
-				e.encodeInt(-1)
+				e.encodeInt(-2)
 				e.encodeURI(eObjectInternal.EProxyURI())
 				saveFeatureValues = false
 			}
 		case checkResource:
 			if eResource := eObjectInternal.EResource(); eResource != nil && eResource != e.resource {
-				e.encodeInt(-1)
+				e.encodeInt(-2)
 				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
 				saveFeatureValues = false
 			} else if eObjectInternal.EIsProxy() {
-				e.encodeInt(-1)
+				e.encodeInt(-2)
 				e.encodeURI(eObjectInternal.EProxyURI())
 				saveFeatureValues = false
 			}
@@ -247,11 +236,25 @@ func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
 		case checkContainer:
 		}
 		// object feature values
-		for featureID, featureData := range eClassData.featureData {
-			if saveFeatureValues && !featureData.isTransient && (check == checkContainer || featureData.featureKind != bfkObjectContainerProxy) {
-				e.encodeFeatureValue(eObjectInternal, featureID, featureData)
+		if saveFeatureValues {
+
+			// id attribute
+			if objectIDManager := e.resource.GetObjectIDManager(); e.isIDAttributeEncoded && objectIDManager != nil {
+				if id := objectIDManager.GetID(eObject); id != nil {
+					e.encodeInt(-1)
+					e.encode(id)
+				}
 			}
+
+			// features
+			for featureID, featureData := range eClassData.featureData {
+				if !featureData.isTransient && (check == checkContainer || featureData.featureKind != bfkObjectContainerProxy) {
+					e.encodeFeatureValue(eObjectInternal, featureID, featureData)
+				}
+			}
+
 		}
+
 		e.encodeInt(0)
 	}
 }

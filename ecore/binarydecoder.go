@@ -212,15 +212,6 @@ func (d *BinaryDecoder) decodeObject() EObject {
 			featureID := d.decodeInt() - 1
 
 			if featureID == -3 {
-				// object id attribute
-				objectID := d.decodeInterface()
-				if objectIDManager := d.resource.GetObjectIDManager(); objectIDManager != nil {
-					objectIDManager.SetID(eObject, objectID)
-				}
-				featureID = d.decodeInt() - 1
-			}
-
-			if featureID == -2 {
 				// proxy object
 				eProxyURI := d.decodeURI()
 				eObject.ESetProxyURI(eProxyURI)
@@ -234,6 +225,15 @@ func (d *BinaryDecoder) decodeObject() EObject {
 			} else {
 				// standard object
 				d.objects = append(d.objects, eObject)
+			}
+
+			if featureID == -2 {
+				// object id attribute
+				objectID := d.decodeInterface()
+				if objectIDManager := d.resource.GetObjectIDManager(); objectIDManager != nil {
+					objectIDManager.SetID(eObject, objectID)
+				}
+				featureID = d.decodeInt() - 1
 			}
 
 			for ; featureID != -1; featureID = d.decodeInt() - 1 {

@@ -82,7 +82,6 @@ func TestBinaryEncoder_ComplexBig(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	// w, err := os.Create("testdata/library.complex.big.bin")
 	w := &bytes.Buffer{}
 	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]interface{}{})
 	binaryEncoder.Encode()

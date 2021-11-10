@@ -243,7 +243,7 @@ func loadTestModel(t *testing.T, resourceSet EResourceSet, modelURI *URI) (EReso
 	return r, r.GetContents().Get(0).(EObject)
 }
 
-func TestBinaryCodec_EncodeDecodeWithReferences(t *testing.T) {
+func TestBinaryCodec_EncodeDecodeResource_WithReferences(t *testing.T) {
 	eResourceSet := NewEResourceSetImpl()
 	binaryCodecOptions := map[string]interface{}{BINARY_OPTION_ID_ATTRIBUTE: true}
 	// load packages & models
@@ -308,4 +308,70 @@ func TestBinaryCodec_EncodeDecodeWithReferences(t *testing.T) {
 	assert.False(t, eOrderProduct.EIsProxy())
 	eOrderProductName, _ := eOrderProduct.EGet(eProductNameAttribute).(string)
 	assert.Equal(t, "Product 0", eOrderProductName)
+}
+
+func TestBinaryCodec_EncodeDecodeObject_WithReferences(t *testing.T) {
+	eResourceSet := NewEResourceSetImpl()
+	binaryCodecOptions := map[string]interface{}{BINARY_OPTION_ID_ATTRIBUTE: true}
+	eLibraryPackageResource, eLibraryPackage := loadTestPackage(t, eResourceSet, NewURI("testdata/library.complex.ecore"))
+	require.NotNil(t, eLibraryPackageResource)
+	require.NotNil(t, eLibraryPackage)
+	eLibraryModelResource, eLibraryModel := loadTestModel(t, eResourceSet, NewURI("testdata/library.complex.xml"))
+	require.NotNil(t, eLibraryModelResource)
+	require.NotNil(t, eLibraryModel)
+
+	// retrieve document root class , library class & library name attribute
+	eDocumentRootClass, _ := eLibraryPackage.GetEClassifier("DocumentRoot").(EClass)
+	assert.NotNil(t, eDocumentRootClass)
+	eDocumentRootLibraryFeature, _ := eDocumentRootClass.GetEStructuralFeatureFromName("library").(EReference)
+	assert.NotNil(t, eDocumentRootLibraryFeature)
+	eLibraryClass, _ := eLibraryPackage.GetEClassifier("Library").(EClass)
+	assert.NotNil(t, eLibraryClass)
+
+	// book class and attributes
+	eLibraryBooksRefeference, _ := eLibraryClass.GetEStructuralFeatureFromName("books").(EReference)
+	assert.NotNil(t, eLibraryBooksRefeference)
+	eBookClass, _ := eLibraryPackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eBookClass)
+	eBookTitleAttribute, _ := eBookClass.GetEStructuralFeatureFromName("title").(EAttribute)
+	require.NotNil(t, eBookTitleAttribute)
+	eBookDateAttribute, _ := eBookClass.GetEStructuralFeatureFromName("publicationDate").(EAttribute)
+	require.NotNil(t, eBookDateAttribute)
+	eBookCategoryAttribute, _ := eBookClass.GetEStructuralFeatureFromName("category").(EAttribute)
+	require.NotNil(t, eBookCategoryAttribute)
+	eBookAuthorReference, _ := eBookClass.GetEStructuralFeatureFromName("author").(EReference)
+	require.NotNil(t, eBookAuthorReference)
+
+	// retrieve library
+	eLibrary, _ := eLibraryModel.EGet(eDocumentRootLibraryFeature).(EObject)
+	assert.NotNil(t, eLibrary)
+
+	// retrieve book
+	eBooks, _ := eLibrary.EGet(eLibraryBooksRefeference).(EList)
+	assert.NotNil(t, eBooks)
+	eBook := eBooks.Get(0).(EObject)
+	require.NotNil(t, eBook)
+
+	// check book name
+	assert.Equal(t, "Title 0", eBook.EGet(eBookTitleAttribute))
+
+	// retrieve author
+	author := eBook.EGet(eBookAuthorReference).(EObject)
+	require.NotNil(t, author)
+
+	// encode book
+	var buffer bytes.Buffer
+	binaryEncoder := NewBinaryEncoder(eLibraryModelResource, &buffer, binaryCodecOptions)
+	err := binaryEncoder.EncodeObject(eBook)
+	require.Nil(t, err)
+
+	// decode new book
+	binaryDecoder := NewBinaryDecoder(eLibraryModelResource, &buffer, binaryCodecOptions)
+	eNewBook, err := binaryDecoder.DecodeObject()
+	require.Nil(t, err)
+	require.NotEqual(t, eBook, eNewBook)
+
+	// check book name
+	assert.Equal(t, "Title 0", eNewBook.EGet(eBookTitleAttribute))
+
 }

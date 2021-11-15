@@ -374,4 +374,18 @@ func TestBinaryCodec_EncodeDecodeObject_WithReferences(t *testing.T) {
 	// check book name
 	assert.Equal(t, "Title 0", eNewBook.EGet(eBookTitleAttribute))
 
+	// retrieve new author
+	// new book is not in the resource and then in the hierarchy - so author must remain a proxy
+	eProxyAuthor := eNewBook.EGet(eBookAuthorReference).(EObject)
+	require.NotNil(t, eProxyAuthor)
+	assert.True(t, eProxyAuthor.EIsProxy())
+
+	// retrieve new author
+	// add new book in the resource and then resolve author
+	eBooks.Add(eNewBook)
+	eNewAuthor := eNewBook.EGet(eBookAuthorReference).(EObject)
+	require.NotNil(t, eNewAuthor)
+	assert.False(t, eNewAuthor.EIsProxy())
+	assert.Equal(t, author, eNewAuthor)
+
 }

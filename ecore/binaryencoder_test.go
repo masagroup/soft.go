@@ -28,6 +28,8 @@ func TestBinaryEncoder_Complex(t *testing.T) {
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
+	//ioutil.WriteFile("testdata/library.complex.bin", w.Bytes(), 0644)
+
 	bytes, err := ioutil.ReadFile("testdata/library.complex.bin")
 	assert.Nil(t, err)
 	assert.Equal(t, bytes, w.Bytes())

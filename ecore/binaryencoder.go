@@ -61,6 +61,7 @@ type BinaryEncoder struct {
 	uriToIDMap           map[string]int
 	enumLiteralToIDMap   map[string]int
 	isIDAttributeEncoded bool
+	isIDRefEncoded       bool
 }
 
 func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]interface{}) *BinaryEncoder {
@@ -69,17 +70,19 @@ func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]interf
 
 func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[string]interface{}, version int) *BinaryEncoder {
 	e := &BinaryEncoder{
-		w:                  w,
-		resource:           resource,
-		encoder:            msgpack.NewEncoder(w),
-		version:            version,
-		objectToID:         map[EObject]int{},
-		classDataMap:       map[EClass]*binaryEncoderClassData{},
-		packageDataMap:     map[EPackage]*binaryEncoderPackageData{},
-		uriToIDMap:         map[string]int{},
-		enumLiteralToIDMap: map[string]int{},
+		w:                    w,
+		resource:             resource,
+		encoder:              msgpack.NewEncoder(w),
+		version:              version,
+		objectToID:           map[EObject]int{},
+		classDataMap:         map[EClass]*binaryEncoderClassData{},
+		packageDataMap:       map[EPackage]*binaryEncoderPackageData{},
+		uriToIDMap:           map[string]int{},
+		enumLiteralToIDMap:   map[string]int{},
+		isIDAttributeEncoded: false,
+		isIDRefEncoded:       false,
 	}
-	if uri := resource.GetURI(); uri != nil && uri.IsAbsolute() {
+	if uri := resource.GetURI(); uri != nil {
 		e.baseURI = uri
 	}
 	if options != nil {
@@ -111,6 +114,7 @@ func (e *BinaryEncoder) EncodeObject(object EObject) (err error) {
 			err = panicErr
 		}
 	}()
+	e.isIDRefEncoded = true
 	e.encodeSignature()
 	e.encodeVersion()
 	e.encodeObject(object, checkContainer)
@@ -213,23 +217,23 @@ func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
 		saveFeatureValues := true
 		switch check {
 		case checkDirectResource:
-			if eResource := eObjectInternal.EInternalResource(); eResource != nil {
-				e.encodeInt(-2)
-				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
-				saveFeatureValues = false
-			} else if eObjectInternal.EIsProxy() {
+			if eObjectInternal.EIsProxy() {
 				e.encodeInt(-2)
 				e.encodeURI(eObjectInternal.EProxyURI())
+				saveFeatureValues = false
+			} else if eResource := eObjectInternal.EInternalResource(); eResource != nil {
+				e.encodeInt(-2)
+				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
 				saveFeatureValues = false
 			}
 		case checkResource:
-			if eResource := eObjectInternal.EResource(); eResource != nil && eResource != e.resource {
-				e.encodeInt(-2)
-				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
-				saveFeatureValues = false
-			} else if eObjectInternal.EIsProxy() {
+			if eObjectInternal.EIsProxy() {
 				e.encodeInt(-2)
 				e.encodeURI(eObjectInternal.EProxyURI())
+				saveFeatureValues = false
+			} else if eResource := eObjectInternal.EResource(); eResource != nil && (eResource != e.resource || e.isIDRefEncoded) {
+				e.encodeInt(-2)
+				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
 				saveFeatureValues = false
 			}
 		case checkNothing:

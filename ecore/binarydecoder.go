@@ -60,7 +60,7 @@ func NewBinaryDecoder(resource EResource, r io.Reader, options map[string]interf
 		packageData:  []*binaryDecoderPackageData{},
 		enumLiterals: []string{},
 	}
-	if uri := resource.GetURI(); uri != nil && uri.IsAbsolute() {
+	if uri := resource.GetURI(); uri != nil {
 		d.baseURI = uri
 	}
 	return d
@@ -421,7 +421,11 @@ func (d *BinaryDecoder) decodeURI() *URI {
 		if len(d.uris) <= int(id) {
 			// build uri
 			uriStr := d.decodeString()
-			uri = d.resolveURI(NewURI(uriStr))
+			if uriStr == "" {
+				uri = d.baseURI
+			} else {
+				uri = d.resolveURI(NewURI(uriStr))
+			}
 			// add it to the uri array
 			d.uris = append(d.uris, uri)
 		} else {

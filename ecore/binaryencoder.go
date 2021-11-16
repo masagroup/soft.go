@@ -53,6 +53,7 @@ type BinaryEncoder struct {
 	w                    io.Writer
 	resource             EResource
 	encoder              *msgpack.Encoder
+	objectRoot           EObject
 	baseURI              *URI
 	version              int
 	objectToID           map[EObject]int
@@ -61,7 +62,6 @@ type BinaryEncoder struct {
 	uriToIDMap           map[string]int
 	enumLiteralToIDMap   map[string]int
 	isIDAttributeEncoded bool
-	isIDRefEncoded       bool
 }
 
 func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]interface{}) *BinaryEncoder {
@@ -70,17 +70,15 @@ func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]interf
 
 func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[string]interface{}, version int) *BinaryEncoder {
 	e := &BinaryEncoder{
-		w:                    w,
-		resource:             resource,
-		encoder:              msgpack.NewEncoder(w),
-		version:              version,
-		objectToID:           map[EObject]int{},
-		classDataMap:         map[EClass]*binaryEncoderClassData{},
-		packageDataMap:       map[EPackage]*binaryEncoderPackageData{},
-		uriToIDMap:           map[string]int{},
-		enumLiteralToIDMap:   map[string]int{},
-		isIDAttributeEncoded: false,
-		isIDRefEncoded:       false,
+		w:                  w,
+		resource:           resource,
+		encoder:            msgpack.NewEncoder(w),
+		version:            version,
+		objectToID:         map[EObject]int{},
+		classDataMap:       map[EClass]*binaryEncoderClassData{},
+		packageDataMap:     map[EPackage]*binaryEncoderPackageData{},
+		uriToIDMap:         map[string]int{},
+		enumLiteralToIDMap: map[string]int{},
 	}
 	if uri := resource.GetURI(); uri != nil {
 		e.baseURI = uri
@@ -114,7 +112,7 @@ func (e *BinaryEncoder) EncodeObject(object EObject) (err error) {
 			err = panicErr
 		}
 	}()
-	e.isIDRefEncoded = true
+	e.objectRoot = object
 	e.encodeSignature()
 	e.encodeVersion()
 	e.encodeObject(object, checkContainer)
@@ -231,7 +229,11 @@ func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
 				e.encodeInt(-2)
 				e.encodeURI(eObjectInternal.EProxyURI())
 				saveFeatureValues = false
-			} else if eResource := eObjectInternal.EResource(); eResource != nil && (eResource != e.resource || e.isIDRefEncoded) {
+			} else if eResource := eObjectInternal.EResource(); eResource != nil &&
+				(eResource != e.resource ||
+					(e.objectRoot != nil && !IsAncestor(e.objectRoot, eObjectInternal))) {
+				// encode object as uri and fragment if object is in a different resource
+				// or if in the same resource and root object is not its ancestor
 				e.encodeInt(-2)
 				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
 				saveFeatureValues = false

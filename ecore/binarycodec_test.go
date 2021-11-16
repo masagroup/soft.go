@@ -422,6 +422,8 @@ func TestBinaryCodec_EncodeDecodeObject_WithInternalReferences(t *testing.T) {
 	require.NotNil(t, eBookClass)
 	eBookTitleAttribute, _ := eBookClass.GetEStructuralFeatureFromName("title").(EAttribute)
 	require.NotNil(t, eBookTitleAttribute)
+	eBookAuthorReference, _ := eBookClass.GetEStructuralFeatureFromName("author").(EReference)
+	require.NotNil(t, eBookAuthorReference)
 
 	// retrieve library
 	eLibrary, _ := eLibraryModel.EGet(eDocumentRootLibraryFeature).(EObject)
@@ -453,5 +455,10 @@ func TestBinaryCodec_EncodeDecodeObject_WithInternalReferences(t *testing.T) {
 	book := books.Get(0).(EObject)
 	require.NotNil(t, book)
 	assert.Equal(t, "Title 0", book.EGet(eBookTitleAttribute))
+
+	// check that author books is exactly the same object
+	bookAuthor, _ := book.EGet(eBookAuthorReference).(EObject)
+	require.NotNil(t, bookAuthor)
+	assert.Equal(t, author, bookAuthor)
 
 }

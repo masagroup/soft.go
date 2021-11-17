@@ -53,6 +53,7 @@ type BinaryEncoder struct {
 	w                    io.Writer
 	resource             EResource
 	encoder              *msgpack.Encoder
+	objectRoot           EObject
 	baseURI              *URI
 	version              int
 	objectToID           map[EObject]int
@@ -79,7 +80,7 @@ func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[st
 		uriToIDMap:         map[string]int{},
 		enumLiteralToIDMap: map[string]int{},
 	}
-	if uri := resource.GetURI(); uri != nil && uri.IsAbsolute() {
+	if uri := resource.GetURI(); uri != nil {
 		e.baseURI = uri
 	}
 	if options != nil {
@@ -111,6 +112,7 @@ func (e *BinaryEncoder) EncodeObject(object EObject) (err error) {
 			err = panicErr
 		}
 	}()
+	e.objectRoot = object
 	e.encodeSignature()
 	e.encodeVersion()
 	e.encodeObject(object, checkContainer)
@@ -199,7 +201,7 @@ func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
 		e.encodeInt(-1)
 	} else if id, isID := e.objectToID[eObject]; isID {
 		e.encodeInt(id)
-	} else {
+	} else if eObjectInternal, _ := eObject.(EObjectInternal); eObjectInternal != nil {
 		// object id
 		objectID := len(e.objectToID)
 		e.objectToID[eObject] = objectID
@@ -209,49 +211,56 @@ func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
 		eClass := eObject.EClass()
 		eClassData := e.encodeClass(eClass)
 
-		// object id attribute
-		if objectIDManager := e.resource.GetObjectIDManager(); e.isIDAttributeEncoded && objectIDManager != nil {
-			e.encodeInt(-2)
-			e.encode(objectIDManager.GetID(eObject))
-		}
-
-		saveFeatureValues := true
-		eObjectInternal, _ := eObject.(EObjectInternal)
-		if eObjectInternal == nil {
-			return
-		}
-
 		// object uri if reference or proxy
+		saveFeatureValues := true
 		switch check {
 		case checkDirectResource:
-			if eResource := eObjectInternal.EInternalResource(); eResource != nil {
-				e.encodeInt(-1)
-				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
-				saveFeatureValues = false
-			} else if eObjectInternal.EIsProxy() {
-				e.encodeInt(-1)
+			if eObjectInternal.EIsProxy() {
+				e.encodeInt(-2)
 				e.encodeURI(eObjectInternal.EProxyURI())
+				saveFeatureValues = false
+			} else if eResource := eObjectInternal.EInternalResource(); eResource != nil {
+				e.encodeInt(-2)
+				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
 				saveFeatureValues = false
 			}
 		case checkResource:
-			if eResource := eObjectInternal.EResource(); eResource != nil && eResource != e.resource {
-				e.encodeInt(-1)
-				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
-				saveFeatureValues = false
-			} else if eObjectInternal.EIsProxy() {
-				e.encodeInt(-1)
+			if eObjectInternal.EIsProxy() {
+				e.encodeInt(-2)
 				e.encodeURI(eObjectInternal.EProxyURI())
+				saveFeatureValues = false
+			} else if eResource := eObjectInternal.EResource(); eResource != nil &&
+				(eResource != e.resource ||
+					(e.objectRoot != nil && !IsAncestor(e.objectRoot, eObjectInternal))) {
+				// encode object as uri and fragment if object is in a different resource
+				// or if in the same resource and root object is not its ancestor
+				e.encodeInt(-2)
+				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
 				saveFeatureValues = false
 			}
 		case checkNothing:
 		case checkContainer:
 		}
 		// object feature values
-		for featureID, featureData := range eClassData.featureData {
-			if saveFeatureValues && !featureData.isTransient && (check == checkContainer || featureData.featureKind != bfkObjectContainerProxy) {
-				e.encodeFeatureValue(eObjectInternal, featureID, featureData)
+		if saveFeatureValues {
+
+			// id attribute
+			if objectIDManager := e.resource.GetObjectIDManager(); e.isIDAttributeEncoded && objectIDManager != nil {
+				if id := objectIDManager.GetID(eObject); id != nil {
+					e.encodeInt(-1)
+					e.encode(id)
+				}
 			}
+
+			// features
+			for featureID, featureData := range eClassData.featureData {
+				if !featureData.isTransient && (check == checkContainer || featureData.featureKind != bfkObjectContainerProxy) {
+					e.encodeFeatureValue(eObjectInternal, featureID, featureData)
+				}
+			}
+
 		}
+
 		e.encodeInt(0)
 	}
 }

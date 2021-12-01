@@ -133,6 +133,56 @@ func TestBinaryDecoder_ComplexWithID(t *testing.T) {
 
 }
 
+func TestBinaryDecoder_SimpleWithEDataTypeList(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	//
+	uri := &URI{Path: "testdata/library.datalist.bin"}
+	idManager := NewUniqueIDManager(20)
+	eResource := NewEResourceImpl()
+	eResource.SetURI(uri)
+	eResource.SetObjectIDManager(idManager)
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(eResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	// file
+	f, err := os.Open(uri.Path)
+	require.Nil(t, err)
+
+	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
+	binaryDecoder.Decode()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	// retrieve library class & library name attribute
+	libraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, libraryClass)
+	libraryBooksFeature := libraryClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, libraryBooksFeature)
+	bookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, bookClass)
+	bookContentsFeature := bookClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, bookContentsFeature)
+
+	require.Equal(t, 1, eResource.GetContents().Size())
+	eLibrary, _ := eResource.GetContents().Get(0).(EObject)
+	require.NotNil(t, eLibrary)
+
+	eBooks, _ := eLibrary.EGet(libraryBooksFeature).(EList)
+	require.NotNil(t, eBooks)
+	require.Equal(t, 4, eBooks.Size())
+
+	eLastBook, _ := eBooks.Get(3).(EObject)
+	require.NotNil(t, eLastBook)
+	eContents, _ := eLastBook.EGet(bookContentsFeature).(EList)
+	require.NotNil(t, eContents)
+	assert.Equal(t, 3, eContents.Size())
+	assert.Equal(t, "c1", eContents.Get(0))
+
+}
+
 func TestBinaryDecoder_ComplexBig(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")

@@ -6,7 +6,7 @@ type basicEDataTypeList struct {
 	featureID int
 }
 
-func NewEDataTypeList(owner EObjectInternal, featureID int, isUnique bool) *basicEDataTypeList {
+func NewBasicEDataTypeList(owner EObjectInternal, featureID int, isUnique bool) *basicEDataTypeList {
 	l := new(basicEDataTypeList)
 	l.interfaces = l
 	l.data = []interface{}{}

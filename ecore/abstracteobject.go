@@ -353,11 +353,7 @@ func (o *AbstractEObject) eDynamicPropertiesCreateMap(feature EStructuralFeature
 
 func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeature) EList {
 	if attribute, isAttribute := feature.(EAttribute); isAttribute {
-		if attribute.IsUnique() {
-			return NewUniqueBasicEList(nil)
-		} else {
-			return NewBasicEList(nil)
-		}
+		return NewBasicEDataTypeList(o.AsEObjectInternal(), attribute.GetFeatureID(), attribute.IsUnique())
 	} else if ref, isRef := feature.(EReference); isRef {
 		inverse := false
 		opposite := false

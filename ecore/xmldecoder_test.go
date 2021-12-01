@@ -210,6 +210,45 @@ func TestXMLDecoderSimpleXMLWithIDs(t *testing.T) {
 	assert.Equal(t, int64(4), idManager.GetID(eBooks.Get(3).(EObject)))
 }
 
+func TestXMLDecoderSimpleXMLWithEDataTypeList(t *testing.T) {
+	// load libray simple ecore	package
+	ePackage := loadPackage("library.simple.ecore")
+	require.NotNil(t, ePackage)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+	eResource := eResourceSet.CreateResource(&URI{Path: "testdata/library.simple.list.xml"})
+	require.NotNil(t, eResource)
+	eResource.Load()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(t, eResource.IsLoaded())
+
+	// retrieve library class & library name attribute
+	libraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, libraryClass)
+	libraryBooksFeature := libraryClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, libraryBooksFeature)
+	bookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, bookClass)
+	bookContentsFeature := bookClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, bookContentsFeature)
+
+	require.Equal(t, 1, eResource.GetContents().Size())
+	eLibrary, _ := eResource.GetContents().Get(0).(EObject)
+	require.NotNil(t, eLibrary)
+
+	eBooks, _ := eLibrary.EGet(libraryBooksFeature).(EList)
+	require.NotNil(t, eBooks)
+	require.Equal(t, 4, eBooks.Size())
+
+	eLastBook, _ := eBooks.Get(3).(EObject)
+	require.NotNil(t, eLastBook)
+	eContents, _ := eLastBook.EGet(bookContentsFeature).(EList)
+	require.NotNil(t, eContents)
+	assert.Equal(t, 3, eContents.Size())
+	assert.Equal(t, "c1", eContents.Get(0))
+}
+
 func TestXMLDecoderLibraryComplexBig(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")

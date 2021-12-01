@@ -212,11 +212,11 @@ func TestXMLEncoderSimpleXMLWithIDs(t *testing.T) {
 func TestXMLEncoderSimpleXMLWithEDataTypeList(t *testing.T) {
 
 	// load libray simple ecore	package
-	ePackage := loadPackage("library.simple.ecore")
+	ePackage := loadPackage("library.datalist.ecore")
 	assert.NotNil(t, ePackage)
 
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.Load(&URI{Path: "testdata/library.simple.list.xml"})
+	eResource := xmlProcessor.Load(&URI{Path: "testdata/library.datalist.xml"})
 	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -224,7 +224,7 @@ func TestXMLEncoderSimpleXMLWithEDataTypeList(t *testing.T) {
 	// save resource
 	result := xmlProcessor.SaveToString(eResource, nil)
 
-	bytes, err := ioutil.ReadFile("testdata/library.simple.list.xml")
+	bytes, err := ioutil.ReadFile("testdata/library.datalist.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }

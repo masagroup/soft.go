@@ -212,12 +212,12 @@ func TestXMLDecoderSimpleXMLWithIDs(t *testing.T) {
 
 func TestXMLDecoderSimpleXMLWithEDataTypeList(t *testing.T) {
 	// load libray simple ecore	package
-	ePackage := loadPackage("library.simple.ecore")
+	ePackage := loadPackage("library.datalist.ecore")
 	require.NotNil(t, ePackage)
 
 	eResourceSet := NewEResourceSetImpl()
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-	eResource := eResourceSet.CreateResource(&URI{Path: "testdata/library.simple.list.xml"})
+	eResource := eResourceSet.CreateResource(&URI{Path: "testdata/library.datalist.xml"})
 	require.NotNil(t, eResource)
 	eResource.Load()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))

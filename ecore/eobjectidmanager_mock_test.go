@@ -42,18 +42,6 @@ func TestMockEObjectIDManagerGetID(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, rm, o)
 }
 
-func TestMockEObjectIDManagerGetDetachedID(t *testing.T) {
-	rm := &MockEObjectIDManager{}
-	o := &MockEObject{}
-	rm.On("GetDetachedID", o).Return("id1").Once()
-	rm.On("GetDetachedID", o).Return(func(EObject) interface{} {
-		return "id2"
-	}).Once()
-	assert.Equal(t, "id1", rm.GetDetachedID(o))
-	assert.Equal(t, "id2", rm.GetDetachedID(o))
-	mock.AssertExpectationsForObjects(t, rm, o)
-}
-
 func TestMockEObjectIDManagerGetEObject(t *testing.T) {
 	rm := &MockEObjectIDManager{}
 	o := &MockEObject{}

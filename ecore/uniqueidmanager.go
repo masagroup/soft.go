@@ -5,13 +5,14 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"runtime"
+	"unsafe"
 )
 
 // Adapted from https://neilmadden.blog/2018/08/30/moving-away-from-uuids/
-// Adapted from https://neilmadden.blog/2018/08/30/moving-away-from-uuids/
 
 type UniqueIDManager struct {
-	detachedToID map[EObject]string
+	detachedToID map[uintptr]string
 	objectToID   map[EObject]string
 	idToObject   map[string]EObject
 	size         int
@@ -19,7 +20,7 @@ type UniqueIDManager struct {
 
 func NewUniqueIDManager(size int) *UniqueIDManager {
 	return &UniqueIDManager{
-		detachedToID: make(map[EObject]string),
+		detachedToID: make(map[uintptr]string),
 		objectToID:   make(map[EObject]string),
 		idToObject:   make(map[string]EObject),
 		size:         size,
@@ -50,16 +51,21 @@ func (m *UniqueIDManager) newID() string {
 }
 
 func (m *UniqueIDManager) Clear() {
-	m.detachedToID = make(map[EObject]string)
+	m.detachedToID = make(map[uintptr]string)
 	m.objectToID = make(map[EObject]string)
 	m.idToObject = make(map[string]EObject)
 }
 
 func (m *UniqueIDManager) Register(eObject EObject) {
 	if _, isID := m.objectToID[eObject]; !isID {
-		newID, isOldID := m.detachedToID[eObject]
+		// if object is detached, retrieve its id
+		// remove it from detached map
+		// remove its finalizer
+		objectHash := m.getHash(eObject)
+		newID, isOldID := m.detachedToID[objectHash]
 		if isOldID {
-			delete(m.detachedToID, eObject)
+			delete(m.detachedToID, objectHash)
+			runtime.SetFinalizer(eObject, nil)
 		} else {
 			newID = m.newID()
 		}
@@ -95,7 +101,14 @@ func (m *UniqueIDManager) UnRegister(eObject EObject) {
 	if id, isPresent := m.objectToID[eObject]; isPresent {
 		delete(m.idToObject, id)
 		delete(m.objectToID, eObject)
-		m.detachedToID[eObject] = id
+		// register as detached
+		// add to detached map
+		// register a finalizer
+		objectHash := m.getHash(eObject)
+		m.detachedToID[objectHash] = id
+		runtime.SetFinalizer(eObject, func(_ interface{}) {
+			delete(m.detachedToID, objectHash)
+		})
 	}
 }
 
@@ -106,12 +119,6 @@ func (m *UniqueIDManager) GetID(eObject EObject) interface{} {
 	return nil
 }
 
-func (m *UniqueIDManager) GetDetachedID(eObject EObject) interface{} {
-	if id, isDetached := m.detachedToID[eObject]; isDetached {
-		return id
-	}
-	return nil
-}
 func (m *UniqueIDManager) GetEObject(id interface{}) EObject {
 	switch id.(type) {
 	case string:
@@ -119,4 +126,9 @@ func (m *UniqueIDManager) GetEObject(id interface{}) EObject {
 	default:
 		return nil
 	}
+}
+
+func (m *UniqueIDManager) getHash(eObject EObject) uintptr {
+	i := (*[2]uintptr)(unsafe.Pointer(&eObject))
+	return *(*uintptr)(unsafe.Pointer(&i[1]))
 }

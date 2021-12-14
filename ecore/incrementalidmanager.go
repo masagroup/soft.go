@@ -3,11 +3,13 @@ package ecore
 import (
 	"errors"
 	"fmt"
+	"runtime"
 	"strconv"
+	"unsafe"
 )
 
 type IncrementalIDManager struct {
-	detachedToID map[EObject]int64
+	detachedToID map[uintptr]int64
 	objectToID   map[EObject]int64
 	idToObject   map[int64]EObject
 	currentID    int64
@@ -15,7 +17,7 @@ type IncrementalIDManager struct {
 
 func NewIncrementalIDManager() *IncrementalIDManager {
 	return &IncrementalIDManager{
-		detachedToID: make(map[EObject]int64),
+		detachedToID: make(map[uintptr]int64),
 		objectToID:   make(map[EObject]int64),
 		idToObject:   make(map[int64]EObject),
 		currentID:    0,
@@ -59,7 +61,7 @@ func (m *IncrementalIDManager) getID(id interface{}) (int64, error) {
 }
 
 func (m *IncrementalIDManager) Clear() {
-	m.detachedToID = make(map[EObject]int64)
+	m.detachedToID = make(map[uintptr]int64)
 	m.objectToID = make(map[EObject]int64)
 	m.idToObject = make(map[int64]EObject)
 	m.currentID = 0
@@ -67,9 +69,14 @@ func (m *IncrementalIDManager) Clear() {
 
 func (m *IncrementalIDManager) Register(eObject EObject) {
 	if _, isID := m.objectToID[eObject]; !isID {
-		newID, isOldID := m.detachedToID[eObject]
+		// if object is detached, retrieve its id
+		// remove it from detached map
+		// remove its finalizer
+		objectHash := m.getHash(eObject)
+		newID, isOldID := m.detachedToID[objectHash]
 		if isOldID {
-			delete(m.detachedToID, eObject)
+			delete(m.detachedToID, objectHash)
+			runtime.SetFinalizer(eObject, nil)
 		} else {
 			newID = m.newID()
 		}
@@ -105,7 +112,14 @@ func (m *IncrementalIDManager) UnRegister(eObject EObject) {
 	if id, isPresent := m.objectToID[eObject]; isPresent {
 		delete(m.idToObject, id)
 		delete(m.objectToID, eObject)
-		m.detachedToID[eObject] = id
+		// register as detached
+		// add to detached map
+		// register a finalizer
+		objectHash := m.getHash(eObject)
+		m.detachedToID[objectHash] = id
+		runtime.SetFinalizer(eObject, func(_ interface{}) {
+			delete(m.detachedToID, objectHash)
+		})
 	}
 }
 
@@ -116,16 +130,14 @@ func (m *IncrementalIDManager) GetID(eObject EObject) interface{} {
 	return nil
 }
 
-func (m *IncrementalIDManager) GetDetachedID(eObject EObject) interface{} {
-	if id, isDetached := m.detachedToID[eObject]; isDetached {
-		return id
-	}
-	return nil
-}
-
 func (m *IncrementalIDManager) GetEObject(id interface{}) EObject {
 	if v, err := m.getID(id); err == nil {
 		return m.idToObject[v]
 	}
 	return nil
+}
+
+func (m *IncrementalIDManager) getHash(eObject EObject) uintptr {
+	i := (*[2]uintptr)(unsafe.Pointer(&eObject))
+	return *(*uintptr)(unsafe.Pointer(&i[1]))
 }

@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,12 +33,34 @@ func TestIncrementalIDManagerUnRegister(t *testing.T) {
 	// unregister object
 	m.UnRegister(mockObject)
 	assert.Nil(t, m.GetID(mockObject))
-	assert.Equal(t, id, m.GetDetachedID(mockObject))
 
 	// register again and check it was detached
 	m.Register(mockObject)
 	assert.Equal(t, id, m.GetID(mockObject))
-	assert.Nil(t, m.GetDetachedID(mockObject))
+}
+
+func TestIncrementalIDManagerDetachedObjectWithGC(t *testing.T) {
+	m := NewIncrementalIDManager()
+
+	// register object
+	mockObject := &MockEObject{}
+	m.Register(mockObject)
+	id1 := m.GetID(mockObject)
+	assert.NotNil(t, id1)
+
+	// unregister object
+	m.UnRegister(mockObject)
+	assert.Nil(t, m.GetID(mockObject))
+
+	// call GC
+	mockObject = nil
+	runtime.GC()
+
+	mockObject = &MockEObject{}
+	m.Register(mockObject)
+	id2 := m.GetID(mockObject)
+	assert.NotEqual(t, id1, id2)
+
 }
 
 func TestIncrementalIDManagerSetID(t *testing.T) {
@@ -65,4 +88,7 @@ func TestIncrementalIDManagerClear(t *testing.T) {
 
 	m.Clear()
 	assert.Equal(t, nil, m.GetID(mockObject))
+
+	mockObject = nil
+	runtime.GC()
 }

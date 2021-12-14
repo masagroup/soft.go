@@ -70,10 +70,6 @@ func (m *EObjectIDManagerImpl) GetID(eObject EObject) interface{} {
 	return nil
 }
 
-func (m *EObjectIDManagerImpl) GetDetachedID(eObject EObject) interface{} {
-	return GetEObjectID(eObject)
-}
-
 func (m *EObjectIDManagerImpl) GetEObject(id interface{}) EObject {
 	switch id.(type) {
 	case string:

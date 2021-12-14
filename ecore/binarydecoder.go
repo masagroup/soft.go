@@ -330,13 +330,14 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 		eObject.ESetFromID(featureData.featureID, value)
 	case bfkDataList:
 		size := d.decodeInt()
-		values := make([]interface{}, size)
+		values := []interface{}{}
 		for i := 0; i < size; i++ {
 			valueStr := d.decodeString()
 			value := featureData.eFactory.CreateFromString(featureData.eDataType, valueStr)
 			values = append(values, value)
 		}
-		eObject.ESetFromID(featureData.featureID, values)
+		l := eObject.EGetResolve(featureData.eFeature, false).(EList)
+		l.AddAll(NewBasicEList(values))
 	case bfkEnum:
 		var valueStr string
 		id := d.decodeInt()

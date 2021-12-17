@@ -31,10 +31,12 @@ func TestUniqueIDManagerUnRegister(t *testing.T) {
 
 	id := m.GetID(mockObject)
 	assert.NotNil(t, id)
+	assert.Nil(t, m.GetDetachedID(mockObject))
 
 	// unregister
 	m.UnRegister(mockObject)
 	assert.Nil(t, m.GetID(mockObject))
+	assert.Equal(t, id, m.GetDetachedID(mockObject))
 
 	// register again and check it was detached
 	m.Register(mockObject)

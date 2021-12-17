@@ -29,11 +29,12 @@ func TestIncrementalIDManagerUnRegister(t *testing.T) {
 	m.Register(mockObject)
 	id := m.GetID(mockObject)
 	assert.NotNil(t, id)
+	assert.Nil(t, m.GetDetachedID(mockObject))
 
 	// unregister object
 	m.UnRegister(mockObject)
 	assert.Nil(t, m.GetID(mockObject))
-
+	assert.Equal(t, id, m.GetDetachedID(mockObject))
 	// register again and check it was detached
 	m.Register(mockObject)
 	assert.Equal(t, id, m.GetID(mockObject))

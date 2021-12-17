@@ -58,6 +58,7 @@ func TestEObjectIDManagerImplUnRegisterWithID(t *testing.T) {
 	assert.Equal(t, "id", m.GetID(mockObject))
 	m.UnRegister(mockObject)
 	assert.Nil(t, m.GetID(mockObject))
+	assert.Equal(t, "id", m.GetDetachedID(mockObject))
 	mock.AssertExpectationsForObjects(t, mockObject)
 }
 

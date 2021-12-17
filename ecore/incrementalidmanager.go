@@ -137,6 +137,14 @@ func (m *IncrementalIDManager) GetEObject(id interface{}) EObject {
 	return nil
 }
 
+func (m *IncrementalIDManager) GetDetachedID(eObject EObject) interface{} {
+	objectHash := m.getHash(eObject)
+	if id, isDetached := m.detachedToID[objectHash]; isDetached {
+		return id
+	}
+	return nil
+}
+
 func (m *IncrementalIDManager) getHash(eObject EObject) uintptr {
 	i := (*[2]uintptr)(unsafe.Pointer(&eObject))
 	return *(*uintptr)(unsafe.Pointer(&i[1]))

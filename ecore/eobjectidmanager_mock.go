@@ -14,6 +14,22 @@ func (_m *MockEObjectIDManager) Clear() {
 	_m.Called()
 }
 
+// GetDetachedID provides a mock function with given fields: _a0
+func (_m *MockEObjectIDManager) GetDetachedID(_a0 EObject) interface{} {
+	ret := _m.Called(_a0)
+
+	var r0 interface{}
+	if rf, ok := ret.Get(0).(func(EObject) interface{}); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(interface{})
+		}
+	}
+
+	return r0
+}
+
 // GetEObject provides a mock function with given fields: _a0
 func (_m *MockEObjectIDManager) GetEObject(_a0 interface{}) EObject {
 	ret := _m.Called(_a0)
@@ -38,7 +54,9 @@ func (_m *MockEObjectIDManager) GetID(_a0 EObject) interface{} {
 	if rf, ok := ret.Get(0).(func(EObject) interface{}); ok {
 		r0 = rf(_a0)
 	} else {
-		r0 = ret.Get(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(interface{})
+		}
 	}
 
 	return r0
@@ -49,11 +67,7 @@ func (_m *MockEObjectIDManager) Register(_a0 EObject) {
 	_m.Called(_a0)
 }
 
-// UnRegister provides a mock function with given fields: _a0
-func (_m *MockEObjectIDManager) UnRegister(_a0 EObject) {
-	_m.Called(_a0)
-}
-
+// SetID provides a mock function with given fields: _a0, _a1
 func (_m *MockEObjectIDManager) SetID(_a0 EObject, _a1 interface{}) error {
 	ret := _m.Called(_a0, _a1)
 
@@ -61,10 +75,13 @@ func (_m *MockEObjectIDManager) SetID(_a0 EObject, _a1 interface{}) error {
 	if rf, ok := ret.Get(0).(func(EObject, interface{}) error); ok {
 		r0 = rf(_a0, _a1)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(error)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
+}
+
+// UnRegister provides a mock function with given fields: _a0
+func (_m *MockEObjectIDManager) UnRegister(_a0 EObject) {
+	_m.Called(_a0)
 }

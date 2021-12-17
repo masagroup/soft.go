@@ -128,6 +128,14 @@ func (m *UniqueIDManager) GetEObject(id interface{}) EObject {
 	}
 }
 
+func (m *UniqueIDManager) GetDetachedID(eObject EObject) interface{} {
+	objectHash := m.getHash(eObject)
+	if id, isDetached := m.detachedToID[objectHash]; isDetached {
+		return id
+	}
+	return nil
+}
+
 func (m *UniqueIDManager) getHash(eObject EObject) uintptr {
 	i := (*[2]uintptr)(unsafe.Pointer(&eObject))
 	return *(*uintptr)(unsafe.Pointer(&i[1]))

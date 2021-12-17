@@ -78,3 +78,7 @@ func (m *EObjectIDManagerImpl) GetEObject(id interface{}) EObject {
 		return nil
 	}
 }
+
+func (m *EObjectIDManagerImpl) GetDetachedID(eObject EObject) interface{} {
+	return GetEObjectID(eObject)
+}

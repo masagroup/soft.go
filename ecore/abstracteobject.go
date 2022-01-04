@@ -804,16 +804,20 @@ func (o *AbstractEObject) EBasicSetContainer(newContainer EObject, newContainerF
 		}
 	}
 
+	// detach object from resource
+	// container is correctly set to the old value
 	if oldResource != nil && oldResource != newResource {
 		oldResource.Detached(o.AsEObject())
 	}
 
+	// internal set
+	objInternal.ESetInternalContainer(newContainer, newContainerFeatureID)
+
+	// attach object to resource
+	// container is correctly set to the new value
 	if newResource != nil && newResource != oldResource {
 		newResource.Attached(o.AsEObject())
 	}
-
-	// internal set
-	objInternal.ESetInternalContainer(newContainer, newContainerFeatureID)
 
 	// notification
 	if o.ENotificationRequired() {

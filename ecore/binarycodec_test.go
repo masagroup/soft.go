@@ -223,8 +223,6 @@ func loadTestPackage(t *testing.T, resourceSet EResourceSet, packageURI *URI) (E
 	// retrieve package
 	ePackage, _ := r.GetContents().Get(0).(EPackage)
 	require.NotNil(t, ePackage)
-	ePackage.SetEFactoryInstance(NewEFactoryExt())
-
 	resourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 	return r, ePackage
 }

@@ -10,7 +10,6 @@ import (
 type EResourceInternal interface {
 	EResource
 
-	IsLoading() bool
 	DoLoad(decoder EResourceDecoder)
 	DoSave(encoder EResourceEncoder)
 	DoUnload()

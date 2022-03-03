@@ -175,6 +175,20 @@ func (_m *MockEResource) IsLoaded() bool {
 	return r0
 }
 
+// IsLoaded provides a mock function with given fields:
+func (_m *MockEResource) IsLoading() bool {
+	ret := _m.Called()
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // Load provides a mock function with given fields:
 func (_m *MockEResource) Load() {
 	_m.Called()

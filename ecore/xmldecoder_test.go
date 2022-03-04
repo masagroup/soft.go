@@ -25,7 +25,6 @@ func loadPackage(packageFileName string) EPackage {
 	eResource := xmiProcessor.Load(&URI{Path: "testdata/" + packageFileName})
 	if eResource.IsLoaded() && eResource.GetContents().Size() > 0 {
 		ePackage, _ := eResource.GetContents().Get(0).(EPackage)
-		ePackage.SetEFactoryInstance(NewEFactoryExt())
 		return ePackage
 	} else {
 		return nil

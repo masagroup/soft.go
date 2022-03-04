@@ -36,6 +36,7 @@ type EResource interface {
 	Attached(object EObject)
 	Detached(object EObject)
 
+	IsLoading() bool
 	IsLoaded() bool
 
 	Load()

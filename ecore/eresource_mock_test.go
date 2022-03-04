@@ -216,6 +216,18 @@ func TestMockEResourceIsLoaded(t *testing.T) {
 	r.AssertExpectations(t)
 }
 
+// TestMockEResourceIsLoading tests method IsLoaded
+func TestMockEResourceIsLoading(t *testing.T) {
+	r := &MockEResourceInternal{}
+	r.On("IsLoading").Return(true).Once()
+	r.On("IsLoading").Return(func() bool {
+		return false
+	}).Once()
+	assert.True(t, r.IsLoading())
+	assert.False(t, r.IsLoading())
+	r.AssertExpectations(t)
+}
+
 func TestMockEResourceGetIDManager(t *testing.T) {
 	r := &MockEResource{}
 	m := &MockEObjectIDManager{}

@@ -66,6 +66,16 @@ func (eStructuralFeature *eStructuralFeatureExt) SetDefaultValueLiteral(newDefau
 	eStructuralFeature.eStructuralFeatureImpl.SetDefaultValueLiteral(newDefaultValueLiteral)
 }
 
+// GetFeatureID get the value of featureID
+func (eStructuralFeature *eStructuralFeatureExt) GetFeatureID() int {
+	return eStructuralFeature.featureID
+}
+
+// SetFeatureID set the value of featureID
+func (eStructuralFeature *eStructuralFeatureExt) SetFeatureID(newFeatureID int) {
+	eStructuralFeature.featureID = newFeatureID
+}
+
 func IsBidirectional(feature EStructuralFeature) bool {
 	ref, isRef := feature.(EReference)
 	if isRef {

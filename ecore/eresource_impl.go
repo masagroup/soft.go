@@ -96,6 +96,43 @@ func (rc *resourceContents) inverseRemove(object interface{}, notifications ENot
 	return n
 }
 
+func (rc *resourceContents) didAdd(index int, elem interface{}) {
+	rc.BasicENotifyingList.didAdd(index, elem)
+	if index == rc.Size()-1 {
+		rc.loaded()
+	}
+}
+
+func (rc *resourceContents) didRemove(index int, old interface{}) {
+	rc.BasicENotifyingList.didRemove(index, old)
+	if rc.Size() == 0 {
+		rc.unloaded()
+	}
+}
+
+func (rc *resourceContents) didClear(oldObjects []interface{}) {
+	rc.BasicENotifyingList.didClear(oldObjects)
+	rc.unloaded()
+}
+
+func (rc *resourceContents) loaded() {
+	if !rc.resource.IsLoaded() {
+		n := rc.resource.BasicSetLoaded(true, nil)
+		if n != nil {
+			n.Dispatch()
+		}
+	}
+}
+
+func (rc *resourceContents) unloaded() {
+	if rc.resource.IsLoaded() {
+		n := rc.resource.BasicSetLoaded(false, nil)
+		if n != nil {
+			n.Dispatch()
+		}
+	}
+}
+
 type resourceDiagnostics struct {
 	BasicENotifyingList
 	resource  *EResourceImpl

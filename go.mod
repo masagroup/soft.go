@@ -1,6 +1,6 @@
 module github.com/masagroup/soft.go
 
-go 1.12
+go 1.13
 
 require (
 	github.com/OneOfOne/go-utils v0.0.0-20180319162427-6019ff89a94e

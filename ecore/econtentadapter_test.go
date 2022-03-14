@@ -454,6 +454,14 @@ func TestEContentAdapterIntegration(t *testing.T) {
 	o := NewEObjectImpl()
 	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == r &&
+			n.GetFeatureID() == RESOURCE__IS_LOADED &&
+			n.GetNewValue() == true &&
+			n.GetOldValue() == false &&
+			n.GetEventType() == SET &&
+			n.GetPosition() == -1
+	})).Once()
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == r &&
 			n.GetFeatureID() == RESOURCE__CONTENTS &&
 			n.GetNewValue() == o &&
 			n.GetEventType() == ADD &&
@@ -463,6 +471,14 @@ func TestEContentAdapterIntegration(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
 	// remove object from resource & check that mockAdpater is called
+	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == r &&
+			n.GetFeatureID() == RESOURCE__IS_LOADED &&
+			n.GetNewValue() == false &&
+			n.GetOldValue() == true &&
+			n.GetEventType() == SET &&
+			n.GetPosition() == -1
+	})).Once()
 	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == r &&
 			n.GetFeatureID() == RESOURCE__CONTENTS &&

@@ -77,6 +77,17 @@ func (r *EResourceSetImpl) GetResource(uri *URI, loadOnDemand bool) EResource {
 		}
 	}
 
+	ePackage := r.GetPackageRegistry().GetPackage(uri.String())
+	if ePackage != nil {
+		resource := ePackage.EResource()
+		if resource != nil {
+			if r.uriResourceMap != nil {
+				r.uriResourceMap[uri] = resource
+			}
+			return resource
+		}
+	}
+
 	normalizedURI := r.GetURIConverter().Normalize(uri)
 	for it := r.resources.Iterator(); it.HasNext(); {
 		resource := it.Next().(EResource)
@@ -90,11 +101,6 @@ func (r *EResourceSetImpl) GetResource(uri *URI, loadOnDemand bool) EResource {
 			}
 			return resource
 		}
-	}
-
-	ePackage := r.GetPackageRegistry().GetPackage(uri.String())
-	if ePackage != nil {
-		return ePackage.EResource()
 	}
 
 	if loadOnDemand {

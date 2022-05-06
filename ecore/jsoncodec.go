@@ -43,6 +43,13 @@ func getJSONCodecFeatureKind(eFeature EStructuralFeature) jsonFeatureKind {
 	if eFeature.IsTransient() {
 		return jfkTransient
 	} else if eReference, _ := eFeature.(EReference); eReference != nil {
+		if eReference.IsContainment() {
+			if eReference.IsMany() {
+				return jfkObjectList
+			} else {
+				return jfkObject
+			}
+		}
 		opposite := eReference.GetEOpposite()
 		if opposite != nil && opposite.IsContainment() {
 			return jfkTransient
@@ -53,14 +60,12 @@ func getJSONCodecFeatureKind(eFeature EStructuralFeature) jsonFeatureKind {
 			} else {
 				return jfkObjectReference
 			}
-		} else {
-			if eReference.IsMany() {
-				return jfkObjectList
-			} else {
-				return jfkObject
-			}
 		}
-
+		if eReference.IsMany() {
+			return jfkObjectList
+		} else {
+			return jfkObject
+		}
 	} else if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
 		if eAttribute.IsMany() {
 			return jfkDataList

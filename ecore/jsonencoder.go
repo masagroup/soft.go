@@ -17,8 +17,9 @@ type JSONEncoder struct {
 
 func NewJSONEncoder(resource EResource, w io.Writer, options map[string]interface{}) *JSONEncoder {
 	e := &JSONEncoder{
-		w:        jsonwriter.New(w),
-		resource: resource,
+		w:            jsonwriter.New(w),
+		resource:     resource,
+		featureKinds: map[EStructuralFeature]jsonFeatureKind{},
 	}
 	if options != nil {
 		e.idAttributeName, _ = options[JSON_OPTION_ID_ATTRIBUTE_NAME].(string)

@@ -170,6 +170,33 @@ func TestBasicEObjectListGetProxyContainment(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockAdapter, mockObject, mockOwner, mockResolved)
 }
 
+func TestBasicEObjectListRemoveAll(t *testing.T) {
+	mockOwner := &MockEObjectInternal{}
+	mockOwner.On("EDeliver").Return(false)
+	mockObject := &MockEObjectInternal{}
+	mockOther := &MockEObjectInternal{}
+	mockResolved := &MockEObjectInternal{}
+	{
+		list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, false, false)
+		list.Add(mockObject)
+		list.Add(mockOther)
+		list.RemoveAll(NewImmutableEList([]interface{}{mockObject, mockResolved}))
+		assert.Equal(t, []interface{}{mockOther}, list.ToArray())
+	}
+	{
+		list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, true, false)
+		mockObject.On("EIsProxy").Return(false).Once()
+		list.Add(mockObject)
+		list.Add(mockOther)
+
+		mockOther.On("EIsProxy").Return(true).Once()
+		mockOwner.On("EResolveProxy", mockOther).Return(mockResolved).Once()
+		list.RemoveAll(NewImmutableEList([]interface{}{mockObject, mockResolved}))
+		assert.Equal(t, []interface{}{}, list.ToArray())
+	}
+
+}
+
 func TestBasicEObjectListUnResolved(t *testing.T) {
 	mockOwner := &MockEObjectInternal{}
 	// no proxy
@@ -450,7 +477,7 @@ func TestBasicEObjectListUnResolvedRemoveAll(t *testing.T) {
 	unresolved.AddAll(NewImmutableEList([]interface{}{mockObject1, mockObject2, mockObject3}))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1)
 
-	mockOwner.On("EDeliver").Return(false).Twice()
+	mockOwner.On("EDeliver").Return(false).Once()
 	assert.True(t, unresolved.RemoveAll(NewImmutableEList([]interface{}{mockObject1, mockObject2})))
 	assert.Equal(t, []interface{}{mockObject3}, unresolved.ToArray())
 	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2, mockObject3)

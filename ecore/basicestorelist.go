@@ -314,10 +314,10 @@ func (list *BasicEStoreList) RemoveWithNotification(object interface{}, notifica
 
 func (list *BasicEStoreList) RemoveAll(collection EList) bool {
 	modified := false
-	for i := list.Size(); i-1 >= 0; i-- {
-		element := list.store.Get(list.owner, list.feature, i-1)
+	for i := list.Size() - 1; i >= 0; i-- {
+		element := list.store.Get(list.owner, list.feature, i)
 		if collection.Contains(element) {
-			list.RemoveAt(i - 1)
+			list.RemoveAt(i)
 			modified = true
 		}
 	}

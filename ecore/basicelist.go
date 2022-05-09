@@ -77,7 +77,7 @@ func NewUniqueBasicEList(data []interface{}) *basicEList {
 	return a
 }
 
-// Remove all elements in list that already are in ref
+// Remove all elements from list that are not in ref list
 func getNonDuplicates(list EList, ref EList) *basicEList {
 	newList := NewBasicEList([]interface{}{})
 	for it := list.Iterator(); it.HasNext(); {

@@ -227,3 +227,57 @@ func (list *BasicENotifyingList) doRemove(index int) interface{} {
 	list.createAndDispatchNotification(notifications, REMOVE, oldObject, nil, index)
 	return oldObject
 }
+
+func (list *BasicENotifyingList) RemoveAll(collection EList) bool {
+	return list.doRemoveAll(
+		collection,
+		func(index int, other interface{}) bool {
+			return list.doGet(index) == other
+		})
+}
+
+func (list *BasicENotifyingList) doRemoveAll(collection EList, getAndCompare func(int, interface{}) bool) bool {
+	var positions []interface{}
+	var removed []interface{}
+
+	// compute positions and removed objects
+	if !collection.Empty() {
+		for i := 0; i < list.Size(); i++ {
+			for j := 0; j < collection.Size(); j++ {
+				object := collection.Get(j)
+				if getAndCompare(i, object) {
+					positions = append(positions, i)
+					removed = append(removed, object)
+					break
+				}
+			}
+		}
+	}
+
+	// remove
+	for i := len(positions) - 1; i >= 0; i-- {
+		list.basicEList.doRemove(positions[i].(int))
+	}
+
+	// inverse remove
+	var notifications ENotificationChain
+	for _, e := range removed {
+		notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(e, notifications)
+	}
+
+	// notifications
+	if removed != nil {
+		list.createAndDispatchNotificationFn(notifications,
+			func() ENotification {
+				if len(removed) == 1 {
+					return list.createNotification(REMOVE, removed[0], nil, positions[0].(int))
+				} else {
+					return list.createNotification(REMOVE_MANY, removed, positions, positions[0].(int))
+				}
+			})
+	} else if notifications != nil {
+		notifications.Dispatch()
+	}
+
+	return removed != nil
+}

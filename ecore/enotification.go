@@ -64,7 +64,7 @@ type ENotification interface {
 	// GetNewValue Returns the value of the notifier's feature after the change occurred.
 	// For a list-based feature, this represents a value, or a list of values, added to the list,
 	// an array of int containing the original index of each value in the list of values removed from the list (except for the case of a clear),
-	// the value moved within the list, or nill otherwise.
+	// the value moved within the list, or nil otherwise.
 	GetNewValue() interface{}
 
 	// GetPosition Returns the position within a list-based feature at which the change occurred.

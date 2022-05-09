@@ -79,6 +79,13 @@ func (list *basicEObjectList) IndexOf(elem interface{}) int {
 	return list.basicEList.IndexOf(elem)
 }
 
+func (list *basicEObjectList) RemoveAll(collection EList) bool {
+	return list.doRemoveAll(collection, func(i int, other interface{}) bool {
+		object := list.data[i]
+		return object == other || list.resolve(i, object) == other
+	})
+}
+
 func (list *basicEObjectList) doGet(index int) interface{} {
 	return list.resolve(index, list.basicEList.doGet(index))
 }
@@ -211,15 +218,9 @@ func (l *unResolvedBasicEObjectList) Remove(elem interface{}) bool {
 }
 
 func (l *unResolvedBasicEObjectList) RemoveAll(collection EList) bool {
-	modified := false
-	for i := l.Size() - 1; i >= 0; {
-		if collection.Contains(l.Get(i)) {
-			l.RemoveAt(i)
-			modified = true
-		}
-		i--
-	}
-	return modified
+	return l.delegate.doRemoveAll(collection, func(index int, other interface{}) bool {
+		return l.delegate.data[index] == other
+	})
 }
 
 // Get an element of the list

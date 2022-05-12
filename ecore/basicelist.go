@@ -257,12 +257,11 @@ func (list *basicEList) doRemove(index int) interface{} {
 
 func (list *basicEList) RemoveAll(collection EList) bool {
 	modified := false
-	for i := list.Size() - 1; i >= 0; {
+	for i := list.Size() - 1; i >= 0; i-- {
 		if collection.Contains(list.Get(i)) {
 			list.RemoveAt(i)
 			modified = true
 		}
-		i--
 	}
 	return modified
 }

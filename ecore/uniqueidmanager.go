@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"runtime"
 	"unsafe"
 )
 
@@ -60,12 +59,10 @@ func (m *UniqueIDManager) Register(eObject EObject) {
 	if _, isID := m.objectToID[eObject]; !isID {
 		// if object is detached, retrieve its id
 		// remove it from detached map
-		// remove its finalizer
 		objectHash := m.getHash(eObject)
 		newID, isOldID := m.detachedToID[objectHash]
 		if isOldID {
 			delete(m.detachedToID, objectHash)
-			runtime.SetFinalizer(eObject, nil)
 		} else {
 			newID = m.newID()
 		}
@@ -103,12 +100,8 @@ func (m *UniqueIDManager) UnRegister(eObject EObject) {
 		delete(m.objectToID, eObject)
 		// register as detached
 		// add to detached map
-		// register a finalizer
 		objectHash := m.getHash(eObject)
 		m.detachedToID[objectHash] = id
-		runtime.SetFinalizer(eObject, func(_ interface{}) {
-			delete(m.detachedToID, objectHash)
-		})
 	}
 }
 

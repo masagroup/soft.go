@@ -240,8 +240,14 @@ func (list *basicEList) doRemove(index int) interface{} {
 	if index < 0 || index >= list.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
+	// retrieve removed object
 	object := list.data[index]
-	list.data = append(list.data[:index], list.data[index+1:]...)
+
+	// remove index
+	copy(list.data[index:], list.data[index+1:])
+	list.data[len(list.data)-1] = nil
+	list.data = list.data[:len(list.data)-1]
+
 	// events
 	interfaces := list.interfaces.(abstractEList)
 	interfaces.didRemove(index, object)
@@ -251,12 +257,11 @@ func (list *basicEList) doRemove(index int) interface{} {
 
 func (list *basicEList) RemoveAll(collection EList) bool {
 	modified := false
-	for i := list.Size() - 1; i >= 0; {
+	for i := list.Size() - 1; i >= 0; i-- {
 		if collection.Contains(list.Get(i)) {
 			list.RemoveAt(i)
 			modified = true
 		}
-		i--
 	}
 	return modified
 }

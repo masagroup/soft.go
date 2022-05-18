@@ -27,35 +27,33 @@ type transition struct {
 	target    state
 }
 
-type transitions struct {
-	array []*transition
-}
+type transitions []*transition
 
 func (ts transitions) isEmpty() bool {
-	return len(ts.array) == 0
+	return len(ts) == 0
 }
 
-func (ts transitions) addTransition(transition *transition) {
-	for _, t := range ts.array {
-		if *t == *transition {
-			return
+func (ts transitions) addTransition(transition *transition) transitions {
+	for _, t := range ts {
+		if t == transition || *t == *transition {
+			return ts
 		}
 	}
-	ts.array = append(ts.array, transition)
+	return append(ts, transition)
 }
 
-func (ts transitions) removeTransition(transition *transition) {
-	for i, t := range ts.array {
-		if *t == *transition {
-			ts.array[i] = ts.array[len(ts.array)-1]
-			ts.array = ts.array[:len(ts.array)-1]
-			return
+func (ts transitions) removeTransition(transition *transition) transitions {
+	for i, t := range ts {
+		if t == transition || *t == *transition {
+			ts[i] = ts[len(ts)-1]
+			return ts[:len(ts)-1]
 		}
 	}
+	return ts
 }
 
 func (ts transitions) getTransition(reference EReference) *transition {
-	for _, t := range ts.array {
+	for _, t := range ts {
 		if t.reference == reference {
 			return t
 		}
@@ -67,33 +65,26 @@ type transitionTable map[state]transitions
 
 func (table transitionTable) union(other transitionTable) transitionTable {
 	for s, ts := range other {
-		for _, t := range ts.array {
-			table[s].addTransition(t)
+		for _, t := range ts {
+			table[s] = table[s].addTransition(t)
 		}
 	}
 	return table
 }
 
 func (table transitionTable) addTransition(t *transition) {
-	table[t.source].addTransition(t)
+	table[t.source] = table[t.source].addTransition(t)
 }
 
 func (table transitionTable) removeTransition(t *transition) {
 	if tableTransitions, isTransitions := table[t.source]; isTransitions {
-		tableTransitions.removeTransition(t)
+		table[t.source] = tableTransitions.removeTransition(t)
 	}
-}
-
-func (table transitionTable) getTransition(source state, reference EReference) *transition {
-	if tableTransitions, isTransitions := table[source]; isTransitions {
-		return tableTransitions.getTransition(reference)
-	}
-	return nil
 }
 
 func (table transitionTable) getTransitions(source state) []*transition {
 	if tableTransitions, isTransitions := table[source]; isTransitions {
-		return tableTransitions.array
+		return tableTransitions
 	}
 	return nil
 }
@@ -114,18 +105,21 @@ func newTransitionTable(startClass EClass, endClass EClass) transitionTable {
 func computeTransitionTableForState(source state, endClass EClass, currentTable transitionTable, resultTable transitionTable) {
 	for itFeature := source.eClass.GetEAllStructuralFeatures().Iterator(); itFeature.HasNext(); {
 		reference, _ := itFeature.Next().(EReference)
-		computeTransitionTableForReference(source, reference, endClass, currentTable, resultTable)
+		if reference != nil {
+			computeTransitionTableForReference(source, reference, endClass, currentTable, resultTable)
+		}
 	}
 }
 
 func computeTransitionTableForReference(source state, reference EReference, endClass EClass, currentTable transitionTable, resultTable transitionTable) {
 	target := reference.GetEReferenceType()
-	transition := &transition{source: source, target: state{stateType: end, eClass: endClass}, reference: reference}
 	if target == endClass {
+		transition := &transition{source: source, target: state{stateType: end, eClass: endClass}, reference: reference}
 		resultTable.union(currentTable)
 		resultTable.addTransition(transition)
 	} else {
 		state := state{stateType: active, eClass: target}
+		transition := &transition{source: source, target: state, reference: reference}
 		if currentTable.contains(state) {
 			// cycle
 			// check if target is in result and add the current
@@ -185,6 +179,7 @@ func newEAllContentsWithClassIterator(object EObject, table transitionTable) *eA
 		table: table,
 		data:  []*data{{object: object, state: state{stateType: start, eClass: object.EClass()}}},
 	}
+	it.next = it.findNext()
 	return it
 }
 
@@ -198,13 +193,13 @@ func (it *eAllContentsWithClassIterator) Next() interface{} {
 	return next
 }
 
+var notransitions []*transition = []*transition{}
+
 func (it *eAllContentsWithClassIterator) findNext() interface{} {
-	notransitions := []*transition{}
 	for len(it.data) != 0 {
 		d := it.data[len(it.data)-1]
 
-		iterator := d.iterator
-		if iterator == nil || !iterator.HasNext() {
+		if d.iterator == nil || !d.iterator.HasNext() {
 			// retrieve state transitions
 			if d.transitions == nil {
 				if transitions := it.table.getTransitions(d.state); transitions != nil {
@@ -218,6 +213,8 @@ func (it *eAllContentsWithClassIterator) findNext() interface{} {
 				last := len(d.transitions) - 1
 				d.transition = d.transitions[last]
 				d.transitions = d.transitions[:last]
+			} else {
+				d.transition = nil
 			}
 
 			// compute iterator
@@ -232,16 +229,17 @@ func (it *eAllContentsWithClassIterator) findNext() interface{} {
 			}
 		}
 
-		if iterator != nil && iterator.HasNext() {
-			object := iterator.Next().(EObject)
+		if d.iterator != nil && d.iterator.HasNext() {
+			object := d.iterator.Next().(EObject)
+
+			// push data to the stack before returning to look for children next iteration
+			it.data = append(it.data, &data{object: object, state: d.transition.target})
 
 			// a leaf is found
-			if d.state.stateType == end {
+			if d.transition.target.stateType == end {
 				return object
 			}
 
-			// push data to the stack
-			it.data = append(it.data, &data{object: object, state: d.transition.target})
 		} else {
 			// pop data from the stack
 			it.data = it.data[:len(it.data)-1]

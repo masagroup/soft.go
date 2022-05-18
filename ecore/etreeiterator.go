@@ -20,12 +20,6 @@ func newTreeIterator(object interface{}, root bool, getChildren func(interface{}
 	return &treeIterator{object: object, root: root, getChildren: getChildren}
 }
 
-func newEAllContentsIterator(object EObject) *treeIterator {
-	return &treeIterator{object: object, root: false, getChildren: func(o interface{}) EIterator {
-		return o.(EObject).EContents().Iterator()
-	}}
-}
-
 func (it *treeIterator) HasNext() bool {
 	if it.data == nil && !it.root {
 		return it.hasAnyChildren()

@@ -112,28 +112,36 @@ func computeTransitionTableForState(source state, endClass EClass, currentTable 
 }
 
 func computeTransitionTableForReference(source state, reference EReference, endClass EClass, currentTable transitionTable, resultTable transitionTable) {
-	target := reference.GetEReferenceType()
-	if target == endClass {
-		transition := &transition{source: source, target: state{stateType: end, eClass: endClass}, reference: reference}
+	eClass := reference.GetEReferenceType()
+	stateType := active
+	if eClass == endClass {
+		stateType = end
+	}
+	state := state{stateType: stateType, eClass: eClass}
+	transition := &transition{source: source, target: state, reference: reference}
+
+	if eClass == endClass {
+		// end
+		// add current to result table
 		resultTable.union(currentTable)
 		resultTable.addTransition(transition)
-	} else {
-		state := state{stateType: active, eClass: target}
-		transition := &transition{source: source, target: state, reference: reference}
-		if currentTable.contains(state) {
-			// cycle
-			// check if target is in result and add the current
-			// transition table to keep track of this cycle
-			if resultTable.contains(state) {
-				resultTable.union(currentTable)
-				resultTable.addTransition(transition)
-			}
-			return
-		}
-		currentTable.addTransition(transition)
-		computeTransitionTableForState(state, endClass, currentTable, resultTable)
-		currentTable.removeTransition(transition)
 	}
+
+	if currentTable.contains(state) {
+		// cycle
+		// check if target is in result and add the current
+		// transition table to keep track of this cycle
+		if resultTable.contains(state) {
+			resultTable.union(currentTable)
+			resultTable.addTransition(transition)
+		}
+		return
+	}
+
+	currentTable.addTransition(transition)
+	computeTransitionTableForState(state, endClass, currentTable, resultTable)
+	currentTable.removeTransition(transition)
+
 }
 
 type data struct {

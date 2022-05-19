@@ -21,10 +21,6 @@ type transition struct {
 
 type transitions []*transition
 
-func (ts transitions) isEmpty() bool {
-	return len(ts) == 0
-}
-
 func (ts transitions) addTransition(transition *transition) transitions {
 	for _, t := range ts {
 		if t == transition || *t == *transition {
@@ -42,15 +38,6 @@ func (ts transitions) removeTransition(transition *transition) transitions {
 		}
 	}
 	return ts
-}
-
-func (ts transitions) getTransition(reference EReference) *transition {
-	for _, t := range ts {
-		if t.reference == reference {
-			return t
-		}
-	}
-	return nil
 }
 
 type transitionTable map[state]transitions

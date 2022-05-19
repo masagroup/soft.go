@@ -76,31 +76,31 @@ func TestTransitionTable_Integration_Leaf(t *testing.T) {
 	require.NotNil(t, table)
 	assert.Equal(t, 4, len(table))
 	{
-		source := state{stateType: start, eClass: p.eRootClass}
-		target := state{stateType: active, eClass: p.ePartyClass}
+		source := state{eClass: p.eRootClass}
+		target := state{eClass: p.ePartyClass}
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
 		assert.Equal(t, &transition{source: source, target: target, reference: p.eRootPartiesReference}, transitions[0])
 	}
 	{
-		source := state{stateType: active, eClass: p.ePartyClass}
-		target := state{stateType: active, eClass: p.eFormationClass}
+		source := state{eClass: p.ePartyClass}
+		target := state{eClass: p.eFormationClass}
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
 		assert.Equal(t, &transition{source: source, target: target, reference: p.ePartyFormationsReference}, transitions[0])
 	}
 	{
-		source := state{stateType: active, eClass: p.eFormationClass}
-		targetAutomat := state{stateType: active, eClass: p.eAutomatClass}
-		targetFormation := state{stateType: active, eClass: p.eFormationClass}
+		source := state{eClass: p.eFormationClass}
+		targetAutomat := state{eClass: p.eAutomatClass}
+		targetFormation := state{eClass: p.eFormationClass}
 		transitions := table.getTransitions(source)
 		require.Equal(t, 2, len(transitions))
 		assert.Equal(t, &transition{source: source, target: targetFormation, reference: p.eFormationFormationsReference}, transitions[0])
 		assert.Equal(t, &transition{source: source, target: targetAutomat, reference: p.eFormationAutomatsReference}, transitions[1])
 	}
 	{
-		source := state{stateType: active, eClass: p.eAutomatClass}
-		target := state{stateType: end, eClass: p.eUnitClass}
+		source := state{eClass: p.eAutomatClass}
+		target := state{eClass: p.eUnitClass, isEnd: true}
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
 		assert.Equal(t, &transition{source: source, target: target, reference: p.eAutomatUnitsReference}, transitions[0])
@@ -116,22 +116,22 @@ func TestTransitionTable_Integration_Cycle(t *testing.T) {
 	assert.Equal(t, 3, len(table))
 
 	{
-		source := state{stateType: start, eClass: p.eRootClass}
-		target := state{stateType: active, eClass: p.ePartyClass}
+		source := state{eClass: p.eRootClass}
+		target := state{eClass: p.ePartyClass}
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
 		assert.Equal(t, &transition{source: source, target: target, reference: p.eRootPartiesReference}, transitions[0])
 	}
 	{
-		source := state{stateType: active, eClass: p.ePartyClass}
-		target := state{stateType: end, eClass: p.eFormationClass}
+		source := state{eClass: p.ePartyClass}
+		target := state{eClass: p.eFormationClass, isEnd: true}
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
 		assert.Equal(t, &transition{source: source, target: target, reference: p.ePartyFormationsReference}, transitions[0])
 	}
 	{
-		source := state{stateType: end, eClass: p.eFormationClass}
-		target := state{stateType: end, eClass: p.eFormationClass}
+		source := state{eClass: p.eFormationClass, isEnd: true}
+		target := state{eClass: p.eFormationClass, isEnd: true}
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
 		assert.Equal(t, &transition{source: source, target: target, reference: p.eFormationFormationsReference}, transitions[0])

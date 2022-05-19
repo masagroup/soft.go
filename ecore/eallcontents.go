@@ -8,17 +8,9 @@ func newEAllContentsIterator(object EObject) *eAllContentIterator {
 	}}
 }
 
-type stateType int
-
-const (
-	start stateType = iota
-	active
-	end
-)
-
 type state struct {
-	stateType stateType
-	eClass    EClass
+	eClass EClass
+	isEnd  bool
 }
 
 type transition struct {
@@ -97,7 +89,7 @@ func (table transitionTable) contains(source state) bool {
 func newTransitionTable(startClass EClass, endClass EClass) transitionTable {
 	resultTable := transitionTable{}
 	if startClass != endClass {
-		computeTransitionTableForState(state{stateType: start, eClass: startClass}, endClass, transitionTable{}, resultTable)
+		computeTransitionTableForState(state{eClass: startClass}, endClass, transitionTable{}, resultTable)
 	}
 	return resultTable
 }
@@ -113,11 +105,7 @@ func computeTransitionTableForState(source state, endClass EClass, currentTable 
 
 func computeTransitionTableForReference(source state, reference EReference, endClass EClass, currentTable transitionTable, resultTable transitionTable) {
 	eClass := reference.GetEReferenceType()
-	stateType := active
-	if eClass == endClass {
-		stateType = end
-	}
-	state := state{stateType: stateType, eClass: eClass}
+	state := state{isEnd: eClass == endClass, eClass: eClass}
 	transition := &transition{source: source, target: state, reference: reference}
 
 	if eClass == endClass {
@@ -185,7 +173,7 @@ type eAllContentsWithClassIterator struct {
 func newEAllContentsWithClassIterator(object EObject, table transitionTable) *eAllContentsWithClassIterator {
 	it := &eAllContentsWithClassIterator{
 		table: table,
-		data:  []*data{{object: object, state: state{stateType: start, eClass: object.EClass()}}},
+		data:  []*data{{object: object, state: state{eClass: object.EClass()}}},
 	}
 	it.next = it.findNext()
 	return it
@@ -244,7 +232,7 @@ func (it *eAllContentsWithClassIterator) findNext() interface{} {
 			it.data = append(it.data, &data{object: object, state: d.transition.target})
 
 			// a leaf is found
-			if d.transition.target.stateType == end {
+			if d.transition.target.isEnd {
 				return object
 			}
 

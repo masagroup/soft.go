@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eac:Root xmlns:eac="http:///org/eclipse/emf/examples/eallcontents/eallcontents.ecore/1.0.0">
+  <theater>
+  <parties name="party 1">
+    <formations name="formation 1">
+      <formations name="formation 2">
+        <automats name="automat 1">
+          <units name="unit 1"/>
+        </automats>
+        <automats name="automat 2">
+          <units name="unit 2"/>
+        </automats>
+      </formations>
+      <automats name="automat 3">
+        <units name="unit 3"/>
+      </automats>
+      <automats name="automat 4"/>
+    </formations>
+    <formations name="formation 3">
+      <automats name="automat 5">
+        <units name="unit 4"/>
+      </automats>
+    </formations>
+  </parties>
+  <parties name="party 2"/>
+  <parties name="party 3">
+    <formations name="formation 4">
+      <automats name="automat 6">
+        <units name="unit 5"/>
+      </automats>
+    </formations>
+  </parties>
+  </theater>
+</eac:Root>

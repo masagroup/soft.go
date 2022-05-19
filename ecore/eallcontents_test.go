@@ -10,7 +10,9 @@ import (
 type eAllContentsPackage struct {
 	ePackage                      EPackage
 	eRootClass                    EClass
-	eRootPartiesReference         EReference
+	eRootTheaterReference         EReference
+	eTheaterClass                 EClass
+	eTheaterPartiesReference      EReference
 	ePartyClass                   EClass
 	ePartyFormationsReference     EReference
 	eFormationClass               EClass
@@ -29,8 +31,12 @@ func loadEAllContentsPackage(t *testing.T) *eAllContentsPackage {
 	require.NotNil(t, ePackage)
 	eRootClass, _ := ePackage.GetEClassifier("Root").(EClass)
 	require.NotNil(t, eRootClass)
-	eRootPartiesReference, _ := eRootClass.GetEStructuralFeatureFromName("parties").(EReference)
-	require.NotNil(t, eRootPartiesReference)
+	eRootTheaterReference, _ := eRootClass.GetEStructuralFeatureFromName("theater").(EReference)
+	require.NotNil(t, eRootTheaterReference)
+	eTheaterClass, _ := ePackage.GetEClassifier("Theater").(EClass)
+	require.NotNil(t, eTheaterClass)
+	eTheaterPartiesReference, _ := eTheaterClass.GetEStructuralFeatureFromName("parties").(EReference)
+	require.NotNil(t, eTheaterPartiesReference)
 	ePartyClass, _ := ePackage.GetEClassifier("Party").(EClass)
 	require.NotNil(t, ePartyClass)
 	ePartyFormationsReference, _ := ePartyClass.GetEStructuralFeatureFromName("formations").(EReference)
@@ -55,7 +61,9 @@ func loadEAllContentsPackage(t *testing.T) *eAllContentsPackage {
 	return &eAllContentsPackage{
 		ePackage:                      ePackage,
 		eRootClass:                    eRootClass,
-		eRootPartiesReference:         eRootPartiesReference,
+		eRootTheaterReference:         eRootTheaterReference,
+		eTheaterClass:                 eTheaterClass,
+		eTheaterPartiesReference:      eTheaterPartiesReference,
 		ePartyClass:                   ePartyClass,
 		ePartyFormationsReference:     ePartyFormationsReference,
 		eFormationClass:               eFormationClass,
@@ -77,10 +85,17 @@ func TestTransitionTable_Integration_Leaf(t *testing.T) {
 	assert.True(t, table.isEnd(p.eUnitClass))
 	{
 		source := p.eRootClass
+		target := p.eTheaterClass
+		transitions := table.getTransitions(source)
+		require.Equal(t, 1, len(transitions))
+		assert.Equal(t, &transition{source: source, target: target, reference: p.eRootTheaterReference}, transitions[0])
+	}
+	{
+		source := p.eTheaterClass
 		target := p.ePartyClass
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
-		assert.Equal(t, &transition{source: source, target: target, reference: p.eRootPartiesReference}, transitions[0])
+		assert.Equal(t, &transition{source: source, target: target, reference: p.eTheaterPartiesReference}, transitions[0])
 	}
 	{
 		source := p.ePartyClass
@@ -116,10 +131,17 @@ func TestTransitionTable_Integration_Cycle(t *testing.T) {
 	assert.True(t, table.isEnd(p.eFormationClass))
 	{
 		source := p.eRootClass
+		target := p.eTheaterClass
+		transitions := table.getTransitions(source)
+		require.Equal(t, 1, len(transitions))
+		assert.Equal(t, &transition{source: source, target: target, reference: p.eRootTheaterReference}, transitions[0])
+	}
+	{
+		source := p.eTheaterClass
 		target := p.ePartyClass
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
-		assert.Equal(t, &transition{source: source, target: target, reference: p.eRootPartiesReference}, transitions[0])
+		assert.Equal(t, &transition{source: source, target: target, reference: p.eTheaterPartiesReference}, transitions[0])
 	}
 	{
 		source := p.ePartyClass

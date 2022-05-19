@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <eac:Root xmlns:eac="http:///org/eclipse/emf/examples/eallcontents/eallcontents.ecore/1.0.0">
+  <theater>
   <parties name="party 1">
     <formations name="formation 1">
       <formations name="formation 2">
@@ -29,4 +30,5 @@
       </automats>
     </formations>
   </parties>
+  </theater>
 </eac:Root>

@@ -1,13 +1,14 @@
 package ecore
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
+	"sync"
 	"unsafe"
 )
 
 type IncrementalIDManager struct {
+	mutex        sync.RWMutex
 	detachedToID map[uintptr]int64
 	objectToID   map[EObject]int64
 	idToObject   map[int64]EObject
@@ -56,39 +57,19 @@ func (m *IncrementalIDManager) getID(id interface{}) (int64, error) {
 	case int8:
 		return int64(v), nil
 	}
-	return 0, errors.New(fmt.Sprintf("id:'%v' not supported by IncrementalIDManager", id))
+	return 0, fmt.Errorf("id:'%v' not supported by IncrementalIDManager", id)
 }
 
 func (m *IncrementalIDManager) Clear() {
+	m.mutex.Lock()
 	m.detachedToID = make(map[uintptr]int64)
 	m.objectToID = make(map[EObject]int64)
 	m.idToObject = make(map[int64]EObject)
 	m.currentID = 0
+	m.mutex.Unlock()
 }
 
-func (m *IncrementalIDManager) Register(eObject EObject) {
-	if _, isID := m.objectToID[eObject]; !isID {
-		// if object is detached, retrieve its id
-		// remove it from detached map
-		objectHash := m.getHash(eObject)
-		newID, isOldID := m.detachedToID[objectHash]
-		if isOldID {
-			delete(m.detachedToID, objectHash)
-		} else {
-			newID = m.newID()
-		}
-		m.SetID(eObject, newID)
-	}
-}
-
-func max(x, y int64) int64 {
-	if x < y {
-		return y
-	}
-	return x
-}
-
-func (m *IncrementalIDManager) SetID(eObject EObject, id interface{}) error {
+func (m *IncrementalIDManager) setID(eObject EObject, id interface{}) error {
 	if oldID, isOldID := m.objectToID[eObject]; isOldID {
 		delete(m.idToObject, oldID)
 	}
@@ -105,7 +86,38 @@ func (m *IncrementalIDManager) SetID(eObject EObject, id interface{}) error {
 	return err
 }
 
+func (m *IncrementalIDManager) Register(eObject EObject) {
+	m.mutex.Lock()
+	if _, isID := m.objectToID[eObject]; !isID {
+		// if object is detached, retrieve its id
+		// remove it from detached map
+		objectHash := m.getHash(eObject)
+		newID, isOldID := m.detachedToID[objectHash]
+		if isOldID {
+			delete(m.detachedToID, objectHash)
+		} else {
+			newID = m.newID()
+		}
+		m.setID(eObject, newID)
+	}
+	m.mutex.Unlock()
+}
+
+func max(x, y int64) int64 {
+	if x < y {
+		return y
+	}
+	return x
+}
+
+func (m *IncrementalIDManager) SetID(eObject EObject, id interface{}) error {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	return m.setID(eObject, id)
+}
+
 func (m *IncrementalIDManager) UnRegister(eObject EObject) {
+	m.mutex.Lock()
 	if id, isPresent := m.objectToID[eObject]; isPresent {
 		delete(m.idToObject, id)
 		delete(m.objectToID, eObject)
@@ -114,9 +126,13 @@ func (m *IncrementalIDManager) UnRegister(eObject EObject) {
 		objectHash := m.getHash(eObject)
 		m.detachedToID[objectHash] = id
 	}
+	m.mutex.Unlock()
 }
 
 func (m *IncrementalIDManager) GetID(eObject EObject) interface{} {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
 	if id, isPresent := m.objectToID[eObject]; isPresent {
 		return id
 	}
@@ -124,6 +140,9 @@ func (m *IncrementalIDManager) GetID(eObject EObject) interface{} {
 }
 
 func (m *IncrementalIDManager) GetEObject(id interface{}) EObject {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
 	if v, err := m.getID(id); err == nil {
 		return m.idToObject[v]
 	}
@@ -131,6 +150,9 @@ func (m *IncrementalIDManager) GetEObject(id interface{}) EObject {
 }
 
 func (m *IncrementalIDManager) GetDetachedID(eObject EObject) interface{} {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
 	objectHash := m.getHash(eObject)
 	if id, isDetached := m.detachedToID[objectHash]; isDetached {
 		return id

@@ -47,7 +47,7 @@ func newEClassTransitionsTable() *EClassTransitionsTable {
 	}
 }
 
-func (table *EClassTransitionsTable) Union(other *EClassTransitionsTable) *EClassTransitionsTable {
+func (table *EClassTransitionsTable) union(other *EClassTransitionsTable) *EClassTransitionsTable {
 	for _, transitions := range other.transitionsMap {
 		for _, transition := range transitions {
 			table.addTransition(transition)
@@ -115,7 +115,7 @@ func computeTransitionTableForReference(sourceClass EClass, reference EReference
 		// end
 		// add current to result table
 		resultTable.setIsEnd(targetClass)
-		resultTable.Union(currentTable)
+		resultTable.union(currentTable)
 		resultTable.addTransition(transition)
 	}
 
@@ -124,7 +124,7 @@ func computeTransitionTableForReference(sourceClass EClass, reference EReference
 		// check if target is in result and add the current
 		// transition table to keep track of this cycle
 		if resultTable.contains(targetClass) {
-			resultTable.Union(currentTable)
+			resultTable.union(currentTable)
 			resultTable.addTransition(transition)
 		}
 		return

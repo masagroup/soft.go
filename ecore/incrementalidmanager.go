@@ -1,7 +1,6 @@
 package ecore
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"sync"
@@ -58,7 +57,7 @@ func (m *IncrementalIDManager) getID(id interface{}) (int64, error) {
 	case int8:
 		return int64(v), nil
 	}
-	return 0, errors.New(fmt.Sprintf("id:'%v' not supported by IncrementalIDManager", id))
+	return 0, fmt.Errorf("id:'%v' not supported by IncrementalIDManager", id)
 }
 
 func (m *IncrementalIDManager) Clear() {

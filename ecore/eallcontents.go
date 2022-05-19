@@ -174,7 +174,11 @@ type eAllContentsWithClassIterator struct {
 	next  interface{}
 }
 
-func newEAllContentsWithClassIterator(eObject EObject, table *EClassTransitionsTable) *eAllContentsWithClassIterator {
+func newEAllContentsWithClassIterator(eObject EObject, eClass EClass) *eAllContentsWithClassIterator {
+	return newEAllContentsWithTableIterator(eObject, NewEClassTransitionsTable(eObject.EClass(), eClass))
+}
+
+func newEAllContentsWithTableIterator(eObject EObject, table *EClassTransitionsTable) *eAllContentsWithClassIterator {
 	it := &eAllContentsWithClassIterator{
 		table: table,
 		data:  []*data{{eObject: eObject, eClass: eObject.EClass()}},

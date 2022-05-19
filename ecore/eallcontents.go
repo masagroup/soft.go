@@ -99,7 +99,7 @@ func NewEClassTransitionsTable(startClass EClass, endClass EClass) *EClassTransi
 }
 
 func computeTransitionTableForState(eClass EClass, endClass EClass, currentTable *EClassTransitionsTable, resultTable *EClassTransitionsTable) {
-	for itFeature := eClass.GetEAllStructuralFeatures().Iterator(); itFeature.HasNext(); {
+	for itFeature := eClass.GetEContainmentFeatures().Iterator(); itFeature.HasNext(); {
 		reference, _ := itFeature.Next().(EReference)
 		if reference != nil {
 			computeTransitionTableForReference(eClass, reference, endClass, currentTable, resultTable)

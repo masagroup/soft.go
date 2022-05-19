@@ -72,35 +72,35 @@ func loadEAllContentsPackage(t *testing.T) *eAllContentsPackage {
 func TestTransitionTable_Integration_Leaf(t *testing.T) {
 	p := loadEAllContentsPackage(t)
 
-	table := newTransitionTable(p.eRootClass, p.eUnitClass)
+	table := NewEClassTransitionsTable(p.eRootClass, p.eUnitClass)
 	require.NotNil(t, table)
-	assert.Equal(t, 4, len(table))
+	assert.True(t, table.isEnd(p.eUnitClass))
 	{
-		source := state{eClass: p.eRootClass}
-		target := state{eClass: p.ePartyClass}
+		source := p.eRootClass
+		target := p.ePartyClass
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
 		assert.Equal(t, &transition{source: source, target: target, reference: p.eRootPartiesReference}, transitions[0])
 	}
 	{
-		source := state{eClass: p.ePartyClass}
-		target := state{eClass: p.eFormationClass}
+		source := p.ePartyClass
+		target := p.eFormationClass
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
 		assert.Equal(t, &transition{source: source, target: target, reference: p.ePartyFormationsReference}, transitions[0])
 	}
 	{
-		source := state{eClass: p.eFormationClass}
-		targetAutomat := state{eClass: p.eAutomatClass}
-		targetFormation := state{eClass: p.eFormationClass}
+		source := p.eFormationClass
+		targetAutomat := p.eAutomatClass
+		targetFormation := p.eFormationClass
 		transitions := table.getTransitions(source)
 		require.Equal(t, 2, len(transitions))
 		assert.Equal(t, &transition{source: source, target: targetFormation, reference: p.eFormationFormationsReference}, transitions[0])
 		assert.Equal(t, &transition{source: source, target: targetAutomat, reference: p.eFormationAutomatsReference}, transitions[1])
 	}
 	{
-		source := state{eClass: p.eAutomatClass}
-		target := state{eClass: p.eUnitClass, isEnd: true}
+		source := p.eAutomatClass
+		target := p.eUnitClass
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
 		assert.Equal(t, &transition{source: source, target: target, reference: p.eAutomatUnitsReference}, transitions[0])
@@ -111,27 +111,26 @@ func TestTransitionTable_Integration_Leaf(t *testing.T) {
 func TestTransitionTable_Integration_Cycle(t *testing.T) {
 	p := loadEAllContentsPackage(t)
 
-	table := newTransitionTable(p.eRootClass, p.eFormationClass)
+	table := NewEClassTransitionsTable(p.eRootClass, p.eFormationClass)
 	require.NotNil(t, table)
-	assert.Equal(t, 3, len(table))
-
+	assert.True(t, table.isEnd(p.eFormationClass))
 	{
-		source := state{eClass: p.eRootClass}
-		target := state{eClass: p.ePartyClass}
+		source := p.eRootClass
+		target := p.ePartyClass
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
 		assert.Equal(t, &transition{source: source, target: target, reference: p.eRootPartiesReference}, transitions[0])
 	}
 	{
-		source := state{eClass: p.ePartyClass}
-		target := state{eClass: p.eFormationClass, isEnd: true}
+		source := p.ePartyClass
+		target := p.eFormationClass
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
 		assert.Equal(t, &transition{source: source, target: target, reference: p.ePartyFormationsReference}, transitions[0])
 	}
 	{
-		source := state{eClass: p.eFormationClass, isEnd: true}
-		target := state{eClass: p.eFormationClass, isEnd: true}
+		source := p.eFormationClass
+		target := p.eFormationClass
 		transitions := table.getTransitions(source)
 		require.Equal(t, 1, len(transitions))
 		assert.Equal(t, &transition{source: source, target: target, reference: p.eFormationFormationsReference}, transitions[0])
@@ -165,7 +164,7 @@ func TestEAllContentsWithClass_Leaf(t *testing.T) {
 	p := loadEAllContentsPackage(t)
 	m := loadEAllContentsModel(t, p.ePackage)
 
-	table := newTransitionTable(p.eRootClass, p.eUnitClass)
+	table := NewEClassTransitionsTable(p.eRootClass, p.eUnitClass)
 	require.NotNil(t, table)
 
 	it := newEAllContentsWithClassIterator(m.eRoot, table)
@@ -192,7 +191,7 @@ func TestEAllContentsWithClass_Cycle(t *testing.T) {
 	p := loadEAllContentsPackage(t)
 	m := loadEAllContentsModel(t, p.ePackage)
 
-	table := newTransitionTable(p.eRootClass, p.eFormationClass)
+	table := NewEClassTransitionsTable(p.eRootClass, p.eFormationClass)
 	require.NotNil(t, table)
 
 	it := newEAllContentsWithClassIterator(m.eRoot, table)

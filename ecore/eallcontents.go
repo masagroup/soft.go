@@ -8,15 +8,10 @@ func newEAllContentsIterator(object EObject) *eAllContentIterator {
 	}}
 }
 
-type state struct {
-	eClass EClass
-	isEnd  bool
-}
-
 type transition struct {
 	reference EReference
-	source    state
-	target    state
+	source    EClass
+	target    EClass
 }
 
 type transitions []*transition
@@ -40,102 +35,124 @@ func (ts transitions) removeTransition(transition *transition) transitions {
 	return ts
 }
 
-type transitionTable map[state]transitions
+type EClassTransitionsTable struct {
+	transitionsMap map[EClass]transitions
+	endSet         map[EClass]struct{}
+}
 
-func (table transitionTable) union(other transitionTable) transitionTable {
-	for s, ts := range other {
-		for _, t := range ts {
-			table[s] = table[s].addTransition(t)
+func newEClassTransitionsTable() *EClassTransitionsTable {
+	return &EClassTransitionsTable{
+		transitionsMap: map[EClass]transitions{},
+		endSet:         map[EClass]struct{}{},
+	}
+}
+
+func (table *EClassTransitionsTable) Union(other *EClassTransitionsTable) *EClassTransitionsTable {
+	for _, transitions := range other.transitionsMap {
+		for _, transition := range transitions {
+			table.addTransition(transition)
 		}
+	}
+	for eClass := range other.endSet {
+		table.setIsEnd(eClass)
 	}
 	return table
 }
 
-func (table transitionTable) addTransition(t *transition) {
-	table[t.source] = table[t.source].addTransition(t)
+func (table *EClassTransitionsTable) addTransition(t *transition) {
+	table.transitionsMap[t.source] = table.transitionsMap[t.source].addTransition(t)
 }
 
-func (table transitionTable) removeTransition(t *transition) {
-	if tableTransitions, isTransitions := table[t.source]; isTransitions {
-		table[t.source] = tableTransitions.removeTransition(t)
+func (table *EClassTransitionsTable) removeTransition(t *transition) {
+	if tableTransitions, isTransitions := table.transitionsMap[t.source]; isTransitions {
+		table.transitionsMap[t.source] = tableTransitions.removeTransition(t)
 	}
 }
 
-func (table transitionTable) getTransitions(source state) []*transition {
-	if tableTransitions, isTransitions := table[source]; isTransitions {
+func (table *EClassTransitionsTable) getTransitions(eClass EClass) []*transition {
+	if tableTransitions, isTransitions := table.transitionsMap[eClass]; isTransitions {
 		return tableTransitions
 	}
 	return nil
 }
 
-func (table transitionTable) contains(source state) bool {
-	_, isTransitions := table[source]
+func (table *EClassTransitionsTable) contains(source EClass) bool {
+	_, isTransitions := table.transitionsMap[source]
 	return isTransitions
 }
 
-func newTransitionTable(startClass EClass, endClass EClass) transitionTable {
-	resultTable := transitionTable{}
+func (table *EClassTransitionsTable) setIsEnd(eClass EClass) {
+	table.endSet[eClass] = struct{}{}
+}
+
+func (table *EClassTransitionsTable) isEnd(eClass EClass) bool {
+	_, isEnd := table.endSet[eClass]
+	return isEnd
+}
+
+func NewEClassTransitionsTable(startClass EClass, endClass EClass) *EClassTransitionsTable {
+	resultTable := newEClassTransitionsTable()
 	if startClass != endClass {
-		computeTransitionTableForState(state{eClass: startClass}, endClass, transitionTable{}, resultTable)
+		computeTransitionTableForState(startClass, endClass, newEClassTransitionsTable(), resultTable)
 	}
 	return resultTable
 }
 
-func computeTransitionTableForState(source state, endClass EClass, currentTable transitionTable, resultTable transitionTable) {
-	for itFeature := source.eClass.GetEAllStructuralFeatures().Iterator(); itFeature.HasNext(); {
+func computeTransitionTableForState(eClass EClass, endClass EClass, currentTable *EClassTransitionsTable, resultTable *EClassTransitionsTable) {
+	for itFeature := eClass.GetEAllStructuralFeatures().Iterator(); itFeature.HasNext(); {
 		reference, _ := itFeature.Next().(EReference)
 		if reference != nil {
-			computeTransitionTableForReference(source, reference, endClass, currentTable, resultTable)
+			computeTransitionTableForReference(eClass, reference, endClass, currentTable, resultTable)
 		}
 	}
 }
 
-func computeTransitionTableForReference(source state, reference EReference, endClass EClass, currentTable transitionTable, resultTable transitionTable) {
-	eClass := reference.GetEReferenceType()
-	state := state{isEnd: eClass == endClass, eClass: eClass}
-	transition := &transition{source: source, target: state, reference: reference}
+func computeTransitionTableForReference(sourceClass EClass, reference EReference, endClass EClass, currentTable *EClassTransitionsTable, resultTable *EClassTransitionsTable) {
+	targetClass := reference.GetEReferenceType()
+	transition := &transition{source: sourceClass, target: targetClass, reference: reference}
 
-	if eClass == endClass {
+	if targetClass == endClass {
 		// end
 		// add current to result table
-		resultTable.union(currentTable)
+		resultTable.setIsEnd(targetClass)
+		resultTable.Union(currentTable)
 		resultTable.addTransition(transition)
 	}
 
-	if currentTable.contains(state) {
+	if currentTable.contains(targetClass) {
 		// cycle
 		// check if target is in result and add the current
 		// transition table to keep track of this cycle
-		if resultTable.contains(state) {
-			resultTable.union(currentTable)
+		if resultTable.contains(targetClass) {
+			resultTable.Union(currentTable)
 			resultTable.addTransition(transition)
 		}
 		return
 	}
 
 	currentTable.addTransition(transition)
-	computeTransitionTableForState(state, endClass, currentTable, resultTable)
+	computeTransitionTableForState(targetClass, endClass, currentTable, resultTable)
 	currentTable.removeTransition(transition)
 
 }
 
 type data struct {
-	object      EObject
-	state       state
+	eObject     EObject
+	eClass      EClass
 	transition  *transition   // current transition
 	transitions []*transition // remaining transitions
 	iterator    EIterator
 }
 
 type eObjectIterator struct {
-	object EObject
-	next   bool
+	eObject EObject
+	next    bool
 }
 
-func newEObjectIterator(object EObject) *eObjectIterator {
+func newEObjectIterator(eObject EObject) *eObjectIterator {
 	return &eObjectIterator{
-		object: object,
-		next:   true,
+		eObject: eObject,
+		next:    true,
 	}
 }
 
@@ -146,21 +163,21 @@ func (it *eObjectIterator) HasNext() bool {
 func (it *eObjectIterator) Next() interface{} {
 	if it.next {
 		it.next = false
-		return it.object
+		return it.eObject
 	}
 	panic("Not such an element")
 }
 
 type eAllContentsWithClassIterator struct {
-	table transitionTable
+	table *EClassTransitionsTable
 	data  []*data
 	next  interface{}
 }
 
-func newEAllContentsWithClassIterator(object EObject, table transitionTable) *eAllContentsWithClassIterator {
+func newEAllContentsWithClassIterator(eObject EObject, table *EClassTransitionsTable) *eAllContentsWithClassIterator {
 	it := &eAllContentsWithClassIterator{
 		table: table,
-		data:  []*data{{object: object, state: state{eClass: object.EClass()}}},
+		data:  []*data{{eObject: eObject, eClass: eObject.EClass()}},
 	}
 	it.next = it.findNext()
 	return it
@@ -185,7 +202,7 @@ func (it *eAllContentsWithClassIterator) findNext() interface{} {
 		if d.iterator == nil || !d.iterator.HasNext() {
 			// retrieve state transitions
 			if d.transitions == nil {
-				if transitions := it.table.getTransitions(d.state); transitions != nil {
+				if transitions := it.table.getTransitions(d.eClass); transitions != nil {
 					d.transitions = transitions
 				} else {
 					d.transitions = notransitions
@@ -201,8 +218,8 @@ func (it *eAllContentsWithClassIterator) findNext() interface{} {
 			}
 
 			// compute iterator
-			if d.transition != nil && d.object.EIsSet(d.transition.reference) {
-				value := d.object.EGet(d.transition.reference)
+			if d.transition != nil && d.eObject.EIsSet(d.transition.reference) {
+				value := d.eObject.EGet(d.transition.reference)
 				switch v := value.(type) {
 				case EList:
 					d.iterator = v.Iterator()
@@ -213,14 +230,14 @@ func (it *eAllContentsWithClassIterator) findNext() interface{} {
 		}
 
 		if d.iterator != nil && d.iterator.HasNext() {
-			object := d.iterator.Next().(EObject)
-
+			eObject := d.iterator.Next().(EObject)
+			eClass := d.transition.target
 			// push data to the stack before returning to look for children next iteration
-			it.data = append(it.data, &data{object: object, state: d.transition.target})
+			it.data = append(it.data, &data{eObject: eObject, eClass: eClass})
 
 			// a leaf is found
-			if d.transition.target.isEnd {
-				return object
+			if it.table.isEnd(eClass) {
+				return eObject
 			}
 
 		} else {

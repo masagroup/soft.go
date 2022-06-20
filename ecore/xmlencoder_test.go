@@ -98,6 +98,26 @@ func TestXMLEncoderLibraryComplex(t *testing.T) {
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
 
+func TestXMLEncoderEMaps(t *testing.T) {
+	// load package
+	ePackage := loadPackage("emap.ecore")
+	assert.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.Load(&URI{Path: "testdata/emap.xml"})
+	require.NotNil(t, eResource)
+	assert.True(t, eResource.IsLoaded())
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+	// save resource
+	result := xmlProcessor.SaveToString(eResource, nil)
+
+	bytes, err := ioutil.ReadFile("testdata/emap.xml")
+	assert.Nil(t, err)
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
+}
+
 func TestXMLEncoderLibraryComplexSubElement(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")

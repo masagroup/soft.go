@@ -205,6 +205,52 @@ func TestBinaryDecoder_ComplexBig(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 }
 
+func TestBinaryDecoder_Maps(t *testing.T) {
+	// load package
+	ePackage := loadPackage("emap.ecore")
+	require.NotNil(t, ePackage)
+
+	//
+	uri := &URI{Path: "testdata/emap.bin"}
+	eResource := NewEResourceImpl()
+	eResource.SetURI(uri)
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(eResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	// file
+	f, err := os.Open(uri.Path)
+	require.Nil(t, err)
+
+	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
+	binaryDecoder.Decode()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	eMapTestClass, _ := ePackage.GetEClassifier("EMapTest").(EClass)
+	require.NotNil(t, eMapTestClass)
+	eMapTestKeyToValueReference, _ := eMapTestClass.GetEStructuralFeatureFromName("keyToValue").(EReference)
+	require.NotNil(t, eMapTestKeyToValueReference)
+	eMapTestKeyToIntReference, _ := eMapTestClass.GetEStructuralFeatureFromName("keyToInt").(EReference)
+	require.NotNil(t, eMapTestKeyToIntReference)
+	eKeyTypeClass, _ := ePackage.GetEClassifier("KeyType").(EClass)
+	require.NotNil(t, eKeyTypeClass)
+	eKeyTypeNameAttribute, _ := eKeyTypeClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	require.NotNil(t, eKeyTypeNameAttribute)
+	eValueTypeClass, _ := ePackage.GetEClassifier("ValueType").(EClass)
+	require.NotNil(t, eValueTypeClass)
+	eValueTypeNameAttribute, _ := eValueTypeClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	require.NotNil(t, eValueTypeNameAttribute)
+
+	mapTest := eResource.GetContents().Get(0).(EObject)
+	require.Equal(t, eMapTestClass, mapTest.EClass())
+	mapKeyToValue, _ := mapTest.EGet(eMapTestKeyToValueReference).(EMap)
+	require.NotNil(t, mapKeyToValue)
+	assert.Equal(t, 5, mapKeyToValue.Size())
+	mapKeyToInt, _ := mapTest.EGet(eMapTestKeyToIntReference).(EMap)
+	require.NotNil(t, mapKeyToInt)
+	assert.Equal(t, 5, mapKeyToInt.Size())
+}
+
 func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")

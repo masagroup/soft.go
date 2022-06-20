@@ -121,6 +121,31 @@ func TestBinaryEncoder_SimpleWithDataTypeList(t *testing.T) {
 	assert.Equal(t, bytes, w.Bytes())
 }
 
+func TestBinaryEncoder_Maps(t *testing.T) {
+	// load package
+	ePackage := loadPackage("emap.ecore")
+	require.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/emap.xml"}, nil)
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	w := &bytes.Buffer{}
+	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]interface{}{})
+	binaryEncoder.Encode()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	// ioutil.WriteFile("testdata/emap.bin", w.Bytes(), 0644)
+
+	bytes, err := ioutil.ReadFile("testdata/emap.bin")
+	assert.Nil(t, err)
+	assert.Equal(t, bytes, w.Bytes())
+}
+
 func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")

@@ -32,9 +32,15 @@ func (eFactory *EFactoryExt) Create(eClass EClass) EObject {
 	if eFactory.GetEPackage() != eClass.GetEPackage() || eClass.IsAbstract() {
 		panic("The class '" + eClass.GetName() + "' is not a valid classifier")
 	}
-	eObject := NewDynamicEObjectImpl()
-	eObject.SetEClass(eClass)
-	return eObject
+	if IsMapEntry(eClass) {
+		eEntry := NewDynamicEMapEntryImpl()
+		eEntry.SetEClass(eClass)
+		return eEntry
+	} else {
+		eObject := NewDynamicEObjectImpl()
+		eObject.SetEClass(eClass)
+		return eObject
+	}
 }
 
 // CreateFromString default implementation

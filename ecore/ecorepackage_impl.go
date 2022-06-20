@@ -275,12 +275,12 @@ func (p *ecorePackageImpl) GetEClassifierClass() EClass {
 
 // GetEClassifier_ClassifierID returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_ClassifierID() EAttribute {
-	return p.eClassifier.GetEStructuralFeatures().Get(4).(EAttribute)
+	return p.eClassifier.GetEStructuralFeatures().Get(5).(EAttribute)
 }
 
 // GetEClassifier_DefaultValue returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_DefaultValue() EAttribute {
-	return p.eClassifier.GetEStructuralFeatures().Get(2).(EAttribute)
+	return p.eClassifier.GetEStructuralFeatures().Get(3).(EAttribute)
 }
 
 // GetEClassifier_InstanceClass returns the meta object corresponding to
@@ -288,14 +288,19 @@ func (p *ecorePackageImpl) GetEClassifier_InstanceClass() EAttribute {
 	return p.eClassifier.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
+// GetEClassifier_InstanceClassName returns the meta object corresponding to
+func (p *ecorePackageImpl) GetEClassifier_InstanceClassName() EAttribute {
+	return p.eClassifier.GetEStructuralFeatures().Get(0).(EAttribute)
+}
+
 // GetEClassifier_InstanceTypeName returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_InstanceTypeName() EAttribute {
-	return p.eClassifier.GetEStructuralFeatures().Get(0).(EAttribute)
+	return p.eClassifier.GetEStructuralFeatures().Get(2).(EAttribute)
 }
 
 // GetEClassifier_EPackage returns the meta object corresponding to
 func (p *ecorePackageImpl) GetEClassifier_EPackage() EReference {
-	return p.eClassifier.GetEStructuralFeatures().Get(3).(EReference)
+	return p.eClassifier.GetEStructuralFeatures().Get(4).(EReference)
 }
 
 // GetEClassifier_IsInstance_EJavaObject returns the meta object corresponding to
@@ -976,8 +981,9 @@ func (p *ecorePackageImpl) createPackageContents() {
 	factory.CreateEOperationFromContainerAndClassID(p.eClass, ECLASS__GET_FEATURE_TYPE_ESTRUCTURALFEATURE)
 
 	p.eClassifier = factory.CreateEClassFromContainerAndClassID(p, ECLASSIFIER)
-	factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__INSTANCE_TYPE_NAME)
+	factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__INSTANCE_CLASS_NAME)
 	factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__INSTANCE_CLASS)
+	factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__INSTANCE_TYPE_NAME)
 	factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__DEFAULT_VALUE)
 	factory.CreateEReferenceFromContainerAndClassID(p.eClassifier, ECLASSIFIER__EPACKAGE)
 	factory.CreateEAttributeFromContainerAndClassID(p.eClassifier, ECLASSIFIER__CLASSIFIER_ID)
@@ -1219,8 +1225,9 @@ func (p *ecorePackageImpl) initializePackageContents() {
 	}
 
 	p.InitEClass(p.eClassifier, "EClassifier", "ecore.EClassifier", true, false)
-	p.InitEAttribute(p.GetEClassifier_InstanceTypeName(), p.GetEString(), "instanceTypeName", "", 0, 1, false, false, true, false, true, false, true, false)
+	p.InitEAttribute(p.GetEClassifier_InstanceClassName(), p.GetEString(), "instanceClassName", "", 0, 1, false, false, true, false, true, false, true, false)
 	p.InitEAttribute(p.GetEClassifier_InstanceClass(), p.GetEJavaClass(), "instanceClass", "", 0, 1, false, false, true, false, true, false, true, false)
+	p.InitEAttribute(p.GetEClassifier_InstanceTypeName(), p.GetEString(), "instanceTypeName", "", 0, 1, false, true, true, false, true, false, true, false)
 	p.InitEAttribute(p.GetEClassifier_DefaultValue(), p.GetEJavaObject(), "defaultValue", "", 0, 1, true, true, false, false, true, true, true, false)
 	p.InitEAttribute(p.GetEClassifier_ClassifierID(), p.GetEInt(), "classifierID", "-1", 0, 1, true, false, true, false, true, false, true, false)
 	p.InitEReference(p.GetEClassifier_EPackage(), p.GetEPackage(), p.GetEPackage_EClassifiers(), "ePackage", "", 0, 1, true, false, false, false, true, false, true, false, true)

@@ -31,3 +31,12 @@ func (eClassifier *eClassifierExt) initClassifierID() int {
 func (eClassifier *eClassifierExt) GetDefaultValue() interface{} {
 	return nil
 }
+
+func (eClassifier *eClassifierExt) GetInstanceTypeName() string {
+	return eClassifier.GetInstanceClassName()
+}
+
+// SetInstanceTypeName set the value of instanceTypeName
+func (eClassifier *eClassifierExt) SetInstanceTypeName(newInstanceTypeName string) {
+	eClassifier.SetInstanceClassName(newInstanceTypeName)
+}

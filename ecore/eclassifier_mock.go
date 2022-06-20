@@ -91,6 +91,27 @@ func (eClassifier *MockEClassifier) SetInstanceClass(newInstanceClass reflect.Ty
 	eClassifier.Called(newInstanceClass)
 }
 
+// GetInstanceClassName get the value of instanceClassName
+func (eClassifier *MockEClassifier) GetInstanceClassName() string {
+	ret := eClassifier.Called()
+
+	var r string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r = ret.Get(0).(string)
+		}
+	}
+
+	return r
+}
+
+// SetInstanceClassName provides mock implementation for setting the value of instanceClassName
+func (eClassifier *MockEClassifier) SetInstanceClassName(newInstanceClassName string) {
+	eClassifier.Called(newInstanceClassName)
+}
+
 // GetInstanceTypeName get the value of instanceTypeName
 func (eClassifier *MockEClassifier) GetInstanceTypeName() string {
 	ret := eClassifier.Called()

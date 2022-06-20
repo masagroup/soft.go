@@ -113,7 +113,8 @@ func IsProxy(feature EStructuralFeature) bool {
 
 func IsMapType(feature EStructuralFeature) bool {
 	if eType := feature.GetEType(); eType != nil {
-		return eType.GetInstanceTypeName() == "ecore.EMapEntry"
+		instanceTypeName := eType.GetInstanceTypeName()
+		return instanceTypeName == "java.util.Map.Entry" || instanceTypeName == "java.util.Map$Entry"
 	}
 	return false
 }

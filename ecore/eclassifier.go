@@ -19,11 +19,14 @@ type EClassifier interface {
 
 	IsInstance(interface{}) bool
 
-	GetInstanceTypeName() string
-	SetInstanceTypeName(string)
+	GetInstanceClassName() string
+	SetInstanceClassName(string)
 
 	GetInstanceClass() reflect.Type
 	SetInstanceClass(reflect.Type)
+
+	GetInstanceTypeName() string
+	SetInstanceTypeName(string)
 
 	GetDefaultValue() interface{}
 

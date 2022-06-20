@@ -274,23 +274,26 @@ const (
 	// ECLASSIFIER__NAME is the feature id for the EClassifier 'Name' attribute.
 	ECLASSIFIER__NAME = ENAMED_ELEMENT__NAME
 
-	// ECLASSIFIER__INSTANCE_TYPE_NAME is the feature id for the EClassifier 'InstanceTypeName' attribute.
-	ECLASSIFIER__INSTANCE_TYPE_NAME = ENAMED_ELEMENT_FEATURE_COUNT + 0
+	// ECLASSIFIER__INSTANCE_CLASS_NAME is the feature id for the EClassifier 'InstanceClassName' attribute.
+	ECLASSIFIER__INSTANCE_CLASS_NAME = ENAMED_ELEMENT_FEATURE_COUNT + 0
 
 	// ECLASSIFIER__INSTANCE_CLASS is the feature id for the EClassifier 'InstanceClass' attribute.
 	ECLASSIFIER__INSTANCE_CLASS = ENAMED_ELEMENT_FEATURE_COUNT + 1
 
+	// ECLASSIFIER__INSTANCE_TYPE_NAME is the feature id for the EClassifier 'InstanceTypeName' attribute.
+	ECLASSIFIER__INSTANCE_TYPE_NAME = ENAMED_ELEMENT_FEATURE_COUNT + 2
+
 	// ECLASSIFIER__DEFAULT_VALUE is the feature id for the EClassifier 'DefaultValue' attribute.
-	ECLASSIFIER__DEFAULT_VALUE = ENAMED_ELEMENT_FEATURE_COUNT + 2
+	ECLASSIFIER__DEFAULT_VALUE = ENAMED_ELEMENT_FEATURE_COUNT + 3
 
 	// ECLASSIFIER__EPACKAGE is the feature id for the EClassifier 'EPackage' container reference.
-	ECLASSIFIER__EPACKAGE = ENAMED_ELEMENT_FEATURE_COUNT + 3
+	ECLASSIFIER__EPACKAGE = ENAMED_ELEMENT_FEATURE_COUNT + 4
 
 	// ECLASSIFIER__CLASSIFIER_ID is the feature id for the EClassifier 'ClassifierID' attribute.
-	ECLASSIFIER__CLASSIFIER_ID = ENAMED_ELEMENT_FEATURE_COUNT + 4
+	ECLASSIFIER__CLASSIFIER_ID = ENAMED_ELEMENT_FEATURE_COUNT + 5
 
 	// ECLASSIFIER_FEATURE_COUNT is the number of structural features of the class EClassifier.
-	ECLASSIFIER_FEATURE_COUNT = ENAMED_ELEMENT_FEATURE_COUNT + 5
+	ECLASSIFIER_FEATURE_COUNT = ENAMED_ELEMENT_FEATURE_COUNT + 6
 
 	// ECLASSIFIER__GET_EANNOTATION_ESTRING is the operation id for the 'getEAnnotation' operation.
 	ECLASSIFIER__GET_EANNOTATION_ESTRING = ENAMED_ELEMENT__GET_EANNOTATION_ESTRING
@@ -309,11 +312,14 @@ const (
 	// ECLASS__NAME is the feature id for the EClass 'Name' attribute.
 	ECLASS__NAME = ECLASSIFIER__NAME
 
-	// ECLASS__INSTANCE_TYPE_NAME is the feature id for the EClass 'InstanceTypeName' attribute.
-	ECLASS__INSTANCE_TYPE_NAME = ECLASSIFIER__INSTANCE_TYPE_NAME
+	// ECLASS__INSTANCE_CLASS_NAME is the feature id for the EClass 'InstanceClassName' attribute.
+	ECLASS__INSTANCE_CLASS_NAME = ECLASSIFIER__INSTANCE_CLASS_NAME
 
 	// ECLASS__INSTANCE_CLASS is the feature id for the EClass 'InstanceClass' attribute.
 	ECLASS__INSTANCE_CLASS = ECLASSIFIER__INSTANCE_CLASS
+
+	// ECLASS__INSTANCE_TYPE_NAME is the feature id for the EClass 'InstanceTypeName' attribute.
+	ECLASS__INSTANCE_TYPE_NAME = ECLASSIFIER__INSTANCE_TYPE_NAME
 
 	// ECLASS__DEFAULT_VALUE is the feature id for the EClass 'DefaultValue' attribute.
 	ECLASS__DEFAULT_VALUE = ECLASSIFIER__DEFAULT_VALUE
@@ -412,11 +418,14 @@ const (
 	// EDATA_TYPE__NAME is the feature id for the EDataType 'Name' attribute.
 	EDATA_TYPE__NAME = ECLASSIFIER__NAME
 
-	// EDATA_TYPE__INSTANCE_TYPE_NAME is the feature id for the EDataType 'InstanceTypeName' attribute.
-	EDATA_TYPE__INSTANCE_TYPE_NAME = ECLASSIFIER__INSTANCE_TYPE_NAME
+	// EDATA_TYPE__INSTANCE_CLASS_NAME is the feature id for the EDataType 'InstanceClassName' attribute.
+	EDATA_TYPE__INSTANCE_CLASS_NAME = ECLASSIFIER__INSTANCE_CLASS_NAME
 
 	// EDATA_TYPE__INSTANCE_CLASS is the feature id for the EDataType 'InstanceClass' attribute.
 	EDATA_TYPE__INSTANCE_CLASS = ECLASSIFIER__INSTANCE_CLASS
+
+	// EDATA_TYPE__INSTANCE_TYPE_NAME is the feature id for the EDataType 'InstanceTypeName' attribute.
+	EDATA_TYPE__INSTANCE_TYPE_NAME = ECLASSIFIER__INSTANCE_TYPE_NAME
 
 	// EDATA_TYPE__DEFAULT_VALUE is the feature id for the EDataType 'DefaultValue' attribute.
 	EDATA_TYPE__DEFAULT_VALUE = ECLASSIFIER__DEFAULT_VALUE
@@ -450,11 +459,14 @@ const (
 	// EENUM__NAME is the feature id for the EEnum 'Name' attribute.
 	EENUM__NAME = EDATA_TYPE__NAME
 
-	// EENUM__INSTANCE_TYPE_NAME is the feature id for the EEnum 'InstanceTypeName' attribute.
-	EENUM__INSTANCE_TYPE_NAME = EDATA_TYPE__INSTANCE_TYPE_NAME
+	// EENUM__INSTANCE_CLASS_NAME is the feature id for the EEnum 'InstanceClassName' attribute.
+	EENUM__INSTANCE_CLASS_NAME = EDATA_TYPE__INSTANCE_CLASS_NAME
 
 	// EENUM__INSTANCE_CLASS is the feature id for the EEnum 'InstanceClass' attribute.
 	EENUM__INSTANCE_CLASS = EDATA_TYPE__INSTANCE_CLASS
+
+	// EENUM__INSTANCE_TYPE_NAME is the feature id for the EEnum 'InstanceTypeName' attribute.
+	EENUM__INSTANCE_TYPE_NAME = EDATA_TYPE__INSTANCE_TYPE_NAME
 
 	// EENUM__DEFAULT_VALUE is the feature id for the EEnum 'DefaultValue' attribute.
 	EENUM__DEFAULT_VALUE = EDATA_TYPE__DEFAULT_VALUE
@@ -1032,6 +1044,8 @@ type EcorePackage interface {
 	GetEClassifier_DefaultValue() EAttribute
 	// Returns the meta object for the InstanceClass
 	GetEClassifier_InstanceClass() EAttribute
+	// Returns the meta object for the InstanceClassName
+	GetEClassifier_InstanceClassName() EAttribute
 	// Returns the meta object for the InstanceTypeName
 	GetEClassifier_InstanceTypeName() EAttribute
 

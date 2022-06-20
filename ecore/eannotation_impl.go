@@ -129,7 +129,7 @@ func (eAnnotation *eAnnotationImpl) initContents() EList {
 }
 
 func (eAnnotation *eAnnotationImpl) initDetails() EMap {
-	return NewBasicEObjectMap(GetPackage().GetEStringToStringMapEntry())
+	return NewBasicEObjectMap(GetPackage().GetEStringToStringMapEntry(), eAnnotation.AsEObjectInternal(), EANNOTATION__DETAILS, -1, false)
 }
 
 func (eAnnotation *eAnnotationImpl) initReferences() EList {

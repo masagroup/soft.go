@@ -287,6 +287,44 @@ func TestXMLDecoderSimpleObject(t *testing.T) {
 	assert.Equal(t, "Book 1", eObject.EGet(eBookNameAttribute))
 }
 
+func TestXMLDecoderMaps(t *testing.T) {
+	// load package
+	ePackage := loadPackage("emap.ecore")
+	require.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/emap.xml"}, nil)
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	eMapTestClass, _ := ePackage.GetEClassifier("EMapTest").(EClass)
+	require.NotNil(t, eMapTestClass)
+	eMapTestKeyToValueReference, _ := eMapTestClass.GetEStructuralFeatureFromName("keyToValue").(EReference)
+	require.NotNil(t, eMapTestKeyToValueReference)
+	eMapTestKeyToIntReference, _ := eMapTestClass.GetEStructuralFeatureFromName("keyToInt").(EReference)
+	require.NotNil(t, eMapTestKeyToIntReference)
+	eKeyTypeClass, _ := ePackage.GetEClassifier("KeyType").(EClass)
+	require.NotNil(t, eKeyTypeClass)
+	eKeyTypeNameAttribute, _ := eKeyTypeClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	require.NotNil(t, eKeyTypeNameAttribute)
+	eValueTypeClass, _ := ePackage.GetEClassifier("ValueType").(EClass)
+	require.NotNil(t, eValueTypeClass)
+	eValueTypeNameAttribute, _ := eValueTypeClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	require.NotNil(t, eValueTypeNameAttribute)
+
+	mapTest := eResource.GetContents().Get(0).(EObject)
+	require.Equal(t, eMapTestClass, mapTest.EClass())
+	mapKeyToValue, _ := mapTest.EGet(eMapTestKeyToValueReference).(EMap)
+	require.NotNil(t, mapKeyToValue)
+	assert.Equal(t, 5, mapKeyToValue.Size())
+	mapKeyToInt, _ := mapTest.EGet(eMapTestKeyToIntReference).(EMap)
+	require.NotNil(t, mapKeyToInt)
+	assert.Equal(t, 5, mapKeyToInt.Size())
+}
+
 func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")

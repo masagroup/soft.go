@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<emap:EMapTest xmlns:emap="http:///net/masagroup/emap.ecore/1.0.0">
+  <keyToValue>
+    <key name="key 0"/>
+    <value name="value 0"/>
+  </keyToValue>
+  <keyToValue>
+    <key name="key 1"/>
+    <value name="value 1"/>
+  </keyToValue>
+  <keyToValue>
+    <key name="key 2"/>
+    <value name="value 2"/>
+  </keyToValue>
+  <keyToValue>
+    <key name="key 3"/>
+    <value name="value 3"/>
+  </keyToValue>
+  <keyToValue>
+    <key name="key 4"/>
+    <value name="value 4"/>
+  </keyToValue>
+  <keyToInt value="0">
+    <key name="key 0"/>
+  </keyToInt>
+  <keyToInt value="1">
+    <key name="key 1"/>
+  </keyToInt>
+  <keyToInt value="2">
+    <key name="key 2"/>
+  </keyToInt>
+  <keyToInt value="3">
+    <key name="key 3"/>
+  </keyToInt>
+  <keyToInt value="4">
+    <key name="key 4"/>
+  </keyToInt>
+</emap:EMapTest>

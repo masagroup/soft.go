@@ -354,7 +354,7 @@ func (o *AbstractEObject) eDynamicPropertiesCreateMap(feature EStructuralFeature
 			reverseFeatureID = reverseFeature.GetFeatureID()
 		}
 	}
-	return NewBasicEObjectMap(eClass, o.AsEObjectInternal(),  feature.GetFeatureID(), reverseFeatureID, feature.IsUnsettable())
+	return NewBasicEObjectMap(eClass, o.AsEObjectInternal(), feature.GetFeatureID(), reverseFeatureID, feature.IsUnsettable())
 }
 
 func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeature) EList {

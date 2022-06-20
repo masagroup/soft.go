@@ -32,6 +32,7 @@ func newBasicEObjectMapList(m *BasicEObjectMap, owner EObjectInternal, featureID
 	l.opposite = l.inverse
 	l.proxies = false
 	l.unset = unset
+	l.m = m
 	return l
 }
 

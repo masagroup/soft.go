@@ -34,6 +34,21 @@ type MockEObjectEMapEntry struct {
 	MockEMapEntry
 }
 
+func TestBasicEObjectMap_Add(t *testing.T) {
+	mockClass := &MockEClass{}
+	mockOwner := &MockEObjectInternal{}
+	mockEntry := &MockEObjectEMapEntry{}
+	m := NewBasicEObjectMap(mockClass, mockOwner, 1, -1, false)
+	mockOwner.On("EDeliver").Once().Return(false)
+	m.Add(mockEntry)
+	mock.AssertExpectationsForObjects(t, mockClass, mockEntry, mockOwner)
+
+	mockEntry.On("GetKey").Once().Return(2)
+	mockEntry.On("GetValue").Once().Return("2")
+	assert.Equal(t, "2", m.GetValue(2))
+	mock.AssertExpectationsForObjects(t, mockClass, mockEntry, mockOwner)
+}
+
 func TestBasicEObjectMap_Put(t *testing.T) {
 	mockClass := &MockEClass{}
 	mockPackage := &MockEPackage{}
@@ -42,15 +57,20 @@ func TestBasicEObjectMap_Put(t *testing.T) {
 	mockEntry := &MockEObjectEMapEntry{}
 	m := NewBasicEObjectMap(mockClass, mockOwner, 1, -1, false)
 
+	// put
 	mockClass.On("GetEPackage").Once().Return(mockPackage)
 	mockPackage.On("GetEFactoryInstance").Once().Return(mockFactory)
 	mockFactory.On("Create", mockClass).Once().Return(mockEntry)
 	mockEntry.On("SetKey", 2).Once()
 	mockEntry.On("SetValue", "2").Once()
-	mockEntry.On("GetKey").Once().Return(2)
-	mockEntry.On("GetValue").Once().Return("2")
 	mockOwner.On("EDeliver").Once().Return(false)
 	m.Put(2, "2")
+	mock.AssertExpectationsForObjects(t, mockClass, mockPackage, mockFactory, mockEntry, mockOwner)
+
+	// check
+	mockEntry.On("GetKey").Once().Return(2)
+	mockEntry.On("GetValue").Once().Return("2")
+	assert.Equal(t, "2", m.GetValue(2))
 	mock.AssertExpectationsForObjects(t, mockClass, mockPackage, mockFactory, mockEntry, mockOwner)
 }
 
@@ -68,8 +88,6 @@ func TestBasicEObjectMap_Put_WithNotification(t *testing.T) {
 	mockFactory.On("Create", mockClass).Once().Return(mockEntry)
 	mockEntry.On("SetKey", 2).Once()
 	mockEntry.On("SetValue", "2").Once()
-	mockEntry.On("GetKey").Once().Return(2)
-	mockEntry.On("GetValue").Once().Return("2")
 	mockOwner.On("EDeliver").Once().Return(true)
 	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter})).Once()
 	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {

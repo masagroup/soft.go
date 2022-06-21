@@ -57,7 +57,6 @@ func (ml *basicEMapList) didClear(oldObjects []interface{}) {
 func NewBasicEMap() *BasicEMap {
 	basicEMap := &BasicEMap{}
 	basicEMap.EList = newBasicEMapList(basicEMap)
-	basicEMap.mapData = make(map[interface{}]interface{})
 	basicEMap.interfaces = basicEMap
 	return basicEMap
 }
@@ -76,14 +75,18 @@ func (m *BasicEMap) getEntryForKey(key interface{}) EMapEntry {
 	return nil
 }
 
-func (m *BasicEMap) GetValue(value interface{}) interface{} {
-	return m.mapData[value]
+func (m *BasicEMap) GetValue(key interface{}) interface{} {
+	m.initDataMap()
+	return m.mapData[key]
 }
 
 func (m *BasicEMap) Put(key interface{}, value interface{}) {
-	m.mapData[key] = value
 	if e := m.getEntryForKey(key); e != nil {
 		e.SetValue(value)
+
+		if m.mapData != nil {
+			m.mapData[key] = value
+		}
 	} else {
 		m.Add(m.asEMapEntryFactory().newEntry(key, value))
 	}
@@ -115,10 +118,6 @@ func (m *BasicEMap) newEntry(key interface{}, value interface{}) EMapEntry {
 }
 
 func (m *BasicEMap) RemoveKey(key interface{}) interface{} {
-	// remove from map data
-	delete(m.mapData, key)
-
-	// remove from list
 	if e := m.getEntryForKey(key); e != nil {
 		m.Remove(e)
 		return e.GetValue()
@@ -127,8 +126,9 @@ func (m *BasicEMap) RemoveKey(key interface{}) interface{} {
 }
 
 func (m *BasicEMap) ContainsValue(value interface{}) bool {
-	for _, v := range m.mapData {
-		if v == value {
+	for it := m.Iterator(); it.HasNext(); {
+		e := it.Next().(EMapEntry)
+		if e.GetValue() == value {
 			return true
 		}
 	}
@@ -136,16 +136,30 @@ func (m *BasicEMap) ContainsValue(value interface{}) bool {
 }
 
 func (m *BasicEMap) ContainsKey(key interface{}) bool {
+	m.initDataMap()
 	_, ok := m.mapData[key]
 	return ok
 }
 
 func (m *BasicEMap) ToMap() map[interface{}]interface{} {
+	m.initDataMap()
 	return m.mapData
 }
 
+func (m *BasicEMap) initDataMap() {
+	if m.mapData == nil {
+		m.mapData = map[interface{}]interface{}{}
+		for itEntry := m.Iterator(); itEntry.HasNext(); {
+			entry := itEntry.Next().(EMapEntry)
+			m.mapData[entry.GetKey()] = entry.GetValue()
+		}
+	}
+}
+
 func (m *BasicEMap) doAdd(e EMapEntry) {
-	m.mapData[e.GetKey()] = e.GetValue()
+	if m.mapData != nil {
+		m.mapData[e.GetKey()] = e.GetValue()
+	}
 }
 
 func (m *BasicEMap) doRemove(e EMapEntry) {
@@ -153,5 +167,5 @@ func (m *BasicEMap) doRemove(e EMapEntry) {
 }
 
 func (m *BasicEMap) doClear() {
-	m.mapData = make(map[interface{}]interface{})
+	m.mapData = nil
 }

@@ -61,7 +61,6 @@ func NewBasicEObjectMap(entryClass EClass, owner EObjectInternal, featureID int,
 	basicEObjectMap := &BasicEObjectMap{}
 	basicEObjectMap.EList = newBasicEObjectMapList(basicEObjectMap, owner, featureID, inverseFeatureID, unset)
 	basicEObjectMap.interfaces = basicEObjectMap
-	basicEObjectMap.mapData = make(map[interface{}]interface{})
 	basicEObjectMap.entryClass = entryClass
 	return basicEObjectMap
 }

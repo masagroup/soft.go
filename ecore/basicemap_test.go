@@ -56,6 +56,7 @@ func TestBasicEMap_PutOverwrite(t *testing.T) {
 	assert.Nil(t, m.GetValue(2))
 	m.Put(2, "3")
 	assert.Equal(t, "3", m.GetValue(2))
+
 	m.Put(2, "2")
 	assert.Equal(t, "2", m.GetValue(2))
 	assert.Equalf(t, 1, m.Size(), "Don't store old cell.")
@@ -86,9 +87,11 @@ func TestBasicEMap_ContainsValue(t *testing.T) {
 func TestBasicEMap_AddEntry(t *testing.T) {
 	m := NewBasicEMap()
 	mockEntry := &MockEMapEntry{}
+	m.Add(mockEntry)
+	mock.AssertExpectationsForObjects(t, mockEntry)
+
 	mockEntry.On("GetKey").Once().Return(2)
 	mockEntry.On("GetValue").Once().Return("2")
-	m.Add(mockEntry)
 	assert.Equal(t, map[interface{}]interface{}{2: "2"}, m.ToMap())
 	mock.AssertExpectationsForObjects(t, mockEntry)
 }
@@ -96,10 +99,7 @@ func TestBasicEMap_AddEntry(t *testing.T) {
 func TestBasicEMap_SetEntry(t *testing.T) {
 	m := NewBasicEMap()
 	mockEntry := &MockEMapEntry{}
-	mockEntry.On("GetKey").Once().Return(2)
-	mockEntry.On("GetValue").Once().Return("2")
 	m.Add(mockEntry)
-	mock.AssertExpectationsForObjects(t, mockEntry)
 
 	mockOtherEntry := &MockEMapEntry{}
 	mockEntry.On("GetKey").Once().Return(2)
@@ -132,14 +132,9 @@ func TestBasicEMap_RemoveEntry(t *testing.T) {
 func TestBasicEMap_Clear(t *testing.T) {
 	m := NewBasicEMap()
 	mockEntry1 := &MockEMapEntry{}
-	mockEntry1.On("GetKey").Once().Return(2)
-	mockEntry1.On("GetValue").Once().Return("2")
 	mockEntry2 := &MockEMapEntry{}
-	mockEntry2.On("GetKey").Once().Return(3)
-	mockEntry2.On("GetValue").Once().Return("3")
 	m.Add(mockEntry1)
 	m.Add(mockEntry2)
-	mock.AssertExpectationsForObjects(t, mockEntry1, mockEntry2)
 
 	m.Clear()
 	assert.Equal(t, map[interface{}]interface{}{}, m.ToMap())
@@ -153,4 +148,8 @@ func TestBasicEMap_UpdateEntry(t *testing.T) {
 	e := m.Get(0).(EMapEntry)
 	e.SetKey(3)
 	e.SetValue("3")
+	assert.Equal(t, map[interface{}]interface{}{3: "3"}, m.ToMap())
+	e.SetKey(2)
+	e.SetValue("2")
+	assert.Equal(t, map[interface{}]interface{}{3: "3"}, m.ToMap())
 }

@@ -10,6 +10,7 @@ package ecore
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -320,6 +321,25 @@ func TestXMLDecoderMaps(t *testing.T) {
 	mapKeyToValue, _ := mapTest.EGet(eMapTestKeyToValueReference).(EMap)
 	require.NotNil(t, mapKeyToValue)
 	assert.Equal(t, 5, mapKeyToValue.Size())
+	check := 0
+	for k, v := range mapKeyToValue.ToMap() {
+		key, _ := k.(EObject)
+		require.NotNil(t, key)
+		assert.Equal(t, eKeyTypeClass, key.EClass())
+		keyName := key.EGet(eKeyTypeNameAttribute).(string)
+		var keyIndex int
+		fmt.Sscanf(keyName, "key %d", &keyIndex)
+
+		value, _ := v.(EObject)
+		require.NotNil(t, value)
+		assert.Equal(t, eValueTypeClass, value.EClass())
+		valueName := value.EGet(eValueTypeNameAttribute).(string)
+		var valueIndex int
+		fmt.Sscanf(valueName, "value %d", &valueIndex)
+		check += keyIndex + valueIndex + 2
+	}
+	assert.Equal(t, 30, check)
+
 	mapKeyToInt, _ := mapTest.EGet(eMapTestKeyToIntReference).(EMap)
 	require.NotNil(t, mapKeyToInt)
 	assert.Equal(t, 5, mapKeyToInt.Size())

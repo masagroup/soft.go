@@ -28,8 +28,8 @@ func newBasicEObjectMapList(m *BasicEObjectMap, owner EObjectInternal, featureID
 	l.featureID = featureID
 	l.inverseFeatureID = inverseFeatureID
 	l.containment = true
-	l.inverse = inverseFeatureID != -1
-	l.opposite = l.inverse
+	l.inverse = true
+	l.opposite = inverseFeatureID != -1
 	l.proxies = false
 	l.unset = unset
 	l.m = m

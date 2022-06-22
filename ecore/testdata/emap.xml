@@ -35,4 +35,34 @@
   <keyToInt value="4">
     <key name="key 4"/>
   </keyToInt>
+  <refToInts key="#//@refs.0">
+    <value>0</value>
+  </refToInts>
+  <refToInts key="#//@refs.1">
+    <value>0</value>
+    <value>1</value>
+  </refToInts>
+  <refToInts key="#//@refs.2">
+    <value>0</value>
+    <value>1</value>
+    <value>2</value>
+  </refToInts>
+  <refToInts key="#//@refs.3">
+    <value>0</value>
+    <value>1</value>
+    <value>2</value>
+    <value>3</value>
+  </refToInts>
+  <refToInts key="#//@refs.4">
+    <value>0</value>
+    <value>1</value>
+    <value>2</value>
+    <value>3</value>
+    <value>4</value>
+  </refToInts>
+  <refs name="ref 0"/>
+  <refs name="ref 1"/>
+  <refs name="ref 2"/>
+  <refs name="ref 3"/>
+  <refs name="ref 4"/>
 </emap:EMapTest>

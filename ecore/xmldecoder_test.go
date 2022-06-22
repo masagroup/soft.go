@@ -315,14 +315,30 @@ func TestXMLDecoderMaps(t *testing.T) {
 	require.NotNil(t, eValueTypeClass)
 	eValueTypeNameAttribute, _ := eValueTypeClass.GetEStructuralFeatureFromName("name").(EAttribute)
 	require.NotNil(t, eValueTypeNameAttribute)
+	eRefTypeClass, _ := ePackage.GetEClassifier("RefType").(EClass)
+	require.NotNil(t, eRefTypeClass)
+	eRefTypeNameAttribute, _ := eRefTypeClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	require.NotNil(t, eRefTypeNameAttribute)
+	eMapTestRefTypeReference, _ := eMapTestClass.GetEStructuralFeatureFromName("refs").(EReference)
+	require.NotNil(t, eMapTestRefTypeReference)
+	eMapTestRefToIntsReference, _ := eMapTestClass.GetEStructuralFeatureFromName("refToInts").(EReference)
+	require.NotNil(t, eMapTestRefToIntsReference)
+	eRefToIntsMapEntryClass, _ := ePackage.GetEClassifier("RefToIntsMapEntry").(EClass)
+	require.NotNil(t, eRefToIntsMapEntryClass)
+	eRefToIntsMapEntryKeyReference, _ := eRefToIntsMapEntryClass.GetEStructuralFeatureFromName("key").(EReference)
+	require.NotNil(t, eRefToIntsMapEntryKeyReference)
+	eRefToIntsMapEntryValueAttribute, _ := eRefToIntsMapEntryClass.GetEStructuralFeatureFromName("value").(EAttribute)
+	require.NotNil(t, eRefToIntsMapEntryValueAttribute)
 
 	mapTest := eResource.GetContents().Get(0).(EObject)
 	require.Equal(t, eMapTestClass, mapTest.EClass())
-	mapKeyToValue, _ := mapTest.EGet(eMapTestKeyToValueReference).(EMap)
-	require.NotNil(t, mapKeyToValue)
-	assert.Equal(t, 5, mapKeyToValue.Size())
+
+	// map key value
+	keyToValueMap, _ := mapTest.EGet(eMapTestKeyToValueReference).(EMap)
+	require.NotNil(t, keyToValueMap)
+	assert.Equal(t, 5, keyToValueMap.Size())
 	check := 0
-	for k, v := range mapKeyToValue.ToMap() {
+	for k, v := range keyToValueMap.ToMap() {
 		key, _ := k.(EObject)
 		require.NotNil(t, key)
 		assert.Equal(t, eKeyTypeClass, key.EClass())
@@ -340,9 +356,19 @@ func TestXMLDecoderMaps(t *testing.T) {
 	}
 	assert.Equal(t, 30, check)
 
-	mapKeyToInt, _ := mapTest.EGet(eMapTestKeyToIntReference).(EMap)
-	require.NotNil(t, mapKeyToInt)
-	assert.Equal(t, 5, mapKeyToInt.Size())
+	// map key reference with a int list value
+	refList, _ := mapTest.EGet(eMapTestRefTypeReference).(EList)
+	require.NotNil(t, refList)
+	refToIntsMap, _ := mapTest.EGet(eMapTestKeyToValueReference).(EMap)
+	require.NotNil(t, refToIntsMap)
+	assert.Equal(t, 5, refToIntsMap.Size())
+	for i := 0; i < 0; i++ {
+		ref := refList.Get(i)
+		l, _ := refToIntsMap.GetValue(ref).(EList)
+		require.NotNil(t, l)
+		assert.Equal(t, i, l.Size())
+	}
+
 }
 
 func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {

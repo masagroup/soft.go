@@ -21,46 +21,46 @@ func discardMockEStringToStringMapEntry() {
 	_ = testing.Coverage
 }
 
-// TestMockEStringToStringMapEntryGetStringKey tests method GetStringKey
-func TestMockEStringToStringMapEntryGetStringKey(t *testing.T) {
+// TestMockEStringToStringMapEntryGetTypedKey tests method GetTypedKey
+func TestMockEStringToStringMapEntryGetTypedKey(t *testing.T) {
 	o := &MockEStringToStringMapEntry{}
 	r := string("Test String")
-	o.On("GetStringKey").Once().Return(r)
-	o.On("GetStringKey").Once().Return(func() string {
+	o.On("GetTypedKey").Once().Return(r)
+	o.On("GetTypedKey").Once().Return(func() string {
 		return r
 	})
-	assert.Equal(t, r, o.GetStringKey())
-	assert.Equal(t, r, o.GetStringKey())
+	assert.Equal(t, r, o.GetTypedKey())
+	assert.Equal(t, r, o.GetTypedKey())
 	o.AssertExpectations(t)
 }
 
-// TestMockEStringToStringMapEntrySetStringKey tests method SetStringKey
-func TestMockEStringToStringMapEntrySetStringKey(t *testing.T) {
+// TestMockEStringToStringMapEntrySetTypedKey tests method SetTypedKey
+func TestMockEStringToStringMapEntrySetTypedKey(t *testing.T) {
 	o := &MockEStringToStringMapEntry{}
 	v := string("Test String")
-	o.On("SetStringKey", v).Once()
-	o.SetStringKey(v)
+	o.On("SetTypedKey", v).Once()
+	o.SetTypedKey(v)
 	o.AssertExpectations(t)
 }
 
-// TestMockEStringToStringMapEntryGetStringValue tests method GetStringValue
-func TestMockEStringToStringMapEntryGetStringValue(t *testing.T) {
+// TestMockEStringToStringMapEntryGetTypedValue tests method GetTypedValue
+func TestMockEStringToStringMapEntryGetTypedValue(t *testing.T) {
 	o := &MockEStringToStringMapEntry{}
 	r := string("Test String")
-	o.On("GetStringValue").Once().Return(r)
-	o.On("GetStringValue").Once().Return(func() string {
+	o.On("GetTypedValue").Once().Return(r)
+	o.On("GetTypedValue").Once().Return(func() string {
 		return r
 	})
-	assert.Equal(t, r, o.GetStringValue())
-	assert.Equal(t, r, o.GetStringValue())
+	assert.Equal(t, r, o.GetTypedValue())
+	assert.Equal(t, r, o.GetTypedValue())
 	o.AssertExpectations(t)
 }
 
-// TestMockEStringToStringMapEntrySetStringValue tests method SetStringValue
-func TestMockEStringToStringMapEntrySetStringValue(t *testing.T) {
+// TestMockEStringToStringMapEntrySetTypedValue tests method SetTypedValue
+func TestMockEStringToStringMapEntrySetTypedValue(t *testing.T) {
 	o := &MockEStringToStringMapEntry{}
 	v := string("Test String")
-	o.On("SetStringValue", v).Once()
-	o.SetStringValue(v)
+	o.On("SetTypedValue", v).Once()
+	o.SetTypedValue(v)
 	o.AssertExpectations(t)
 }

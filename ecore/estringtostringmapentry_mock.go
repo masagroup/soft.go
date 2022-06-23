@@ -15,8 +15,8 @@ type MockEStringToStringMapEntry struct {
 	MockEObjectInternal
 }
 
-// GetStringKey get the value of key
-func (eStringToStringMapEntry *MockEStringToStringMapEntry) GetStringKey() string {
+// GetTypedKey get the value of key
+func (eStringToStringMapEntry *MockEStringToStringMapEntry) GetTypedKey() string {
 	ret := eStringToStringMapEntry.Called()
 
 	var r string
@@ -31,13 +31,13 @@ func (eStringToStringMapEntry *MockEStringToStringMapEntry) GetStringKey() strin
 	return r
 }
 
-// SetStringKey provides mock implementation for setting the value of key
-func (eStringToStringMapEntry *MockEStringToStringMapEntry) SetStringKey(newKey string) {
+// SetTypedKey provides mock implementation for setting the value of key
+func (eStringToStringMapEntry *MockEStringToStringMapEntry) SetTypedKey(newKey string) {
 	eStringToStringMapEntry.Called(newKey)
 }
 
-// GetStringValue get the value of value
-func (eStringToStringMapEntry *MockEStringToStringMapEntry) GetStringValue() string {
+// GetTypedValue get the value of value
+func (eStringToStringMapEntry *MockEStringToStringMapEntry) GetTypedValue() string {
 	ret := eStringToStringMapEntry.Called()
 
 	var r string
@@ -52,7 +52,7 @@ func (eStringToStringMapEntry *MockEStringToStringMapEntry) GetStringValue() str
 	return r
 }
 
-// SetStringValue provides mock implementation for setting the value of value
-func (eStringToStringMapEntry *MockEStringToStringMapEntry) SetStringValue(newValue string) {
+// SetTypedValue provides mock implementation for setting the value of value
+func (eStringToStringMapEntry *MockEStringToStringMapEntry) SetTypedValue(newValue string) {
 	eStringToStringMapEntry.Called(newValue)
 }

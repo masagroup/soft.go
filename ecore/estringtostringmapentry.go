@@ -16,11 +16,11 @@ type EStringToStringMapEntry interface {
 	EObject
 	EMapEntry
 
-	GetStringKey() string
-	SetStringKey(string)
+	GetTypedKey() string
+	SetTypedKey(string)
 
-	GetStringValue() string
-	SetStringValue(string)
+	GetTypedValue() string
+	SetTypedValue(string)
 
 	// Start of user code EStringToStringMapEntry
 	// End of user code

@@ -36,9 +36,9 @@ func TestSerializationLoadSimplePrefixXML(t *testing.T) {
 	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
 }
 
-func TestSerializationLoadOwnerXML(t *testing.T) {
+func TestSerializationLoadProprietaryXML(t *testing.T) {
 	xmlProcessor := ecore.NewXMLProcessor([]ecore.EPackage{GetPackage()})
-	resource := xmlProcessor.Load(ecore.CreateFileURI("testdata/library.owner.xml"))
+	resource := xmlProcessor.Load(ecore.CreateFileURI("testdata/library.proprietary.xml"))
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))

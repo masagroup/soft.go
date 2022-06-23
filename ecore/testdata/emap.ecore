@@ -25,48 +25,18 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="KeyToValueMapEntry" instanceClassName="java.util.Map$Entry">
     <eStructuralFeatures xsi:type="ecore:EReference" name="key" eType="#//KeyType"
-        containment="true">
-      <eAnnotations source="http://net.masagroup/soft/2019/GenGo">
-        <details key="getterName" value="GetKeyType"/>
-        <details key="setterName" value="SetKeyType"/>
-      </eAnnotations>
-    </eStructuralFeatures>
+        containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//ValueType"
-        containment="true">
-      <eAnnotations source="http://net.masagroup/soft/2019/GenGo">
-        <details key="getterName" value="GetValueType"/>
-        <details key="setterName" value="SetValueType"/>
-      </eAnnotations>
-    </eStructuralFeatures>
+        containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="KeyToIntMapEntry" instanceClassName="java.util.Map$Entry">
     <eStructuralFeatures xsi:type="ecore:EReference" name="key" eType="#//KeyType"
-        containment="true">
-      <eAnnotations source="http://net.masagroup/soft/2019/GenGo">
-        <details key="getterName" value="GetKeyType"/>
-        <details key="setterName" value="SetKeyType"/>
-      </eAnnotations>
-    </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
-      <eAnnotations source="http://net.masagroup/soft/2019/GenGo">
-        <details key="getterName" value="GetIntValue"/>
-        <details key="setterName" value="SetIntValue"/>
-      </eAnnotations>
-    </eStructuralFeatures>
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="RefToIntsMapEntry" instanceClassName="java.util.Map$Entry">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="key" eType="#//RefType">
-      <eAnnotations source="http://net.masagroup/soft/2019/GenGo">
-        <details key="getterName" value="GetRefType"/>
-        <details key="setterName" value="SetRefType"/>
-      </eAnnotations>
-    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="key" eType="#//RefType"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" upperBound="-1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
-      <eAnnotations source="http://net.masagroup/soft/2019/GenGo">
-        <details key="getterName" value="GetIntList"/>
-        <details key="setterName" value="SetIntList"/>
-      </eAnnotations>
-    </eStructuralFeatures>
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
   </eClassifiers>
 </ecore:EPackage>

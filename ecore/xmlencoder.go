@@ -598,7 +598,7 @@ func (s *XMLEncoder) getSaveFeatureKind(f EStructuralFeature) xmlSaveFeatureKind
 		}
 	} else {
 		// Attribute
-		d, _ := f.GetEType().(EDataType)
+		d := f.GetEType().(EDataType)
 		if !d.IsSerializable() {
 			return xsfkTransient
 		}

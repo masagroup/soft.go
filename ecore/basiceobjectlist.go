@@ -91,24 +91,27 @@ func (list *basicEObjectList) doGet(index int) interface{} {
 }
 
 func (list *basicEObjectList) resolve(index int, object interface{}) interface{} {
-	resolved := list.resolveProxy(object.(EObject))
-	if resolved != object {
-		list.basicEList.doSet(index, resolved)
-		var notifications ENotificationChain
-		if list.containment {
-			notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(object, notifications)
-			if resolvedInternal, _ := resolved.(EObjectInternal); resolvedInternal != nil && resolvedInternal.EInternalContainer() == nil {
-				notifications = list.interfaces.(eNotifyingListInternal).inverseAdd(resolved, notifications)
+	if eObject, _ := object.(EObject); eObject != nil {
+		resolved := list.resolveProxy(eObject)
+		if resolved != object {
+			list.basicEList.doSet(index, resolved)
+			var notifications ENotificationChain
+			if list.containment {
+				notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(object, notifications)
+				if resolvedInternal, _ := resolved.(EObjectInternal); resolvedInternal != nil && resolvedInternal.EInternalContainer() == nil {
+					notifications = list.interfaces.(eNotifyingListInternal).inverseAdd(resolved, notifications)
+				}
 			}
+			list.createAndDispatchNotification(notifications, RESOLVE, object, resolved, index)
 		}
-		list.createAndDispatchNotification(notifications, RESOLVE, object, resolved, index)
+		return resolved
 	}
-	return resolved
+	return object
 }
 
 func (list *basicEObjectList) resolveProxy(eObject EObject) EObject {
 	if list.proxies && eObject.EIsProxy() {
-		return list.owner.(EObjectInternal).EResolveProxy(eObject)
+		return list.owner.EResolveProxy(eObject)
 	}
 	return eObject
 }

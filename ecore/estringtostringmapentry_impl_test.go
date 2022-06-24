@@ -40,22 +40,22 @@ func TestEStringToStringMapEntryFeatureCount(t *testing.T) {
 
 func TestEStringToStringMapEntryGetKey(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
-	assert.Equal(t, o.GetStringKey(), o.GetKey())
+	assert.Equal(t, o.GetTypedKey(), o.GetKey())
 }
 
 func TestEStringToStringMapEntryGetValue(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
-	assert.Equal(t, o.GetStringValue(), o.GetValue())
+	assert.Equal(t, o.GetTypedValue(), o.GetValue())
 }
 
 func TestEStringToStringMapEntryKeyGet(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
 	// get default value
-	assert.Equal(t, string(""), o.GetStringKey())
+	assert.Equal(t, string(""), o.GetTypedKey())
 	// get initialized value
 	v := string("Test String")
 	o.key = v
-	assert.Equal(t, v, o.GetStringKey())
+	assert.Equal(t, v, o.GetTypedKey())
 }
 
 func TestEStringToStringMapEntryKeySet(t *testing.T) {
@@ -65,18 +65,18 @@ func TestEStringToStringMapEntryKeySet(t *testing.T) {
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
-	o.SetStringKey(v)
+	o.SetTypedKey(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStringToStringMapEntryValueGet(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
 	// get default value
-	assert.Equal(t, string(""), o.GetStringValue())
+	assert.Equal(t, string(""), o.GetTypedValue())
 	// get initialized value
 	v := string("Test String")
 	o.value = v
-	assert.Equal(t, v, o.GetStringValue())
+	assert.Equal(t, v, o.GetTypedValue())
 }
 
 func TestEStringToStringMapEntryValueSet(t *testing.T) {
@@ -86,15 +86,15 @@ func TestEStringToStringMapEntryValueSet(t *testing.T) {
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
-	o.SetStringValue(v)
+	o.SetTypedValue(v)
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestEStringToStringMapEntryEGetFromID(t *testing.T) {
 	o := newEStringToStringMapEntryImpl()
 	assert.Panics(t, func() { o.EGetFromID(-1, true) })
-	assert.Equal(t, o.GetStringKey(), o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, true))
-	assert.Equal(t, o.GetStringValue(), o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, true))
+	assert.Equal(t, o.GetTypedKey(), o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__KEY, true))
+	assert.Equal(t, o.GetTypedValue(), o.EGetFromID(ESTRING_TO_STRING_MAP_ENTRY__VALUE, true))
 }
 
 func TestEStringToStringMapEntryESetFromID(t *testing.T) {

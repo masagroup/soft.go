@@ -18,7 +18,8 @@ import (
 
 func TestBasicEObjectMap_Constructor(t *testing.T) {
 	mockClass := &MockEClass{}
-	m := NewBasicEObjectMap(mockClass)
+	mockEObject := &MockEObjectInternal{}
+	m := NewBasicEObjectMap(mockClass, mockEObject, 1, -1, false)
 	assert.NotNil(t, m)
 
 	var mp EMap = m
@@ -33,20 +34,65 @@ type MockEObjectEMapEntry struct {
 	MockEMapEntry
 }
 
+func TestBasicEObjectMap_Add(t *testing.T) {
+	mockClass := &MockEClass{}
+	mockOwner := &MockEObjectInternal{}
+	mockEntry := &MockEObjectEMapEntry{}
+	m := NewBasicEObjectMap(mockClass, mockOwner, 1, -1, false)
+	mockOwner.On("EDeliver").Once().Return(false)
+	m.Add(mockEntry)
+	mock.AssertExpectationsForObjects(t, mockClass, mockEntry, mockOwner)
+
+	mockEntry.On("GetKey").Once().Return(2)
+	mockEntry.On("GetValue").Once().Return("2")
+	assert.Equal(t, "2", m.GetValue(2))
+	mock.AssertExpectationsForObjects(t, mockClass, mockEntry, mockOwner)
+}
+
 func TestBasicEObjectMap_Put(t *testing.T) {
 	mockClass := &MockEClass{}
 	mockPackage := &MockEPackage{}
 	mockFactory := &MockEFactory{}
+	mockOwner := &MockEObjectInternal{}
 	mockEntry := &MockEObjectEMapEntry{}
-	m := NewBasicEObjectMap(mockClass)
+	m := NewBasicEObjectMap(mockClass, mockOwner, 1, -1, false)
+
+	// put
+	mockClass.On("GetEPackage").Once().Return(mockPackage)
+	mockPackage.On("GetEFactoryInstance").Once().Return(mockFactory)
+	mockFactory.On("Create", mockClass).Once().Return(mockEntry)
+	mockEntry.On("SetKey", 2).Once()
+	mockEntry.On("SetValue", "2").Once()
+	mockOwner.On("EDeliver").Once().Return(false)
+	m.Put(2, "2")
+	mock.AssertExpectationsForObjects(t, mockClass, mockPackage, mockFactory, mockEntry, mockOwner)
+
+	// check
+	mockEntry.On("GetKey").Once().Return(2)
+	mockEntry.On("GetValue").Once().Return("2")
+	assert.Equal(t, "2", m.GetValue(2))
+	mock.AssertExpectationsForObjects(t, mockClass, mockPackage, mockFactory, mockEntry, mockOwner)
+}
+
+func TestBasicEObjectMap_Put_WithNotification(t *testing.T) {
+	mockClass := &MockEClass{}
+	mockPackage := &MockEPackage{}
+	mockFactory := &MockEFactory{}
+	mockOwner := &MockEObjectInternal{}
+	mockEntry := &MockEObjectEMapEntry{}
+	mockAdapter := new(MockEAdapter)
+	m := NewBasicEObjectMap(mockClass, mockOwner, 1, -1, false)
 
 	mockClass.On("GetEPackage").Once().Return(mockPackage)
 	mockPackage.On("GetEFactoryInstance").Once().Return(mockFactory)
 	mockFactory.On("Create", mockClass).Once().Return(mockEntry)
 	mockEntry.On("SetKey", 2).Once()
 	mockEntry.On("SetValue", "2").Once()
-	mockEntry.On("GetKey").Once().Return(2)
-	mockEntry.On("GetValue").Once().Return("2")
+	mockOwner.On("EDeliver").Once().Return(true)
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter})).Once()
+	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner && n.GetFeatureID() == 1 && n.GetEventType() == ADD && n.GetNewValue() == mockEntry
+	})).Once()
 	m.Put(2, "2")
-	mock.AssertExpectationsForObjects(t, mockClass, mockPackage, mockFactory, mockEntry)
+	mock.AssertExpectationsForObjects(t, mockClass, mockPackage, mockFactory, mockEntry, mockOwner)
 }

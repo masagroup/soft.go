@@ -10,6 +10,7 @@ package ecore
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -285,6 +286,89 @@ func TestXMLDecoderSimpleObject(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, eObject)
 	assert.Equal(t, "Book 1", eObject.EGet(eBookNameAttribute))
+}
+
+func TestXMLDecoderMaps(t *testing.T) {
+	// load package
+	ePackage := loadPackage("emap.ecore")
+	require.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/emap.xml"}, nil)
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	eMapTestClass, _ := ePackage.GetEClassifier("EMapTest").(EClass)
+	require.NotNil(t, eMapTestClass)
+	eMapTestKeyToValueReference, _ := eMapTestClass.GetEStructuralFeatureFromName("keyToValue").(EReference)
+	require.NotNil(t, eMapTestKeyToValueReference)
+	eMapTestKeyToIntReference, _ := eMapTestClass.GetEStructuralFeatureFromName("keyToInt").(EReference)
+	require.NotNil(t, eMapTestKeyToIntReference)
+	eKeyTypeClass, _ := ePackage.GetEClassifier("KeyType").(EClass)
+	require.NotNil(t, eKeyTypeClass)
+	eKeyTypeNameAttribute, _ := eKeyTypeClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	require.NotNil(t, eKeyTypeNameAttribute)
+	eValueTypeClass, _ := ePackage.GetEClassifier("ValueType").(EClass)
+	require.NotNil(t, eValueTypeClass)
+	eValueTypeNameAttribute, _ := eValueTypeClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	require.NotNil(t, eValueTypeNameAttribute)
+	eRefTypeClass, _ := ePackage.GetEClassifier("RefType").(EClass)
+	require.NotNil(t, eRefTypeClass)
+	eRefTypeNameAttribute, _ := eRefTypeClass.GetEStructuralFeatureFromName("name").(EAttribute)
+	require.NotNil(t, eRefTypeNameAttribute)
+	eMapTestRefTypeReference, _ := eMapTestClass.GetEStructuralFeatureFromName("refs").(EReference)
+	require.NotNil(t, eMapTestRefTypeReference)
+	eMapTestRefToIntsReference, _ := eMapTestClass.GetEStructuralFeatureFromName("refToInts").(EReference)
+	require.NotNil(t, eMapTestRefToIntsReference)
+	eRefToIntsMapEntryClass, _ := ePackage.GetEClassifier("RefToIntsMapEntry").(EClass)
+	require.NotNil(t, eRefToIntsMapEntryClass)
+	eRefToIntsMapEntryKeyReference, _ := eRefToIntsMapEntryClass.GetEStructuralFeatureFromName("key").(EReference)
+	require.NotNil(t, eRefToIntsMapEntryKeyReference)
+	eRefToIntsMapEntryValueAttribute, _ := eRefToIntsMapEntryClass.GetEStructuralFeatureFromName("value").(EAttribute)
+	require.NotNil(t, eRefToIntsMapEntryValueAttribute)
+
+	mapTest := eResource.GetContents().Get(0).(EObject)
+	require.Equal(t, eMapTestClass, mapTest.EClass())
+
+	// map key value
+	keyToValueMap, _ := mapTest.EGet(eMapTestKeyToValueReference).(EMap)
+	require.NotNil(t, keyToValueMap)
+	assert.Equal(t, 5, keyToValueMap.Size())
+	check := 0
+	for k, v := range keyToValueMap.ToMap() {
+		key, _ := k.(EObject)
+		require.NotNil(t, key)
+		assert.Equal(t, eKeyTypeClass, key.EClass())
+		keyName := key.EGet(eKeyTypeNameAttribute).(string)
+		var keyIndex int
+		fmt.Sscanf(keyName, "key %d", &keyIndex)
+
+		value, _ := v.(EObject)
+		require.NotNil(t, value)
+		assert.Equal(t, eValueTypeClass, value.EClass())
+		valueName := value.EGet(eValueTypeNameAttribute).(string)
+		var valueIndex int
+		fmt.Sscanf(valueName, "value %d", &valueIndex)
+		check += keyIndex + valueIndex + 2
+	}
+	assert.Equal(t, 30, check)
+
+	// map key reference with a int list value
+	refList, _ := mapTest.EGet(eMapTestRefTypeReference).(EList)
+	require.NotNil(t, refList)
+	refToIntsMap, _ := mapTest.EGet(eMapTestKeyToValueReference).(EMap)
+	require.NotNil(t, refToIntsMap)
+	assert.Equal(t, 5, refToIntsMap.Size())
+	for i := 0; i < 0; i++ {
+		ref := refList.Get(i)
+		l, _ := refToIntsMap.GetValue(ref).(EList)
+		require.NotNil(t, l)
+		assert.Equal(t, i, l.Size())
+	}
+
 }
 
 func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {

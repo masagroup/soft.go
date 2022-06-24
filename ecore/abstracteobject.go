@@ -348,7 +348,13 @@ func (o *AbstractEObject) eDynamicPropertiesGet(properties EDynamicProperties, d
 
 func (o *AbstractEObject) eDynamicPropertiesCreateMap(feature EStructuralFeature) EMap {
 	eClass := feature.GetEType().(EClass)
-	return NewBasicEObjectMap(eClass)
+	reverseFeatureID := -1
+	if ref, isRef := feature.(EReference); isRef {
+		if reverseFeature := ref.GetEOpposite(); reverseFeature != nil {
+			reverseFeatureID = reverseFeature.GetFeatureID()
+		}
+	}
+	return NewBasicEObjectMap(eClass, o.AsEObjectInternal(), feature.GetFeatureID(), reverseFeatureID, feature.IsUnsettable())
 }
 
 func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeature) EList {
@@ -358,11 +364,11 @@ func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeatur
 		inverse := false
 		opposite := false
 		containment := ref.IsContainment()
-		reverseID := -1
 		reverseFeature := ref.GetEOpposite()
+		reverseFeatureID := -1
 		if containment {
 			if reverseFeature != nil {
-				reverseID = reverseFeature.GetFeatureID()
+				reverseFeatureID = reverseFeature.GetFeatureID()
 				inverse = true
 				opposite = true
 			} else {
@@ -371,7 +377,7 @@ func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeatur
 			}
 		} else {
 			if reverseFeature != nil {
-				reverseID = reverseFeature.GetFeatureID()
+				reverseFeatureID = reverseFeature.GetFeatureID()
 				inverse = true
 				opposite = true
 			} else {
@@ -379,7 +385,7 @@ func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeatur
 				opposite = false
 			}
 		}
-		return NewBasicEObjectList(o.AsEObjectInternal(), ref.GetFeatureID(), reverseID, containment, inverse, opposite, ref.EIsProxy(), ref.IsUnsettable())
+		return NewBasicEObjectList(o.AsEObjectInternal(), ref.GetFeatureID(), reverseFeatureID, containment, inverse, opposite, ref.EIsProxy(), ref.IsUnsettable())
 	}
 	return nil
 }

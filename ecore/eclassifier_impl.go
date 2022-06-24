@@ -16,9 +16,9 @@ import "reflect"
 // eClassifierImpl is the implementation of the model object 'EClassifier'
 type eClassifierImpl struct {
 	eNamedElementImpl
-	classifierID     int
-	instanceClass    reflect.Type
-	instanceTypeName string
+	classifierID      int
+	instanceClass     reflect.Type
+	instanceClassName string
 }
 type eClassifierImplInitializers interface {
 	initClassifierID() int
@@ -36,7 +36,7 @@ func (eClassifier *eClassifierImpl) Initialize() {
 	eClassifier.eNamedElementImpl.Initialize()
 	eClassifier.classifierID = -1
 	eClassifier.instanceClass = nil
-	eClassifier.instanceTypeName = ""
+	eClassifier.instanceClassName = ""
 
 }
 
@@ -105,18 +105,28 @@ func (eClassifier *eClassifierImpl) SetInstanceClass(newInstanceClass reflect.Ty
 	}
 }
 
+// GetInstanceClassName get the value of instanceClassName
+func (eClassifier *eClassifierImpl) GetInstanceClassName() string {
+	return eClassifier.instanceClassName
+}
+
+// SetInstanceClassName set the value of instanceClassName
+func (eClassifier *eClassifierImpl) SetInstanceClassName(newInstanceClassName string) {
+	oldInstanceClassName := eClassifier.instanceClassName
+	eClassifier.instanceClassName = newInstanceClassName
+	if eClassifier.ENotificationRequired() {
+		eClassifier.ENotify(NewNotificationByFeatureID(eClassifier.AsEObject(), SET, ECLASSIFIER__INSTANCE_CLASS_NAME, oldInstanceClassName, newInstanceClassName, NO_INDEX))
+	}
+}
+
 // GetInstanceTypeName get the value of instanceTypeName
 func (eClassifier *eClassifierImpl) GetInstanceTypeName() string {
-	return eClassifier.instanceTypeName
+	panic("GetInstanceTypeName not implemented")
 }
 
 // SetInstanceTypeName set the value of instanceTypeName
 func (eClassifier *eClassifierImpl) SetInstanceTypeName(newInstanceTypeName string) {
-	oldInstanceTypeName := eClassifier.instanceTypeName
-	eClassifier.instanceTypeName = newInstanceTypeName
-	if eClassifier.ENotificationRequired() {
-		eClassifier.ENotify(NewNotificationByFeatureID(eClassifier.AsEObject(), SET, ECLASSIFIER__INSTANCE_TYPE_NAME, oldInstanceTypeName, newInstanceTypeName, NO_INDEX))
-	}
+	panic("SetInstanceTypeName not implemented")
 }
 
 func (eClassifier *eClassifierImpl) initClassifierID() int {
@@ -133,6 +143,8 @@ func (eClassifier *eClassifierImpl) EGetFromID(featureID int, resolve bool) inte
 		return eClassifier.asEClassifier().GetEPackage()
 	case ECLASSIFIER__INSTANCE_CLASS:
 		return eClassifier.asEClassifier().GetInstanceClass()
+	case ECLASSIFIER__INSTANCE_CLASS_NAME:
+		return eClassifier.asEClassifier().GetInstanceClassName()
 	case ECLASSIFIER__INSTANCE_TYPE_NAME:
 		return eClassifier.asEClassifier().GetInstanceTypeName()
 	default:
@@ -146,6 +158,8 @@ func (eClassifier *eClassifierImpl) ESetFromID(featureID int, newValue interface
 		eClassifier.asEClassifier().SetClassifierID(newValue.(int))
 	case ECLASSIFIER__INSTANCE_CLASS:
 		eClassifier.asEClassifier().SetInstanceClass(newValue.(reflect.Type))
+	case ECLASSIFIER__INSTANCE_CLASS_NAME:
+		eClassifier.asEClassifier().SetInstanceClassName(newValue.(string))
 	case ECLASSIFIER__INSTANCE_TYPE_NAME:
 		eClassifier.asEClassifier().SetInstanceTypeName(newValue.(string))
 	default:
@@ -159,6 +173,8 @@ func (eClassifier *eClassifierImpl) EUnsetFromID(featureID int) {
 		eClassifier.asEClassifier().SetClassifierID(-1)
 	case ECLASSIFIER__INSTANCE_CLASS:
 		eClassifier.asEClassifier().SetInstanceClass(nil)
+	case ECLASSIFIER__INSTANCE_CLASS_NAME:
+		eClassifier.asEClassifier().SetInstanceClassName("")
 	case ECLASSIFIER__INSTANCE_TYPE_NAME:
 		eClassifier.asEClassifier().SetInstanceTypeName("")
 	default:
@@ -176,8 +192,10 @@ func (eClassifier *eClassifierImpl) EIsSetFromID(featureID int) bool {
 		return eClassifier.GetEPackage() != nil
 	case ECLASSIFIER__INSTANCE_CLASS:
 		return eClassifier.instanceClass != nil
+	case ECLASSIFIER__INSTANCE_CLASS_NAME:
+		return eClassifier.instanceClassName != ""
 	case ECLASSIFIER__INSTANCE_TYPE_NAME:
-		return eClassifier.instanceTypeName != ""
+		return eClassifier.asEClassifier().GetInstanceTypeName() != ""
 	default:
 		return eClassifier.eNamedElementImpl.EIsSetFromID(featureID)
 	}

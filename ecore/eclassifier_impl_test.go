@@ -100,25 +100,36 @@ func TestEClassifierInstanceClassSet(t *testing.T) {
 	mockAdapter.AssertExpectations(t)
 }
 
-func TestEClassifierInstanceTypeNameGet(t *testing.T) {
+func TestEClassifierInstanceClassNameGet(t *testing.T) {
 	o := newEClassifierImpl()
 	// get default value
-	assert.Equal(t, string(""), o.GetInstanceTypeName())
+	assert.Equal(t, string(""), o.GetInstanceClassName())
 	// get initialized value
 	v := string("Test String")
-	o.instanceTypeName = v
-	assert.Equal(t, v, o.GetInstanceTypeName())
+	o.instanceClassName = v
+	assert.Equal(t, v, o.GetInstanceClassName())
 }
 
-func TestEClassifierInstanceTypeNameSet(t *testing.T) {
+func TestEClassifierInstanceClassNameSet(t *testing.T) {
 	o := newEClassifierImpl()
 	v := string("Test String")
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
-	o.SetInstanceTypeName(v)
+	o.SetInstanceClassName(v)
 	mockAdapter.AssertExpectations(t)
+}
+
+func TestEClassifierInstanceTypeNameGet(t *testing.T) {
+	o := newEClassifierImpl()
+	assert.Panics(t, func() { o.GetInstanceTypeName() })
+}
+
+func TestEClassifierInstanceTypeNameSet(t *testing.T) {
+	o := newEClassifierImpl()
+	v := string("Test String")
+	assert.Panics(t, func() { o.SetInstanceTypeName(v) })
 }
 
 func TestEClassifierIsInstanceOperation(t *testing.T) {
@@ -134,7 +145,9 @@ func TestEClassifierEGetFromID(t *testing.T) {
 	assert.Panics(t, func() { o.EGetFromID(ECLASSIFIER__DEFAULT_VALUE, false) })
 	assert.Equal(t, o.GetEPackage(), o.EGetFromID(ECLASSIFIER__EPACKAGE, true))
 	assert.Equal(t, o.GetInstanceClass(), o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS, true))
-	assert.Equal(t, o.GetInstanceTypeName(), o.EGetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, true))
+	assert.Equal(t, o.GetInstanceClassName(), o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS_NAME, true))
+	assert.Panics(t, func() { o.EGetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, true) })
+	assert.Panics(t, func() { o.EGetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, false) })
 }
 
 func TestEClassifierESetFromID(t *testing.T) {
@@ -152,9 +165,10 @@ func TestEClassifierESetFromID(t *testing.T) {
 	}
 	{
 		v := string("Test String")
-		o.ESetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, v)
-		assert.Equal(t, v, o.EGetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, false))
+		o.ESetFromID(ECLASSIFIER__INSTANCE_CLASS_NAME, v)
+		assert.Equal(t, v, o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS_NAME, false))
 	}
+	assert.Panics(t, func() { o.ESetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, nil) })
 
 }
 
@@ -165,7 +179,8 @@ func TestEClassifierEIsSetFromID(t *testing.T) {
 	assert.Panics(t, func() { o.EIsSetFromID(ECLASSIFIER__DEFAULT_VALUE) })
 	assert.False(t, o.EIsSetFromID(ECLASSIFIER__EPACKAGE))
 	assert.False(t, o.EIsSetFromID(ECLASSIFIER__INSTANCE_CLASS))
-	assert.False(t, o.EIsSetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME))
+	assert.False(t, o.EIsSetFromID(ECLASSIFIER__INSTANCE_CLASS_NAME))
+	assert.Panics(t, func() { o.EIsSetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME) })
 }
 
 func TestEClassifierEUnsetFromID(t *testing.T) {
@@ -182,9 +197,12 @@ func TestEClassifierEUnsetFromID(t *testing.T) {
 		assert.Nil(t, v)
 	}
 	{
-		o.EUnsetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME)
-		v := o.EGetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME, false)
+		o.EUnsetFromID(ECLASSIFIER__INSTANCE_CLASS_NAME)
+		v := o.EGetFromID(ECLASSIFIER__INSTANCE_CLASS_NAME, false)
 		assert.Equal(t, string(""), v)
+	}
+	{
+		assert.Panics(t, func() { o.EUnsetFromID(ECLASSIFIER__INSTANCE_TYPE_NAME) })
 	}
 }
 

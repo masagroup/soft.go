@@ -418,3 +418,12 @@ func (eClass *eClassExt) setModified(featureID int) {
 		s.setModified(featureID)
 	}
 }
+
+func IsMapEntry(eClass EClass) bool {
+	instanceTypeName := eClass.GetInstanceTypeName()
+	return (instanceTypeName == "java.util.Map.Entry" ||
+		instanceTypeName == "java.util.Map$Entry" ||
+		instanceTypeName == "ecore.EMapEntry") &&
+		eClass.GetEStructuralFeatureFromName("key") != nil &&
+		eClass.GetEStructuralFeatureFromName("value") != nil
+}

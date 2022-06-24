@@ -92,6 +92,28 @@ func TestMockEClassifierSetInstanceClass(t *testing.T) {
 	o.AssertExpectations(t)
 }
 
+// TestMockEClassifierGetInstanceClassName tests method GetInstanceClassName
+func TestMockEClassifierGetInstanceClassName(t *testing.T) {
+	o := &MockEClassifier{}
+	r := string("Test String")
+	o.On("GetInstanceClassName").Once().Return(r)
+	o.On("GetInstanceClassName").Once().Return(func() string {
+		return r
+	})
+	assert.Equal(t, r, o.GetInstanceClassName())
+	assert.Equal(t, r, o.GetInstanceClassName())
+	o.AssertExpectations(t)
+}
+
+// TestMockEClassifierSetInstanceClassName tests method SetInstanceClassName
+func TestMockEClassifierSetInstanceClassName(t *testing.T) {
+	o := &MockEClassifier{}
+	v := string("Test String")
+	o.On("SetInstanceClassName", v).Once()
+	o.SetInstanceClassName(v)
+	o.AssertExpectations(t)
+}
+
 // TestMockEClassifierGetInstanceTypeName tests method GetInstanceTypeName
 func TestMockEClassifierGetInstanceTypeName(t *testing.T) {
 	o := &MockEClassifier{}

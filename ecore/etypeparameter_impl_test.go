@@ -41,6 +41,7 @@ func TestETypeParameterFeatureCount(t *testing.T) {
 func TestETypeParameterEBoundsGet(t *testing.T) {
 	o := newETypeParameterImpl()
 	assert.NotNil(t, o.GetEBounds())
+	assert.Panics(t, func() { _ = o.GetEBounds().Get(0).(EGenericType) })
 }
 
 func TestETypeParameterEGetFromID(t *testing.T) {

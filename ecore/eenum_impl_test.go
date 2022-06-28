@@ -41,6 +41,7 @@ func TestEEnumFeatureCount(t *testing.T) {
 func TestEEnumELiteralsGet(t *testing.T) {
 	o := newEEnumImpl()
 	assert.NotNil(t, o.GetELiterals())
+	assert.Panics(t, func() { _ = o.GetELiterals().Get(0).(EEnumLiteral) })
 }
 
 func TestEEnumGetEEnumLiteralByLiteralOperation(t *testing.T) {

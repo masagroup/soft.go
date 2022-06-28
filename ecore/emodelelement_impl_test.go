@@ -41,6 +41,7 @@ func TestEModelElementFeatureCount(t *testing.T) {
 func TestEModelElementEAnnotationsGet(t *testing.T) {
 	o := newEModelElementImpl()
 	assert.NotNil(t, o.GetEAnnotations())
+	assert.Panics(t, func() { _ = o.GetEAnnotations().Get(0).(EAnnotation) })
 }
 
 func TestEModelElementGetEAnnotationOperation(t *testing.T) {

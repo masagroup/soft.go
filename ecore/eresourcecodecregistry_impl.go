@@ -33,13 +33,13 @@ func NewEResourceCodecRegistryImplWithDelegate(delegate EResourceCodecRegistry) 
 }
 
 func (r *EResourceCodecRegistryImpl) GetCodec(uri *URI) EResourceCodec {
-	if factory, ok := r.protocolToCodec[uri.Scheme]; ok {
+	if factory, ok := r.protocolToCodec[uri.scheme]; ok {
 		return factory
 	}
-
-	ndx := strings.LastIndex(uri.Path, ".")
+	p := uri.Path()
+	ndx := strings.LastIndex(p, ".")
 	if ndx != -1 {
-		extension := uri.Path[ndx+1:]
+		extension := p[ndx+1:]
 		if factory, ok := r.extensionToCodec[extension]; ok {
 			return factory
 		}

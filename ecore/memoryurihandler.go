@@ -8,7 +8,7 @@ type MemoryURIHandler struct {
 }
 
 func (muh *MemoryURIHandler) CanHandle(uri *URI) bool {
-	return uri.Scheme == "memory"
+	return uri.scheme == "memory"
 }
 
 func (muh *MemoryURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {

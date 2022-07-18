@@ -128,7 +128,7 @@ func (r *EResourceSetImpl) GetEObject(uri *URI, loadOnDemand bool) EObject {
 	trim := uri.TrimFragment()
 	resource := r.GetResource(trim, loadOnDemand)
 	if resource != nil {
-		return resource.GetEObject(uri.Fragment)
+		return resource.GetEObject(uri.Fragment())
 	}
 	return nil
 }

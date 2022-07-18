@@ -57,7 +57,7 @@ func TestEURIConverterCreateReaderWithMapping(t *testing.T) {
 	mockHandler := &MockEURIHandler{}
 	c := NewEURIConverterImpl()
 	c.uriHandlers = NewImmutableEList([]interface{}{mockHandler})
-	c.uriMap = map[URI]URI{{Scheme: "test"}: {Scheme: "file"}}
+	c.uriMap = map[URI]URI{{scheme: "test"}: {scheme: "file"}}
 	uri, _ := ParseURI("test:///file.ext")
 	normalized, _ := ParseURI("file:///file.ext")
 	mockFile, _ := os.Open(normalized.String())
@@ -113,15 +113,15 @@ func TestEURIConverterNormalize(t *testing.T) {
 	}
 	{
 		c := NewEURIConverterImpl()
-		c.GetURIMap()[URI{Scheme: "test"}] = URI{Scheme: "test2"}
-		assert.Equal(t, &URI{Scheme: "test2", Path: "file.ext"}, c.Normalize(&URI{Scheme: "test", Path: "file.ext"}))
-		assert.Equal(t, &URI{Scheme: "bla", Path: "file.ext"}, c.Normalize(&URI{Scheme: "bla", Path: "file.ext"}))
+		c.GetURIMap()[URI{scheme: "test"}] = URI{scheme: "test2"}
+		assert.Equal(t, &URI{scheme: "test2", Path: "file.ext"}, c.Normalize(&URI{scheme: "test", Path: "file.ext"}))
+		assert.Equal(t, &URI{scheme: "bla", Path: "file.ext"}, c.Normalize(&URI{scheme: "bla", Path: "file.ext"}))
 	}
 	{
 		c := NewEURIConverterImpl()
-		c.GetURIMap()[URI{Scheme: "test"}] = URI{Scheme: "test2"}
-		c.GetURIMap()[URI{Scheme: "test2"}] = URI{Scheme: "test3"}
-		assert.Equal(t, &URI{Scheme: "test3", Path: "file.ext"}, c.Normalize(&URI{Scheme: "test", Path: "file.ext"}))
+		c.GetURIMap()[URI{scheme: "test"}] = URI{scheme: "test2"}
+		c.GetURIMap()[URI{scheme: "test2"}] = URI{scheme: "test3"}
+		assert.Equal(t, &URI{scheme: "test3", Path: "file.ext"}, c.Normalize(&URI{scheme: "test", Path: "file.ext"}))
 	}
 }
 

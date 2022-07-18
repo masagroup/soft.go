@@ -167,7 +167,7 @@ func TestDynamicEObject_Proxy(t *testing.T) {
 	resourceSet.GetResources().Add(resource)
 
 	oproxy := NewDynamicEObjectImpl()
-	oproxy.ESetProxyURI(&URI{Path: "r", Fragment: "//@r1.1"})
+	oproxy.ESetProxyURI(&URI{Path: "r", fragment: "//@r1.1"})
 	assert.False(t, o3.EIsSet(r3))
 
 	o3.ESet(r3, oproxy)

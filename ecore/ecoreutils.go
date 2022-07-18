@@ -52,14 +52,14 @@ func GetURI(eObject EObject) *URI {
 		resource := eObject.EResource()
 		if resource != nil {
 			uri := resource.GetURI().Copy()
-			uri.Fragment = resource.GetURIFragment(eObject)
+			uri.fragment = resource.GetURIFragment(eObject)
 			return uri
 		} else {
 			id := GetEObjectID(eObject)
 			if len(id) == 0 {
-				return &URI{Fragment: "//" + getRelativeURIFragmentPath(nil, eObject, false)}
+				return BuildURI(Fragment("//" + getRelativeURIFragmentPath(nil, eObject, false)))
 			} else {
-				return &URI{Fragment: id}
+				return BuildURI(Fragment(id))
 			}
 		}
 	}
@@ -136,7 +136,7 @@ func ResolveInResourceSet(proxy EObject, resourceSet EResourceSet) EObject {
 			if ePackage != nil {
 				eResource := ePackage.EResource()
 				if eResource != nil {
-					resolved = eResource.GetEObject(proxyURI.Fragment)
+					resolved = eResource.GetEObject(proxyURI.fragment)
 				}
 			}
 		}

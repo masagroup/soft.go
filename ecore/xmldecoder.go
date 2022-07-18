@@ -668,7 +668,7 @@ func (l *XMLDecoder) handleProxy(eProxy EObject, id string) {
 	// set object proxy uri
 	eProxy.(EObjectInternal).ESetProxyURI(uri)
 
-	if *resourceURI == *uri.TrimFragment() {
+	if resourceURI.Equals(uri.TrimFragment()) {
 		l.sameDocumentProxies = append(l.sameDocumentProxies, eProxy)
 	}
 }

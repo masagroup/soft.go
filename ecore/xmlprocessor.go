@@ -60,7 +60,7 @@ func (p *XMLProcessor) LoadWithOptions(uri *URI, options map[string]interface{})
 
 func (p *XMLProcessor) LoadWithReader(r io.Reader, options map[string]interface{}) EResource {
 	rs := p.GetResourceSet()
-	rc := rs.CreateResource(&URI{Path: "*.xml"})
+	rc := rs.CreateResource(NewURI("*.xml"))
 	o := map[string]interface{}{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
 		for k, v := range options {

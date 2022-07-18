@@ -25,6 +25,6 @@ func TestResoureCodecRegistrySingleton(t *testing.T) {
 
 func TestResoureCodecRegistrySingletonGetCodec(t *testing.T) {
 	r := GetResourceCodecRegistry()
-	assert.NotNil(t, r.GetCodec(&URI{Path: "*.xml"}))
-	assert.NotNil(t, r.GetCodec(&URI{Path: "*.ecore"}))
+	assert.NotNil(t, r.GetCodec(NewURI("*.xml")))
+	assert.NotNil(t, r.GetCodec(NewURI("*.ecore")))
 }

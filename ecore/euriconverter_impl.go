@@ -41,7 +41,7 @@ func (r *EURIConverterImpl) GetURIMap() map[URI]URI {
 
 func (r *EURIConverterImpl) Normalize(uri *URI) *URI {
 	normalized := r.getURIFromMap(uri)
-	if normalized == uri || *normalized == *uri {
+	if uri.Equals(normalized) {
 		return normalized
 	}
 	return r.Normalize(normalized)

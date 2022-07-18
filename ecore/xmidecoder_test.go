@@ -18,7 +18,7 @@ import (
 
 func TestXMIDecoderLibrarySimple(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&URI{Path: "testdata/library.simple.ecore"})
+	resource := xmiProcessor.Load(NewURI("testdata/library.simple.ecore"))
 	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
@@ -86,7 +86,7 @@ func TestXMIDecoderLibrarySimple(t *testing.T) {
 
 func TestXMIDecoderLibraryNoRoot(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&URI{Path: "testdata/library.noroot.ecore"})
+	resource := xmiProcessor.Load(NewURI("testdata/library.noroot.ecore"))
 	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
@@ -120,7 +120,7 @@ func TestXMIDecoderLibraryNoRoot(t *testing.T) {
 
 func TestXMIDecoderLibraryComplex(t *testing.T) {
 	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&URI{Path: "testdata/library.complex.ecore"})
+	resource := xmiProcessor.Load(NewURI("testdata/library.complex.ecore"))
 	require.NotNil(t, resource)
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))

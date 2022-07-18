@@ -34,7 +34,7 @@ func TestNewSharedXmlProcessor(t *testing.T) {
 }
 
 func xmlProcessorLoad(t *testing.T, xmlProcessor *XMLProcessor, path string) EObject {
-	resource := xmlProcessor.Load(&URI{Path: path})
+	resource := xmlProcessor.Load(NewURI(path))
 	require.NotNil(t, resource)
 	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 	eObject, _ := resource.GetContents().Get(0).(EObject)
@@ -65,7 +65,7 @@ func TestSaveObject(t *testing.T) {
 			require.NotNil(t, eModel)
 
 			resultName := "testdata/" + testCase.name + ".result.xml"
-			xmlProcessor.SaveObject(&URI{Path: resultName}, eModel)
+			xmlProcessor.SaveObject(NewURI(resultName), eModel)
 
 			// src
 			src, err := ioutil.ReadFile("testdata/" + testCase.model)
@@ -118,5 +118,5 @@ func _TestSerializationTree(t *testing.T) {
 	eNode := f.newNode("0", 5)
 
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	xmlProcessor.SaveObject(&URI{Path: "testdata/tree.xml"}, eNode)
+	xmlProcessor.SaveObject(NewURI("testdata/tree.xml"), eNode)
 }

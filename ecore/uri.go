@@ -12,100 +12,168 @@ package ecore
 import (
 	"net/url"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
+
+type URIBuilder struct {
+	scheme   string
+	username string
+	password string
+	host     string
+	port     string
+	path     string
+	query    string
+	fragment string
+}
+
+func NewURIBuilder(uri *URI) *URIBuilder {
+	if uri != nil {
+		return &URIBuilder{
+			scheme:   uri.scheme,
+			username: uri.username,
+			password: uri.password,
+			host:     uri.host,
+			port:     uri.port,
+			path:     uri.path,
+			query:    uri.query,
+			fragment: uri.fragment,
+		}
+	}
+	return &URIBuilder{}
+}
+
+func (builder *URIBuilder) URI() *URI {
+	return newURI(
+		builder.scheme,
+		builder.username,
+		builder.password,
+		builder.host,
+		builder.port,
+		builder.path,
+		builder.query,
+		builder.fragment,
+	)
+}
+
+func (b *URIBuilder) SetScheme(scheme string) *URIBuilder {
+	b.scheme = scheme
+	return b
+}
+
+func (b *URIBuilder) SetUsername(username string) *URIBuilder {
+	b.username = username
+	return b
+}
+
+func (b *URIBuilder) SetPassword(password string) *URIBuilder {
+	b.password = password
+	return b
+}
+
+func (b *URIBuilder) SetHost(host string) *URIBuilder {
+	b.host = host
+	return b
+}
+
+func (b *URIBuilder) SetPort(port string) *URIBuilder {
+	b.port = port
+	return b
+}
+
+func (b *URIBuilder) SetPath(path string) *URIBuilder {
+	b.path = path
+	return b
+}
+
+func (b *URIBuilder) SetQuery(query string) *URIBuilder {
+	b.query = query
+	return b
+}
+
+func (b *URIBuilder) SetFragment(fragment string) *URIBuilder {
+	b.fragment = fragment
+	return b
+}
 
 type URI struct {
 	scheme   string
 	username string
 	password string
 	host     string
-	port     int
+	port     string
 	path     string
 	query    string
 	fragment string
 	rawURI   string
 }
 
-type URIParam interface {
-	apply(*URI)
-}
+const (
+	schemePart = iota
+	usernamePart
+	passwordPart
+	hostPart
+	portPart
+	pathPart
+	queryPart
+	fragmentPart
+)
 
-// funcURIParam wraps a function that modifies uri params into an
-// implementation of the URIParam interface.
-type funcURIParam struct {
-	f func(*URI)
-}
-
-func (fup *funcURIParam) apply(uri *URI) {
-	fup.f(uri)
-}
-
-func newFuncURIParam(f func(*URI)) *funcURIParam {
-	return &funcURIParam{
-		f: f,
+func newURI(scheme string, username string, password string, host string, port string, path string, query string, fragment string) *URI {
+	var s strings.Builder
+	indexes := [8][2]int{}
+	writePart := func(part int, str string) {
+		indexes[part][0] = s.Len()
+		s.WriteString(str)
+		indexes[part][1] = s.Len()
 	}
-}
-
-func Scheme(scheme string) URIParam {
-	return newFuncURIParam(func(u *URI) {
-		u.scheme = scheme
-	})
-}
-
-func Username(username string) URIParam {
-	return newFuncURIParam(func(u *URI) {
-		u.username = username
-	})
-}
-
-func Password(password string) URIParam {
-	return newFuncURIParam(func(u *URI) {
-		u.password = password
-	})
-}
-
-func Host(host string) URIParam {
-	return newFuncURIParam(func(u *URI) {
-		u.host = host
-	})
-}
-
-func Port(port int) URIParam {
-	return newFuncURIParam(func(u *URI) {
-		u.port = port
-	})
-}
-
-func Path(path string) URIParam {
-	return newFuncURIParam(func(u *URI) {
-		u.host = path
-	})
-}
-
-func Query(query string) URIParam {
-	return newFuncURIParam(func(u *URI) {
-		u.query = query
-	})
-}
-
-func Fragment(fragment string) URIParam {
-	return newFuncURIParam(func(u *URI) {
-		u.fragment = fragment
-	})
+	if len(scheme) > 0 {
+		writePart(schemePart, scheme)
+		s.WriteRune(':')
+	}
+	if len(username) > 0 || len(password) > 0 || len(host) > 0 || len(port) > 0 {
+		s.WriteString("//")
+		if len(username) > 0 || len(password) > 0 {
+			writePart(usernamePart, username)
+			if len(password) > 0 {
+				s.WriteRune(':')
+				writePart(passwordPart, password)
+			}
+			s.WriteRune('@')
+		}
+		writePart(hostPart, host)
+		if len(port) > 0 {
+			s.WriteRune(':')
+			writePart(portPart, port)
+		}
+	}
+	writePart(pathPart, path)
+	if len(query) > 0 {
+		s.WriteRune('?')
+		writePart(queryPart, query)
+	}
+	if len(fragment) > 0 {
+		s.WriteRune('#')
+		writePart(fragmentPart, fragment)
+	}
+	rawURI := s.String()
+	getPart := func(part int) string {
+		return rawURI[indexes[part][0]:indexes[part][1]]
+	}
+	return &URI{
+		scheme:   getPart(schemePart),
+		username: getPart(usernamePart),
+		password: getPart(passwordPart),
+		host:     getPart(hostPart),
+		port:     getPart(portPart),
+		path:     getPart(pathPart),
+		query:    getPart(queryPart),
+		fragment: getPart(fragmentPart),
+		rawURI:   rawURI,
+	}
 }
 
 func NewURI(rawURI string) *URI {
 	uri, _ := ParseURI(rawURI)
-	return uri
-}
-
-func BuildURI(uriParams ...URIParam) *URI {
-	uri := &URI{}
-	for _, p := range uriParams {
-		p.apply(uri)
-	}
 	return uri
 }
 
@@ -120,10 +188,7 @@ func ParseURI(rawURI string) (*URI, error) {
 		}
 		if i := strings.IndexByte(url.Host, ':'); i >= 0 {
 			uri.host = url.Host[0:i]
-			uri.port, err = strconv.Atoi(url.Host[i+1:])
-			if err != nil {
-				return nil, err
-			}
+			uri.port = url.Host[i+1:]
 		} else {
 			uri.host = url.Host
 		}
@@ -147,10 +212,10 @@ func (uri *URI) Username() string {
 }
 
 func (uri *URI) Password() string {
-	return uri.username
+	return uri.password
 }
 
-func (uri *URI) Port() int {
+func (uri *URI) Port() string {
 	return uri.port
 }
 
@@ -163,7 +228,7 @@ func (uri *URI) Query() string {
 }
 
 func (uri *URI) Fragment() string {
-	return uri.query
+	return uri.fragment
 }
 
 func (uri *URI) IsAbsolute() bool {
@@ -181,45 +246,24 @@ func (uri *URI) IsEmpty() bool {
 }
 
 func (uri *URI) Authority() string {
-	var s strings.Builder
-	if len(uri.username) > 0 || len(uri.password) > 0 {
-		s.WriteString(uri.username)
-		if len(uri.password) > 0 {
-			s.WriteRune(':')
-			s.WriteString(uri.password)
-		}
-		s.WriteRune('@')
+	if len(uri.host) == 0 {
+		return ""
 	}
-	s.WriteString(uri.host)
-	if uri.port != 0 {
-		s.WriteRune(':')
-		s.WriteString(strconv.Itoa(uri.port))
+	hostIndex := strings.Index(uri.rawURI, uri.host)
+	var first int
+	if len(uri.username) > 0 {
+		first = strings.Index(uri.rawURI, uri.username)
+	} else {
+		first = hostIndex
 	}
-	return s.String()
+	last := hostIndex + len(uri.host)
+	if len(uri.port) > 0 {
+		last += len(uri.port) + 1
+	}
+	return uri.rawURI[first:last]
 }
 
 func (uri *URI) String() string {
-	if len(uri.rawURI) == 0 {
-		var s strings.Builder
-		if len(uri.scheme) > 0 {
-			s.WriteString(uri.scheme)
-			s.WriteRune(':')
-		}
-		if autority := uri.Authority(); len(autority) > 0 {
-			s.WriteString("//")
-			s.WriteString(autority)
-		}
-		s.WriteString(uri.path)
-		if len(uri.query) > 0 {
-			s.WriteRune('?')
-			s.WriteString(uri.query)
-		}
-		if len(uri.fragment) > 0 {
-			s.WriteRune('#')
-			s.WriteString(uri.fragment)
-		}
-		uri.rawURI = s.String()
-	}
 	return uri.rawURI
 }
 
@@ -233,24 +277,72 @@ func (uri *URI) Normalize() *URI {
 		return uri.Copy()
 	}
 
-	return &URI{
-		scheme:   uri.scheme,
-		username: uri.username,
-		password: uri.password,
-		host:     uri.host,
-		port:     uri.port,
-		path:     np,
-		query:    uri.query,
-		fragment: uri.fragment,
-	}
+	return newURI(
+		uri.scheme,
+		uri.username,
+		uri.password,
+		uri.host,
+		uri.port,
+		np,
+		uri.query,
+		uri.fragment,
+	)
 }
 
 func (uri *URI) Resolve(ref *URI) *URI {
-	return resolve(uri, ref)
+	// check if opaque first
+	if ref.IsOpaque() || uri.IsOpaque() {
+		return ref
+	}
+
+	// Reference to current document (lone fragment)
+	refAuthority := ref.Authority()
+	if len(ref.scheme) == 0 && len(refAuthority) == 0 && len(ref.path) == 0 && len(ref.fragment) != 0 && len(ref.query) == 0 {
+		if len(uri.fragment) == 0 && ref.fragment == uri.fragment {
+			return uri.Copy()
+		}
+		return newURI(uri.scheme, uri.username, uri.password, uri.host, uri.port, uri.path, uri.query, ref.fragment)
+	}
+
+	// ref is absolute
+	if len(ref.scheme) != 0 {
+		return ref.Copy()
+	}
+
+	// no authority
+	if len(refAuthority) == 0 {
+		path := ref.path
+		if len(ref.path) == 0 || ref.path[0] != '/' {
+			path = resolvePath(uri.path, ref.path, uri.IsAbsolute())
+		}
+		return newURI(uri.scheme, uri.username, uri.password, uri.host, uri.port, path, ref.query, ref.fragment)
+	}
+	return newURI(uri.scheme, ref.username, ref.password, ref.host, ref.port, ref.path, ref.query, ref.fragment)
 }
 
 func (uri *URI) Relativize(ref *URI) *URI {
-	return relativize(uri, ref)
+	// check if opaque
+	if ref.IsOpaque() || uri.IsOpaque() {
+		return ref.Copy()
+	}
+
+	if uri.scheme != ref.scheme || uri.Authority() != ref.Authority() {
+		return ref.Copy()
+	}
+
+	bp := normalize(uri.path)
+	cp := normalize(ref.path)
+	if bp != cp {
+		if !strings.HasSuffix(bp, "/") {
+			i := strings.LastIndexByte(bp, '/')
+			bp = bp[0 : i+1]
+		}
+
+		if !strings.HasPrefix(cp, bp) {
+			return ref.Copy()
+		}
+	}
+	return newURI("", "", "", "", "", cp[len(bp):], ref.query, ref.fragment)
 }
 
 func (uri *URI) Copy() *URI {
@@ -268,27 +360,29 @@ func (uri *URI) Copy() *URI {
 }
 
 func (uri *URI) TrimFragment() *URI {
-	return &URI{
-		scheme:   uri.scheme,
-		username: uri.username,
-		password: uri.password,
-		host:     uri.host,
-		port:     uri.port,
-		path:     uri.path,
-		query:    uri.query,
-	}
+	return newURI(
+		uri.scheme,
+		uri.username,
+		uri.password,
+		uri.host,
+		uri.port,
+		uri.path,
+		uri.query,
+		"",
+	)
 }
 
 func (uri *URI) TrimQuery() *URI {
-	return &URI{
-		scheme:   uri.scheme,
-		username: uri.username,
-		password: uri.password,
-		host:     uri.host,
-		port:     uri.port,
-		path:     uri.path,
-		fragment: uri.fragment,
-	}
+	return newURI(
+		uri.scheme,
+		uri.username,
+		uri.password,
+		uri.host,
+		uri.port,
+		uri.path,
+		"",
+		uri.fragment,
+	)
 }
 
 func (uri *URI) ReplacePrefix(oldPrefix *URI, newPrefix *URI) *URI {
@@ -300,17 +394,14 @@ func (uri *URI) ReplacePrefix(oldPrefix *URI, newPrefix *URI) *URI {
 		return nil
 	}
 	if oldLen := len(oldPrefix.path); len(uri.path) >= oldLen && uri.path[0:oldLen] == oldPrefix.path {
-		return &URI{scheme: newPrefix.scheme,
-			username: uri.username,
-			password: uri.password,
-			host:     uri.host,
-			port:     uri.port,
-			path:     newPrefix.path + uri.path[oldLen:],
-			query:    uri.query,
-			fragment: uri.fragment}
+		return newURI(newPrefix.scheme, uri.username, uri.password, uri.host, uri.port, newPrefix.path+uri.path[oldLen:], uri.query, uri.fragment)
 	}
 	return nil
 
+}
+
+func (uri *URI) Equals(other *URI) bool {
+	return other != nil && (uri == other || uri.rawURI == other.rawURI)
 }
 
 func normalize(path string) string {
@@ -614,97 +705,6 @@ func join(path []rune, segs []int) int {
 	return p
 }
 
-// If both URIs are hierarchical, their scheme and authority components are
-// identical, and the base path is a prefix of the child's path, then
-// return a relative URI that, when resolved against the base, yields the
-// child; otherwise, return the child.
-//
-func relativize(base *URI, child *URI) *URI {
-	// check if child if opaque
-	if child.IsOpaque() || base.IsOpaque() {
-		return child.Copy()
-	}
-	if base.scheme != child.scheme || base.Authority() != child.Authority() {
-		return child.Copy()
-	}
-
-	bp := normalize(base.path)
-	cp := normalize(child.path)
-	if bp != cp {
-		if !strings.HasSuffix(bp, "/") {
-			i := strings.LastIndexByte(bp, '/')
-			bp = bp[0 : i+1]
-		}
-
-		if !strings.HasPrefix(cp, bp) {
-			return child.Copy()
-		}
-	}
-	return &URI{
-		path:     cp[len(bp):],
-		query:    child.query,
-		fragment: child.fragment,
-	}
-}
-
-func resolve(base *URI, child *URI) *URI {
-	// check if child if opaque first
-	if child.IsOpaque() || base.IsOpaque() {
-		return child
-	}
-
-	// Reference to current document (lone fragment)
-	childAuthority := child.Authority()
-	if len(child.scheme) == 0 && len(childAuthority) == 0 && len(child.path) == 0 && len(child.fragment) != 0 && len(child.query) == 0 {
-		if len(base.fragment) == 0 && child.fragment == base.fragment {
-			return base.Copy()
-		}
-
-		return &URI{
-			scheme:   base.scheme,
-			username: base.username,
-			password: base.password,
-			host:     base.host,
-			port:     base.port,
-			path:     base.path,
-			query:    base.query,
-			fragment: child.fragment,
-		}
-	}
-
-	// Child is absolute
-	if len(child.scheme) != 0 {
-		return child.Copy()
-	}
-
-	ru := &URI{
-		scheme:   base.scheme,
-		query:    child.query,
-		fragment: child.fragment,
-	}
-
-	// Authority
-	if len(childAuthority) == 0 {
-		ru.host = base.host
-		ru.username = base.username
-		ru.password = base.password
-		ru.port = base.port
-		if len(child.path) > 0 && child.path[0] == '/' {
-			ru.path = child.path
-		} else {
-			ru.path = resolvePath(base.path, child.path, base.IsAbsolute())
-		}
-	} else {
-		ru.host = child.host
-		ru.username = child.username
-		ru.password = child.password
-		ru.port = child.port
-		ru.path = child.path
-	}
-	// Recombine (nothing to do here)
-	return ru
-}
-
 func resolvePath(base string, child string, isAbsolute bool) string {
 	i := strings.LastIndexByte(base, '/')
 	cn := len(child)
@@ -727,11 +727,12 @@ func CreateFileURI(path string) *URI {
 	if len(p) == 0 {
 		return &URI{}
 	} else {
+		builder := NewURIBuilder(nil)
+		builder.SetPath(p)
 		if isAbsolute := filepath.IsAbs(p); isAbsolute {
-			return &URI{scheme: "file", path: p}
-		} else {
-			return &URI{path: p}
+			builder.SetScheme("file")
 		}
+		return builder.URI()
 	}
 }
 
@@ -740,6 +741,6 @@ func CreateMemoryURI(path string) *URI {
 	if len(p) == 0 {
 		return nil
 	} else {
-		return &URI{scheme: "memory", path: path}
+		return NewURIBuilder(nil).SetScheme("memory").SetPath(p).URI()
 	}
 }

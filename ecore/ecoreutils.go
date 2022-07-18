@@ -51,15 +51,13 @@ func GetURI(eObject EObject) *URI {
 	} else {
 		resource := eObject.EResource()
 		if resource != nil {
-			uri := resource.GetURI().Copy()
-			uri.fragment = resource.GetURIFragment(eObject)
-			return uri
+			return NewURIBuilder(resource.GetURI()).SetFragment(resource.GetURIFragment(eObject)).URI()
 		} else {
 			id := GetEObjectID(eObject)
 			if len(id) == 0 {
-				return BuildURI(Fragment("//" + getRelativeURIFragmentPath(nil, eObject, false)))
+				return NewURIBuilder(nil).SetFragment("//" + getRelativeURIFragmentPath(nil, eObject, false)).URI()
 			} else {
-				return BuildURI(Fragment(id))
+				return NewURIBuilder(nil).SetFragment(id).URI()
 			}
 		}
 	}

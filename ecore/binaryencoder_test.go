@@ -16,7 +16,7 @@ func TestBinaryEncoder_Complex(t *testing.T) {
 
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/library.complex.xml"}, nil)
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.complex.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -41,7 +41,7 @@ func TestBinaryEncoder_ComplexWithID(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	// load resource
-	uri := &URI{Path: "testdata/library.complex.id.xml"}
+	uri := NewURI("testdata/library.complex.id.xml")
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResource.SetObjectIDManager(NewUniqueIDManager(20))
@@ -78,7 +78,7 @@ func TestBinaryEncoder_ComplexBig(t *testing.T) {
 
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/library.complex.big.xml"}, nil)
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.complex.big.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -103,7 +103,7 @@ func TestBinaryEncoder_SimpleWithDataTypeList(t *testing.T) {
 
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/library.datalist.xml"}, nil)
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.datalist.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -128,7 +128,7 @@ func TestBinaryEncoder_Maps(t *testing.T) {
 
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/emap.xml"}, nil)
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/emap.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -153,7 +153,7 @@ func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
 
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/library.complex.big.xml"}, nil)
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.complex.big.xml"), nil)
 	require.NotNil(b, eResource)
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 

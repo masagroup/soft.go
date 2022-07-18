@@ -14,7 +14,7 @@ func (fuh *FileURIHandler) CanHandle(uri *URI) bool {
 }
 
 func (fuh *FileURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {
-	fileName := uri.Path
+	fileName := uri.Path()
 	if fileName[0] == '/' {
 		fileName = fileName[1:]
 	}
@@ -26,7 +26,7 @@ func (fuh *FileURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {
 }
 
 func (fuh *FileURIHandler) CreateWriter(uri *URI) (io.WriteCloser, error) {
-	fileName := uri.Path
+	fileName := uri.Path()
 	if fileName[0] == '/' {
 		fileName = fileName[1:]
 	}

@@ -160,14 +160,14 @@ func TestDynamicEObject_Proxy(t *testing.T) {
 
 	// add to resource to enable proxy resolution
 	resource := NewEResourceImpl()
-	resource.SetURI(&URI{Path: "r"})
+	resource.SetURI(NewURIBuilder(nil).SetPath("r").URI())
 	resource.GetContents().AddAll(NewImmutableEList([]interface{}{o1, o3}))
 
 	resourceSet := NewEResourceSetImpl()
 	resourceSet.GetResources().Add(resource)
 
 	oproxy := NewDynamicEObjectImpl()
-	oproxy.ESetProxyURI(&URI{Path: "r", fragment: "//@r1.1"})
+	oproxy.ESetProxyURI(NewURIBuilder(nil).SetPath("r").SetFragment("//@r1.1").URI())
 	assert.False(t, o3.EIsSet(r3))
 
 	o3.ESet(r3, oproxy)

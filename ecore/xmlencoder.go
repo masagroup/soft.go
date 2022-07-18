@@ -787,16 +787,7 @@ func (s *XMLEncoder) getHRef(eObject EObject) string {
 }
 
 func (s *XMLEncoder) getResourceHRef(resource EResource, object EObject) *URI {
-	uri := resource.GetURI()
-	return BuildURI(
-		Scheme(uri.Scheme()),
-		Username(uri.Username()),
-		Password(uri.Password()),
-		Host(uri.Host()),
-		Port(uri.Port()),
-		Path(uri.Path()),
-		Fragment(resource.GetURIFragment(object)),
-	)
+	return NewURIBuilder(resource.GetURI()).SetFragment(resource.GetURIFragment(object)).URI()
 }
 
 func (s *XMLEncoder) getIDRef(eObject EObject) string {

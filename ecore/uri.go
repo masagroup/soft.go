@@ -90,8 +90,18 @@ func (b *URIBuilder) SetQuery(query string) *URIBuilder {
 	return b
 }
 
+func (b *URIBuilder) ClearQuery() *URIBuilder {
+	b.query = ""
+	return b
+}
+
 func (b *URIBuilder) SetFragment(fragment string) *URIBuilder {
 	b.fragment = fragment
+	return b
+}
+
+func (b *URIBuilder) ClearFragment() *URIBuilder {
+	b.fragment = ""
 	return b
 }
 

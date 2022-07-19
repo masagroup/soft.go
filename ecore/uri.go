@@ -43,7 +43,7 @@ func NewURIBuilder(uri *URI) *URIBuilder {
 }
 
 func (builder *URIBuilder) URI() *URI {
-	return newURI(
+	return NewURIFromComponents(
 		builder.scheme,
 		builder.username,
 		builder.password,
@@ -108,66 +108,66 @@ type URI struct {
 }
 
 const (
-	schemePart = iota
-	usernamePart
-	passwordPart
-	hostPart
-	portPart
-	pathPart
-	queryPart
-	fragmentPart
+	schemeComponent = iota
+	usernameComponent
+	passwordComponent
+	hostComponent
+	portComponent
+	pathComponent
+	queryComponent
+	fragmentComponent
 )
 
-func newURI(scheme string, username string, password string, host string, port string, path string, query string, fragment string) *URI {
+func NewURIFromComponents(scheme string, username string, password string, host string, port string, path string, query string, fragment string) *URI {
 	var s strings.Builder
 	indexes := [8][2]int{}
-	writePart := func(part int, str string) {
-		indexes[part][0] = s.Len()
+	writeComponent := func(Component int, str string) {
+		indexes[Component][0] = s.Len()
 		s.WriteString(str)
-		indexes[part][1] = s.Len()
+		indexes[Component][1] = s.Len()
 	}
 	if len(scheme) > 0 {
-		writePart(schemePart, scheme)
+		writeComponent(schemeComponent, scheme)
 		s.WriteRune(':')
 	}
 	if len(username) > 0 || len(password) > 0 || len(host) > 0 || len(port) > 0 {
 		s.WriteString("//")
 		if len(username) > 0 || len(password) > 0 {
-			writePart(usernamePart, username)
+			writeComponent(usernameComponent, username)
 			if len(password) > 0 {
 				s.WriteRune(':')
-				writePart(passwordPart, password)
+				writeComponent(passwordComponent, password)
 			}
 			s.WriteRune('@')
 		}
-		writePart(hostPart, host)
+		writeComponent(hostComponent, host)
 		if len(port) > 0 {
 			s.WriteRune(':')
-			writePart(portPart, port)
+			writeComponent(portComponent, port)
 		}
 	}
-	writePart(pathPart, path)
+	writeComponent(pathComponent, path)
 	if len(query) > 0 {
 		s.WriteRune('?')
-		writePart(queryPart, query)
+		writeComponent(queryComponent, query)
 	}
 	if len(fragment) > 0 {
 		s.WriteRune('#')
-		writePart(fragmentPart, fragment)
+		writeComponent(fragmentComponent, fragment)
 	}
 	rawURI := s.String()
-	getPart := func(part int) string {
-		return rawURI[indexes[part][0]:indexes[part][1]]
+	getComponent := func(c int) string {
+		return rawURI[indexes[c][0]:indexes[c][1]]
 	}
 	return &URI{
-		scheme:   getPart(schemePart),
-		username: getPart(usernamePart),
-		password: getPart(passwordPart),
-		host:     getPart(hostPart),
-		port:     getPart(portPart),
-		path:     getPart(pathPart),
-		query:    getPart(queryPart),
-		fragment: getPart(fragmentPart),
+		scheme:   getComponent(schemeComponent),
+		username: getComponent(usernameComponent),
+		password: getComponent(passwordComponent),
+		host:     getComponent(hostComponent),
+		port:     getComponent(portComponent),
+		path:     getComponent(pathComponent),
+		query:    getComponent(queryComponent),
+		fragment: getComponent(fragmentComponent),
 		rawURI:   rawURI,
 	}
 }
@@ -277,7 +277,7 @@ func (uri *URI) Normalize() *URI {
 		return uri.Copy()
 	}
 
-	return newURI(
+	return NewURIFromComponents(
 		uri.scheme,
 		uri.username,
 		uri.password,
@@ -301,7 +301,7 @@ func (uri *URI) Resolve(ref *URI) *URI {
 		if len(uri.fragment) == 0 && ref.fragment == uri.fragment {
 			return uri.Copy()
 		}
-		return newURI(uri.scheme, uri.username, uri.password, uri.host, uri.port, uri.path, uri.query, ref.fragment)
+		return NewURIFromComponents(uri.scheme, uri.username, uri.password, uri.host, uri.port, uri.path, uri.query, ref.fragment)
 	}
 
 	// ref is absolute
@@ -315,9 +315,9 @@ func (uri *URI) Resolve(ref *URI) *URI {
 		if len(ref.path) == 0 || ref.path[0] != '/' {
 			path = resolvePath(uri.path, ref.path, uri.IsAbsolute())
 		}
-		return newURI(uri.scheme, uri.username, uri.password, uri.host, uri.port, path, ref.query, ref.fragment)
+		return NewURIFromComponents(uri.scheme, uri.username, uri.password, uri.host, uri.port, path, ref.query, ref.fragment)
 	}
-	return newURI(uri.scheme, ref.username, ref.password, ref.host, ref.port, ref.path, ref.query, ref.fragment)
+	return NewURIFromComponents(uri.scheme, ref.username, ref.password, ref.host, ref.port, ref.path, ref.query, ref.fragment)
 }
 
 func (uri *URI) Relativize(ref *URI) *URI {
@@ -342,7 +342,7 @@ func (uri *URI) Relativize(ref *URI) *URI {
 			return ref.Copy()
 		}
 	}
-	return newURI("", "", "", "", "", cp[len(bp):], ref.query, ref.fragment)
+	return NewURIFromComponents("", "", "", "", "", cp[len(bp):], ref.query, ref.fragment)
 }
 
 func (uri *URI) Copy() *URI {
@@ -360,7 +360,7 @@ func (uri *URI) Copy() *URI {
 }
 
 func (uri *URI) TrimFragment() *URI {
-	return newURI(
+	return NewURIFromComponents(
 		uri.scheme,
 		uri.username,
 		uri.password,
@@ -373,7 +373,7 @@ func (uri *URI) TrimFragment() *URI {
 }
 
 func (uri *URI) TrimQuery() *URI {
-	return newURI(
+	return NewURIFromComponents(
 		uri.scheme,
 		uri.username,
 		uri.password,
@@ -394,7 +394,7 @@ func (uri *URI) ReplacePrefix(oldPrefix *URI, newPrefix *URI) *URI {
 		return nil
 	}
 	if oldLen := len(oldPrefix.path); len(uri.path) >= oldLen && uri.path[0:oldLen] == oldPrefix.path {
-		return newURI(newPrefix.scheme, uri.username, uri.password, uri.host, uri.port, newPrefix.path+uri.path[oldLen:], uri.query, uri.fragment)
+		return NewURIFromComponents(newPrefix.scheme, uri.username, uri.password, uri.host, uri.port, newPrefix.path+uri.path[oldLen:], uri.query, uri.fragment)
 	}
 	return nil
 

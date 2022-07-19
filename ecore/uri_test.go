@@ -144,3 +144,11 @@ func TestCreateMemoryURI(t *testing.T) {
 	assert.Equal(t, NewURI("memory:path"), CreateMemoryURI("path"))
 	assert.Equal(t, "memory:path", CreateMemoryURI("path").String())
 }
+
+func TestURI_Authority(t *testing.T) {
+	assert.Equal(t, "", NewURI("http:///file.text").Authority())
+	assert.Equal(t, "", NewURI("http:/file.text").Authority())
+	assert.Equal(t, "host", NewURI("http://host/file.text").Authority())
+	assert.Equal(t, "host:10", NewURI("http://host:10/file.text").Authority())
+	assert.Equal(t, "userinfo@host:10", NewURI("http://userinfo@host:10/file.text").Authority())
+}

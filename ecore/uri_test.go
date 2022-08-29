@@ -135,7 +135,7 @@ func TestCreateFileURI(t *testing.T) {
 		assert.Equal(t, NewURI("file:D:/test/toto"), CreateFileURI("D:\\test\\toto"))
 	} else {
 		assert.Equal(t, NewURI("test/toto"), CreateFileURI("test/toto"))
-		assert.Equal(t, NewURI("file:test/toto"), CreateFileURI("/test/toto"))
+		assert.Equal(t, NewURI("file:/test/toto"), CreateFileURI("/test/toto"))
 	}
 }
 

@@ -157,7 +157,7 @@ func (rd *resourceDiagnostics) GetFeatureID() int {
 	return rd.featureID
 }
 
-//EResource ...
+// EResource ...
 type EResourceImpl struct {
 	ENotifierImpl
 	resourceSet     EResourceSet

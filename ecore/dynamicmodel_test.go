@@ -160,27 +160,19 @@ func TestDynamicModel(t *testing.T) {
 func TestGetURINoResource(t *testing.T) {
 	mm := createDynamicMetaModel()
 	m := instanciateDynamicModel(mm)
-	assert.Equal(t, &URI{Fragment: "//"}, GetURI(m.bookStoreObject))
-	assert.Equal(t, &URI{Fragment: "//@books.0"}, GetURI(m.bookObject))
+	assert.Equal(t, NewURI("#//"), GetURI(m.bookStoreObject))
+	assert.Equal(t, NewURI("#//@books.0"), GetURI(m.bookObject))
 }
 
 func TestGetURIResource(t *testing.T) {
 	mm := createDynamicMetaModel()
 	m := instanciateDynamicModel(mm)
 	r := NewEResourceImpl()
-	r.SetURI(&URI{Scheme: "file",
-		Path: "a.test",
-	})
+	r.SetURI(NewURI("file:/a.test"))
 	c := r.GetContents()
 	c.Add(m.bookStoreObject)
-	assert.Equal(t, &URI{Scheme: "file",
-		Path:     "a.test",
-		Fragment: "/",
-	}, GetURI(m.bookStoreObject))
-	assert.Equal(t, &URI{Scheme: "file",
-		Path:     "a.test",
-		Fragment: "//@books.0",
-	}, GetURI(m.bookObject))
+	assert.Equal(t, NewURI("file:/a.test#/"), GetURI(m.bookStoreObject))
+	assert.Equal(t, NewURI("file:/a.test#//@books.0"), GetURI(m.bookObject))
 }
 
 func TestGetEObjectFromRoot(t *testing.T) {

@@ -668,7 +668,7 @@ func (l *XMLDecoder) handleProxy(eProxy EObject, id string) {
 	// set object proxy uri
 	eProxy.(EObjectInternal).ESetProxyURI(uri)
 
-	if *resourceURI == *uri.TrimFragment() {
+	if resourceURI.Equals(uri.TrimFragment()) {
 		l.sameDocumentProxies = append(l.sameDocumentProxies, eProxy)
 	}
 }
@@ -679,7 +679,7 @@ func (l *XMLDecoder) handleReferences() {
 			eReference := itRef.Next().(EReference)
 			eOpposite := eReference.GetEOpposite()
 			if eOpposite != nil && eOpposite.IsChangeable() && eProxy.EIsSet(eReference) {
-				resolvedObject := l.resource.GetEObject(eProxy.(EObjectInternal).EProxyURI().Fragment)
+				resolvedObject := l.resource.GetEObject(eProxy.(EObjectInternal).EProxyURI().Fragment())
 				if resolvedObject != nil {
 					var proxyHolder EObject
 					if eReference.IsMany() {

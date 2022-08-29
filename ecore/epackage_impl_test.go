@@ -41,6 +41,7 @@ func TestEPackageFeatureCount(t *testing.T) {
 func TestEPackageEClassifiersGet(t *testing.T) {
 	o := newEPackageImpl()
 	assert.NotNil(t, o.GetEClassifiers())
+	assert.Panics(t, func() { _ = o.GetEClassifiers().Get(0).(EClassifier) })
 }
 
 func TestEPackageEFactoryInstanceGet(t *testing.T) {
@@ -100,6 +101,7 @@ func TestEPackageEFactoryInstanceBasicSet(t *testing.T) {
 func TestEPackageESubPackagesGet(t *testing.T) {
 	o := newEPackageImpl()
 	assert.NotNil(t, o.GetESubPackages())
+	assert.Panics(t, func() { _ = o.GetESubPackages().Get(0).(EPackage) })
 }
 
 func TestEPackageESuperPackageGet(t *testing.T) {

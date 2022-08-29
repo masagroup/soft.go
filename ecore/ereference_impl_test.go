@@ -41,6 +41,7 @@ func TestEReferenceFeatureCount(t *testing.T) {
 func TestEReferenceEKeysGet(t *testing.T) {
 	o := newEReferenceImpl()
 	assert.NotNil(t, o.GetEKeys())
+	assert.Panics(t, func() { _ = o.GetEKeys().Get(0).(EAttribute) })
 }
 
 func TestEReferenceEOppositeGet(t *testing.T) {

@@ -23,7 +23,7 @@ import (
 
 func loadPackage(packageFileName string) EPackage {
 	xmiProcessor := NewXMIProcessor()
-	eResource := xmiProcessor.Load(&URI{Path: "testdata/" + packageFileName})
+	eResource := xmiProcessor.Load(NewURI("testdata/" + packageFileName))
 	if eResource.IsLoaded() && eResource.GetContents().Size() > 0 {
 		ePackage, _ := eResource.GetContents().Get(0).(EPackage)
 		return ePackage
@@ -39,7 +39,7 @@ func TestXMLDecoderLibraryNoRoot(t *testing.T) {
 
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.Load(&URI{Path: "testdata/library.noroot.xml"})
+	eResource := xmlProcessor.Load(NewURI("testdata/library.noroot.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -63,7 +63,7 @@ func TestXMLDecoderLibraryComplex(t *testing.T) {
 
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.Load(&URI{Path: "testdata/library.complex.xml"})
+	eResource := xmlProcessor.Load(NewURI("testdata/library.complex.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -120,7 +120,7 @@ func TestXMLDecoderLibraryComplexWithOptions(t *testing.T) {
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
 	eResource := xmlProcessor.LoadWithOptions(
-		&URI{Path: "testdata/library.complex.noroot.xml"},
+		NewURI("testdata/library.complex.noroot.xml"),
 		map[string]interface{}{
 			XML_OPTION_SUPPRESS_DOCUMENT_ROOT: true,
 			XML_OPTION_EXTENDED_META_DATA:     NewExtendedMetaData()})
@@ -146,7 +146,7 @@ func TestXMLDecoderSimpleInvalidXML(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.Load(&URI{Path: "testdata/library.simple.invalid.xml"})
+	eResource := xmlProcessor.Load(NewURI("testdata/library.simple.invalid.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.False(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -158,7 +158,7 @@ func TestXMLDecoderSimpleEscapeXML(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.Load(&URI{Path: "testdata/library.simple.escape.xml"})
+	eResource := xmlProcessor.Load(NewURI("testdata/library.simple.escape.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -183,7 +183,7 @@ func TestXMLDecoderSimpleXMLWithIDs(t *testing.T) {
 
 	eResourceSet := NewEResourceSetImpl()
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-	eResource := eResourceSet.CreateResource(&URI{Path: "testdata/library.simple.ids.xml"})
+	eResource := eResourceSet.CreateResource(NewURI("testdata/library.simple.ids.xml"))
 	require.NotNil(t, eResource)
 	eResource.SetObjectIDManager(idManager)
 	eResource.LoadWithOptions(map[string]interface{}{XML_OPTION_ID_ATTRIBUTE_NAME: "id"})
@@ -217,7 +217,7 @@ func TestXMLDecoderSimpleXMLWithEDataTypeList(t *testing.T) {
 
 	eResourceSet := NewEResourceSetImpl()
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-	eResource := eResourceSet.CreateResource(&URI{Path: "testdata/library.datalist.xml"})
+	eResource := eResourceSet.CreateResource(NewURI("testdata/library.datalist.xml"))
 	require.NotNil(t, eResource)
 	eResource.Load()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -256,7 +256,7 @@ func TestXMLDecoderLibraryComplexBig(t *testing.T) {
 
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/library.complex.big.xml"}, nil)
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.complex.big.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -275,7 +275,7 @@ func TestXMLDecoderSimpleObject(t *testing.T) {
 
 	eResourceSet := NewEResourceSetImpl()
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-	eResource := eResourceSet.CreateResource(&URI{Path: "$tmp.xml"})
+	eResource := eResourceSet.CreateResource(NewURI("$tmp.xml"))
 
 	f, err := os.Open("testdata/book.simple.xml")
 	require.NotNil(t, f)
@@ -295,7 +295,7 @@ func TestXMLDecoderMaps(t *testing.T) {
 
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.LoadWithOptions(&URI{Path: "testdata/emap.xml"}, nil)
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/emap.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -377,7 +377,7 @@ func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 	require.NotNil(b, ePackage)
 
 	// create resource
-	uri := &URI{Path: "testdata/library.complex.big.xml"}
+	uri := NewURI("testdata/library.complex.big.xml")
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResourceSet := NewEResourceSetImpl()
@@ -385,7 +385,7 @@ func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 
 	// get file content
-	content, err := ioutil.ReadFile(uri.Path)
+	content, err := ioutil.ReadFile(uri.String())
 	require.Nil(b, err)
 	r := bytes.NewReader(content)
 

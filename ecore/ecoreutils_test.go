@@ -118,17 +118,17 @@ func TestEcoreUtilsEqualsProxy(t *testing.T) {
 	obj1 := &MockEObjectInternal{}
 	obj2 := &MockEObjectInternal{}
 	obj1.On("EIsProxy").Once().Return(true)
-	obj1.On("EProxyURI").Once().Return(&URI{Path: "test"})
-	obj2.On("EProxyURI").Once().Return(&URI{Path: "test"})
+	obj1.On("EProxyURI").Once().Return(NewURI("test"))
+	obj2.On("EProxyURI").Once().Return(NewURI("test"))
 	assert.True(t, Equals(obj1, obj2))
 
 	obj1.On("EIsProxy").Once().Return(true)
-	obj1.On("EProxyURI").Once().Return(&URI{Path: "test1"})
-	obj2.On("EProxyURI").Once().Return(&URI{Path: "test2"})
+	obj1.On("EProxyURI").Once().Return(NewURI("test1"))
+	obj2.On("EProxyURI").Once().Return(NewURI("test2"))
 	assert.False(t, Equals(obj1, obj2))
 
 	obj1.On("EIsProxy").Once().Return(true)
-	obj1.On("EProxyURI").Once().Return(&URI{Path: "test"})
+	obj1.On("EProxyURI").Once().Return(NewURI("test"))
 	obj2.On("EProxyURI").Once().Return(nil)
 	assert.False(t, Equals(obj1, obj2))
 
@@ -310,7 +310,7 @@ func TestEcoreUtilsCopyProxy(t *testing.T) {
 
 	// the model
 	eObject := eFactory.Create(eClass)
-	eObject.(EObjectInternal).ESetProxyURI(&URI{Path: "testPath"})
+	eObject.(EObjectInternal).ESetProxyURI(NewURI("testPath"))
 
 	eObjectCopy := Copy(eObject)
 	assert.True(t, Equals(eObject, eObjectCopy))

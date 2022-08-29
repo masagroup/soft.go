@@ -21,8 +21,8 @@ func TestEResourceCodecRegistryGetCodecProtocol(t *testing.T) {
 	rfr := NewEResourceCodecRegistryImpl()
 	rfr.GetProtocolToCodecMap()["test"] = mockCodec
 
-	assert.Equal(t, mockCodec, rfr.GetCodec(&URI{Scheme: "test", Path: "//file.t"}))
-	assert.Nil(t, rfr.GetCodec(&URI{Scheme: "file", Path: "//file.t"}))
+	assert.Equal(t, mockCodec, rfr.GetCodec(NewURI("test:///file.t")))
+	assert.Nil(t, rfr.GetCodec(NewURI("file:///file.t")))
 }
 
 func TestEResourceCodecRegistryGetCodecExtension(t *testing.T) {
@@ -31,6 +31,6 @@ func TestEResourceCodecRegistryGetCodecExtension(t *testing.T) {
 	rfr := NewEResourceCodecRegistryImpl()
 	rfr.GetExtensionToCodecMap()["test"] = mockCodec
 
-	assert.Equal(t, mockCodec, rfr.GetCodec(&URI{Scheme: "file", Path: "//file.test"}))
-	assert.Nil(t, rfr.GetCodec(&URI{Scheme: "file", Path: "//file.t"}))
+	assert.Equal(t, mockCodec, rfr.GetCodec(NewURI("test:///file.test")))
+	assert.Nil(t, rfr.GetCodec(NewURI("file:///file.t")))
 }

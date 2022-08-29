@@ -373,7 +373,7 @@ func (e *BinaryEncoder) encodeURI(uri *URI) {
 	if uri == nil {
 		e.encodeInt(-1)
 	} else {
-		e.encodeURIWithFragment(uri.TrimFragment(), uri.Fragment)
+		e.encodeURIWithFragment(uri.TrimFragment(), uri.Fragment())
 	}
 }
 

@@ -36,7 +36,7 @@ func (l *resourcesList) inverseRemove(object interface{}, notifications ENotific
 	return n
 }
 
-//EResourceSetImpl ...
+// EResourceSetImpl ...
 type EResourceSetImpl struct {
 	ENotifierImpl
 	resources             EList
@@ -92,7 +92,7 @@ func (r *EResourceSetImpl) GetResource(uri *URI, loadOnDemand bool) EResource {
 	for it := r.resources.Iterator(); it.HasNext(); {
 		resource := it.Next().(EResource)
 		resourceURI := r.GetURIConverter().Normalize(resource.GetURI())
-		if *resourceURI == *normalizedURI {
+		if resourceURI.Equals(normalizedURI) {
 			if loadOnDemand && !resource.IsLoaded() {
 				resource.Load()
 			}
@@ -128,7 +128,7 @@ func (r *EResourceSetImpl) GetEObject(uri *URI, loadOnDemand bool) EObject {
 	trim := uri.TrimFragment()
 	resource := r.GetResource(trim, loadOnDemand)
 	if resource != nil {
-		return resource.GetEObject(uri.Fragment)
+		return resource.GetEObject(uri.Fragment())
 	}
 	return nil
 }

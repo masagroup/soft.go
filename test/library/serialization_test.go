@@ -126,7 +126,7 @@ func TestDeepOperations(t *testing.T) {
 
 func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 	// create resource
-	uri := &ecore.URI{Path: "testdata/library.complex.xml"}
+	uri := ecore.CreateFileURI("testdata/library.complex.xml")
 	eResource := ecore.NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResourceSet := ecore.NewEResourceSetImpl()
@@ -134,7 +134,7 @@ func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(GetPackage())
 
 	// get file content
-	content, err := ioutil.ReadFile(uri.Path)
+	content, err := ioutil.ReadFile(uri.String())
 	require.Nil(b, err)
 	r := bytes.NewReader(content)
 
@@ -149,7 +149,7 @@ func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 func BenchmarkXMLEncoderLibraryComplexBig(b *testing.B) {
 	// load resource
 	xmlProcessor := ecore.NewXMLProcessor([]ecore.EPackage{GetPackage()})
-	eResource := xmlProcessor.LoadWithOptions(&ecore.URI{Path: "testdata/library.complex.xml"}, nil)
+	eResource := xmlProcessor.LoadWithOptions(ecore.CreateFileURI("testdata/library.complex.xml"), nil)
 	require.NotNil(b, eResource)
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
@@ -163,7 +163,7 @@ func BenchmarkXMLEncoderLibraryComplexBig(b *testing.B) {
 
 func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	// create resource
-	uri := &ecore.URI{Path: "testdata/library.complex.bin"}
+	uri := ecore.CreateFileURI("testdata/library.complex.bin")
 	eResource := ecore.NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResourceSet := ecore.NewEResourceSetImpl()
@@ -171,7 +171,7 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(GetPackage())
 
 	// get file content
-	content, err := ioutil.ReadFile(uri.Path)
+	content, err := ioutil.ReadFile(uri.String())
 	require.Nil(b, err)
 	r := bytes.NewReader(content)
 
@@ -186,7 +186,7 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
 	// load resource
 	xmlProcessor := ecore.NewXMLProcessor([]ecore.EPackage{GetPackage()})
-	eResource := xmlProcessor.LoadWithOptions(&ecore.URI{Path: "testdata/library.complex.xml"}, nil)
+	eResource := xmlProcessor.LoadWithOptions(ecore.CreateFileURI("testdata/library.complex.xml"), nil)
 	require.NotNil(b, eResource)
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 

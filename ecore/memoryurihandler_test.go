@@ -8,8 +8,8 @@ import (
 
 func TestMemoryURIHandler_CanHandle(t *testing.T) {
 	m := &MemoryURIHandler{}
-	assert.True(t, m.CanHandle(&URI{Scheme: "memory"}))
-	assert.False(t, m.CanHandle(&URI{Scheme: "file"}))
+	assert.True(t, m.CanHandle(&URI{scheme: "memory"}))
+	assert.False(t, m.CanHandle(&URI{scheme: "file"}))
 }
 
 func TestMemoryURIHandler_CreateReader(t *testing.T) {

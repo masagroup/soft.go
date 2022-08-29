@@ -65,7 +65,7 @@ func TestMockEURIConverterCreateWriter(t *testing.T) {
 
 func TestMockEURIConverterGetURIMap(t *testing.T) {
 	h := &MockEURIConverter{}
-	m := map[URI]URI{{Path: "toto"}: {Path: "tata"}}
+	m := map[URI]URI{*NewURI("toto"): *NewURI("tata")}
 	h.On("GetURIMap").Return(m).Once()
 	h.On("GetURIMap").Return(func() map[URI]URI {
 		return m

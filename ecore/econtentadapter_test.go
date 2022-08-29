@@ -533,7 +533,7 @@ func BenchmarkEContentAdapterWithBigModel(b *testing.B) {
 
 		// load resource
 		xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-		eResource := xmlProcessor.Load(&URI{Path: "testdata/library.complex.big.xml"})
+		eResource := xmlProcessor.Load(NewURI("testdata/library.complex.big.xml"))
 		require.NotNil(b, eResource)
 		assert.True(b, eResource.IsLoaded())
 		assert.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -555,7 +555,7 @@ func BenchmarkEContentAdapterWithTreeModel(b *testing.B) {
 
 		// load resource
 		xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-		eResource := xmlProcessor.Load(&URI{Path: "testdata/tree.xml"})
+		eResource := xmlProcessor.Load(NewURI("testdata/tree.xml"))
 		require.NotNil(b, eResource)
 		assert.True(b, eResource.IsLoaded())
 		assert.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))

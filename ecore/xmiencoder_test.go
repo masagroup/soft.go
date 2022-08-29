@@ -21,7 +21,7 @@ import (
 func TestXMIEncoderLibrarySimple(t *testing.T) {
 	// load/save
 	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&URI{Path: "testdata/library.simple.ecore"})
+	resource := xmiProcessor.Load(NewURI("testdata/library.simple.ecore"))
 	require.NotNil(t, resource)
 	result := xmiProcessor.SaveToString(resource, nil)
 	// check
@@ -33,7 +33,7 @@ func TestXMIEncoderLibrarySimple(t *testing.T) {
 func TestXMIEncoderLibraryNoRoot(t *testing.T) {
 	// load/save
 	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&URI{Path: "testdata/library.noroot.ecore"})
+	resource := xmiProcessor.Load(NewURI("testdata/library.noroot.ecore"))
 	require.NotNil(t, resource)
 	result := xmiProcessor.SaveToString(resource, nil)
 	// check
@@ -45,7 +45,7 @@ func TestXMIEncoderLibraryNoRoot(t *testing.T) {
 func TestXMIEncoderLibraryComplex(t *testing.T) {
 	// load/save
 	xmiProcessor := NewXMIProcessor()
-	resource := xmiProcessor.Load(&URI{Path: "testdata/library.complex.ecore"})
+	resource := xmiProcessor.Load(NewURI("testdata/library.complex.ecore"))
 	require.NotNil(t, resource)
 	result := xmiProcessor.SaveToString(resource, nil)
 	// check
@@ -58,7 +58,7 @@ func BenchmarkXMIEncoderLibrarySimple(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		resource := NewEResourceImpl()
-		resource.SetURI(&URI{Path: "testdata/library.simple.ecore"})
+		resource.SetURI(NewURI("testdata/library.simple.ecore"))
 		resource.Load()
 
 		var strbuff strings.Builder
@@ -71,7 +71,7 @@ func BenchmarkXMIEncoderLibraryNoRoot(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		resource := NewEResourceImpl()
-		resource.SetURI(&URI{Path: "testdata/library.noroot.ecore"})
+		resource.SetURI(NewURI("testdata/library.noroot.ecore"))
 		resource.Load()
 
 		var strbuff strings.Builder

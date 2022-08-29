@@ -41,46 +41,55 @@ func TestEClassFeatureCount(t *testing.T) {
 func TestEClassEAllAttributesGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetEAllAttributes())
+	assert.Panics(t, func() { _ = o.GetEAllAttributes().Get(0).(EAttribute) })
 }
 
 func TestEClassEAllContainmentsGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetEAllContainments())
+	assert.Panics(t, func() { _ = o.GetEAllContainments().Get(0).(EReference) })
 }
 
 func TestEClassEAllOperationsGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetEAllOperations())
+	assert.Panics(t, func() { _ = o.GetEAllOperations().Get(0).(EOperation) })
 }
 
 func TestEClassEAllReferencesGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetEAllReferences())
+	assert.Panics(t, func() { _ = o.GetEAllReferences().Get(0).(EReference) })
 }
 
 func TestEClassEAllStructuralFeaturesGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetEAllStructuralFeatures())
+	assert.Panics(t, func() { _ = o.GetEAllStructuralFeatures().Get(0).(EStructuralFeature) })
 }
 
 func TestEClassEAllSuperTypesGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetEAllSuperTypes())
+	assert.Panics(t, func() { _ = o.GetEAllSuperTypes().Get(0).(EClass) })
 }
 
 func TestEClassEAttributesGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetEAttributes())
+	assert.Panics(t, func() { _ = o.GetEAttributes().Get(0).(EAttribute) })
 }
 
 func TestEClassEContainmentFeaturesGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetEContainmentFeatures())
+	assert.Panics(t, func() { _ = o.GetEContainmentFeatures().Get(0).(EStructuralFeature) })
 }
 
 func TestEClassECrossReferenceFeaturesGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetECrossReferenceFeatures())
+	assert.Panics(t, func() { _ = o.GetECrossReferenceFeatures().Get(0).(EStructuralFeature) })
 }
 
 func TestEClassEIDAttributeGet(t *testing.T) {
@@ -91,21 +100,25 @@ func TestEClassEIDAttributeGet(t *testing.T) {
 func TestEClassEOperationsGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetEOperations())
+	assert.Panics(t, func() { _ = o.GetEOperations().Get(0).(EOperation) })
 }
 
 func TestEClassEReferencesGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetEReferences())
+	assert.Panics(t, func() { _ = o.GetEReferences().Get(0).(EReference) })
 }
 
 func TestEClassEStructuralFeaturesGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetEStructuralFeatures())
+	assert.Panics(t, func() { _ = o.GetEStructuralFeatures().Get(0).(EStructuralFeature) })
 }
 
 func TestEClassESuperTypesGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetESuperTypes())
+	assert.Panics(t, func() { _ = o.GetESuperTypes().Get(0).(EClass) })
 }
 
 func TestEClassAbstractGet(t *testing.T) {

@@ -18,7 +18,7 @@ func TestBinaryDecoder_Complex(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	//
-	uri := &URI{Path: "testdata/library.complex.bin"}
+	uri := NewURI("testdata/library.complex.bin")
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResourceSet := NewEResourceSetImpl()
@@ -26,7 +26,7 @@ func TestBinaryDecoder_Complex(t *testing.T) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 
 	// file
-	f, err := os.Open(uri.Path)
+	f, err := os.Open(uri.String())
 	require.Nil(t, err)
 
 	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
@@ -100,7 +100,7 @@ func TestBinaryDecoder_ComplexWithID(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	//
-	uri := &URI{Path: "testdata/library.complex.id.bin"}
+	uri := NewURI("testdata/library.complex.id.bin")
 	idManager := NewUniqueIDManager(20)
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
@@ -110,7 +110,7 @@ func TestBinaryDecoder_ComplexWithID(t *testing.T) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 
 	// file
-	f, err := os.Open(uri.Path)
+	f, err := os.Open(uri.String())
 	require.Nil(t, err)
 
 	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
@@ -139,7 +139,7 @@ func TestBinaryDecoder_SimpleWithEDataTypeList(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	//
-	uri := &URI{Path: "testdata/library.datalist.bin"}
+	uri := NewURI("testdata/library.datalist.bin")
 	idManager := NewUniqueIDManager(20)
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
@@ -149,7 +149,7 @@ func TestBinaryDecoder_SimpleWithEDataTypeList(t *testing.T) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 
 	// file
-	f, err := os.Open(uri.Path)
+	f, err := os.Open(uri.String())
 	require.Nil(t, err)
 
 	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
@@ -189,7 +189,7 @@ func TestBinaryDecoder_ComplexBig(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	//
-	uri := &URI{Path: "testdata/library.complex.big.bin"}
+	uri := NewURI("testdata/library.complex.big.bin")
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResourceSet := NewEResourceSetImpl()
@@ -197,7 +197,7 @@ func TestBinaryDecoder_ComplexBig(t *testing.T) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 
 	// file
-	f, err := os.Open(uri.Path)
+	f, err := os.Open(uri.String())
 	require.Nil(t, err)
 
 	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
@@ -211,7 +211,7 @@ func TestBinaryDecoder_Maps(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	//
-	uri := &URI{Path: "testdata/emap.bin"}
+	uri := NewURI("testdata/emap.bin")
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResourceSet := NewEResourceSetImpl()
@@ -219,7 +219,7 @@ func TestBinaryDecoder_Maps(t *testing.T) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 
 	// file
-	f, err := os.Open(uri.Path)
+	f, err := os.Open(uri.String())
 	require.Nil(t, err)
 
 	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
@@ -257,7 +257,7 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	require.NotNil(b, ePackage)
 
 	// create resource
-	uri := &URI{Path: "testdata/library.complex.big.bin"}
+	uri := NewURI("testdata/library.complex.big.bin")
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResourceSet := NewEResourceSetImpl()
@@ -265,7 +265,7 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 
 	// get file content
-	content, err := ioutil.ReadFile(uri.Path)
+	content, err := ioutil.ReadFile(uri.String())
 	require.Nil(b, err)
 	require.Nil(b, err)
 	r := bytes.NewReader(content)

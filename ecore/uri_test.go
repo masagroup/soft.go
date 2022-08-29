@@ -18,17 +18,17 @@ import (
 )
 
 func TestURI_Constructor(t *testing.T) {
-	assert.Equal(t, &URI{Scheme: "http"}, NewURI("http://"))
-	assert.Equal(t, &URI{Scheme: "http", Host: "host"}, NewURI("http://host"))
-	assert.Equal(t, &URI{Scheme: "http", Host: "host", Port: 10020}, NewURI("http://host:10020"))
-	assert.Equal(t, &URI{Scheme: "http", Host: "host", Port: 10020, Path: "/path/path2"}, NewURI("http://host:10020/path/path2"))
-	assert.Equal(t, &URI{Scheme: "http", Host: "host", Port: 10020, Path: "/path/path2", Query: "key1=foo&key2=&key3&=bar&=bar="}, NewURI("http://host:10020/path/path2?key1=foo&key2=&key3&=bar&=bar="))
-	assert.Equal(t, &URI{Scheme: "http", Host: "host", Port: 10020, Path: "/path/path2", Fragment: "fragment"}, NewURI("http://host:10020/path/path2#fragment"))
-	assert.Equal(t, &URI{Scheme: "file", Host: "file.txt", Query: "query", Fragment: "fragment"}, NewURI("file://file.txt?query#fragment"))
-	assert.Equal(t, &URI{Scheme: "file", Path: "/file.txt", Query: "query", Fragment: "fragment"}, NewURI("file:///file.txt?query#fragment"))
-	assert.Equal(t, &URI{Fragment: "fragment"}, NewURI("//#fragment"))
-	assert.Equal(t, &URI{Path: "path"}, NewURI("path"))
-	assert.Equal(t, &URI{Path: "./path"}, NewURI("./path"))
+	assert.Equal(t, NewURIBuilder(nil).SetScheme("http").URI(), NewURI("http:"))
+	assert.Equal(t, NewURIBuilder(nil).SetScheme("http").SetHost("host").URI(), NewURI("http://host"))
+	assert.Equal(t, NewURIBuilder(nil).SetScheme("http").SetHost("host").SetPort("10020").URI(), NewURI("http://host:10020"))
+	assert.Equal(t, NewURIBuilder(nil).SetScheme("http").SetHost("host").SetPort("10020").SetPath("/path/path2").URI(), NewURI("http://host:10020/path/path2"))
+	assert.Equal(t, NewURIBuilder(nil).SetScheme("http").SetHost("host").SetPort("10020").SetPath("/path/path2").SetQuery("key1=foo&key2=&key3&=bar&=bar=").URI(), NewURI("http://host:10020/path/path2?key1=foo&key2=&key3&=bar&=bar="))
+	assert.Equal(t, NewURIBuilder(nil).SetScheme("http").SetHost("host").SetPort("10020").SetPath("/path/path2").SetFragment("fragment").URI(), NewURI("http://host:10020/path/path2#fragment"))
+	assert.Equal(t, NewURIBuilder(nil).SetScheme("file").SetHost("file.txt").SetQuery("query").SetFragment("fragment").URI(), NewURI("file://file.txt?query#fragment"))
+	assert.Equal(t, NewURIBuilder(nil).SetScheme("file").SetPath("/file.txt").SetQuery("query").SetFragment("fragment").URI(), NewURI("file:/file.txt?query#fragment"))
+	assert.Equal(t, NewURIBuilder(nil).SetFragment("fragment").URI(), NewURI("#fragment"))
+	assert.Equal(t, NewURIBuilder(nil).SetPath("path").URI(), NewURI("path"))
+	assert.Equal(t, NewURIBuilder(nil).SetPath("./path").URI(), NewURI("./path"))
 }
 
 func TestURI_ParseURI(t *testing.T) {
@@ -55,22 +55,22 @@ func TestURI_IsEmpty(t *testing.T) {
 		assert.True(t, u.IsEmpty())
 	}
 	{
-		u := &URI{Scheme: "t"}
+		u := &URI{scheme: "t"}
 		assert.False(t, u.IsEmpty())
 	}
 }
 
 func TestURI_Copy(t *testing.T) {
-	uri := &URI{
-		Scheme:   "scheme",
-		Username: "username",
-		Password: "password",
-		Host:     "host",
-		Port:     10,
-		Path:     "path",
-		Query:    "query",
-		Fragment: "fragment",
-	}
+	uri := NewURIBuilder(nil).
+		SetScheme("scheme").
+		SetUsername("username").
+		SetPassword("password").
+		SetHost("host").
+		SetPort("10").
+		SetPath("path").
+		SetQuery("query").
+		SetFragment("fragment").
+		URI()
 	assert.Equal(t, uri, uri.Copy())
 }
 
@@ -102,45 +102,53 @@ func TestURI_ReplacePrefix(t *testing.T) {
 	assert.Nil(t, NewURI("http://host").ReplacePrefix(NewURI("http://host2/path"), nil))
 	assert.Nil(t, NewURI("test/toto").ReplacePrefix(NewURI("info"), nil))
 	{
-		uri := NewURI("test:///toto").ReplacePrefix(&URI{Scheme: "test"}, &URI{Scheme: "file"})
+		uri := NewURI("test:///toto").ReplacePrefix(&URI{scheme: "test"}, &URI{scheme: "file"})
 		require.NotNil(t, uri)
-		assert.Equal(t, "file", uri.Scheme)
+		assert.Equal(t, "file", uri.Scheme())
 	}
 	{
-		uri := NewURI("").ReplacePrefix(&URI{}, &URI{Path: "file"})
+		uri := NewURI("").ReplacePrefix(NewURI(""), NewURI("file"))
 		require.NotNil(t, uri)
-		assert.Equal(t, "file", uri.Path)
+		assert.Equal(t, "file", uri.Path())
 	}
 	{
-		uri := (&URI{Path: "toto"}).ReplacePrefix(&URI{}, &URI{Path: "test/"})
+		uri := NewURI("toto").ReplacePrefix(NewURI(""), NewURI("test/"))
 		require.NotNil(t, uri)
-		assert.Equal(t, "test/toto", uri.Path)
+		assert.Equal(t, "test/toto", uri.Path())
 	}
 	{
-		uri := (&URI{Path: "test/toto"}).ReplacePrefix(&URI{Path: "test/toto"}, &URI{Path: "test2"})
+		uri := NewURI("test/toto").ReplacePrefix(NewURI("test/toto"), NewURI("test2"))
 		require.NotNil(t, uri)
-		assert.Equal(t, "test2", uri.Path)
+		assert.Equal(t, "test2", uri.Path())
 	}
 	{
-		uri := (&URI{Path: "test/toto"}).ReplacePrefix(&URI{Path: "test"}, &URI{Path: "test2"})
+		uri := NewURI("test/toto").ReplacePrefix(NewURI("test"), NewURI("test2"))
 		require.NotNil(t, uri)
-		assert.Equal(t, "test2/toto", uri.Path)
+		assert.Equal(t, "test2/toto", uri.Path())
 	}
 }
 
 func TestCreateFileURI(t *testing.T) {
 	assert.Equal(t, &URI{}, CreateFileURI(""))
 	if runtime.GOOS == "windows" {
-		assert.Equal(t, &URI{Path: "test/toto"}, CreateFileURI("test\\toto"))
-		assert.Equal(t, &URI{Scheme: "file", Path: "D:/test/toto"}, CreateFileURI("D:\\test\\toto"))
+		assert.Equal(t, NewURI("test/toto"), CreateFileURI("test\\toto"))
+		assert.Equal(t, NewURI("file:D:/test/toto"), CreateFileURI("D:\\test\\toto"))
 	} else {
-		assert.Equal(t, &URI{Path: "test/toto"}, CreateFileURI("test/toto"))
-		assert.Equal(t, &URI{Scheme: "file", Path: "/test/toto"}, CreateFileURI("/test/toto"))
+		assert.Equal(t, NewURI("test/toto"), CreateFileURI("test/toto"))
+		assert.Equal(t, NewURI("file:/test/toto"), CreateFileURI("/test/toto"))
 	}
 }
 
 func TestCreateMemoryURI(t *testing.T) {
 	assert.Nil(t, CreateMemoryURI(""))
-	assert.Equal(t, &URI{Scheme: "memory", Path: "path"}, CreateMemoryURI("path"))
+	assert.Equal(t, NewURI("memory:path"), CreateMemoryURI("path"))
 	assert.Equal(t, "memory:path", CreateMemoryURI("path").String())
+}
+
+func TestURI_Authority(t *testing.T) {
+	assert.Equal(t, "", NewURI("http:///file.text").Authority())
+	assert.Equal(t, "", NewURI("http:/file.text").Authority())
+	assert.Equal(t, "host", NewURI("http://host/file.text").Authority())
+	assert.Equal(t, "host:10", NewURI("http://host:10/file.text").Authority())
+	assert.Equal(t, "userinfo@host:10", NewURI("http://userinfo@host:10/file.text").Authority())
 }

@@ -5,16 +5,16 @@ import (
 	"os"
 )
 
-//URIHandler ...
+// URIHandler ...
 type FileURIHandler struct {
 }
 
 func (fuh *FileURIHandler) CanHandle(uri *URI) bool {
-	return uri.Scheme == "file" || (!uri.IsAbsolute() && len(uri.Query) == 0)
+	return uri.scheme == "file" || (!uri.IsAbsolute() && len(uri.query) == 0)
 }
 
 func (fuh *FileURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {
-	fileName := uri.Path
+	fileName := uri.Path()
 	if fileName[0] == '/' {
 		fileName = fileName[1:]
 	}
@@ -26,7 +26,7 @@ func (fuh *FileURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {
 }
 
 func (fuh *FileURIHandler) CreateWriter(uri *URI) (io.WriteCloser, error) {
-	fileName := uri.Path
+	fileName := uri.Path()
 	if fileName[0] == '/' {
 		fileName = fileName[1:]
 	}

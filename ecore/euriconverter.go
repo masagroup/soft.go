@@ -4,7 +4,7 @@ import (
 	"io"
 )
 
-//URIConverter ...
+// URIConverter ...
 type EURIConverter interface {
 	CreateReader(uri *URI) (io.ReadCloser, error)
 

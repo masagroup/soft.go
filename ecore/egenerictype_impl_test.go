@@ -188,6 +188,7 @@ func TestEGenericTypeERawTypeGet(t *testing.T) {
 func TestEGenericTypeETypeArgumentsGet(t *testing.T) {
 	o := newEGenericTypeImpl()
 	assert.NotNil(t, o.GetETypeArguments())
+	assert.Panics(t, func() { _ = o.GetETypeArguments().Get(0).(EGenericType) })
 }
 
 func TestEGenericTypeETypeParameterGet(t *testing.T) {

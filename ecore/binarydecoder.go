@@ -432,9 +432,7 @@ func (d *BinaryDecoder) decodeURI() *URI {
 		} else {
 			uri = d.uris[id]
 		}
-		uri = uri.Copy()
-		uri.Fragment = d.decodeString()
-		return uri
+		return NewURIBuilder(uri).SetFragment(d.decodeString()).URI()
 	}
 }
 

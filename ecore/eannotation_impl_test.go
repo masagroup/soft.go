@@ -41,6 +41,7 @@ func TestEAnnotationFeatureCount(t *testing.T) {
 func TestEAnnotationContentsGet(t *testing.T) {
 	o := newEAnnotationImpl()
 	assert.NotNil(t, o.GetContents())
+	assert.Panics(t, func() { _ = o.GetContents().Get(0).(EObject) })
 }
 
 func TestEAnnotationDetailsGet(t *testing.T) {
@@ -123,6 +124,7 @@ func TestEAnnotationEModelElementBasicSet(t *testing.T) {
 func TestEAnnotationReferencesGet(t *testing.T) {
 	o := newEAnnotationImpl()
 	assert.NotNil(t, o.GetReferences())
+	assert.Panics(t, func() { _ = o.GetReferences().Get(0).(EObject) })
 }
 
 func TestEAnnotationSourceGet(t *testing.T) {

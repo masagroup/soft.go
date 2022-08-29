@@ -44,7 +44,7 @@ func TestResourceContents(t *testing.T) {
 
 func TestResourceLoadInvalid(t *testing.T) {
 	r := NewEResourceImpl()
-	r.SetURI(&URI{Path: "testdata/invalid.xml"})
+	r.SetURI(NewURI("testdata/invalid.xml"))
 	r.Load()
 	assert.False(t, r.IsLoaded())
 	assert.False(t, r.GetErrors().Empty())

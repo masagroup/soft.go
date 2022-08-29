@@ -55,6 +55,7 @@ func TestEOperationEContainingClassGet(t *testing.T) {
 func TestEOperationEExceptionsGet(t *testing.T) {
 	o := newEOperationImpl()
 	assert.NotNil(t, o.GetEExceptions())
+	assert.Panics(t, func() { _ = o.GetEExceptions().Get(0).(EClassifier) })
 }
 
 func TestEOperationEExceptionsUnSet(t *testing.T) {
@@ -67,6 +68,7 @@ func TestEOperationEExceptionsUnSet(t *testing.T) {
 func TestEOperationEParametersGet(t *testing.T) {
 	o := newEOperationImpl()
 	assert.NotNil(t, o.GetEParameters())
+	assert.Panics(t, func() { _ = o.GetEParameters().Get(0).(EParameter) })
 }
 
 func TestEOperationOperationIDGet(t *testing.T) {

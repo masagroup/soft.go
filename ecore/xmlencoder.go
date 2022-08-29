@@ -787,9 +787,7 @@ func (s *XMLEncoder) getHRef(eObject EObject) string {
 }
 
 func (s *XMLEncoder) getResourceHRef(resource EResource, object EObject) *URI {
-	uri := resource.GetURI().Copy()
-	uri.Fragment = resource.GetURIFragment(object)
-	return uri
+	return NewURIBuilder(resource.GetURI()).SetFragment(resource.GetURIFragment(object)).URI()
 }
 
 func (s *XMLEncoder) getIDRef(eObject EObject) string {

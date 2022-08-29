@@ -4,7 +4,7 @@ import (
 	"io"
 )
 
-//URIHandler ...
+// URIHandler ...
 type EURIHandler interface {
 	CanHandle(uri *URI) bool
 

@@ -36,7 +36,7 @@ func (l *resourcesList) inverseRemove(object interface{}, notifications ENotific
 	return n
 }
 
-//EResourceSetImpl ...
+// EResourceSetImpl ...
 type EResourceSetImpl struct {
 	ENotifierImpl
 	resources             EList

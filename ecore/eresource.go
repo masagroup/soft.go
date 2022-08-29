@@ -18,7 +18,7 @@ const (
 	RESOURCE__WARNINGS = 6
 )
 
-//EResource ...
+// EResource ...
 type EResource interface {
 	ENotifier
 

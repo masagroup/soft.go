@@ -13,7 +13,7 @@ const (
 	RESOURCE_SET__RESOURCES = 0
 )
 
-//EResourceSet ...
+// EResourceSet ...
 type EResourceSet interface {
 	ENotifier
 

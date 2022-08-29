@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-//URIHandler ...
+// URIHandler ...
 type FileURIHandler struct {
 }
 

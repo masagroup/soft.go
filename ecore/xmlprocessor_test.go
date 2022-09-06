@@ -11,8 +11,8 @@ package ecore
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
+	"os"
 	"strings"
 	"testing"
 
@@ -61,18 +61,18 @@ func TestSaveObject(t *testing.T) {
 			ePackage, _ := xmlProcessorLoad(t, xmlProcessor, "testdata/"+testCase.meta).(EPackage)
 			require.NotNil(t, ePackage)
 			packageRegistry.RegisterPackage(ePackage)
-			eModel, _ := xmlProcessorLoad(t, xmlProcessor, "testdata/"+testCase.model).(EObject)
+			eModel := xmlProcessorLoad(t, xmlProcessor, "testdata/"+testCase.model)
 			require.NotNil(t, eModel)
 
 			resultName := "testdata/" + testCase.name + ".result.xml"
 			xmlProcessor.SaveObject(NewURI(resultName), eModel)
 
 			// src
-			src, err := ioutil.ReadFile("testdata/" + testCase.model)
+			src, err := os.ReadFile("testdata/" + testCase.model)
 			assert.Nil(t, err)
 
 			// result
-			result, err := ioutil.ReadFile(resultName)
+			result, err := os.ReadFile(resultName)
 			assert.Nil(t, err)
 			assert.Equal(t, strings.ReplaceAll(string(src), "\r\n", "\n"), strings.ReplaceAll(string(result), "\r\n", "\n"))
 		})
@@ -109,7 +109,7 @@ func (f *nodeFactory) newNode(name string, depth int) EObject {
 	return n
 }
 
-func _TestSerializationTree(t *testing.T) {
+func TestSerializationTree(t *testing.T) {
 	// load package
 	ePackage := loadPackage("tree.ecore")
 	assert.NotNil(t, ePackage)

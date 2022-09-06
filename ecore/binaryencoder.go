@@ -161,10 +161,6 @@ func (e *BinaryEncoder) encodeInt16(i int16) {
 	e.haltOnError(e.encoder.EncodeInt16(i))
 }
 
-func (e *BinaryEncoder) encodeInt8(i int8) {
-	e.haltOnError(e.encoder.EncodeInt8(i))
-}
-
 func (e *BinaryEncoder) encodeByte(b byte) {
 	e.haltOnError(e.encoder.EncodeUint8(b))
 }
@@ -342,7 +338,7 @@ func (e *BinaryEncoder) encodeFeatureValue(eObject EObjectInternal, featureID in
 }
 
 func (e *BinaryEncoder) encodeClass(eClass EClass) *binaryEncoderClassData {
-	eClassData, _ := e.classDataMap[eClass]
+	eClassData := e.classDataMap[eClass]
 	if eClassData != nil {
 		e.encodeInt(eClassData.packageID)
 		e.encodeInt(eClassData.id)
@@ -356,7 +352,7 @@ func (e *BinaryEncoder) encodeClass(eClass EClass) *binaryEncoderClassData {
 }
 
 func (e *BinaryEncoder) encodePackage(ePackage EPackage) *binaryEncoderPackageData {
-	ePackageData, _ := e.packageDataMap[ePackage]
+	ePackageData := e.packageDataMap[ePackage]
 	if ePackageData != nil {
 		e.encodeInt(ePackageData.id)
 	} else {

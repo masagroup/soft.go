@@ -3,7 +3,7 @@ package ecore
 type eAllContentIterator = treeIterator
 
 func newEAllContentsIterator(object EObject) *eAllContentIterator {
-	return &eAllContentIterator{object: object, root: false, getChildren: func(o interface{}) EIterator {
+	return &eAllContentIterator{object: object, root: false, getChildren: func(o any) EIterator {
 		return o.(EObject).EContents().Iterator()
 	}}
 }
@@ -160,7 +160,7 @@ func (it *eObjectIterator) HasNext() bool {
 	return it.next
 }
 
-func (it *eObjectIterator) Next() interface{} {
+func (it *eObjectIterator) Next() any {
 	if it.next {
 		it.next = false
 		return it.eObject
@@ -171,7 +171,7 @@ func (it *eObjectIterator) Next() interface{} {
 type eAllContentsWithClassIterator struct {
 	table *EClassTransitionsTable
 	data  []*data
-	next  interface{}
+	next  any
 }
 
 func newEAllContentsWithClassIterator(eObject EObject, eClass EClass) *eAllContentsWithClassIterator {
@@ -191,7 +191,7 @@ func (it *eAllContentsWithClassIterator) HasNext() bool {
 	return it.next != nil
 }
 
-func (it *eAllContentsWithClassIterator) Next() interface{} {
+func (it *eAllContentsWithClassIterator) Next() any {
 	next := it.next
 	it.next = it.findNext()
 	return next
@@ -199,7 +199,7 @@ func (it *eAllContentsWithClassIterator) Next() interface{} {
 
 var notransitions []*transition = []*transition{}
 
-func (it *eAllContentsWithClassIterator) findNext() interface{} {
+func (it *eAllContentsWithClassIterator) findNext() any {
 	for len(it.data) != 0 {
 		d := it.data[len(it.data)-1]
 

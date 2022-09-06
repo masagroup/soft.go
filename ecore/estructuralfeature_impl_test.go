@@ -45,7 +45,7 @@ func TestEStructuralFeatureDefaultValueGet(t *testing.T) {
 
 func TestEStructuralFeatureDefaultValueSet(t *testing.T) {
 	o := newEStructuralFeatureImpl()
-	v := interface{}(nil)
+	v := any(nil)
 	assert.Panics(t, func() { o.SetDefaultValue(v) })
 }
 

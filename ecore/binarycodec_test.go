@@ -243,7 +243,7 @@ func loadTestModel(t *testing.T, resourceSet EResourceSet, modelURI *URI) (EReso
 
 func TestBinaryCodec_EncodeDecodeResource_WithReferences(t *testing.T) {
 	eResourceSet := NewEResourceSetImpl()
-	binaryCodecOptions := map[string]interface{}{BINARY_OPTION_ID_ATTRIBUTE: true}
+	binaryCodecOptions := map[string]any{BINARY_OPTION_ID_ATTRIBUTE: true}
 	// load packages & models
 	eShopPackageResource, eShopPackage := loadTestPackage(t, eResourceSet, NewURI("testdata/shop.ecore"))
 	require.NotNil(t, eShopPackage)
@@ -310,7 +310,7 @@ func TestBinaryCodec_EncodeDecodeResource_WithReferences(t *testing.T) {
 
 func TestBinaryCodec_EncodeDecodeObject_WithExternalReferences(t *testing.T) {
 	eResourceSet := NewEResourceSetImpl()
-	binaryCodecOptions := map[string]interface{}{BINARY_OPTION_ID_ATTRIBUTE: true}
+	binaryCodecOptions := map[string]any{BINARY_OPTION_ID_ATTRIBUTE: true}
 	eLibraryPackageResource, eLibraryPackage := loadTestPackage(t, eResourceSet, NewURI("testdata/library.complex.ecore"))
 	require.NotNil(t, eLibraryPackageResource)
 	require.NotNil(t, eLibraryPackage)
@@ -390,7 +390,7 @@ func TestBinaryCodec_EncodeDecodeObject_WithExternalReferences(t *testing.T) {
 
 func TestBinaryCodec_EncodeDecodeObject_WithInternalReferences(t *testing.T) {
 	eResourceSet := NewEResourceSetImpl()
-	binaryCodecOptions := map[string]interface{}{BINARY_OPTION_ID_ATTRIBUTE: true}
+	binaryCodecOptions := map[string]any{BINARY_OPTION_ID_ATTRIBUTE: true}
 	eLibraryPackageResource, eLibraryPackage := loadTestPackage(t, eResourceSet, NewURI("testdata/library.complex.ecore"))
 	require.NotNil(t, eLibraryPackageResource)
 	require.NotNil(t, eLibraryPackage)

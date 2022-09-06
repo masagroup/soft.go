@@ -173,7 +173,7 @@ func TestEReferenceESetFromID(t *testing.T) {
 	{
 		// list with a value
 		mockValue := new(MockEAttribute)
-		l := NewImmutableEList([]interface{}{mockValue})
+		l := NewImmutableEList([]any{mockValue})
 		mockValue.On("EIsProxy").Return(false).Once()
 
 		// set list with new contents

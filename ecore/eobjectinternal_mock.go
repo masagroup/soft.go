@@ -103,15 +103,15 @@ func (_m *MockEObjectInternal) EDerivedOperationID(container EObject, operationI
 }
 
 // EGetFromID provides a mock function with given fields: featureID, resolve, core
-func (_m *MockEObjectInternal) EGetFromID(featureID int, resolve bool) interface{} {
+func (_m *MockEObjectInternal) EGetFromID(featureID int, resolve bool) any {
 	ret := _m.Called(featureID, resolve)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(int, bool) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(int, bool) any); ok {
 		r0 = rf(featureID, resolve)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0)
 		}
 	}
 
@@ -183,15 +183,15 @@ func (_m *MockEObjectInternal) EInverseRemove(otherEnd EObject, featureID int, n
 }
 
 // EInvokeFromID provides a mock function with given fields: operationID, arguments
-func (_m *MockEObjectInternal) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (_m *MockEObjectInternal) EInvokeFromID(operationID int, arguments EList) any {
 	ret := _m.Called(operationID, arguments)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(int, EList) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(int, EList) any); ok {
 		r0 = rf(operationID, arguments)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0)
 		}
 	}
 
@@ -277,7 +277,7 @@ func (_m *MockEObjectInternal) EResolveProxy(proxy EObject) EObject {
 }
 
 // ESetFromID provides a mock function with given fields: featureID, newValue
-func (_m *MockEObjectInternal) ESetFromID(featureID int, newValue interface{}) {
+func (_m *MockEObjectInternal) ESetFromID(featureID int, newValue any) {
 	_m.Called(featureID, newValue)
 }
 

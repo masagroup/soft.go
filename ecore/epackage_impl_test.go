@@ -184,7 +184,7 @@ func TestEPackageESetFromID(t *testing.T) {
 	{
 		// list with a value
 		mockValue := new(MockEClassifier)
-		l := NewImmutableEList([]interface{}{mockValue})
+		l := NewImmutableEList([]any{mockValue})
 		mockValue.On("EInverseAdd", o, ECLASSIFIER__EPACKAGE, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
@@ -204,7 +204,7 @@ func TestEPackageESetFromID(t *testing.T) {
 	{
 		// list with a value
 		mockValue := new(MockEPackage)
-		l := NewImmutableEList([]interface{}{mockValue})
+		l := NewImmutableEList([]any{mockValue})
 		mockValue.On("EInverseAdd", o, EPACKAGE__ESUPER_PACKAGE, mock.Anything).Return(nil).Once()
 
 		// set list with new contents

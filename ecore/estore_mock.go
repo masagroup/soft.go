@@ -19,7 +19,7 @@ type MockEStore struct {
 }
 
 // Add provides a mock function with given fields: object, feature, index, value
-func (_m *MockEStore) Add(object EObject, feature EStructuralFeature, index int, value interface{}) {
+func (_m *MockEStore) Add(object EObject, feature EStructuralFeature, index int, value any) {
 	_m.Called(object, feature, index, value)
 }
 
@@ -29,11 +29,11 @@ func (_m *MockEStore) Clear(object EObject, feature EStructuralFeature) {
 }
 
 // Contains provides a mock function with given fields: object, feature, value
-func (_m *MockEStore) Contains(object EObject, feature EStructuralFeature, value interface{}) bool {
+func (_m *MockEStore) Contains(object EObject, feature EStructuralFeature, value any) bool {
 	ret := _m.Called(object, feature, value)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, interface{}) bool); ok {
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, any) bool); ok {
 		r0 = rf(object, feature, value)
 	} else {
 		r0 = ret.Get(0).(bool)
@@ -59,15 +59,15 @@ func (_m *MockEStore) Create(eClass EClass) EObject {
 }
 
 // Get provides a mock function with given fields: object, feature, index
-func (_m *MockEStore) Get(object EObject, feature EStructuralFeature, index int) interface{} {
+func (_m *MockEStore) Get(object EObject, feature EStructuralFeature, index int) any {
 	ret := _m.Called(object, feature, index)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int) any); ok {
 		r0 = rf(object, feature, index)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -107,11 +107,11 @@ func (_m *MockEStore) GetContainingFeature(object EObject) EStructuralFeature {
 }
 
 // IndexOf provides a mock function with given fields: object, feature, value
-func (_m *MockEStore) IndexOf(object EObject, feature EStructuralFeature, value interface{}) int {
+func (_m *MockEStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
 	ret := _m.Called(object, feature, value)
 
 	var r0 int
-	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, interface{}) int); ok {
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, any) int); ok {
 		r0 = rf(object, feature, value)
 	} else {
 		r0 = ret.Get(0).(int)
@@ -149,11 +149,11 @@ func (_m *MockEStore) IsSet(object EObject, feature EStructuralFeature) bool {
 }
 
 // LastIndexOf provides a mock function with given fields: object, feature, value
-func (_m *MockEStore) LastIndexOf(object EObject, feature EStructuralFeature, value interface{}) int {
+func (_m *MockEStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {
 	ret := _m.Called(object, feature, value)
 
 	var r0 int
-	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, interface{}) int); ok {
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, any) int); ok {
 		r0 = rf(object, feature, value)
 	} else {
 		r0 = ret.Get(0).(int)
@@ -163,15 +163,15 @@ func (_m *MockEStore) LastIndexOf(object EObject, feature EStructuralFeature, va
 }
 
 // Move provides a mock function with given fields: object, feature, targetIndex, sourceIndex
-func (_m *MockEStore) Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) interface{} {
+func (_m *MockEStore) Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) any {
 	ret := _m.Called(object, feature, targetIndex, sourceIndex)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int, int) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int, int) any); ok {
 		r0 = rf(object, feature, targetIndex, sourceIndex)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -179,15 +179,15 @@ func (_m *MockEStore) Move(object EObject, feature EStructuralFeature, targetInd
 }
 
 // Remove provides a mock function with given fields: object, feature, index
-func (_m *MockEStore) Remove(object EObject, feature EStructuralFeature, index int) interface{} {
+func (_m *MockEStore) Remove(object EObject, feature EStructuralFeature, index int) any {
 	ret := _m.Called(object, feature, index)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int) any); ok {
 		r0 = rf(object, feature, index)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -195,15 +195,15 @@ func (_m *MockEStore) Remove(object EObject, feature EStructuralFeature, index i
 }
 
 // Set provides a mock function with given fields: object, feature, index, value
-func (_m *MockEStore) Set(object EObject, feature EStructuralFeature, index int, value interface{}) interface{} {
+func (_m *MockEStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {
 	ret := _m.Called(object, feature, index, value)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int, interface{}) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int, any) any); ok {
 		r0 = rf(object, feature, index, value)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -225,15 +225,15 @@ func (_m *MockEStore) Size(object EObject, feature EStructuralFeature) int {
 }
 
 // ToArray provides a mock function with given fields: object, feature
-func (_m *MockEStore) ToArray(object EObject, feature EStructuralFeature) []interface{} {
+func (_m *MockEStore) ToArray(object EObject, feature EStructuralFeature) []any {
 	ret := _m.Called(object, feature)
 
-	var r0 []interface{}
-	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature) []interface{}); ok {
+	var r0 []any
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature) []any); ok {
 		r0 = rf(object, feature)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]interface{})
+			r0 = ret.Get(0).([]any)
 		}
 	}
 

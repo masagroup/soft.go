@@ -303,7 +303,7 @@ func (eClass *eClassImpl) initESuperTypes() EList {
 	return NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__ESUPER_TYPES, -1, false, false, false, true, false)
 }
 
-func (eClass *eClassImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eClass *eClassImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case ECLASS__ABSTRACT:
 		return eClass.asEClass().IsAbstract()
@@ -408,7 +408,7 @@ func (eClass *eClassImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	}
 }
 
-func (eClass *eClassImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eClass *eClassImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case ECLASS__ABSTRACT:
 		eClass.asEClass().SetAbstract(newValue.(bool))
@@ -487,7 +487,7 @@ func (eClass *eClassImpl) EIsSetFromID(featureID int) bool {
 	}
 }
 
-func (eClass *eClassImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (eClass *eClassImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case ECLASS__GET_EOPERATION_EINT:
 		return eClass.asEClass().GetEOperation(arguments.Get(0).(int))

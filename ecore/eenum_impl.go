@@ -76,7 +76,7 @@ func (eEnum *eEnumImpl) initELiterals() EList {
 	return NewBasicEObjectList(eEnum.AsEObjectInternal(), EENUM__ELITERALS, EENUM_LITERAL__EENUM, true, true, true, false, false)
 }
 
-func (eEnum *eEnumImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eEnum *eEnumImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EENUM__ELITERALS:
 		return eEnum.asEEnum().GetELiterals()
@@ -85,7 +85,7 @@ func (eEnum *eEnumImpl) EGetFromID(featureID int, resolve bool) interface{} {
 	}
 }
 
-func (eEnum *eEnumImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eEnum *eEnumImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EENUM__ELITERALS:
 		list := eEnum.asEEnum().GetELiterals()
@@ -114,7 +114,7 @@ func (eEnum *eEnumImpl) EIsSetFromID(featureID int) bool {
 	}
 }
 
-func (eEnum *eEnumImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (eEnum *eEnumImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EENUM__GET_EENUM_LITERAL_BY_LITERAL_ESTRING:
 		return eEnum.asEEnum().GetEEnumLiteralByLiteral(arguments.Get(0).(string))

@@ -56,7 +56,7 @@ func TestMockEPackageRegistryAddWithNotification(t *testing.T) {
 	n := &MockENotificationChain{}
 	v := &MockEObject{}
 	l.On("AddWithNotification", v, n).Return(n).Once()
-	l.On("AddWithNotification", v, n).Return(func(object interface{}, notifications ENotificationChain) ENotificationChain {
+	l.On("AddWithNotification", v, n).Return(func(object any, notifications ENotificationChain) ENotificationChain {
 		return n
 	}).Once()
 	assert.Equal(t, n, l.AddWithNotification(v, n))
@@ -69,7 +69,7 @@ func TestMockEPackageRegistryRemoveWithNotification(t *testing.T) {
 	n := &MockENotificationChain{}
 	v := &MockEObject{}
 	l.On("RemoveWithNotification", v, n).Return(n).Once()
-	l.On("RemoveWithNotification", v, n).Return(func(object interface{}, notifications ENotificationChain) ENotificationChain {
+	l.On("RemoveWithNotification", v, n).Return(func(object any, notifications ENotificationChain) ENotificationChain {
 		return n
 	}).Once()
 	assert.Equal(t, n, l.RemoveWithNotification(v, n))
@@ -82,7 +82,7 @@ func TestMockEPackageRegistrySetWithNotification(t *testing.T) {
 	n := &MockENotificationChain{}
 	v := &MockEObject{}
 	l.On("SetWithNotification", 0, v, n).Return(n).Once()
-	l.On("SetWithNotification", 1, v, n).Return(func(index int, object interface{}, notifications ENotificationChain) ENotificationChain {
+	l.On("SetWithNotification", 1, v, n).Return(func(index int, object any, notifications ENotificationChain) ENotificationChain {
 		return n
 	}).Once()
 	assert.Equal(t, n, l.SetWithNotification(0, v, n))

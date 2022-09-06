@@ -12,7 +12,7 @@ package ecore
 // eStructuralFeatureExt is the extension of the model object 'EStructuralFeature'
 type eStructuralFeatureExt struct {
 	eStructuralFeatureImpl
-	defaultValue        interface{}
+	defaultValue        any
 	defaultValueFactory EFactory
 }
 
@@ -24,7 +24,7 @@ func newEStructuralFeatureExt() *eStructuralFeatureExt {
 }
 
 // GetDefaultValue get the value of defaultValue
-func (eStructuralFeature *eStructuralFeatureExt) GetDefaultValue() interface{} {
+func (eStructuralFeature *eStructuralFeatureExt) GetDefaultValue() any {
 	eType := eStructuralFeature.GetEType()
 	defaultValueLiteral := eStructuralFeature.GetDefaultValueLiteral()
 	if eType != nil && len(defaultValueLiteral) == 0 {
@@ -48,7 +48,7 @@ func (eStructuralFeature *eStructuralFeatureExt) GetDefaultValue() interface{} {
 }
 
 // SetDefaultValue set the value of defaultValue
-func (eStructuralFeature *eStructuralFeatureExt) SetDefaultValue(newDefaultValue interface{}) {
+func (eStructuralFeature *eStructuralFeatureExt) SetDefaultValue(newDefaultValue any) {
 	eType := eStructuralFeature.GetEType()
 	if eDataType, _ := eType.(EDataType); eDataType != nil {
 		factory := eDataType.GetEPackage().GetEFactoryInstance()

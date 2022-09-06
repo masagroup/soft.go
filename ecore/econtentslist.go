@@ -10,12 +10,12 @@ type eContentsList struct {
 type eContentsListIterator struct {
 	l             *eContentsList
 	prepared      int
-	next          interface{}
+	next          any
 	featureCursor int
 	values        EIterator
 }
 
-func (it *eContentsListIterator) Next() interface{} {
+func (it *eContentsListIterator) Next() any {
 	if it.prepared > 1 || it.HasNext() {
 		it.prepared = 0
 		return it.next
@@ -84,7 +84,7 @@ func newEContentsList(o EObject, features EList, resolve bool) *eContentsList {
 }
 
 // Get an element of the array
-func (l *eContentsList) Get(index int) interface{} {
+func (l *eContentsList) Get(index int) any {
 	it := l.features.Iterator()
 	for i := 0; i < index; i++ {
 		it.Next()
@@ -130,7 +130,7 @@ func (l *eContentsList) Empty() bool {
 }
 
 // Contains return if an array contains or not an element
-func (l *eContentsList) Contains(elem interface{}) bool {
+func (l *eContentsList) Contains(elem any) bool {
 	for it := l.Iterator(); it.HasNext(); {
 		if e := it.Next(); e == elem {
 			return true
@@ -140,7 +140,7 @@ func (l *eContentsList) Contains(elem interface{}) bool {
 }
 
 // IndexOf return the index on an element in an array, else return -1
-func (l *eContentsList) IndexOf(elem interface{}) int {
+func (l *eContentsList) IndexOf(elem any) int {
 	index := 0
 	for it := l.Iterator(); it.HasNext(); {
 		if e := it.Next(); e == elem {
@@ -157,8 +157,8 @@ func (l *eContentsList) Iterator() EIterator {
 }
 
 // ToArray convert to array
-func (l *eContentsList) ToArray() []interface{} {
-	arr := []interface{}{}
+func (l *eContentsList) ToArray() []any {
+	arr := []any{}
 	for it := l.Iterator(); it.HasNext(); {
 		arr = append(arr, it.Next())
 	}

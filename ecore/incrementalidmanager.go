@@ -30,7 +30,7 @@ func (m *IncrementalIDManager) newID() int64 {
 	return id
 }
 
-func (m *IncrementalIDManager) getID(id interface{}) (int64, error) {
+func (m *IncrementalIDManager) getID(id any) (int64, error) {
 	switch v := id.(type) {
 	case nil:
 		return -1, nil
@@ -69,7 +69,7 @@ func (m *IncrementalIDManager) Clear() {
 	m.mutex.Unlock()
 }
 
-func (m *IncrementalIDManager) setID(eObject EObject, id interface{}) error {
+func (m *IncrementalIDManager) setID(eObject EObject, id any) error {
 	if oldID, isOldID := m.objectToID[eObject]; isOldID {
 		delete(m.idToObject, oldID)
 	}
@@ -110,7 +110,7 @@ func max(x, y int64) int64 {
 	return x
 }
 
-func (m *IncrementalIDManager) SetID(eObject EObject, id interface{}) error {
+func (m *IncrementalIDManager) SetID(eObject EObject, id any) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	return m.setID(eObject, id)
@@ -129,7 +129,7 @@ func (m *IncrementalIDManager) UnRegister(eObject EObject) {
 	m.mutex.Unlock()
 }
 
-func (m *IncrementalIDManager) GetID(eObject EObject) interface{} {
+func (m *IncrementalIDManager) GetID(eObject EObject) any {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
@@ -139,7 +139,7 @@ func (m *IncrementalIDManager) GetID(eObject EObject) interface{} {
 	return nil
 }
 
-func (m *IncrementalIDManager) GetEObject(id interface{}) EObject {
+func (m *IncrementalIDManager) GetEObject(id any) EObject {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
@@ -149,7 +149,7 @@ func (m *IncrementalIDManager) GetEObject(id interface{}) EObject {
 	return nil
 }
 
-func (m *IncrementalIDManager) GetDetachedID(eObject EObject) interface{} {
+func (m *IncrementalIDManager) GetDetachedID(eObject EObject) any {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 

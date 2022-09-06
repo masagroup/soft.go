@@ -158,7 +158,7 @@ func (ePackage *ePackageImpl) initESubPackages() EList {
 	return NewBasicEObjectList(ePackage.AsEObjectInternal(), EPACKAGE__ESUB_PACKAGES, EPACKAGE__ESUPER_PACKAGE, true, true, true, false, false)
 }
 
-func (ePackage *ePackageImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (ePackage *ePackageImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EPACKAGE__ECLASSIFIERS:
 		return ePackage.asEPackage().GetEClassifiers()
@@ -177,7 +177,7 @@ func (ePackage *ePackageImpl) EGetFromID(featureID int, resolve bool) interface{
 	}
 }
 
-func (ePackage *ePackageImpl) ESetFromID(featureID int, newValue interface{}) {
+func (ePackage *ePackageImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EPACKAGE__ECLASSIFIERS:
 		list := ePackage.asEPackage().GetEClassifiers()
@@ -234,7 +234,7 @@ func (ePackage *ePackageImpl) EIsSetFromID(featureID int) bool {
 	}
 }
 
-func (ePackage *ePackageImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (ePackage *ePackageImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EPACKAGE__GET_ECLASSIFIER_ESTRING:
 		return ePackage.asEPackage().GetEClassifier(arguments.Get(0).(string))

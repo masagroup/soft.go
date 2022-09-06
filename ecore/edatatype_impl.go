@@ -57,7 +57,7 @@ func (eDataType *eDataTypeImpl) SetSerializable(newIsSerializable bool) {
 	}
 }
 
-func (eDataType *eDataTypeImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eDataType *eDataTypeImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EDATA_TYPE__SERIALIZABLE:
 		return eDataType.asEDataType().IsSerializable()
@@ -66,7 +66,7 @@ func (eDataType *eDataTypeImpl) EGetFromID(featureID int, resolve bool) interfac
 	}
 }
 
-func (eDataType *eDataTypeImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eDataType *eDataTypeImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EDATA_TYPE__SERIALIZABLE:
 		eDataType.asEDataType().SetSerializable(newValue.(bool))

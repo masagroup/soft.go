@@ -44,19 +44,19 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EStaticClass() EClas
 func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EStaticFeatureCount() int {
 	return ESTRING_TO_STRING_MAP_ENTRY_FEATURE_COUNT
 }
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetKey() interface{} {
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetKey() any {
 	return eStringToStringMapEntry.GetTypedKey()
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetKey(key interface{}) {
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetKey(key any) {
 	eStringToStringMapEntry.SetTypedKey(key.(string))
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetValue() interface{} {
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetValue() any {
 	return eStringToStringMapEntry.GetTypedValue()
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetValue(value interface{}) {
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetValue(value any) {
 	eStringToStringMapEntry.SetTypedValue(value.(string))
 }
 
@@ -88,7 +88,7 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetTypedValue(newVal
 	}
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case ESTRING_TO_STRING_MAP_ENTRY__KEY:
 		return eStringToStringMapEntry.asEStringToStringMapEntry().GetTypedKey()
@@ -99,7 +99,7 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EGetFromID(featureID
 	}
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eStringToStringMapEntry *eStringToStringMapEntryImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case ESTRING_TO_STRING_MAP_ENTRY__KEY:
 		eStringToStringMapEntry.asEStringToStringMapEntry().SetTypedKey(newValue.(string))

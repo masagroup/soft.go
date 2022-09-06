@@ -26,7 +26,7 @@ func (o *EStoreEObjectImpl) AsEStoreEObject() EStoreEObject {
 	return o.GetInterfaces().(EStoreEObject)
 }
 
-func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) interface{} {
+func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 	result := o.getProperties()[dynamicFeatureID]
 	if result == nil {
 		eFeature := o.eDynamicFeature(dynamicFeatureID)
@@ -45,7 +45,7 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) interface{} {
 	return result
 }
 
-func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value interface{}) {
+func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 	eFeature := o.eDynamicFeature(dynamicFeatureID)
 	if eFeature.IsTransient() {
 		o.getProperties()[dynamicFeatureID] = value

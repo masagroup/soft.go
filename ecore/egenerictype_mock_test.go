@@ -139,7 +139,7 @@ func TestMockEGenericTypeSetEUpperBound(t *testing.T) {
 // TestMockEGenericTypeIsInstance tests method IsInstance
 func TestMockEGenericTypeIsInstance(t *testing.T) {
 	o := &MockEGenericType{}
-	object := interface{}(nil)
+	object := any(nil)
 	r := bool(true)
 	o.On("IsInstance", object).Return(r).Once()
 	o.On("IsInstance", object).Return(func() bool {

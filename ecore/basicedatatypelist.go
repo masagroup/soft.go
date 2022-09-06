@@ -9,7 +9,7 @@ type basicEDataTypeList struct {
 func NewBasicEDataTypeList(owner EObjectInternal, featureID int, isUnique bool) *basicEDataTypeList {
 	l := new(basicEDataTypeList)
 	l.interfaces = l
-	l.data = []interface{}{}
+	l.data = []any{}
 	l.owner = owner
 	l.featureID = featureID
 	l.isUnique = isUnique

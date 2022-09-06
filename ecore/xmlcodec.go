@@ -23,9 +23,9 @@ const (
 type XMLCodec struct {
 }
 
-func (d *XMLCodec) NewEncoder(resource EResource, w io.Writer, options map[string]interface{}) EResourceEncoder {
+func (d *XMLCodec) NewEncoder(resource EResource, w io.Writer, options map[string]any) EResourceEncoder {
 	return NewXMLEncoder(resource, w, options)
 }
-func (d *XMLCodec) NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EResourceDecoder {
+func (d *XMLCodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EResourceDecoder {
 	return NewXMLDecoder(resource, r, options)
 }

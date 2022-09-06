@@ -11,12 +11,12 @@ package ecore
 
 type EDataTypeInternal interface {
 	EDataType
-	SetDefaultValue(defaultValue interface{})
+	SetDefaultValue(defaultValue any)
 }
 
 type eDataTypeExt struct {
 	eDataTypeImpl
-	defaultValue interface{}
+	defaultValue any
 }
 
 func newEDataTypeExt() *eDataTypeExt {
@@ -26,7 +26,7 @@ func newEDataTypeExt() *eDataTypeExt {
 	return eDataType
 }
 
-func (eDataType *eDataTypeExt) SetDefaultValue(newDefaultValue interface{}) {
+func (eDataType *eDataTypeExt) SetDefaultValue(newDefaultValue any) {
 	oldDefaultValue := eDataType.defaultValue
 	eDataType.defaultValue = newDefaultValue
 	if eDataType.ENotificationRequired() {
@@ -34,6 +34,6 @@ func (eDataType *eDataTypeExt) SetDefaultValue(newDefaultValue interface{}) {
 	}
 }
 
-func (eDataType *eDataTypeExt) GetDefaultValue() interface{} {
+func (eDataType *eDataTypeExt) GetDefaultValue() any {
 	return eDataType.defaultValue
 }

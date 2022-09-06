@@ -30,7 +30,7 @@ func (m *EObjectIDManagerImpl) Register(eObject EObject) {
 	}
 }
 
-func (m *EObjectIDManagerImpl) SetID(eObject EObject, id interface{}) error {
+func (m *EObjectIDManagerImpl) SetID(eObject EObject, id any) error {
 	if id == nil {
 		id = ""
 	}
@@ -63,14 +63,14 @@ func (m *EObjectIDManagerImpl) UnRegister(eObject EObject) {
 	}
 }
 
-func (m *EObjectIDManagerImpl) GetID(eObject EObject) interface{} {
+func (m *EObjectIDManagerImpl) GetID(eObject EObject) any {
 	if id, isPresent := m.objectToID[eObject]; isPresent {
 		return id
 	}
 	return nil
 }
 
-func (m *EObjectIDManagerImpl) GetEObject(id interface{}) EObject {
+func (m *EObjectIDManagerImpl) GetEObject(id any) EObject {
 	switch id.(type) {
 	case string:
 		return m.idToObject[id.(string)]
@@ -79,6 +79,6 @@ func (m *EObjectIDManagerImpl) GetEObject(id interface{}) EObject {
 	}
 }
 
-func (m *EObjectIDManagerImpl) GetDetachedID(eObject EObject) interface{} {
+func (m *EObjectIDManagerImpl) GetDetachedID(eObject EObject) any {
 	return GetEObjectID(eObject)
 }

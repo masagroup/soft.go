@@ -44,7 +44,7 @@ func (eParameter *eParameterImpl) GetEOperation() EOperation {
 	return nil
 }
 
-func (eParameter *eParameterImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eParameter *eParameterImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EPARAMETER__EOPERATION:
 		return eParameter.asEParameter().GetEOperation()

@@ -64,11 +64,11 @@ type BinaryEncoder struct {
 	isIDAttributeEncoded bool
 }
 
-func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]interface{}) *BinaryEncoder {
+func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]any) *BinaryEncoder {
 	return NewBinaryEncoderWithVersion(resource, w, options, binaryVersion)
 }
 
-func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[string]interface{}, version int) *BinaryEncoder {
+func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[string]any, version int) *BinaryEncoder {
 	e := &BinaryEncoder{
 		w:                  w,
 		resource:           resource,
@@ -169,7 +169,7 @@ func (e *BinaryEncoder) encodeByte(b byte) {
 	e.haltOnError(e.encoder.EncodeUint8(b))
 }
 
-func (e *BinaryEncoder) encode(i interface{}) {
+func (e *BinaryEncoder) encode(i any) {
 	e.haltOnError(e.encoder.Encode(i))
 }
 

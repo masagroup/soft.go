@@ -19,11 +19,11 @@ type MockEList struct {
 }
 
 // Add provides a mock function with given fields: _a0
-func (_m *MockEList) Add(_a0 interface{}) bool {
+func (_m *MockEList) Add(_a0 any) bool {
 	ret := _m.Called(_a0)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(interface{}) bool); ok {
+	if rf, ok := ret.Get(0).(func(any) bool); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(bool)
@@ -52,11 +52,11 @@ func (_m *MockEList) Clear() {
 }
 
 // Contains provides a mock function with given fields: _a0
-func (_m *MockEList) Contains(_a0 interface{}) bool {
+func (_m *MockEList) Contains(_a0 any) bool {
 	ret := _m.Called(_a0)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(interface{}) bool); ok {
+	if rf, ok := ret.Get(0).(func(any) bool); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(bool)
@@ -80,15 +80,15 @@ func (_m *MockEList) Empty() bool {
 }
 
 // Get provides a mock function with given fields: _a0
-func (_m *MockEList) Get(_a0 int) interface{} {
+func (_m *MockEList) Get(_a0 int) any {
 	ret := _m.Called(_a0)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(int) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(int) any); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -96,11 +96,11 @@ func (_m *MockEList) Get(_a0 int) interface{} {
 }
 
 // IndexOf provides a mock function with given fields: _a0
-func (_m *MockEList) IndexOf(_a0 interface{}) int {
+func (_m *MockEList) IndexOf(_a0 any) int {
 	ret := _m.Called(_a0)
 
 	var r0 int
-	if rf, ok := ret.Get(0).(func(interface{}) int); ok {
+	if rf, ok := ret.Get(0).(func(any) int); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(int)
@@ -110,11 +110,11 @@ func (_m *MockEList) IndexOf(_a0 interface{}) int {
 }
 
 // Insert provides a mock function with given fields: _a0, _a1
-func (_m *MockEList) Insert(_a0 int, _a1 interface{}) bool {
+func (_m *MockEList) Insert(_a0 int, _a1 any) bool {
 	ret := _m.Called(_a0, _a1)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(int, interface{}) bool); ok {
+	if rf, ok := ret.Get(0).(func(int, any) bool); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Get(0).(bool)
@@ -154,15 +154,15 @@ func (_m *MockEList) Iterator() EIterator {
 }
 
 // Move provides a mock function with given fields: _a0, _a1
-func (_m *MockEList) Move(_a0 int, _a1 int) interface{} {
+func (_m *MockEList) Move(_a0 int, _a1 int) any {
 	ret := _m.Called(_a0, _a1)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(int, int) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(int, int) any); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -170,16 +170,16 @@ func (_m *MockEList) Move(_a0 int, _a1 int) interface{} {
 }
 
 // MoveObject provides a mock function with given fields: _a0, _a1
-func (_m *MockEList) MoveObject(_a0 int, _a1 interface{}) {
+func (_m *MockEList) MoveObject(_a0 int, _a1 any) {
 	_m.Called(_a0, _a1)
 }
 
 // Remove provides a mock function with given fields: _a0
-func (_m *MockEList) Remove(_a0 interface{}) bool {
+func (_m *MockEList) Remove(_a0 any) bool {
 	ret := _m.Called(_a0)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(interface{}) bool); ok {
+	if rf, ok := ret.Get(0).(func(any) bool); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(bool)
@@ -189,15 +189,15 @@ func (_m *MockEList) Remove(_a0 interface{}) bool {
 }
 
 // RemoveAt provides a mock function with given fields: _a0
-func (_m *MockEList) RemoveAt(_a0 int) interface{} {
+func (_m *MockEList) RemoveAt(_a0 int) any {
 	ret := _m.Called(_a0)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(int) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(int) any); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -219,15 +219,15 @@ func (_m *MockEList) RemoveAll(_a0 EList) bool {
 }
 
 // Set provides a mock function with given fields: _a0, _a1
-func (_m *MockEList) Set(_a0 int, _a1 interface{}) interface{} {
+func (_m *MockEList) Set(_a0 int, _a1 any) any {
 	ret := _m.Called(_a0, _a1)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(int, interface{}) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(int, any) any); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -249,15 +249,15 @@ func (_m *MockEList) Size() int {
 }
 
 // ToArray provides a mock function with given fields:
-func (_m *MockEList) ToArray() []interface{} {
+func (_m *MockEList) ToArray() []any {
 	ret := _m.Called()
 
-	var r0 []interface{}
-	if rf, ok := ret.Get(0).(func() []interface{}); ok {
+	var r0 []any
+	if rf, ok := ret.Get(0).(func() []any); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]interface{})
+			r0 = ret.Get(0).([]any)
 		}
 	}
 

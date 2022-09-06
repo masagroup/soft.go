@@ -24,12 +24,12 @@ type EObject interface {
 	EContents() EList
 	EAllContents() EIterator
 	ECrossReferences() EList
-	EGet(EStructuralFeature) interface{}
-	EGetResolve(EStructuralFeature, bool) interface{}
-	ESet(EStructuralFeature, interface{})
+	EGet(EStructuralFeature) any
+	EGetResolve(EStructuralFeature, bool) any
+	ESet(EStructuralFeature, any)
 	EIsSet(EStructuralFeature) bool
 	EUnset(EStructuralFeature)
-	EInvoke(EOperation, EList) interface{}
+	EInvoke(EOperation, EList) any
 
 	// Start of user code EObject
 	// End of user code

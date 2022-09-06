@@ -57,14 +57,14 @@ func TestEEnumLiteralInstanceGet(t *testing.T) {
 	// get default value
 	assert.Nil(t, o.GetInstance())
 	// get initialized value
-	v := interface{}(nil)
+	v := any(nil)
 	o.instance = v
 	assert.Equal(t, v, o.GetInstance())
 }
 
 func TestEEnumLiteralInstanceSet(t *testing.T) {
 	o := newEEnumLiteralImpl()
-	v := interface{}(nil)
+	v := any(nil)
 	mockAdapter := new(MockEAdapter)
 	mockAdapter.On("SetTarget", o).Once()
 	mockAdapter.On("NotifyChanged", mock.Anything).Once()
@@ -128,7 +128,7 @@ func TestEEnumLiteralESetFromID(t *testing.T) {
 	o := newEEnumLiteralImpl()
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
-		v := interface{}(nil)
+		v := any(nil)
 		o.ESetFromID(EENUM_LITERAL__INSTANCE, v)
 		assert.Equal(t, v, o.EGetFromID(EENUM_LITERAL__INSTANCE, false))
 	}

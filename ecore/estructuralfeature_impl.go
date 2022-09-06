@@ -63,12 +63,12 @@ func (eStructuralFeature *eStructuralFeatureImpl) GetContainerClass() reflect.Ty
 }
 
 // GetDefaultValue get the value of defaultValue
-func (eStructuralFeature *eStructuralFeatureImpl) GetDefaultValue() interface{} {
+func (eStructuralFeature *eStructuralFeatureImpl) GetDefaultValue() any {
 	panic("GetDefaultValue not implemented")
 }
 
 // SetDefaultValue set the value of defaultValue
-func (eStructuralFeature *eStructuralFeatureImpl) SetDefaultValue(newDefaultValue interface{}) {
+func (eStructuralFeature *eStructuralFeatureImpl) SetDefaultValue(newDefaultValue any) {
 	panic("SetDefaultValue not implemented")
 }
 
@@ -178,7 +178,7 @@ func (eStructuralFeature *eStructuralFeatureImpl) SetVolatile(newIsVolatile bool
 	}
 }
 
-func (eStructuralFeature *eStructuralFeatureImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eStructuralFeature *eStructuralFeatureImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case ESTRUCTURAL_FEATURE__CHANGEABLE:
 		return eStructuralFeature.asEStructuralFeature().IsChangeable()
@@ -203,7 +203,7 @@ func (eStructuralFeature *eStructuralFeatureImpl) EGetFromID(featureID int, reso
 	}
 }
 
-func (eStructuralFeature *eStructuralFeatureImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eStructuralFeature *eStructuralFeatureImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case ESTRUCTURAL_FEATURE__CHANGEABLE:
 		eStructuralFeature.asEStructuralFeature().SetChangeable(newValue.(bool))
@@ -274,7 +274,7 @@ func (eStructuralFeature *eStructuralFeatureImpl) EIsSetFromID(featureID int) bo
 	}
 }
 
-func (eStructuralFeature *eStructuralFeatureImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (eStructuralFeature *eStructuralFeatureImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case ESTRUCTURAL_FEATURE__GET_CONTAINER_CLASS:
 		return eStructuralFeature.asEStructuralFeature().GetContainerClass()

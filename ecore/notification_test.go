@@ -137,19 +137,19 @@ func TestNotificationMerge(t *testing.T) {
 		other := NewNotificationByFeature(mockObject, REMOVE, mockFeature, obj2, nil, 2)
 		assert.True(t, notification.Merge(other))
 		assert.Equal(t, REMOVE_MANY, notification.GetEventType())
-		assert.Equal(t, []interface{}{obj1, obj2}, notification.GetOldValue())
-		assert.Equal(t, []interface{}{2, 3}, notification.GetNewValue())
+		assert.Equal(t, []any{obj1, obj2}, notification.GetOldValue())
+		assert.Equal(t, []any{2, 3}, notification.GetNewValue())
 	}
 	{
 		obj1 := &MockEObject{}
 		obj2 := &MockEObject{}
 		obj3 := &MockEObject{}
-		notification := NewNotificationByFeature(mockObject, REMOVE_MANY, mockFeature, []interface{}{obj1, obj2}, []interface{}{2, 3}, NO_INDEX)
+		notification := NewNotificationByFeature(mockObject, REMOVE_MANY, mockFeature, []any{obj1, obj2}, []any{2, 3}, NO_INDEX)
 		other := NewNotificationByFeature(mockObject, REMOVE, mockFeature, obj3, nil, 2)
 		assert.True(t, notification.Merge(other))
 		assert.Equal(t, REMOVE_MANY, notification.GetEventType())
-		assert.Equal(t, []interface{}{obj1, obj2, obj3}, notification.GetOldValue())
-		assert.Equal(t, []interface{}{2, 3, 4}, notification.GetNewValue())
+		assert.Equal(t, []any{obj1, obj2, obj3}, notification.GetOldValue())
+		assert.Equal(t, []any{2, 3, 4}, notification.GetNewValue())
 	}
 	mockFeature.AssertExpectations(t)
 }

@@ -85,7 +85,7 @@ func TestCompactEObject_TwoFields_End(t *testing.T) {
 func TestCompactEObject_ManyFields(t *testing.T) {
 	c := &MockEObject{}
 	r := &MockEResource{}
-	p := []interface{}{}
+	p := []any{}
 	o := &CompactEObjectImpl{}
 	o.setField(container_flag, c)
 	o.setField(properties_flag, p)
@@ -115,7 +115,7 @@ func TestCompactEObject_RemoveOneField(t *testing.T) {
 func TestCompactEObject_RemoveManyFields(t *testing.T) {
 	c := &MockEObject{}
 	r := &MockEResource{}
-	p := []interface{}{}
+	p := []any{}
 	o := &CompactEObjectImpl{}
 	o.setField(container_flag, c)
 	o.setField(properties_flag, p)

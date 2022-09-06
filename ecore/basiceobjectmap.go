@@ -22,7 +22,7 @@ type basicEObjectMapList struct {
 func newBasicEObjectMapList(m *BasicEObjectMap, owner EObjectInternal, featureID, inverseFeatureID int, unset bool) *basicEObjectMapList {
 	l := new(basicEObjectMapList)
 	l.interfaces = l
-	l.data = []interface{}{}
+	l.data = []any{}
 	l.isUnique = true
 	l.owner = owner
 	l.featureID = featureID
@@ -36,24 +36,24 @@ func newBasicEObjectMapList(m *BasicEObjectMap, owner EObjectInternal, featureID
 	return l
 }
 
-func (ml *basicEObjectMapList) didAdd(index int, elem interface{}) {
+func (ml *basicEObjectMapList) didAdd(index int, elem any) {
 	entry := elem.(EMapEntry)
 	ml.m.doAdd(entry)
 }
 
-func (ml *basicEObjectMapList) didSet(index int, newElem interface{}, oldElem interface{}) {
+func (ml *basicEObjectMapList) didSet(index int, newElem any, oldElem any) {
 	newEntry := newElem.(EMapEntry)
 	oldEntry := oldElem.(EMapEntry)
 	ml.m.doRemove(oldEntry)
 	ml.m.doAdd(newEntry)
 }
 
-func (ml *basicEObjectMapList) didRemove(index int, oldElem interface{}) {
+func (ml *basicEObjectMapList) didRemove(index int, oldElem any) {
 	oldEntry := oldElem.(EMapEntry)
 	ml.m.doRemove(oldEntry)
 }
 
-func (ml *basicEObjectMapList) didClear(oldObjects []interface{}) {
+func (ml *basicEObjectMapList) didClear(oldObjects []any) {
 	ml.m.doClear()
 }
 
@@ -65,7 +65,7 @@ func NewBasicEObjectMap(entryClass EClass, owner EObjectInternal, featureID int,
 	return basicEObjectMap
 }
 
-func (m *BasicEObjectMap) newEntry(key interface{}, value interface{}) EMapEntry {
+func (m *BasicEObjectMap) newEntry(key any, value any) EMapEntry {
 	eFactory := m.entryClass.GetEPackage().GetEFactoryInstance()
 	eEntry := eFactory.Create(m.entryClass).(EMapEntry)
 	eEntry.SetKey(key)

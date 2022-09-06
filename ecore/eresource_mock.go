@@ -194,12 +194,12 @@ func (_m *MockEResource) Load() {
 	_m.Called()
 }
 
-func (_m *MockEResource) LoadWithOptions(o map[string]interface{}) {
+func (_m *MockEResource) LoadWithOptions(o map[string]any) {
 	_m.Called(o)
 }
 
 // LoadWithReader provides a mock function with given fields: r
-func (_m *MockEResource) LoadWithReader(r io.Reader, o map[string]interface{}) {
+func (_m *MockEResource) LoadWithReader(r io.Reader, o map[string]any) {
 	_m.Called(r, o)
 }
 
@@ -208,12 +208,12 @@ func (_m *MockEResource) Save() {
 	_m.Called()
 }
 
-func (_m *MockEResource) SaveWithOptions(o map[string]interface{}) {
+func (_m *MockEResource) SaveWithOptions(o map[string]any) {
 	_m.Called(o)
 }
 
 // SaveWithWriter provides a mock function with given fields: w
-func (_m *MockEResource) SaveWithWriter(w io.Writer, o map[string]interface{}) {
+func (_m *MockEResource) SaveWithWriter(w io.Writer, o map[string]any) {
 	_m.Called(w, o)
 }
 

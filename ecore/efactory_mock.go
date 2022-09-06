@@ -37,7 +37,7 @@ func (eFactory *MockEFactory) SetEPackage(newEPackage EPackage) {
 }
 
 // ConvertToString provides mock implementation
-func (eFactory *MockEFactory) ConvertToString(eDataType EDataType, instanceValue interface{}) string {
+func (eFactory *MockEFactory) ConvertToString(eDataType EDataType, instanceValue any) string {
 	ret := eFactory.Called(eDataType, instanceValue)
 
 	var r string
@@ -69,15 +69,15 @@ func (eFactory *MockEFactory) Create(eClass EClass) EObject {
 }
 
 // CreateFromString provides mock implementation
-func (eFactory *MockEFactory) CreateFromString(eDataType EDataType, literalValue string) interface{} {
+func (eFactory *MockEFactory) CreateFromString(eDataType EDataType, literalValue string) any {
 	ret := eFactory.Called(eDataType, literalValue)
 
-	var r interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(interface{})
+			r = ret.Get(0).(any)
 		}
 	}
 

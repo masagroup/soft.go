@@ -114,7 +114,7 @@ func TestEOperationESetFromID(t *testing.T) {
 	{
 		// list with a value
 		mockValue := new(MockEClassifier)
-		l := NewImmutableEList([]interface{}{mockValue})
+		l := NewImmutableEList([]any{mockValue})
 		mockValue.On("EIsProxy").Return(false).Once()
 
 		// set list with new contents
@@ -127,7 +127,7 @@ func TestEOperationESetFromID(t *testing.T) {
 	{
 		// list with a value
 		mockValue := new(MockEParameter)
-		l := NewImmutableEList([]interface{}{mockValue})
+		l := NewImmutableEList([]any{mockValue})
 		mockValue.On("EInverseAdd", o, EPARAMETER__EOPERATION, mock.Anything).Return(nil).Once()
 
 		// set list with new contents

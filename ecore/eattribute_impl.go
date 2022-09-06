@@ -66,7 +66,7 @@ func (eAttribute *eAttributeImpl) SetID(newIsID bool) {
 	}
 }
 
-func (eAttribute *eAttributeImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eAttribute *eAttributeImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EATTRIBUTE__EATTRIBUTE_TYPE:
 		if resolve {
@@ -80,7 +80,7 @@ func (eAttribute *eAttributeImpl) EGetFromID(featureID int, resolve bool) interf
 	}
 }
 
-func (eAttribute *eAttributeImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eAttribute *eAttributeImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EATTRIBUTE__ID:
 		eAttribute.asEAttribute().SetID(newValue.(bool))

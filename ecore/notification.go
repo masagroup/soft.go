@@ -8,7 +8,7 @@ type notification struct {
 }
 
 // NewNotificationByFeature ...
-func NewNotificationByFeature(object EObject, eventType EventType, feature EStructuralFeature, oldValue interface{}, newValue interface{}, position int) *notification {
+func NewNotificationByFeature(object EObject, eventType EventType, feature EStructuralFeature, oldValue any, newValue any, position int) *notification {
 	n := new(notification)
 	n.Initialize(n, eventType, oldValue, newValue, position)
 	n.object = object
@@ -18,7 +18,7 @@ func NewNotificationByFeature(object EObject, eventType EventType, feature EStru
 }
 
 // NewNotificationByFeatureID ...
-func NewNotificationByFeatureID(object EObject, eventType EventType, featureID int, oldValue interface{}, newValue interface{}, position int) *notification {
+func NewNotificationByFeatureID(object EObject, eventType EventType, featureID int, oldValue any, newValue any, position int) *notification {
 	n := new(notification)
 	n.Initialize(n, eventType, oldValue, newValue, position)
 	n.object = object

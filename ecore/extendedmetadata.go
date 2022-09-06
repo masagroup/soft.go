@@ -14,7 +14,7 @@ const (
 )
 
 type ExtendedMetaData struct {
-	metaData map[interface{}]interface{}
+	metaData map[any]any
 }
 
 type ENamedElementExtendedMetaData interface {
@@ -86,7 +86,7 @@ func (m *EStructuralFeatureExtentedMetaDataImpl) getNamespace() string {
 }
 
 func NewExtendedMetaData() *ExtendedMetaData {
-	return &ExtendedMetaData{metaData: make(map[interface{}]interface{})}
+	return &ExtendedMetaData{metaData: make(map[any]any)}
 }
 
 func (emd *ExtendedMetaData) getENamedElementExtendedMetaData(eElement ENamedElement) ENamedElementExtendedMetaData {

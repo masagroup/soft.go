@@ -15,15 +15,15 @@ func (_m *MockEObjectIDManager) Clear() {
 }
 
 // GetDetachedID provides a mock function with given fields: _a0
-func (_m *MockEObjectIDManager) GetDetachedID(_a0 EObject) interface{} {
+func (_m *MockEObjectIDManager) GetDetachedID(_a0 EObject) any {
 	ret := _m.Called(_a0)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(EObject) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(EObject) any); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -31,11 +31,11 @@ func (_m *MockEObjectIDManager) GetDetachedID(_a0 EObject) interface{} {
 }
 
 // GetEObject provides a mock function with given fields: _a0
-func (_m *MockEObjectIDManager) GetEObject(_a0 interface{}) EObject {
+func (_m *MockEObjectIDManager) GetEObject(_a0 any) EObject {
 	ret := _m.Called(_a0)
 
 	var r0 EObject
-	if rf, ok := ret.Get(0).(func(interface{}) EObject); ok {
+	if rf, ok := ret.Get(0).(func(any) EObject); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
@@ -47,15 +47,15 @@ func (_m *MockEObjectIDManager) GetEObject(_a0 interface{}) EObject {
 }
 
 // GetID provides a mock function with given fields: _a0
-func (_m *MockEObjectIDManager) GetID(_a0 EObject) interface{} {
+func (_m *MockEObjectIDManager) GetID(_a0 EObject) any {
 	ret := _m.Called(_a0)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(EObject) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(EObject) any); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -68,11 +68,11 @@ func (_m *MockEObjectIDManager) Register(_a0 EObject) {
 }
 
 // SetID provides a mock function with given fields: _a0, _a1
-func (_m *MockEObjectIDManager) SetID(_a0 EObject, _a1 interface{}) error {
+func (_m *MockEObjectIDManager) SetID(_a0 EObject, _a1 any) error {
 	ret := _m.Called(_a0, _a1)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(EObject, interface{}) error); ok {
+	if rf, ok := ret.Get(0).(func(EObject, any) error); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)

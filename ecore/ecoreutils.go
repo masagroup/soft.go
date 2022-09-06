@@ -35,12 +35,12 @@ func SetEObjectID(eObject EObject, id string) {
 	}
 }
 
-func ConvertToString(eDataType EDataType, value interface{}) string {
+func ConvertToString(eDataType EDataType, value any) string {
 	eFactory := eDataType.GetEPackage().GetEFactoryInstance()
 	return eFactory.ConvertToString(eDataType, value)
 }
 
-func CreateFromString(eDataType EDataType, literal string) interface{} {
+func CreateFromString(eDataType EDataType, literal string) any {
 	eFactory := eDataType.GetEPackage().GetEFactoryInstance()
 	return eFactory.CreateFromString(eDataType, literal)
 }

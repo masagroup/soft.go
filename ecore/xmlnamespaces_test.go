@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func m(a, b interface{}) []interface{} {
-	return []interface{}{a, b}
+func m(a, b any) []any {
+	return []any{a, b}
 }
 
 func TestXmlNamespacesNoContext(t *testing.T) {

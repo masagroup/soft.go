@@ -14,11 +14,11 @@ type MockEResourceCodec struct {
 }
 
 // NewDecoder provides a mock function with given fields: r, options
-func (_m *MockEResourceCodec) NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EResourceDecoder {
+func (_m *MockEResourceCodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EResourceDecoder {
 	ret := _m.Called(resource, r, options)
 
 	var r0 EResourceDecoder
-	if rf, ok := ret.Get(0).(func(EResource, io.Reader, map[string]interface{}) EResourceDecoder); ok {
+	if rf, ok := ret.Get(0).(func(EResource, io.Reader, map[string]any) EResourceDecoder); ok {
 		r0 = rf(resource, r, options)
 	} else {
 		if ret.Get(0) != nil {
@@ -30,11 +30,11 @@ func (_m *MockEResourceCodec) NewDecoder(resource EResource, r io.Reader, option
 }
 
 // NewEncoder provides a mock function with given fields: w, options
-func (_m *MockEResourceCodec) NewEncoder(resource EResource, w io.Writer, options map[string]interface{}) EResourceEncoder {
+func (_m *MockEResourceCodec) NewEncoder(resource EResource, w io.Writer, options map[string]any) EResourceEncoder {
 	ret := _m.Called(resource, w, options)
 
 	var r0 EResourceEncoder
-	if rf, ok := ret.Get(0).(func(EResource, io.Writer, map[string]interface{}) EResourceEncoder); ok {
+	if rf, ok := ret.Get(0).(func(EResource, io.Writer, map[string]any) EResourceEncoder); ok {
 		r0 = rf(resource, w, options)
 	} else {
 		if ret.Get(0) != nil {

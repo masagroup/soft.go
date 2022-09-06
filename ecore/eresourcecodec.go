@@ -12,6 +12,6 @@ package ecore
 import "io"
 
 type EResourceCodec interface {
-	NewEncoder(resource EResource, w io.Writer, options map[string]interface{}) EResourceEncoder
-	NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EResourceDecoder
+	NewEncoder(resource EResource, w io.Writer, options map[string]any) EResourceEncoder
+	NewDecoder(resource EResource, r io.Reader, options map[string]any) EResourceDecoder
 }

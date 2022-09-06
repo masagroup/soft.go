@@ -13,7 +13,7 @@ package ecore
 type ReflectiveEObjectImpl struct {
 	EObjectImpl
 	class      EClass
-	properties []interface{}
+	properties []any
 }
 
 // NewReflectiveEObjectImpl is the constructor of a ReflectiveEObjectImpl
@@ -44,11 +44,11 @@ func (o *ReflectiveEObjectImpl) EDynamicProperties() EDynamicProperties {
 	return o.GetInterfaces().(EDynamicProperties)
 }
 
-func (o *ReflectiveEObjectImpl) EDynamicGet(dynamicFeatureID int) interface{} {
+func (o *ReflectiveEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 	return o.getProperties()[dynamicFeatureID]
 }
 
-func (o *ReflectiveEObjectImpl) EDynamicSet(dynamicFeatureID int, newValue interface{}) {
+func (o *ReflectiveEObjectImpl) EDynamicSet(dynamicFeatureID int, newValue any) {
 	o.getProperties()[dynamicFeatureID] = newValue
 }
 
@@ -56,9 +56,9 @@ func (o *ReflectiveEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	o.getProperties()[dynamicFeatureID] = nil
 }
 
-func (o *ReflectiveEObjectImpl) getProperties() []interface{} {
+func (o *ReflectiveEObjectImpl) getProperties() []any {
 	if o.properties == nil {
-		o.properties = make([]interface{}, o.EClass().GetFeatureCount())
+		o.properties = make([]any, o.EClass().GetFeatureCount())
 	}
 	return o.properties
 }

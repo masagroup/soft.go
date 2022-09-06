@@ -11,12 +11,12 @@ package ecore
 
 type BasicEMap struct {
 	EList
-	interfaces interface{}
-	mapData    map[interface{}]interface{}
+	interfaces any
+	mapData    map[any]any
 }
 
 type eMapEntryFactory interface {
-	newEntry(key interface{}, value interface{}) EMapEntry
+	newEntry(key any, value any) EMapEntry
 }
 
 type basicEMapList struct {
@@ -27,30 +27,30 @@ type basicEMapList struct {
 func newBasicEMapList(m *BasicEMap) *basicEMapList {
 	l := new(basicEMapList)
 	l.interfaces = l
-	l.data = []interface{}{}
+	l.data = []any{}
 	l.isUnique = true
 	l.m = m
 	return l
 }
 
-func (ml *basicEMapList) didAdd(index int, elem interface{}) {
+func (ml *basicEMapList) didAdd(index int, elem any) {
 	entry := elem.(EMapEntry)
 	ml.m.doAdd(entry)
 }
 
-func (ml *basicEMapList) didSet(index int, newElem interface{}, oldElem interface{}) {
+func (ml *basicEMapList) didSet(index int, newElem any, oldElem any) {
 	newEntry := newElem.(EMapEntry)
 	oldEntry := oldElem.(EMapEntry)
 	ml.m.doRemove(oldEntry)
 	ml.m.doAdd(newEntry)
 }
 
-func (ml *basicEMapList) didRemove(index int, oldElem interface{}) {
+func (ml *basicEMapList) didRemove(index int, oldElem any) {
 	oldEntry := oldElem.(EMapEntry)
 	ml.m.doRemove(oldEntry)
 }
 
-func (ml *basicEMapList) didClear(oldObjects []interface{}) {
+func (ml *basicEMapList) didClear(oldObjects []any) {
 	ml.m.doClear()
 }
 
@@ -65,7 +65,7 @@ func (m *BasicEMap) asEMapEntryFactory() eMapEntryFactory {
 	return m.interfaces.(eMapEntryFactory)
 }
 
-func (m *BasicEMap) getEntryForKey(key interface{}) EMapEntry {
+func (m *BasicEMap) getEntryForKey(key any) EMapEntry {
 	for it := m.Iterator(); it.HasNext(); {
 		e := it.Next().(EMapEntry)
 		if e.GetKey() == key {
@@ -75,12 +75,12 @@ func (m *BasicEMap) getEntryForKey(key interface{}) EMapEntry {
 	return nil
 }
 
-func (m *BasicEMap) GetValue(key interface{}) interface{} {
+func (m *BasicEMap) GetValue(key any) any {
 	m.initDataMap()
 	return m.mapData[key]
 }
 
-func (m *BasicEMap) Put(key interface{}, value interface{}) {
+func (m *BasicEMap) Put(key any, value any) {
 	if e := m.getEntryForKey(key); e != nil {
 		e.SetValue(value)
 
@@ -93,31 +93,31 @@ func (m *BasicEMap) Put(key interface{}, value interface{}) {
 }
 
 type eMapEntryImpl struct {
-	key   interface{}
-	value interface{}
+	key   any
+	value any
 }
 
-func (e *eMapEntryImpl) GetKey() interface{} {
+func (e *eMapEntryImpl) GetKey() any {
 	return e.key
 }
 
-func (e *eMapEntryImpl) SetKey(key interface{}) {
+func (e *eMapEntryImpl) SetKey(key any) {
 	e.key = key
 }
 
-func (e *eMapEntryImpl) GetValue() interface{} {
+func (e *eMapEntryImpl) GetValue() any {
 	return e.value
 }
 
-func (e *eMapEntryImpl) SetValue(value interface{}) {
+func (e *eMapEntryImpl) SetValue(value any) {
 	e.value = value
 }
 
-func (m *BasicEMap) newEntry(key interface{}, value interface{}) EMapEntry {
+func (m *BasicEMap) newEntry(key any, value any) EMapEntry {
 	return &eMapEntryImpl{key: key, value: value}
 }
 
-func (m *BasicEMap) RemoveKey(key interface{}) interface{} {
+func (m *BasicEMap) RemoveKey(key any) any {
 	if e := m.getEntryForKey(key); e != nil {
 		m.Remove(e)
 		return e.GetValue()
@@ -125,7 +125,7 @@ func (m *BasicEMap) RemoveKey(key interface{}) interface{} {
 	return nil
 }
 
-func (m *BasicEMap) ContainsValue(value interface{}) bool {
+func (m *BasicEMap) ContainsValue(value any) bool {
 	for it := m.Iterator(); it.HasNext(); {
 		e := it.Next().(EMapEntry)
 		if e.GetValue() == value {
@@ -135,20 +135,20 @@ func (m *BasicEMap) ContainsValue(value interface{}) bool {
 	return false
 }
 
-func (m *BasicEMap) ContainsKey(key interface{}) bool {
+func (m *BasicEMap) ContainsKey(key any) bool {
 	m.initDataMap()
 	_, ok := m.mapData[key]
 	return ok
 }
 
-func (m *BasicEMap) ToMap() map[interface{}]interface{} {
+func (m *BasicEMap) ToMap() map[any]any {
 	m.initDataMap()
 	return m.mapData
 }
 
 func (m *BasicEMap) initDataMap() {
 	if m.mapData == nil {
-		m.mapData = map[interface{}]interface{}{}
+		m.mapData = map[any]any{}
 		for itEntry := m.Iterator(); itEntry.HasNext(); {
 			entry := itEntry.Next().(EMapEntry)
 			m.mapData[entry.GetKey()] = entry.GetValue()

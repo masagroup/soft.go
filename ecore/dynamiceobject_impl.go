@@ -13,7 +13,7 @@ package ecore
 type DynamicEObjectImpl struct {
 	EObjectImpl
 	class      EClass
-	properties []interface{}
+	properties []any
 	adapter    *dynamicFeaturesAdapter
 }
 
@@ -81,11 +81,11 @@ func (o *DynamicEObjectImpl) EDynamicProperties() EDynamicProperties {
 	return o.GetInterfaces().(EDynamicProperties)
 }
 
-func (o *DynamicEObjectImpl) EDynamicGet(dynamicFeatureID int) interface{} {
+func (o *DynamicEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 	return o.properties[dynamicFeatureID]
 }
 
-func (o *DynamicEObjectImpl) EDynamicSet(dynamicFeatureID int, newValue interface{}) {
+func (o *DynamicEObjectImpl) EDynamicSet(dynamicFeatureID int, newValue any) {
 	o.properties[dynamicFeatureID] = newValue
 }
 
@@ -103,7 +103,7 @@ func (o *DynamicEObjectImpl) EOperationID(operation EOperation) int {
 
 func (o *DynamicEObjectImpl) resizeProperties() {
 	newSize := o.EClass().GetFeatureCount()
-	newProperties := make([]interface{}, newSize)
+	newProperties := make([]any, newSize)
 	copy(newProperties, o.properties)
 	o.properties = newProperties
 }

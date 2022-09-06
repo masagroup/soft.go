@@ -20,7 +20,7 @@ func TestMockEObjectInternal_EDynamicGet(t *testing.T) {
 	o := &MockEObjectProperties{}
 	obj := &MockEObject{}
 	o.On("EDynamicGet", 1).Once().Return(obj)
-	o.On("EDynamicGet", 1).Once().Return(func(dynamicFeatureID int) interface{} {
+	o.On("EDynamicGet", 1).Once().Return(func(dynamicFeatureID int) any {
 		return obj
 	})
 	assert.Equal(t, obj, o.EDynamicGet(1))

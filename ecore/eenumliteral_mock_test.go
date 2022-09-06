@@ -37,9 +37,9 @@ func TestMockEEnumLiteralGetEEnum(t *testing.T) {
 // TestMockEEnumLiteralGetInstance tests method GetInstance
 func TestMockEEnumLiteralGetInstance(t *testing.T) {
 	o := &MockEEnumLiteral{}
-	r := interface{}(nil)
+	r := any(nil)
 	o.On("GetInstance").Once().Return(r)
-	o.On("GetInstance").Once().Return(func() interface{} {
+	o.On("GetInstance").Once().Return(func() any {
 		return r
 	})
 	assert.Equal(t, r, o.GetInstance())
@@ -50,7 +50,7 @@ func TestMockEEnumLiteralGetInstance(t *testing.T) {
 // TestMockEEnumLiteralSetInstance tests method SetInstance
 func TestMockEEnumLiteralSetInstance(t *testing.T) {
 	o := &MockEEnumLiteral{}
-	v := interface{}(nil)
+	v := any(nil)
 	o.On("SetInstance", v).Once()
 	o.SetInstance(v)
 	o.AssertExpectations(t)

@@ -66,7 +66,7 @@ func TestMockENotificationGetOldValue(t *testing.T) {
 	n := &MockENotification{}
 	v := &MockEObject{}
 	n.On("GetOldValue").Return(v).Once()
-	n.On("GetOldValue").Return(func() interface{} {
+	n.On("GetOldValue").Return(func() any {
 		return v
 	}).Once()
 	assert.Equal(t, v, n.GetOldValue())
@@ -78,7 +78,7 @@ func TestMockENotificationGetNewValue(t *testing.T) {
 	n := &MockENotification{}
 	v := &MockEObject{}
 	n.On("GetNewValue").Return(v).Once()
-	n.On("GetNewValue").Return(func() interface{} {
+	n.On("GetNewValue").Return(func() any {
 		return v
 	}).Once()
 	assert.Equal(t, v, n.GetNewValue())

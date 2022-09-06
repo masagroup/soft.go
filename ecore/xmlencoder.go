@@ -55,7 +55,7 @@ type xmlEncoderInternal interface {
 }
 
 type XMLEncoder struct {
-	interfaces       interface{}
+	interfaces       any
 	w                io.Writer
 	resource         EResource
 	str              *xmlString
@@ -72,7 +72,7 @@ type XMLEncoder struct {
 	errorFn          func(diagnostic EDiagnostic)
 }
 
-func NewXMLEncoder(resource EResource, w io.Writer, options map[string]interface{}) *XMLEncoder {
+func NewXMLEncoder(resource EResource, w io.Writer, options map[string]any) *XMLEncoder {
 	s := new(XMLEncoder)
 	s.interfaces = s
 	s.resource = resource
@@ -751,7 +751,7 @@ func (s *XMLEncoder) getPackageForSpace(nsURI string) EPackage {
 	return packageRegistry.GetPackage(nsURI)
 }
 
-func (s *XMLEncoder) getDataType(value interface{}, f EStructuralFeature, isAttribute bool) (string, bool) {
+func (s *XMLEncoder) getDataType(value any, f EStructuralFeature, isAttribute bool) (string, bool) {
 	if value == nil {
 		return "", false
 	} else {

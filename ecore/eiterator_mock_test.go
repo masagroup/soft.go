@@ -36,7 +36,7 @@ func TestMockEIteratorNext(t *testing.T) {
 	o.On("Next").Once().Return(v)
 	assert.Equal(t, v, o.Next())
 
-	o.On("Next").Once().Return(func() interface{} {
+	o.On("Next").Once().Return(func() any {
 		return v
 	})
 	assert.Equal(t, v, o.Next())

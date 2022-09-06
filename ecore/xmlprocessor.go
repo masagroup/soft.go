@@ -45,10 +45,10 @@ func (p *XMLProcessor) Load(uri *URI) EResource {
 	return p.LoadWithOptions(uri, nil)
 }
 
-func (p *XMLProcessor) LoadWithOptions(uri *URI, options map[string]interface{}) EResource {
+func (p *XMLProcessor) LoadWithOptions(uri *URI, options map[string]any) EResource {
 	rs := p.GetResourceSet()
 	r := rs.CreateResource(uri)
-	o := map[string]interface{}{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
+	o := map[string]any{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
 		for k, v := range options {
 			o[k] = v
@@ -58,10 +58,10 @@ func (p *XMLProcessor) LoadWithOptions(uri *URI, options map[string]interface{})
 	return r
 }
 
-func (p *XMLProcessor) LoadWithReader(r io.Reader, options map[string]interface{}) EResource {
+func (p *XMLProcessor) LoadWithReader(r io.Reader, options map[string]any) EResource {
 	rs := p.GetResourceSet()
 	rc := rs.CreateResource(NewURI("*.xml"))
-	o := map[string]interface{}{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
+	o := map[string]any{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
 		for k, v := range options {
 			o[k] = v
@@ -75,8 +75,8 @@ func (p *XMLProcessor) Save(resource EResource) {
 	p.SaveWithOptions(resource, nil)
 }
 
-func (p *XMLProcessor) SaveWithOptions(resource EResource, options map[string]interface{}) {
-	o := map[string]interface{}{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
+func (p *XMLProcessor) SaveWithOptions(resource EResource, options map[string]any) {
+	o := map[string]any{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
 		for k, v := range options {
 			o[k] = v
@@ -85,8 +85,8 @@ func (p *XMLProcessor) SaveWithOptions(resource EResource, options map[string]in
 	resource.SaveWithOptions(o)
 }
 
-func (p *XMLProcessor) SaveWithWriter(w io.Writer, resource EResource, options map[string]interface{}) {
-	o := map[string]interface{}{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
+func (p *XMLProcessor) SaveWithWriter(w io.Writer, resource EResource, options map[string]any) {
+	o := map[string]any{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
 	if options != nil {
 		for k, v := range options {
 			o[k] = v
@@ -95,7 +95,7 @@ func (p *XMLProcessor) SaveWithWriter(w io.Writer, resource EResource, options m
 	resource.SaveWithWriter(w, o)
 }
 
-func (p *XMLProcessor) SaveToString(resource EResource, options map[string]interface{}) string {
+func (p *XMLProcessor) SaveToString(resource EResource, options map[string]any) string {
 	var strbuff strings.Builder
 	p.SaveWithWriter(&strbuff, resource, options)
 	return strbuff.String()

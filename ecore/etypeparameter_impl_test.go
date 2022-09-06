@@ -57,7 +57,7 @@ func TestETypeParameterESetFromID(t *testing.T) {
 	{
 		// list with a value
 		mockValue := new(MockEGenericType)
-		l := NewImmutableEList([]interface{}{mockValue})
+		l := NewImmutableEList([]any{mockValue})
 		mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-ETYPE_PARAMETER__EBOUNDS, mock.Anything).Return(nil).Once()
 
 		// set list with new contents

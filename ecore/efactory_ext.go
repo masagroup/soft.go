@@ -44,7 +44,7 @@ func (eFactory *EFactoryExt) Create(eClass EClass) EObject {
 }
 
 // CreateFromString default implementation
-func (eFactory *EFactoryExt) CreateFromString(eDataType EDataType, literalValue string) interface{} {
+func (eFactory *EFactoryExt) CreateFromString(eDataType EDataType, literalValue string) any {
 	if eFactory.GetEPackage() != eDataType.GetEPackage() {
 		panic(fmt.Sprintf("The datatype '%v' is not a valid classifier", eDataType.GetName()))
 	}
@@ -90,7 +90,7 @@ func (eFactory *EFactoryExt) CreateFromString(eDataType EDataType, literalValue 
 	panic("CreateFromString not implemented")
 }
 
-func (eFactory *EFactoryExt) ConvertToString(eDataType EDataType, instanceValue interface{}) string {
+func (eFactory *EFactoryExt) ConvertToString(eDataType EDataType, instanceValue any) string {
 	if eFactory.GetEPackage() != eDataType.GetEPackage() {
 		panic(fmt.Sprintf("The datatype '%v' is not a valid classifier", eDataType.GetName()))
 	}

@@ -21,9 +21,9 @@ func TestEObjectEContents(t *testing.T) {
 	f1 := factory.CreateEAttribute()
 	f2 := factory.CreateEAttribute()
 	o1 := factory.CreateEOperation()
-	c.GetEStructuralFeatures().AddAll(NewImmutableEList([]interface{}{f1, f2}))
+	c.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{f1, f2}))
 	c.GetEOperations().Add(o1)
-	assert.Equal(t, []interface{}{f1, f2, o1}, c.EContents().ToArray())
+	assert.Equal(t, []any{f1, f2, o1}, c.EContents().ToArray())
 }
 
 func TestEObjectEContainingFeature(t *testing.T) {

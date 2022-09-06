@@ -9,7 +9,7 @@
 
 package ecore
 
-type pair [2]interface{}
+type pair [2]any
 
 type xmlNamespaces struct {
 	namespaces     []pair

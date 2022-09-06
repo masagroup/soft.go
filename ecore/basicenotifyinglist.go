@@ -3,9 +3,9 @@ package ecore
 type eNotifyingListInternal interface {
 	ENotifyingList
 
-	inverseAdd(object interface{}, chain ENotificationChain) ENotificationChain
+	inverseAdd(object any, chain ENotificationChain) ENotificationChain
 
-	inverseRemove(object interface{}, chain ENotificationChain) ENotificationChain
+	inverseRemove(object any, chain ENotificationChain) ENotificationChain
 }
 
 // BasicENotifyingList ...
@@ -17,12 +17,12 @@ type BasicENotifyingList struct {
 func NewBasicENotifyingList() *BasicENotifyingList {
 	l := new(BasicENotifyingList)
 	l.interfaces = l
-	l.data = []interface{}{}
+	l.data = []any{}
 	l.isUnique = true
 	return l
 }
 
-func newBasicENotifyingListFromData(data []interface{}) *BasicENotifyingList {
+func newBasicENotifyingListFromData(data []any) *BasicENotifyingList {
 	l := new(BasicENotifyingList)
 	l.interfaces = l
 	l.data = data
@@ -62,7 +62,7 @@ func (notif *notifyingListNotification) GetFeatureID() int {
 	return notif.list.interfaces.(ENotifyingList).GetFeatureID()
 }
 
-func (list *BasicENotifyingList) createNotification(eventType EventType, oldValue interface{}, newValue interface{}, position int) ENotification {
+func (list *BasicENotifyingList) createNotification(eventType EventType, oldValue any, newValue any, position int) ENotification {
 	n := new(notifyingListNotification)
 	n.Initialize(n, eventType, oldValue, newValue, position)
 	n.list = list
@@ -74,7 +74,7 @@ func (list *BasicENotifyingList) isNotificationRequired() bool {
 	return notifier != nil && notifier.EDeliver() && !notifier.EAdapters().Empty()
 }
 
-func (list *BasicENotifyingList) createAndAddNotification(ns ENotificationChain, eventType EventType, oldValue interface{}, newValue interface{}, position int) ENotificationChain {
+func (list *BasicENotifyingList) createAndAddNotification(ns ENotificationChain, eventType EventType, oldValue any, newValue any, position int) ENotificationChain {
 	notifications := ns
 	if list.isNotificationRequired() {
 		notification := list.createNotification(eventType, oldValue, newValue, position)
@@ -87,7 +87,7 @@ func (list *BasicENotifyingList) createAndAddNotification(ns ENotificationChain,
 	return notifications
 }
 
-func (list *BasicENotifyingList) createAndDispatchNotification(notifications ENotificationChain, eventType EventType, oldValue interface{}, newValue interface{}, position int) {
+func (list *BasicENotifyingList) createAndDispatchNotification(notifications ENotificationChain, eventType EventType, oldValue any, newValue any, position int) {
 	list.createAndDispatchNotificationFn(notifications, func() ENotification {
 		return list.createNotification(eventType, oldValue, newValue, position)
 	})
@@ -112,23 +112,23 @@ func (list *BasicENotifyingList) createAndDispatchNotificationFn(notifications E
 	}
 }
 
-func (list *BasicENotifyingList) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (list *BasicENotifyingList) inverseAdd(object any, notifications ENotificationChain) ENotificationChain {
 	return notifications
 }
 
-func (list *BasicENotifyingList) inverseRemove(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (list *BasicENotifyingList) inverseRemove(object any, notifications ENotificationChain) ENotificationChain {
 	return notifications
 }
 
 // AddWithNotification ...
-func (list *BasicENotifyingList) AddWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (list *BasicENotifyingList) AddWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	index := list.Size()
 	list.basicEList.doAdd(object)
 	return list.createAndAddNotification(notifications, ADD, nil, object, index)
 }
 
 // RemoveWithNotification ...
-func (list *BasicENotifyingList) RemoveWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (list *BasicENotifyingList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	index := list.interfaces.(EList).IndexOf(object)
 	if index != -1 {
 		oldObject := list.basicEList.doRemove(index)
@@ -138,12 +138,12 @@ func (list *BasicENotifyingList) RemoveWithNotification(object interface{}, noti
 }
 
 // SetWithNotification ...
-func (list *BasicENotifyingList) SetWithNotification(index int, object interface{}, notifications ENotificationChain) ENotificationChain {
+func (list *BasicENotifyingList) SetWithNotification(index int, object any, notifications ENotificationChain) ENotificationChain {
 	oldObject := list.basicEList.doSet(index, object)
 	return list.createAndAddNotification(notifications, SET, oldObject, object, index)
 }
 
-func (list *BasicENotifyingList) doAdd(object interface{}) {
+func (list *BasicENotifyingList) doAdd(object any) {
 	index := list.interfaces.(EList).Size()
 	list.basicEList.doAdd(object)
 	notifications := list.interfaces.(eNotifyingListInternal).inverseAdd(object, nil)
@@ -154,7 +154,7 @@ func (list *BasicENotifyingList) doAddAll(l EList) bool {
 	return list.interfaces.(abstractEList).doInsertAll(list.Size(), l)
 }
 
-func (list *BasicENotifyingList) doInsert(index int, object interface{}) {
+func (list *BasicENotifyingList) doInsert(index int, object any) {
 	list.basicEList.doInsert(index, object)
 	notifications := list.interfaces.(eNotifyingListInternal).inverseAdd(object, nil)
 	list.createAndDispatchNotification(notifications, ADD, nil, object, index)
@@ -180,7 +180,7 @@ func (list *BasicENotifyingList) doInsertAll(index int, l EList) bool {
 	return result
 }
 
-func (list *BasicENotifyingList) doSet(index int, newObject interface{}) interface{} {
+func (list *BasicENotifyingList) doSet(index int, newObject any) any {
 	oldObject := list.basicEList.doSet(index, newObject)
 	if newObject != oldObject {
 		var notifications ENotificationChain
@@ -191,10 +191,10 @@ func (list *BasicENotifyingList) doSet(index int, newObject interface{}) interfa
 	return oldObject
 }
 
-func (list *BasicENotifyingList) doClear() []interface{} {
+func (list *BasicENotifyingList) doClear() []any {
 	oldData := list.basicEList.doClear()
 	if len(oldData) == 0 {
-		list.createAndDispatchNotification(nil, REMOVE_MANY, []interface{}{}, nil, -1)
+		list.createAndDispatchNotification(nil, REMOVE_MANY, []any{}, nil, -1)
 	} else {
 		var notifications ENotificationChain = NewNotificationChain()
 		for _, e := range oldData {
@@ -213,14 +213,14 @@ func (list *BasicENotifyingList) doClear() []interface{} {
 	return oldData
 }
 
-func (list *BasicENotifyingList) doMove(oldIndex, newIndex int) interface{} {
+func (list *BasicENotifyingList) doMove(oldIndex, newIndex int) any {
 	oldObject := list.basicEList.doMove(oldIndex, newIndex)
 	list.createAndDispatchNotification(nil, MOVE, oldIndex, oldObject, newIndex)
 	return oldObject
 }
 
 // RemoveAt ...
-func (list *BasicENotifyingList) doRemove(index int) interface{} {
+func (list *BasicENotifyingList) doRemove(index int) any {
 	oldObject := list.basicEList.doRemove(index)
 	var notifications ENotificationChain
 	notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(oldObject, notifications)
@@ -231,14 +231,14 @@ func (list *BasicENotifyingList) doRemove(index int) interface{} {
 func (list *BasicENotifyingList) RemoveAll(collection EList) bool {
 	return list.doRemoveAll(
 		collection,
-		func(index int, other interface{}) bool {
+		func(index int, other any) bool {
 			return list.doGet(index) == other
 		})
 }
 
-func (list *BasicENotifyingList) doRemoveAll(collection EList, getAndCompare func(int, interface{}) bool) bool {
-	var positions []interface{}
-	var removed []interface{}
+func (list *BasicENotifyingList) doRemoveAll(collection EList, getAndCompare func(int, any) bool) bool {
+	var positions []any
+	var removed []any
 
 	// compute positions and removed objects
 	if !collection.Empty() {

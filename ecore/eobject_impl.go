@@ -36,7 +36,7 @@ func (eObject *EObjectImpl) EStaticFeatureCount() int {
 	return EOBJECT_FEATURE_COUNT
 }
 
-func (eObject *EObjectImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (eObject *EObjectImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EOBJECT__EALL_CONTENTS:
 		return eObject.asEObject().EAllContents()

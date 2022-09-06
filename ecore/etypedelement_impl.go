@@ -153,7 +153,7 @@ func (eTypedElement *eTypedElementImpl) SetUpperBound(newUpperBound int) {
 	}
 }
 
-func (eTypedElement *eTypedElementImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eTypedElement *eTypedElementImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
 		if resolve {
@@ -177,7 +177,7 @@ func (eTypedElement *eTypedElementImpl) EGetFromID(featureID int, resolve bool) 
 	}
 }
 
-func (eTypedElement *eTypedElementImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eTypedElement *eTypedElementImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
 		eTypedElement.asETypedElement().SetEType(newValue.(EClassifier))

@@ -18,7 +18,7 @@ import (
 func TestETreeIteratorWithRoot(t *testing.T) {
 	emptyList := NewImmutableEList(nil)
 	mockObject := new(MockEObject)
-	it := newTreeIterator(mockObject, true, func(i interface{}) EIterator {
+	it := newTreeIterator(mockObject, true, func(i any) EIterator {
 		return emptyList.Iterator()
 	})
 	assert.True(t, it.HasNext())
@@ -41,15 +41,15 @@ func TestEAllContentsIteratorNotEmpty(t *testing.T) {
 	mockGrandChild1 := new(MockEObject)
 	mockGrandChild2 := new(MockEObject)
 	mockChild2 := new(MockEObject)
-	mockObject.On("EContents").Return(NewImmutableEList([]interface{}{mockChild1, mockChild2}))
-	mockChild1.On("EContents").Return(NewImmutableEList([]interface{}{mockGrandChild1, mockGrandChild2}))
+	mockObject.On("EContents").Return(NewImmutableEList([]any{mockChild1, mockChild2}))
+	mockChild1.On("EContents").Return(NewImmutableEList([]any{mockGrandChild1, mockGrandChild2}))
 	mockGrandChild1.On("EContents").Return(emptyList)
 	mockGrandChild2.On("EContents").Return(emptyList)
 	mockChild2.On("EContents").Return(emptyList)
 
-	var result []interface{}
+	var result []any
 	for it := newEAllContentsIterator(mockObject); it.HasNext(); {
 		result = append(result, it.Next())
 	}
-	assert.Equal(t, []interface{}{mockChild1, mockGrandChild1, mockGrandChild2, mockChild2}, result)
+	assert.Equal(t, []any{mockChild1, mockGrandChild1, mockGrandChild2, mockChild2}, result)
 }

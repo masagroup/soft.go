@@ -8,7 +8,7 @@ type resourcesList struct {
 func newResourcesList(resourceSet *EResourceSetImpl) *resourcesList {
 	l := new(resourcesList)
 	l.interfaces = l
-	l.data = []interface{}{}
+	l.data = []any{}
 	l.isUnique = true
 	l.resourceSet = resourceSet
 	return l
@@ -22,14 +22,14 @@ func (l *resourcesList) GetFeatureID() int {
 	return RESOURCE_SET__RESOURCES
 }
 
-func (l *resourcesList) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (l *resourcesList) inverseAdd(object any, notifications ENotificationChain) ENotificationChain {
 	eResource := object.(EResourceInternal)
 	n := notifications
 	n = eResource.BasicSetResourceSet(l.resourceSet.AsEResourceSet(), n)
 	return n
 }
 
-func (l *resourcesList) inverseRemove(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (l *resourcesList) inverseRemove(object any, notifications ENotificationChain) ENotificationChain {
 	eResource := object.(EResourceInternal)
 	n := notifications
 	n = eResource.BasicSetResourceSet(nil, n)

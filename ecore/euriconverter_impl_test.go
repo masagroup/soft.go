@@ -31,7 +31,7 @@ func TestEURIConverterGetURIHandler(t *testing.T) {
 func TestEURIConverterCreateReader(t *testing.T) {
 	mockHandler := &MockEURIHandler{}
 	c := NewEURIConverterImpl()
-	c.uriHandlers = NewImmutableEList([]interface{}{mockHandler})
+	c.uriHandlers = NewImmutableEList([]any{mockHandler})
 
 	uri, _ := ParseURI("test:/file.ext")
 	mockFile, _ := os.Open(uri.String())
@@ -56,7 +56,7 @@ func TestEURIConverterCreateReader(t *testing.T) {
 func TestEURIConverterCreateReaderWithMapping(t *testing.T) {
 	mockHandler := &MockEURIHandler{}
 	c := NewEURIConverterImpl()
-	c.uriHandlers = NewImmutableEList([]interface{}{mockHandler})
+	c.uriHandlers = NewImmutableEList([]any{mockHandler})
 	c.uriMap = map[URI]URI{*NewURI("test:"): *NewURI("file:")}
 	uri, _ := ParseURI("test:/file.ext")
 	normalized, _ := ParseURI("file:/file.ext")
@@ -82,7 +82,7 @@ func TestEURIConverterCreateReaderWithMapping(t *testing.T) {
 func TestEURIConverterCreateWriter(t *testing.T) {
 	mockHandler := &MockEURIHandler{}
 	c := NewEURIConverterImpl()
-	c.uriHandlers = NewImmutableEList([]interface{}{mockHandler})
+	c.uriHandlers = NewImmutableEList([]any{mockHandler})
 
 	uri, _ := ParseURI("test:/file.ext")
 	mockFile, _ := os.Create(uri.String())

@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -38,10 +37,10 @@ func TestXMLEncoderLibraryNoRootWithOptions(t *testing.T) {
 	xmlProcessor.SaveWithOptions(eResource, options)
 
 	// result
-	src, err := ioutil.ReadFile("testdata/library.noroot.xml")
+	src, err := os.ReadFile("testdata/library.noroot.xml")
 	assert.Nil(t, err)
 
-	result, err := ioutil.ReadFile("testdata/library.noroot.xml")
+	result, err := os.ReadFile("testdata/library.noroot.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(src), "\r\n", "\n"), strings.ReplaceAll(string(result), "\r\n", "\n"))
 }
@@ -70,10 +69,10 @@ func TestXMLEncoderLibraryNoRootWithReaderWriter(t *testing.T) {
 	xmlProcessor.SaveWithWriter(writer, eResource, options)
 
 	// result
-	src, err := ioutil.ReadFile("testdata/library.noroot.xml")
+	src, err := os.ReadFile("testdata/library.noroot.xml")
 	assert.Nil(t, err)
 
-	result, err := ioutil.ReadFile("testdata/library.noroot.xml")
+	result, err := os.ReadFile("testdata/library.noroot.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(src), "\r\n", "\n"), strings.ReplaceAll(string(result), "\r\n", "\n"))
 }
@@ -93,7 +92,7 @@ func TestXMLEncoderLibraryComplex(t *testing.T) {
 	// save resource
 	result := xmlProcessor.SaveToString(eResource, nil)
 
-	bytes, err := ioutil.ReadFile("testdata/library.complex.xml")
+	bytes, err := os.ReadFile("testdata/library.complex.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
@@ -113,7 +112,7 @@ func TestXMLEncoderEMaps(t *testing.T) {
 	// save resource
 	result := xmlProcessor.SaveToString(eResource, nil)
 
-	bytes, err := ioutil.ReadFile("testdata/emap.xml")
+	bytes, err := os.ReadFile("testdata/emap.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
@@ -144,7 +143,7 @@ func TestXMLEncoderLibraryComplexSubElement(t *testing.T) {
 	result := xmlProcessor.SaveToString(eNewResource, nil)
 
 	// check result
-	bytes, err := ioutil.ReadFile("testdata/library.complex.sub.xml")
+	bytes, err := os.ReadFile("testdata/library.complex.sub.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 
@@ -176,7 +175,7 @@ func TestXMLEncoderLibraryComplexWithOptions(t *testing.T) {
 	// save resource
 	result := xmlProcessor.SaveToString(eResource, options)
 
-	bytes, err := ioutil.ReadFile("testdata/library.complex.noroot.xml")
+	bytes, err := os.ReadFile("testdata/library.complex.noroot.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
@@ -201,7 +200,7 @@ func TestXMLEncoderSimpleEscapeXML(t *testing.T) {
 	eResource.GetContents().Add(eLibrary)
 	result := xmlProcessor.SaveToString(eResource, nil)
 
-	bytes, err := ioutil.ReadFile("testdata/library.simple.escape.xml")
+	bytes, err := os.ReadFile("testdata/library.simple.escape.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
@@ -224,7 +223,7 @@ func TestXMLEncoderSimpleXMLWithIDs(t *testing.T) {
 	var strbuff strings.Builder
 	eResource.SaveWithWriter(&strbuff, map[string]any{XML_OPTION_ID_ATTRIBUTE_NAME: "id"})
 
-	bytes, err := ioutil.ReadFile("testdata/library.simple.ids.xml")
+	bytes, err := os.ReadFile("testdata/library.simple.ids.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
@@ -244,7 +243,7 @@ func TestXMLEncoderSimpleXMLWithEDataTypeList(t *testing.T) {
 	// save resource
 	result := xmlProcessor.SaveToString(eResource, nil)
 
-	bytes, err := ioutil.ReadFile("testdata/library.datalist.xml")
+	bytes, err := os.ReadFile("testdata/library.datalist.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
@@ -280,7 +279,7 @@ func TestXMLEncoderSimpleXMLRootObjects(t *testing.T) {
 	var strbuff strings.Builder
 	eResource.SaveWithWriter(&strbuff, map[string]any{XML_OPTION_ROOT_OBJECTS: NewImmutableEList([]any{eBook})})
 
-	bytes, err := ioutil.ReadFile("testdata/book.simple.xml")
+	bytes, err := os.ReadFile("testdata/book.simple.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
@@ -316,7 +315,7 @@ func TestXMLEncoderSimpleObject(t *testing.T) {
 	encoder := NewXMLEncoder(eResource, &strbuff, nil)
 	encoder.EncodeObject(eBook)
 
-	bytes, err := ioutil.ReadFile("testdata/book.simple.xml")
+	bytes, err := os.ReadFile("testdata/book.simple.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }

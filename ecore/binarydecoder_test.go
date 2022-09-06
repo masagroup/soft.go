@@ -3,7 +3,6 @@ package ecore
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -265,7 +264,7 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 
 	// get file content
-	content, err := ioutil.ReadFile(uri.String())
+	content, err := os.ReadFile(uri.String())
 	require.Nil(b, err)
 	require.Nil(b, err)
 	r := bytes.NewReader(content)

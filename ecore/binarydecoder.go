@@ -187,14 +187,14 @@ func (d *BinaryDecoder) decodeInterface() any {
 
 func (d *BinaryDecoder) decodeSignature() {
 	signature := d.decodeBytes()
-	if bytes.Compare(signature, binarySignature) != 0 {
-		panic(errors.New("Invalid signature for a binary EMF serialization"))
+	if !bytes.Equal(signature, binarySignature) {
+		panic(errors.New("invalid signature for a binary emf serialization"))
 	}
 }
 
 func (d *BinaryDecoder) decodeVersion() {
 	if version := d.decodeInt(); version != binaryVersion {
-		panic(errors.New("Invalid version for binary EMF serialization"))
+		panic(errors.New("invalid version for binary emf serialization"))
 	}
 }
 
@@ -455,7 +455,7 @@ func (d *BinaryDecoder) newClassData(ePackageData *binaryDecoderPackageData) *bi
 	ePackage := ePackageData.ePackage
 	eClass, _ := ePackage.GetEClassifier(className).(EClass)
 	if eClass == nil {
-		panic(errors.New(fmt.Sprintf("Unable to find class '%v' in package '%v'", className, ePackage.GetNsURI())))
+		panic(fmt.Errorf("unable to find class '%v' in package '%v'", className, ePackage.GetNsURI()))
 	}
 	return &binaryDecoderClassData{
 		eClass:      eClass,
@@ -468,7 +468,7 @@ func (d *BinaryDecoder) newFeatureData(eClassData *binaryDecoderClassData, featu
 	eFeatureName := d.decodeString()
 	eFeature := eClassData.eClass.GetEStructuralFeatureFromName(eFeatureName)
 	if eFeature == nil {
-		panic(errors.New(fmt.Sprintf("Unable to find feature '%v' in '%v' EClass", eFeatureName, eClassData.eClass.GetName())))
+		panic(fmt.Errorf("unable to find feature '%v' in '%v' EClass", eFeatureName, eClassData.eClass.GetName()))
 	}
 	eFeatureData := &binaryDecoderFeatureData{
 		eFeature:    eFeature,

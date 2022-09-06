@@ -10,7 +10,7 @@
 package ecore
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -25,7 +25,7 @@ func TestXMIEncoderLibrarySimple(t *testing.T) {
 	require.NotNil(t, resource)
 	result := xmiProcessor.SaveToString(resource, nil)
 	// check
-	bytes, err := ioutil.ReadFile("testdata/library.simple.ecore")
+	bytes, err := os.ReadFile("testdata/library.simple.ecore")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
@@ -37,7 +37,7 @@ func TestXMIEncoderLibraryNoRoot(t *testing.T) {
 	require.NotNil(t, resource)
 	result := xmiProcessor.SaveToString(resource, nil)
 	// check
-	bytes, err := ioutil.ReadFile("testdata/library.noroot.ecore")
+	bytes, err := os.ReadFile("testdata/library.noroot.ecore")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
@@ -49,7 +49,7 @@ func TestXMIEncoderLibraryComplex(t *testing.T) {
 	require.NotNil(t, resource)
 	result := xmiProcessor.SaveToString(resource, nil)
 	// check
-	bytes, err := ioutil.ReadFile("testdata/library.complex.ecore")
+	bytes, err := os.ReadFile("testdata/library.complex.ecore")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }

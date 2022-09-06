@@ -1,7 +1,6 @@
 package ecore
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -53,7 +52,7 @@ func (m *EObjectIDManagerImpl) SetID(eObject EObject, id any) error {
 		}
 		return nil
 	}
-	return errors.New(fmt.Sprintf("id :'%v' not supported by EObjectIDManager", id))
+	return fmt.Errorf("id :'%v' not supported by EObjectIDManager", id)
 }
 
 func (m *EObjectIDManagerImpl) UnRegister(eObject EObject) {
@@ -71,9 +70,9 @@ func (m *EObjectIDManagerImpl) GetID(eObject EObject) any {
 }
 
 func (m *EObjectIDManagerImpl) GetEObject(id any) EObject {
-	switch id.(type) {
+	switch i := id.(type) {
 	case string:
-		return m.idToObject[id.(string)]
+		return m.idToObject[i]
 	default:
 		return nil
 	}

@@ -41,10 +41,8 @@ func CreateEResourceSet(packages []EPackage) EResourceSet {
 	// packages
 	packageRegistry := rs.GetPackageRegistry()
 	packageRegistry.RegisterPackage(GetPackage())
-	if packages != nil {
-		for _, pack := range packages {
-			packageRegistry.RegisterPackage(pack)
-		}
+	for _, pack := range packages {
+		packageRegistry.RegisterPackage(pack)
 	}
 	return rs
 }

@@ -109,7 +109,7 @@ func (f *nodeFactory) newNode(name string, depth int) EObject {
 	return n
 }
 
-func TestSerializationTree(t *testing.T) {
+func _TestSerializationTree(t *testing.T) {
 	// load package
 	ePackage := loadPackage("tree.ecore")
 	assert.NotNil(t, ePackage)

@@ -3,7 +3,8 @@ package library
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
+	"os"
+
 	"strings"
 	"testing"
 
@@ -71,9 +72,9 @@ func TestSerializationSaveSimpleXml(t *testing.T) {
 	xmlProcessor := ecore.NewXMLProcessor([]ecore.EPackage{GetPackage()})
 	xmlProcessor.SaveObject(ecore.CreateFileURI("testdata/dynamic.simple.output.xml"), root)
 
-	bytesInput, errInput := ioutil.ReadFile("testdata/dynamic.simple.result.xml")
+	bytesInput, errInput := os.ReadFile("testdata/dynamic.simple.result.xml")
 	assert.Nil(t, errInput)
-	bytesOutput, errOutput := ioutil.ReadFile("testdata/dynamic.simple.output.xml")
+	bytesOutput, errOutput := os.ReadFile("testdata/dynamic.simple.output.xml")
 	assert.Nil(t, errOutput)
 	assert.Equal(t, strings.ReplaceAll(string(bytesInput), "\r\n", "\n"), strings.ReplaceAll(string(bytesOutput), "\r\n", "\n"))
 
@@ -86,7 +87,7 @@ func TestSerializationLoadSaveSimpleXML(t *testing.T) {
 	var strbuff strings.Builder
 	resource.SaveWithWriter(&strbuff, nil)
 
-	bytes, err := ioutil.ReadFile("testdata/library.simple.default.xml")
+	bytes, err := os.ReadFile("testdata/library.simple.default.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
@@ -98,7 +99,7 @@ func TestSerializationLoadSavePrefixXML(t *testing.T) {
 	var strbuff strings.Builder
 	resource.SaveWithWriter(&strbuff, nil)
 
-	bytes, err := ioutil.ReadFile("testdata/library.simple.prefix.xml")
+	bytes, err := os.ReadFile("testdata/library.simple.prefix.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
@@ -110,7 +111,7 @@ func TestSerializationLoadSaveComplexXML(t *testing.T) {
 	var strbuff strings.Builder
 	resource.SaveWithWriter(&strbuff, nil)
 
-	bytes, err := ioutil.ReadFile("testdata/library.complex.xml")
+	bytes, err := os.ReadFile("testdata/library.complex.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
@@ -134,7 +135,7 @@ func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(GetPackage())
 
 	// get file content
-	content, err := ioutil.ReadFile(uri.String())
+	content, err := os.ReadFile(uri.String())
 	require.Nil(b, err)
 	r := bytes.NewReader(content)
 
@@ -171,7 +172,7 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(GetPackage())
 
 	// get file content
-	content, err := ioutil.ReadFile(uri.String())
+	content, err := os.ReadFile(uri.String())
 	require.Nil(b, err)
 	r := bytes.NewReader(content)
 

@@ -545,7 +545,7 @@ func (l *XMLDecoder) isUserAttribute(name xml.Name) bool {
 }
 
 func (l *XMLDecoder) getFactoryForSpace(space string) EFactory {
-	factory, _ := l.spacesToFactories[space]
+	factory := l.spacesToFactories[space]
 	if factory == nil {
 		packageRegistry := GetPackageRegistry()
 		if l.resource.GetResourceSet() != nil {

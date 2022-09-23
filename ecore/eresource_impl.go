@@ -316,7 +316,7 @@ func (r *EResourceImpl) getObjectByID(id string) EObject {
 
 func (r *EResourceImpl) getObjectByPath(uriFragmentPath []string) EObject {
 	var eObject EObject
-	if uriFragmentPath == nil || len(uriFragmentPath) == 0 {
+	if len(uriFragmentPath) == 0 {
 		eObject = r.getObjectForRootSegment("")
 	} else {
 		eObject = r.getObjectForRootSegment(uriFragmentPath[0])

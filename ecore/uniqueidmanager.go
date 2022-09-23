@@ -3,7 +3,6 @@ package ecore
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"unsafe"
 )
@@ -91,7 +90,7 @@ func (m *UniqueIDManager) SetID(eObject EObject, id any) error {
 		}
 		return nil
 	}
-	return errors.New(fmt.Sprintf("id:'%v' not supported by UniqueIDManager", id))
+	return fmt.Errorf("id:'%v' not supported by UniqueIDManager", id)
 }
 
 func (m *UniqueIDManager) UnRegister(eObject EObject) {
@@ -113,9 +112,9 @@ func (m *UniqueIDManager) GetID(eObject EObject) any {
 }
 
 func (m *UniqueIDManager) GetEObject(id any) EObject {
-	switch id.(type) {
+	switch i := id.(type) {
 	case string:
-		return m.idToObject[id.(string)]
+		return m.idToObject[i]
 	default:
 		return nil
 	}

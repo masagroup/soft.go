@@ -392,6 +392,7 @@ func (s *XMLEncoder) saveManyEmpty(eObject EObject, eFeature EStructuralFeature)
 	s.str.addAttribute(s.getFeatureQName(eFeature), "")
 }
 
+//lint:ignore U1000 func (*XMLEncoder).saveEObjectSingle is unused
 func (s *XMLEncoder) saveEObjectSingle(eObject EObject, eFeature EStructuralFeature) {
 	value, _ := eObject.EGetResolve(eFeature, false).(EObject)
 	if value != nil {
@@ -400,6 +401,7 @@ func (s *XMLEncoder) saveEObjectSingle(eObject EObject, eFeature EStructuralFeat
 	}
 }
 
+//lint:ignore U1000 func (*XMLEncoder).saveEObjectMany is unused
 func (s *XMLEncoder) saveEObjectMany(eObject EObject, eFeature EStructuralFeature) {
 	l := eObject.EGetResolve(eFeature, false).(EList)
 	failure := false
@@ -700,13 +702,11 @@ func (s *XMLEncoder) getPrefix(ePackage EPackage, mustHavePrefix bool) string {
 		nsURI := ePackage.GetNsURI()
 		found := false
 		prefixes := s.uriToPrefixes[nsURI]
-		if prefixes != nil {
-			for _, prefix := range prefixes {
-				nsPrefix = prefix
-				if !mustHavePrefix || len(nsPrefix) > 0 {
-					found = true
-					break
-				}
+		for _, prefix := range prefixes {
+			nsPrefix = prefix
+			if !mustHavePrefix || len(nsPrefix) > 0 {
+				found = true
+				break
 			}
 		}
 		if !found {

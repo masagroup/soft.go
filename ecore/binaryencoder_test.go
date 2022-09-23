@@ -2,7 +2,7 @@ package ecore
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,9 +28,9 @@ func TestBinaryEncoder_Complex(t *testing.T) {
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
-	//ioutil.WriteFile("testdata/library.complex.bin", w.Bytes(), 0644)
+	//os.WriteFile("testdata/library.complex.bin", w.Bytes(), 0644)
 
-	bytes, err := ioutil.ReadFile("testdata/library.complex.bin")
+	bytes, err := os.ReadFile("testdata/library.complex.bin")
 	assert.Nil(t, err)
 	assert.Equal(t, bytes, w.Bytes())
 }
@@ -64,9 +64,9 @@ func TestBinaryEncoder_ComplexWithID(t *testing.T) {
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
-	//ioutil.WriteFile("testdata/library.complex.id.bin", w.Bytes(), 0644)
+	//os.WriteFile("testdata/library.complex.id.bin", w.Bytes(), 0644)
 
-	bytes, err := ioutil.ReadFile("testdata/library.complex.id.bin")
+	bytes, err := os.ReadFile("testdata/library.complex.id.bin")
 	assert.Nil(t, err)
 	assert.Equal(t, bytes, w.Bytes())
 }
@@ -89,9 +89,9 @@ func TestBinaryEncoder_ComplexBig(t *testing.T) {
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
-	//ioutil.WriteFile("testdata/library.complex.big.bin", w.Bytes(), 0644)
+	//os.WriteFile("testdata/library.complex.big.bin", w.Bytes(), 0644)
 
-	bytes, err := ioutil.ReadFile("testdata/library.complex.big.bin")
+	bytes, err := os.ReadFile("testdata/library.complex.big.bin")
 	assert.Nil(t, err)
 	assert.Equal(t, bytes, w.Bytes())
 }
@@ -114,9 +114,9 @@ func TestBinaryEncoder_SimpleWithDataTypeList(t *testing.T) {
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
-	//ioutil.WriteFile("testdata/library.datalist.bin", w.Bytes(), 0644)
+	//os.WriteFile("testdata/library.datalist.bin", w.Bytes(), 0644)
 
-	bytes, err := ioutil.ReadFile("testdata/library.datalist.bin")
+	bytes, err := os.ReadFile("testdata/library.datalist.bin")
 	assert.Nil(t, err)
 	assert.Equal(t, bytes, w.Bytes())
 }
@@ -139,9 +139,9 @@ func TestBinaryEncoder_Maps(t *testing.T) {
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
-	// ioutil.WriteFile("testdata/emap.bin", w.Bytes(), 0644)
+	// os.WriteFile("testdata/emap.bin", w.Bytes(), 0644)
 
-	bytes, err := ioutil.ReadFile("testdata/emap.bin")
+	bytes, err := os.ReadFile("testdata/emap.bin")
 	assert.Nil(t, err)
 	assert.Equal(t, bytes, w.Bytes())
 }

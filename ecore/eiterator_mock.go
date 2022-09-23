@@ -33,15 +33,15 @@ func (_m *MockEIterator) HasNext() bool {
 }
 
 // Next provides a mock function with given fields:
-func (_m *MockEIterator) Next() interface{} {
+func (_m *MockEIterator) Next() any {
 	ret := _m.Called()
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 

@@ -166,7 +166,7 @@ func TestEAnnotationESetFromID(t *testing.T) {
 	{
 		// list with a value
 		mockValue := new(MockEObjectInternal)
-		l := NewImmutableEList([]interface{}{mockValue})
+		l := NewImmutableEList([]any{mockValue})
 		mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-EANNOTATION__CONTENTS, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
@@ -192,7 +192,7 @@ func TestEAnnotationESetFromID(t *testing.T) {
 
 		// set list with new contents
 		o.ESetFromID(EANNOTATION__DETAILS, mockMap)
-		assert.Equal(t, map[interface{}]interface{}{mockKey: mockValue}, o.GetDetails().ToMap())
+		assert.Equal(t, map[any]any{mockKey: mockValue}, o.GetDetails().ToMap())
 		mock.AssertExpectationsForObjects(t, mockMap, mockEntry)
 	}
 	{
@@ -207,7 +207,7 @@ func TestEAnnotationESetFromID(t *testing.T) {
 	{
 		// list with a value
 		mockValue := new(MockEObjectInternal)
-		l := NewImmutableEList([]interface{}{mockValue})
+		l := NewImmutableEList([]any{mockValue})
 		mockValue.On("EIsProxy").Return(false).Once()
 
 		// set list with new contents

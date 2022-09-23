@@ -62,7 +62,7 @@ func TestEModelElementESetFromID(t *testing.T) {
 	{
 		// list with a value
 		mockValue := new(MockEAnnotation)
-		l := NewImmutableEList([]interface{}{mockValue})
+		l := NewImmutableEList([]any{mockValue})
 		mockValue.On("EInverseAdd", o, EANNOTATION__EMODEL_ELEMENT, mock.Anything).Return(nil).Once()
 
 		// set list with new contents

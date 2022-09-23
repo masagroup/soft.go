@@ -6,10 +6,10 @@ type EObjectIDManager interface {
 	Register(EObject)
 	UnRegister(EObject)
 
-	SetID(EObject, interface{}) error
+	SetID(EObject, any) error
 
-	GetID(EObject) interface{}
-	GetEObject(interface{}) EObject
+	GetID(EObject) any
+	GetEObject(any) EObject
 
-	GetDetachedID(EObject) interface{}
+	GetDetachedID(EObject) any
 }

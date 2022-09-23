@@ -57,7 +57,7 @@ func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 			case ADD_MANY:
 				newValue := notification.GetNewValue()
 				if newValue != nil {
-					collection := newValue.([]interface{})
+					collection := newValue.([]any)
 					for _, s := range collection {
 						class := s.(*eClassExt)
 						class.adapter.subClasses = append(class.adapter.subClasses, eNotifier)
@@ -77,7 +77,7 @@ func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 			case REMOVE_MANY:
 				oldValue := notification.GetOldValue()
 				if oldValue != nil {
-					collection := oldValue.([]interface{})
+					collection := oldValue.([]any)
 					for _, s := range collection {
 						class := s.(*eClassExt)
 						for i, s := range class.adapter.subClasses {
@@ -227,8 +227,8 @@ func (eClass *eClassExt) initFeaturesSubSet() {
 		return
 	}
 
-	containments := []interface{}{}
-	crossReferences := []interface{}{}
+	containments := []any{}
+	crossReferences := []any{}
 	for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
 		ref, isRef := itFeature.Next().(EReference)
 		if isRef {
@@ -253,8 +253,8 @@ func (eClass *eClassExt) initEAllAttributes() {
 		return
 	}
 
-	attributes := []interface{}{}
-	allAttributes := []interface{}{}
+	attributes := []any{}
+	allAttributes := []any{}
 	var eIDAttribute EAttribute = nil
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superAttributes := itClass.Next().(EClass).GetEAllAttributes()
@@ -287,8 +287,8 @@ func (eClass *eClassExt) initEAllReferences() {
 		return
 	}
 
-	allReferences := []interface{}{}
-	references := []interface{}{}
+	allReferences := []any{}
+	references := []any{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superReferences := itClass.Next().(EClass).GetEAllReferences()
 		allReferences = append(allReferences, superReferences.ToArray()...)
@@ -310,7 +310,7 @@ func (eClass *eClassExt) initEAllContainments() {
 	if eClass.eAllContainments != nil {
 		return
 	}
-	allContainments := []interface{}{}
+	allContainments := []any{}
 	for itReference := eClass.GetEAllReferences().Iterator(); itReference.HasNext(); {
 		reference := itReference.Next().(EReference)
 		if reference.IsContainment() {
@@ -327,7 +327,7 @@ func (eClass *eClassExt) initEAllOperations() {
 
 	eClass.operationToOverrideMap = nil
 
-	allOperations := []interface{}{}
+	allOperations := []any{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superOperations := itClass.Next().(EClass).GetEAllOperations()
 		allOperations = append(allOperations, superOperations.ToArray()...)
@@ -354,7 +354,7 @@ func (eClass *eClassExt) initEAllStructuralFeatures() {
 	eClass.eContainmentFeatures = nil
 	eClass.nameToFeatureMap = nil
 
-	allFeatures := []interface{}{}
+	allFeatures := []any{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superFeatures := itClass.Next().(EClass).GetEAllStructuralFeatures()
 		allFeatures = append(allFeatures, superFeatures.ToArray()...)
@@ -374,7 +374,7 @@ func (eClass *eClassExt) initEAllSuperTypes() {
 	if eClass.eAllSuperTypes != nil {
 		return
 	}
-	allSuperTypes := []interface{}{}
+	allSuperTypes := []any{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superClass := itClass.Next().(EClass)
 		superTypes := superClass.GetEAllSuperTypes()

@@ -16,7 +16,7 @@ import (
 type CompactEObjectImpl struct {
 	AbstractEObject
 	flags   int
-	storage interface{}
+	storage any
 }
 
 const (
@@ -42,19 +42,19 @@ func (o *CompactEObjectImpl) hasField(field int) bool {
 	return (o.flags & field) != 0
 }
 
-func (o *CompactEObjectImpl) getField(field int) interface{} {
+func (o *CompactEObjectImpl) getField(field int) any {
 	if o.hasField(field) {
 		if fieldIndex := o.fieldIndex(field); fieldIndex == -1 {
 			return o.storage
 		} else {
-			return o.storage.([]interface{})[fieldIndex]
+			return o.storage.([]any)[fieldIndex]
 		}
 	} else {
 		return nil
 	}
 }
 
-func (o *CompactEObjectImpl) setField(field int, value interface{}) {
+func (o *CompactEObjectImpl) setField(field int, value any) {
 	if o.hasField(field) {
 		if value == nil {
 			o.removeField(field)
@@ -62,7 +62,7 @@ func (o *CompactEObjectImpl) setField(field int, value interface{}) {
 			if fieldIndex := o.fieldIndex(field); fieldIndex == -1 {
 				o.storage = value
 			} else {
-				o.storage.([]interface{})[fieldIndex] = value
+				o.storage.([]any)[fieldIndex] = value
 			}
 		}
 	} else if value != nil {
@@ -90,18 +90,18 @@ func (o *CompactEObjectImpl) fieldIndex(field int) int {
 	}
 }
 
-func (o *CompactEObjectImpl) addField(field int, value interface{}) {
+func (o *CompactEObjectImpl) addField(field int, value any) {
 	if fieldCount := bits.OnesCount(uint(o.flags & fields_mask)); fieldCount == 0 {
 		o.storage = value
 	} else if fieldCount == 1 {
 		if fieldIndex := o.fieldIndex(field); fieldIndex == 0 {
-			o.storage = []interface{}{value, o.storage}
+			o.storage = []any{value, o.storage}
 		} else {
-			o.storage = []interface{}{o.storage, value}
+			o.storage = []any{o.storage, value}
 		}
 	} else {
-		result := make([]interface{}, fieldCount+1)
-		storage := o.storage.([]interface{})
+		result := make([]any, fieldCount+1)
+		storage := o.storage.([]any)
 		for bit, sourceIndex, targetIndex := first_flag, 0, 0; bit <= last_flag; bit <<= 1 {
 			if bit == field {
 				result[targetIndex] = value
@@ -121,15 +121,15 @@ func (o *CompactEObjectImpl) removeField(field int) {
 	if fieldCount := bits.OnesCount(uint(o.flags & fields_mask)); fieldCount == 1 {
 		o.storage = nil
 	} else if fieldCount == 2 {
-		storage := o.storage.([]interface{})
+		storage := o.storage.([]any)
 		if fieldIndex := o.fieldIndex(field); fieldIndex == 0 {
 			o.storage = storage[1]
 		} else {
 			o.storage = storage[0]
 		}
 	} else {
-		result := make([]interface{}, fieldCount-1)
-		storage := o.storage.([]interface{})
+		result := make([]any, fieldCount-1)
+		storage := o.storage.([]any)
 		for bit, sourceIndex, targetIndex := first_flag, 0, 0; bit <= last_flag; bit <<= 1 {
 			if bit == field {
 				sourceIndex++

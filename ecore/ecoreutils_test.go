@@ -166,7 +166,7 @@ func TestEcoreUtilsCopyAttribute(t *testing.T) {
 	eAttribute2 := ecoreFactory.CreateEAttribute()
 	eAttribute2.SetName("attribute2")
 	eAttribute2.SetEType(ecorePackage.GetEString())
-	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]interface{}{eAttribute1, eAttribute2}))
+	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{eAttribute1, eAttribute2}))
 
 	// the model
 	eObject := eFactory.Create(eClass)
@@ -196,7 +196,7 @@ func TestEcoreUtilsCopyAllAttribute(t *testing.T) {
 	eAttribute2 := ecoreFactory.CreateEAttribute()
 	eAttribute2.SetName("attribute2")
 	eAttribute2.SetEType(ecorePackage.GetEString())
-	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]interface{}{eAttribute1, eAttribute2}))
+	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{eAttribute1, eAttribute2}))
 
 	// the model
 	eObject1 := eFactory.Create(eClass)
@@ -207,7 +207,7 @@ func TestEcoreUtilsCopyAllAttribute(t *testing.T) {
 	eObject2.ESet(eAttribute1, 3)
 	eObject2.ESet(eAttribute2, "test3")
 
-	list := NewImmutableEList([]interface{}{eObject1, eObject2})
+	list := NewImmutableEList([]any{eObject1, eObject2})
 	listCopy := CopyAll(list)
 	assert.True(t, EqualsAll(list, listCopy))
 }
@@ -222,7 +222,7 @@ func TestEcoreUtilsCopyContainment(t *testing.T) {
 	eClass1 := ecoreFactory.CreateEClass()
 	eClass2 := ecoreFactory.CreateEClass()
 	ePackage.SetEFactoryInstance(eFactory)
-	ePackage.GetEClassifiers().AddAll(NewImmutableEList([]interface{}{eClass1, eClass2}))
+	ePackage.GetEClassifiers().AddAll(NewImmutableEList([]any{eClass1, eClass2}))
 
 	eAttribute1 := ecoreFactory.CreateEAttribute()
 	eAttribute1.SetName("attribute1")
@@ -230,7 +230,7 @@ func TestEcoreUtilsCopyContainment(t *testing.T) {
 	eAttribute2 := ecoreFactory.CreateEAttribute()
 	eAttribute2.SetName("attribute2")
 	eAttribute2.SetEType(ecorePackage.GetEString())
-	eClass2.GetEStructuralFeatures().AddAll(NewImmutableEList([]interface{}{eAttribute1, eAttribute2}))
+	eClass2.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{eAttribute1, eAttribute2}))
 
 	eReference1 := ecoreFactory.CreateEReference()
 	eReference1.SetName("reference1")
@@ -262,7 +262,7 @@ func TestEcoreUtilsCopyReferences(t *testing.T) {
 	eClass1 := ecoreFactory.CreateEClass()
 	eClass2 := ecoreFactory.CreateEClass()
 	ePackage.SetEFactoryInstance(eFactory)
-	ePackage.GetEClassifiers().AddAll(NewImmutableEList([]interface{}{eClass1, eClass2}))
+	ePackage.GetEClassifiers().AddAll(NewImmutableEList([]any{eClass1, eClass2}))
 
 	eAttribute1 := ecoreFactory.CreateEAttribute()
 	eAttribute1.SetName("attribute1")
@@ -270,7 +270,7 @@ func TestEcoreUtilsCopyReferences(t *testing.T) {
 	eAttribute2 := ecoreFactory.CreateEAttribute()
 	eAttribute2.SetName("attribute2")
 	eAttribute2.SetEType(ecorePackage.GetEString())
-	eClass2.GetEStructuralFeatures().AddAll(NewImmutableEList([]interface{}{eAttribute1, eAttribute2}))
+	eClass2.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{eAttribute1, eAttribute2}))
 
 	eReference1 := ecoreFactory.CreateEReference()
 	eReference1.SetName("reference1")
@@ -280,7 +280,7 @@ func TestEcoreUtilsCopyReferences(t *testing.T) {
 	eReference2.SetName("reference2")
 	eReference2.SetContainment(false)
 	eReference2.SetEType(eClass2)
-	eClass1.GetEStructuralFeatures().AddAll(NewImmutableEList([]interface{}{eReference1, eReference2}))
+	eClass1.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{eReference1, eReference2}))
 
 	// the model
 	eObject1 := eFactory.Create(eClass1)

@@ -22,7 +22,7 @@ func TestMockEStoreGet(t *testing.T) {
 	mockFeature := &MockEStructuralFeature{}
 	mockResult := &MockEObject{}
 	o.On("Get", mockObject, mockFeature, 0).Return(mockResult).Once()
-	o.On("Get", mockObject, mockFeature, 0).Return(func(EObject, EStructuralFeature, int) interface{} {
+	o.On("Get", mockObject, mockFeature, 0).Return(func(EObject, EStructuralFeature, int) any {
 		return mockResult
 	}).Once()
 	assert.Equal(t, mockResult, o.Get(mockObject, mockFeature, 0))
@@ -37,7 +37,7 @@ func TestMockEStoreSet(t *testing.T) {
 	mockValue := &MockEObject{}
 	mockOld := &MockEObject{}
 	o.On("Set", mockObject, mockFeature, 0, mockValue).Return(mockOld).Once()
-	o.On("Set", mockObject, mockFeature, 0, mockValue).Return(func(object EObject, feature EStructuralFeature, index int, value interface{}) interface{} {
+	o.On("Set", mockObject, mockFeature, 0, mockValue).Return(func(object EObject, feature EStructuralFeature, index int, value any) any {
 		return mockOld
 	}).Once()
 	assert.Equal(t, mockOld, o.Set(mockObject, mockFeature, 0, mockValue))
@@ -86,7 +86,7 @@ func TestMockEStoreContains(t *testing.T) {
 	mockFeature := &MockEStructuralFeature{}
 	mockValue := &MockEObject{}
 	o.On("Contains", mockObject, mockFeature, mockValue).Return(false).Once()
-	o.On("Contains", mockObject, mockFeature, mockValue).Return(func(EObject, EStructuralFeature, interface{}) bool {
+	o.On("Contains", mockObject, mockFeature, mockValue).Return(func(EObject, EStructuralFeature, any) bool {
 		return true
 	}).Once()
 	assert.False(t, o.Contains(mockObject, mockFeature, mockValue))
@@ -113,7 +113,7 @@ func TestMockEStoreIndexOf(t *testing.T) {
 	mockFeature := &MockEStructuralFeature{}
 	mockValue := &MockEObject{}
 	o.On("IndexOf", mockObject, mockFeature, mockValue).Return(1).Once()
-	o.On("IndexOf", mockObject, mockFeature, mockValue).Return(func(EObject, EStructuralFeature, interface{}) int {
+	o.On("IndexOf", mockObject, mockFeature, mockValue).Return(func(EObject, EStructuralFeature, any) int {
 		return 2
 	}).Once()
 	assert.Equal(t, 1, o.IndexOf(mockObject, mockFeature, mockValue))
@@ -127,7 +127,7 @@ func TestMockEStoreLastIndexOf(t *testing.T) {
 	mockFeature := &MockEStructuralFeature{}
 	mockValue := &MockEObject{}
 	o.On("LastIndexOf", mockObject, mockFeature, mockValue).Return(1).Once()
-	o.On("LastIndexOf", mockObject, mockFeature, mockValue).Return(func(EObject, EStructuralFeature, interface{}) int {
+	o.On("LastIndexOf", mockObject, mockFeature, mockValue).Return(func(EObject, EStructuralFeature, any) int {
 		return 2
 	}).Once()
 	assert.Equal(t, 1, o.LastIndexOf(mockObject, mockFeature, mockValue))
@@ -151,7 +151,7 @@ func TestMockEStoreRemove(t *testing.T) {
 	mockFeature := &MockEStructuralFeature{}
 	mockOld := &MockEObject{}
 	o.On("Remove", mockObject, mockFeature, 0).Return(mockOld).Once()
-	o.On("Remove", mockObject, mockFeature, 0).Return(func(object EObject, feature EStructuralFeature, index int) interface{} {
+	o.On("Remove", mockObject, mockFeature, 0).Return(func(object EObject, feature EStructuralFeature, index int) any {
 		return mockOld
 	}).Once()
 	assert.Equal(t, mockOld, o.Remove(mockObject, mockFeature, 0))
@@ -165,7 +165,7 @@ func TestMockEStoreMove(t *testing.T) {
 	mockFeature := &MockEStructuralFeature{}
 	mockOld := &MockEObject{}
 	o.On("Move", mockObject, mockFeature, 0, 1).Return(mockOld).Once()
-	o.On("Move", mockObject, mockFeature, 0, 1).Return(func(object EObject, feature EStructuralFeature, index int, old int) interface{} {
+	o.On("Move", mockObject, mockFeature, 0, 1).Return(func(object EObject, feature EStructuralFeature, index int, old int) any {
 		return mockOld
 	}).Once()
 	assert.Equal(t, mockOld, o.Move(mockObject, mockFeature, 0, 1))
@@ -186,9 +186,9 @@ func TestMockEStoreToArray(t *testing.T) {
 	o := &MockEStore{}
 	mockObject := &MockEObject{}
 	mockFeature := &MockEStructuralFeature{}
-	mockResult := []interface{}{}
+	mockResult := []any{}
 	o.On("ToArray", mockObject, mockFeature).Return(mockResult).Once()
-	o.On("ToArray", mockObject, mockFeature).Return(func(EObject, EStructuralFeature) []interface{} {
+	o.On("ToArray", mockObject, mockFeature).Return(func(EObject, EStructuralFeature) []any {
 		return mockResult
 	}).Once()
 	assert.Equal(t, mockResult, o.ToArray(mockObject, mockFeature))

@@ -16,7 +16,7 @@ type XMIEncoder struct {
 	xmiVersion string
 }
 
-func NewXMIEncoder(resource EResource, w io.Writer, options map[string]interface{}) *XMIEncoder {
+func NewXMIEncoder(resource EResource, w io.Writer, options map[string]any) *XMIEncoder {
 	s := new(XMIEncoder)
 	s.XMLEncoder = NewXMLEncoder(resource, w, options)
 	s.interfaces = s

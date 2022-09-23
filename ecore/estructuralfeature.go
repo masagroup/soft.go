@@ -31,8 +31,8 @@ type EStructuralFeature interface {
 	GetDefaultValueLiteral() string
 	SetDefaultValueLiteral(string)
 
-	GetDefaultValue() interface{}
-	SetDefaultValue(interface{})
+	GetDefaultValue() any
+	SetDefaultValue(any)
 
 	IsUnsettable() bool
 	SetUnsettable(bool)

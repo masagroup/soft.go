@@ -121,7 +121,7 @@ func TestXMLDecoderLibraryComplexWithOptions(t *testing.T) {
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
 	eResource := xmlProcessor.LoadWithOptions(
 		NewURI("testdata/library.complex.noroot.xml"),
-		map[string]interface{}{
+		map[string]any{
 			XML_OPTION_SUPPRESS_DOCUMENT_ROOT: true,
 			XML_OPTION_EXTENDED_META_DATA:     NewExtendedMetaData()})
 	require.NotNil(t, eResource)
@@ -186,7 +186,7 @@ func TestXMLDecoderSimpleXMLWithIDs(t *testing.T) {
 	eResource := eResourceSet.CreateResource(NewURI("testdata/library.simple.ids.xml"))
 	require.NotNil(t, eResource)
 	eResource.SetObjectIDManager(idManager)
-	eResource.LoadWithOptions(map[string]interface{}{XML_OPTION_ID_ATTRIBUTE_NAME: "id"})
+	eResource.LoadWithOptions(map[string]any{XML_OPTION_ID_ATTRIBUTE_NAME: "id"})
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 

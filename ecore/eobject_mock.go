@@ -128,15 +128,15 @@ func (eObject *MockEObject) ECrossReferences() EList {
 }
 
 // EGet provides mock implementation
-func (eObject *MockEObject) EGet(feature EStructuralFeature) interface{} {
+func (eObject *MockEObject) EGet(feature EStructuralFeature) any {
 	ret := eObject.Called(feature)
 
-	var r interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(interface{})
+			r = ret.Get(0).(any)
 		}
 	}
 
@@ -144,15 +144,15 @@ func (eObject *MockEObject) EGet(feature EStructuralFeature) interface{} {
 }
 
 // EGetResolve provides mock implementation
-func (eObject *MockEObject) EGetResolve(feature EStructuralFeature, resolve bool) interface{} {
+func (eObject *MockEObject) EGetResolve(feature EStructuralFeature, resolve bool) any {
 	ret := eObject.Called(feature, resolve)
 
-	var r interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(interface{})
+			r = ret.Get(0).(any)
 		}
 	}
 
@@ -160,15 +160,15 @@ func (eObject *MockEObject) EGetResolve(feature EStructuralFeature, resolve bool
 }
 
 // EInvoke provides mock implementation
-func (eObject *MockEObject) EInvoke(operation EOperation, arguments EList) interface{} {
+func (eObject *MockEObject) EInvoke(operation EOperation, arguments EList) any {
 	ret := eObject.Called(operation, arguments)
 
-	var r interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(interface{})
+			r = ret.Get(0).(any)
 		}
 	}
 
@@ -224,7 +224,7 @@ func (eObject *MockEObject) EResource() EResource {
 }
 
 // ESet provides mock implementation
-func (eObject *MockEObject) ESet(feature EStructuralFeature, newValue interface{}) {
+func (eObject *MockEObject) ESet(feature EStructuralFeature, newValue any) {
 	eObject.Called(feature, newValue)
 }
 

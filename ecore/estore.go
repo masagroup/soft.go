@@ -10,9 +10,9 @@
 package ecore
 
 type EStore interface {
-	Get(object EObject, feature EStructuralFeature, index int) interface{}
+	Get(object EObject, feature EStructuralFeature, index int) any
 
-	Set(object EObject, feature EStructuralFeature, index int, value interface{}) interface{}
+	Set(object EObject, feature EStructuralFeature, index int, value any) any
 
 	IsSet(object EObject, feature EStructuralFeature) bool
 
@@ -22,21 +22,21 @@ type EStore interface {
 
 	Size(object EObject, feature EStructuralFeature) int
 
-	Contains(object EObject, feature EStructuralFeature, value interface{}) bool
+	Contains(object EObject, feature EStructuralFeature, value any) bool
 
-	IndexOf(object EObject, feature EStructuralFeature, value interface{}) int
+	IndexOf(object EObject, feature EStructuralFeature, value any) int
 
-	LastIndexOf(object EObject, feature EStructuralFeature, value interface{}) int
+	LastIndexOf(object EObject, feature EStructuralFeature, value any) int
 
-	Add(object EObject, feature EStructuralFeature, index int, value interface{})
+	Add(object EObject, feature EStructuralFeature, index int, value any)
 
-	Remove(object EObject, feature EStructuralFeature, index int) interface{}
+	Remove(object EObject, feature EStructuralFeature, index int) any
 
-	Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) interface{}
+	Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) any
 
 	Clear(object EObject, feature EStructuralFeature)
 
-	ToArray(object EObject, feature EStructuralFeature) []interface{}
+	ToArray(object EObject, feature EStructuralFeature) []any
 
 	GetContainer(object EObject) EObject
 

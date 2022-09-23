@@ -55,7 +55,7 @@ func (eGenericType *eGenericTypeImpl) EStaticFeatureCount() int {
 }
 
 // IsInstance default implementation
-func (eGenericType *eGenericTypeImpl) IsInstance(interface{}) bool {
+func (eGenericType *eGenericTypeImpl) IsInstance(any) bool {
 	panic("IsInstance not implemented")
 }
 
@@ -206,7 +206,7 @@ func (eGenericType *eGenericTypeImpl) initETypeArguments() EList {
 	return NewBasicEObjectList(eGenericType.AsEObjectInternal(), EGENERIC_TYPE__ETYPE_ARGUMENTS, -1, true, true, false, false, false)
 }
 
-func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
 		if resolve {
@@ -231,7 +231,7 @@ func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve bool) in
 	}
 }
 
-func (eGenericType *eGenericTypeImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eGenericType *eGenericTypeImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
 		eGenericType.asEGenericType().SetEClassifier(newValue.(EClassifier))
@@ -286,7 +286,7 @@ func (eGenericType *eGenericTypeImpl) EIsSetFromID(featureID int) bool {
 	}
 }
 
-func (eGenericType *eGenericTypeImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (eGenericType *eGenericTypeImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EGENERIC_TYPE__IS_INSTANCE_EJAVAOBJECT:
 		return eGenericType.asEGenericType().IsInstance(arguments.Get(0))

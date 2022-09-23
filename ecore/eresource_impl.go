@@ -44,8 +44,8 @@ func newResourceNotification(
 	notifier ENotifier,
 	featureID int,
 	eventType EventType,
-	oldValue interface{},
-	newValue interface{},
+	oldValue any,
+	newValue any,
 	position int) *resourceNotification {
 	n := new(resourceNotification)
 	n.Initialize(n, eventType, oldValue, newValue, position)
@@ -62,7 +62,7 @@ type resourceContents struct {
 func newResourceContents(resource *EResourceImpl) *resourceContents {
 	rc := new(resourceContents)
 	rc.interfaces = rc
-	rc.data = []interface{}{}
+	rc.data = []any{}
 	rc.isUnique = true
 	rc.resource = resource
 	return rc
@@ -76,7 +76,7 @@ func (rc *resourceContents) GetFeatureID() int {
 	return RESOURCE__CONTENTS
 }
 
-func (rc *resourceContents) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (rc *resourceContents) inverseAdd(object any, notifications ENotificationChain) ENotificationChain {
 	n := notifications
 	if eObject, _ := object.(EObjectInternal); eObject != nil {
 		eResource := rc.resource.AsEResource()
@@ -86,7 +86,7 @@ func (rc *resourceContents) inverseAdd(object interface{}, notifications ENotifi
 	return n
 }
 
-func (rc *resourceContents) inverseRemove(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (rc *resourceContents) inverseRemove(object any, notifications ENotificationChain) ENotificationChain {
 	n := notifications
 	if eObject, _ := object.(EObjectInternal); eObject != nil {
 		eResource := rc.resource.AsEResource()
@@ -96,21 +96,21 @@ func (rc *resourceContents) inverseRemove(object interface{}, notifications ENot
 	return n
 }
 
-func (rc *resourceContents) didAdd(index int, elem interface{}) {
+func (rc *resourceContents) didAdd(index int, elem any) {
 	rc.BasicENotifyingList.didAdd(index, elem)
 	if index == rc.Size()-1 {
 		rc.loaded()
 	}
 }
 
-func (rc *resourceContents) didRemove(index int, old interface{}) {
+func (rc *resourceContents) didRemove(index int, old any) {
 	rc.BasicENotifyingList.didRemove(index, old)
 	if rc.Size() == 0 {
 		rc.unloaded()
 	}
 }
 
-func (rc *resourceContents) didClear(oldObjects []interface{}) {
+func (rc *resourceContents) didClear(oldObjects []any) {
 	rc.BasicENotifyingList.didClear(oldObjects)
 	rc.unloaded()
 }
@@ -142,7 +142,7 @@ type resourceDiagnostics struct {
 func newResourceDiagnostics(resource *EResourceImpl, featureID int) *resourceDiagnostics {
 	rd := new(resourceDiagnostics)
 	rd.interfaces = rd
-	rd.data = []interface{}{}
+	rd.data = []any{}
 	rd.isUnique = true
 	rd.resource = resource
 	rd.featureID = featureID
@@ -213,8 +213,8 @@ func (r *EResourceImpl) GetAllContents() EIterator {
 	return r.getAllContentsResolve(r.GetInterfaces(), true)
 }
 
-func (r *EResourceImpl) getAllContentsResolve(root interface{}, resolve bool) EIterator {
-	return newTreeIterator(root, false, func(o interface{}) EIterator {
+func (r *EResourceImpl) getAllContentsResolve(root any, resolve bool) EIterator {
+	return newTreeIterator(root, false, func(o any) EIterator {
 		if o == r.GetInterfaces() {
 			return o.(EResource).GetContents().Iterator()
 		}
@@ -400,7 +400,7 @@ func (r *EResourceImpl) Load() {
 	r.LoadWithOptions(nil)
 }
 
-func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
+func (r *EResourceImpl) LoadWithOptions(options map[string]any) {
 	if !r.isLoaded {
 		uriConverter := r.getURIConverter()
 		if uriConverter != nil && r.uri != nil {
@@ -417,7 +417,7 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]interface{}) {
 	}
 }
 
-func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]interface{}) {
+func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]any) {
 	if !r.isLoaded {
 		codecs := r.getResourceCodecRegistry()
 		if codec := codecs.GetCodec(r.uri); codec == nil {
@@ -485,7 +485,7 @@ func (r *EResourceImpl) Save() {
 	r.SaveWithOptions(nil)
 }
 
-func (r *EResourceImpl) SaveWithOptions(options map[string]interface{}) {
+func (r *EResourceImpl) SaveWithOptions(options map[string]any) {
 	uriConverter := r.getURIConverter()
 	if uriConverter != nil && r.uri != nil {
 		w, err := uriConverter.CreateWriter(r.uri)
@@ -500,7 +500,7 @@ func (r *EResourceImpl) SaveWithOptions(options map[string]interface{}) {
 	}
 }
 
-func (r *EResourceImpl) SaveWithWriter(w io.Writer, options map[string]interface{}) {
+func (r *EResourceImpl) SaveWithWriter(w io.Writer, options map[string]any) {
 	codecs := r.getResourceCodecRegistry()
 	if codec := codecs.GetCodec(r.uri); codec == nil {
 		errors := r.GetErrors()

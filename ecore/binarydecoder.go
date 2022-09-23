@@ -50,7 +50,7 @@ type BinaryDecoder struct {
 	isResolveProxies bool
 }
 
-func NewBinaryDecoder(resource EResource, r io.Reader, options map[string]interface{}) *BinaryDecoder {
+func NewBinaryDecoder(resource EResource, r io.Reader, options map[string]any) *BinaryDecoder {
 	d := &BinaryDecoder{
 		resource:     resource,
 		r:            r,
@@ -83,7 +83,7 @@ func (d *BinaryDecoder) Decode() {
 
 	// objects
 	size := d.decodeInt()
-	objects := make([]interface{}, size)
+	objects := make([]any, size)
 	for i := 0; i < size; i++ {
 		objects[i] = d.decodeObject()
 	}
@@ -179,7 +179,7 @@ func (d *BinaryDecoder) decodeFloat32() float32 {
 	return f
 }
 
-func (d *BinaryDecoder) decodeInterface() interface{} {
+func (d *BinaryDecoder) decodeInterface() any {
 	i, err := d.decoder.DecodeInterface()
 	d.haltOnError(err)
 	return i
@@ -253,7 +253,7 @@ func (d *BinaryDecoder) decodeObject() EObject {
 
 func (d *BinaryDecoder) decodeObjects(list EList) {
 	size := d.decodeInt()
-	objects := make([]interface{}, size)
+	objects := make([]any, size)
 	for i := 0; i < size; i++ {
 		objects[i] = d.decodeObject()
 	}
@@ -266,7 +266,7 @@ func (d *BinaryDecoder) decodeObjects(list EList) {
 	} else {
 		indices := make([]int, existingSize)
 		duplicateCount := 0
-		existingObjects := make([]interface{}, existingSize)
+		existingObjects := make([]any, existingSize)
 		copy(existingObjects, list.ToArray())
 	LOOP:
 		for i := 0; i < size; i++ {
@@ -330,7 +330,7 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 		eObject.ESetFromID(featureData.featureID, value)
 	case bfkDataList:
 		size := d.decodeInt()
-		values := []interface{}{}
+		values := []any{}
 		for i := 0; i < size; i++ {
 			valueStr := d.decodeString()
 			value := featureData.eFactory.CreateFromString(featureData.eDataType, valueStr)

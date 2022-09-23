@@ -48,7 +48,7 @@ func TestBinaryEncoder_ComplexWithID(t *testing.T) {
 	eResourceSet := NewEResourceSetImpl()
 	eResourceSet.GetResources().Add(eResource)
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-	eResource.LoadWithOptions(map[string]interface{}{XML_OPTION_ID_ATTRIBUTE_NAME: "id"})
+	eResource.LoadWithOptions(map[string]any{XML_OPTION_ID_ATTRIBUTE_NAME: "id"})
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -60,7 +60,7 @@ func TestBinaryEncoder_ComplexWithID(t *testing.T) {
 	require.Nil(t, eResource.GetObjectIDManager().SetID(eDocumentRoot, "h0Rz1FjVeBXUgaW3OzT2frUce90="))
 
 	w := &bytes.Buffer{}
-	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]interface{}{BINARY_OPTION_ID_ATTRIBUTE: true})
+	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]any{BINARY_OPTION_ID_ATTRIBUTE: true})
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
@@ -85,7 +85,7 @@ func TestBinaryEncoder_ComplexBig(t *testing.T) {
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
 	w := &bytes.Buffer{}
-	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]interface{}{})
+	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]any{})
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
@@ -110,7 +110,7 @@ func TestBinaryEncoder_SimpleWithDataTypeList(t *testing.T) {
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
 	w := &bytes.Buffer{}
-	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]interface{}{})
+	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]any{})
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
@@ -135,7 +135,7 @@ func TestBinaryEncoder_Maps(t *testing.T) {
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
 	w := &bytes.Buffer{}
-	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]interface{}{})
+	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]any{})
 	binaryEncoder.Encode()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 

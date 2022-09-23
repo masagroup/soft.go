@@ -12,15 +12,15 @@ package ecore
 type EMap interface {
 	EList
 
-	GetValue(value interface{}) interface{}
+	GetValue(key any) any
 
-	Put(key interface{}, value interface{})
+	Put(key any, value any)
 
-	RemoveKey(key interface{}) interface{}
+	RemoveKey(key any) any
 
-	ContainsValue(value interface{}) bool
+	ContainsValue(value any) bool
 
-	ContainsKey(key interface{}) bool
+	ContainsKey(key any) bool
 
-	ToMap() map[interface{}]interface{}
+	ToMap() map[any]any
 }

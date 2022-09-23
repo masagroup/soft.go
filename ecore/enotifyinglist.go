@@ -19,9 +19,9 @@ type ENotifyingList interface {
 
 	GetFeatureID() int
 
-	AddWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain
+	AddWithNotification(object any, notifications ENotificationChain) ENotificationChain
 
-	RemoveWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain
+	RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain
 
-	SetWithNotification(index int, object interface{}, notifications ENotificationChain) ENotificationChain
+	SetWithNotification(index int, object any, notifications ENotificationChain) ENotificationChain
 }

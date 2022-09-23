@@ -111,7 +111,7 @@ func (eOperation *eOperationImpl) initEParameters() EList {
 	return NewBasicEObjectList(eOperation.AsEObjectInternal(), EOPERATION__EPARAMETERS, EPARAMETER__EOPERATION, true, true, true, false, false)
 }
 
-func (eOperation *eOperationImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eOperation *eOperationImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EOPERATION__ECONTAINING_CLASS:
 		return eOperation.asEOperation().GetEContainingClass()
@@ -132,7 +132,7 @@ func (eOperation *eOperationImpl) EGetFromID(featureID int, resolve bool) interf
 	}
 }
 
-func (eOperation *eOperationImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eOperation *eOperationImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EOPERATION__EEXCEPTIONS:
 		list := eOperation.asEOperation().GetEExceptions()
@@ -177,7 +177,7 @@ func (eOperation *eOperationImpl) EIsSetFromID(featureID int) bool {
 	}
 }
 
-func (eOperation *eOperationImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (eOperation *eOperationImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EOPERATION__IS_OVERRIDE_OF_EOPERATION:
 		return eOperation.asEOperation().IsOverrideOf(arguments.Get(0).(EOperation))

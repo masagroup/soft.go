@@ -20,7 +20,7 @@ func newEEnumExt() *eEnumExt {
 	return eEnum
 }
 
-func (eEnum *eEnumExt) GetDefaultValue() interface{} {
+func (eEnum *eEnumExt) GetDefaultValue() any {
 	if eLiterals := eEnum.GetELiterals(); !eLiterals.Empty() {
 		eLiteral := eLiterals.Get(0).(EEnumLiteral)
 		return eLiteral.GetValue()

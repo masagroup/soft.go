@@ -47,9 +47,9 @@ func TestMockEClassifierSetClassifierID(t *testing.T) {
 // TestMockEClassifierGetDefaultValue tests method GetDefaultValue
 func TestMockEClassifierGetDefaultValue(t *testing.T) {
 	o := &MockEClassifier{}
-	r := interface{}(nil)
+	r := any(nil)
 	o.On("GetDefaultValue").Once().Return(r)
-	o.On("GetDefaultValue").Once().Return(func() interface{} {
+	o.On("GetDefaultValue").Once().Return(func() any {
 		return r
 	})
 	assert.Equal(t, r, o.GetDefaultValue())
@@ -139,7 +139,7 @@ func TestMockEClassifierSetInstanceTypeName(t *testing.T) {
 // TestMockEClassifierIsInstance tests method IsInstance
 func TestMockEClassifierIsInstance(t *testing.T) {
 	o := &MockEClassifier{}
-	object := interface{}(nil)
+	object := any(nil)
 	r := bool(true)
 	o.On("IsInstance", object).Return(r).Once()
 	o.On("IsInstance", object).Return(func() bool {

@@ -10,13 +10,13 @@
 package ecore
 
 type treeIterator struct {
-	object      interface{}
+	object      any
 	data        []EIterator
 	root        bool
-	getChildren func(interface{}) EIterator
+	getChildren func(any) EIterator
 }
 
-func newTreeIterator(object interface{}, root bool, getChildren func(interface{}) EIterator) *treeIterator {
+func newTreeIterator(object any, root bool, getChildren func(any) EIterator) *treeIterator {
 	return &treeIterator{object: object, root: root, getChildren: getChildren}
 }
 
@@ -38,7 +38,7 @@ func (it *treeIterator) hasMoreChildren() bool {
 	return it.data == nil || len(it.data) != 0 && it.data[len(it.data)-1].HasNext()
 }
 
-func (it *treeIterator) Next() interface{} {
+func (it *treeIterator) Next() any {
 	if it.data == nil {
 		// Yield that mapping, create a stack, and add it to the stack.
 		current := it.getChildren(it.object)

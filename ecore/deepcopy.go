@@ -47,7 +47,7 @@ func (dC *deepCopy) copy(eObject EObject) EObject {
 }
 
 func (dC *deepCopy) copyAll(eObjects EList) EList {
-	copies := []interface{}{}
+	copies := []any{}
 	for it := eObjects.Iterator(); it.HasNext(); {
 		eObject := it.Next().(EObject)
 		copies = append(copies, dC.copy(eObject))

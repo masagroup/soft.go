@@ -89,7 +89,7 @@ func TestBasicEObjectMap_Put_WithNotification(t *testing.T) {
 	mockEntry.On("SetKey", 2).Once()
 	mockEntry.On("SetValue", "2").Once()
 	mockOwner.On("EDeliver").Once().Return(true)
-	mockOwner.On("EAdapters").Return(NewImmutableEList([]interface{}{mockAdapter})).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]any{mockAdapter})).Once()
 	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == mockOwner && n.GetFeatureID() == 1 && n.GetEventType() == ADD && n.GetNewValue() == mockEntry
 	})).Once()

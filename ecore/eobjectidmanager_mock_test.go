@@ -34,7 +34,7 @@ func TestMockEObjectIDManagerGetID(t *testing.T) {
 	rm := &MockEObjectIDManager{}
 	o := &MockEObject{}
 	rm.On("GetID", o).Return("id1").Once()
-	rm.On("GetID", o).Return(func(EObject) interface{} {
+	rm.On("GetID", o).Return(func(EObject) any {
 		return "id2"
 	}).Once()
 	assert.Equal(t, "id1", rm.GetID(o))
@@ -46,7 +46,7 @@ func TestMockEObjectIDManagerGetDetachedID(t *testing.T) {
 	rm := &MockEObjectIDManager{}
 	o := &MockEObject{}
 	rm.On("GetDetachedID", o).Return("id1").Once()
-	rm.On("GetDetachedID", o).Return(func(EObject) interface{} {
+	rm.On("GetDetachedID", o).Return(func(EObject) any {
 		return "id2"
 	}).Once()
 	assert.Equal(t, "id1", rm.GetDetachedID(o))
@@ -58,7 +58,7 @@ func TestMockEObjectIDManagerGetEObject(t *testing.T) {
 	rm := &MockEObjectIDManager{}
 	o := &MockEObject{}
 	rm.On("GetEObject", "id1").Return(o).Once()
-	rm.On("GetEObject", "id2").Return(func(interface{}) EObject {
+	rm.On("GetEObject", "id2").Return(func(any) EObject {
 		return o
 	}).Once()
 	assert.Equal(t, o, rm.GetEObject("id1"))

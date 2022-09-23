@@ -28,7 +28,7 @@ func (eClassifier *eClassifierExt) initClassifierID() int {
 	return -1
 }
 
-func (eClassifier *eClassifierExt) GetDefaultValue() interface{} {
+func (eClassifier *eClassifierExt) GetDefaultValue() any {
 	return nil
 }
 

@@ -42,8 +42,8 @@ func TestEClassSuperTypes(t *testing.T) {
 	eSuperClass.GetESuperTypes().Add(eSuperSuperClass)
 
 	// test super types getters
-	assert.Equal(t, []interface{}{eSuperClass}, eClass.GetESuperTypes().ToArray())
-	assert.Equal(t, []interface{}{eSuperSuperClass, eSuperClass}, eClass.GetEAllSuperTypes().ToArray())
+	assert.Equal(t, []any{eSuperClass}, eClass.GetESuperTypes().ToArray())
+	assert.Equal(t, []any{eSuperSuperClass, eSuperClass}, eClass.GetEAllSuperTypes().ToArray())
 	assert.True(t, containsSubClass(eSuperClass, eClass))
 
 	// remove super class
@@ -51,7 +51,7 @@ func TestEClassSuperTypes(t *testing.T) {
 	assert.False(t, containsSubClass(eSuperClass, eClass))
 
 	// add many super classes
-	eClass.GetESuperTypes().AddAll(NewImmutableEList([]interface{}{eSuperClass, eSuperClass2}))
+	eClass.GetESuperTypes().AddAll(NewImmutableEList([]any{eSuperClass, eSuperClass2}))
 	assert.True(t, containsSubClass(eSuperClass, eClass))
 	assert.True(t, containsSubClass(eSuperClass2, eClass))
 
@@ -62,7 +62,7 @@ func TestEClassSuperTypes(t *testing.T) {
 
 	// remove many
 	eClass.GetESuperTypes().Add(eSuperClass2)
-	eClass.GetESuperTypes().RemoveAll(NewImmutableEList([]interface{}{eSuperClass, eSuperClass2}))
+	eClass.GetESuperTypes().RemoveAll(NewImmutableEList([]any{eSuperClass, eSuperClass2}))
 	assert.False(t, containsSubClass(eSuperClass, eClass))
 	assert.True(t, containsSubClass(eSuperClass3, eClass))
 }
@@ -89,7 +89,7 @@ func TestEClassFeaturesGetters(t *testing.T) {
 	eReference2 := newEReferenceExt()
 
 	eFeatures := eClass.GetEStructuralFeatures()
-	eFeatures.AddAll(NewImmutableEList([]interface{}{eAttribute1, eReference1, eAttribute2, eReference2}))
+	eFeatures.AddAll(NewImmutableEList([]any{eAttribute1, eReference1, eAttribute2, eReference2}))
 
 	// feature ids
 	assert.Equal(t, 4, eClass.GetFeatureCount())
@@ -108,17 +108,17 @@ func TestEClassFeaturesGetters(t *testing.T) {
 	assert.Equal(t, 3, eClass.GetFeatureID(eReference2))
 
 	// collections
-	assert.Equal(t, []interface{}{eAttribute1, eReference1, eAttribute2, eReference2}, eClass.GetEAllStructuralFeatures().ToArray())
-	assert.Equal(t, []interface{}{eAttribute1, eAttribute2}, eClass.GetEAllAttributes().ToArray())
-	assert.Equal(t, []interface{}{eReference1, eReference2}, eClass.GetEAllReferences().ToArray())
-	assert.Equal(t, []interface{}{eAttribute1, eAttribute2}, eClass.GetEAttributes().ToArray())
-	assert.Equal(t, []interface{}{eReference1, eReference2}, eClass.GetEReferences().ToArray())
+	assert.Equal(t, []any{eAttribute1, eReference1, eAttribute2, eReference2}, eClass.GetEAllStructuralFeatures().ToArray())
+	assert.Equal(t, []any{eAttribute1, eAttribute2}, eClass.GetEAllAttributes().ToArray())
+	assert.Equal(t, []any{eReference1, eReference2}, eClass.GetEAllReferences().ToArray())
+	assert.Equal(t, []any{eAttribute1, eAttribute2}, eClass.GetEAttributes().ToArray())
+	assert.Equal(t, []any{eReference1, eReference2}, eClass.GetEReferences().ToArray())
 
 	// insert another attribute front
 	eAttribute3 := newEAttributeExt()
 	eFeatures.Insert(0, eAttribute3)
-	assert.Equal(t, []interface{}{eAttribute3, eAttribute1, eAttribute2}, eClass.GetEAllAttributes().ToArray())
-	assert.Equal(t, []interface{}{eAttribute3, eAttribute1, eAttribute2}, eClass.GetEAttributes().ToArray())
+	assert.Equal(t, []any{eAttribute3, eAttribute1, eAttribute2}, eClass.GetEAllAttributes().ToArray())
+	assert.Equal(t, []any{eAttribute3, eAttribute1, eAttribute2}, eClass.GetEAttributes().ToArray())
 
 	// feature ids
 	assert.Equal(t, 5, eClass.GetFeatureCount())
@@ -144,30 +144,30 @@ func TestEClassFeaturesGettersWithSuperType(t *testing.T) {
 	eReference1 := newEReferenceExt()
 	eAttribute2 := newEAttributeExt()
 	eReference2 := newEReferenceExt()
-	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]interface{}{eAttribute1, eReference1}))
-	eSuperClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]interface{}{eAttribute2, eReference2}))
+	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{eAttribute1, eReference1}))
+	eSuperClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{eAttribute2, eReference2}))
 
 	// collections
-	assert.Equal(t, []interface{}{eAttribute2, eReference2}, eSuperClass.GetEAllStructuralFeatures().ToArray())
-	assert.Equal(t, []interface{}{eAttribute2}, eSuperClass.GetEAllAttributes().ToArray())
-	assert.Equal(t, []interface{}{eReference2}, eSuperClass.GetEAllReferences().ToArray())
-	assert.Equal(t, []interface{}{eAttribute2}, eSuperClass.GetEAttributes().ToArray())
-	assert.Equal(t, []interface{}{eReference2}, eSuperClass.GetEReferences().ToArray())
+	assert.Equal(t, []any{eAttribute2, eReference2}, eSuperClass.GetEAllStructuralFeatures().ToArray())
+	assert.Equal(t, []any{eAttribute2}, eSuperClass.GetEAllAttributes().ToArray())
+	assert.Equal(t, []any{eReference2}, eSuperClass.GetEAllReferences().ToArray())
+	assert.Equal(t, []any{eAttribute2}, eSuperClass.GetEAttributes().ToArray())
+	assert.Equal(t, []any{eReference2}, eSuperClass.GetEReferences().ToArray())
 
-	assert.Equal(t, []interface{}{eAttribute2, eReference2, eAttribute1, eReference1}, eClass.GetEAllStructuralFeatures().ToArray())
-	assert.Equal(t, []interface{}{eAttribute2, eAttribute1}, eClass.GetEAllAttributes().ToArray())
-	assert.Equal(t, []interface{}{eReference2, eReference1}, eClass.GetEAllReferences().ToArray())
-	assert.Equal(t, []interface{}{eAttribute1}, eClass.GetEAttributes().ToArray())
-	assert.Equal(t, []interface{}{eReference1}, eClass.GetEReferences().ToArray())
+	assert.Equal(t, []any{eAttribute2, eReference2, eAttribute1, eReference1}, eClass.GetEAllStructuralFeatures().ToArray())
+	assert.Equal(t, []any{eAttribute2, eAttribute1}, eClass.GetEAllAttributes().ToArray())
+	assert.Equal(t, []any{eReference2, eReference1}, eClass.GetEAllReferences().ToArray())
+	assert.Equal(t, []any{eAttribute1}, eClass.GetEAttributes().ToArray())
+	assert.Equal(t, []any{eReference1}, eClass.GetEReferences().ToArray())
 
 	// now remove super type
 	eClass.GetESuperTypes().Remove(eSuperClass)
 
-	assert.Equal(t, []interface{}{eAttribute1, eReference1}, eClass.GetEAllStructuralFeatures().ToArray())
-	assert.Equal(t, []interface{}{eAttribute1}, eClass.GetEAllAttributes().ToArray())
-	assert.Equal(t, []interface{}{eReference1}, eClass.GetEAllReferences().ToArray())
-	assert.Equal(t, []interface{}{eAttribute1}, eClass.GetEAttributes().ToArray())
-	assert.Equal(t, []interface{}{eReference1}, eClass.GetEReferences().ToArray())
+	assert.Equal(t, []any{eAttribute1, eReference1}, eClass.GetEAllStructuralFeatures().ToArray())
+	assert.Equal(t, []any{eAttribute1}, eClass.GetEAllAttributes().ToArray())
+	assert.Equal(t, []any{eReference1}, eClass.GetEAllReferences().ToArray())
+	assert.Equal(t, []any{eAttribute1}, eClass.GetEAttributes().ToArray())
+	assert.Equal(t, []any{eReference1}, eClass.GetEReferences().ToArray())
 
 }
 
@@ -177,7 +177,7 @@ func TestEClassFeaturesGetFromName(t *testing.T) {
 	eAttribute1.SetName("MyAttribute1")
 	eAttribute2 := newEAttributeExt()
 	eAttribute2.SetName("MyAttribute2")
-	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]interface{}{eAttribute1, eAttribute2}))
+	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{eAttribute1, eAttribute2}))
 	assert.Equal(t, eAttribute1, eClass.GetEStructuralFeatureFromName("MyAttribute1"))
 	assert.Equal(t, eAttribute2, eClass.GetEStructuralFeatureFromName("MyAttribute2"))
 	assert.Equal(t, nil, eClass.GetEStructuralFeatureFromName("MyAttributeUnknown"))
@@ -202,7 +202,7 @@ func TestEClassOperationsGetters(t *testing.T) {
 	eOperation1 := newEOperationExt()
 	eOperation2 := newEOperationExt()
 	eOperations := eClass.GetEOperations()
-	eOperations.AddAll(NewImmutableEList([]interface{}{eOperation1, eOperation2}))
+	eOperations.AddAll(NewImmutableEList([]any{eOperation1, eOperation2}))
 
 	// feature ids
 	assert.Equal(t, 2, eClass.GetOperationCount())
@@ -215,14 +215,14 @@ func TestEClassOperationsGetters(t *testing.T) {
 	assert.Equal(t, 1, eClass.GetOperationID(eOperation2))
 
 	// collections
-	assert.Equal(t, []interface{}{eOperation1, eOperation2}, eClass.GetEAllOperations().ToArray())
-	assert.Equal(t, []interface{}{eOperation1, eOperation2}, eClass.GetEOperations().ToArray())
+	assert.Equal(t, []any{eOperation1, eOperation2}, eClass.GetEAllOperations().ToArray())
+	assert.Equal(t, []any{eOperation1, eOperation2}, eClass.GetEOperations().ToArray())
 
 	// insert another one
 	eOperation3 := newEOperationExt()
 	eOperations.Insert(0, eOperation3)
-	assert.Equal(t, []interface{}{eOperation3, eOperation1, eOperation2}, eClass.GetEAllOperations().ToArray())
-	assert.Equal(t, []interface{}{eOperation3, eOperation1, eOperation2}, eClass.GetEOperations().ToArray())
+	assert.Equal(t, []any{eOperation3, eOperation1, eOperation2}, eClass.GetEAllOperations().ToArray())
+	assert.Equal(t, []any{eOperation3, eOperation1, eOperation2}, eClass.GetEOperations().ToArray())
 
 	// feature ids
 	assert.Equal(t, 3, eClass.GetOperationCount())
@@ -245,17 +245,17 @@ func TestEClassOperationsGettersWithSuperType(t *testing.T) {
 	eSuperClass.GetEOperations().Add(eOperation2)
 
 	// collections
-	assert.Equal(t, []interface{}{eOperation2}, eSuperClass.GetEAllOperations().ToArray())
-	assert.Equal(t, []interface{}{eOperation2}, eSuperClass.GetEOperations().ToArray())
+	assert.Equal(t, []any{eOperation2}, eSuperClass.GetEAllOperations().ToArray())
+	assert.Equal(t, []any{eOperation2}, eSuperClass.GetEOperations().ToArray())
 
-	assert.Equal(t, []interface{}{eOperation2, eOperation1}, eClass.GetEAllOperations().ToArray())
-	assert.Equal(t, []interface{}{eOperation1}, eClass.GetEOperations().ToArray())
+	assert.Equal(t, []any{eOperation2, eOperation1}, eClass.GetEAllOperations().ToArray())
+	assert.Equal(t, []any{eOperation1}, eClass.GetEOperations().ToArray())
 
 	// now remove super type
 	eClass.GetESuperTypes().Remove(eSuperClass)
 
-	assert.Equal(t, []interface{}{eOperation1}, eClass.GetEAllOperations().ToArray())
-	assert.Equal(t, []interface{}{eOperation1}, eClass.GetEOperations().ToArray())
+	assert.Equal(t, []any{eOperation1}, eClass.GetEAllOperations().ToArray())
+	assert.Equal(t, []any{eOperation1}, eClass.GetEOperations().ToArray())
 }
 
 func TestEClassAllContainments(t *testing.T) {
@@ -273,7 +273,7 @@ func TestEClassAllContainments(t *testing.T) {
 	eClass.GetEStructuralFeatures().Add(eReference1)
 	eSuperClass.GetEStructuralFeatures().Add(eReference2)
 
-	assert.Equal(t, []interface{}{eReference2, eReference1}, eClass.GetEAllContainments().ToArray())
+	assert.Equal(t, []any{eReference2, eReference1}, eClass.GetEAllContainments().ToArray())
 
 }
 
@@ -287,10 +287,10 @@ func TestEClassContainments(t *testing.T) {
 	// no containment and derived
 	eReference2 := newEReferenceExt()
 
-	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]interface{}{eReference0, eReference1, eReference2}))
+	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{eReference0, eReference1, eReference2}))
 
-	assert.Equal(t, []interface{}{eReference1}, eClass.GetEContainmentFeatures().ToArray())
-	assert.Equal(t, []interface{}{eReference0, eReference2}, eClass.GetECrossReferenceFeatures().ToArray())
+	assert.Equal(t, []any{eReference1}, eClass.GetEContainmentFeatures().ToArray())
+	assert.Equal(t, []any{eReference0, eReference2}, eClass.GetECrossReferenceFeatures().ToArray())
 }
 
 func TestEClassIsSuperTypeOf(t *testing.T) {

@@ -70,7 +70,7 @@ func (m *UniqueIDManager) Register(eObject EObject) {
 	}
 }
 
-func (m *UniqueIDManager) SetID(eObject EObject, id interface{}) error {
+func (m *UniqueIDManager) SetID(eObject EObject, id any) error {
 	if id == nil {
 		id = ""
 	}
@@ -105,14 +105,14 @@ func (m *UniqueIDManager) UnRegister(eObject EObject) {
 	}
 }
 
-func (m *UniqueIDManager) GetID(eObject EObject) interface{} {
+func (m *UniqueIDManager) GetID(eObject EObject) any {
 	if id, isPresent := m.objectToID[eObject]; isPresent {
 		return id
 	}
 	return nil
 }
 
-func (m *UniqueIDManager) GetEObject(id interface{}) EObject {
+func (m *UniqueIDManager) GetEObject(id any) EObject {
 	switch id.(type) {
 	case string:
 		return m.idToObject[id.(string)]
@@ -121,7 +121,7 @@ func (m *UniqueIDManager) GetEObject(id interface{}) EObject {
 	}
 }
 
-func (m *UniqueIDManager) GetDetachedID(eObject EObject) interface{} {
+func (m *UniqueIDManager) GetDetachedID(eObject EObject) any {
 	objectHash := m.getHash(eObject)
 	if id, isDetached := m.detachedToID[objectHash]; isDetached {
 		return id

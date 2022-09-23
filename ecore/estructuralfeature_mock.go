@@ -39,15 +39,15 @@ func (eStructuralFeature *MockEStructuralFeature) SetChangeable(newIsChangeable 
 }
 
 // GetDefaultValue get the value of defaultValue
-func (eStructuralFeature *MockEStructuralFeature) GetDefaultValue() interface{} {
+func (eStructuralFeature *MockEStructuralFeature) GetDefaultValue() any {
 	ret := eStructuralFeature.Called()
 
-	var r interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(interface{})
+			r = ret.Get(0).(any)
 		}
 	}
 
@@ -55,7 +55,7 @@ func (eStructuralFeature *MockEStructuralFeature) GetDefaultValue() interface{} 
 }
 
 // SetDefaultValue provides mock implementation for setting the value of defaultValue
-func (eStructuralFeature *MockEStructuralFeature) SetDefaultValue(newDefaultValue interface{}) {
+func (eStructuralFeature *MockEStructuralFeature) SetDefaultValue(newDefaultValue any) {
 	eStructuralFeature.Called(newDefaultValue)
 }
 

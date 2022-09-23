@@ -19,15 +19,15 @@ type MockEMapEntry struct {
 }
 
 // GetKey provides a mock function with given fields:
-func (_m *MockEMapEntry) GetKey() interface{} {
+func (_m *MockEMapEntry) GetKey() any {
 	ret := _m.Called()
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -35,15 +35,15 @@ func (_m *MockEMapEntry) GetKey() interface{} {
 }
 
 // GetValue provides a mock function with given fields:
-func (_m *MockEMapEntry) GetValue() interface{} {
+func (_m *MockEMapEntry) GetValue() any {
 	ret := _m.Called()
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -51,11 +51,11 @@ func (_m *MockEMapEntry) GetValue() interface{} {
 }
 
 // SetKey provides a mock function with given fields: _a0
-func (_m *MockEMapEntry) SetKey(_a0 interface{}) {
+func (_m *MockEMapEntry) SetKey(_a0 any) {
 	_m.Called(_a0)
 }
 
 // SetValue provides a mock function with given fields: _a0
-func (_m *MockEMapEntry) SetValue(_a0 interface{}) {
+func (_m *MockEMapEntry) SetValue(_a0 any) {
 	_m.Called(_a0)
 }

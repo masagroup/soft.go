@@ -31,7 +31,7 @@ func (n *notifierNotification) GetFeatureID() int {
 	return -1
 }
 
-func newNotifierNotification(notifier *AbstractENotifier, eventType EventType, oldValue interface{}, newValue interface{}, position int) *notifierNotification {
+func newNotifierNotification(notifier *AbstractENotifier, eventType EventType, oldValue any, newValue any, position int) *notifierNotification {
 	n := new(notifierNotification)
 	n.interfaces = n
 	n.eventType = eventType
@@ -44,19 +44,19 @@ func newNotifierNotification(notifier *AbstractENotifier, eventType EventType, o
 
 func newNotifierAdapterList(notifier *AbstractENotifier) *notifierAdapterList {
 	l := new(notifierAdapterList)
-	l.data = []interface{}{}
+	l.data = []any{}
 	l.isUnique = true
 	l.interfaces = l
 	l.notifier = notifier
 	return l
 }
 
-func (l *notifierAdapterList) didAdd(index int, elem interface{}) {
+func (l *notifierAdapterList) didAdd(index int, elem any) {
 	notifier := l.notifier.interfaces.(ENotifier)
 	elem.(EAdapter).SetTarget(notifier)
 }
 
-func (l *notifierAdapterList) didRemove(index int, elem interface{}) {
+func (l *notifierAdapterList) didRemove(index int, elem any) {
 	notifier := l.notifier.interfaces.(ENotifier)
 	adapter := elem.(EAdapter)
 	if notifier.EDeliver() {
@@ -66,7 +66,7 @@ func (l *notifierAdapterList) didRemove(index int, elem interface{}) {
 }
 
 type AbstractENotifier struct {
-	interfaces interface{}
+	interfaces any
 }
 
 type ENotifierInternal interface {
@@ -84,12 +84,12 @@ func (notifier *AbstractENotifier) AsENotifierInternal() ENotifierInternal {
 }
 
 // SetInterfaces ...
-func (notifier *AbstractENotifier) SetInterfaces(interfaces interface{}) {
+func (notifier *AbstractENotifier) SetInterfaces(interfaces any) {
 	notifier.interfaces = interfaces
 }
 
 // GetInterfaces ...
-func (notifier *AbstractENotifier) GetInterfaces() interface{} {
+func (notifier *AbstractENotifier) GetInterfaces() any {
 	return notifier.interfaces
 }
 

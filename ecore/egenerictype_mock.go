@@ -132,7 +132,7 @@ func (eGenericType *MockEGenericType) SetEUpperBound(newEUpperBound EGenericType
 }
 
 // IsInstance provides mock implementation
-func (eGenericType *MockEGenericType) IsInstance(object interface{}) bool {
+func (eGenericType *MockEGenericType) IsInstance(object any) bool {
 	ret := eGenericType.Called(object)
 
 	var r bool

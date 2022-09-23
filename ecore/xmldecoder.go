@@ -56,7 +56,7 @@ type xmlDecoderInternal interface {
 }
 
 type XMLDecoder struct {
-	interfaces             interface{}
+	interfaces             any
 	decoder                *xml.Decoder
 	resource               EResource
 	isResolveDeferred      bool
@@ -64,7 +64,7 @@ type XMLDecoder struct {
 	elements               []string
 	deferred               []EObject
 	objects                []EObject
-	types                  []interface{}
+	types                  []any
 	attributes             []xml.Attr
 	references             []reference
 	textBuilder            *strings.Builder
@@ -81,7 +81,7 @@ type XMLDecoder struct {
 	attachFn               func(object EObject)
 }
 
-func NewXMLDecoder(resource EResource, r io.Reader, options map[string]interface{}) *XMLDecoder {
+func NewXMLDecoder(resource EResource, r io.Reader, options map[string]any) *XMLDecoder {
 	l := new(XMLDecoder)
 	l.interfaces = l
 	l.resource = resource
@@ -193,7 +193,7 @@ func (l *XMLDecoder) endElement(e xml.EndElement) {
 	}
 
 	// remove last type
-	var eType interface{}
+	var eType any
 	if len(l.types) > 0 {
 		eType = l.types[len(l.types)-1]
 		l.types = l.types[:len(l.types)-1]
@@ -446,7 +446,7 @@ func (l *XMLDecoder) handleFeature(space string, local string) {
 
 func (l *XMLDecoder) setFeatureValue(eObject EObject,
 	eFeature EStructuralFeature,
-	value interface{},
+	value any,
 	position int) {
 	kind := l.getLoadFeatureKind(eFeature)
 	switch kind {

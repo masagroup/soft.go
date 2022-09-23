@@ -32,15 +32,15 @@ func (eEnumLiteral *MockEEnumLiteral) GetEEnum() EEnum {
 }
 
 // GetInstance get the value of instance
-func (eEnumLiteral *MockEEnumLiteral) GetInstance() interface{} {
+func (eEnumLiteral *MockEEnumLiteral) GetInstance() any {
 	ret := eEnumLiteral.Called()
 
-	var r interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(interface{})
+			r = ret.Get(0).(any)
 		}
 	}
 
@@ -48,7 +48,7 @@ func (eEnumLiteral *MockEEnumLiteral) GetInstance() interface{} {
 }
 
 // SetInstance provides mock implementation for setting the value of instance
-func (eEnumLiteral *MockEEnumLiteral) SetInstance(newInstance interface{}) {
+func (eEnumLiteral *MockEEnumLiteral) SetInstance(newInstance any) {
 	eEnumLiteral.Called(newInstance)
 }
 

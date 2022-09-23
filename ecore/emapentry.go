@@ -10,11 +10,11 @@
 package ecore
 
 type EMapEntry interface {
-	GetKey() interface{}
+	GetKey() any
 
-	SetKey(interface{})
+	SetKey(any)
 
-	GetValue() interface{}
+	GetValue() any
 
-	SetValue(interface{})
+	SetValue(any)
 }

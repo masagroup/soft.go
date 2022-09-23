@@ -136,7 +136,7 @@ func (eReference *eReferenceImpl) initEKeys() EList {
 	return NewBasicEObjectList(eReference.AsEObjectInternal(), EREFERENCE__EKEYS, -1, false, false, false, true, false)
 }
 
-func (eReference *eReferenceImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eReference *eReferenceImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EREFERENCE__CONTAINER:
 		return eReference.asEReference().IsContainer()
@@ -167,7 +167,7 @@ func (eReference *eReferenceImpl) EGetFromID(featureID int, resolve bool) interf
 	}
 }
 
-func (eReference *eReferenceImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eReference *eReferenceImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EREFERENCE__CONTAINMENT:
 		eReference.asEReference().SetContainment(newValue.(bool))

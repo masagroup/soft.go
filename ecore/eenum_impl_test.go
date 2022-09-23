@@ -70,7 +70,7 @@ func TestEEnumESetFromID(t *testing.T) {
 	{
 		// list with a value
 		mockValue := new(MockEEnumLiteral)
-		l := NewImmutableEList([]interface{}{mockValue})
+		l := NewImmutableEList([]any{mockValue})
 		mockValue.On("EInverseAdd", o, EENUM_LITERAL__EENUM, mock.Anything).Return(nil).Once()
 
 		// set list with new contents

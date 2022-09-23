@@ -12,5 +12,5 @@ package ecore
 // EIterator is an interator
 type EIterator interface {
 	HasNext() bool
-	Next() interface{}
+	Next() any
 }

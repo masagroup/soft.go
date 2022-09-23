@@ -19,15 +19,15 @@ type MockEObjectProperties struct {
 }
 
 // EDynamicGet provides a mock function with given fields: dynamicFeatureID
-func (_m *MockEObjectProperties) EDynamicGet(dynamicFeatureID int) interface{} {
+func (_m *MockEObjectProperties) EDynamicGet(dynamicFeatureID int) any {
 	ret := _m.Called(dynamicFeatureID)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(int) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(int) any); ok {
 		r0 = rf(dynamicFeatureID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -35,7 +35,7 @@ func (_m *MockEObjectProperties) EDynamicGet(dynamicFeatureID int) interface{} {
 }
 
 // EDynamicSet provides a mock function with given fields: dynamicFeatureID, newValue
-func (_m *MockEObjectProperties) EDynamicSet(dynamicFeatureID int, newValue interface{}) {
+func (_m *MockEObjectProperties) EDynamicSet(dynamicFeatureID int, newValue any) {
 	_m.Called(dynamicFeatureID, newValue)
 }
 

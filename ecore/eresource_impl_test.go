@@ -97,7 +97,7 @@ func TestResourceGetURIFragment(t *testing.T) {
 		mockObject2 := &MockEObjectInternal{}
 		mockObject1.On("ESetResource", r, mock.Anything).Return(nil).Once()
 		mockObject2.On("ESetResource", r, mock.Anything).Return(nil).Once()
-		r.GetContents().AddAll(NewImmutableEList([]interface{}{mockObject1, mockObject2}))
+		r.GetContents().AddAll(NewImmutableEList([]any{mockObject1, mockObject2}))
 		mock.AssertExpectationsForObjects(t, mockObject1, mockObject2)
 
 		mockClass := &MockEClass{}
@@ -181,6 +181,6 @@ func TestResourceIDManager(t *testing.T) {
 	eBook2 := eFactory.Create(eBookClass)
 	mockIDManager.On("Register", eBook1).Once()
 	mockIDManager.On("Register", eBook2).Once()
-	eBookList.AddAll(NewImmutableEList([]interface{}{eBook1, eBook2}))
+	eBookList.AddAll(NewImmutableEList([]any{eBook1, eBook2}))
 	mock.AssertExpectationsForObjects(t, mockIDManager)
 }

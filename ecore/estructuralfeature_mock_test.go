@@ -47,9 +47,9 @@ func TestMockEStructuralFeatureSetChangeable(t *testing.T) {
 // TestMockEStructuralFeatureGetDefaultValue tests method GetDefaultValue
 func TestMockEStructuralFeatureGetDefaultValue(t *testing.T) {
 	o := &MockEStructuralFeature{}
-	r := interface{}(nil)
+	r := any(nil)
 	o.On("GetDefaultValue").Once().Return(r)
-	o.On("GetDefaultValue").Once().Return(func() interface{} {
+	o.On("GetDefaultValue").Once().Return(func() any {
 		return r
 	})
 	assert.Equal(t, r, o.GetDefaultValue())
@@ -60,7 +60,7 @@ func TestMockEStructuralFeatureGetDefaultValue(t *testing.T) {
 // TestMockEStructuralFeatureSetDefaultValue tests method SetDefaultValue
 func TestMockEStructuralFeatureSetDefaultValue(t *testing.T) {
 	o := &MockEStructuralFeature{}
-	v := interface{}(nil)
+	v := any(nil)
 	o.On("SetDefaultValue", v).Once()
 	o.SetDefaultValue(v)
 	o.AssertExpectations(t)

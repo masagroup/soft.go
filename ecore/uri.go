@@ -457,7 +457,6 @@ func normalize(path string) string {
 //
 // This method takes a string argument rather than a char array so that
 // this test can be performed without invoking path.toCharArray().
-//
 func needsNormalization(path []rune) int {
 	normal := true
 	ns := 0              // Number of segments
@@ -518,9 +517,9 @@ func needsNormalization(path []rune) int {
 //
 
 // Postconditions:
-//   All slashes in path replaced by '\0'
-//   segs[i] == Index of first char in segment i (0 <= i < segs.length)
 //
+//	All slashes in path replaced by '\0'
+//	segs[i] == Index of first char in segment i (0 <= i < segs.length)
 func split(path []rune, segs []int) {
 	end := len(path) - 1 // Index of last char in path
 	p := 0               // Index of next char in path
@@ -565,7 +564,6 @@ func split(path []rune, segs []int) {
 
 // Remove "." segments from the given path, and remove segment pairs
 // consisting of a non-".." segment followed by a ".." segment.
-//
 func removeDots(path []rune, segs []int) {
 	ns := len(segs)
 	end := len(path) - 1
@@ -621,7 +619,6 @@ func removeDots(path []rune, segs []int) {
 
 // DEVIATION: If the normalized path is relative, and if the first
 // segment could be parsed as a scheme name, then prepend a "." segment
-//
 func maybeAddLeadingDot(path []rune, segs []int) {
 	if path[0] == rune(0) {
 		// The path is absolute
@@ -665,12 +662,13 @@ func maybeAddLeadingDot(path []rune, segs []int) {
 // path.
 //
 // Preconditions:
-//   segs[i] == -1 implies segment i is to be ignored
-//   path computed by split, as above, with '\0' having replaced '/'
+//
+//	segs[i] == -1 implies segment i is to be ignored
+//	path computed by split, as above, with '\0' having replaced '/'
 //
 // Postconditions:
-//   path[0] .. path[return value] == Resulting path
 //
+//	path[0] .. path[return value] == Resulting path
 func join(path []rune, segs []int) int {
 	ns := len(segs)      // Number of segments
 	end := len(path) - 1 // Index of last char in path

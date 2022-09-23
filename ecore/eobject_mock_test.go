@@ -116,9 +116,9 @@ func TestMockEObjectECrossReferences(t *testing.T) {
 func TestMockEObjectEGet(t *testing.T) {
 	o := &MockEObject{}
 	feature := new(MockEStructuralFeature)
-	r := interface{}(nil)
+	r := any(nil)
 	o.On("EGet", feature).Return(r).Once()
-	o.On("EGet", feature).Return(func() interface{} {
+	o.On("EGet", feature).Return(func() any {
 		return r
 	}).Once()
 	assert.Equal(t, r, o.EGet(feature))
@@ -131,9 +131,9 @@ func TestMockEObjectEGetResolve(t *testing.T) {
 	o := &MockEObject{}
 	feature := new(MockEStructuralFeature)
 	resolve := bool(true)
-	r := interface{}(nil)
+	r := any(nil)
 	o.On("EGetResolve", feature, resolve).Return(r).Once()
-	o.On("EGetResolve", feature, resolve).Return(func() interface{} {
+	o.On("EGetResolve", feature, resolve).Return(func() any {
 		return r
 	}).Once()
 	assert.Equal(t, r, o.EGetResolve(feature, resolve))
@@ -146,9 +146,9 @@ func TestMockEObjectEInvoke(t *testing.T) {
 	o := &MockEObject{}
 	operation := new(MockEOperation)
 	arguments := EList(NewEmptyBasicEList())
-	r := interface{}(nil)
+	r := any(nil)
 	o.On("EInvoke", operation, arguments).Return(r).Once()
-	o.On("EInvoke", operation, arguments).Return(func() interface{} {
+	o.On("EInvoke", operation, arguments).Return(func() any {
 		return r
 	}).Once()
 	assert.Equal(t, r, o.EInvoke(operation, arguments))
@@ -200,7 +200,7 @@ func TestMockEObjectEResource(t *testing.T) {
 func TestMockEObjectESet(t *testing.T) {
 	o := &MockEObject{}
 	feature := new(MockEStructuralFeature)
-	newValue := interface{}(nil)
+	newValue := any(nil)
 	o.On("ESet", feature, newValue).Once()
 	o.ESet(feature, newValue)
 	o.AssertExpectations(t)

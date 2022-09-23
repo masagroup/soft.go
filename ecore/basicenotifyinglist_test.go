@@ -18,7 +18,7 @@ import (
 )
 
 func TestBasicNotifyingListAccessors(t *testing.T) {
-	l := newBasicENotifyingListFromData([]interface{}{})
+	l := newBasicENotifyingListFromData([]any{})
 	assert.Equal(t, nil, l.GetFeature())
 	assert.Equal(t, -1, l.GetFeatureID())
 	assert.Equal(t, nil, l.GetNotifier())
@@ -39,7 +39,7 @@ func newNotifyingListTestFn(factory func() *BasicENotifyingList) *eNotifyingList
 	l.mockAdapter = new(MockEAdapter)
 	l.interfaces = l
 	l.mockNotifier.On("EDeliver").Return(true)
-	l.mockNotifier.On("EAdapters").Return(NewImmutableEList([]interface{}{l.mockAdapter}))
+	l.mockNotifier.On("EAdapters").Return(NewImmutableEList([]any{l.mockAdapter}))
 	return l
 }
 
@@ -47,7 +47,7 @@ func newNotifyingListTest() *eNotifyingListTest {
 	return newNotifyingListTestFn(NewBasicENotifyingList)
 }
 
-func newNotifyingListTestFromData(data []interface{}) *eNotifyingListTest {
+func newNotifyingListTestFromData(data []any) *eNotifyingListTest {
 	return newNotifyingListTestFn(func() *BasicENotifyingList { return newBasicENotifyingListFromData(data) })
 }
 
@@ -91,7 +91,7 @@ func TestNotifyingListAdd(t *testing.T) {
 	}))
 	l.Add(4)
 	l.assertExpectations(t)
-	assert.Equal(t, []interface{}{3, 4}, l.ToArray())
+	assert.Equal(t, []any{3, 4}, l.ToArray())
 
 }
 
@@ -100,14 +100,14 @@ func TestNotifyingListAddAll(t *testing.T) {
 	l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
 			n.GetFeature() == l.mockFeature &&
-			reflect.DeepEqual(n.GetNewValue(), []interface{}{2, 3}) &&
+			reflect.DeepEqual(n.GetNewValue(), []any{2, 3}) &&
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ADD_MANY &&
 			n.GetPosition() == 0
 	})).Once()
-	l.AddAll(NewImmutableEList([]interface{}{2, 3}))
+	l.AddAll(NewImmutableEList([]any{2, 3}))
 	l.assertExpectations(t)
-	assert.Equal(t, []interface{}{2, 3}, l.ToArray())
+	assert.Equal(t, []any{2, 3}, l.ToArray())
 
 	l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
@@ -117,9 +117,9 @@ func TestNotifyingListAddAll(t *testing.T) {
 			n.GetEventType() == ADD &&
 			n.GetPosition() == 2
 	})).Once()
-	l.AddAll(NewImmutableEList([]interface{}{4}))
+	l.AddAll(NewImmutableEList([]any{4}))
 	l.assertExpectations(t)
-	assert.Equal(t, []interface{}{2, 3, 4}, l.ToArray())
+	assert.Equal(t, []any{2, 3, 4}, l.ToArray())
 }
 
 func TestNotifyingListInsert(t *testing.T) {
@@ -134,7 +134,7 @@ func TestNotifyingListInsert(t *testing.T) {
 	})).Once()
 	l.Insert(0, 1)
 	l.assertExpectations(t)
-	assert.Equal(t, []interface{}{1}, l.ToArray())
+	assert.Equal(t, []any{1}, l.ToArray())
 
 	l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
@@ -146,7 +146,7 @@ func TestNotifyingListInsert(t *testing.T) {
 	})).Once()
 	l.Insert(0, 2)
 	l.assertExpectations(t)
-	assert.Equal(t, []interface{}{2, 1}, l.ToArray())
+	assert.Equal(t, []any{2, 1}, l.ToArray())
 
 	l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
@@ -158,41 +158,41 @@ func TestNotifyingListInsert(t *testing.T) {
 	})).Once()
 	l.Insert(1, 3)
 	l.assertExpectations(t)
-	assert.Equal(t, []interface{}{2, 3, 1}, l.ToArray())
+	assert.Equal(t, []any{2, 3, 1}, l.ToArray())
 }
 
 func TestNotifyingListInsertAll(t *testing.T) {
 	l := newNotifyingListTest()
 
-	assert.False(t, l.doInsertAll(0, NewImmutableEList([]interface{}{})))
+	assert.False(t, l.doInsertAll(0, NewImmutableEList([]any{})))
 
 	l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
 			n.GetFeature() == l.mockFeature &&
-			reflect.DeepEqual(n.GetNewValue(), []interface{}{1, 2, 3}) &&
+			reflect.DeepEqual(n.GetNewValue(), []any{1, 2, 3}) &&
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ADD_MANY &&
 			n.GetPosition() == 0
 	})).Once()
-	assert.True(t, l.InsertAll(0, NewImmutableEList([]interface{}{1, 2, 3})))
+	assert.True(t, l.InsertAll(0, NewImmutableEList([]any{1, 2, 3})))
 	l.assertExpectations(t)
-	assert.Equal(t, []interface{}{1, 2, 3}, l.ToArray())
+	assert.Equal(t, []any{1, 2, 3}, l.ToArray())
 
 	l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
 			n.GetFeature() == l.mockFeature &&
-			reflect.DeepEqual(n.GetNewValue(), []interface{}{4, 5}) &&
+			reflect.DeepEqual(n.GetNewValue(), []any{4, 5}) &&
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ADD_MANY &&
 			n.GetPosition() == 1
 	})).Once()
-	assert.True(t, l.InsertAll(1, NewImmutableEList([]interface{}{4, 5})))
+	assert.True(t, l.InsertAll(1, NewImmutableEList([]any{4, 5})))
 	l.assertExpectations(t)
-	assert.Equal(t, []interface{}{1, 4, 5, 2, 3}, l.ToArray())
+	assert.Equal(t, []any{1, 4, 5, 2, 3}, l.ToArray())
 }
 
 func TestNotifyingListSet(t *testing.T) {
-	l := newNotifyingListTestFromData([]interface{}{1, 2})
+	l := newNotifyingListTestFromData([]any{1, 2})
 	l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
 			n.GetFeature() == l.mockFeature &&
@@ -203,11 +203,11 @@ func TestNotifyingListSet(t *testing.T) {
 	})).Once()
 	l.Set(1, 3)
 	l.assertExpectations(t)
-	assert.Equal(t, []interface{}{1, 3}, l.ToArray())
+	assert.Equal(t, []any{1, 3}, l.ToArray())
 }
 
 func TestNotifyingListRemoveAt(t *testing.T) {
-	l := newNotifyingListTestFromData([]interface{}{1, 2, 3})
+	l := newNotifyingListTestFromData([]any{1, 2, 3})
 	l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
 			n.GetFeature() == l.mockFeature &&
@@ -218,7 +218,7 @@ func TestNotifyingListRemoveAt(t *testing.T) {
 	})).Once()
 	l.RemoveAt(1)
 	l.assertExpectations(t)
-	assert.Equal(t, []interface{}{1, 3}, l.ToArray())
+	assert.Equal(t, []any{1, 3}, l.ToArray())
 }
 
 func TestNotifyingListAddWithNotification(t *testing.T) {
@@ -245,7 +245,7 @@ func TestNotifyingListAddWithNotification(t *testing.T) {
 }
 
 func TestNotifyingListRemoveWithNotification(t *testing.T) {
-	l := newNotifyingListTestFromData([]interface{}{1})
+	l := newNotifyingListTestFromData([]any{1})
 	mockChain := new(MockENotificationChain)
 	mockChain.On("Add", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
@@ -261,7 +261,7 @@ func TestNotifyingListRemoveWithNotification(t *testing.T) {
 }
 
 func TestNotifyingListSetWithNotification(t *testing.T) {
-	l := newNotifyingListTestFromData([]interface{}{1})
+	l := newNotifyingListTestFromData([]any{1})
 	mockChain := new(MockENotificationChain)
 	mockChain.On("Add", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
@@ -278,7 +278,7 @@ func TestNotifyingListSetWithNotification(t *testing.T) {
 
 func TestNotifyingListClear(t *testing.T) {
 	{
-		l := newNotifyingListTestFromData([]interface{}{})
+		l := newNotifyingListTestFromData([]any{})
 		l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 			return n.GetNotifier() == l.mockNotifier &&
 				n.GetFeature() == l.mockFeature &&
@@ -290,7 +290,7 @@ func TestNotifyingListClear(t *testing.T) {
 		l.assertExpectations(t)
 	}
 	{
-		l := newNotifyingListTestFromData([]interface{}{1})
+		l := newNotifyingListTestFromData([]any{1})
 		l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 			return n.GetNotifier() == l.mockNotifier &&
 				n.GetFeature() == l.mockFeature &&
@@ -303,7 +303,7 @@ func TestNotifyingListClear(t *testing.T) {
 		l.assertExpectations(t)
 	}
 	{
-		l := newNotifyingListTestFromData([]interface{}{1, 2})
+		l := newNotifyingListTestFromData([]any{1, 2})
 		l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 			return n.GetNotifier() == l.mockNotifier &&
 				n.GetFeature() == l.mockFeature &&
@@ -319,11 +319,11 @@ func TestNotifyingListClear(t *testing.T) {
 
 func TestNotifyingRemoveAllClear(t *testing.T) {
 	{
-		l := newNotifyingListTestFromData([]interface{}{})
-		l.RemoveAll(NewImmutableEList([]interface{}{}))
+		l := newNotifyingListTestFromData([]any{})
+		l.RemoveAll(NewImmutableEList([]any{}))
 	}
 	{
-		l := newNotifyingListTestFromData([]interface{}{1})
+		l := newNotifyingListTestFromData([]any{1})
 		l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 			return n.GetNotifier() == l.mockNotifier &&
 				n.GetFeature() == l.mockFeature &&
@@ -332,21 +332,21 @@ func TestNotifyingRemoveAllClear(t *testing.T) {
 				n.GetEventType() == REMOVE &&
 				n.GetPosition() == 0
 		})).Once()
-		l.RemoveAll(NewImmutableEList([]interface{}{1}))
+		l.RemoveAll(NewImmutableEList([]any{1}))
 		l.assertExpectations(t)
 	}
 	{
-		l := newNotifyingListTestFromData([]interface{}{1, 2, 3})
+		l := newNotifyingListTestFromData([]any{1, 2, 3})
 		l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
 			return n.GetNotifier() == l.mockNotifier &&
 				n.GetFeature() == l.mockFeature &&
-				reflect.DeepEqual(n.GetOldValue(), []interface{}{2, 3}) &&
-				reflect.DeepEqual(n.GetNewValue(), []interface{}{1, 2}) &&
+				reflect.DeepEqual(n.GetOldValue(), []any{2, 3}) &&
+				reflect.DeepEqual(n.GetNewValue(), []any{1, 2}) &&
 				n.GetEventType() == REMOVE_MANY &&
 				n.GetPosition() == 1
 		})).Once()
-		l.RemoveAll(NewImmutableEList([]interface{}{3, 2}))
+		l.RemoveAll(NewImmutableEList([]any{3, 2}))
 		l.assertExpectations(t)
-		assert.Equal(t, []interface{}{1}, l.ToArray())
+		assert.Equal(t, []any{1}, l.ToArray())
 	}
 }

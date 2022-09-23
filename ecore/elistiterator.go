@@ -15,7 +15,7 @@ type listIterator struct {
 }
 
 // Next return the current value of the iterator
-func (it *listIterator) Next() interface{} {
+func (it *listIterator) Next() any {
 	i := it.cursor
 	if i >= it.list.Size() {
 		panic("Not such an element")

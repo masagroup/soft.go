@@ -61,7 +61,7 @@ func (eTypeParameter *eTypeParameterImpl) initEBounds() EList {
 	return NewBasicEObjectList(eTypeParameter.AsEObjectInternal(), ETYPE_PARAMETER__EBOUNDS, -1, true, true, false, false, false)
 }
 
-func (eTypeParameter *eTypeParameterImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eTypeParameter *eTypeParameterImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case ETYPE_PARAMETER__EBOUNDS:
 		return eTypeParameter.asETypeParameter().GetEBounds()
@@ -70,7 +70,7 @@ func (eTypeParameter *eTypeParameterImpl) EGetFromID(featureID int, resolve bool
 	}
 }
 
-func (eTypeParameter *eTypeParameterImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eTypeParameter *eTypeParameterImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case ETYPE_PARAMETER__EBOUNDS:
 		list := eTypeParameter.asETypeParameter().GetEBounds()

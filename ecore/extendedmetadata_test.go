@@ -46,7 +46,7 @@ func TestExtendedMetatData_GetType(t *testing.T) {
 	mockClassifier2 := &MockEClassifier{}
 	mockAnnotation := &MockEAnnotation{}
 	mockDetails := &MockEMap{}
-	mockClassifiers := NewImmutableEList([]interface{}{mockClassifier1, mockClassifier2})
+	mockClassifiers := NewImmutableEList([]any{mockClassifier1, mockClassifier2})
 
 	mockPackage.On("GetEClassifiers").Return(mockClassifiers).Once()
 	mockClassifier1.On("GetEAnnotation", annotationURI).Return(nil).Once()
@@ -106,7 +106,7 @@ func TestExtendedMetatData_GetDocumentRoot(t *testing.T) {
 		mockClass2 := &MockEClass{}
 		mockAnnotation := &MockEAnnotation{}
 		mockDetails := &MockEMap{}
-		mockClassifiers := NewImmutableEList([]interface{}{mockClass1, mockClass2})
+		mockClassifiers := NewImmutableEList([]any{mockClass1, mockClass2})
 		mockPackage.On("GetEClassifiers").Return(mockClassifiers).Once()
 		mockClass1.On("GetEAnnotation", annotationURI).Return(nil).Once()
 		mockClass1.On("GetName").Return("classifier1").Once()
@@ -120,7 +120,7 @@ func TestExtendedMetatData_GetDocumentRoot(t *testing.T) {
 		mockPackage := &MockEPackage{}
 		mockClass1 := &MockEClass{}
 		mockClass2 := &MockEClass{}
-		mockClassifiers := NewImmutableEList([]interface{}{mockClass1, mockClass2})
+		mockClassifiers := NewImmutableEList([]any{mockClass1, mockClass2})
 		mockPackage.On("GetEClassifiers").Return(mockClassifiers).Once()
 		mockClass1.On("GetEAnnotation", annotationURI).Return(nil).Once()
 		mockClass1.On("GetName").Return("classifier1").Once()

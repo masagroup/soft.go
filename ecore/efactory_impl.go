@@ -37,7 +37,7 @@ func (eFactory *eFactoryImpl) EStaticFeatureCount() int {
 }
 
 // ConvertToString default implementation
-func (eFactory *eFactoryImpl) ConvertToString(EDataType, interface{}) string {
+func (eFactory *eFactoryImpl) ConvertToString(EDataType, any) string {
 	panic("ConvertToString not implemented")
 }
 
@@ -47,7 +47,7 @@ func (eFactory *eFactoryImpl) Create(EClass) EObject {
 }
 
 // CreateFromString default implementation
-func (eFactory *eFactoryImpl) CreateFromString(EDataType, string) interface{} {
+func (eFactory *eFactoryImpl) CreateFromString(EDataType, string) any {
 	panic("CreateFromString not implemented")
 }
 
@@ -82,7 +82,7 @@ func (eFactory *eFactoryImpl) basicSetEPackage(newEPackage EPackage, msgs ENotif
 	return eFactory.EBasicSetContainer(newEPackage, EFACTORY__EPACKAGE, msgs)
 }
 
-func (eFactory *eFactoryImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eFactory *eFactoryImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		return eFactory.asEFactory().GetEPackage()
@@ -91,7 +91,7 @@ func (eFactory *eFactoryImpl) EGetFromID(featureID int, resolve bool) interface{
 	}
 }
 
-func (eFactory *eFactoryImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eFactory *eFactoryImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		eFactory.asEFactory().SetEPackage(newValue.(EPackage))
@@ -118,7 +118,7 @@ func (eFactory *eFactoryImpl) EIsSetFromID(featureID int) bool {
 	}
 }
 
-func (eFactory *eFactoryImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (eFactory *eFactoryImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EFACTORY__CONVERT_TO_STRING_EDATATYPE_EJAVAOBJECT:
 		return eFactory.asEFactory().ConvertToString(arguments.Get(0).(EDataType), arguments.Get(1))

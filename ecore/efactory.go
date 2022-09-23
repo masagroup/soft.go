@@ -16,8 +16,8 @@ type EFactory interface {
 	EModelElement
 
 	Create(EClass) EObject
-	CreateFromString(EDataType, string) interface{}
-	ConvertToString(EDataType, interface{}) string
+	CreateFromString(EDataType, string) any
+	ConvertToString(EDataType, any) string
 
 	GetEPackage() EPackage
 	SetEPackage(EPackage)

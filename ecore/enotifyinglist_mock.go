@@ -15,11 +15,11 @@ type MockENotifyingList struct {
 }
 
 // AddWithNotification provides a mock function with given fields: object, notifications
-func (_m *MockENotifyingList) AddWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (_m *MockENotifyingList) AddWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	ret := _m.Called(object, notifications)
 
 	var r0 ENotificationChain
-	if rf, ok := ret.Get(0).(func(interface{}, ENotificationChain) ENotificationChain); ok {
+	if rf, ok := ret.Get(0).(func(any, ENotificationChain) ENotificationChain); ok {
 		r0 = rf(object, notifications)
 	} else {
 		if ret.Get(0) != nil {
@@ -77,11 +77,11 @@ func (_m *MockENotifyingList) GetNotifier() ENotifier {
 }
 
 // RemoveWithNotification provides a mock function with given fields: object, notifications
-func (_m *MockENotifyingList) RemoveWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (_m *MockENotifyingList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	ret := _m.Called(object, notifications)
 
 	var r0 ENotificationChain
-	if rf, ok := ret.Get(0).(func(interface{}, ENotificationChain) ENotificationChain); ok {
+	if rf, ok := ret.Get(0).(func(any, ENotificationChain) ENotificationChain); ok {
 		r0 = rf(object, notifications)
 	} else {
 		if ret.Get(0) != nil {
@@ -93,11 +93,11 @@ func (_m *MockENotifyingList) RemoveWithNotification(object interface{}, notific
 }
 
 // SetWithNotification provides a mock function with given fields: index, object, notifications
-func (_m *MockENotifyingList) SetWithNotification(index int, object interface{}, notifications ENotificationChain) ENotificationChain {
+func (_m *MockENotifyingList) SetWithNotification(index int, object any, notifications ENotificationChain) ENotificationChain {
 	ret := _m.Called(index, object, notifications)
 
 	var r0 ENotificationChain
-	if rf, ok := ret.Get(0).(func(int, interface{}, ENotificationChain) ENotificationChain); ok {
+	if rf, ok := ret.Get(0).(func(int, any, ENotificationChain) ENotificationChain); ok {
 		r0 = rf(index, object, notifications)
 	} else {
 		if ret.Get(0) != nil {

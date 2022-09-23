@@ -15,52 +15,52 @@ import "strconv"
 import "time"
 
 type ecoreFactoryInternal interface {
-	createEBigDecimalFromString(eDataType EDataType, literalValue string) interface{}
-	createEBigIntegerFromString(eDataType EDataType, literalValue string) interface{}
-	createEBooleanFromString(eDataType EDataType, literalValue string) interface{}
-	createEBooleanObjectFromString(eDataType EDataType, literalValue string) interface{}
-	createEByteFromString(eDataType EDataType, literalValue string) interface{}
-	createEByteArrayFromString(eDataType EDataType, literalValue string) interface{}
-	createEByteObjectFromString(eDataType EDataType, literalValue string) interface{}
-	createECharFromString(eDataType EDataType, literalValue string) interface{}
-	createECharacterObjectFromString(eDataType EDataType, literalValue string) interface{}
-	createEDateFromString(eDataType EDataType, literalValue string) interface{}
-	createEDoubleFromString(eDataType EDataType, literalValue string) interface{}
-	createEDoubleObjectFromString(eDataType EDataType, literalValue string) interface{}
-	createEFloatFromString(eDataType EDataType, literalValue string) interface{}
-	createEFloatObjectFromString(eDataType EDataType, literalValue string) interface{}
-	createEIntFromString(eDataType EDataType, literalValue string) interface{}
-	createEIntegerObjectFromString(eDataType EDataType, literalValue string) interface{}
-	createEJavaClassFromString(eDataType EDataType, literalValue string) interface{}
-	createEJavaObjectFromString(eDataType EDataType, literalValue string) interface{}
-	createELongFromString(eDataType EDataType, literalValue string) interface{}
-	createELongObjectFromString(eDataType EDataType, literalValue string) interface{}
-	createEShortFromString(eDataType EDataType, literalValue string) interface{}
-	createEShortObjectFromString(eDataType EDataType, literalValue string) interface{}
-	createEStringFromString(eDataType EDataType, literalValue string) interface{}
-	convertEBigDecimalToString(eDataType EDataType, literalValue interface{}) string
-	convertEBigIntegerToString(eDataType EDataType, literalValue interface{}) string
-	convertEBooleanToString(eDataType EDataType, literalValue interface{}) string
-	convertEBooleanObjectToString(eDataType EDataType, literalValue interface{}) string
-	convertEByteToString(eDataType EDataType, literalValue interface{}) string
-	convertEByteArrayToString(eDataType EDataType, literalValue interface{}) string
-	convertEByteObjectToString(eDataType EDataType, literalValue interface{}) string
-	convertECharToString(eDataType EDataType, literalValue interface{}) string
-	convertECharacterObjectToString(eDataType EDataType, literalValue interface{}) string
-	convertEDateToString(eDataType EDataType, literalValue interface{}) string
-	convertEDoubleToString(eDataType EDataType, literalValue interface{}) string
-	convertEDoubleObjectToString(eDataType EDataType, literalValue interface{}) string
-	convertEFloatToString(eDataType EDataType, literalValue interface{}) string
-	convertEFloatObjectToString(eDataType EDataType, literalValue interface{}) string
-	convertEIntToString(eDataType EDataType, literalValue interface{}) string
-	convertEIntegerObjectToString(eDataType EDataType, literalValue interface{}) string
-	convertEJavaClassToString(eDataType EDataType, literalValue interface{}) string
-	convertEJavaObjectToString(eDataType EDataType, literalValue interface{}) string
-	convertELongToString(eDataType EDataType, literalValue interface{}) string
-	convertELongObjectToString(eDataType EDataType, literalValue interface{}) string
-	convertEShortToString(eDataType EDataType, literalValue interface{}) string
-	convertEShortObjectToString(eDataType EDataType, literalValue interface{}) string
-	convertEStringToString(eDataType EDataType, literalValue interface{}) string
+	createEBigDecimalFromString(eDataType EDataType, literalValue string) any
+	createEBigIntegerFromString(eDataType EDataType, literalValue string) any
+	createEBooleanFromString(eDataType EDataType, literalValue string) any
+	createEBooleanObjectFromString(eDataType EDataType, literalValue string) any
+	createEByteFromString(eDataType EDataType, literalValue string) any
+	createEByteArrayFromString(eDataType EDataType, literalValue string) any
+	createEByteObjectFromString(eDataType EDataType, literalValue string) any
+	createECharFromString(eDataType EDataType, literalValue string) any
+	createECharacterObjectFromString(eDataType EDataType, literalValue string) any
+	createEDateFromString(eDataType EDataType, literalValue string) any
+	createEDoubleFromString(eDataType EDataType, literalValue string) any
+	createEDoubleObjectFromString(eDataType EDataType, literalValue string) any
+	createEFloatFromString(eDataType EDataType, literalValue string) any
+	createEFloatObjectFromString(eDataType EDataType, literalValue string) any
+	createEIntFromString(eDataType EDataType, literalValue string) any
+	createEIntegerObjectFromString(eDataType EDataType, literalValue string) any
+	createEJavaClassFromString(eDataType EDataType, literalValue string) any
+	createEJavaObjectFromString(eDataType EDataType, literalValue string) any
+	createELongFromString(eDataType EDataType, literalValue string) any
+	createELongObjectFromString(eDataType EDataType, literalValue string) any
+	createEShortFromString(eDataType EDataType, literalValue string) any
+	createEShortObjectFromString(eDataType EDataType, literalValue string) any
+	createEStringFromString(eDataType EDataType, literalValue string) any
+	convertEBigDecimalToString(eDataType EDataType, literalValue any) string
+	convertEBigIntegerToString(eDataType EDataType, literalValue any) string
+	convertEBooleanToString(eDataType EDataType, literalValue any) string
+	convertEBooleanObjectToString(eDataType EDataType, literalValue any) string
+	convertEByteToString(eDataType EDataType, literalValue any) string
+	convertEByteArrayToString(eDataType EDataType, literalValue any) string
+	convertEByteObjectToString(eDataType EDataType, literalValue any) string
+	convertECharToString(eDataType EDataType, literalValue any) string
+	convertECharacterObjectToString(eDataType EDataType, literalValue any) string
+	convertEDateToString(eDataType EDataType, literalValue any) string
+	convertEDoubleToString(eDataType EDataType, literalValue any) string
+	convertEDoubleObjectToString(eDataType EDataType, literalValue any) string
+	convertEFloatToString(eDataType EDataType, literalValue any) string
+	convertEFloatObjectToString(eDataType EDataType, literalValue any) string
+	convertEIntToString(eDataType EDataType, literalValue any) string
+	convertEIntegerObjectToString(eDataType EDataType, literalValue any) string
+	convertEJavaClassToString(eDataType EDataType, literalValue any) string
+	convertEJavaObjectToString(eDataType EDataType, literalValue any) string
+	convertELongToString(eDataType EDataType, literalValue any) string
+	convertELongObjectToString(eDataType EDataType, literalValue any) string
+	convertEShortToString(eDataType EDataType, literalValue any) string
+	convertEShortObjectToString(eDataType EDataType, literalValue any) string
+	convertEStringToString(eDataType EDataType, literalValue any) string
 }
 
 type ecoreFactoryImpl struct {
@@ -282,7 +282,7 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEStringToStringMapEntry() EStrin
 func (ecoreFactoryImpl *ecoreFactoryImpl) CreateETypeParameter() ETypeParameter {
 	return newETypeParameterImpl()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) CreateFromString(eDataType EDataType, literalValue string) any {
 	classID := eDataType.GetClassifierID()
 	internal := ecoreFactoryImpl.GetInterfaces().(ecoreFactoryInternal)
 	switch classID {
@@ -337,7 +337,7 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) CreateFromString(eDataType EDataType, 
 	}
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) ConvertToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) ConvertToString(eDataType EDataType, instanceValue any) string {
 	classID := eDataType.GetClassifierID()
 	internal := ecoreFactoryImpl.GetInterfaces().(ecoreFactoryInternal)
 	switch classID {
@@ -391,47 +391,47 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) ConvertToString(eDataType EDataType, i
 		panic("The datatype '" + eDataType.GetName() + "' is not a valid classifier")
 	}
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEBigDecimalFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEBigDecimalFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseFloat(literalValue, 64)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBigDecimalToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBigDecimalToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float64)
 	return strconv.FormatFloat(v, 'f', -1, 64)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEBigIntegerFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEBigIntegerFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseInt(literalValue, 10, 64)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBigIntegerToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBigIntegerToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int64)
 	return strconv.FormatInt(v, 10)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEBooleanFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEBooleanFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseBool(literalValue)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBooleanToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBooleanToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(bool)
 	return strconv.FormatBool(v)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEBooleanObjectFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEBooleanObjectFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseBool(literalValue)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBooleanObjectToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBooleanObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(bool)
 	return strconv.FormatBool(v)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteFromString(eDataType EDataType, literalValue string) any {
 	if len(literalValue) == 0 {
 		return "golang\u0000"
 	} else {
@@ -439,21 +439,21 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteFromString(eDataType EDataT
 	}
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteToString(eDataType EDataType, instanceValue any) string {
 	b := instanceValue.(byte)
 	return string([]byte{b})
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteArrayFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteArrayFromString(eDataType EDataType, literalValue string) any {
 	return []byte(literalValue)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteArrayToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteArrayToString(eDataType EDataType, instanceValue any) string {
 	b := instanceValue.([]byte)
 	return string(b)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteObjectFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteObjectFromString(eDataType EDataType, literalValue string) any {
 	if len(literalValue) == 0 {
 		return "golang\u0000"
 	} else {
@@ -461,12 +461,12 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteObjectFromString(eDataType 
 	}
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteObjectToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteObjectToString(eDataType EDataType, instanceValue any) string {
 	b := instanceValue.(byte)
 	return string([]byte{b})
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createECharFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createECharFromString(eDataType EDataType, literalValue string) any {
 	if len(literalValue) == 0 {
 		return "golang\u0000"
 	} else {
@@ -474,12 +474,12 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) createECharFromString(eDataType EDataT
 	}
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertECharToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertECharToString(eDataType EDataType, instanceValue any) string {
 	b := instanceValue.(byte)
 	return string([]byte{b})
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createECharacterObjectFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createECharacterObjectFromString(eDataType EDataType, literalValue string) any {
 	if len(literalValue) == 0 {
 		return "golang\u0000"
 	} else {
@@ -487,7 +487,7 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) createECharacterObjectFromString(eData
 	}
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertECharacterObjectToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertECharacterObjectToString(eDataType EDataType, instanceValue any) string {
 	b := instanceValue.(byte)
 	return string([]byte{b})
 }
@@ -496,137 +496,137 @@ const (
 	dateFormat string = "2006-01-02T15:04:05.999Z"
 )
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEDateFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEDateFromString(eDataType EDataType, literalValue string) any {
 	t, _ := time.Parse(dateFormat, literalValue)
 	return &t
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDateToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDateToString(eDataType EDataType, instanceValue any) string {
 	t, _ := instanceValue.(*time.Time)
 	return t.Format(dateFormat)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEDoubleFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEDoubleFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseFloat(literalValue, 64)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDoubleToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDoubleToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float64)
 	return strconv.FormatFloat(v, 'f', -1, 64)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEDoubleObjectFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEDoubleObjectFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseFloat(literalValue, 64)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDoubleObjectToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDoubleObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float64)
 	return strconv.FormatFloat(v, 'f', -1, 64)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEFloatFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEFloatFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseFloat(literalValue, 32)
 	return float32(value)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEFloatToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEFloatToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float32)
 	return strconv.FormatFloat(float64(v), 'f', -1, 32)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEFloatObjectFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEFloatObjectFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseFloat(literalValue, 32)
 	return float32(value)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEFloatObjectToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEFloatObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float32)
 	return strconv.FormatFloat(float64(v), 'f', -1, 32)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEIntFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEIntFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.Atoi(literalValue)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEIntToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEIntToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int)
 	return strconv.Itoa(v)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEIntegerObjectFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEIntegerObjectFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.Atoi(literalValue)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEIntegerObjectToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEIntegerObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int)
 	return strconv.Itoa(v)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEJavaClassFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEJavaClassFromString(eDataType EDataType, literalValue string) any {
 	panic("NotImplementedException")
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEJavaClassToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEJavaClassToString(eDataType EDataType, instanceValue any) string {
 	panic("NotImplementedException")
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEJavaObjectFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEJavaObjectFromString(eDataType EDataType, literalValue string) any {
 	panic("NotImplementedException")
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEJavaObjectToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEJavaObjectToString(eDataType EDataType, instanceValue any) string {
 	panic("NotImplementedException")
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createELongFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createELongFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseInt(literalValue, 10, 64)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertELongToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertELongToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int64)
 	return strconv.FormatInt(v, 10)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createELongObjectFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createELongObjectFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.Atoi(literalValue)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertELongObjectToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertELongObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int)
 	return strconv.Itoa(v)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEShortFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEShortFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseInt(literalValue, 10, 16)
 	return int16(value)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEShortToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEShortToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int16)
 	return strconv.FormatInt(int64(v), 10)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEShortObjectFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEShortObjectFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseInt(literalValue, 10, 16)
 	return int16(value)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEShortObjectToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEShortObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int16)
 	return strconv.FormatInt(int64(v), 10)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEStringFromString(eDataType EDataType, literalValue string) interface{} {
+func (ecoreFactoryImpl *ecoreFactoryImpl) createEStringFromString(eDataType EDataType, literalValue string) any {
 	return literalValue
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEStringToString(eDataType EDataType, instanceValue interface{}) string {
+func (ecoreFactoryImpl *ecoreFactoryImpl) convertEStringToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(string)
 	return v
 }

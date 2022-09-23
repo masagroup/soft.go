@@ -57,7 +57,7 @@ func (eClassifier *eClassifierImpl) EStaticFeatureCount() int {
 }
 
 // IsInstance default implementation
-func (eClassifier *eClassifierImpl) IsInstance(interface{}) bool {
+func (eClassifier *eClassifierImpl) IsInstance(any) bool {
 	panic("IsInstance not implemented")
 }
 
@@ -79,7 +79,7 @@ func (eClassifier *eClassifierImpl) SetClassifierID(newClassifierID int) {
 }
 
 // GetDefaultValue get the value of defaultValue
-func (eClassifier *eClassifierImpl) GetDefaultValue() interface{} {
+func (eClassifier *eClassifierImpl) GetDefaultValue() any {
 	panic("GetDefaultValue not implemented")
 }
 
@@ -133,7 +133,7 @@ func (eClassifier *eClassifierImpl) initClassifierID() int {
 	return -1
 }
 
-func (eClassifier *eClassifierImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eClassifier *eClassifierImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case ECLASSIFIER__CLASSIFIER_ID:
 		return eClassifier.asEClassifier().GetClassifierID()
@@ -152,7 +152,7 @@ func (eClassifier *eClassifierImpl) EGetFromID(featureID int, resolve bool) inte
 	}
 }
 
-func (eClassifier *eClassifierImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eClassifier *eClassifierImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case ECLASSIFIER__CLASSIFIER_ID:
 		eClassifier.asEClassifier().SetClassifierID(newValue.(int))
@@ -201,7 +201,7 @@ func (eClassifier *eClassifierImpl) EIsSetFromID(featureID int) bool {
 	}
 }
 
-func (eClassifier *eClassifierImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (eClassifier *eClassifierImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case ECLASSIFIER__IS_INSTANCE_EJAVAOBJECT:
 		return eClassifier.asEClassifier().IsInstance(arguments.Get(0))

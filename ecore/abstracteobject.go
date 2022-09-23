@@ -22,8 +22,8 @@ type AbstractEObject struct {
 }
 
 type EDynamicProperties interface {
-	EDynamicGet(dynamicFeatureID int) interface{}
-	EDynamicSet(dynamicFeatureID int, newValue interface{})
+	EDynamicGet(dynamicFeatureID int) any
+	EDynamicSet(dynamicFeatureID int, newValue any)
 	EDynamicUnset(dynamicFeatureID int)
 }
 
@@ -51,11 +51,11 @@ type EObjectInternal interface {
 	EDerivedFeatureID(container EObject, featureID int) int
 	EOperationID(operation EOperation) int
 	EDerivedOperationID(container EObject, operationID int) int
-	EGetFromID(featureID int, resolve bool) interface{}
-	ESetFromID(featureID int, newValue interface{})
+	EGetFromID(featureID int, resolve bool) any
+	ESetFromID(featureID int, newValue any)
 	EUnsetFromID(featureID int)
 	EIsSetFromID(featureID int) bool
-	EInvokeFromID(operationID int, arguments EList) interface{}
+	EInvokeFromID(operationID int, arguments EList) any
 
 	EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain
 	EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain
@@ -237,16 +237,16 @@ func (o *AbstractEObject) EDerivedOperationID(container EObject, operationID int
 }
 
 // EGet ...
-func (o *AbstractEObject) EGet(feature EStructuralFeature) interface{} {
+func (o *AbstractEObject) EGet(feature EStructuralFeature) any {
 	return o.eGetFromFeature(feature, true)
 }
 
 // EGetResolve ...
-func (o *AbstractEObject) EGetResolve(feature EStructuralFeature, resolve bool) interface{} {
+func (o *AbstractEObject) EGetResolve(feature EStructuralFeature, resolve bool) any {
 	return o.eGetFromFeature(feature, resolve)
 }
 
-func (o *AbstractEObject) eGetFromFeature(feature EStructuralFeature, resolve bool) interface{} {
+func (o *AbstractEObject) eGetFromFeature(feature EStructuralFeature, resolve bool) any {
 	featureID := o.AsEObjectInternal().EFeatureID(feature)
 	if featureID >= 0 {
 		return o.AsEObjectInternal().EGetFromID(featureID, resolve)
@@ -255,7 +255,7 @@ func (o *AbstractEObject) eGetFromFeature(feature EStructuralFeature, resolve bo
 }
 
 // EGetFromID ...
-func (o *AbstractEObject) EGetFromID(featureID int, resolve bool) interface{} {
+func (o *AbstractEObject) EGetFromID(featureID int, resolve bool) any {
 	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
 	if feature == nil {
 		panic("Invalid featureID: " + strconv.Itoa(featureID))
@@ -273,7 +273,7 @@ func (o *AbstractEObject) EGetFromID(featureID int, resolve bool) interface{} {
 	}
 }
 
-func (o *AbstractEObject) eDynamicPropertiesGet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, resolve bool) interface{} {
+func (o *AbstractEObject) eDynamicPropertiesGet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, resolve bool) any {
 	if IsContainer(dynamicFeature) {
 		objInternal := o.AsEObjectInternal()
 		featureID := objInternal.EClass().GetFeatureID(dynamicFeature)
@@ -391,7 +391,7 @@ func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeatur
 }
 
 // ESet ...
-func (o *AbstractEObject) ESet(feature EStructuralFeature, newValue interface{}) {
+func (o *AbstractEObject) ESet(feature EStructuralFeature, newValue any) {
 	featureID := o.AsEObjectInternal().EFeatureID(feature)
 	if featureID >= 0 {
 		o.AsEObjectInternal().ESetFromID(featureID, newValue)
@@ -401,7 +401,7 @@ func (o *AbstractEObject) ESet(feature EStructuralFeature, newValue interface{})
 }
 
 // ESetFromID ...
-func (o *AbstractEObject) ESetFromID(featureID int, newValue interface{}) {
+func (o *AbstractEObject) ESetFromID(featureID int, newValue any) {
 	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
 	if feature == nil {
 		panic("Invalid featureID: " + strconv.Itoa(featureID))
@@ -419,7 +419,7 @@ func (o *AbstractEObject) ESetFromID(featureID int, newValue interface{}) {
 	}
 }
 
-func (o *AbstractEObject) eDynamicPropertiesSet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, newValue interface{}) {
+func (o *AbstractEObject) eDynamicPropertiesSet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, newValue any) {
 	if IsContainer(dynamicFeature) {
 		// container
 		objInternal := o.AsEObjectInternal()
@@ -632,7 +632,7 @@ func (o *AbstractEObject) eDynamicPropertiesUnset(properties EDynamicProperties,
 }
 
 // EInvoke ...
-func (o *AbstractEObject) EInvoke(operation EOperation, arguments EList) interface{} {
+func (o *AbstractEObject) EInvoke(operation EOperation, arguments EList) any {
 	operationID := o.AsEObjectInternal().EOperationID(operation)
 	if operationID >= 0 {
 		return o.AsEObjectInternal().EInvokeFromID(operationID, arguments)
@@ -641,7 +641,7 @@ func (o *AbstractEObject) EInvoke(operation EOperation, arguments EList) interfa
 }
 
 // EInvokeFromID ...
-func (o *AbstractEObject) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (o *AbstractEObject) EInvokeFromID(operationID int, arguments EList) any {
 	operation := o.AsEObject().EClass().GetEOperation(operationID)
 	if operation == nil {
 		panic("Invalid operationID: " + strconv.Itoa(operationID))

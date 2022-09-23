@@ -25,7 +25,7 @@ func TestXMLEncoderLibraryNoRootWithOptions(t *testing.T) {
 	assert.NotNil(t, ePackage)
 
 	// load resource
-	options := map[string]interface{}{XML_OPTION_SUPPRESS_DOCUMENT_ROOT: true, XML_OPTION_EXTENDED_META_DATA: NewExtendedMetaData()}
+	options := map[string]any{XML_OPTION_SUPPRESS_DOCUMENT_ROOT: true, XML_OPTION_EXTENDED_META_DATA: NewExtendedMetaData()}
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
 	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.noroot.xml"), options)
 	require.NotNil(t, eResource)
@@ -53,7 +53,7 @@ func TestXMLEncoderLibraryNoRootWithReaderWriter(t *testing.T) {
 
 	// xml processor
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	options := map[string]interface{}{XML_OPTION_SUPPRESS_DOCUMENT_ROOT: true, XML_OPTION_EXTENDED_META_DATA: NewExtendedMetaData()}
+	options := map[string]any{XML_OPTION_SUPPRESS_DOCUMENT_ROOT: true, XML_OPTION_EXTENDED_META_DATA: NewExtendedMetaData()}
 
 	// load resource
 	reader, error := os.Open("testdata/library.noroot.xml")
@@ -163,7 +163,7 @@ func TestXMLEncoderLibraryComplexWithOptions(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	assert.NotNil(t, ePackage)
 
-	options := map[string]interface{}{XML_OPTION_SUPPRESS_DOCUMENT_ROOT: true, XML_OPTION_EXTENDED_META_DATA: NewExtendedMetaData()}
+	options := map[string]any{XML_OPTION_SUPPRESS_DOCUMENT_ROOT: true, XML_OPTION_EXTENDED_META_DATA: NewExtendedMetaData()}
 
 	// load resource
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
@@ -222,7 +222,7 @@ func TestXMLEncoderSimpleXMLWithIDs(t *testing.T) {
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	var strbuff strings.Builder
-	eResource.SaveWithWriter(&strbuff, map[string]interface{}{XML_OPTION_ID_ATTRIBUTE_NAME: "id"})
+	eResource.SaveWithWriter(&strbuff, map[string]any{XML_OPTION_ID_ATTRIBUTE_NAME: "id"})
 
 	bytes, err := ioutil.ReadFile("testdata/library.simple.ids.xml")
 	assert.Nil(t, err)
@@ -278,7 +278,7 @@ func TestXMLEncoderSimpleXMLRootObjects(t *testing.T) {
 
 	// save it now
 	var strbuff strings.Builder
-	eResource.SaveWithWriter(&strbuff, map[string]interface{}{XML_OPTION_ROOT_OBJECTS: NewImmutableEList([]interface{}{eBook})})
+	eResource.SaveWithWriter(&strbuff, map[string]any{XML_OPTION_ROOT_OBJECTS: NewImmutableEList([]any{eBook})})
 
 	bytes, err := ioutil.ReadFile("testdata/book.simple.xml")
 	assert.Nil(t, err)

@@ -11,25 +11,25 @@ package ecore
 
 // EList is the interface for dynamic containers
 type EList interface {
-	Add(interface{}) bool
+	Add(any) bool
 
 	AddAll(EList) bool
 
-	Insert(int, interface{}) bool
+	Insert(int, any) bool
 
 	InsertAll(int, EList) bool
 
-	MoveObject(int, interface{})
+	MoveObject(int, any)
 
-	Move(oldIndex int, newIndex int) interface{}
+	Move(oldIndex int, newIndex int) any
 
-	Get(int) interface{}
+	Get(int) any
 
-	Set(int, interface{}) interface{}
+	Set(int, any) any
 
-	RemoveAt(int) interface{}
+	RemoveAt(int) any
 
-	Remove(interface{}) bool
+	Remove(any) bool
 
 	RemoveAll(EList) bool
 
@@ -39,11 +39,11 @@ type EList interface {
 
 	Empty() bool
 
-	Contains(interface{}) bool
+	Contains(any) bool
 
-	IndexOf(interface{}) int
+	IndexOf(any) int
 
 	Iterator() EIterator
 
-	ToArray() []interface{}
+	ToArray() []any
 }

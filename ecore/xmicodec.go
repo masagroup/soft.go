@@ -14,9 +14,9 @@ import "io"
 type XMICodec struct {
 }
 
-func (d *XMICodec) NewEncoder(resource EResource, w io.Writer, options map[string]interface{}) EResourceEncoder {
+func (d *XMICodec) NewEncoder(resource EResource, w io.Writer, options map[string]any) EResourceEncoder {
 	return NewXMIEncoder(resource, w, options)
 }
-func (d *XMICodec) NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EResourceDecoder {
+func (d *XMICodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EResourceDecoder {
 	return NewXMIDecoder(resource, r, options)
 }

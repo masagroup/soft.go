@@ -130,7 +130,7 @@ func TestMockEResourceLoad(t *testing.T) {
 
 func TestMockEResourceLoadWithOptions(t *testing.T) {
 	r := &MockEResource{}
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	r.On("LoadWithOptions", m).Once()
 	r.LoadWithOptions(m)
 	r.AssertExpectations(t)
@@ -139,7 +139,7 @@ func TestMockEResourceLoadWithOptions(t *testing.T) {
 // TestMockEResourceLoadWithReader tests method LoadWithReader
 func TestMockEResourceLoadWithReader(t *testing.T) {
 	r := &MockEResource{}
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	r.On("LoadWithReader", nil, m).Once()
 	r.LoadWithReader(nil, m)
 	r.AssertExpectations(t)
@@ -163,7 +163,7 @@ func TestMockEResourceSave(t *testing.T) {
 
 func TestMockEResourceSaveWithOptions(t *testing.T) {
 	r := &MockEResource{}
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	r.On("SaveWithOptions", m).Once()
 	r.SaveWithOptions(m)
 	r.AssertExpectations(t)
@@ -172,7 +172,7 @@ func TestMockEResourceSaveWithOptions(t *testing.T) {
 // TestMockEResourceSaveWithReader tests method SaveWithReader
 func TestMockEResourceSaveWithReader(t *testing.T) {
 	r := &MockEResource{}
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	r.On("SaveWithWriter", nil, m).Once()
 	r.SaveWithWriter(nil, m)
 	r.AssertExpectations(t)

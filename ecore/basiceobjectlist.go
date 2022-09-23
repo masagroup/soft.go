@@ -26,7 +26,7 @@ type basicEObjectList struct {
 func NewBasicEObjectList(owner EObjectInternal, featureID int, inverseFeatureID int, containment, inverse, opposite, proxies, unset bool) *basicEObjectList {
 	l := new(basicEObjectList)
 	l.interfaces = l
-	l.data = []interface{}{}
+	l.data = []any{}
 	l.isUnique = true
 	l.owner = owner
 	l.featureID = featureID
@@ -67,7 +67,7 @@ func (list *basicEObjectList) GetUnResolvedList() EList {
 	return list
 }
 
-func (list *basicEObjectList) IndexOf(elem interface{}) int {
+func (list *basicEObjectList) IndexOf(elem any) int {
 	if list.proxies {
 		for i, value := range list.data {
 			if value == elem || list.resolve(i, value) == elem {
@@ -80,17 +80,17 @@ func (list *basicEObjectList) IndexOf(elem interface{}) int {
 }
 
 func (list *basicEObjectList) RemoveAll(collection EList) bool {
-	return list.doRemoveAll(collection, func(i int, other interface{}) bool {
+	return list.doRemoveAll(collection, func(i int, other any) bool {
 		object := list.data[i]
 		return object == other || list.resolve(i, object) == other
 	})
 }
 
-func (list *basicEObjectList) doGet(index int) interface{} {
+func (list *basicEObjectList) doGet(index int) any {
 	return list.resolve(index, list.basicEList.doGet(index))
 }
 
-func (list *basicEObjectList) resolve(index int, object interface{}) interface{} {
+func (list *basicEObjectList) resolve(index int, object any) any {
 	if eObject, _ := object.(EObject); eObject != nil {
 		resolved := list.resolveProxy(eObject)
 		if resolved != object {
@@ -116,7 +116,7 @@ func (list *basicEObjectList) resolveProxy(eObject EObject) EObject {
 	return eObject
 }
 
-func (list *basicEObjectList) inverseAdd(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (list *basicEObjectList) inverseAdd(object any, notifications ENotificationChain) ENotificationChain {
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {
@@ -128,7 +128,7 @@ func (list *basicEObjectList) inverseAdd(object interface{}, notifications ENoti
 	return notifications
 }
 
-func (list *basicEObjectList) inverseRemove(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (list *basicEObjectList) inverseRemove(object any, notifications ENotificationChain) ENotificationChain {
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {
@@ -144,7 +144,7 @@ type unResolvedBasicEObjectList struct {
 	delegate *basicEObjectList
 }
 
-func (l *unResolvedBasicEObjectList) Add(elem interface{}) bool {
+func (l *unResolvedBasicEObjectList) Add(elem any) bool {
 	if l.delegate.isUnique && l.Contains(elem) {
 		return false
 	}
@@ -165,7 +165,7 @@ func (l *unResolvedBasicEObjectList) AddAll(list EList) bool {
 }
 
 // Insert an element in the list
-func (l *unResolvedBasicEObjectList) Insert(index int, elem interface{}) bool {
+func (l *unResolvedBasicEObjectList) Insert(index int, elem any) bool {
 	if index < 0 || index > l.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(l.Size()))
 	}
@@ -192,7 +192,7 @@ func (l *unResolvedBasicEObjectList) InsertAll(index int, list EList) bool {
 }
 
 // Move an element to the given index
-func (l *unResolvedBasicEObjectList) MoveObject(newIndex int, elem interface{}) {
+func (l *unResolvedBasicEObjectList) MoveObject(newIndex int, elem any) {
 	oldIndex := l.IndexOf(elem)
 	if oldIndex == -1 {
 		panic("Object not found")
@@ -201,17 +201,17 @@ func (l *unResolvedBasicEObjectList) MoveObject(newIndex int, elem interface{}) 
 }
 
 // Swap move an element from oldIndex to newIndex
-func (l *unResolvedBasicEObjectList) Move(oldIndex, newIndex int) interface{} {
+func (l *unResolvedBasicEObjectList) Move(oldIndex, newIndex int) any {
 	return l.delegate.interfaces.(abstractEList).doMove(oldIndex, newIndex)
 }
 
 // RemoveAt remove an element at a given position
-func (l *unResolvedBasicEObjectList) RemoveAt(index int) interface{} {
+func (l *unResolvedBasicEObjectList) RemoveAt(index int) any {
 	return l.delegate.interfaces.(abstractEList).doRemove(index)
 }
 
 // Remove an element in an list
-func (l *unResolvedBasicEObjectList) Remove(elem interface{}) bool {
+func (l *unResolvedBasicEObjectList) Remove(elem any) bool {
 	index := l.IndexOf(elem)
 	if index == -1 {
 		return false
@@ -221,13 +221,13 @@ func (l *unResolvedBasicEObjectList) Remove(elem interface{}) bool {
 }
 
 func (l *unResolvedBasicEObjectList) RemoveAll(collection EList) bool {
-	return l.delegate.doRemoveAll(collection, func(index int, other interface{}) bool {
+	return l.delegate.doRemoveAll(collection, func(index int, other any) bool {
 		return l.delegate.data[index] == other
 	})
 }
 
 // Get an element of the list
-func (l *unResolvedBasicEObjectList) Get(index int) interface{} {
+func (l *unResolvedBasicEObjectList) Get(index int) any {
 	if index < 0 || index >= l.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(l.Size()))
 	}
@@ -235,7 +235,7 @@ func (l *unResolvedBasicEObjectList) Get(index int) interface{} {
 }
 
 // Set an element of the list
-func (l *unResolvedBasicEObjectList) Set(index int, elem interface{}) interface{} {
+func (l *unResolvedBasicEObjectList) Set(index int, elem any) any {
 	if index < 0 || index >= l.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(l.Size()))
 	}
@@ -264,12 +264,12 @@ func (l *unResolvedBasicEObjectList) Empty() bool {
 }
 
 // Contains return if an list contains or not an element
-func (l *unResolvedBasicEObjectList) Contains(elem interface{}) bool {
+func (l *unResolvedBasicEObjectList) Contains(elem any) bool {
 	return l.IndexOf(elem) != -1
 }
 
 // IndexOf return the index on an element in an list, else return -1
-func (l *unResolvedBasicEObjectList) IndexOf(elem interface{}) int {
+func (l *unResolvedBasicEObjectList) IndexOf(elem any) int {
 	return l.delegate.basicEList.IndexOf(elem)
 }
 
@@ -278,7 +278,7 @@ func (l *unResolvedBasicEObjectList) Iterator() EIterator {
 	return &listIterator{list: l}
 }
 
-func (l *unResolvedBasicEObjectList) ToArray() []interface{} {
+func (l *unResolvedBasicEObjectList) ToArray() []any {
 	return l.delegate.ToArray()
 }
 
@@ -294,11 +294,11 @@ func (l *unResolvedBasicEObjectList) GetFeatureID() int {
 	return l.delegate.GetFeatureID()
 }
 
-func (l *unResolvedBasicEObjectList) AddWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (l *unResolvedBasicEObjectList) AddWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	return l.delegate.AddWithNotification(object, notifications)
 }
 
-func (l *unResolvedBasicEObjectList) RemoveWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (l *unResolvedBasicEObjectList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	index := l.delegate.basicEList.IndexOf(object)
 	if index != -1 {
 		oldObject := l.delegate.basicEList.doRemove(index)
@@ -307,7 +307,7 @@ func (l *unResolvedBasicEObjectList) RemoveWithNotification(object interface{}, 
 	return notifications
 }
 
-func (l *unResolvedBasicEObjectList) SetWithNotification(index int, object interface{}, notifications ENotificationChain) ENotificationChain {
+func (l *unResolvedBasicEObjectList) SetWithNotification(index int, object any, notifications ENotificationChain) ENotificationChain {
 	return l.delegate.SetWithNotification(index, object, notifications)
 }
 

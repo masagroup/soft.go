@@ -66,7 +66,7 @@ func (eModelElement *eModelElementImpl) initEAnnotations() EList {
 	return NewBasicEObjectList(eModelElement.AsEObjectInternal(), EMODEL_ELEMENT__EANNOTATIONS, EANNOTATION__EMODEL_ELEMENT, true, true, true, false, false)
 }
 
-func (eModelElement *eModelElementImpl) EGetFromID(featureID int, resolve bool) interface{} {
+func (eModelElement *eModelElementImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
 		return eModelElement.asEModelElement().GetEAnnotations()
@@ -75,7 +75,7 @@ func (eModelElement *eModelElementImpl) EGetFromID(featureID int, resolve bool) 
 	}
 }
 
-func (eModelElement *eModelElementImpl) ESetFromID(featureID int, newValue interface{}) {
+func (eModelElement *eModelElementImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
 		list := eModelElement.asEModelElement().GetEAnnotations()
@@ -104,7 +104,7 @@ func (eModelElement *eModelElementImpl) EIsSetFromID(featureID int) bool {
 	}
 }
 
-func (eModelElement *eModelElementImpl) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (eModelElement *eModelElementImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EMODEL_ELEMENT__GET_EANNOTATION_ESTRING:
 		return eModelElement.asEModelElement().GetEAnnotation(arguments.Get(0).(string))

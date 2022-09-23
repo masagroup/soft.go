@@ -39,15 +39,15 @@ func (eClassifier *MockEClassifier) SetClassifierID(newClassifierID int) {
 }
 
 // GetDefaultValue get the value of defaultValue
-func (eClassifier *MockEClassifier) GetDefaultValue() interface{} {
+func (eClassifier *MockEClassifier) GetDefaultValue() any {
 	ret := eClassifier.Called()
 
-	var r interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(interface{})
+			r = ret.Get(0).(any)
 		}
 	}
 
@@ -134,7 +134,7 @@ func (eClassifier *MockEClassifier) SetInstanceTypeName(newInstanceTypeName stri
 }
 
 // IsInstance provides mock implementation
-func (eClassifier *MockEClassifier) IsInstance(object interface{}) bool {
+func (eClassifier *MockEClassifier) IsInstance(object any) bool {
 	ret := eClassifier.Called(object)
 
 	var r bool

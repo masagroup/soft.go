@@ -34,7 +34,7 @@ type EContentsListTestSuite struct {
 func (suite *EContentsListTestSuite) SetupTest() {
 	suite.mockObject = &MockEObject{}
 	suite.mockFeature = &MockEStructuralFeature{}
-	suite.l = newEContentsList(suite.mockObject, NewImmutableEList([]interface{}{suite.mockFeature}), false)
+	suite.l = newEContentsList(suite.mockObject, NewImmutableEList([]any{suite.mockFeature}), false)
 }
 
 func (suite *EContentsListTestSuite) AfterTest() {
@@ -78,7 +78,7 @@ func (suite *EContentsListTestSuite) TestSize() {
 	mock.AssertExpectationsForObjects(suite.T(), suite.mockObject, suite.mockFeature)
 
 	// many
-	l := NewImmutableEList([]interface{}{struct{}{}})
+	l := NewImmutableEList([]any{struct{}{}})
 	suite.mockObject.On("EIsSet", suite.mockFeature).Return(true).Once()
 	suite.mockObject.On("EGetResolve", suite.mockFeature, false).Return(l).Once()
 	suite.mockFeature.On("IsMany").Return(true).Once()

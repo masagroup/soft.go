@@ -47,7 +47,7 @@ func TestMockEFactorySetEPackage(t *testing.T) {
 func TestMockEFactoryConvertToString(t *testing.T) {
 	o := &MockEFactory{}
 	eDataType := new(MockEDataType)
-	instanceValue := interface{}(nil)
+	instanceValue := any(nil)
 	r := string("Test String")
 	o.On("ConvertToString", eDataType, instanceValue).Return(r).Once()
 	o.On("ConvertToString", eDataType, instanceValue).Return(func() string {
@@ -77,9 +77,9 @@ func TestMockEFactoryCreateFromString(t *testing.T) {
 	o := &MockEFactory{}
 	eDataType := new(MockEDataType)
 	literalValue := string("Test String")
-	r := interface{}(nil)
+	r := any(nil)
 	o.On("CreateFromString", eDataType, literalValue).Return(r).Once()
-	o.On("CreateFromString", eDataType, literalValue).Return(func() interface{} {
+	o.On("CreateFromString", eDataType, literalValue).Return(func() any {
 		return r
 	}).Once()
 	assert.Equal(t, r, o.CreateFromString(eDataType, literalValue))

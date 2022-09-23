@@ -63,15 +63,15 @@ func (_m *MockENotification) GetFeatureID() int {
 }
 
 // GetNewValue provides a mock function with given fields:
-func (_m *MockENotification) GetNewValue() interface{} {
+func (_m *MockENotification) GetNewValue() any {
 	ret := _m.Called()
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 
@@ -95,15 +95,15 @@ func (_m *MockENotification) GetNotifier() ENotifier {
 }
 
 // GetOldValue provides a mock function with given fields:
-func (_m *MockENotification) GetOldValue() interface{} {
+func (_m *MockENotification) GetOldValue() any {
 	ret := _m.Called()
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 

@@ -217,7 +217,7 @@ func TestMockEObjectInternal_EGetFromID(t *testing.T) {
 
 	// return a value
 	o.On("EGetFromID", 1, false).Once().Return(obj)
-	o.On("EGetFromID", 1, true).Once().Return(func(featureID int, resolve bool) interface{} {
+	o.On("EGetFromID", 1, true).Once().Return(func(featureID int, resolve bool) any {
 		return obj
 	})
 	assert.Equal(t, obj, o.EGetFromID(1, false))
@@ -265,7 +265,7 @@ func TestMockEObjectInternal_EInvokeFromID(t *testing.T) {
 	args := &MockEList{}
 	// return a value
 	o.On("EInvokeFromID", 1, args).Once().Return(obj)
-	o.On("EInvokeFromID", 1, args).Once().Return(func(operationID int, arguments EList) interface{} {
+	o.On("EInvokeFromID", 1, args).Once().Return(func(operationID int, arguments EList) any {
 		return obj
 	})
 	assert.Equal(t, obj, o.EInvokeFromID(1, args))

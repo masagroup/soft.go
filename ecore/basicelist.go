@@ -12,41 +12,41 @@ package ecore
 import "strconv"
 
 type abstractEList interface {
-	doGet(index int) interface{}
+	doGet(index int) any
 
-	doSet(index int, elem interface{}) interface{}
+	doSet(index int, elem any) any
 
-	doAdd(elem interface{})
+	doAdd(elem any)
 
 	doAddAll(list EList) bool
 
-	doInsert(index int, elem interface{})
+	doInsert(index int, elem any)
 
 	doInsertAll(index int, list EList) bool
 
-	doClear() []interface{}
+	doClear() []any
 
-	doMove(oldIndex, newIndew int) interface{}
+	doMove(oldIndex, newIndew int) any
 
-	doRemove(index int) interface{}
+	doRemove(index int) any
 
-	didAdd(index int, elem interface{})
+	didAdd(index int, elem any)
 
-	didSet(index int, newElem interface{}, oldElem interface{})
+	didSet(index int, newElem any, oldElem any)
 
-	didRemove(index int, old interface{})
+	didRemove(index int, old any)
 
-	didClear(oldObjects []interface{})
+	didClear(oldObjects []any)
 
-	didMove(newIndex int, movedObject interface{}, oldIndex int)
+	didMove(newIndex int, movedObject any, oldIndex int)
 
 	didChange()
 }
 
 // basicEList is an array of a dynamic size
 type basicEList struct {
-	interfaces interface{}
-	data       []interface{}
+	interfaces any
+	data       []any
 	isUnique   bool
 }
 
@@ -54,13 +54,13 @@ type basicEList struct {
 func NewEmptyBasicEList() *basicEList {
 	a := new(basicEList)
 	a.interfaces = a
-	a.data = []interface{}{}
+	a.data = []any{}
 	a.isUnique = false
 	return a
 }
 
 // NewBasicEList return a new ArrayEList
-func NewBasicEList(data []interface{}) *basicEList {
+func NewBasicEList(data []any) *basicEList {
 	a := new(basicEList)
 	a.interfaces = a
 	a.data = data
@@ -69,7 +69,7 @@ func NewBasicEList(data []interface{}) *basicEList {
 }
 
 // NewUniqueBasicEList return a new ArrayEList with isUnique set as true
-func NewUniqueBasicEList(data []interface{}) *basicEList {
+func NewUniqueBasicEList(data []any) *basicEList {
 	a := new(basicEList)
 	a.interfaces = a
 	a.data = data
@@ -79,7 +79,7 @@ func NewUniqueBasicEList(data []interface{}) *basicEList {
 
 // Remove all elements from list that are not in ref list
 func getNonDuplicates(list EList, ref EList) *basicEList {
-	newList := NewBasicEList([]interface{}{})
+	newList := NewBasicEList([]any{})
 	for it := list.Iterator(); it.HasNext(); {
 		value := it.Next()
 		if !newList.Contains(value) && !ref.Contains(value) {
@@ -89,11 +89,11 @@ func getNonDuplicates(list EList, ref EList) *basicEList {
 	return newList
 }
 
-func (list *basicEList) SetInterfaces(interfaces interface{}) {
+func (list *basicEList) SetInterfaces(interfaces any) {
 	list.interfaces = interfaces
 }
 
-func (list *basicEList) Add(elem interface{}) bool {
+func (list *basicEList) Add(elem any) bool {
 	if list.isUnique && list.Contains(elem) {
 		return false
 	}
@@ -102,7 +102,7 @@ func (list *basicEList) Add(elem interface{}) bool {
 }
 
 // Add a new element to the array
-func (list *basicEList) doAdd(e interface{}) {
+func (list *basicEList) doAdd(e any) {
 	size := len(list.data)
 	list.data = append(list.data, e)
 	// events
@@ -136,7 +136,7 @@ func (list *basicEList) doAddAll(collection EList) bool {
 }
 
 // Insert an element in the array
-func (list *basicEList) Insert(index int, elem interface{}) bool {
+func (list *basicEList) Insert(index int, elem any) bool {
 	if index < 0 || index > list.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
@@ -147,7 +147,7 @@ func (list *basicEList) Insert(index int, elem interface{}) bool {
 	return true
 }
 
-func (list *basicEList) doInsert(index int, e interface{}) {
+func (list *basicEList) doInsert(index int, e any) {
 	list.data = append(list.data, nil)
 	copy(list.data[index+1:], list.data[index:])
 	list.data[index] = e
@@ -185,7 +185,7 @@ func (list *basicEList) doInsertAll(index int, collection EList) bool {
 }
 
 // Move an element to the given index
-func (list *basicEList) MoveObject(newIndex int, elem interface{}) {
+func (list *basicEList) MoveObject(newIndex int, elem any) {
 	oldIndex := list.interfaces.(EList).IndexOf(elem)
 	if oldIndex == -1 {
 		panic("Object not found")
@@ -194,11 +194,11 @@ func (list *basicEList) MoveObject(newIndex int, elem interface{}) {
 }
 
 // Swap move an element from oldIndex to newIndex
-func (list *basicEList) Move(oldIndex, newIndex int) interface{} {
+func (list *basicEList) Move(oldIndex, newIndex int) any {
 	return list.interfaces.(abstractEList).doMove(oldIndex, newIndex)
 }
 
-func (list *basicEList) doMove(oldIndex, newIndex int) interface{} {
+func (list *basicEList) doMove(oldIndex, newIndex int) any {
 	if oldIndex < 0 || oldIndex >= list.Size() ||
 		newIndex < 0 || newIndex > list.Size() {
 		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(list.Size()))
@@ -222,12 +222,12 @@ func (list *basicEList) doMove(oldIndex, newIndex int) interface{} {
 }
 
 // RemoveAt remove an element at a given position
-func (list *basicEList) RemoveAt(index int) interface{} {
+func (list *basicEList) RemoveAt(index int) any {
 	return list.interfaces.(abstractEList).doRemove(index)
 }
 
 // Remove an element in an array
-func (list *basicEList) Remove(elem interface{}) bool {
+func (list *basicEList) Remove(elem any) bool {
 	index := list.interfaces.(EList).IndexOf(elem)
 	if index == -1 {
 		return false
@@ -236,7 +236,7 @@ func (list *basicEList) Remove(elem interface{}) bool {
 	return true
 }
 
-func (list *basicEList) doRemove(index int) interface{} {
+func (list *basicEList) doRemove(index int) any {
 	if index < 0 || index >= list.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
@@ -267,18 +267,18 @@ func (list *basicEList) RemoveAll(collection EList) bool {
 }
 
 // Get an element of the array
-func (list *basicEList) Get(index int) interface{} {
+func (list *basicEList) Get(index int) any {
 	if index < 0 || index >= list.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
 	return list.interfaces.(abstractEList).doGet(index)
 }
 
-func (list *basicEList) doGet(index int) interface{} {
+func (list *basicEList) doGet(index int) any {
 	return list.data[index]
 }
 
-func (list *basicEList) doSet(index int, elem interface{}) interface{} {
+func (list *basicEList) doSet(index int, elem any) any {
 	old := list.data[index]
 	list.data[index] = elem
 	// events
@@ -289,7 +289,7 @@ func (list *basicEList) doSet(index int, elem interface{}) interface{} {
 }
 
 // Set an element of the array
-func (list *basicEList) Set(index int, elem interface{}) interface{} {
+func (list *basicEList) Set(index int, elem any) any {
 	if index < 0 || index >= list.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
@@ -312,9 +312,9 @@ func (list *basicEList) Clear() {
 	list.interfaces.(abstractEList).doClear()
 }
 
-func (list *basicEList) doClear() []interface{} {
+func (list *basicEList) doClear() []any {
 	oldData := list.data
-	list.data = make([]interface{}, 0)
+	list.data = make([]any, 0)
 
 	// events
 	interfaces := list.interfaces.(abstractEList)
@@ -328,12 +328,12 @@ func (list *basicEList) Empty() bool {
 }
 
 // Contains return if an array contains or not an element
-func (list *basicEList) Contains(elem interface{}) bool {
+func (list *basicEList) Contains(elem any) bool {
 	return list.interfaces.(EList).IndexOf(elem) != -1
 }
 
 // IndexOf return the index on an element in an array, else return -1
-func (list *basicEList) IndexOf(elem interface{}) int {
+func (list *basicEList) IndexOf(elem any) int {
 	for i, value := range list.data {
 		if value == elem {
 			return i
@@ -347,27 +347,27 @@ func (list *basicEList) Iterator() EIterator {
 	return &listIterator{list: list}
 }
 
-func (list *basicEList) ToArray() []interface{} {
+func (list *basicEList) ToArray() []any {
 	return list.data
 }
 
-func (list *basicEList) didAdd(index int, elem interface{}) {
+func (list *basicEList) didAdd(index int, elem any) {
 
 }
 
-func (list *basicEList) didSet(index int, newElem interface{}, oldElem interface{}) {
+func (list *basicEList) didSet(index int, newElem any, oldElem any) {
 
 }
 
-func (list *basicEList) didRemove(index int, old interface{}) {
+func (list *basicEList) didRemove(index int, old any) {
 
 }
 
-func (list *basicEList) didClear(oldObjects []interface{}) {
+func (list *basicEList) didClear(oldObjects []any) {
 
 }
 
-func (list *basicEList) didMove(newIndex int, movedObject interface{}, oldIndex int) {
+func (list *basicEList) didMove(newIndex int, movedObject any, oldIndex int) {
 
 }
 

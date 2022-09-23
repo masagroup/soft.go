@@ -18,8 +18,8 @@ type EEnumLiteral interface {
 	GetValue() int
 	SetValue(int)
 
-	GetInstance() interface{}
-	SetInstance(interface{})
+	GetInstance() any
+	SetInstance(any)
 
 	GetLiteral() string
 	SetLiteral(string)

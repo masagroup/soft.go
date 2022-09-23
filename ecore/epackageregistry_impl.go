@@ -10,20 +10,20 @@
 package ecore
 
 type EPackageRegistryImpl struct {
-	packages map[string]interface{}
+	packages map[string]any
 	delegate EPackageRegistry
 }
 
 func NewEPackageRegistryImpl() *EPackageRegistryImpl {
 	r := &EPackageRegistryImpl{
-		packages: map[string]interface{}{},
+		packages: map[string]any{},
 	}
 	return r
 }
 
 func NewEPackageRegistryImplWithDelegate(delegate EPackageRegistry) *EPackageRegistryImpl {
 	r := &EPackageRegistryImpl{
-		packages: map[string]interface{}{},
+		packages: map[string]any{},
 		delegate: delegate,
 	}
 	return r
@@ -50,8 +50,7 @@ func (r *EPackageRegistryImpl) Remove(nsURI string) {
 }
 
 func (r *EPackageRegistryImpl) doGetPackage(nsURI string) EPackage {
-	p, _ := r.packages[nsURI]
-	if p != nil {
+	if p := r.packages[nsURI]; p != nil {
 		if pack, _ := p.(EPackage); pack != nil {
 			return pack
 		} else if f, _ := p.(func() EPackage); f != nil {

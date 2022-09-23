@@ -14,7 +14,7 @@ package ecore
 // It can be installed for an {@link EObject}, a {@link Resource}, or a {@link ResourceSet}.
 type EContentAdapter struct {
 	AbstractEAdapter
-	interfaces     interface{}
+	interfaces     any
 	resolveProxies bool
 }
 
@@ -24,7 +24,7 @@ func NewEContentAdapter() *EContentAdapter {
 	return ca
 }
 
-func (adapter *EContentAdapter) SetInterfaces(interfaces interface{}) {
+func (adapter *EContentAdapter) SetInterfaces(interfaces any) {
 	adapter.interfaces = interfaces
 }
 
@@ -137,7 +137,7 @@ func (adapter *EContentAdapter) handleContainment(notification ENotification) {
 		newNotifier, _ := notification.GetNewValue().(ENotifier)
 		adapter.addAdapter(newNotifier)
 	case ADD_MANY:
-		newValues, _ := notification.GetNewValue().([]interface{})
+		newValues, _ := notification.GetNewValue().([]any)
 		for _, notifier := range newValues {
 			newNotifier, _ := notifier.(ENotifier)
 			adapter.addAdapter(newNotifier)
@@ -150,7 +150,7 @@ func (adapter *EContentAdapter) handleContainment(notification ENotification) {
 	case REMOVE_MANY:
 		_, checkContainer := notification.GetNotifier().(EResource)
 		checkResource := notification.GetFeature() != nil
-		oldValues, _ := notification.GetOldValue().([]interface{})
+		oldValues, _ := notification.GetOldValue().([]any)
 		for _, notifier := range oldValues {
 			oldNotifier, _ := notifier.(ENotifier)
 			adapter.removeAdapterWithChecks(oldNotifier, checkContainer, checkResource)

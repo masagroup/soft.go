@@ -4,12 +4,14 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"sync"
 	"unsafe"
 )
 
 // Adapted from https://neilmadden.blog/2018/08/30/moving-away-from-uuids/
 
 type UniqueIDManager struct {
+	mutex        sync.RWMutex
 	detachedToID map[uintptr]string
 	objectToID   map[EObject]string
 	idToObject   map[string]EObject
@@ -49,12 +51,15 @@ func (m *UniqueIDManager) newID() string {
 }
 
 func (m *UniqueIDManager) Clear() {
+	m.mutex.Lock()
 	m.detachedToID = make(map[uintptr]string)
 	m.objectToID = make(map[EObject]string)
 	m.idToObject = make(map[string]EObject)
+	m.mutex.Unlock()
 }
 
 func (m *UniqueIDManager) Register(eObject EObject) {
+	m.mutex.Lock()
 	if _, isID := m.objectToID[eObject]; !isID {
 		// if object is detached, retrieve its id
 		// remove it from detached map
@@ -65,11 +70,12 @@ func (m *UniqueIDManager) Register(eObject EObject) {
 		} else {
 			newID = m.newID()
 		}
-		m.SetID(eObject, newID)
+		m.setID(eObject, newID)
 	}
+	m.mutex.Unlock()
 }
 
-func (m *UniqueIDManager) SetID(eObject EObject, id any) error {
+func (m *UniqueIDManager) setID(eObject EObject, id any) error {
 	if id == nil {
 		id = ""
 	}
@@ -93,7 +99,14 @@ func (m *UniqueIDManager) SetID(eObject EObject, id any) error {
 	return fmt.Errorf("id:'%v' not supported by UniqueIDManager", id)
 }
 
+func (m *UniqueIDManager) SetID(eObject EObject, id any) error {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	return m.setID(eObject, id)
+}
+
 func (m *UniqueIDManager) UnRegister(eObject EObject) {
+	m.mutex.Lock()
 	if id, isPresent := m.objectToID[eObject]; isPresent {
 		delete(m.idToObject, id)
 		delete(m.objectToID, eObject)
@@ -102,9 +115,12 @@ func (m *UniqueIDManager) UnRegister(eObject EObject) {
 		objectHash := m.getHash(eObject)
 		m.detachedToID[objectHash] = id
 	}
+	m.mutex.Unlock()
 }
 
 func (m *UniqueIDManager) GetID(eObject EObject) any {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
 	if id, isPresent := m.objectToID[eObject]; isPresent {
 		return id
 	}
@@ -112,6 +128,9 @@ func (m *UniqueIDManager) GetID(eObject EObject) any {
 }
 
 func (m *UniqueIDManager) GetEObject(id any) EObject {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
 	switch i := id.(type) {
 	case string:
 		return m.idToObject[i]
@@ -121,6 +140,9 @@ func (m *UniqueIDManager) GetEObject(id any) EObject {
 }
 
 func (m *UniqueIDManager) GetDetachedID(eObject EObject) any {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
 	objectHash := m.getHash(eObject)
 	if id, isDetached := m.detachedToID[objectHash]; isDetached {
 		return id

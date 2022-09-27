@@ -20,7 +20,7 @@ type eMapEntryFactory interface {
 }
 
 type basicEMapList struct {
-	basicEList
+	BasicEList
 	m *BasicEMap
 }
 

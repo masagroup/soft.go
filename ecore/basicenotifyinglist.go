@@ -10,7 +10,7 @@ type eNotifyingListInternal interface {
 
 // BasicENotifyingList ...
 type BasicENotifyingList struct {
-	basicEList
+	BasicEList
 }
 
 // NewBasicENotifyingList ...
@@ -123,7 +123,7 @@ func (list *BasicENotifyingList) inverseRemove(object any, notifications ENotifi
 // AddWithNotification ...
 func (list *BasicENotifyingList) AddWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	index := list.Size()
-	list.basicEList.doAdd(object)
+	list.BasicEList.doAdd(object)
 	return list.createAndAddNotification(notifications, ADD, nil, object, index)
 }
 
@@ -131,7 +131,7 @@ func (list *BasicENotifyingList) AddWithNotification(object any, notifications E
 func (list *BasicENotifyingList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	index := list.interfaces.(EList).IndexOf(object)
 	if index != -1 {
-		oldObject := list.basicEList.doRemove(index)
+		oldObject := list.BasicEList.doRemove(index)
 		return list.createAndAddNotification(notifications, REMOVE, oldObject, nil, index)
 	}
 	return notifications
@@ -139,13 +139,13 @@ func (list *BasicENotifyingList) RemoveWithNotification(object any, notification
 
 // SetWithNotification ...
 func (list *BasicENotifyingList) SetWithNotification(index int, object any, notifications ENotificationChain) ENotificationChain {
-	oldObject := list.basicEList.doSet(index, object)
+	oldObject := list.BasicEList.doSet(index, object)
 	return list.createAndAddNotification(notifications, SET, oldObject, object, index)
 }
 
 func (list *BasicENotifyingList) doAdd(object any) {
 	index := list.interfaces.(EList).Size()
-	list.basicEList.doAdd(object)
+	list.BasicEList.doAdd(object)
 	notifications := list.interfaces.(eNotifyingListInternal).inverseAdd(object, nil)
 	list.createAndDispatchNotification(notifications, ADD, nil, object, index)
 }
@@ -155,7 +155,7 @@ func (list *BasicENotifyingList) doAddAll(l EList) bool {
 }
 
 func (list *BasicENotifyingList) doInsert(index int, object any) {
-	list.basicEList.doInsert(index, object)
+	list.BasicEList.doInsert(index, object)
 	notifications := list.interfaces.(eNotifyingListInternal).inverseAdd(object, nil)
 	list.createAndDispatchNotification(notifications, ADD, nil, object, index)
 }
@@ -165,7 +165,7 @@ func (list *BasicENotifyingList) doInsertAll(index int, l EList) bool {
 		return false
 	}
 
-	result := list.basicEList.doInsertAll(index, l)
+	result := list.BasicEList.doInsertAll(index, l)
 	var notifications ENotificationChain = NewNotificationChain()
 	for it := l.Iterator(); it.HasNext(); {
 		notifications = list.interfaces.(eNotifyingListInternal).inverseAdd(it.Next(), notifications)
@@ -181,7 +181,7 @@ func (list *BasicENotifyingList) doInsertAll(index int, l EList) bool {
 }
 
 func (list *BasicENotifyingList) doSet(index int, newObject any) any {
-	oldObject := list.basicEList.doSet(index, newObject)
+	oldObject := list.BasicEList.doSet(index, newObject)
 	if newObject != oldObject {
 		var notifications ENotificationChain
 		notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(oldObject, notifications)
@@ -192,7 +192,7 @@ func (list *BasicENotifyingList) doSet(index int, newObject any) any {
 }
 
 func (list *BasicENotifyingList) doClear() []any {
-	oldData := list.basicEList.doClear()
+	oldData := list.BasicEList.doClear()
 	if len(oldData) == 0 {
 		list.createAndDispatchNotification(nil, REMOVE_MANY, []any{}, nil, -1)
 	} else {
@@ -214,14 +214,14 @@ func (list *BasicENotifyingList) doClear() []any {
 }
 
 func (list *BasicENotifyingList) doMove(oldIndex, newIndex int) any {
-	oldObject := list.basicEList.doMove(oldIndex, newIndex)
+	oldObject := list.BasicEList.doMove(oldIndex, newIndex)
 	list.createAndDispatchNotification(nil, MOVE, oldIndex, oldObject, newIndex)
 	return oldObject
 }
 
 // RemoveAt ...
 func (list *BasicENotifyingList) doRemove(index int) any {
-	oldObject := list.basicEList.doRemove(index)
+	oldObject := list.BasicEList.doRemove(index)
 	var notifications ENotificationChain
 	notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(oldObject, notifications)
 	list.createAndDispatchNotification(notifications, REMOVE, oldObject, nil, index)
@@ -256,7 +256,7 @@ func (list *BasicENotifyingList) doRemoveAll(collection EList, getAndCompare fun
 
 	// remove
 	for i := len(positions) - 1; i >= 0; i-- {
-		list.basicEList.doRemove(positions[i].(int))
+		list.BasicEList.doRemove(positions[i].(int))
 	}
 
 	// inverse remove

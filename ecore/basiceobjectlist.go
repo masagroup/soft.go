@@ -76,7 +76,7 @@ func (list *basicEObjectList) IndexOf(elem any) int {
 		}
 		return -1
 	}
-	return list.basicEList.IndexOf(elem)
+	return list.BasicEList.IndexOf(elem)
 }
 
 func (list *basicEObjectList) RemoveAll(collection EList) bool {
@@ -87,14 +87,14 @@ func (list *basicEObjectList) RemoveAll(collection EList) bool {
 }
 
 func (list *basicEObjectList) doGet(index int) any {
-	return list.resolve(index, list.basicEList.doGet(index))
+	return list.resolve(index, list.BasicEList.doGet(index))
 }
 
 func (list *basicEObjectList) resolve(index int, object any) any {
 	if eObject, _ := object.(EObject); eObject != nil {
 		resolved := list.resolveProxy(eObject)
 		if resolved != object {
-			list.basicEList.doSet(index, resolved)
+			list.BasicEList.doSet(index, resolved)
 			var notifications ENotificationChain
 			if list.containment {
 				notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(object, notifications)
@@ -270,7 +270,7 @@ func (l *unResolvedBasicEObjectList) Contains(elem any) bool {
 
 // IndexOf return the index on an element in an list, else return -1
 func (l *unResolvedBasicEObjectList) IndexOf(elem any) int {
-	return l.delegate.basicEList.IndexOf(elem)
+	return l.delegate.BasicEList.IndexOf(elem)
 }
 
 // Iterator through the list
@@ -299,9 +299,9 @@ func (l *unResolvedBasicEObjectList) AddWithNotification(object any, notificatio
 }
 
 func (l *unResolvedBasicEObjectList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
-	index := l.delegate.basicEList.IndexOf(object)
+	index := l.delegate.BasicEList.IndexOf(object)
 	if index != -1 {
-		oldObject := l.delegate.basicEList.doRemove(index)
+		oldObject := l.delegate.BasicEList.doRemove(index)
 		return l.delegate.createAndAddNotification(notifications, REMOVE, oldObject, nil, index)
 	}
 	return notifications

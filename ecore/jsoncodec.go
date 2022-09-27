@@ -24,7 +24,7 @@ func (jc *JSONCodec) NewEncoder(resource EResource, w io.Writer, options map[str
 	return NewJSONEncoder(resource, w, options)
 }
 func (jc *JSONCodec) NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EResourceDecoder {
-	return nil
+	panic("not implemented")
 }
 
 type jsonFeatureKind int

@@ -10,7 +10,7 @@
 package ecore
 
 type notifierAdapterList struct {
-	basicEList
+	BasicEList
 	notifier *AbstractENotifier
 }
 

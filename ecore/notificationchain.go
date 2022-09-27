@@ -11,7 +11,7 @@ package ecore
 
 // notificationChain is an implementation of ENotificationChain interface
 type notificationChain struct {
-	notifications *basicEList
+	notifications *BasicEList
 }
 
 // NewNotificationChain ...

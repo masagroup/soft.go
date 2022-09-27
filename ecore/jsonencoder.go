@@ -178,7 +178,5 @@ func (e *JSONEncoder) getReference(eObject EObject) string {
 }
 
 func (e *JSONEncoder) getResourceReference(resource EResource, object EObject) *URI {
-	uri := resource.GetURI().Copy()
-	uri.Fragment = resource.GetURIFragment(object)
-	return uri
+	return NewURIBuilder(resource.GetURI()).SetFragment(resource.GetURIFragment(object)).URI()
 }

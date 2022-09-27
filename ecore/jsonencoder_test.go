@@ -15,7 +15,7 @@ func TestJSONEncoder_EncodeResourceSimple(t *testing.T) {
 
 	// load model file
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.Load(&URI{Path: "testdata/library.simple.xml"})
+	eResource := xmlProcessor.Load(CreateFileURI("testdata/library.simple.xml"))
 	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -35,7 +35,7 @@ func TestJSONEncoder_EncodeResourceComplex(t *testing.T) {
 
 	// load model file
 	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
-	eResource := xmlProcessor.Load(&URI{Path: "testdata/library.complex.xml"})
+	eResource := xmlProcessor.Load(CreateFileURI("testdata/library.complex.xml"))
 	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))

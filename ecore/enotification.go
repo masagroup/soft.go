@@ -41,6 +41,22 @@ const (
 	EVENT_TYPE_COUNT
 )
 
+var eventTypeToString = map[EventType]string{
+	SET:              "SET",
+	UNSET:            "UNSET",
+	ADD:              "ADD",
+	REMOVE:           "REMOVE",
+	ADD_MANY:         "ADD_MANY",
+	REMOVE_MANY:      "REMOVE_MANY",
+	MOVE:             "MOVE",
+	REMOVING_ADAPTER: "REMOVING_ADAPTER",
+	RESOLVE:          "RESOLVE",
+}
+
+func (e EventType) String() string {
+	return eventTypeToString[e]
+}
+
 // ENotification A description of a feature change that has occurred for some notifier.
 type ENotification interface {
 

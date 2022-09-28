@@ -33,24 +33,24 @@ func newBasicEMapList(m *BasicEMap) *basicEMapList {
 	return l
 }
 
-func (ml *basicEMapList) didAdd(index int, elem any) {
+func (ml *basicEMapList) DidAdd(index int, elem any) {
 	entry := elem.(EMapEntry)
 	ml.m.doAdd(entry)
 }
 
-func (ml *basicEMapList) didSet(index int, newElem any, oldElem any) {
+func (ml *basicEMapList) DidSet(index int, newElem any, oldElem any) {
 	newEntry := newElem.(EMapEntry)
 	oldEntry := oldElem.(EMapEntry)
 	ml.m.doRemove(oldEntry)
 	ml.m.doAdd(newEntry)
 }
 
-func (ml *basicEMapList) didRemove(index int, oldElem any) {
+func (ml *basicEMapList) DidRemove(index int, oldElem any) {
 	oldEntry := oldElem.(EMapEntry)
 	ml.m.doRemove(oldEntry)
 }
 
-func (ml *basicEMapList) didClear(oldObjects []any) {
+func (ml *basicEMapList) DidClear(oldObjects []any) {
 	ml.m.doClear()
 }
 

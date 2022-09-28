@@ -30,17 +30,17 @@ type abstractEList interface {
 
 	doRemove(index int) any
 
-	didAdd(index int, elem any)
+	DidAdd(index int, elem any)
 
-	didSet(index int, newElem any, oldElem any)
+	DidSet(index int, newElem any, oldElem any)
 
-	didRemove(index int, old any)
+	DidRemove(index int, old any)
 
-	didClear(oldObjects []any)
+	DidClear(oldObjects []any)
 
-	didMove(newIndex int, movedObject any, oldIndex int)
+	DidMove(newIndex int, movedObject any, oldIndex int)
 
-	didChange()
+	DidChange()
 }
 
 // basicEList is an array of a dynamic size
@@ -107,8 +107,8 @@ func (list *BasicEList) doAdd(e any) {
 	list.data = append(list.data, e)
 	// events
 	interfaces := list.interfaces.(abstractEList)
-	interfaces.didAdd(size, e)
-	interfaces.didChange()
+	interfaces.DidAdd(size, e)
+	interfaces.DidChange()
 }
 
 // AddAll elements of an array in the current one
@@ -129,8 +129,8 @@ func (list *BasicEList) doAddAll(collection EList) bool {
 	interfaces := list.interfaces.(abstractEList)
 	// events
 	for i, element := range data {
-		interfaces.didAdd(i, element)
-		interfaces.didChange()
+		interfaces.DidAdd(i, element)
+		interfaces.DidChange()
 	}
 	return len(data) != 0
 }
@@ -153,8 +153,8 @@ func (list *BasicEList) doInsert(index int, e any) {
 	list.data[index] = e
 	// events
 	interfaces := list.interfaces.(abstractEList)
-	interfaces.didAdd(index, e)
-	interfaces.didChange()
+	interfaces.DidAdd(index, e)
+	interfaces.DidChange()
 }
 
 // InsertAll element of an array at a given position
@@ -178,8 +178,8 @@ func (list *BasicEList) doInsertAll(index int, collection EList) bool {
 	// events
 	interfaces := list.interfaces.(abstractEList)
 	for i, element := range data {
-		interfaces.didAdd(i+index, element)
-		interfaces.didChange()
+		interfaces.DidAdd(i+index, element)
+		interfaces.DidChange()
 	}
 	return len(data) != 0
 }
@@ -215,8 +215,8 @@ func (list *BasicEList) doMove(oldIndex, newIndex int) any {
 
 		// events
 		interfaces := list.interfaces.(abstractEList)
-		interfaces.didMove(newIndex, object, oldIndex)
-		interfaces.didChange()
+		interfaces.DidMove(newIndex, object, oldIndex)
+		interfaces.DidChange()
 	}
 	return object
 }
@@ -250,8 +250,8 @@ func (list *BasicEList) doRemove(index int) any {
 
 	// events
 	interfaces := list.interfaces.(abstractEList)
-	interfaces.didRemove(index, object)
-	interfaces.didChange()
+	interfaces.DidRemove(index, object)
+	interfaces.DidChange()
 	return object
 }
 
@@ -283,8 +283,8 @@ func (list *BasicEList) doSet(index int, elem any) any {
 	list.data[index] = elem
 	// events
 	interfaces := list.interfaces.(abstractEList)
-	interfaces.didSet(index, elem, old)
-	interfaces.didChange()
+	interfaces.DidSet(index, elem, old)
+	interfaces.DidChange()
 	return old
 }
 
@@ -318,7 +318,7 @@ func (list *BasicEList) doClear() []any {
 
 	// events
 	interfaces := list.interfaces.(abstractEList)
-	interfaces.didClear(oldData)
+	interfaces.DidClear(oldData)
 	return oldData
 }
 
@@ -351,26 +351,26 @@ func (list *BasicEList) ToArray() []any {
 	return list.data
 }
 
-func (list *BasicEList) didAdd(index int, elem any) {
+func (list *BasicEList) DidAdd(index int, elem any) {
 
 }
 
-func (list *BasicEList) didSet(index int, newElem any, oldElem any) {
+func (list *BasicEList) DidSet(index int, newElem any, oldElem any) {
 
 }
 
-func (list *BasicEList) didRemove(index int, old any) {
+func (list *BasicEList) DidRemove(index int, old any) {
 
 }
 
-func (list *BasicEList) didClear(oldObjects []any) {
+func (list *BasicEList) DidClear(oldObjects []any) {
 
 }
 
-func (list *BasicEList) didMove(newIndex int, movedObject any, oldIndex int) {
+func (list *BasicEList) DidMove(newIndex int, movedObject any, oldIndex int) {
 
 }
 
-func (list *BasicEList) didChange() {
+func (list *BasicEList) DidChange() {
 
 }

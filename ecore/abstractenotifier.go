@@ -51,12 +51,12 @@ func newNotifierAdapterList(notifier *AbstractENotifier) *notifierAdapterList {
 	return l
 }
 
-func (l *notifierAdapterList) didAdd(index int, elem any) {
+func (l *notifierAdapterList) DidAdd(index int, elem any) {
 	notifier := l.notifier.interfaces.(ENotifier)
 	elem.(EAdapter).SetTarget(notifier)
 }
 
-func (l *notifierAdapterList) didRemove(index int, elem any) {
+func (l *notifierAdapterList) DidRemove(index int, elem any) {
 	notifier := l.notifier.interfaces.(ENotifier)
 	adapter := elem.(EAdapter)
 	if notifier.EDeliver() {

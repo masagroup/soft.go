@@ -36,24 +36,24 @@ func newBasicEObjectMapList(m *BasicEObjectMap, owner EObjectInternal, featureID
 	return l
 }
 
-func (ml *basicEObjectMapList) didAdd(index int, elem any) {
+func (ml *basicEObjectMapList) DidAdd(index int, elem any) {
 	entry := elem.(EMapEntry)
 	ml.m.doAdd(entry)
 }
 
-func (ml *basicEObjectMapList) didSet(index int, newElem any, oldElem any) {
+func (ml *basicEObjectMapList) DidSet(index int, newElem any, oldElem any) {
 	newEntry := newElem.(EMapEntry)
 	oldEntry := oldElem.(EMapEntry)
 	ml.m.doRemove(oldEntry)
 	ml.m.doAdd(newEntry)
 }
 
-func (ml *basicEObjectMapList) didRemove(index int, oldElem any) {
+func (ml *basicEObjectMapList) DidRemove(index int, oldElem any) {
 	oldEntry := oldElem.(EMapEntry)
 	ml.m.doRemove(oldEntry)
 }
 
-func (ml *basicEObjectMapList) didClear(oldObjects []any) {
+func (ml *basicEObjectMapList) DidClear(oldObjects []any) {
 	ml.m.doClear()
 }
 

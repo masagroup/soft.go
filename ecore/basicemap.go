@@ -9,10 +9,13 @@
 
 package ecore
 
+import "sync"
+
 type BasicEMap struct {
 	EList
 	interfaces any
 	mapData    map[any]any
+	mapMutex   sync.Mutex
 }
 
 type eMapEntryFactory interface {
@@ -76,6 +79,8 @@ func (m *BasicEMap) getEntryForKey(key any) EMapEntry {
 }
 
 func (m *BasicEMap) GetValue(key any) any {
+	m.mapMutex.Lock()
+	defer m.mapMutex.Unlock()
 	m.initDataMap()
 	return m.mapData[key]
 }
@@ -83,10 +88,11 @@ func (m *BasicEMap) GetValue(key any) any {
 func (m *BasicEMap) Put(key any, value any) {
 	if e := m.getEntryForKey(key); e != nil {
 		e.SetValue(value)
-
+		m.mapMutex.Lock()
 		if m.mapData != nil {
 			m.mapData[key] = value
 		}
+		m.mapMutex.Unlock()
 	} else {
 		m.Add(m.asEMapEntryFactory().newEntry(key, value))
 	}
@@ -136,12 +142,16 @@ func (m *BasicEMap) ContainsValue(value any) bool {
 }
 
 func (m *BasicEMap) ContainsKey(key any) bool {
+	m.mapMutex.Lock()
+	defer m.mapMutex.Unlock()
 	m.initDataMap()
 	_, ok := m.mapData[key]
 	return ok
 }
 
 func (m *BasicEMap) ToMap() map[any]any {
+	m.mapMutex.Lock()
+	defer m.mapMutex.Unlock()
 	m.initDataMap()
 	return m.mapData
 }
@@ -157,15 +167,21 @@ func (m *BasicEMap) initDataMap() {
 }
 
 func (m *BasicEMap) doAdd(e EMapEntry) {
+	m.mapMutex.Lock()
 	if m.mapData != nil {
 		m.mapData[e.GetKey()] = e.GetValue()
 	}
+	m.mapMutex.Unlock()
 }
 
 func (m *BasicEMap) doRemove(e EMapEntry) {
+	m.mapMutex.Lock()
 	delete(m.mapData, e.GetKey())
+	m.mapMutex.Unlock()
 }
 
 func (m *BasicEMap) doClear() {
+	m.mapMutex.Lock()
 	m.mapData = nil
+	m.mapMutex.Unlock()
 }

@@ -59,6 +59,10 @@ func (m *ULIDManager) setID(eObject EObject, id any) error {
 		id = ""
 	}
 	if newID, isString := id.(string); isString {
+		if oldObject, isAlreadyRegistered := m.idToObject[newID]; isAlreadyRegistered && oldObject != eObject {
+			return fmt.Errorf("'%v' is already registered for %p %v", newID, oldObject, oldObject.EClass().GetName())
+		}
+
 		oldID, isOldID := m.objectToID[eObject]
 		if len(newID) > 0 {
 			m.objectToID[eObject] = newID

@@ -231,7 +231,10 @@ func (d *BinaryDecoder) decodeObject() EObject {
 				// object id attribute
 				objectID := d.decodeInterface()
 				if objectIDManager := d.resource.GetObjectIDManager(); objectIDManager != nil {
-					objectIDManager.SetID(eObject, objectID)
+					err := objectIDManager.SetID(eObject, objectID)
+					if err != nil {
+						panic(err)
+					}
 				}
 				featureID = d.decodeInt() - 1
 			}

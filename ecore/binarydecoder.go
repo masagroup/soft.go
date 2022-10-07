@@ -403,6 +403,9 @@ func (d *BinaryDecoder) decodePackage() *binaryDecoderPackageData {
 		ePackage := packageRegistry.GetPackage(nsURI)
 		if ePackage == nil {
 			ePackage, _ = d.resource.GetResourceSet().GetEObject(uri, true).(EPackage)
+			if ePackage == nil {
+				panic(fmt.Errorf("unable to find package '%s'", nsURI))
+			}
 		}
 
 		// create new package data

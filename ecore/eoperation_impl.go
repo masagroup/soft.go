@@ -18,7 +18,7 @@ type eOperationImpl struct {
 	eParameters EList
 	operationID int
 }
-type eOperationImplInitializers interface {
+type eOperationInitializers interface {
 	initEExceptions() EList
 	initEParameters() EList
 }
@@ -41,8 +41,8 @@ func (eOperation *eOperationImpl) asEOperation() EOperation {
 	return eOperation.GetInterfaces().(EOperation)
 }
 
-func (eOperation *eOperationImpl) asInitializers() eOperationImplInitializers {
-	return eOperation.AsEObject().(eOperationImplInitializers)
+func (eOperation *eOperationImpl) asInitializers() eOperationInitializers {
+	return eOperation.GetInterfaces().(eOperationInitializers)
 }
 
 func (eOperation *eOperationImpl) EStaticClass() EClass {

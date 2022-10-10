@@ -20,9 +20,13 @@ type ePackageImpl struct {
 	nsPrefix         string
 	nsURI            string
 }
-type ePackageImplInitializers interface {
+type ePackageInitializers interface {
 	initEClassifiers() EList
 	initESubPackages() EList
+}
+
+type ePackageBasics interface {
+	basicSetEFactoryInstance(EFactory, ENotificationChain) ENotificationChain
 }
 
 // newEPackageImpl is the constructor of a ePackageImpl
@@ -44,8 +48,12 @@ func (ePackage *ePackageImpl) asEPackage() EPackage {
 	return ePackage.GetInterfaces().(EPackage)
 }
 
-func (ePackage *ePackageImpl) asInitializers() ePackageImplInitializers {
-	return ePackage.AsEObject().(ePackageImplInitializers)
+func (ePackage *ePackageImpl) asInitializers() ePackageInitializers {
+	return ePackage.GetInterfaces().(ePackageInitializers)
+}
+
+func (ePackage *ePackageImpl) asBasics() ePackageBasics {
+	return ePackage.GetInterfaces().(ePackageBasics)
 }
 
 func (ePackage *ePackageImpl) EStaticClass() EClass {
@@ -84,7 +92,7 @@ func (ePackage *ePackageImpl) SetEFactoryInstance(newEFactoryInstance EFactory) 
 		if newEFactoryInstanceInternal, _ := newEFactoryInstance.(EObjectInternal); newEFactoryInstanceInternal != nil {
 			notifications = newEFactoryInstanceInternal.EInverseAdd(ePackage.AsEObject(), EFACTORY__EPACKAGE, notifications)
 		}
-		notifications = ePackage.basicSetEFactoryInstance(newEFactoryInstance, notifications)
+		notifications = ePackage.asBasics().basicSetEFactoryInstance(newEFactoryInstance, notifications)
 		if notifications != nil {
 			notifications.Dispatch()
 		}
@@ -254,7 +262,7 @@ func (ePackage *ePackageImpl) EBasicInverseAdd(otherEnd EObject, featureID int, 
 		if eFactoryInstance != nil {
 			msgs = eFactoryInstance.(EObjectInternal).EInverseRemove(ePackage.AsEObject(), EOPPOSITE_FEATURE_BASE-EPACKAGE__EFACTORY_INSTANCE, msgs)
 		}
-		return ePackage.basicSetEFactoryInstance(otherEnd.(EFactory), msgs)
+		return ePackage.asBasics().basicSetEFactoryInstance(otherEnd.(EFactory), msgs)
 	case EPACKAGE__ESUB_PACKAGES:
 		list := ePackage.GetESubPackages().(ENotifyingList)
 		return list.AddWithNotification(otherEnd, notifications)
@@ -275,7 +283,7 @@ func (ePackage *ePackageImpl) EBasicInverseRemove(otherEnd EObject, featureID in
 		list := ePackage.GetEClassifiers().(ENotifyingList)
 		return list.RemoveWithNotification(otherEnd, notifications)
 	case EPACKAGE__EFACTORY_INSTANCE:
-		return ePackage.basicSetEFactoryInstance(nil, notifications)
+		return ePackage.asBasics().basicSetEFactoryInstance(nil, notifications)
 	case EPACKAGE__ESUB_PACKAGES:
 		list := ePackage.GetESubPackages().(ENotifyingList)
 		return list.RemoveWithNotification(otherEnd, notifications)

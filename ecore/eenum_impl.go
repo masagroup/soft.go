@@ -16,7 +16,7 @@ type eEnumImpl struct {
 	eDataTypeExt
 	eLiterals EList
 }
-type eEnumImplInitializers interface {
+type eEnumInitializers interface {
 	initELiterals() EList
 }
 
@@ -37,8 +37,8 @@ func (eEnum *eEnumImpl) asEEnum() EEnum {
 	return eEnum.GetInterfaces().(EEnum)
 }
 
-func (eEnum *eEnumImpl) asInitializers() eEnumImplInitializers {
-	return eEnum.AsEObject().(eEnumImplInitializers)
+func (eEnum *eEnumImpl) asInitializers() eEnumInitializers {
+	return eEnum.GetInterfaces().(eEnumInitializers)
 }
 
 func (eEnum *eEnumImpl) EStaticClass() EClass {

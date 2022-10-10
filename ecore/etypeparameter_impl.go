@@ -16,7 +16,7 @@ type eTypeParameterImpl struct {
 	eNamedElementImpl
 	eBounds EList
 }
-type eTypeParameterImplInitializers interface {
+type eTypeParameterInitializers interface {
 	initEBounds() EList
 }
 
@@ -37,8 +37,8 @@ func (eTypeParameter *eTypeParameterImpl) asETypeParameter() ETypeParameter {
 	return eTypeParameter.GetInterfaces().(ETypeParameter)
 }
 
-func (eTypeParameter *eTypeParameterImpl) asInitializers() eTypeParameterImplInitializers {
-	return eTypeParameter.AsEObject().(eTypeParameterImplInitializers)
+func (eTypeParameter *eTypeParameterImpl) asInitializers() eTypeParameterInitializers {
+	return eTypeParameter.GetInterfaces().(eTypeParameterInitializers)
 }
 
 func (eTypeParameter *eTypeParameterImpl) EStaticClass() EClass {

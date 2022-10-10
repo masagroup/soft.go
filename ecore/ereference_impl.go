@@ -19,8 +19,13 @@ type eReferenceImpl struct {
 	isContainment    bool
 	isResolveProxies bool
 }
-type eReferenceImplInitializers interface {
+type eReferenceInitializers interface {
 	initEKeys() EList
+}
+
+type eReferenceBasics interface {
+	basicGetEOpposite() EReference
+	basicGetEReferenceType() EClass
 }
 
 // newEReferenceImpl is the constructor of a eReferenceImpl
@@ -42,8 +47,12 @@ func (eReference *eReferenceImpl) asEReference() EReference {
 	return eReference.GetInterfaces().(EReference)
 }
 
-func (eReference *eReferenceImpl) asInitializers() eReferenceImplInitializers {
-	return eReference.AsEObject().(eReferenceImplInitializers)
+func (eReference *eReferenceImpl) asInitializers() eReferenceInitializers {
+	return eReference.GetInterfaces().(eReferenceInitializers)
+}
+
+func (eReference *eReferenceImpl) asBasics() eReferenceBasics {
+	return eReference.GetInterfaces().(eReferenceBasics)
 }
 
 func (eReference *eReferenceImpl) EStaticClass() EClass {
@@ -154,12 +163,12 @@ func (eReference *eReferenceImpl) EGetFromID(featureID int, resolve bool) any {
 		if resolve {
 			return eReference.asEReference().GetEOpposite()
 		}
-		return eReference.basicGetEOpposite()
+		return eReference.asBasics().basicGetEOpposite()
 	case EREFERENCE__EREFERENCE_TYPE:
 		if resolve {
 			return eReference.asEReference().GetEReferenceType()
 		}
-		return eReference.basicGetEReferenceType()
+		return eReference.asBasics().basicGetEReferenceType()
 	case EREFERENCE__RESOLVE_PROXIES:
 		return eReference.asEReference().IsResolveProxies()
 	default:

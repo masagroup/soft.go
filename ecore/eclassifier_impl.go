@@ -20,7 +20,7 @@ type eClassifierImpl struct {
 	instanceClass     reflect.Type
 	instanceClassName string
 }
-type eClassifierImplInitializers interface {
+type eClassifierInitializers interface {
 	initClassifierID() int
 }
 
@@ -44,8 +44,8 @@ func (eClassifier *eClassifierImpl) asEClassifier() EClassifier {
 	return eClassifier.GetInterfaces().(EClassifier)
 }
 
-func (eClassifier *eClassifierImpl) asInitializers() eClassifierImplInitializers {
-	return eClassifier.AsEObject().(eClassifierImplInitializers)
+func (eClassifier *eClassifierImpl) asInitializers() eClassifierInitializers {
+	return eClassifier.GetInterfaces().(eClassifierInitializers)
 }
 
 func (eClassifier *eClassifierImpl) EStaticClass() EClass {

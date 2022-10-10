@@ -31,7 +31,7 @@ type eClassImpl struct {
 	isAbstract              bool
 	isInterface             bool
 }
-type eClassImplInitializers interface {
+type eClassInitializers interface {
 	initEAllAttributes()
 	initEAllContainments()
 	initEAllOperations()
@@ -67,8 +67,8 @@ func (eClass *eClassImpl) asEClass() EClass {
 	return eClass.GetInterfaces().(EClass)
 }
 
-func (eClass *eClassImpl) asInitializers() eClassImplInitializers {
-	return eClass.AsEObject().(eClassImplInitializers)
+func (eClass *eClassImpl) asInitializers() eClassInitializers {
+	return eClass.GetInterfaces().(eClassInitializers)
 }
 
 func (eClass *eClassImpl) EStaticClass() EClass {

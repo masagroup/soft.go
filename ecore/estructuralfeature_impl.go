@@ -254,13 +254,13 @@ func (eStructuralFeature *eStructuralFeatureImpl) EIsSetFromID(featureID int) bo
 	case ESTRUCTURAL_FEATURE__CHANGEABLE:
 		return eStructuralFeature.isChangeable != true
 	case ESTRUCTURAL_FEATURE__DEFAULT_VALUE:
-		return eStructuralFeature.GetDefaultValue() != nil
+		return eStructuralFeature.asEStructuralFeature().GetDefaultValue() != nil
 	case ESTRUCTURAL_FEATURE__DEFAULT_VALUE_LITERAL:
 		return eStructuralFeature.defaultValueLiteral != ""
 	case ESTRUCTURAL_FEATURE__DERIVED:
 		return eStructuralFeature.isDerived != false
 	case ESTRUCTURAL_FEATURE__ECONTAINING_CLASS:
-		return eStructuralFeature.GetEContainingClass() != nil
+		return eStructuralFeature.asEStructuralFeature().GetEContainingClass() != nil
 	case ESTRUCTURAL_FEATURE__FEATURE_ID:
 		return eStructuralFeature.featureID != -1
 	case ESTRUCTURAL_FEATURE__TRANSIENT:

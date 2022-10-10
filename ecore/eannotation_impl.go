@@ -206,7 +206,7 @@ func (eAnnotation *eAnnotationImpl) EIsSetFromID(featureID int) bool {
 	case EANNOTATION__DETAILS:
 		return eAnnotation.details != nil && eAnnotation.details.Size() != 0
 	case EANNOTATION__EMODEL_ELEMENT:
-		return eAnnotation.GetEModelElement() != nil
+		return eAnnotation.asEAnnotation().GetEModelElement() != nil
 	case EANNOTATION__REFERENCES:
 		return eAnnotation.references != nil && eAnnotation.references.Size() != 0
 	case EANNOTATION__SOURCE:

@@ -224,7 +224,7 @@ func (ePackage *ePackageImpl) EIsSetFromID(featureID int) bool {
 	case EPACKAGE__ESUB_PACKAGES:
 		return ePackage.eSubPackages != nil && ePackage.eSubPackages.Size() != 0
 	case EPACKAGE__ESUPER_PACKAGE:
-		return ePackage.GetESuperPackage() != nil
+		return ePackage.asEPackage().GetESuperPackage() != nil
 	case EPACKAGE__NS_PREFIX:
 		return ePackage.nsPrefix != ""
 	case EPACKAGE__NS_URI:

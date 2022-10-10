@@ -101,7 +101,7 @@ func (eAttribute *eAttributeImpl) EUnsetFromID(featureID int) {
 func (eAttribute *eAttributeImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EATTRIBUTE__EATTRIBUTE_TYPE:
-		return eAttribute.GetEAttributeType() != nil
+		return eAttribute.asEAttribute().GetEAttributeType() != nil
 	case EATTRIBUTE__ID:
 		return eAttribute.isID != false
 	default:

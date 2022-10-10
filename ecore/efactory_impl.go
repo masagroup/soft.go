@@ -16,6 +16,10 @@ type eFactoryImpl struct {
 	eModelElementExt
 }
 
+type eFactoryBasics interface {
+	basicSetEPackage(EPackage, ENotificationChain) ENotificationChain
+}
+
 // newEFactoryImpl is the constructor of a eFactoryImpl
 func newEFactoryImpl() *eFactoryImpl {
 	eFactory := new(eFactoryImpl)
@@ -26,6 +30,10 @@ func newEFactoryImpl() *eFactoryImpl {
 
 func (eFactory *eFactoryImpl) asEFactory() EFactory {
 	return eFactory.GetInterfaces().(EFactory)
+}
+
+func (eFactory *eFactoryImpl) asBasics() eFactoryBasics {
+	return eFactory.GetInterfaces().(eFactoryBasics)
 }
 
 func (eFactory *eFactoryImpl) EStaticClass() EClass {
@@ -69,7 +77,7 @@ func (eFactory *eFactoryImpl) SetEPackage(newEPackage EPackage) {
 		if newEPackageInternal, _ := newEPackage.(EObjectInternal); newEPackageInternal != nil {
 			notifications = newEPackageInternal.EInverseAdd(eFactory.AsEObject(), EPACKAGE__EFACTORY_INSTANCE, notifications)
 		}
-		notifications = eFactory.basicSetEPackage(newEPackage, notifications)
+		notifications = eFactory.asBasics().basicSetEPackage(newEPackage, notifications)
 		if notifications != nil {
 			notifications.Dispatch()
 		}
@@ -138,7 +146,7 @@ func (eFactory *eFactoryImpl) EBasicInverseAdd(otherEnd EObject, featureID int, 
 		if eFactory.EInternalContainer() != nil {
 			msgs = eFactory.EBasicRemoveFromContainer(msgs)
 		}
-		return eFactory.basicSetEPackage(otherEnd.(EPackage), msgs)
+		return eFactory.asBasics().basicSetEPackage(otherEnd.(EPackage), msgs)
 	default:
 		return eFactory.eModelElementExt.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
@@ -147,7 +155,7 @@ func (eFactory *eFactoryImpl) EBasicInverseAdd(otherEnd EObject, featureID int, 
 func (eFactory *eFactoryImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
-		return eFactory.basicSetEPackage(nil, notifications)
+		return eFactory.asBasics().basicSetEPackage(nil, notifications)
 	default:
 		return eFactory.eModelElementExt.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}

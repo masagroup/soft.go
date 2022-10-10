@@ -16,7 +16,7 @@ type eModelElementImpl struct {
 	CompactEObjectContainer
 	eAnnotations EList
 }
-type eModelElementImplInitializers interface {
+type eModelElementInitializers interface {
 	initEAnnotations() EList
 }
 
@@ -37,8 +37,8 @@ func (eModelElement *eModelElementImpl) asEModelElement() EModelElement {
 	return eModelElement.GetInterfaces().(EModelElement)
 }
 
-func (eModelElement *eModelElementImpl) asInitializers() eModelElementImplInitializers {
-	return eModelElement.AsEObject().(eModelElementImplInitializers)
+func (eModelElement *eModelElementImpl) asInitializers() eModelElementInitializers {
+	return eModelElement.GetInterfaces().(eModelElementInitializers)
 }
 
 func (eModelElement *eModelElementImpl) EStaticClass() EClass {

@@ -21,8 +21,16 @@ type eGenericTypeImpl struct {
 	eTypeParameter ETypeParameter
 	eUpperBound    EGenericType
 }
-type eGenericTypeImplInitializers interface {
+type eGenericTypeInitializers interface {
 	initETypeArguments() EList
+}
+
+type eGenericTypeBasics interface {
+	basicGetEClassifier() EClassifier
+	basicSetELowerBound(EGenericType, ENotificationChain) ENotificationChain
+
+	basicGetERawType() EClassifier
+	basicSetEUpperBound(EGenericType, ENotificationChain) ENotificationChain
 }
 
 // newEGenericTypeImpl is the constructor of a eGenericTypeImpl
@@ -42,8 +50,12 @@ func (eGenericType *eGenericTypeImpl) asEGenericType() EGenericType {
 	return eGenericType.GetInterfaces().(EGenericType)
 }
 
-func (eGenericType *eGenericTypeImpl) asInitializers() eGenericTypeImplInitializers {
-	return eGenericType.AsEObject().(eGenericTypeImplInitializers)
+func (eGenericType *eGenericTypeImpl) asInitializers() eGenericTypeInitializers {
+	return eGenericType.GetInterfaces().(eGenericTypeInitializers)
+}
+
+func (eGenericType *eGenericTypeImpl) asBasics() eGenericTypeBasics {
+	return eGenericType.GetInterfaces().(eGenericTypeBasics)
 }
 
 func (eGenericType *eGenericTypeImpl) EStaticClass() EClass {
@@ -102,7 +114,7 @@ func (eGenericType *eGenericTypeImpl) SetELowerBound(newELowerBound EGenericType
 		if newELowerBoundInternal, _ := newELowerBound.(EObjectInternal); newELowerBoundInternal != nil {
 			notifications = newELowerBoundInternal.EInverseAdd(eGenericType.AsEObject(), EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, notifications)
 		}
-		notifications = eGenericType.basicSetELowerBound(newELowerBound, notifications)
+		notifications = eGenericType.asBasics().basicSetELowerBound(newELowerBound, notifications)
 		if notifications != nil {
 			notifications.Dispatch()
 		}
@@ -180,7 +192,7 @@ func (eGenericType *eGenericTypeImpl) SetEUpperBound(newEUpperBound EGenericType
 		if newEUpperBoundInternal, _ := newEUpperBound.(EObjectInternal); newEUpperBoundInternal != nil {
 			notifications = newEUpperBoundInternal.EInverseAdd(eGenericType.AsEObject(), EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, notifications)
 		}
-		notifications = eGenericType.basicSetEUpperBound(newEUpperBound, notifications)
+		notifications = eGenericType.asBasics().basicSetEUpperBound(newEUpperBound, notifications)
 		if notifications != nil {
 			notifications.Dispatch()
 		}
@@ -212,14 +224,14 @@ func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve bool) an
 		if resolve {
 			return eGenericType.asEGenericType().GetEClassifier()
 		}
-		return eGenericType.basicGetEClassifier()
+		return eGenericType.asBasics().basicGetEClassifier()
 	case EGENERIC_TYPE__ELOWER_BOUND:
 		return eGenericType.asEGenericType().GetELowerBound()
 	case EGENERIC_TYPE__ERAW_TYPE:
 		if resolve {
 			return eGenericType.asEGenericType().GetERawType()
 		}
-		return eGenericType.basicGetERawType()
+		return eGenericType.asBasics().basicGetERawType()
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
 		return eGenericType.asEGenericType().GetETypeArguments()
 	case EGENERIC_TYPE__ETYPE_PARAMETER:
@@ -298,12 +310,12 @@ func (eGenericType *eGenericTypeImpl) EInvokeFromID(operationID int, arguments E
 func (eGenericType *eGenericTypeImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EGENERIC_TYPE__ELOWER_BOUND:
-		return eGenericType.basicSetELowerBound(nil, notifications)
+		return eGenericType.asBasics().basicSetELowerBound(nil, notifications)
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
 		list := eGenericType.GetETypeArguments().(ENotifyingList)
 		return list.RemoveWithNotification(otherEnd, notifications)
 	case EGENERIC_TYPE__EUPPER_BOUND:
-		return eGenericType.basicSetEUpperBound(nil, notifications)
+		return eGenericType.asBasics().basicSetEUpperBound(nil, notifications)
 	default:
 		return eGenericType.CompactEObjectContainer.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}

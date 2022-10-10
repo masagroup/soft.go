@@ -21,6 +21,10 @@ type eTypedElementImpl struct {
 	upperBound int
 }
 
+type eTypedElementBasics interface {
+	basicGetEType() EClassifier
+}
+
 // newETypedElementImpl is the constructor of a eTypedElementImpl
 func newETypedElementImpl() *eTypedElementImpl {
 	eTypedElement := new(eTypedElementImpl)
@@ -40,6 +44,10 @@ func (eTypedElement *eTypedElementImpl) Initialize() {
 
 func (eTypedElement *eTypedElementImpl) asETypedElement() ETypedElement {
 	return eTypedElement.GetInterfaces().(ETypedElement)
+}
+
+func (eTypedElement *eTypedElementImpl) asBasics() eTypedElementBasics {
+	return eTypedElement.GetInterfaces().(eTypedElementBasics)
 }
 
 func (eTypedElement *eTypedElementImpl) EStaticClass() EClass {
@@ -159,7 +167,7 @@ func (eTypedElement *eTypedElementImpl) EGetFromID(featureID int, resolve bool) 
 		if resolve {
 			return eTypedElement.asETypedElement().GetEType()
 		}
-		return eTypedElement.basicGetEType()
+		return eTypedElement.asBasics().basicGetEType()
 	case ETYPED_ELEMENT__LOWER_BOUND:
 		return eTypedElement.asETypedElement().GetLowerBound()
 	case ETYPED_ELEMENT__MANY:

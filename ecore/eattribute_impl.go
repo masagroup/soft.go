@@ -17,6 +17,10 @@ type eAttributeImpl struct {
 	isID bool
 }
 
+type eAttributeBasics interface {
+	basicGetEAttributeType() EDataType
+}
+
 // newEAttributeImpl is the constructor of a eAttributeImpl
 func newEAttributeImpl() *eAttributeImpl {
 	eAttribute := new(eAttributeImpl)
@@ -33,6 +37,10 @@ func (eAttribute *eAttributeImpl) Initialize() {
 
 func (eAttribute *eAttributeImpl) asEAttribute() EAttribute {
 	return eAttribute.GetInterfaces().(EAttribute)
+}
+
+func (eAttribute *eAttributeImpl) asBasics() eAttributeBasics {
+	return eAttribute.GetInterfaces().(eAttributeBasics)
 }
 
 func (eAttribute *eAttributeImpl) EStaticClass() EClass {
@@ -72,7 +80,7 @@ func (eAttribute *eAttributeImpl) EGetFromID(featureID int, resolve bool) any {
 		if resolve {
 			return eAttribute.asEAttribute().GetEAttributeType()
 		}
-		return eAttribute.basicGetEAttributeType()
+		return eAttribute.asBasics().basicGetEAttributeType()
 	case EATTRIBUTE__ID:
 		return eAttribute.asEAttribute().IsID()
 	default:

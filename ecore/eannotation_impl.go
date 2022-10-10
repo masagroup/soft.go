@@ -19,10 +19,14 @@ type eAnnotationImpl struct {
 	references EList
 	source     string
 }
-type eAnnotationImplInitializers interface {
+type eAnnotationInitializers interface {
 	initContents() EList
 	initDetails() EMap
 	initReferences() EList
+}
+
+type eAnnotationBasics interface {
+	basicSetEModelElement(EModelElement, ENotificationChain) ENotificationChain
 }
 
 // newEAnnotationImpl is the constructor of a eAnnotationImpl
@@ -43,8 +47,12 @@ func (eAnnotation *eAnnotationImpl) asEAnnotation() EAnnotation {
 	return eAnnotation.GetInterfaces().(EAnnotation)
 }
 
-func (eAnnotation *eAnnotationImpl) asInitializers() eAnnotationImplInitializers {
-	return eAnnotation.AsEObject().(eAnnotationImplInitializers)
+func (eAnnotation *eAnnotationImpl) asInitializers() eAnnotationInitializers {
+	return eAnnotation.GetInterfaces().(eAnnotationInitializers)
+}
+
+func (eAnnotation *eAnnotationImpl) asBasics() eAnnotationBasics {
+	return eAnnotation.GetInterfaces().(eAnnotationBasics)
 }
 
 func (eAnnotation *eAnnotationImpl) EStaticClass() EClass {
@@ -89,7 +97,7 @@ func (eAnnotation *eAnnotationImpl) SetEModelElement(newEModelElement EModelElem
 		if newEModelElementInternal, _ := newEModelElement.(EObjectInternal); newEModelElementInternal != nil {
 			notifications = newEModelElementInternal.EInverseAdd(eAnnotation.AsEObject(), EMODEL_ELEMENT__EANNOTATIONS, notifications)
 		}
-		notifications = eAnnotation.basicSetEModelElement(newEModelElement, notifications)
+		notifications = eAnnotation.asBasics().basicSetEModelElement(newEModelElement, notifications)
 		if notifications != nil {
 			notifications.Dispatch()
 		}
@@ -223,7 +231,7 @@ func (eAnnotation *eAnnotationImpl) EBasicInverseAdd(otherEnd EObject, featureID
 		if eAnnotation.EInternalContainer() != nil {
 			msgs = eAnnotation.EBasicRemoveFromContainer(msgs)
 		}
-		return eAnnotation.basicSetEModelElement(otherEnd.(EModelElement), msgs)
+		return eAnnotation.asBasics().basicSetEModelElement(otherEnd.(EModelElement), msgs)
 	default:
 		return eAnnotation.eModelElementExt.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
@@ -237,7 +245,7 @@ func (eAnnotation *eAnnotationImpl) EBasicInverseRemove(otherEnd EObject, featur
 	case EANNOTATION__DETAILS:
 		return notifications
 	case EANNOTATION__EMODEL_ELEMENT:
-		return eAnnotation.basicSetEModelElement(nil, notifications)
+		return eAnnotation.asBasics().basicSetEModelElement(nil, notifications)
 	default:
 		return eAnnotation.eModelElementExt.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}

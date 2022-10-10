@@ -165,7 +165,7 @@ func (eOperation *eOperationImpl) EUnsetFromID(featureID int) {
 func (eOperation *eOperationImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EOPERATION__ECONTAINING_CLASS:
-		return eOperation.GetEContainingClass() != nil
+		return eOperation.asEOperation().GetEContainingClass() != nil
 	case EOPERATION__EEXCEPTIONS:
 		return eOperation.eExceptions != nil && eOperation.eExceptions.Size() != 0
 	case EOPERATION__EPARAMETERS:

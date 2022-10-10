@@ -187,9 +187,9 @@ func (eClassifier *eClassifierImpl) EIsSetFromID(featureID int) bool {
 	case ECLASSIFIER__CLASSIFIER_ID:
 		return eClassifier.classifierID != -1
 	case ECLASSIFIER__DEFAULT_VALUE:
-		return eClassifier.GetDefaultValue() != nil
+		return eClassifier.asEClassifier().GetDefaultValue() != nil
 	case ECLASSIFIER__EPACKAGE:
-		return eClassifier.GetEPackage() != nil
+		return eClassifier.asEClassifier().GetEPackage() != nil
 	case ECLASSIFIER__INSTANCE_CLASS:
 		return eClassifier.instanceClass != nil
 	case ECLASSIFIER__INSTANCE_CLASS_NAME:

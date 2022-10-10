@@ -112,7 +112,7 @@ func (eFactory *eFactoryImpl) EUnsetFromID(featureID int) {
 func (eFactory *eFactoryImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
-		return eFactory.GetEPackage() != nil
+		return eFactory.asEFactory().GetEPackage() != nil
 	default:
 		return eFactory.eModelElementExt.EIsSetFromID(featureID)
 	}

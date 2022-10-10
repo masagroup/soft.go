@@ -141,9 +141,9 @@ func (eEnumLiteral *eEnumLiteralImpl) EUnsetFromID(featureID int) {
 func (eEnumLiteral *eEnumLiteralImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EENUM_LITERAL__EENUM:
-		return eEnumLiteral.GetEEnum() != nil
+		return eEnumLiteral.asEEnumLiteral().GetEEnum() != nil
 	case EENUM_LITERAL__INSTANCE:
-		return eEnumLiteral.GetInstance() != nil
+		return eEnumLiteral.instance != nil
 	case EENUM_LITERAL__LITERAL:
 		return eEnumLiteral.literal != ""
 	case EENUM_LITERAL__VALUE:

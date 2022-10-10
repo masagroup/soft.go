@@ -210,7 +210,7 @@ func (eReference *eReferenceImpl) EIsSetFromID(featureID int) bool {
 	case EREFERENCE__EOPPOSITE:
 		return eReference.eOpposite != nil
 	case EREFERENCE__EREFERENCE_TYPE:
-		return eReference.GetEReferenceType() != nil
+		return eReference.asEReference().GetEReferenceType() != nil
 	case EREFERENCE__RESOLVE_PROXIES:
 		return eReference.isResolveProxies != true
 	default:

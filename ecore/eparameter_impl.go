@@ -56,7 +56,7 @@ func (eParameter *eParameterImpl) EGetFromID(featureID int, resolve bool) any {
 func (eParameter *eParameterImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EPARAMETER__EOPERATION:
-		return eParameter.GetEOperation() != nil
+		return eParameter.asEParameter().GetEOperation() != nil
 	default:
 		return eParameter.eTypedElementExt.EIsSetFromID(featureID)
 	}

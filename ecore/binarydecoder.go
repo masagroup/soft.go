@@ -397,17 +397,17 @@ func (d *BinaryDecoder) decodePackage() *binaryDecoderPackageData {
 
 		// retrieve package
 		packageRegistry := GetPackageRegistry()
-		if d.resource.GetResourceSet() != nil {
-			packageRegistry = d.resource.GetResourceSet().GetPackageRegistry()
+		resourceSet := d.resource.GetResourceSet()
+		if resourceSet != nil {
+			packageRegistry = resourceSet.GetPackageRegistry()
 		}
 		ePackage := packageRegistry.GetPackage(nsURI)
-		if ePackage == nil {
-			ePackage, _ = d.resource.GetResourceSet().GetEObject(uri, true).(EPackage)
-			if ePackage == nil {
-				panic(fmt.Errorf("unable to find package '%s'", nsURI))
-			}
+		if ePackage == nil && resourceSet != nil {
+			ePackage, _ = resourceSet.GetEObject(uri, true).(EPackage)
 		}
-
+		if ePackage == nil {
+			panic(fmt.Errorf("unable to find package '%s'", nsURI))
+		}
 		// create new package data
 		ePackageData := d.newPackageData(ePackage)
 		d.packageData = append(d.packageData, ePackageData)

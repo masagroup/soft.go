@@ -43,6 +43,15 @@ func (eFactory *EFactoryExt) Create(eClass EClass) EObject {
 	}
 }
 
+func getInstanceTypeName(eDataType EDataType) string {
+	if eAnnotation := eDataType.GetEAnnotation("http://net.masagroup/soft/2019/GenGo"); eAnnotation != nil {
+		if instanceTypeName, _ := eAnnotation.GetDetails().GetValue("instanceTypeName").(string); instanceTypeName != "" {
+			return instanceTypeName
+		}
+	}
+	return eDataType.GetInstanceTypeName()
+}
+
 // CreateFromString default implementation
 func (eFactory *EFactoryExt) CreateFromString(eDataType EDataType, literalValue string) any {
 	if eFactory.GetEPackage() != eDataType.GetEPackage() {
@@ -58,7 +67,7 @@ func (eFactory *EFactoryExt) CreateFromString(eDataType EDataType, literalValue 
 		return result.GetValue()
 	}
 
-	switch eDataType.GetInstanceTypeName() {
+	switch getInstanceTypeName(eDataType) {
 	case "float64", "java.lang.Double", "double":
 		value, _ := strconv.ParseFloat(literalValue, 64)
 		return value
@@ -67,6 +76,9 @@ func (eFactory *EFactoryExt) CreateFromString(eDataType EDataType, literalValue 
 		return float32(value)
 	case "int", "java.lang.Integer":
 		value, _ := strconv.Atoi(literalValue)
+		return value
+	case "uint64", "com.google.common.primitives.UnsignedLong":
+		value, _ := strconv.ParseUint(literalValue, 10, 64)
 		return value
 	case "int64", "java.lang.Long", "java.math.BigInteger", "long":
 		value, _ := strconv.ParseInt(literalValue, 10, 64)
@@ -103,7 +115,7 @@ func (eFactory *EFactoryExt) ConvertToString(eDataType EDataType, instanceValue 
 		return result.GetLiteral()
 	}
 
-	switch eDataType.GetInstanceTypeName() {
+	switch getInstanceTypeName(eDataType) {
 	case "float64", "java.lang.Double", "double":
 		v, _ := instanceValue.(float64)
 		return strconv.FormatFloat(v, 'f', -1, 64)
@@ -113,6 +125,9 @@ func (eFactory *EFactoryExt) ConvertToString(eDataType EDataType, instanceValue 
 	case "int", "java.lang.Integer":
 		v, _ := instanceValue.(int)
 		return strconv.Itoa(v)
+	case "uint64", "com.google.common.primitives.UnsignedLong":
+		v, _ := instanceValue.(uint64)
+		return strconv.FormatUint(v, 10)
 	case "int64", "java.lang.Long", "java.math.BigInteger", "long":
 		v, _ := instanceValue.(int64)
 		return strconv.FormatInt(v, 10)

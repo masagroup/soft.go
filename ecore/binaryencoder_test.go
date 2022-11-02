@@ -44,7 +44,7 @@ func TestBinaryEncoder_ComplexWithID(t *testing.T) {
 	uri := NewURI("testdata/library.complex.id.xml")
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
-	eResource.SetObjectIDManager(NewUniqueIDManager(20))
+	eResource.SetObjectIDManager(NewUUIDManager(20))
 	eResourceSet := NewEResourceSetImpl()
 	eResourceSet.GetResources().Add(eResource)
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)

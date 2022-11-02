@@ -82,7 +82,7 @@ func (m *UniqueIDManager[ID]) UnRegister(eObject EObject) {
 	if id, isID := m.objectToID[eObject]; isID {
 		delete(m.idToObject, id)
 		delete(m.objectToID, eObject)
-		if m.detachedToID == nil {
+		if m.detachedToID != nil {
 			m.detachedToID[eObject] = id
 		}
 	}

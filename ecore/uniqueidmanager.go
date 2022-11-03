@@ -174,7 +174,7 @@ func NewUUIDManager(size int) *UUIDManager {
 
 type ULIDManager = UniqueIDManager[string]
 
-func NewULIDManager() *UniqueIDManager[string] {
+func NewULIDManager() *ULIDManager {
 	return newUniqueIDManager[string](
 		func() string {
 			return ulid.Make().String()

@@ -36,23 +36,11 @@ func TestIncrementalIDManagerUnRegister(t *testing.T) {
 	// unregister object
 	m.UnRegister(mockObject)
 	assert.Nil(t, m.GetID(mockObject))
-	assert.Nil(t, m.GetDetachedID(mockObject))
+	assert.Equal(t, id, m.GetDetachedID(mockObject))
 
 	// register again and check it was detached
 	m.Register(mockObject)
-	id = m.GetID(mockObject)
-	assert.Equal(t, int64(1), id)
-	assert.False(t, m.KeepIDs(true))
-
-	// unregister object
-	m.UnRegister(mockObject)
-	assert.Nil(t, m.GetID(mockObject))
-	assert.Equal(t, id, m.GetDetachedID(mockObject))
-
-	// register object
-	m.Register(mockObject)
 	assert.Equal(t, id, m.GetID(mockObject))
-	assert.Nil(t, m.GetDetachedID(mockObject))
 }
 
 func TestIncrementalIDManagerSetID(t *testing.T) {
@@ -113,7 +101,6 @@ func TestUUIDManagerUnRegister(t *testing.T) {
 	assert.Nil(t, m.GetDetachedID(mockObject))
 
 	// unregister
-	assert.False(t, m.KeepIDs(true))
 	m.UnRegister(mockObject)
 	assert.Nil(t, m.GetID(mockObject))
 	assert.Equal(t, id, m.GetDetachedID(mockObject))
@@ -151,7 +138,6 @@ func TestULIDManagerUnRegister(t *testing.T) {
 	assert.Nil(t, m.GetDetachedID(mockObject))
 
 	// unregister
-	assert.False(t, m.KeepIDs(true))
 	m.UnRegister(mockObject)
 	assert.Nil(t, m.GetID(mockObject))
 	assert.Equal(t, id, m.GetDetachedID(mockObject))

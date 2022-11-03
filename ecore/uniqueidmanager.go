@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"reflect"
 	"strconv"
 	"sync"
 
@@ -12,7 +13,7 @@ import (
 
 type UniqueIDManager[ID comparable] struct {
 	mutex        sync.RWMutex
-	detachedToID map[EObject]ID
+	detachedToID map[uintptr]ID
 	objectToID   map[EObject]ID
 	idToObject   map[ID]EObject
 	newID        func() ID
@@ -21,22 +22,23 @@ type UniqueIDManager[ID comparable] struct {
 	setID        func(ID)
 }
 
-func NewUniqueIDManager[ID comparable](newID func() ID, isValidID func(ID) bool, getID func(any) (ID, error), setID func(ID)) *UniqueIDManager[ID] {
+func newUniqueIDManager[ID comparable](newID func() ID, isValidID func(ID) bool, getID func(any) (ID, error), setID func(ID)) *UniqueIDManager[ID] {
 	return &UniqueIDManager[ID]{
-		objectToID: make(map[EObject]ID),
-		idToObject: make(map[ID]EObject),
-		newID:      newID,
-		isValidID:  isValidID,
-		getID:      getID,
-		setID:      setID,
+		detachedToID: map[uintptr]ID{},
+		objectToID:   map[EObject]ID{},
+		idToObject:   map[ID]EObject{},
+		newID:        newID,
+		isValidID:    isValidID,
+		getID:        getID,
+		setID:        setID,
 	}
 }
 
 func (m *UniqueIDManager[ID]) Clear() {
 	m.mutex.Lock()
-	m.objectToID = make(map[EObject]ID)
-	m.idToObject = make(map[ID]EObject)
-	m.detachedToID = nil
+	m.detachedToID = map[uintptr]ID{}
+	m.objectToID = map[EObject]ID{}
+	m.idToObject = map[ID]EObject{}
 	m.mutex.Unlock()
 }
 
@@ -54,21 +56,17 @@ func (m *UniqueIDManager[ID]) setObjectID(eObject EObject, newID ID) {
 	}
 }
 
-func (m *UniqueIDManager[ID]) getDetachedID(eObject EObject) (id ID, isID bool) {
-	if m.detachedToID == nil {
-		var emptyID ID
-		return emptyID, false
-	}
-	id, isID = m.detachedToID[eObject]
-	return
+func (m *UniqueIDManager[ID]) getPointer(eObject EObject) uintptr {
+	return reflect.ValueOf(eObject).Pointer()
 }
 
 func (m *UniqueIDManager[ID]) Register(eObject EObject) {
 	m.mutex.Lock()
 	if _, isID := m.objectToID[eObject]; !isID {
-		newID, isOldID := m.getDetachedID(eObject)
+		ptr := m.getPointer(eObject)
+		newID, isOldID := m.detachedToID[ptr]
 		if isOldID {
-			delete(m.detachedToID, eObject)
+			delete(m.detachedToID, ptr)
 		} else {
 			newID = m.newID()
 		}
@@ -82,9 +80,8 @@ func (m *UniqueIDManager[ID]) UnRegister(eObject EObject) {
 	if id, isID := m.objectToID[eObject]; isID {
 		delete(m.idToObject, id)
 		delete(m.objectToID, eObject)
-		if m.detachedToID != nil {
-			m.detachedToID[eObject] = id
-		}
+		ptr := m.getPointer(eObject)
+		m.detachedToID[ptr] = id
 	}
 	m.mutex.Unlock()
 }
@@ -120,24 +117,11 @@ func (m *UniqueIDManager[ID]) GetEObject(id any) EObject {
 func (m *UniqueIDManager[ID]) GetDetachedID(eObject EObject) any {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
-	if m.detachedToID != nil {
-		if id, isDetached := m.detachedToID[eObject]; isDetached {
-			return id
-		}
+	ptr := m.getPointer(eObject)
+	if id, isDetached := m.detachedToID[ptr]; isDetached {
+		return id
 	}
 	return nil
-}
-
-func (m *UniqueIDManager[ID]) KeepIDs(keepIDs bool) bool {
-	detachedToID := m.detachedToID
-	if keepIDs {
-		if m.detachedToID == nil {
-			m.detachedToID = make(map[EObject]ID)
-		}
-	} else {
-		m.detachedToID = nil
-	}
-	return detachedToID != nil
 }
 
 func generateRandomBytes(n int) ([]byte, error) {
@@ -162,8 +146,10 @@ func max(a, b int64) int64 {
 	return b
 }
 
-func NewUUIDManager(size int) *UniqueIDManager[string] {
-	return NewUniqueIDManager[string](
+type UUIDManager = UniqueIDManager[string]
+
+func NewUUIDManager(size int) *UUIDManager {
+	return newUniqueIDManager[string](
 		func() string {
 			for {
 				id, error := generateRandomString(size)
@@ -186,8 +172,10 @@ func NewUUIDManager(size int) *UniqueIDManager[string] {
 	)
 }
 
+type ULIDManager = UniqueIDManager[string]
+
 func NewULIDManager() *UniqueIDManager[string] {
-	return NewUniqueIDManager[string](
+	return newUniqueIDManager[string](
 		func() string {
 			return ulid.Make().String()
 		},
@@ -205,9 +193,11 @@ func NewULIDManager() *UniqueIDManager[string] {
 	)
 }
 
-func NewIncrementalIDManager() *UniqueIDManager[int64] {
+type IncrementalIDManager = UniqueIDManager[int64]
+
+func NewIncrementalIDManager() *IncrementalIDManager {
 	currentID := int64(0)
-	return NewUniqueIDManager[int64](
+	return newUniqueIDManager[int64](
 		func() int64 {
 			id := currentID
 			currentID++

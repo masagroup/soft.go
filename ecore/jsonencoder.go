@@ -75,6 +75,8 @@ func (e *JSONEncoder) encodeObjectReference(eObject EObject) {
 	e.w.KeyString("eRef", e.getReference(eObject))
 }
 
+var quote = []byte(`"`)
+
 func (e *JSONEncoder) encodeFeatureValue(eObject EObject, eFeature EStructuralFeature) {
 	if !e.shouldSaveFeature(eObject, eFeature) {
 		return
@@ -93,7 +95,10 @@ func (e *JSONEncoder) encodeFeatureValue(eObject EObject, eFeature EStructuralFe
 	case jfkData:
 		str, ok := e.getData(value, eFeature)
 		if ok {
-			e.w.KeyString(eFeature.GetName(), str)
+			e.w.Key(eFeature.GetName())
+			e.w.Raw(quote)
+			e.w.Raw([]byte(str))
+			e.w.Raw(quote)
 		}
 	case jfkDataList:
 		l := value.(EList)

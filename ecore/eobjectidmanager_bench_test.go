@@ -24,7 +24,7 @@ func BenchmarkIncrementalIDManager_GetID(b *testing.B) {
 }
 
 func BenchmarkUniqueIDManager_Register(b *testing.B) {
-	m := NewUniqueIDManager(20)
+	m := NewUUIDManager(20)
 	for i := 0; i < b.N; i++ {
 		o := &MockEObject{}
 		m.Register(o)
@@ -32,7 +32,7 @@ func BenchmarkUniqueIDManager_Register(b *testing.B) {
 }
 
 func BenchmarkUniqueIDManager_GetID(b *testing.B) {
-	m := NewUniqueIDManager(20)
+	m := NewUUIDManager(20)
 	o := &MockEObject{}
 	m.Register(o)
 	for i := 0; i < b.N; i++ {

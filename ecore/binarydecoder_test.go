@@ -100,7 +100,7 @@ func TestBinaryDecoder_ComplexWithID(t *testing.T) {
 
 	//
 	uri := NewURI("testdata/library.complex.id.bin")
-	idManager := NewUniqueIDManager(20)
+	idManager := NewUUIDManager(20)
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResource.SetObjectIDManager(idManager)
@@ -139,7 +139,7 @@ func TestBinaryDecoder_SimpleWithEDataTypeList(t *testing.T) {
 
 	//
 	uri := NewURI("testdata/library.datalist.bin")
-	idManager := NewUniqueIDManager(20)
+	idManager := NewUUIDManager(20)
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResource.SetObjectIDManager(idManager)

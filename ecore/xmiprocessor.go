@@ -9,6 +9,8 @@
 
 package ecore
 
+import "io"
+
 type XMIProcessor struct {
 	XMLProcessor
 }
@@ -24,4 +26,15 @@ func NewSharedXMIProcessor(resourceSet EResourceSet) *XMIProcessor {
 		extendMetaData: NewExtendedMetaData(),
 		resourceSet:    resourceSet,
 	}}
+}
+
+func (p *XMIProcessor) LoadWithReader(r io.Reader, options map[string]any) EResource {
+	rs := p.GetResourceSet()
+	rc := rs.CreateResource(NewURI("*.ecore"))
+	o := map[string]any{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
+	for k, v := range options {
+		o[k] = v
+	}
+	rc.LoadWithReader(r, o)
+	return rc
 }

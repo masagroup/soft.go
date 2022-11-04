@@ -103,27 +103,27 @@ func getBinaryCodecFeatureKind(eFeature EStructuralFeature) binaryFeatureKind {
 			}
 
 			switch eDataType.GetInstanceTypeName() {
-			case "float64":
+			case "float64", "java.lang.Double", "double":
 				return bfkFloat64
-			case "float32":
+			case "float32", "java.lang.Float", "float":
 				return bfkFloat32
-			case "int":
+			case "int", "java.lang.Integer":
 				return bfkInt
-			case "int64":
+			case "int64", "java.lang.Long", "java.math.BigInteger", "long":
 				return bfkInt64
 			case "int32":
 				return bfkInt32
-			case "int16":
+			case "int16", "java.lang.Short", "short":
 				return bfkInt16
 			case "byte":
 				return bfkByte
-			case "bool":
+			case "bool", "java.lang.Boolean", "boolean":
 				return bfkBool
-			case "string":
+			case "string", "java.lang.String":
 				return bfkString
-			case "[]byte":
+			case "[]byte", "java.util.ByteArray":
 				return bfkByteArray
-			case "*time.Time":
+			case "*time.Time", "java.util.Date":
 				return bfkDate
 			}
 

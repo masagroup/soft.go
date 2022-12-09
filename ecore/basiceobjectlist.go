@@ -86,6 +86,15 @@ func (list *basicEObjectList) RemoveAll(collection EList) bool {
 	})
 }
 
+func (list *basicEObjectList) ToArray() []any {
+	if list.proxies {
+		for i := len(list.data) - 1; i >= 0; i-- {
+			list.doGet(i)
+		}
+	}
+	return list.data
+}
+
 func (list *basicEObjectList) doGet(index int) any {
 	return list.resolve(index, list.BasicEList.doGet(index))
 }
@@ -279,7 +288,7 @@ func (l *unResolvedBasicEObjectList) Iterator() EIterator {
 }
 
 func (l *unResolvedBasicEObjectList) ToArray() []any {
-	return l.delegate.ToArray()
+	return l.delegate.data
 }
 
 func (l *unResolvedBasicEObjectList) GetNotifier() ENotifier {

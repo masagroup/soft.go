@@ -166,7 +166,7 @@ func Equals(eObj1 EObject, eObj2 EObject) bool {
 
 func EqualsAll(l1 EList, l2 EList) bool {
 	dE := newDeepEqual()
-	return dE.equalsAll(l1, l2)
+	return dE.equalsObjectList(l1, l2)
 }
 
 func Remove(eObject EObject) {

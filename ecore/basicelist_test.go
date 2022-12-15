@@ -183,6 +183,31 @@ func TestBasicEListRemoveAtInvalid(t *testing.T) {
 	assert.Panics(t, func() { arr.RemoveAt(7) })
 }
 
+func TestBasicEListRemoveRangeInvalid(t *testing.T) {
+	arr := NewBasicEList([]any{2, 4, 6, 8, 10})
+	assert.Panics(t, func() { arr.RemoveRange(8, 3) })
+	assert.Panics(t, func() { arr.RemoveRange(3, 8) })
+	assert.Panics(t, func() { arr.RemoveRange(3, 2) })
+}
+
+func TestBasicEListRemoveRangeStart(t *testing.T) {
+	arr := NewBasicEList([]any{2, 4, 6, 8, 10})
+	arr.RemoveRange(0, 2)
+	assert.Equal(t, []any{6, 8, 10}, arr.ToArray())
+}
+
+func TestBasicEListRemoveRangeMiddle(t *testing.T) {
+	arr := NewBasicEList([]any{2, 4, 6, 8, 10})
+	arr.RemoveRange(1, 3)
+	assert.Equal(t, []any{2, 8, 10}, arr.ToArray())
+}
+
+func TestBasicEListRemoveRangeEnd(t *testing.T) {
+	arr := NewBasicEList([]any{2, 4, 6, 8, 10})
+	arr.RemoveRange(3, 5)
+	assert.Equal(t, []any{2, 4, 6}, arr.ToArray())
+}
+
 func TestBasicEListClear(t *testing.T) {
 	arr := NewBasicEList([]any{3, 5})
 	assert.Equal(t, arr.Size(), 2)

@@ -324,6 +324,28 @@ func (list *BasicEStoreList) RemoveAll(collection EList) bool {
 	return modified
 }
 
+func (list *BasicEStoreList) RemoveRange(fromIndex, toIndex int) {
+	var objects []any
+	var positions []int
+	var notifications ENotificationChain = NewNotificationChain()
+	for i := fromIndex; i < toIndex; i++ {
+		object := list.store.Remove(list.owner, list.feature, i)
+		notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(object, notifications)
+		objects = append(objects, object)
+		positions = append(positions, i)
+	}
+	if len(objects) > 0 {
+		list.createAndDispatchNotificationFn(notifications,
+			func() ENotification {
+				if len(objects) == 1 {
+					return list.createNotification(REMOVE, objects[0], nil, fromIndex)
+				} else {
+					return list.createNotification(REMOVE_MANY, objects, positions, fromIndex)
+				}
+			})
+	}
+}
+
 func (list *BasicEStoreList) Size() int {
 	return list.store.Size(list.owner, list.feature)
 }

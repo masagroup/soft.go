@@ -67,6 +67,11 @@ func TestEmptyImmutableRemove(t *testing.T) {
 	assert.Panics(t, func() { a.Remove(0) })
 }
 
+func TestEmptyImmutableRemoveRange(t *testing.T) {
+	a := &emptyImmutableEList{}
+	assert.Panics(t, func() { a.RemoveRange(0, 1) })
+}
+
 func TestEmptyImmutableSize(t *testing.T) {
 	a := &emptyImmutableEList{}
 	assert.Equal(t, 0, a.Size())

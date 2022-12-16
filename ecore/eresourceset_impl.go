@@ -23,17 +23,17 @@ func (l *resourcesList) GetFeatureID() int {
 }
 
 func (l *resourcesList) inverseAdd(object any, notifications ENotificationChain) ENotificationChain {
-	eResource := object.(EResourceInternal)
-	n := notifications
-	n = eResource.BasicSetResourceSet(l.resourceSet.AsEResourceSet(), n)
-	return n
+	if eResource, _ := object.(EResourceInternal); eResource != nil {
+		return eResource.BasicSetResourceSet(l.resourceSet.AsEResourceSet(), notifications)
+	}
+	return notifications
 }
 
 func (l *resourcesList) inverseRemove(object any, notifications ENotificationChain) ENotificationChain {
-	eResource := object.(EResourceInternal)
-	n := notifications
-	n = eResource.BasicSetResourceSet(nil, n)
-	return n
+	if eResource, _ := object.(EResourceInternal); eResource != nil {
+		return eResource.BasicSetResourceSet(nil, notifications)
+	}
+	return notifications
 }
 
 // EResourceSetImpl ...

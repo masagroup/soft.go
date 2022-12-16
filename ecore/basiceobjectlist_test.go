@@ -445,6 +445,24 @@ func TestBasicEObjectListUnResolvedRemoveAt(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2)
 }
 
+func TestBasicEObjectListUnResolvedRemoveRange(t *testing.T) {
+	mockOwner := &MockEObjectInternal{}
+	mockObject1 := &MockEObjectInternal{}
+	mockObject2 := &MockEObjectInternal{}
+
+	list := NewBasicEObjectList(mockOwner, 1, 2, false, false, false, true, false)
+	unresolved := list.GetUnResolvedList()
+
+	mockOwner.On("EDeliver").Return(false).Once()
+	unresolved.AddAll(NewImmutableEList([]any{mockObject1, mockObject2}))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2)
+
+	mockOwner.On("EDeliver").Return(false).Once()
+	unresolved.RemoveRange(0, 2)
+	assert.Equal(t, []any{}, unresolved.ToArray())
+	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2)
+}
+
 func TestBasicEObjectListUnResolvedRemove(t *testing.T) {
 	mockOwner := &MockEObjectInternal{}
 	mockObject1 := &MockEObjectInternal{}

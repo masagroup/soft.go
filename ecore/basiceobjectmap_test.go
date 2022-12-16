@@ -96,3 +96,34 @@ func TestBasicEObjectMap_Put_WithNotification(t *testing.T) {
 	m.Put(2, "2")
 	mock.AssertExpectationsForObjects(t, mockClass, mockPackage, mockFactory, mockEntry, mockOwner)
 }
+
+func TestBasicEObjectMap_DidSet(t *testing.T) {
+	mockClass := &MockEClass{}
+	mockOwner := &MockEObjectInternal{}
+	mockEntry1 := &MockEObjectEMapEntry{}
+	mockEntry2 := &MockEObjectEMapEntry{}
+	m := NewBasicEObjectMap(mockClass, mockOwner, 1, -1, false)
+
+	mockOwner.On("EDeliver").Once().Return(false)
+	m.Add(mockEntry1)
+
+	mockOwner.On("EDeliver").Once().Return(false)
+	mockEntry1.On("GetKey").Once().Return("key1")
+	m.Set(0, mockEntry2)
+	mock.AssertExpectationsForObjects(t, mockClass, mockOwner, mockEntry1, mockEntry2)
+}
+
+func TestBasicEObjectMap_DidRemove(t *testing.T) {
+	mockClass := &MockEClass{}
+	mockOwner := &MockEObjectInternal{}
+	mockEntry1 := &MockEObjectEMapEntry{}
+	m := NewBasicEObjectMap(mockClass, mockOwner, 1, -1, false)
+
+	mockOwner.On("EDeliver").Once().Return(false)
+	m.Add(mockEntry1)
+
+	mockOwner.On("EDeliver").Once().Return(false)
+	mockEntry1.On("GetKey").Once().Return("key1")
+	m.Remove(mockEntry1)
+	mock.AssertExpectationsForObjects(t, mockClass, mockOwner, mockEntry1)
+}

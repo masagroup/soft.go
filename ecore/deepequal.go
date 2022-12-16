@@ -82,17 +82,8 @@ func (dE *deepEqual) equals(eObj1 EObject, eObj2 EObject) bool {
 	dE.objects[eObj1] = eObj2
 	dE.objects[eObj2] = eObj1
 
-	for it := eClass.GetEAttributes().Iterator(); it.HasNext(); {
-		eAttribute := it.Next().(EAttribute)
-		if !eAttribute.IsDerived() && !dE.equalsAttribute(eObj1, eObj2, eAttribute) {
-			delete(dE.objects, eObj1)
-			delete(dE.objects, eObj2)
-			return false
-		}
-	}
-	for it := eClass.GetEReferences().Iterator(); it.HasNext(); {
-		eReference := it.Next().(EReference)
-		if !eReference.IsDerived() && !dE.equalsReference(eObj1, eObj2, eReference) {
+	for it := eClass.GetEStructuralFeatures().Iterator(); it.HasNext(); {
+		if eFeature := it.Next().(EStructuralFeature); !eFeature.IsDerived() && !dE.equalsFeature(eObj1, eObj2, eFeature) {
 			delete(dE.objects, eObj1)
 			delete(dE.objects, eObj2)
 			return false
@@ -104,7 +95,7 @@ func (dE *deepEqual) equals(eObj1 EObject, eObj2 EObject) bool {
 
 }
 
-func (dE *deepEqual) equalsAll(l1 EList, l2 EList) bool {
+func (dE *deepEqual) equalsObjectList(l1 EList, l2 EList) bool {
 	size := l1.Size()
 	if size != l2.Size() {
 		return false
@@ -119,28 +110,60 @@ func (dE *deepEqual) equalsAll(l1 EList, l2 EList) bool {
 	return true
 }
 
-func (dE *deepEqual) equalsAttribute(eObj1 EObject, eObj2 EObject, eAttribute EAttribute) bool {
-	isSet1 := eObj1.EIsSet(eAttribute)
-	isSet2 := eObj2.EIsSet(eAttribute)
+func (dE *deepEqual) equalsPrimitiveList(l1 EList, l2 EList) bool {
+	size := l1.Size()
+	if size != l2.Size() {
+		return false
+	}
+	for i := 0; i < size; i++ {
+		p1 := l1.Get(i)
+		p2 := l2.Get(i)
+		if p1 != p2 {
+			return false
+		}
+	}
+	return true
+}
+
+func (dE *deepEqual) equalsFeature(eObj1 EObject, eObj2 EObject, eFeature EStructuralFeature) bool {
+	isSet1 := eObj1.EIsSet(eFeature)
+	isSet2 := eObj2.EIsSet(eFeature)
 	if isSet1 && isSet2 {
-		value1 := eObj1.EGet(eAttribute)
-		value2 := eObj2.EGet(eAttribute)
-		return value1 == value2
+		if eAttribute, isAttribute := eFeature.(EAttribute); isAttribute {
+			return dE.equalsAttribute(eObj1, eObj2, eAttribute)
+		} else if eReference, isReference := eFeature.(EReference); isReference {
+			return dE.equalsReference(eObj1, eObj2, eReference)
+		}
+		panic("invalid feature type")
 	}
 	return isSet1 == isSet2
 }
 
-func (dE *deepEqual) equalsReference(eObj1 EObject, eObj2 EObject, eReference EReference) bool {
-	isSet1 := eObj1.EIsSet(eReference)
-	isSet2 := eObj2.EIsSet(eReference)
-	if isSet1 && isSet2 {
-		value1 := eObj1.EGet(eReference)
-		value2 := eObj2.EGet(eReference)
-		if eReference.IsMany() {
-			return dE.equalsAll(value1.(EList), value2.(EList))
-		} else {
-			return dE.equals(value1.(EObject), value2.(EObject))
-		}
+func (dE *deepEqual) equalsAttribute(eObj1 EObject, eObj2 EObject, eAttribute EAttribute) bool {
+	value1 := eObj1.EGet(eAttribute)
+	value2 := eObj2.EGet(eAttribute)
+	if value1 == nil {
+		return value2 == nil
 	}
-	return isSet1 == isSet2
+	if value2 == nil {
+		return false
+	}
+	if eAttribute.IsMany() {
+		// attribute list
+		l1 := value1.(EList)
+		l2 := value2.(EList)
+		return dE.equalsPrimitiveList(l1, l2)
+	} else {
+		return value1 == value2
+	}
+}
+
+func (dE *deepEqual) equalsReference(eObj1 EObject, eObj2 EObject, eReference EReference) bool {
+	value1 := eObj1.EGet(eReference)
+	value2 := eObj2.EGet(eReference)
+	if eReference.IsMany() {
+		return dE.equalsObjectList(value1.(EList), value2.(EList))
+	} else {
+		return dE.equals(value1.(EObject), value2.(EObject))
+	}
 }

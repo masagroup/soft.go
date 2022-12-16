@@ -59,6 +59,10 @@ func (l *emptyImmutableEList) RemoveAll(collection EList) bool {
 	panic("Immutable list can't be modified")
 }
 
+func (l *emptyImmutableEList) RemoveRange(fromIndex, toIndex int) {
+	panic("Immutable list can't be modified")
+}
+
 // Size count the number of element in the array
 func (l *emptyImmutableEList) Size() int {
 	return 0

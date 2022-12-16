@@ -350,3 +350,34 @@ func TestNotifyingRemoveAllClear(t *testing.T) {
 		assert.Equal(t, []any{1}, l.ToArray())
 	}
 }
+
+func TestNotifyingRemoveRange(t *testing.T) {
+	{
+		l := newNotifyingListTestFromData([]any{1, 2, 3})
+		l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+			return n.GetNotifier() == l.mockNotifier &&
+				n.GetFeature() == l.mockFeature &&
+				n.GetOldValue() == 1 &&
+				n.GetNewValue() == nil &&
+				n.GetEventType() == REMOVE &&
+				n.GetPosition() == 0
+		})).Once()
+		l.RemoveRange(0, 1)
+		l.assertExpectations(t)
+		assert.Equal(t, []any{2, 3}, l.ToArray())
+	}
+	{
+		l := newNotifyingListTestFromData([]any{1, 2, 3})
+		l.mockNotifier.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+			return n.GetNotifier() == l.mockNotifier &&
+				n.GetFeature() == l.mockFeature &&
+				reflect.DeepEqual(n.GetOldValue(), []any{1, 2}) &&
+				reflect.DeepEqual(n.GetNewValue(), []any{0, 1}) &&
+				n.GetEventType() == REMOVE_MANY &&
+				n.GetPosition() == 0
+		})).Once()
+		l.RemoveRange(0, 2)
+		l.assertExpectations(t)
+		assert.Equal(t, []any{3}, l.ToArray())
+	}
+}

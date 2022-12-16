@@ -86,6 +86,15 @@ func (list *basicEObjectList) RemoveAll(collection EList) bool {
 	})
 }
 
+func (list *basicEObjectList) ToArray() []any {
+	if list.proxies {
+		for i := len(list.data) - 1; i >= 0; i-- {
+			list.doGet(i)
+		}
+	}
+	return list.data
+}
+
 func (list *basicEObjectList) doGet(index int) any {
 	return list.resolve(index, list.BasicEList.doGet(index))
 }
@@ -148,7 +157,7 @@ func (l *unResolvedBasicEObjectList) Add(elem any) bool {
 	if l.delegate.isUnique && l.Contains(elem) {
 		return false
 	}
-	l.delegate.interfaces.(abstractEList).doAdd(elem)
+	l.delegate.asAbstractEList().doAdd(elem)
 	return true
 }
 
@@ -160,7 +169,7 @@ func (l *unResolvedBasicEObjectList) AddAll(list EList) bool {
 			return false
 		}
 	}
-	l.delegate.interfaces.(abstractEList).doAddAll(list)
+	l.delegate.asAbstractEList().doAddAll(list)
 	return true
 }
 
@@ -172,7 +181,7 @@ func (l *unResolvedBasicEObjectList) Insert(index int, elem any) bool {
 	if l.delegate.isUnique && l.Contains(elem) {
 		return false
 	}
-	l.delegate.interfaces.(abstractEList).doInsert(index, elem)
+	l.delegate.asAbstractEList().doInsert(index, elem)
 	return true
 }
 
@@ -187,7 +196,7 @@ func (l *unResolvedBasicEObjectList) InsertAll(index int, list EList) bool {
 			return false
 		}
 	}
-	l.delegate.interfaces.(abstractEList).doInsertAll(index, list)
+	l.delegate.asAbstractEList().doInsertAll(index, list)
 	return true
 }
 
@@ -197,17 +206,17 @@ func (l *unResolvedBasicEObjectList) MoveObject(newIndex int, elem any) {
 	if oldIndex == -1 {
 		panic("Object not found")
 	}
-	l.delegate.interfaces.(abstractEList).doMove(oldIndex, newIndex)
+	l.delegate.asAbstractEList().doMove(oldIndex, newIndex)
 }
 
 // Swap move an element from oldIndex to newIndex
 func (l *unResolvedBasicEObjectList) Move(oldIndex, newIndex int) any {
-	return l.delegate.interfaces.(abstractEList).doMove(oldIndex, newIndex)
+	return l.delegate.asAbstractEList().doMove(oldIndex, newIndex)
 }
 
 // RemoveAt remove an element at a given position
 func (l *unResolvedBasicEObjectList) RemoveAt(index int) any {
-	return l.delegate.interfaces.(abstractEList).doRemove(index)
+	return l.delegate.asAbstractEList().doRemove(index)
 }
 
 // Remove an element in an list
@@ -216,7 +225,7 @@ func (l *unResolvedBasicEObjectList) Remove(elem any) bool {
 	if index == -1 {
 		return false
 	}
-	l.delegate.interfaces.(abstractEList).doRemove(index)
+	l.delegate.asAbstractEList().doRemove(index)
 	return true
 }
 
@@ -224,6 +233,10 @@ func (l *unResolvedBasicEObjectList) RemoveAll(collection EList) bool {
 	return l.delegate.doRemoveAll(collection, func(index int, other any) bool {
 		return l.delegate.data[index] == other
 	})
+}
+
+func (l *unResolvedBasicEObjectList) RemoveRange(fromIndex, toIndex int) {
+	l.delegate.asAbstractEList().doRemoveRange(fromIndex, toIndex)
 }
 
 // Get an element of the list
@@ -245,7 +258,7 @@ func (l *unResolvedBasicEObjectList) Set(index int, elem any) any {
 			panic("element already in list")
 		}
 	}
-	return l.delegate.interfaces.(abstractEList).doSet(index, elem)
+	return l.delegate.asAbstractEList().doSet(index, elem)
 }
 
 // Size count the number of element in the list
@@ -279,7 +292,7 @@ func (l *unResolvedBasicEObjectList) Iterator() EIterator {
 }
 
 func (l *unResolvedBasicEObjectList) ToArray() []any {
-	return l.delegate.ToArray()
+	return l.delegate.data
 }
 
 func (l *unResolvedBasicEObjectList) GetNotifier() ENotifier {

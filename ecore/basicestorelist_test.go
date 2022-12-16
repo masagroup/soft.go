@@ -685,3 +685,41 @@ func TestBasicEStoreList_GetUnResolvedList(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 	assert.NotNil(t, list.GetUnResolvedList())
 }
+
+func TestBasicEStoreList_RemoveRange(t *testing.T) {
+	mockOwner := &MockEObject{}
+	mockFeature := &MockEStructuralFeature{}
+	mockStore := &MockEStore{}
+	mockObject := &mock.Mock{}
+	mockObject2 := &mock.Mock{}
+	mockAdapter := &MockEAdapter{}
+	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
+	mockStore.On("Remove", mockOwner, mockFeature, 0).Return(mockObject).Once()
+	mockOwner.On("EDeliver").Return(true).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]any{mockAdapter})).Once()
+	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner &&
+			n.GetFeature() == mockFeature &&
+			n.GetEventType() == REMOVE &&
+			n.GetNewValue() == nil &&
+			n.GetOldValue() == mockObject
+	}))
+	list.RemoveRange(0, 1)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockAdapter)
+
+	mockStore.On("Remove", mockOwner, mockFeature, 0).Return(mockObject).Once()
+	mockStore.On("Remove", mockOwner, mockFeature, 1).Return(mockObject2).Once()
+	mockOwner.On("EDeliver").Return(true).Once()
+	mockOwner.On("EAdapters").Return(NewImmutableEList([]any{mockAdapter})).Once()
+	mockOwner.On("ENotify", mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner &&
+			n.GetFeature() == mockFeature &&
+			n.GetEventType() == REMOVE_MANY &&
+			reflect.DeepEqual(n.GetNewValue(), []int{0, 1}) &&
+			reflect.DeepEqual(n.GetOldValue(), []any{mockObject, mockObject2})
+	}))
+	list.RemoveRange(0, 2)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockAdapter)
+}

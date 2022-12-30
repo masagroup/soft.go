@@ -1399,7 +1399,7 @@ func (p *ecorePackageImpl) initializePackageContents() {
 	p.InitEAttribute(p.GetEStructuralFeature_DefaultValue(), p.GetEJavaObject(), "defaultValue", "", 0, 1, true, true, true, false, true, true, true, false)
 	p.InitEAttribute(p.GetEStructuralFeature_Unsettable(), p.GetEBoolean(), "unsettable", "", 0, 1, false, false, true, false, true, false, true, false)
 	p.InitEAttribute(p.GetEStructuralFeature_Derived(), p.GetEBoolean(), "derived", "", 0, 1, false, false, true, false, true, false, true, false)
-	p.InitEAttribute(p.GetEStructuralFeature_FeatureID(), p.GetEInt(), "featureID", "-1", 0, 1, false, false, true, false, true, false, true, false)
+	p.InitEAttribute(p.GetEStructuralFeature_FeatureID(), p.GetEInt(), "featureID", "-1", 0, 1, true, false, true, false, true, false, true, false)
 	p.InitEReference(p.GetEStructuralFeature_EContainingClass(), p.GetEClass(), p.GetEClass_EStructuralFeatures(), "eContainingClass", "", 0, 1, true, false, false, false, false, false, true, false, true)
 	p.InitEOperation(p.GetEStructuralFeature_GetContainerClass(), p.GetEJavaClass(), "getContainerClass", 0, 1, true, true)
 

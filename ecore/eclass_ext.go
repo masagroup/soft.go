@@ -142,16 +142,8 @@ func (eClass *eClassExt) initNameToFeatureMap() {
 }
 
 func (eClass *eClassExt) GetFeatureID(feature EStructuralFeature) int {
-	features := eClass.GetEAllStructuralFeatures()
-	featureID := feature.GetFeatureID()
-	if featureID != -1 {
-		for ; featureID < features.Size(); featureID++ {
-			if features.Get(featureID) == feature {
-				return featureID
-			}
-		}
-	}
-	return -1
+	eClass.asInitializers().initEAllStructuralFeatures()
+	return feature.GetFeatureID()
 }
 
 func (eClass *eClassExt) GetOperationCount() int {
@@ -167,16 +159,8 @@ func (eClass *eClassExt) GetEOperation(operationID int) EOperation {
 }
 
 func (eClass *eClassExt) GetOperationID(operation EOperation) int {
-	operations := eClass.GetEAllOperations()
-	operationID := operation.GetOperationID()
-	if operationID != -1 {
-		for ; operationID < operations.Size(); operationID++ {
-			if operations.Get(operationID) == operation {
-				return operationID
-			}
-		}
-	}
-	return -1
+	eClass.asInitializers().initEAllOperations()
+	return operation.GetOperationID()
 }
 
 func (eClass *eClassExt) GetOverride(operation EOperation) EOperation {

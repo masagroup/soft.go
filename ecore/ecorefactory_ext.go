@@ -9,12 +9,12 @@
 
 package ecore
 
-type ecoreFactoryExt struct {
-	ecoreFactoryImpl
+type EcoreFactoryExt struct {
+	EcoreFactoryImpl
 }
 
-func newEcoreFactoryExt() *ecoreFactoryExt {
-	factory := new(ecoreFactoryExt)
+func newEcoreFactoryExt() *EcoreFactoryExt {
+	factory := new(EcoreFactoryExt)
 	factory.SetInterfaces(factory)
 	factory.Initialize()
 	return factory

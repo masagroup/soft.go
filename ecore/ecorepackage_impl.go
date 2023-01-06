@@ -11,8 +11,8 @@
 
 package ecore
 
-// ecorePackageImpl is the EcorePackage implementation
-type ecorePackageImpl struct {
+// EcorePackageImpl is the EcorePackage implementation
+type EcorePackageImpl struct {
 	EPackageExt
 	eAnnotation             EClass
 	eAttribute              EClass
@@ -70,14 +70,14 @@ type ecorePackageImpl struct {
 	eTreeIterator              EDataType
 }
 
-func newEcorePackageImpl() *ecorePackageImpl {
-	p := new(ecorePackageImpl)
+func newEcorePackageImpl() *EcorePackageImpl {
+	p := new(EcorePackageImpl)
 	p.SetInterfaces(p)
 	p.Initialize()
 	return p
 }
 
-func (p *ecorePackageImpl) Initialize() {
+func (p *EcorePackageImpl) Initialize() {
 	p.EPackageExt.Initialize()
 	p.SetName(NAME)
 	p.SetNsPrefix(NS_PREFIX)
@@ -89,856 +89,856 @@ func (p *ecorePackageImpl) Initialize() {
 }
 
 // GetEAnnotationClass returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEAnnotationClass() EClass {
+func (p *EcorePackageImpl) GetEAnnotationClass() EClass {
 	return p.eAnnotation
 }
 
 // GetEAnnotation_Source returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEAnnotation_Source() EAttribute {
+func (p *EcorePackageImpl) GetEAnnotation_Source() EAttribute {
 	return p.eAnnotation.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEAnnotation_Contents returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEAnnotation_Contents() EReference {
+func (p *EcorePackageImpl) GetEAnnotation_Contents() EReference {
 	return p.eAnnotation.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEAnnotation_Details returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEAnnotation_Details() EReference {
+func (p *EcorePackageImpl) GetEAnnotation_Details() EReference {
 	return p.eAnnotation.GetEStructuralFeatures().Get(1).(EReference)
 }
 
 // GetEAnnotation_EModelElement returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEAnnotation_EModelElement() EReference {
+func (p *EcorePackageImpl) GetEAnnotation_EModelElement() EReference {
 	return p.eAnnotation.GetEStructuralFeatures().Get(2).(EReference)
 }
 
 // GetEAnnotation_References returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEAnnotation_References() EReference {
+func (p *EcorePackageImpl) GetEAnnotation_References() EReference {
 	return p.eAnnotation.GetEStructuralFeatures().Get(4).(EReference)
 }
 
 // GetEAttribute returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEAttribute() EClass {
+func (p *EcorePackageImpl) GetEAttribute() EClass {
 	return p.eAttribute
 }
 
 // GetEAttribute_ID returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEAttribute_ID() EAttribute {
+func (p *EcorePackageImpl) GetEAttribute_ID() EAttribute {
 	return p.eAttribute.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEAttribute_EAttributeType returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEAttribute_EAttributeType() EReference {
+func (p *EcorePackageImpl) GetEAttribute_EAttributeType() EReference {
 	return p.eAttribute.GetEStructuralFeatures().Get(1).(EReference)
 }
 
 // GetEClass returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass() EClass {
+func (p *EcorePackageImpl) GetEClass() EClass {
 	return p.eClass
 }
 
 // GetEClass_Abstract returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_Abstract() EAttribute {
+func (p *EcorePackageImpl) GetEClass_Abstract() EAttribute {
 	return p.eClass.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEClass_Interface returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_Interface() EAttribute {
+func (p *EcorePackageImpl) GetEClass_Interface() EAttribute {
 	return p.eClass.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEClass_EAllAttributes returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EAllAttributes() EReference {
+func (p *EcorePackageImpl) GetEClass_EAllAttributes() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(9).(EReference)
 }
 
 // GetEClass_EAllContainments returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EAllContainments() EReference {
+func (p *EcorePackageImpl) GetEClass_EAllContainments() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(11).(EReference)
 }
 
 // GetEClass_EAllOperations returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EAllOperations() EReference {
+func (p *EcorePackageImpl) GetEClass_EAllOperations() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(12).(EReference)
 }
 
 // GetEClass_EAllReferences returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EAllReferences() EReference {
+func (p *EcorePackageImpl) GetEClass_EAllReferences() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(10).(EReference)
 }
 
 // GetEClass_EAllStructuralFeatures returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EAllStructuralFeatures() EReference {
+func (p *EcorePackageImpl) GetEClass_EAllStructuralFeatures() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(13).(EReference)
 }
 
 // GetEClass_EAllSuperTypes returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EAllSuperTypes() EReference {
+func (p *EcorePackageImpl) GetEClass_EAllSuperTypes() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(14).(EReference)
 }
 
 // GetEClass_EAttributes returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EAttributes() EReference {
+func (p *EcorePackageImpl) GetEClass_EAttributes() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEClass_EContainmentFeatures returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EContainmentFeatures() EReference {
+func (p *EcorePackageImpl) GetEClass_EContainmentFeatures() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(7).(EReference)
 }
 
 // GetEClass_ECrossReferenceFeatures returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_ECrossReferenceFeatures() EReference {
+func (p *EcorePackageImpl) GetEClass_ECrossReferenceFeatures() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(8).(EReference)
 }
 
 // GetEClass_EIDAttribute returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EIDAttribute() EReference {
+func (p *EcorePackageImpl) GetEClass_EIDAttribute() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(15).(EReference)
 }
 
 // GetEClass_EOperations returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EOperations() EReference {
+func (p *EcorePackageImpl) GetEClass_EOperations() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(6).(EReference)
 }
 
 // GetEClass_EReferences returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EReferences() EReference {
+func (p *EcorePackageImpl) GetEClass_EReferences() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(4).(EReference)
 }
 
 // GetEClass_EStructuralFeatures returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_EStructuralFeatures() EReference {
+func (p *EcorePackageImpl) GetEClass_EStructuralFeatures() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(2).(EReference)
 }
 
 // GetEClass_ESuperTypes returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_ESuperTypes() EReference {
+func (p *EcorePackageImpl) GetEClass_ESuperTypes() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(5).(EReference)
 }
 
 // GetEClass_GetEOperation_EInt returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_GetEOperation_EInt() EOperation {
+func (p *EcorePackageImpl) GetEClass_GetEOperation_EInt() EOperation {
 	return p.eClass.GetEOperations().Get(6).(EOperation)
 }
 
 // GetEClass_GetEStructuralFeature_EInt returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_GetEStructuralFeature_EInt() EOperation {
+func (p *EcorePackageImpl) GetEClass_GetEStructuralFeature_EInt() EOperation {
 	return p.eClass.GetEOperations().Get(2).(EOperation)
 }
 
 // GetEClass_GetEStructuralFeature_EString returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_GetEStructuralFeature_EString() EOperation {
+func (p *EcorePackageImpl) GetEClass_GetEStructuralFeature_EString() EOperation {
 	return p.eClass.GetEOperations().Get(3).(EOperation)
 }
 
 // GetEClass_GetFeatureCount returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_GetFeatureCount() EOperation {
+func (p *EcorePackageImpl) GetEClass_GetFeatureCount() EOperation {
 	return p.eClass.GetEOperations().Get(1).(EOperation)
 }
 
 // GetEClass_GetFeatureID_EStructuralFeature returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_GetFeatureID_EStructuralFeature() EOperation {
+func (p *EcorePackageImpl) GetEClass_GetFeatureID_EStructuralFeature() EOperation {
 	return p.eClass.GetEOperations().Get(4).(EOperation)
 }
 
 // GetEClass_GetFeatureType_EStructuralFeature returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_GetFeatureType_EStructuralFeature() EOperation {
+func (p *EcorePackageImpl) GetEClass_GetFeatureType_EStructuralFeature() EOperation {
 	return p.eClass.GetEOperations().Get(9).(EOperation)
 }
 
 // GetEClass_GetOperationCount returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_GetOperationCount() EOperation {
+func (p *EcorePackageImpl) GetEClass_GetOperationCount() EOperation {
 	return p.eClass.GetEOperations().Get(5).(EOperation)
 }
 
 // GetEClass_GetOperationID_EOperation returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_GetOperationID_EOperation() EOperation {
+func (p *EcorePackageImpl) GetEClass_GetOperationID_EOperation() EOperation {
 	return p.eClass.GetEOperations().Get(7).(EOperation)
 }
 
 // GetEClass_GetOverride_EOperation returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_GetOverride_EOperation() EOperation {
+func (p *EcorePackageImpl) GetEClass_GetOverride_EOperation() EOperation {
 	return p.eClass.GetEOperations().Get(8).(EOperation)
 }
 
 // GetEClass_IsSuperTypeOf_EClass returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClass_IsSuperTypeOf_EClass() EOperation {
+func (p *EcorePackageImpl) GetEClass_IsSuperTypeOf_EClass() EOperation {
 	return p.eClass.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEClassifierClass returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClassifierClass() EClass {
+func (p *EcorePackageImpl) GetEClassifierClass() EClass {
 	return p.eClassifier
 }
 
 // GetEClassifier_ClassifierID returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClassifier_ClassifierID() EAttribute {
+func (p *EcorePackageImpl) GetEClassifier_ClassifierID() EAttribute {
 	return p.eClassifier.GetEStructuralFeatures().Get(5).(EAttribute)
 }
 
 // GetEClassifier_DefaultValue returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClassifier_DefaultValue() EAttribute {
+func (p *EcorePackageImpl) GetEClassifier_DefaultValue() EAttribute {
 	return p.eClassifier.GetEStructuralFeatures().Get(3).(EAttribute)
 }
 
 // GetEClassifier_InstanceClass returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClassifier_InstanceClass() EAttribute {
+func (p *EcorePackageImpl) GetEClassifier_InstanceClass() EAttribute {
 	return p.eClassifier.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEClassifier_InstanceClassName returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClassifier_InstanceClassName() EAttribute {
+func (p *EcorePackageImpl) GetEClassifier_InstanceClassName() EAttribute {
 	return p.eClassifier.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEClassifier_InstanceTypeName returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClassifier_InstanceTypeName() EAttribute {
+func (p *EcorePackageImpl) GetEClassifier_InstanceTypeName() EAttribute {
 	return p.eClassifier.GetEStructuralFeatures().Get(2).(EAttribute)
 }
 
 // GetEClassifier_EPackage returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClassifier_EPackage() EReference {
+func (p *EcorePackageImpl) GetEClassifier_EPackage() EReference {
 	return p.eClassifier.GetEStructuralFeatures().Get(4).(EReference)
 }
 
 // GetEClassifier_IsInstance_EJavaObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEClassifier_IsInstance_EJavaObject() EOperation {
+func (p *EcorePackageImpl) GetEClassifier_IsInstance_EJavaObject() EOperation {
 	return p.eClassifier.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEDataType returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEDataType() EClass {
+func (p *EcorePackageImpl) GetEDataType() EClass {
 	return p.eDataType
 }
 
 // GetEDataType_Serializable returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEDataType_Serializable() EAttribute {
+func (p *EcorePackageImpl) GetEDataType_Serializable() EAttribute {
 	return p.eDataType.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEEnum returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEEnum() EClass {
+func (p *EcorePackageImpl) GetEEnum() EClass {
 	return p.eEnum
 }
 
 // GetEEnum_ELiterals returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEEnum_ELiterals() EReference {
+func (p *EcorePackageImpl) GetEEnum_ELiterals() EReference {
 	return p.eEnum.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetEEnum_GetEEnumLiteral_EString returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEEnum_GetEEnumLiteral_EString() EOperation {
+func (p *EcorePackageImpl) GetEEnum_GetEEnumLiteral_EString() EOperation {
 	return p.eEnum.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEEnum_GetEEnumLiteral_EInt returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEEnum_GetEEnumLiteral_EInt() EOperation {
+func (p *EcorePackageImpl) GetEEnum_GetEEnumLiteral_EInt() EOperation {
 	return p.eEnum.GetEOperations().Get(1).(EOperation)
 }
 
 // GetEEnum_GetEEnumLiteralByLiteral_EString returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEEnum_GetEEnumLiteralByLiteral_EString() EOperation {
+func (p *EcorePackageImpl) GetEEnum_GetEEnumLiteralByLiteral_EString() EOperation {
 	return p.eEnum.GetEOperations().Get(2).(EOperation)
 }
 
 // GetEEnumLiteral returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEEnumLiteral() EClass {
+func (p *EcorePackageImpl) GetEEnumLiteral() EClass {
 	return p.eEnumLiteral
 }
 
 // GetEEnumLiteral_Instance returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEEnumLiteral_Instance() EAttribute {
+func (p *EcorePackageImpl) GetEEnumLiteral_Instance() EAttribute {
 	return p.eEnumLiteral.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEEnumLiteral_Literal returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEEnumLiteral_Literal() EAttribute {
+func (p *EcorePackageImpl) GetEEnumLiteral_Literal() EAttribute {
 	return p.eEnumLiteral.GetEStructuralFeatures().Get(2).(EAttribute)
 }
 
 // GetEEnumLiteral_Value returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEEnumLiteral_Value() EAttribute {
+func (p *EcorePackageImpl) GetEEnumLiteral_Value() EAttribute {
 	return p.eEnumLiteral.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEEnumLiteral_EEnum returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEEnumLiteral_EEnum() EReference {
+func (p *EcorePackageImpl) GetEEnumLiteral_EEnum() EReference {
 	return p.eEnumLiteral.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEFactory returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEFactory() EClass {
+func (p *EcorePackageImpl) GetEFactory() EClass {
 	return p.eFactory
 }
 
 // GetEFactory_EPackage returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEFactory_EPackage() EReference {
+func (p *EcorePackageImpl) GetEFactory_EPackage() EReference {
 	return p.eFactory.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetEFactory_ConvertToString_EDataType_EJavaObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEFactory_ConvertToString_EDataType_EJavaObject() EOperation {
+func (p *EcorePackageImpl) GetEFactory_ConvertToString_EDataType_EJavaObject() EOperation {
 	return p.eFactory.GetEOperations().Get(2).(EOperation)
 }
 
 // GetEFactory_Create_EClass returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEFactory_Create_EClass() EOperation {
+func (p *EcorePackageImpl) GetEFactory_Create_EClass() EOperation {
 	return p.eFactory.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEFactory_CreateFromString_EDataType_EString returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEFactory_CreateFromString_EDataType_EString() EOperation {
+func (p *EcorePackageImpl) GetEFactory_CreateFromString_EDataType_EString() EOperation {
 	return p.eFactory.GetEOperations().Get(1).(EOperation)
 }
 
 // GetEGenericType returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEGenericType() EClass {
+func (p *EcorePackageImpl) GetEGenericType() EClass {
 	return p.eGenericType
 }
 
 // GetEGenericType_EClassifier returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEGenericType_EClassifier() EReference {
+func (p *EcorePackageImpl) GetEGenericType_EClassifier() EReference {
 	return p.eGenericType.GetEStructuralFeatures().Get(5).(EReference)
 }
 
 // GetEGenericType_ELowerBound returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEGenericType_ELowerBound() EReference {
+func (p *EcorePackageImpl) GetEGenericType_ELowerBound() EReference {
 	return p.eGenericType.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEGenericType_ERawType returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEGenericType_ERawType() EReference {
+func (p *EcorePackageImpl) GetEGenericType_ERawType() EReference {
 	return p.eGenericType.GetEStructuralFeatures().Get(2).(EReference)
 }
 
 // GetEGenericType_ETypeArguments returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEGenericType_ETypeArguments() EReference {
+func (p *EcorePackageImpl) GetEGenericType_ETypeArguments() EReference {
 	return p.eGenericType.GetEStructuralFeatures().Get(1).(EReference)
 }
 
 // GetEGenericType_ETypeParameter returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEGenericType_ETypeParameter() EReference {
+func (p *EcorePackageImpl) GetEGenericType_ETypeParameter() EReference {
 	return p.eGenericType.GetEStructuralFeatures().Get(4).(EReference)
 }
 
 // GetEGenericType_EUpperBound returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEGenericType_EUpperBound() EReference {
+func (p *EcorePackageImpl) GetEGenericType_EUpperBound() EReference {
 	return p.eGenericType.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetEGenericType_IsInstance_EJavaObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEGenericType_IsInstance_EJavaObject() EOperation {
+func (p *EcorePackageImpl) GetEGenericType_IsInstance_EJavaObject() EOperation {
 	return p.eGenericType.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEModelElement returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEModelElement() EClass {
+func (p *EcorePackageImpl) GetEModelElement() EClass {
 	return p.eModelElement
 }
 
 // GetEModelElement_EAnnotations returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEModelElement_EAnnotations() EReference {
+func (p *EcorePackageImpl) GetEModelElement_EAnnotations() EReference {
 	return p.eModelElement.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetEModelElement_GetEAnnotation_EString returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEModelElement_GetEAnnotation_EString() EOperation {
+func (p *EcorePackageImpl) GetEModelElement_GetEAnnotation_EString() EOperation {
 	return p.eModelElement.GetEOperations().Get(0).(EOperation)
 }
 
 // GetENamedElement returns the meta object corresponding to
-func (p *ecorePackageImpl) GetENamedElement() EClass {
+func (p *EcorePackageImpl) GetENamedElement() EClass {
 	return p.eNamedElement
 }
 
 // GetENamedElement_Name returns the meta object corresponding to
-func (p *ecorePackageImpl) GetENamedElement_Name() EAttribute {
+func (p *EcorePackageImpl) GetENamedElement_Name() EAttribute {
 	return p.eNamedElement.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject() EClass {
+func (p *EcorePackageImpl) GetEObject() EClass {
 	return p.eObject
 }
 
 // GetEObject_EAllContents returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EAllContents() EOperation {
+func (p *EcorePackageImpl) GetEObject_EAllContents() EOperation {
 	return p.eObject.GetEOperations().Get(7).(EOperation)
 }
 
 // GetEObject_EClass returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EClass() EOperation {
+func (p *EcorePackageImpl) GetEObject_EClass() EOperation {
 	return p.eObject.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEObject_EContainer returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EContainer() EOperation {
+func (p *EcorePackageImpl) GetEObject_EContainer() EOperation {
 	return p.eObject.GetEOperations().Get(3).(EOperation)
 }
 
 // GetEObject_EContainingFeature returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EContainingFeature() EOperation {
+func (p *EcorePackageImpl) GetEObject_EContainingFeature() EOperation {
 	return p.eObject.GetEOperations().Get(4).(EOperation)
 }
 
 // GetEObject_EContainmentFeature returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EContainmentFeature() EOperation {
+func (p *EcorePackageImpl) GetEObject_EContainmentFeature() EOperation {
 	return p.eObject.GetEOperations().Get(5).(EOperation)
 }
 
 // GetEObject_EContents returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EContents() EOperation {
+func (p *EcorePackageImpl) GetEObject_EContents() EOperation {
 	return p.eObject.GetEOperations().Get(6).(EOperation)
 }
 
 // GetEObject_ECrossReferences returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_ECrossReferences() EOperation {
+func (p *EcorePackageImpl) GetEObject_ECrossReferences() EOperation {
 	return p.eObject.GetEOperations().Get(8).(EOperation)
 }
 
 // GetEObject_EGet_EStructuralFeature returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EGet_EStructuralFeature() EOperation {
+func (p *EcorePackageImpl) GetEObject_EGet_EStructuralFeature() EOperation {
 	return p.eObject.GetEOperations().Get(9).(EOperation)
 }
 
 // GetEObject_EGet_EStructuralFeature_EBoolean returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EGet_EStructuralFeature_EBoolean() EOperation {
+func (p *EcorePackageImpl) GetEObject_EGet_EStructuralFeature_EBoolean() EOperation {
 	return p.eObject.GetEOperations().Get(10).(EOperation)
 }
 
 // GetEObject_EInvoke_EOperation_EEList returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EInvoke_EOperation_EEList() EOperation {
+func (p *EcorePackageImpl) GetEObject_EInvoke_EOperation_EEList() EOperation {
 	return p.eObject.GetEOperations().Get(14).(EOperation)
 }
 
 // GetEObject_EIsProxy returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EIsProxy() EOperation {
+func (p *EcorePackageImpl) GetEObject_EIsProxy() EOperation {
 	return p.eObject.GetEOperations().Get(1).(EOperation)
 }
 
 // GetEObject_EIsSet_EStructuralFeature returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EIsSet_EStructuralFeature() EOperation {
+func (p *EcorePackageImpl) GetEObject_EIsSet_EStructuralFeature() EOperation {
 	return p.eObject.GetEOperations().Get(12).(EOperation)
 }
 
 // GetEObject_EResource returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EResource() EOperation {
+func (p *EcorePackageImpl) GetEObject_EResource() EOperation {
 	return p.eObject.GetEOperations().Get(2).(EOperation)
 }
 
 // GetEObject_ESet_EStructuralFeature_EJavaObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_ESet_EStructuralFeature_EJavaObject() EOperation {
+func (p *EcorePackageImpl) GetEObject_ESet_EStructuralFeature_EJavaObject() EOperation {
 	return p.eObject.GetEOperations().Get(11).(EOperation)
 }
 
 // GetEObject_EUnset_EStructuralFeature returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEObject_EUnset_EStructuralFeature() EOperation {
+func (p *EcorePackageImpl) GetEObject_EUnset_EStructuralFeature() EOperation {
 	return p.eObject.GetEOperations().Get(13).(EOperation)
 }
 
 // GetEOperation returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEOperation() EClass {
+func (p *EcorePackageImpl) GetEOperation() EClass {
 	return p.eOperation
 }
 
 // GetEOperation_OperationID returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEOperation_OperationID() EAttribute {
+func (p *EcorePackageImpl) GetEOperation_OperationID() EAttribute {
 	return p.eOperation.GetEStructuralFeatures().Get(3).(EAttribute)
 }
 
 // GetEOperation_EContainingClass returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEOperation_EContainingClass() EReference {
+func (p *EcorePackageImpl) GetEOperation_EContainingClass() EReference {
 	return p.eOperation.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetEOperation_EExceptions returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEOperation_EExceptions() EReference {
+func (p *EcorePackageImpl) GetEOperation_EExceptions() EReference {
 	return p.eOperation.GetEStructuralFeatures().Get(2).(EReference)
 }
 
 // GetEOperation_EParameters returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEOperation_EParameters() EReference {
+func (p *EcorePackageImpl) GetEOperation_EParameters() EReference {
 	return p.eOperation.GetEStructuralFeatures().Get(1).(EReference)
 }
 
 // GetEOperation_IsOverrideOf_EOperation returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEOperation_IsOverrideOf_EOperation() EOperation {
+func (p *EcorePackageImpl) GetEOperation_IsOverrideOf_EOperation() EOperation {
 	return p.eOperation.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEPackage returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEPackage() EClass {
+func (p *EcorePackageImpl) GetEPackage() EClass {
 	return p.ePackage
 }
 
 // GetEPackage_NsPrefix returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEPackage_NsPrefix() EAttribute {
+func (p *EcorePackageImpl) GetEPackage_NsPrefix() EAttribute {
 	return p.ePackage.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEPackage_NsURI returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEPackage_NsURI() EAttribute {
+func (p *EcorePackageImpl) GetEPackage_NsURI() EAttribute {
 	return p.ePackage.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEPackage_EClassifiers returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEPackage_EClassifiers() EReference {
+func (p *EcorePackageImpl) GetEPackage_EClassifiers() EReference {
 	return p.ePackage.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEPackage_EFactoryInstance returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEPackage_EFactoryInstance() EReference {
+func (p *EcorePackageImpl) GetEPackage_EFactoryInstance() EReference {
 	return p.ePackage.GetEStructuralFeatures().Get(2).(EReference)
 }
 
 // GetEPackage_ESubPackages returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEPackage_ESubPackages() EReference {
+func (p *EcorePackageImpl) GetEPackage_ESubPackages() EReference {
 	return p.ePackage.GetEStructuralFeatures().Get(4).(EReference)
 }
 
 // GetEPackage_ESuperPackage returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEPackage_ESuperPackage() EReference {
+func (p *EcorePackageImpl) GetEPackage_ESuperPackage() EReference {
 	return p.ePackage.GetEStructuralFeatures().Get(5).(EReference)
 }
 
 // GetEPackage_GetEClassifier_EString returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEPackage_GetEClassifier_EString() EOperation {
+func (p *EcorePackageImpl) GetEPackage_GetEClassifier_EString() EOperation {
 	return p.ePackage.GetEOperations().Get(0).(EOperation)
 }
 
 // GetEParameter returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEParameter() EClass {
+func (p *EcorePackageImpl) GetEParameter() EClass {
 	return p.eParameter
 }
 
 // GetEParameter_EOperation returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEParameter_EOperation() EReference {
+func (p *EcorePackageImpl) GetEParameter_EOperation() EReference {
 	return p.eParameter.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetEReference returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEReference() EClass {
+func (p *EcorePackageImpl) GetEReference() EClass {
 	return p.eReference
 }
 
 // GetEReference_Container returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEReference_Container() EAttribute {
+func (p *EcorePackageImpl) GetEReference_Container() EAttribute {
 	return p.eReference.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEReference_Containment returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEReference_Containment() EAttribute {
+func (p *EcorePackageImpl) GetEReference_Containment() EAttribute {
 	return p.eReference.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEReference_ResolveProxies returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEReference_ResolveProxies() EAttribute {
+func (p *EcorePackageImpl) GetEReference_ResolveProxies() EAttribute {
 	return p.eReference.GetEStructuralFeatures().Get(2).(EAttribute)
 }
 
 // GetEReference_EKeys returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEReference_EKeys() EReference {
+func (p *EcorePackageImpl) GetEReference_EKeys() EReference {
 	return p.eReference.GetEStructuralFeatures().Get(5).(EReference)
 }
 
 // GetEReference_EOpposite returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEReference_EOpposite() EReference {
+func (p *EcorePackageImpl) GetEReference_EOpposite() EReference {
 	return p.eReference.GetEStructuralFeatures().Get(3).(EReference)
 }
 
 // GetEReference_EReferenceType returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEReference_EReferenceType() EReference {
+func (p *EcorePackageImpl) GetEReference_EReferenceType() EReference {
 	return p.eReference.GetEStructuralFeatures().Get(4).(EReference)
 }
 
 // GetEStringToStringMapEntry returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStringToStringMapEntry() EClass {
+func (p *EcorePackageImpl) GetEStringToStringMapEntry() EClass {
 	return p.eStringToStringMapEntry
 }
 
 // GetEStringToStringMapEntry_Key returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStringToStringMapEntry_Key() EAttribute {
+func (p *EcorePackageImpl) GetEStringToStringMapEntry_Key() EAttribute {
 	return p.eStringToStringMapEntry.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEStringToStringMapEntry_Value returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStringToStringMapEntry_Value() EAttribute {
+func (p *EcorePackageImpl) GetEStringToStringMapEntry_Value() EAttribute {
 	return p.eStringToStringMapEntry.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEStructuralFeature returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStructuralFeature() EClass {
+func (p *EcorePackageImpl) GetEStructuralFeature() EClass {
 	return p.eStructuralFeature
 }
 
 // GetEStructuralFeature_Changeable returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStructuralFeature_Changeable() EAttribute {
+func (p *EcorePackageImpl) GetEStructuralFeature_Changeable() EAttribute {
 	return p.eStructuralFeature.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetEStructuralFeature_DefaultValue returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStructuralFeature_DefaultValue() EAttribute {
+func (p *EcorePackageImpl) GetEStructuralFeature_DefaultValue() EAttribute {
 	return p.eStructuralFeature.GetEStructuralFeatures().Get(4).(EAttribute)
 }
 
 // GetEStructuralFeature_DefaultValueLiteral returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStructuralFeature_DefaultValueLiteral() EAttribute {
+func (p *EcorePackageImpl) GetEStructuralFeature_DefaultValueLiteral() EAttribute {
 	return p.eStructuralFeature.GetEStructuralFeatures().Get(3).(EAttribute)
 }
 
 // GetEStructuralFeature_Derived returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStructuralFeature_Derived() EAttribute {
+func (p *EcorePackageImpl) GetEStructuralFeature_Derived() EAttribute {
 	return p.eStructuralFeature.GetEStructuralFeatures().Get(6).(EAttribute)
 }
 
 // GetEStructuralFeature_FeatureID returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStructuralFeature_FeatureID() EAttribute {
+func (p *EcorePackageImpl) GetEStructuralFeature_FeatureID() EAttribute {
 	return p.eStructuralFeature.GetEStructuralFeatures().Get(8).(EAttribute)
 }
 
 // GetEStructuralFeature_Transient returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStructuralFeature_Transient() EAttribute {
+func (p *EcorePackageImpl) GetEStructuralFeature_Transient() EAttribute {
 	return p.eStructuralFeature.GetEStructuralFeatures().Get(2).(EAttribute)
 }
 
 // GetEStructuralFeature_Unsettable returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStructuralFeature_Unsettable() EAttribute {
+func (p *EcorePackageImpl) GetEStructuralFeature_Unsettable() EAttribute {
 	return p.eStructuralFeature.GetEStructuralFeatures().Get(5).(EAttribute)
 }
 
 // GetEStructuralFeature_Volatile returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStructuralFeature_Volatile() EAttribute {
+func (p *EcorePackageImpl) GetEStructuralFeature_Volatile() EAttribute {
 	return p.eStructuralFeature.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetEStructuralFeature_EContainingClass returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStructuralFeature_EContainingClass() EReference {
+func (p *EcorePackageImpl) GetEStructuralFeature_EContainingClass() EReference {
 	return p.eStructuralFeature.GetEStructuralFeatures().Get(7).(EReference)
 }
 
 // GetEStructuralFeature_GetContainerClass returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEStructuralFeature_GetContainerClass() EOperation {
+func (p *EcorePackageImpl) GetEStructuralFeature_GetContainerClass() EOperation {
 	return p.eStructuralFeature.GetEOperations().Get(0).(EOperation)
 }
 
 // GetETypeParameter returns the meta object corresponding to
-func (p *ecorePackageImpl) GetETypeParameter() EClass {
+func (p *EcorePackageImpl) GetETypeParameter() EClass {
 	return p.eTypeParameter
 }
 
 // GetETypeParameter_EBounds returns the meta object corresponding to
-func (p *ecorePackageImpl) GetETypeParameter_EBounds() EReference {
+func (p *EcorePackageImpl) GetETypeParameter_EBounds() EReference {
 	return p.eTypeParameter.GetEStructuralFeatures().Get(0).(EReference)
 }
 
 // GetETypedElement returns the meta object corresponding to
-func (p *ecorePackageImpl) GetETypedElement() EClass {
+func (p *EcorePackageImpl) GetETypedElement() EClass {
 	return p.eTypedElement
 }
 
 // GetETypedElement_LowerBound returns the meta object corresponding to
-func (p *ecorePackageImpl) GetETypedElement_LowerBound() EAttribute {
+func (p *EcorePackageImpl) GetETypedElement_LowerBound() EAttribute {
 	return p.eTypedElement.GetEStructuralFeatures().Get(2).(EAttribute)
 }
 
 // GetETypedElement_Many returns the meta object corresponding to
-func (p *ecorePackageImpl) GetETypedElement_Many() EAttribute {
+func (p *EcorePackageImpl) GetETypedElement_Many() EAttribute {
 	return p.eTypedElement.GetEStructuralFeatures().Get(4).(EAttribute)
 }
 
 // GetETypedElement_Ordered returns the meta object corresponding to
-func (p *ecorePackageImpl) GetETypedElement_Ordered() EAttribute {
+func (p *EcorePackageImpl) GetETypedElement_Ordered() EAttribute {
 	return p.eTypedElement.GetEStructuralFeatures().Get(0).(EAttribute)
 }
 
 // GetETypedElement_Required returns the meta object corresponding to
-func (p *ecorePackageImpl) GetETypedElement_Required() EAttribute {
+func (p *EcorePackageImpl) GetETypedElement_Required() EAttribute {
 	return p.eTypedElement.GetEStructuralFeatures().Get(5).(EAttribute)
 }
 
 // GetETypedElement_Unique returns the meta object corresponding to
-func (p *ecorePackageImpl) GetETypedElement_Unique() EAttribute {
+func (p *EcorePackageImpl) GetETypedElement_Unique() EAttribute {
 	return p.eTypedElement.GetEStructuralFeatures().Get(1).(EAttribute)
 }
 
 // GetETypedElement_UpperBound returns the meta object corresponding to
-func (p *ecorePackageImpl) GetETypedElement_UpperBound() EAttribute {
+func (p *EcorePackageImpl) GetETypedElement_UpperBound() EAttribute {
 	return p.eTypedElement.GetEStructuralFeatures().Get(3).(EAttribute)
 }
 
 // GetETypedElement_EType returns the meta object corresponding to
-func (p *ecorePackageImpl) GetETypedElement_EType() EReference {
+func (p *EcorePackageImpl) GetETypedElement_EType() EReference {
 	return p.eTypedElement.GetEStructuralFeatures().Get(6).(EReference)
 }
 
 // GetEBigDecimal returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEBigDecimal() EDataType {
+func (p *EcorePackageImpl) GetEBigDecimal() EDataType {
 	return p.eBigDecimal
 }
 
 // GetEBigInteger returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEBigInteger() EDataType {
+func (p *EcorePackageImpl) GetEBigInteger() EDataType {
 	return p.eBigInteger
 }
 
 // GetEBoolean returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEBoolean() EDataType {
+func (p *EcorePackageImpl) GetEBoolean() EDataType {
 	return p.eBoolean
 }
 
 // GetEBooleanObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEBooleanObject() EDataType {
+func (p *EcorePackageImpl) GetEBooleanObject() EDataType {
 	return p.eBooleanObject
 }
 
 // GetEByte returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEByte() EDataType {
+func (p *EcorePackageImpl) GetEByte() EDataType {
 	return p.eByte
 }
 
 // GetEByteArray returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEByteArray() EDataType {
+func (p *EcorePackageImpl) GetEByteArray() EDataType {
 	return p.eByteArray
 }
 
 // GetEByteObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEByteObject() EDataType {
+func (p *EcorePackageImpl) GetEByteObject() EDataType {
 	return p.eByteObject
 }
 
 // GetEChar returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEChar() EDataType {
+func (p *EcorePackageImpl) GetEChar() EDataType {
 	return p.eChar
 }
 
 // GetECharacterObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetECharacterObject() EDataType {
+func (p *EcorePackageImpl) GetECharacterObject() EDataType {
 	return p.eCharacterObject
 }
 
 // GetEDate returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEDate() EDataType {
+func (p *EcorePackageImpl) GetEDate() EDataType {
 	return p.eDate
 }
 
 // GetEDiagnosticChain returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEDiagnosticChain() EDataType {
+func (p *EcorePackageImpl) GetEDiagnosticChain() EDataType {
 	return p.eDiagnosticChain
 }
 
 // GetEDouble returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEDouble() EDataType {
+func (p *EcorePackageImpl) GetEDouble() EDataType {
 	return p.eDouble
 }
 
 // GetEDoubleObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEDoubleObject() EDataType {
+func (p *EcorePackageImpl) GetEDoubleObject() EDataType {
 	return p.eDoubleObject
 }
 
 // GetEEList returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEEList() EDataType {
+func (p *EcorePackageImpl) GetEEList() EDataType {
 	return p.eEList
 }
 
 // GetEEnumerator returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEEnumerator() EDataType {
+func (p *EcorePackageImpl) GetEEnumerator() EDataType {
 	return p.eEnumerator
 }
 
 // GetEFeatureMap returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEFeatureMap() EDataType {
+func (p *EcorePackageImpl) GetEFeatureMap() EDataType {
 	return p.eFeatureMap
 }
 
 // GetEFeatureMapEntry returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEFeatureMapEntry() EDataType {
+func (p *EcorePackageImpl) GetEFeatureMapEntry() EDataType {
 	return p.eFeatureMapEntry
 }
 
 // GetEFloat returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEFloat() EDataType {
+func (p *EcorePackageImpl) GetEFloat() EDataType {
 	return p.eFloat
 }
 
 // GetEFloatObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEFloatObject() EDataType {
+func (p *EcorePackageImpl) GetEFloatObject() EDataType {
 	return p.eFloatObject
 }
 
 // GetEInt returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEInt() EDataType {
+func (p *EcorePackageImpl) GetEInt() EDataType {
 	return p.eInt
 }
 
 // GetEIntegerObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEIntegerObject() EDataType {
+func (p *EcorePackageImpl) GetEIntegerObject() EDataType {
 	return p.eIntegerObject
 }
 
 // GetEInvocationTargetException returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEInvocationTargetException() EDataType {
+func (p *EcorePackageImpl) GetEInvocationTargetException() EDataType {
 	return p.eInvocationTargetException
 }
 
 // GetEJavaClass returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEJavaClass() EDataType {
+func (p *EcorePackageImpl) GetEJavaClass() EDataType {
 	return p.eJavaClass
 }
 
 // GetEJavaObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEJavaObject() EDataType {
+func (p *EcorePackageImpl) GetEJavaObject() EDataType {
 	return p.eJavaObject
 }
 
 // GetELong returns the meta object corresponding to
-func (p *ecorePackageImpl) GetELong() EDataType {
+func (p *EcorePackageImpl) GetELong() EDataType {
 	return p.eLong
 }
 
 // GetELongObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetELongObject() EDataType {
+func (p *EcorePackageImpl) GetELongObject() EDataType {
 	return p.eLongObject
 }
 
 // GetEMap returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEMap() EDataType {
+func (p *EcorePackageImpl) GetEMap() EDataType {
 	return p.eMap
 }
 
 // GetEResource returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEResource() EDataType {
+func (p *EcorePackageImpl) GetEResource() EDataType {
 	return p.eResource
 }
 
 // GetEResourceSet returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEResourceSet() EDataType {
+func (p *EcorePackageImpl) GetEResourceSet() EDataType {
 	return p.eResourceSet
 }
 
 // GetEShort returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEShort() EDataType {
+func (p *EcorePackageImpl) GetEShort() EDataType {
 	return p.eShort
 }
 
 // GetEShortObject returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEShortObject() EDataType {
+func (p *EcorePackageImpl) GetEShortObject() EDataType {
 	return p.eShortObject
 }
 
 // GetEString returns the meta object corresponding to
-func (p *ecorePackageImpl) GetEString() EDataType {
+func (p *EcorePackageImpl) GetEString() EDataType {
 	return p.eString
 }
 
 // GetETreeIterator returns the meta object corresponding to
-func (p *ecorePackageImpl) GetETreeIterator() EDataType {
+func (p *EcorePackageImpl) GetETreeIterator() EDataType {
 	return p.eTreeIterator
 }
 
-func (p *ecorePackageImpl) createPackageContents() {
+func (p *EcorePackageImpl) createPackageContents() {
 	factory := GetFactory()
 
 	p.eAnnotation = factory.CreateEClassFromContainerAndClassID(p, EANNOTATION)
@@ -1134,7 +1134,7 @@ func (p *ecorePackageImpl) createPackageContents() {
 
 }
 
-func (p *ecorePackageImpl) initializePackageContents() {
+func (p *EcorePackageImpl) initializePackageContents() {
 
 	p.eAnnotation.GetESuperTypes().Add(p.GetEModelElement())
 	p.eAttribute.GetESuperTypes().Add(p.GetEStructuralFeature())

@@ -63,18 +63,18 @@ type ecoreFactoryInternal interface {
 	convertEStringToString(eDataType EDataType, literalValue any) string
 }
 
-type ecoreFactoryImpl struct {
+type EcoreFactoryImpl struct {
 	EFactoryExt
 }
 
-func newEcoreFactoryImpl() *ecoreFactoryImpl {
-	factory := new(ecoreFactoryImpl)
+func newEcoreFactoryImpl() *EcoreFactoryImpl {
+	factory := new(EcoreFactoryImpl)
 	factory.SetInterfaces(factory)
 	factory.Initialize()
 	return factory
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) Create(eClass EClass) EObject {
+func (ecoreFactoryImpl *EcoreFactoryImpl) Create(eClass EClass) EObject {
 	classID := eClass.GetClassifierID()
 	switch classID {
 	case EANNOTATION:
@@ -112,27 +112,27 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) Create(eClass EClass) EObject {
 	}
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEAnnotation() EAnnotation {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEAnnotation() EAnnotation {
 	return newEAnnotationImpl()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEAnnotationFromContainer(eContainer EModelElement) EAnnotation {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEAnnotationFromContainer(eContainer EModelElement) EAnnotation {
 	element := newEAnnotationImpl()
 	if eContainer != nil {
 		eContainer.GetEAnnotations().Add(element)
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEAttribute() EAttribute {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEAttribute() EAttribute {
 	return newEAttributeExt()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEAttributeFromContainer(eContainer EClass) EAttribute {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEAttributeFromContainer(eContainer EClass) EAttribute {
 	element := newEAttributeExt()
 	if eContainer != nil {
 		eContainer.GetEStructuralFeatures().Add(element)
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEAttributeFromContainerAndClassID(eContainer EClass, classID int) EAttribute {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEAttributeFromContainerAndClassID(eContainer EClass, classID int) EAttribute {
 	element := newEAttributeExt()
 	element.SetFeatureID(classID)
 	if eContainer != nil {
@@ -140,17 +140,17 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEAttributeFromContainerAndClassI
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEClass() EClass {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEClass() EClass {
 	return newEClassExt()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEClassFromContainer(eContainer EPackage) EClass {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEClassFromContainer(eContainer EPackage) EClass {
 	element := newEClassExt()
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEClassFromContainerAndClassID(eContainer EPackage, classID int) EClass {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEClassFromContainerAndClassID(eContainer EPackage, classID int) EClass {
 	element := newEClassExt()
 	element.SetClassifierID(classID)
 	if eContainer != nil {
@@ -158,17 +158,17 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEClassFromContainerAndClassID(eC
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEDataType() EDataType {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEDataType() EDataType {
 	return newEDataTypeExt()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEDataTypeFromContainer(eContainer EPackage) EDataType {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEDataTypeFromContainer(eContainer EPackage) EDataType {
 	element := newEDataTypeExt()
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEDataTypeFromContainerAndClassID(eContainer EPackage, classID int) EDataType {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEDataTypeFromContainerAndClassID(eContainer EPackage, classID int) EDataType {
 	element := newEDataTypeExt()
 	element.SetClassifierID(classID)
 	if eContainer != nil {
@@ -176,17 +176,17 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEDataTypeFromContainerAndClassID
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEEnum() EEnum {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEEnum() EEnum {
 	return newEEnumExt()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEEnumFromContainer(eContainer EPackage) EEnum {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEEnumFromContainer(eContainer EPackage) EEnum {
 	element := newEEnumExt()
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEEnumFromContainerAndClassID(eContainer EPackage, classID int) EEnum {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEEnumFromContainerAndClassID(eContainer EPackage, classID int) EEnum {
 	element := newEEnumExt()
 	element.SetClassifierID(classID)
 	if eContainer != nil {
@@ -194,43 +194,43 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEEnumFromContainerAndClassID(eCo
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEEnumLiteral() EEnumLiteral {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEEnumLiteral() EEnumLiteral {
 	return newEEnumLiteralExt()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEEnumLiteralFromContainer(eContainer EEnum) EEnumLiteral {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEEnumLiteralFromContainer(eContainer EEnum) EEnumLiteral {
 	element := newEEnumLiteralExt()
 	if eContainer != nil {
 		eContainer.GetELiterals().Add(element)
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEFactory() EFactory {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEFactory() EFactory {
 	return NewEFactoryExt()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEFactoryFromContainer(eContainer EPackage) EFactory {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEFactoryFromContainer(eContainer EPackage) EFactory {
 	element := NewEFactoryExt()
 	if eContainer != nil {
 		eContainer.SetEFactoryInstance(element)
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEGenericType() EGenericType {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEGenericType() EGenericType {
 	return newEGenericTypeImpl()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEObject() EObject {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEObject() EObject {
 	return NewEObjectImpl()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEOperation() EOperation {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEOperation() EOperation {
 	return newEOperationExt()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEOperationFromContainer(eContainer EClass) EOperation {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEOperationFromContainer(eContainer EClass) EOperation {
 	element := newEOperationExt()
 	if eContainer != nil {
 		eContainer.GetEOperations().Add(element)
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEOperationFromContainerAndClassID(eContainer EClass, classID int) EOperation {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEOperationFromContainerAndClassID(eContainer EClass, classID int) EOperation {
 	element := newEOperationExt()
 	element.SetOperationID(classID)
 	if eContainer != nil {
@@ -238,37 +238,37 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEOperationFromContainerAndClassI
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEPackage() EPackage {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEPackage() EPackage {
 	return NewEPackageExt()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEPackageFromContainer(eContainer EPackage) EPackage {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEPackageFromContainer(eContainer EPackage) EPackage {
 	element := NewEPackageExt()
 	if eContainer != nil {
 		eContainer.GetESubPackages().Add(element)
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEParameter() EParameter {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEParameter() EParameter {
 	return newEParameterImpl()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEParameterFromContainer(eContainer EOperation) EParameter {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEParameterFromContainer(eContainer EOperation) EParameter {
 	element := newEParameterImpl()
 	if eContainer != nil {
 		eContainer.GetEParameters().Add(element)
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEReference() EReference {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEReference() EReference {
 	return newEReferenceExt()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEReferenceFromContainer(eContainer EClass) EReference {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEReferenceFromContainer(eContainer EClass) EReference {
 	element := newEReferenceExt()
 	if eContainer != nil {
 		eContainer.GetEStructuralFeatures().Add(element)
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEReferenceFromContainerAndClassID(eContainer EClass, classID int) EReference {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEReferenceFromContainerAndClassID(eContainer EClass, classID int) EReference {
 	element := newEReferenceExt()
 	element.SetFeatureID(classID)
 	if eContainer != nil {
@@ -276,13 +276,13 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEReferenceFromContainerAndClassI
 	}
 	return element
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateEStringToStringMapEntry() EStringToStringMapEntry {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEStringToStringMapEntry() EStringToStringMapEntry {
 	return newEStringToStringMapEntryImpl()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateETypeParameter() ETypeParameter {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateETypeParameter() ETypeParameter {
 	return newETypeParameterImpl()
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) CreateFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) CreateFromString(eDataType EDataType, literalValue string) any {
 	classID := eDataType.GetClassifierID()
 	internal := ecoreFactoryImpl.GetInterfaces().(ecoreFactoryInternal)
 	switch classID {
@@ -337,7 +337,7 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) CreateFromString(eDataType EDataType, 
 	}
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) ConvertToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) ConvertToString(eDataType EDataType, instanceValue any) string {
 	classID := eDataType.GetClassifierID()
 	internal := ecoreFactoryImpl.GetInterfaces().(ecoreFactoryInternal)
 	switch classID {
@@ -391,47 +391,47 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) ConvertToString(eDataType EDataType, i
 		panic("The datatype '" + eDataType.GetName() + "' is not a valid classifier")
 	}
 }
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEBigDecimalFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEBigDecimalFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseFloat(literalValue, 64)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBigDecimalToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEBigDecimalToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float64)
 	return strconv.FormatFloat(v, 'f', -1, 64)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEBigIntegerFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEBigIntegerFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseInt(literalValue, 10, 64)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBigIntegerToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEBigIntegerToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int64)
 	return strconv.FormatInt(v, 10)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEBooleanFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEBooleanFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseBool(literalValue)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBooleanToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEBooleanToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(bool)
 	return strconv.FormatBool(v)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEBooleanObjectFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEBooleanObjectFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseBool(literalValue)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEBooleanObjectToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEBooleanObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(bool)
 	return strconv.FormatBool(v)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEByteFromString(eDataType EDataType, literalValue string) any {
 	if len(literalValue) == 0 {
 		return "golang\u0000"
 	} else {
@@ -439,21 +439,21 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteFromString(eDataType EDataT
 	}
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEByteToString(eDataType EDataType, instanceValue any) string {
 	b := instanceValue.(byte)
 	return string([]byte{b})
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteArrayFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEByteArrayFromString(eDataType EDataType, literalValue string) any {
 	return []byte(literalValue)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteArrayToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEByteArrayToString(eDataType EDataType, instanceValue any) string {
 	b := instanceValue.([]byte)
 	return string(b)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteObjectFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEByteObjectFromString(eDataType EDataType, literalValue string) any {
 	if len(literalValue) == 0 {
 		return "golang\u0000"
 	} else {
@@ -461,12 +461,12 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) createEByteObjectFromString(eDataType 
 	}
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEByteObjectToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEByteObjectToString(eDataType EDataType, instanceValue any) string {
 	b := instanceValue.(byte)
 	return string([]byte{b})
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createECharFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createECharFromString(eDataType EDataType, literalValue string) any {
 	if len(literalValue) == 0 {
 		return "golang\u0000"
 	} else {
@@ -474,12 +474,12 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) createECharFromString(eDataType EDataT
 	}
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertECharToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertECharToString(eDataType EDataType, instanceValue any) string {
 	b := instanceValue.(byte)
 	return string([]byte{b})
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createECharacterObjectFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createECharacterObjectFromString(eDataType EDataType, literalValue string) any {
 	if len(literalValue) == 0 {
 		return "golang\u0000"
 	} else {
@@ -487,7 +487,7 @@ func (ecoreFactoryImpl *ecoreFactoryImpl) createECharacterObjectFromString(eData
 	}
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertECharacterObjectToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertECharacterObjectToString(eDataType EDataType, instanceValue any) string {
 	b := instanceValue.(byte)
 	return string([]byte{b})
 }
@@ -496,137 +496,137 @@ const (
 	dateFormat string = "2006-01-02T15:04:05.999Z"
 )
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEDateFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEDateFromString(eDataType EDataType, literalValue string) any {
 	t, _ := time.Parse(dateFormat, literalValue)
 	return &t
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDateToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEDateToString(eDataType EDataType, instanceValue any) string {
 	t, _ := instanceValue.(*time.Time)
 	return t.Format(dateFormat)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEDoubleFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEDoubleFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseFloat(literalValue, 64)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDoubleToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEDoubleToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float64)
 	return strconv.FormatFloat(v, 'f', -1, 64)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEDoubleObjectFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEDoubleObjectFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseFloat(literalValue, 64)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEDoubleObjectToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEDoubleObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float64)
 	return strconv.FormatFloat(v, 'f', -1, 64)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEFloatFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEFloatFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseFloat(literalValue, 32)
 	return float32(value)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEFloatToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEFloatToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float32)
 	return strconv.FormatFloat(float64(v), 'f', -1, 32)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEFloatObjectFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEFloatObjectFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseFloat(literalValue, 32)
 	return float32(value)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEFloatObjectToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEFloatObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float32)
 	return strconv.FormatFloat(float64(v), 'f', -1, 32)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEIntFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEIntFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.Atoi(literalValue)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEIntToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEIntToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int)
 	return strconv.Itoa(v)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEIntegerObjectFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEIntegerObjectFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.Atoi(literalValue)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEIntegerObjectToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEIntegerObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int)
 	return strconv.Itoa(v)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEJavaClassFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEJavaClassFromString(eDataType EDataType, literalValue string) any {
 	panic("NotImplementedException")
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEJavaClassToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEJavaClassToString(eDataType EDataType, instanceValue any) string {
 	panic("NotImplementedException")
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEJavaObjectFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEJavaObjectFromString(eDataType EDataType, literalValue string) any {
 	panic("NotImplementedException")
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEJavaObjectToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEJavaObjectToString(eDataType EDataType, instanceValue any) string {
 	panic("NotImplementedException")
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createELongFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createELongFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseInt(literalValue, 10, 64)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertELongToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertELongToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int64)
 	return strconv.FormatInt(v, 10)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createELongObjectFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createELongObjectFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.Atoi(literalValue)
 	return value
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertELongObjectToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertELongObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int)
 	return strconv.Itoa(v)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEShortFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEShortFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseInt(literalValue, 10, 16)
 	return int16(value)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEShortToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEShortToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int16)
 	return strconv.FormatInt(int64(v), 10)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEShortObjectFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEShortObjectFromString(eDataType EDataType, literalValue string) any {
 	value, _ := strconv.ParseInt(literalValue, 10, 16)
 	return int16(value)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEShortObjectToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEShortObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(int16)
 	return strconv.FormatInt(int64(v), 10)
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) createEStringFromString(eDataType EDataType, literalValue string) any {
+func (ecoreFactoryImpl *EcoreFactoryImpl) createEStringFromString(eDataType EDataType, literalValue string) any {
 	return literalValue
 }
 
-func (ecoreFactoryImpl *ecoreFactoryImpl) convertEStringToString(eDataType EDataType, instanceValue any) string {
+func (ecoreFactoryImpl *EcoreFactoryImpl) convertEStringToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(string)
 	return v
 }

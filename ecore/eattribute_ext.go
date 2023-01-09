@@ -33,7 +33,7 @@ func (eAttribute *EAttributeExt) SetID(newIsID bool) {
 	eAttribute.EAttributeImpl.SetID(newIsID)
 	eClass := eAttribute.GetEContainingClass()
 	if eClass != nil {
-		classExt := eClass.(*EClassExt)
+		classExt := eClass.(EClassInternal)
 		classExt.setModified(ECLASS__EATTRIBUTES)
 	}
 }

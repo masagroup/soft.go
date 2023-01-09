@@ -11,44 +11,44 @@
 
 package ecore
 
-// eEnumLiteralImpl is the implementation of the model object 'EEnumLiteral'
-type eEnumLiteralImpl struct {
-	eNamedElementImpl
+// EEnumLiteralImpl is the implementation of the model object 'EEnumLiteral'
+type EEnumLiteralImpl struct {
+	ENamedElementImpl
 	instance any
 	literal  string
 	value    int
 }
 
-// newEEnumLiteralImpl is the constructor of a eEnumLiteralImpl
-func newEEnumLiteralImpl() *eEnumLiteralImpl {
-	eEnumLiteral := new(eEnumLiteralImpl)
+// newEEnumLiteralImpl is the constructor of a EEnumLiteralImpl
+func newEEnumLiteralImpl() *EEnumLiteralImpl {
+	eEnumLiteral := new(EEnumLiteralImpl)
 	eEnumLiteral.SetInterfaces(eEnumLiteral)
 	eEnumLiteral.Initialize()
 	return eEnumLiteral
 }
 
-func (eEnumLiteral *eEnumLiteralImpl) Initialize() {
-	eEnumLiteral.eNamedElementImpl.Initialize()
+func (eEnumLiteral *EEnumLiteralImpl) Initialize() {
+	eEnumLiteral.ENamedElementImpl.Initialize()
 	eEnumLiteral.instance = nil
 	eEnumLiteral.literal = ""
 	eEnumLiteral.value = 0
 
 }
 
-func (eEnumLiteral *eEnumLiteralImpl) asEEnumLiteral() EEnumLiteral {
+func (eEnumLiteral *EEnumLiteralImpl) asEEnumLiteral() EEnumLiteral {
 	return eEnumLiteral.GetInterfaces().(EEnumLiteral)
 }
 
-func (eEnumLiteral *eEnumLiteralImpl) EStaticClass() EClass {
+func (eEnumLiteral *EEnumLiteralImpl) EStaticClass() EClass {
 	return GetPackage().GetEEnumLiteral()
 }
 
-func (eEnumLiteral *eEnumLiteralImpl) EStaticFeatureCount() int {
+func (eEnumLiteral *EEnumLiteralImpl) EStaticFeatureCount() int {
 	return EENUM_LITERAL_FEATURE_COUNT
 }
 
 // GetEEnum get the value of eEnum
-func (eEnumLiteral *eEnumLiteralImpl) GetEEnum() EEnum {
+func (eEnumLiteral *EEnumLiteralImpl) GetEEnum() EEnum {
 	if eEnumLiteral.EContainerFeatureID() == EENUM_LITERAL__EENUM {
 		return eEnumLiteral.EContainer().(EEnum)
 	}
@@ -56,12 +56,12 @@ func (eEnumLiteral *eEnumLiteralImpl) GetEEnum() EEnum {
 }
 
 // GetInstance get the value of instance
-func (eEnumLiteral *eEnumLiteralImpl) GetInstance() any {
+func (eEnumLiteral *EEnumLiteralImpl) GetInstance() any {
 	return eEnumLiteral.instance
 }
 
 // SetInstance set the value of instance
-func (eEnumLiteral *eEnumLiteralImpl) SetInstance(newInstance any) {
+func (eEnumLiteral *EEnumLiteralImpl) SetInstance(newInstance any) {
 	oldInstance := eEnumLiteral.instance
 	eEnumLiteral.instance = newInstance
 	if eEnumLiteral.ENotificationRequired() {
@@ -70,12 +70,12 @@ func (eEnumLiteral *eEnumLiteralImpl) SetInstance(newInstance any) {
 }
 
 // GetLiteral get the value of literal
-func (eEnumLiteral *eEnumLiteralImpl) GetLiteral() string {
+func (eEnumLiteral *EEnumLiteralImpl) GetLiteral() string {
 	return eEnumLiteral.literal
 }
 
 // SetLiteral set the value of literal
-func (eEnumLiteral *eEnumLiteralImpl) SetLiteral(newLiteral string) {
+func (eEnumLiteral *EEnumLiteralImpl) SetLiteral(newLiteral string) {
 	oldLiteral := eEnumLiteral.literal
 	eEnumLiteral.literal = newLiteral
 	if eEnumLiteral.ENotificationRequired() {
@@ -84,12 +84,12 @@ func (eEnumLiteral *eEnumLiteralImpl) SetLiteral(newLiteral string) {
 }
 
 // GetValue get the value of value
-func (eEnumLiteral *eEnumLiteralImpl) GetValue() int {
+func (eEnumLiteral *EEnumLiteralImpl) GetValue() int {
 	return eEnumLiteral.value
 }
 
 // SetValue set the value of value
-func (eEnumLiteral *eEnumLiteralImpl) SetValue(newValue int) {
+func (eEnumLiteral *EEnumLiteralImpl) SetValue(newValue int) {
 	oldValue := eEnumLiteral.value
 	eEnumLiteral.value = newValue
 	if eEnumLiteral.ENotificationRequired() {
@@ -97,7 +97,7 @@ func (eEnumLiteral *eEnumLiteralImpl) SetValue(newValue int) {
 	}
 }
 
-func (eEnumLiteral *eEnumLiteralImpl) EGetFromID(featureID int, resolve bool) any {
+func (eEnumLiteral *EEnumLiteralImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EENUM_LITERAL__EENUM:
 		return eEnumLiteral.asEEnumLiteral().GetEEnum()
@@ -108,11 +108,11 @@ func (eEnumLiteral *eEnumLiteralImpl) EGetFromID(featureID int, resolve bool) an
 	case EENUM_LITERAL__VALUE:
 		return eEnumLiteral.asEEnumLiteral().GetValue()
 	default:
-		return eEnumLiteral.eNamedElementImpl.EGetFromID(featureID, resolve)
+		return eEnumLiteral.ENamedElementImpl.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eEnumLiteral *eEnumLiteralImpl) ESetFromID(featureID int, newValue any) {
+func (eEnumLiteral *EEnumLiteralImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EENUM_LITERAL__INSTANCE:
 		eEnumLiteral.asEEnumLiteral().SetInstance(newValue)
@@ -121,11 +121,11 @@ func (eEnumLiteral *eEnumLiteralImpl) ESetFromID(featureID int, newValue any) {
 	case EENUM_LITERAL__VALUE:
 		eEnumLiteral.asEEnumLiteral().SetValue(newValue.(int))
 	default:
-		eEnumLiteral.eNamedElementImpl.ESetFromID(featureID, newValue)
+		eEnumLiteral.ENamedElementImpl.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eEnumLiteral *eEnumLiteralImpl) EUnsetFromID(featureID int) {
+func (eEnumLiteral *EEnumLiteralImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EENUM_LITERAL__INSTANCE:
 		eEnumLiteral.asEEnumLiteral().SetInstance(nil)
@@ -134,11 +134,11 @@ func (eEnumLiteral *eEnumLiteralImpl) EUnsetFromID(featureID int) {
 	case EENUM_LITERAL__VALUE:
 		eEnumLiteral.asEEnumLiteral().SetValue(0)
 	default:
-		eEnumLiteral.eNamedElementImpl.EUnsetFromID(featureID)
+		eEnumLiteral.ENamedElementImpl.EUnsetFromID(featureID)
 	}
 }
 
-func (eEnumLiteral *eEnumLiteralImpl) EIsSetFromID(featureID int) bool {
+func (eEnumLiteral *EEnumLiteralImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EENUM_LITERAL__EENUM:
 		return eEnumLiteral.asEEnumLiteral().GetEEnum() != nil
@@ -149,11 +149,11 @@ func (eEnumLiteral *eEnumLiteralImpl) EIsSetFromID(featureID int) bool {
 	case EENUM_LITERAL__VALUE:
 		return eEnumLiteral.value != 0
 	default:
-		return eEnumLiteral.eNamedElementImpl.EIsSetFromID(featureID)
+		return eEnumLiteral.ENamedElementImpl.EIsSetFromID(featureID)
 	}
 }
 
-func (eEnumLiteral *eEnumLiteralImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (eEnumLiteral *EEnumLiteralImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EENUM_LITERAL__EENUM:
 		msgs := notifications
@@ -162,15 +162,15 @@ func (eEnumLiteral *eEnumLiteralImpl) EBasicInverseAdd(otherEnd EObject, feature
 		}
 		return eEnumLiteral.EBasicSetContainer(otherEnd, EENUM_LITERAL__EENUM, msgs)
 	default:
-		return eEnumLiteral.eNamedElementImpl.EBasicInverseAdd(otherEnd, featureID, notifications)
+		return eEnumLiteral.ENamedElementImpl.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
 }
 
-func (eEnumLiteral *eEnumLiteralImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (eEnumLiteral *EEnumLiteralImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EENUM_LITERAL__EENUM:
 		return eEnumLiteral.EBasicSetContainer(nil, EENUM_LITERAL__EENUM, notifications)
 	default:
-		return eEnumLiteral.eNamedElementImpl.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return eEnumLiteral.ENamedElementImpl.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

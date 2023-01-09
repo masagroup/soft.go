@@ -9,19 +9,19 @@
 
 package ecore
 
-// eOperationExt is the extension of the model object 'EOperation'
-type eOperationExt struct {
-	eOperationImpl
+// EOperationExt is the extension of the model object 'EOperation'
+type EOperationExt struct {
+	EOperationImpl
 }
 
-func newEOperationExt() *eOperationExt {
-	eOperation := new(eOperationExt)
+func newEOperationExt() *EOperationExt {
+	eOperation := new(EOperationExt)
 	eOperation.SetInterfaces(eOperation)
 	eOperation.Initialize()
 	return eOperation
 }
 
-func (eOperation *eOperationExt) IsOverrideOf(otherOperation EOperation) bool {
+func (eOperation *EOperationExt) IsOverrideOf(otherOperation EOperation) bool {
 	otherContainingClass := otherOperation.GetEContainingClass()
 	if otherContainingClass != nil && otherContainingClass.IsSuperTypeOf(eOperation.GetEContainingClass()) && otherOperation.GetName() == eOperation.GetName() {
 		parameters := eOperation.GetEParameters()

@@ -9,18 +9,18 @@
 
 package ecore
 
-type eEnumExt struct {
-	eEnumImpl
+type EEnumExt struct {
+	EEnumImpl
 }
 
-func newEEnumExt() *eEnumExt {
-	eEnum := new(eEnumExt)
+func newEEnumExt() *EEnumExt {
+	eEnum := new(EEnumExt)
 	eEnum.SetInterfaces(eEnum)
 	eEnum.Initialize()
 	return eEnum
 }
 
-func (eEnum *eEnumExt) GetDefaultValue() any {
+func (eEnum *EEnumExt) GetDefaultValue() any {
 	if eLiterals := eEnum.GetELiterals(); !eLiterals.Empty() {
 		eLiteral := eLiterals.Get(0).(EEnumLiteral)
 		return eLiteral.GetValue()
@@ -29,7 +29,7 @@ func (eEnum *eEnumExt) GetDefaultValue() any {
 }
 
 // GetEEnumLiteralByName default implementation
-func (eEnum *eEnumExt) GetEEnumLiteralByName(name string) EEnumLiteral {
+func (eEnum *EEnumExt) GetEEnumLiteralByName(name string) EEnumLiteral {
 	for it := eEnum.GetELiterals().Iterator(); it.HasNext(); {
 		eLiteral := it.Next().(EEnumLiteral)
 		if eLiteral.GetName() == name {
@@ -40,7 +40,7 @@ func (eEnum *eEnumExt) GetEEnumLiteralByName(name string) EEnumLiteral {
 }
 
 // GetEEnumLiteralByValue default implementation
-func (eEnum *eEnumExt) GetEEnumLiteralByValue(value int) EEnumLiteral {
+func (eEnum *EEnumExt) GetEEnumLiteralByValue(value int) EEnumLiteral {
 	for it := eEnum.GetELiterals().Iterator(); it.HasNext(); {
 		eLiteral := it.Next().(EEnumLiteral)
 		if eLiteral.GetValue() == value {
@@ -51,7 +51,7 @@ func (eEnum *eEnumExt) GetEEnumLiteralByValue(value int) EEnumLiteral {
 }
 
 // GetEEnumLiteralByLiteral default implementation
-func (eEnum *eEnumExt) GetEEnumLiteralByLiteral(literal string) EEnumLiteral {
+func (eEnum *EEnumExt) GetEEnumLiteralByLiteral(literal string) EEnumLiteral {
 	for it := eEnum.GetELiterals().Iterator(); it.HasNext(); {
 		eLiteral := it.Next().(EEnumLiteral)
 		if eLiteral.GetLiteral() == literal {

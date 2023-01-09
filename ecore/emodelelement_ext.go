@@ -16,19 +16,19 @@ import (
 	"strings"
 )
 
-// eModelElementExt is the extension of the model object 'EFactory'
-type eModelElementExt struct {
-	eModelElementImpl
+// EModelElementExt is the extension of the model object 'EFactory'
+type EModelElementExt struct {
+	EModelElementImpl
 }
 
-func newEModelElementExt() *eModelElementExt {
-	eElement := new(eModelElementExt)
+func newEModelElementExt() *EModelElementExt {
+	eElement := new(EModelElementExt)
 	eElement.SetInterfaces(eElement)
 	eElement.Initialize()
 	return eElement
 }
 
-func (eModelElement *eModelElementExt) GetEAnnotation(source string) EAnnotation {
+func (eModelElement *EModelElementExt) GetEAnnotation(source string) EAnnotation {
 	if eModelElement.eAnnotations != nil {
 		for itAnnotation := eModelElement.eAnnotations.Iterator(); itAnnotation.HasNext(); {
 			annotation := itAnnotation.Next().(EAnnotation)
@@ -40,7 +40,7 @@ func (eModelElement *eModelElementExt) GetEAnnotation(source string) EAnnotation
 	return nil
 }
 
-func (eModelElement *eModelElementExt) EObjectForFragmentSegment(uriFragmentSegment string) EObject {
+func (eModelElement *EModelElementExt) EObjectForFragmentSegment(uriFragmentSegment string) EObject {
 	if len(uriFragmentSegment) > 0 {
 		// Is the first character a special character, i.e., something other than '@'?
 		firstCharacter := uriFragmentSegment[0]
@@ -124,10 +124,10 @@ func (eModelElement *eModelElementExt) EObjectForFragmentSegment(uriFragmentSegm
 			return nil
 		}
 	}
-	return eModelElement.eModelElementImpl.EObjectForFragmentSegment(uriFragmentSegment)
+	return eModelElement.EModelElementImpl.EObjectForFragmentSegment(uriFragmentSegment)
 }
 
-func (eModelElement *eModelElementExt) EURIFragmentSegment(feature EStructuralFeature, object EObject) string {
+func (eModelElement *EModelElementExt) EURIFragmentSegment(feature EStructuralFeature, object EObject) string {
 	eNamedElement, _ := object.(ENamedElement)
 	if eNamedElement != nil {
 		name := eNamedElement.GetName()
@@ -186,5 +186,5 @@ func (eModelElement *eModelElementExt) EURIFragmentSegment(feature EStructuralFe
 		}
 		return result
 	}
-	return eModelElement.eModelElementImpl.EURIFragmentSegment(feature, object)
+	return eModelElement.EModelElementImpl.EURIFragmentSegment(feature, object)
 }

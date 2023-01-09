@@ -11,45 +11,45 @@
 
 package ecore
 
-// eDataTypeImpl is the implementation of the model object 'EDataType'
-type eDataTypeImpl struct {
-	eClassifierExt
+// EDataTypeImpl is the implementation of the model object 'EDataType'
+type EDataTypeImpl struct {
+	EClassifierExt
 	isSerializable bool
 }
 
-// newEDataTypeImpl is the constructor of a eDataTypeImpl
-func newEDataTypeImpl() *eDataTypeImpl {
-	eDataType := new(eDataTypeImpl)
+// newEDataTypeImpl is the constructor of a EDataTypeImpl
+func newEDataTypeImpl() *EDataTypeImpl {
+	eDataType := new(EDataTypeImpl)
 	eDataType.SetInterfaces(eDataType)
 	eDataType.Initialize()
 	return eDataType
 }
 
-func (eDataType *eDataTypeImpl) Initialize() {
-	eDataType.eClassifierExt.Initialize()
+func (eDataType *EDataTypeImpl) Initialize() {
+	eDataType.EClassifierExt.Initialize()
 	eDataType.isSerializable = true
 
 }
 
-func (eDataType *eDataTypeImpl) asEDataType() EDataType {
+func (eDataType *EDataTypeImpl) asEDataType() EDataType {
 	return eDataType.GetInterfaces().(EDataType)
 }
 
-func (eDataType *eDataTypeImpl) EStaticClass() EClass {
+func (eDataType *EDataTypeImpl) EStaticClass() EClass {
 	return GetPackage().GetEDataType()
 }
 
-func (eDataType *eDataTypeImpl) EStaticFeatureCount() int {
+func (eDataType *EDataTypeImpl) EStaticFeatureCount() int {
 	return EDATA_TYPE_FEATURE_COUNT
 }
 
 // IsSerializable get the value of isSerializable
-func (eDataType *eDataTypeImpl) IsSerializable() bool {
+func (eDataType *EDataTypeImpl) IsSerializable() bool {
 	return eDataType.isSerializable
 }
 
 // SetSerializable set the value of isSerializable
-func (eDataType *eDataTypeImpl) SetSerializable(newIsSerializable bool) {
+func (eDataType *EDataTypeImpl) SetSerializable(newIsSerializable bool) {
 	oldIsSerializable := eDataType.isSerializable
 	eDataType.isSerializable = newIsSerializable
 	if eDataType.ENotificationRequired() {
@@ -57,38 +57,38 @@ func (eDataType *eDataTypeImpl) SetSerializable(newIsSerializable bool) {
 	}
 }
 
-func (eDataType *eDataTypeImpl) EGetFromID(featureID int, resolve bool) any {
+func (eDataType *EDataTypeImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EDATA_TYPE__SERIALIZABLE:
 		return eDataType.asEDataType().IsSerializable()
 	default:
-		return eDataType.eClassifierExt.EGetFromID(featureID, resolve)
+		return eDataType.EClassifierExt.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eDataType *eDataTypeImpl) ESetFromID(featureID int, newValue any) {
+func (eDataType *EDataTypeImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EDATA_TYPE__SERIALIZABLE:
 		eDataType.asEDataType().SetSerializable(newValue.(bool))
 	default:
-		eDataType.eClassifierExt.ESetFromID(featureID, newValue)
+		eDataType.EClassifierExt.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eDataType *eDataTypeImpl) EUnsetFromID(featureID int) {
+func (eDataType *EDataTypeImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EDATA_TYPE__SERIALIZABLE:
 		eDataType.asEDataType().SetSerializable(true)
 	default:
-		eDataType.eClassifierExt.EUnsetFromID(featureID)
+		eDataType.EClassifierExt.EUnsetFromID(featureID)
 	}
 }
 
-func (eDataType *eDataTypeImpl) EIsSetFromID(featureID int) bool {
+func (eDataType *EDataTypeImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EDATA_TYPE__SERIALIZABLE:
 		return eDataType.isSerializable != true
 	default:
-		return eDataType.eClassifierExt.EIsSetFromID(featureID)
+		return eDataType.EClassifierExt.EIsSetFromID(featureID)
 	}
 }

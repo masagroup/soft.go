@@ -11,9 +11,9 @@
 
 package ecore
 
-// eTypedElementImpl is the implementation of the model object 'ETypedElement'
-type eTypedElementImpl struct {
-	eNamedElementImpl
+// ETypedElementImpl is the implementation of the model object 'ETypedElement'
+type ETypedElementImpl struct {
+	ENamedElementImpl
 	eType      EClassifier
 	isOrdered  bool
 	isUnique   bool
@@ -25,16 +25,16 @@ type eTypedElementBasics interface {
 	basicGetEType() EClassifier
 }
 
-// newETypedElementImpl is the constructor of a eTypedElementImpl
-func newETypedElementImpl() *eTypedElementImpl {
-	eTypedElement := new(eTypedElementImpl)
+// newETypedElementImpl is the constructor of a ETypedElementImpl
+func newETypedElementImpl() *ETypedElementImpl {
+	eTypedElement := new(ETypedElementImpl)
 	eTypedElement.SetInterfaces(eTypedElement)
 	eTypedElement.Initialize()
 	return eTypedElement
 }
 
-func (eTypedElement *eTypedElementImpl) Initialize() {
-	eTypedElement.eNamedElementImpl.Initialize()
+func (eTypedElement *ETypedElementImpl) Initialize() {
+	eTypedElement.ENamedElementImpl.Initialize()
 	eTypedElement.isOrdered = true
 	eTypedElement.isUnique = true
 	eTypedElement.lowerBound = 0
@@ -42,24 +42,24 @@ func (eTypedElement *eTypedElementImpl) Initialize() {
 
 }
 
-func (eTypedElement *eTypedElementImpl) asETypedElement() ETypedElement {
+func (eTypedElement *ETypedElementImpl) asETypedElement() ETypedElement {
 	return eTypedElement.GetInterfaces().(ETypedElement)
 }
 
-func (eTypedElement *eTypedElementImpl) asBasics() eTypedElementBasics {
+func (eTypedElement *ETypedElementImpl) asBasics() eTypedElementBasics {
 	return eTypedElement.GetInterfaces().(eTypedElementBasics)
 }
 
-func (eTypedElement *eTypedElementImpl) EStaticClass() EClass {
+func (eTypedElement *ETypedElementImpl) EStaticClass() EClass {
 	return GetPackage().GetETypedElement()
 }
 
-func (eTypedElement *eTypedElementImpl) EStaticFeatureCount() int {
+func (eTypedElement *ETypedElementImpl) EStaticFeatureCount() int {
 	return ETYPED_ELEMENT_FEATURE_COUNT
 }
 
 // GetEType get the value of eType
-func (eTypedElement *eTypedElementImpl) GetEType() EClassifier {
+func (eTypedElement *ETypedElementImpl) GetEType() EClassifier {
 	if eTypedElement.eType != nil && eTypedElement.eType.EIsProxy() {
 		oldEType := eTypedElement.eType
 		newEType := eTypedElement.EResolveProxy(oldEType).(EClassifier)
@@ -73,12 +73,12 @@ func (eTypedElement *eTypedElementImpl) GetEType() EClassifier {
 	return eTypedElement.eType
 }
 
-func (eTypedElement *eTypedElementImpl) basicGetEType() EClassifier {
+func (eTypedElement *ETypedElementImpl) basicGetEType() EClassifier {
 	return eTypedElement.eType
 }
 
 // SetEType set the value of eType
-func (eTypedElement *eTypedElementImpl) SetEType(newEType EClassifier) {
+func (eTypedElement *ETypedElementImpl) SetEType(newEType EClassifier) {
 	oldEType := eTypedElement.eType
 	eTypedElement.eType = newEType
 	if eTypedElement.ENotificationRequired() {
@@ -87,7 +87,7 @@ func (eTypedElement *eTypedElementImpl) SetEType(newEType EClassifier) {
 }
 
 // UnsetEType unset the value of eType
-func (eTypedElement *eTypedElementImpl) UnsetEType() {
+func (eTypedElement *ETypedElementImpl) UnsetEType() {
 	oldEType := eTypedElement.eType
 	eTypedElement.eType = nil
 	if eTypedElement.ENotificationRequired() {
@@ -96,17 +96,17 @@ func (eTypedElement *eTypedElementImpl) UnsetEType() {
 }
 
 // IsMany get the value of isMany
-func (eTypedElement *eTypedElementImpl) IsMany() bool {
+func (eTypedElement *ETypedElementImpl) IsMany() bool {
 	panic("IsMany not implemented")
 }
 
 // IsOrdered get the value of isOrdered
-func (eTypedElement *eTypedElementImpl) IsOrdered() bool {
+func (eTypedElement *ETypedElementImpl) IsOrdered() bool {
 	return eTypedElement.isOrdered
 }
 
 // SetOrdered set the value of isOrdered
-func (eTypedElement *eTypedElementImpl) SetOrdered(newIsOrdered bool) {
+func (eTypedElement *ETypedElementImpl) SetOrdered(newIsOrdered bool) {
 	oldIsOrdered := eTypedElement.isOrdered
 	eTypedElement.isOrdered = newIsOrdered
 	if eTypedElement.ENotificationRequired() {
@@ -115,17 +115,17 @@ func (eTypedElement *eTypedElementImpl) SetOrdered(newIsOrdered bool) {
 }
 
 // IsRequired get the value of isRequired
-func (eTypedElement *eTypedElementImpl) IsRequired() bool {
+func (eTypedElement *ETypedElementImpl) IsRequired() bool {
 	panic("IsRequired not implemented")
 }
 
 // IsUnique get the value of isUnique
-func (eTypedElement *eTypedElementImpl) IsUnique() bool {
+func (eTypedElement *ETypedElementImpl) IsUnique() bool {
 	return eTypedElement.isUnique
 }
 
 // SetUnique set the value of isUnique
-func (eTypedElement *eTypedElementImpl) SetUnique(newIsUnique bool) {
+func (eTypedElement *ETypedElementImpl) SetUnique(newIsUnique bool) {
 	oldIsUnique := eTypedElement.isUnique
 	eTypedElement.isUnique = newIsUnique
 	if eTypedElement.ENotificationRequired() {
@@ -134,12 +134,12 @@ func (eTypedElement *eTypedElementImpl) SetUnique(newIsUnique bool) {
 }
 
 // GetLowerBound get the value of lowerBound
-func (eTypedElement *eTypedElementImpl) GetLowerBound() int {
+func (eTypedElement *ETypedElementImpl) GetLowerBound() int {
 	return eTypedElement.lowerBound
 }
 
 // SetLowerBound set the value of lowerBound
-func (eTypedElement *eTypedElementImpl) SetLowerBound(newLowerBound int) {
+func (eTypedElement *ETypedElementImpl) SetLowerBound(newLowerBound int) {
 	oldLowerBound := eTypedElement.lowerBound
 	eTypedElement.lowerBound = newLowerBound
 	if eTypedElement.ENotificationRequired() {
@@ -148,12 +148,12 @@ func (eTypedElement *eTypedElementImpl) SetLowerBound(newLowerBound int) {
 }
 
 // GetUpperBound get the value of upperBound
-func (eTypedElement *eTypedElementImpl) GetUpperBound() int {
+func (eTypedElement *ETypedElementImpl) GetUpperBound() int {
 	return eTypedElement.upperBound
 }
 
 // SetUpperBound set the value of upperBound
-func (eTypedElement *eTypedElementImpl) SetUpperBound(newUpperBound int) {
+func (eTypedElement *ETypedElementImpl) SetUpperBound(newUpperBound int) {
 	oldUpperBound := eTypedElement.upperBound
 	eTypedElement.upperBound = newUpperBound
 	if eTypedElement.ENotificationRequired() {
@@ -161,7 +161,7 @@ func (eTypedElement *eTypedElementImpl) SetUpperBound(newUpperBound int) {
 	}
 }
 
-func (eTypedElement *eTypedElementImpl) EGetFromID(featureID int, resolve bool) any {
+func (eTypedElement *ETypedElementImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
 		if resolve {
@@ -181,11 +181,11 @@ func (eTypedElement *eTypedElementImpl) EGetFromID(featureID int, resolve bool) 
 	case ETYPED_ELEMENT__UPPER_BOUND:
 		return eTypedElement.asETypedElement().GetUpperBound()
 	default:
-		return eTypedElement.eNamedElementImpl.EGetFromID(featureID, resolve)
+		return eTypedElement.ENamedElementImpl.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eTypedElement *eTypedElementImpl) ESetFromID(featureID int, newValue any) {
+func (eTypedElement *ETypedElementImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
 		eTypedElement.asETypedElement().SetEType(newValue.(EClassifier))
@@ -198,11 +198,11 @@ func (eTypedElement *eTypedElementImpl) ESetFromID(featureID int, newValue any) 
 	case ETYPED_ELEMENT__UPPER_BOUND:
 		eTypedElement.asETypedElement().SetUpperBound(newValue.(int))
 	default:
-		eTypedElement.eNamedElementImpl.ESetFromID(featureID, newValue)
+		eTypedElement.ENamedElementImpl.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eTypedElement *eTypedElementImpl) EUnsetFromID(featureID int) {
+func (eTypedElement *ETypedElementImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
 		eTypedElement.asETypedElement().UnsetEType()
@@ -215,11 +215,11 @@ func (eTypedElement *eTypedElementImpl) EUnsetFromID(featureID int) {
 	case ETYPED_ELEMENT__UPPER_BOUND:
 		eTypedElement.asETypedElement().SetUpperBound(1)
 	default:
-		eTypedElement.eNamedElementImpl.EUnsetFromID(featureID)
+		eTypedElement.ENamedElementImpl.EUnsetFromID(featureID)
 	}
 }
 
-func (eTypedElement *eTypedElementImpl) EIsSetFromID(featureID int) bool {
+func (eTypedElement *ETypedElementImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
 		return eTypedElement.eType != nil
@@ -236,6 +236,6 @@ func (eTypedElement *eTypedElementImpl) EIsSetFromID(featureID int) bool {
 	case ETYPED_ELEMENT__UPPER_BOUND:
 		return eTypedElement.upperBound != 1
 	default:
-		return eTypedElement.eNamedElementImpl.EIsSetFromID(featureID)
+		return eTypedElement.ENamedElementImpl.EIsSetFromID(featureID)
 	}
 }

@@ -9,34 +9,34 @@
 
 package ecore
 
-// eClassifierExt is the extesnion of the model object 'EClassifier'
-type eClassifierExt struct {
-	eClassifierImpl
+// EClassifierExt is the extesnion of the model object 'EClassifier'
+type EClassifierExt struct {
+	EClassifierImpl
 }
 
-func newEClassifierExt() *eClassifierExt {
-	eClassifier := new(eClassifierExt)
+func newEClassifierExt() *EClassifierExt {
+	eClassifier := new(EClassifierExt)
 	eClassifier.SetInterfaces(eClassifier)
 	eClassifier.Initialize()
 	return eClassifier
 }
 
-func (eClassifier *eClassifierExt) initClassifierID() int {
+func (eClassifier *EClassifierExt) initClassifierID() int {
 	if ePackage := eClassifier.GetEPackage(); ePackage != nil {
 		return ePackage.GetEClassifiers().IndexOf(eClassifier.asEClassifier())
 	}
 	return -1
 }
 
-func (eClassifier *eClassifierExt) GetDefaultValue() any {
+func (eClassifier *EClassifierExt) GetDefaultValue() any {
 	return nil
 }
 
-func (eClassifier *eClassifierExt) GetInstanceTypeName() string {
+func (eClassifier *EClassifierExt) GetInstanceTypeName() string {
 	return eClassifier.GetInstanceClassName()
 }
 
 // SetInstanceTypeName set the value of instanceTypeName
-func (eClassifier *eClassifierExt) SetInstanceTypeName(newInstanceTypeName string) {
+func (eClassifier *EClassifierExt) SetInstanceTypeName(newInstanceTypeName string) {
 	eClassifier.SetInstanceClassName(newInstanceTypeName)
 }

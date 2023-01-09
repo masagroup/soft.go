@@ -16,7 +16,7 @@ import (
 )
 
 func TestEObjectEInvokeFromID(t *testing.T) {
-	o := NewEObjectImpl()
+	o := newEObjectImpl()
 	assert.Panics(t, func() { o.EInvokeFromID(-1, nil) })
 	assert.NotPanics(t, func() { o.EInvokeFromID(EOBJECT__EALL_CONTENTS, NewImmutableEList([]any{})) })
 	assert.NotPanics(t, func() { o.EInvokeFromID(EOBJECT__ECLASS, NewImmutableEList([]any{})) })

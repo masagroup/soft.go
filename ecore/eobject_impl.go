@@ -16,8 +16,8 @@ type EObjectImpl struct {
 	BasicEObjectImpl
 }
 
-// NewEObjectImpl is the constructor of a EObjectImpl
-func NewEObjectImpl() *EObjectImpl {
+// newEObjectImpl is the constructor of a EObjectImpl
+func newEObjectImpl() *EObjectImpl {
 	eObject := new(EObjectImpl)
 	eObject.SetInterfaces(eObject)
 	eObject.Initialize()

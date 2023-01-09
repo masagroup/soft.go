@@ -451,7 +451,7 @@ func TestEContentAdapterIntegration(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
 	// add a new object to resource & check that mockAdapter is called
-	o := NewEObjectImpl()
+	o := newEObjectImpl()
 	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == r &&
 			n.GetFeatureID() == RESOURCE__IS_LOADED &&

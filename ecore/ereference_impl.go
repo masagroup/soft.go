@@ -11,9 +11,9 @@
 
 package ecore
 
-// eReferenceImpl is the implementation of the model object 'EReference'
-type eReferenceImpl struct {
-	eStructuralFeatureExt
+// EReferenceImpl is the implementation of the model object 'EReference'
+type EReferenceImpl struct {
+	EStructuralFeatureExt
 	eKeys            EList
 	eOpposite        EReference
 	isContainment    bool
@@ -28,43 +28,43 @@ type eReferenceBasics interface {
 	basicGetEReferenceType() EClass
 }
 
-// newEReferenceImpl is the constructor of a eReferenceImpl
-func newEReferenceImpl() *eReferenceImpl {
-	eReference := new(eReferenceImpl)
+// newEReferenceImpl is the constructor of a EReferenceImpl
+func newEReferenceImpl() *EReferenceImpl {
+	eReference := new(EReferenceImpl)
 	eReference.SetInterfaces(eReference)
 	eReference.Initialize()
 	return eReference
 }
 
-func (eReference *eReferenceImpl) Initialize() {
-	eReference.eStructuralFeatureExt.Initialize()
+func (eReference *EReferenceImpl) Initialize() {
+	eReference.EStructuralFeatureExt.Initialize()
 	eReference.isContainment = false
 	eReference.isResolveProxies = true
 
 }
 
-func (eReference *eReferenceImpl) asEReference() EReference {
+func (eReference *EReferenceImpl) asEReference() EReference {
 	return eReference.GetInterfaces().(EReference)
 }
 
-func (eReference *eReferenceImpl) asInitializers() eReferenceInitializers {
+func (eReference *EReferenceImpl) asInitializers() eReferenceInitializers {
 	return eReference.GetInterfaces().(eReferenceInitializers)
 }
 
-func (eReference *eReferenceImpl) asBasics() eReferenceBasics {
+func (eReference *EReferenceImpl) asBasics() eReferenceBasics {
 	return eReference.GetInterfaces().(eReferenceBasics)
 }
 
-func (eReference *eReferenceImpl) EStaticClass() EClass {
+func (eReference *EReferenceImpl) EStaticClass() EClass {
 	return GetPackage().GetEReference()
 }
 
-func (eReference *eReferenceImpl) EStaticFeatureCount() int {
+func (eReference *EReferenceImpl) EStaticFeatureCount() int {
 	return EREFERENCE_FEATURE_COUNT
 }
 
 // GetEKeys get the value of eKeys
-func (eReference *eReferenceImpl) GetEKeys() EList {
+func (eReference *EReferenceImpl) GetEKeys() EList {
 	if eReference.eKeys == nil {
 		eReference.eKeys = eReference.asInitializers().initEKeys()
 	}
@@ -72,7 +72,7 @@ func (eReference *eReferenceImpl) GetEKeys() EList {
 }
 
 // GetEOpposite get the value of eOpposite
-func (eReference *eReferenceImpl) GetEOpposite() EReference {
+func (eReference *EReferenceImpl) GetEOpposite() EReference {
 	if eReference.eOpposite != nil && eReference.eOpposite.EIsProxy() {
 		oldEOpposite := eReference.eOpposite
 		newEOpposite := eReference.EResolveProxy(oldEOpposite).(EReference)
@@ -86,12 +86,12 @@ func (eReference *eReferenceImpl) GetEOpposite() EReference {
 	return eReference.eOpposite
 }
 
-func (eReference *eReferenceImpl) basicGetEOpposite() EReference {
+func (eReference *EReferenceImpl) basicGetEOpposite() EReference {
 	return eReference.eOpposite
 }
 
 // SetEOpposite set the value of eOpposite
-func (eReference *eReferenceImpl) SetEOpposite(newEOpposite EReference) {
+func (eReference *EReferenceImpl) SetEOpposite(newEOpposite EReference) {
 	oldEOpposite := eReference.eOpposite
 	eReference.eOpposite = newEOpposite
 	if eReference.ENotificationRequired() {
@@ -100,26 +100,26 @@ func (eReference *eReferenceImpl) SetEOpposite(newEOpposite EReference) {
 }
 
 // GetEReferenceType get the value of eReferenceType
-func (eReference *eReferenceImpl) GetEReferenceType() EClass {
+func (eReference *EReferenceImpl) GetEReferenceType() EClass {
 	panic("GetEReferenceType not implemented")
 }
 
-func (eReference *eReferenceImpl) basicGetEReferenceType() EClass {
+func (eReference *EReferenceImpl) basicGetEReferenceType() EClass {
 	panic("GetEReferenceType not implemented")
 }
 
 // IsContainer get the value of isContainer
-func (eReference *eReferenceImpl) IsContainer() bool {
+func (eReference *EReferenceImpl) IsContainer() bool {
 	panic("IsContainer not implemented")
 }
 
 // IsContainment get the value of isContainment
-func (eReference *eReferenceImpl) IsContainment() bool {
+func (eReference *EReferenceImpl) IsContainment() bool {
 	return eReference.isContainment
 }
 
 // SetContainment set the value of isContainment
-func (eReference *eReferenceImpl) SetContainment(newIsContainment bool) {
+func (eReference *EReferenceImpl) SetContainment(newIsContainment bool) {
 	oldIsContainment := eReference.isContainment
 	eReference.isContainment = newIsContainment
 	if eReference.ENotificationRequired() {
@@ -128,12 +128,12 @@ func (eReference *eReferenceImpl) SetContainment(newIsContainment bool) {
 }
 
 // IsResolveProxies get the value of isResolveProxies
-func (eReference *eReferenceImpl) IsResolveProxies() bool {
+func (eReference *EReferenceImpl) IsResolveProxies() bool {
 	return eReference.isResolveProxies
 }
 
 // SetResolveProxies set the value of isResolveProxies
-func (eReference *eReferenceImpl) SetResolveProxies(newIsResolveProxies bool) {
+func (eReference *EReferenceImpl) SetResolveProxies(newIsResolveProxies bool) {
 	oldIsResolveProxies := eReference.isResolveProxies
 	eReference.isResolveProxies = newIsResolveProxies
 	if eReference.ENotificationRequired() {
@@ -141,11 +141,11 @@ func (eReference *eReferenceImpl) SetResolveProxies(newIsResolveProxies bool) {
 	}
 }
 
-func (eReference *eReferenceImpl) initEKeys() EList {
+func (eReference *EReferenceImpl) initEKeys() EList {
 	return NewBasicEObjectList(eReference.AsEObjectInternal(), EREFERENCE__EKEYS, -1, false, false, false, true, false)
 }
 
-func (eReference *eReferenceImpl) EGetFromID(featureID int, resolve bool) any {
+func (eReference *EReferenceImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EREFERENCE__CONTAINER:
 		return eReference.asEReference().IsContainer()
@@ -172,11 +172,11 @@ func (eReference *eReferenceImpl) EGetFromID(featureID int, resolve bool) any {
 	case EREFERENCE__RESOLVE_PROXIES:
 		return eReference.asEReference().IsResolveProxies()
 	default:
-		return eReference.eStructuralFeatureExt.EGetFromID(featureID, resolve)
+		return eReference.EStructuralFeatureExt.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eReference *eReferenceImpl) ESetFromID(featureID int, newValue any) {
+func (eReference *EReferenceImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EREFERENCE__CONTAINMENT:
 		eReference.asEReference().SetContainment(newValue.(bool))
@@ -189,11 +189,11 @@ func (eReference *eReferenceImpl) ESetFromID(featureID int, newValue any) {
 	case EREFERENCE__RESOLVE_PROXIES:
 		eReference.asEReference().SetResolveProxies(newValue.(bool))
 	default:
-		eReference.eStructuralFeatureExt.ESetFromID(featureID, newValue)
+		eReference.EStructuralFeatureExt.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eReference *eReferenceImpl) EUnsetFromID(featureID int) {
+func (eReference *EReferenceImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EREFERENCE__CONTAINMENT:
 		eReference.asEReference().SetContainment(false)
@@ -204,11 +204,11 @@ func (eReference *eReferenceImpl) EUnsetFromID(featureID int) {
 	case EREFERENCE__RESOLVE_PROXIES:
 		eReference.asEReference().SetResolveProxies(true)
 	default:
-		eReference.eStructuralFeatureExt.EUnsetFromID(featureID)
+		eReference.EStructuralFeatureExt.EUnsetFromID(featureID)
 	}
 }
 
-func (eReference *eReferenceImpl) EIsSetFromID(featureID int) bool {
+func (eReference *EReferenceImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EREFERENCE__CONTAINER:
 		return eReference.asEReference().IsContainer() != false
@@ -223,6 +223,6 @@ func (eReference *eReferenceImpl) EIsSetFromID(featureID int) bool {
 	case EREFERENCE__RESOLVE_PROXIES:
 		return eReference.isResolveProxies != true
 	default:
-		return eReference.eStructuralFeatureExt.EIsSetFromID(featureID)
+		return eReference.EStructuralFeatureExt.EIsSetFromID(featureID)
 	}
 }

@@ -11,62 +11,62 @@
 
 package ecore
 
-// eStringToStringMapEntryImpl is the implementation of the model object 'EStringToStringMapEntry'
-type eStringToStringMapEntryImpl struct {
+// EStringToStringMapEntryImpl is the implementation of the model object 'EStringToStringMapEntry'
+type EStringToStringMapEntryImpl struct {
 	CompactEObjectContainer
 	key   string
 	value string
 }
 
-// newEStringToStringMapEntryImpl is the constructor of a eStringToStringMapEntryImpl
-func newEStringToStringMapEntryImpl() *eStringToStringMapEntryImpl {
-	eStringToStringMapEntry := new(eStringToStringMapEntryImpl)
+// newEStringToStringMapEntryImpl is the constructor of a EStringToStringMapEntryImpl
+func newEStringToStringMapEntryImpl() *EStringToStringMapEntryImpl {
+	eStringToStringMapEntry := new(EStringToStringMapEntryImpl)
 	eStringToStringMapEntry.SetInterfaces(eStringToStringMapEntry)
 	eStringToStringMapEntry.Initialize()
 	return eStringToStringMapEntry
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) Initialize() {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) Initialize() {
 	eStringToStringMapEntry.CompactEObjectContainer.Initialize()
 	eStringToStringMapEntry.key = ""
 	eStringToStringMapEntry.value = ""
 
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) asEStringToStringMapEntry() EStringToStringMapEntry {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) asEStringToStringMapEntry() EStringToStringMapEntry {
 	return eStringToStringMapEntry.GetInterfaces().(EStringToStringMapEntry)
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EStaticClass() EClass {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) EStaticClass() EClass {
 	return GetPackage().GetEStringToStringMapEntry()
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EStaticFeatureCount() int {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) EStaticFeatureCount() int {
 	return ESTRING_TO_STRING_MAP_ENTRY_FEATURE_COUNT
 }
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetKey() any {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) GetKey() any {
 	return eStringToStringMapEntry.GetTypedKey()
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetKey(key any) {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) SetKey(key any) {
 	eStringToStringMapEntry.SetTypedKey(key.(string))
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetValue() any {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) GetValue() any {
 	return eStringToStringMapEntry.GetTypedValue()
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetValue(value any) {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) SetValue(value any) {
 	eStringToStringMapEntry.SetTypedValue(value.(string))
 }
 
 // GetTypedKey get the value of key
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetTypedKey() string {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) GetTypedKey() string {
 	return eStringToStringMapEntry.key
 }
 
 // SetTypedKey set the value of key
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetTypedKey(newKey string) {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) SetTypedKey(newKey string) {
 	oldKey := eStringToStringMapEntry.key
 	eStringToStringMapEntry.key = newKey
 	if eStringToStringMapEntry.ENotificationRequired() {
@@ -75,12 +75,12 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetTypedKey(newKey s
 }
 
 // GetTypedValue get the value of value
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) GetTypedValue() string {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) GetTypedValue() string {
 	return eStringToStringMapEntry.value
 }
 
 // SetTypedValue set the value of value
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetTypedValue(newValue string) {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) SetTypedValue(newValue string) {
 	oldValue := eStringToStringMapEntry.value
 	eStringToStringMapEntry.value = newValue
 	if eStringToStringMapEntry.ENotificationRequired() {
@@ -88,7 +88,7 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) SetTypedValue(newVal
 	}
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EGetFromID(featureID int, resolve bool) any {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case ESTRING_TO_STRING_MAP_ENTRY__KEY:
 		return eStringToStringMapEntry.asEStringToStringMapEntry().GetTypedKey()
@@ -99,7 +99,7 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EGetFromID(featureID
 	}
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) ESetFromID(featureID int, newValue any) {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case ESTRING_TO_STRING_MAP_ENTRY__KEY:
 		eStringToStringMapEntry.asEStringToStringMapEntry().SetTypedKey(newValue.(string))
@@ -110,7 +110,7 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) ESetFromID(featureID
 	}
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EUnsetFromID(featureID int) {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case ESTRING_TO_STRING_MAP_ENTRY__KEY:
 		eStringToStringMapEntry.asEStringToStringMapEntry().SetTypedKey("")
@@ -121,7 +121,7 @@ func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EUnsetFromID(feature
 	}
 }
 
-func (eStringToStringMapEntry *eStringToStringMapEntryImpl) EIsSetFromID(featureID int) bool {
+func (eStringToStringMapEntry *EStringToStringMapEntryImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case ESTRING_TO_STRING_MAP_ENTRY__KEY:
 		return eStringToStringMapEntry.key != ""

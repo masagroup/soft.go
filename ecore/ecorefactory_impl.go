@@ -74,39 +74,47 @@ func newEcoreFactoryImpl() *EcoreFactoryImpl {
 	return factory
 }
 
+func (ecoreFactoryImpl *EcoreFactoryImpl) AsInternal() ecoreFactoryInternal {
+	return ecoreFactoryImpl.GetInterfaces().(ecoreFactoryInternal)
+}
+
+func (ecoreFactoryImpl *EcoreFactoryImpl) AsEFactory() EcoreFactory {
+	return ecoreFactoryImpl.GetInterfaces().(EcoreFactory)
+}
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) Create(eClass EClass) EObject {
 	classID := eClass.GetClassifierID()
 	switch classID {
 	case EANNOTATION:
-		return ecoreFactoryImpl.CreateEAnnotation()
+		return ecoreFactoryImpl.AsEFactory().CreateEAnnotation()
 	case EATTRIBUTE:
-		return ecoreFactoryImpl.CreateEAttribute()
+		return ecoreFactoryImpl.AsEFactory().CreateEAttribute()
 	case ECLASS:
-		return ecoreFactoryImpl.CreateEClass()
+		return ecoreFactoryImpl.AsEFactory().CreateEClass()
 	case EDATA_TYPE:
-		return ecoreFactoryImpl.CreateEDataType()
+		return ecoreFactoryImpl.AsEFactory().CreateEDataType()
 	case EENUM:
-		return ecoreFactoryImpl.CreateEEnum()
+		return ecoreFactoryImpl.AsEFactory().CreateEEnum()
 	case EENUM_LITERAL:
-		return ecoreFactoryImpl.CreateEEnumLiteral()
+		return ecoreFactoryImpl.AsEFactory().CreateEEnumLiteral()
 	case EFACTORY:
-		return ecoreFactoryImpl.CreateEFactory()
+		return ecoreFactoryImpl.AsEFactory().CreateEFactory()
 	case EGENERIC_TYPE:
-		return ecoreFactoryImpl.CreateEGenericType()
+		return ecoreFactoryImpl.AsEFactory().CreateEGenericType()
 	case EOBJECT:
-		return ecoreFactoryImpl.CreateEObject()
+		return ecoreFactoryImpl.AsEFactory().CreateEObject()
 	case EOPERATION:
-		return ecoreFactoryImpl.CreateEOperation()
+		return ecoreFactoryImpl.AsEFactory().CreateEOperation()
 	case EPACKAGE:
-		return ecoreFactoryImpl.CreateEPackage()
+		return ecoreFactoryImpl.AsEFactory().CreateEPackage()
 	case EPARAMETER:
-		return ecoreFactoryImpl.CreateEParameter()
+		return ecoreFactoryImpl.AsEFactory().CreateEParameter()
 	case EREFERENCE:
-		return ecoreFactoryImpl.CreateEReference()
+		return ecoreFactoryImpl.AsEFactory().CreateEReference()
 	case ESTRING_TO_STRING_MAP_ENTRY:
-		return ecoreFactoryImpl.CreateEStringToStringMapEntry()
+		return ecoreFactoryImpl.AsEFactory().CreateEStringToStringMapEntry()
 	case ETYPE_PARAMETER:
-		return ecoreFactoryImpl.CreateETypeParameter()
+		return ecoreFactoryImpl.AsEFactory().CreateETypeParameter()
 	default:
 		panic("Create: " + strconv.Itoa(classID) + " not found")
 	}
@@ -115,223 +123,254 @@ func (ecoreFactoryImpl *EcoreFactoryImpl) Create(eClass EClass) EObject {
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEAnnotation() EAnnotation {
 	return newEAnnotationImpl()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEAnnotationFromContainer(eContainer EModelElement) EAnnotation {
-	element := newEAnnotationImpl()
+	element := ecoreFactoryImpl.AsEFactory().CreateEAnnotation()
 	if eContainer != nil {
 		eContainer.GetEAnnotations().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEAttribute() EAttribute {
 	return newEAttributeExt()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEAttributeFromContainer(eContainer EClass) EAttribute {
-	element := newEAttributeExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEAttribute()
 	if eContainer != nil {
 		eContainer.GetEStructuralFeatures().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEAttributeFromContainerAndClassID(eContainer EClass, classID int) EAttribute {
-	element := newEAttributeExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEAttribute()
 	element.SetFeatureID(classID)
 	if eContainer != nil {
 		eContainer.GetEStructuralFeatures().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEClass() EClass {
 	return newEClassExt()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEClassFromContainer(eContainer EPackage) EClass {
-	element := newEClassExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEClass()
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEClassFromContainerAndClassID(eContainer EPackage, classID int) EClass {
-	element := newEClassExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEClass()
 	element.SetClassifierID(classID)
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEDataType() EDataType {
 	return newEDataTypeExt()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEDataTypeFromContainer(eContainer EPackage) EDataType {
-	element := newEDataTypeExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEDataType()
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEDataTypeFromContainerAndClassID(eContainer EPackage, classID int) EDataType {
-	element := newEDataTypeExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEDataType()
 	element.SetClassifierID(classID)
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEEnum() EEnum {
 	return newEEnumExt()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEEnumFromContainer(eContainer EPackage) EEnum {
-	element := newEEnumExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEEnum()
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEEnumFromContainerAndClassID(eContainer EPackage, classID int) EEnum {
-	element := newEEnumExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEEnum()
 	element.SetClassifierID(classID)
 	if eContainer != nil {
 		eContainer.GetEClassifiers().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEEnumLiteral() EEnumLiteral {
 	return newEEnumLiteralExt()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEEnumLiteralFromContainer(eContainer EEnum) EEnumLiteral {
-	element := newEEnumLiteralExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEEnumLiteral()
 	if eContainer != nil {
 		eContainer.GetELiterals().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEFactory() EFactory {
-	return NewEFactoryExt()
+	return newEFactoryExt()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEFactoryFromContainer(eContainer EPackage) EFactory {
-	element := NewEFactoryExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEFactory()
 	if eContainer != nil {
 		eContainer.SetEFactoryInstance(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEGenericType() EGenericType {
 	return newEGenericTypeImpl()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEObject() EObject {
-	return NewEObjectImpl()
+	return newEObjectImpl()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEOperation() EOperation {
 	return newEOperationExt()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEOperationFromContainer(eContainer EClass) EOperation {
-	element := newEOperationExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEOperation()
 	if eContainer != nil {
 		eContainer.GetEOperations().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEOperationFromContainerAndClassID(eContainer EClass, classID int) EOperation {
-	element := newEOperationExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEOperation()
 	element.SetOperationID(classID)
 	if eContainer != nil {
 		eContainer.GetEOperations().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEPackage() EPackage {
-	return NewEPackageExt()
+	return newEPackageExt()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEPackageFromContainer(eContainer EPackage) EPackage {
-	element := NewEPackageExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEPackage()
 	if eContainer != nil {
 		eContainer.GetESubPackages().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEParameter() EParameter {
 	return newEParameterImpl()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEParameterFromContainer(eContainer EOperation) EParameter {
-	element := newEParameterImpl()
+	element := ecoreFactoryImpl.AsEFactory().CreateEParameter()
 	if eContainer != nil {
 		eContainer.GetEParameters().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEReference() EReference {
 	return newEReferenceExt()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEReferenceFromContainer(eContainer EClass) EReference {
-	element := newEReferenceExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEReference()
 	if eContainer != nil {
 		eContainer.GetEStructuralFeatures().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEReferenceFromContainerAndClassID(eContainer EClass, classID int) EReference {
-	element := newEReferenceExt()
+	element := ecoreFactoryImpl.AsEFactory().CreateEReference()
 	element.SetFeatureID(classID)
 	if eContainer != nil {
 		eContainer.GetEStructuralFeatures().Add(element)
 	}
 	return element
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateEStringToStringMapEntry() EStringToStringMapEntry {
 	return newEStringToStringMapEntryImpl()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateETypeParameter() ETypeParameter {
 	return newETypeParameterImpl()
 }
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) CreateFromString(eDataType EDataType, literalValue string) any {
 	classID := eDataType.GetClassifierID()
-	internal := ecoreFactoryImpl.GetInterfaces().(ecoreFactoryInternal)
 	switch classID {
 	case EBIG_DECIMAL:
-		return internal.createEBigDecimalFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEBigDecimalFromString(eDataType, literalValue)
 	case EBIG_INTEGER:
-		return internal.createEBigIntegerFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEBigIntegerFromString(eDataType, literalValue)
 	case EBOOLEAN:
-		return internal.createEBooleanFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEBooleanFromString(eDataType, literalValue)
 	case EBOOLEAN_OBJECT:
-		return internal.createEBooleanObjectFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEBooleanObjectFromString(eDataType, literalValue)
 	case EBYTE:
-		return internal.createEByteFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEByteFromString(eDataType, literalValue)
 	case EBYTE_ARRAY:
-		return internal.createEByteArrayFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEByteArrayFromString(eDataType, literalValue)
 	case EBYTE_OBJECT:
-		return internal.createEByteObjectFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEByteObjectFromString(eDataType, literalValue)
 	case ECHAR:
-		return internal.createECharFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createECharFromString(eDataType, literalValue)
 	case ECHARACTER_OBJECT:
-		return internal.createECharacterObjectFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createECharacterObjectFromString(eDataType, literalValue)
 	case EDATE:
-		return internal.createEDateFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEDateFromString(eDataType, literalValue)
 	case EDOUBLE:
-		return internal.createEDoubleFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEDoubleFromString(eDataType, literalValue)
 	case EDOUBLE_OBJECT:
-		return internal.createEDoubleObjectFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEDoubleObjectFromString(eDataType, literalValue)
 	case EFLOAT:
-		return internal.createEFloatFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEFloatFromString(eDataType, literalValue)
 	case EFLOAT_OBJECT:
-		return internal.createEFloatObjectFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEFloatObjectFromString(eDataType, literalValue)
 	case EINT:
-		return internal.createEIntFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEIntFromString(eDataType, literalValue)
 	case EINTEGER_OBJECT:
-		return internal.createEIntegerObjectFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEIntegerObjectFromString(eDataType, literalValue)
 	case EJAVA_CLASS:
-		return internal.createEJavaClassFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEJavaClassFromString(eDataType, literalValue)
 	case EJAVA_OBJECT:
-		return internal.createEJavaObjectFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEJavaObjectFromString(eDataType, literalValue)
 	case ELONG:
-		return internal.createELongFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createELongFromString(eDataType, literalValue)
 	case ELONG_OBJECT:
-		return internal.createELongObjectFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createELongObjectFromString(eDataType, literalValue)
 	case ESHORT:
-		return internal.createEShortFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEShortFromString(eDataType, literalValue)
 	case ESHORT_OBJECT:
-		return internal.createEShortObjectFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEShortObjectFromString(eDataType, literalValue)
 	case ESTRING:
-		return internal.createEStringFromString(eDataType, literalValue)
+		return ecoreFactoryImpl.AsInternal().createEStringFromString(eDataType, literalValue)
 	default:
 		panic("The datatype '" + eDataType.GetName() + "' is not a valid classifier")
 	}
@@ -339,54 +378,53 @@ func (ecoreFactoryImpl *EcoreFactoryImpl) CreateFromString(eDataType EDataType, 
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) ConvertToString(eDataType EDataType, instanceValue any) string {
 	classID := eDataType.GetClassifierID()
-	internal := ecoreFactoryImpl.GetInterfaces().(ecoreFactoryInternal)
 	switch classID {
 	case EBIG_DECIMAL:
-		return internal.convertEBigDecimalToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEBigDecimalToString(eDataType, instanceValue)
 	case EBIG_INTEGER:
-		return internal.convertEBigIntegerToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEBigIntegerToString(eDataType, instanceValue)
 	case EBOOLEAN:
-		return internal.convertEBooleanToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEBooleanToString(eDataType, instanceValue)
 	case EBOOLEAN_OBJECT:
-		return internal.convertEBooleanObjectToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEBooleanObjectToString(eDataType, instanceValue)
 	case EBYTE:
-		return internal.convertEByteToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEByteToString(eDataType, instanceValue)
 	case EBYTE_ARRAY:
-		return internal.convertEByteArrayToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEByteArrayToString(eDataType, instanceValue)
 	case EBYTE_OBJECT:
-		return internal.convertEByteObjectToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEByteObjectToString(eDataType, instanceValue)
 	case ECHAR:
-		return internal.convertECharToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertECharToString(eDataType, instanceValue)
 	case ECHARACTER_OBJECT:
-		return internal.convertECharacterObjectToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertECharacterObjectToString(eDataType, instanceValue)
 	case EDATE:
-		return internal.convertEDateToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEDateToString(eDataType, instanceValue)
 	case EDOUBLE:
-		return internal.convertEDoubleToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEDoubleToString(eDataType, instanceValue)
 	case EDOUBLE_OBJECT:
-		return internal.convertEDoubleObjectToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEDoubleObjectToString(eDataType, instanceValue)
 	case EFLOAT:
-		return internal.convertEFloatToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEFloatToString(eDataType, instanceValue)
 	case EFLOAT_OBJECT:
-		return internal.convertEFloatObjectToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEFloatObjectToString(eDataType, instanceValue)
 	case EINT:
-		return internal.convertEIntToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEIntToString(eDataType, instanceValue)
 	case EINTEGER_OBJECT:
-		return internal.convertEIntegerObjectToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEIntegerObjectToString(eDataType, instanceValue)
 	case EJAVA_CLASS:
-		return internal.convertEJavaClassToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEJavaClassToString(eDataType, instanceValue)
 	case EJAVA_OBJECT:
-		return internal.convertEJavaObjectToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEJavaObjectToString(eDataType, instanceValue)
 	case ELONG:
-		return internal.convertELongToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertELongToString(eDataType, instanceValue)
 	case ELONG_OBJECT:
-		return internal.convertELongObjectToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertELongObjectToString(eDataType, instanceValue)
 	case ESHORT:
-		return internal.convertEShortToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEShortToString(eDataType, instanceValue)
 	case ESHORT_OBJECT:
-		return internal.convertEShortObjectToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEShortObjectToString(eDataType, instanceValue)
 	case ESTRING:
-		return internal.convertEStringToString(eDataType, instanceValue)
+		return ecoreFactoryImpl.AsInternal().convertEStringToString(eDataType, instanceValue)
 	default:
 		panic("The datatype '" + eDataType.GetName() + "' is not a valid classifier")
 	}

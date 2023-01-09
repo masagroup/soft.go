@@ -9,32 +9,31 @@
 
 package ecore
 
-// eAttributeExt is the extension of the model object 'EAttribute'
-type eAttributeExt struct {
-	eAttributeImpl
+// EAttributeExt is the extension of the model object 'EAttribute'
+type EAttributeExt struct {
+	EAttributeImpl
 }
 
-func newEAttributeExt() *eAttributeExt {
-	eAttribute := new(eAttributeExt)
+func newEAttributeExt() *EAttributeExt {
+	eAttribute := new(EAttributeExt)
 	eAttribute.SetInterfaces(eAttribute)
 	eAttribute.Initialize()
 	return eAttribute
 }
 
-func (eAttribute *eAttributeExt) GetEAttributeType() EDataType {
+func (eAttribute *EAttributeExt) GetEAttributeType() EDataType {
 	return eAttribute.GetEType().(EDataType)
 }
 
-func (eAttribute *eAttributeExt) basicGetEAttributeType() EDataType {
+func (eAttribute *EAttributeExt) basicGetEAttributeType() EDataType {
 	return eAttribute.basicGetEType().(EDataType)
 }
 
-func (eAttribute *eAttributeExt) SetID(newIsID bool) {
-	eAttribute.eAttributeImpl.SetID(newIsID)
+func (eAttribute *EAttributeExt) SetID(newIsID bool) {
+	eAttribute.EAttributeImpl.SetID(newIsID)
 	eClass := eAttribute.GetEContainingClass()
 	if eClass != nil {
-		classExt := eClass.(*eClassExt)
+		classExt := eClass.(*EClassExt)
 		classExt.setModified(ECLASS__EATTRIBUTES)
 	}
-
 }

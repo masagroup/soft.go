@@ -11,110 +11,110 @@
 
 package ecore
 
-// eEnumImpl is the implementation of the model object 'EEnum'
-type eEnumImpl struct {
-	eDataTypeExt
+// EEnumImpl is the implementation of the model object 'EEnum'
+type EEnumImpl struct {
+	EDataTypeExt
 	eLiterals EList
 }
 type eEnumInitializers interface {
 	initELiterals() EList
 }
 
-// newEEnumImpl is the constructor of a eEnumImpl
-func newEEnumImpl() *eEnumImpl {
-	eEnum := new(eEnumImpl)
+// newEEnumImpl is the constructor of a EEnumImpl
+func newEEnumImpl() *EEnumImpl {
+	eEnum := new(EEnumImpl)
 	eEnum.SetInterfaces(eEnum)
 	eEnum.Initialize()
 	return eEnum
 }
 
-func (eEnum *eEnumImpl) Initialize() {
-	eEnum.eDataTypeExt.Initialize()
+func (eEnum *EEnumImpl) Initialize() {
+	eEnum.EDataTypeExt.Initialize()
 
 }
 
-func (eEnum *eEnumImpl) asEEnum() EEnum {
+func (eEnum *EEnumImpl) asEEnum() EEnum {
 	return eEnum.GetInterfaces().(EEnum)
 }
 
-func (eEnum *eEnumImpl) asInitializers() eEnumInitializers {
+func (eEnum *EEnumImpl) asInitializers() eEnumInitializers {
 	return eEnum.GetInterfaces().(eEnumInitializers)
 }
 
-func (eEnum *eEnumImpl) EStaticClass() EClass {
+func (eEnum *EEnumImpl) EStaticClass() EClass {
 	return GetPackage().GetEEnum()
 }
 
-func (eEnum *eEnumImpl) EStaticFeatureCount() int {
+func (eEnum *EEnumImpl) EStaticFeatureCount() int {
 	return EENUM_FEATURE_COUNT
 }
 
 // GetEEnumLiteralByLiteral default implementation
-func (eEnum *eEnumImpl) GetEEnumLiteralByLiteral(string) EEnumLiteral {
+func (eEnum *EEnumImpl) GetEEnumLiteralByLiteral(string) EEnumLiteral {
 	panic("GetEEnumLiteralByLiteral not implemented")
 }
 
 // GetEEnumLiteralByName default implementation
-func (eEnum *eEnumImpl) GetEEnumLiteralByName(string) EEnumLiteral {
+func (eEnum *EEnumImpl) GetEEnumLiteralByName(string) EEnumLiteral {
 	panic("GetEEnumLiteralByName not implemented")
 }
 
 // GetEEnumLiteralByValue default implementation
-func (eEnum *eEnumImpl) GetEEnumLiteralByValue(int) EEnumLiteral {
+func (eEnum *EEnumImpl) GetEEnumLiteralByValue(int) EEnumLiteral {
 	panic("GetEEnumLiteralByValue not implemented")
 }
 
 // GetELiterals get the value of eLiterals
-func (eEnum *eEnumImpl) GetELiterals() EList {
+func (eEnum *EEnumImpl) GetELiterals() EList {
 	if eEnum.eLiterals == nil {
 		eEnum.eLiterals = eEnum.asInitializers().initELiterals()
 	}
 	return eEnum.eLiterals
 }
 
-func (eEnum *eEnumImpl) initELiterals() EList {
+func (eEnum *EEnumImpl) initELiterals() EList {
 	return NewBasicEObjectList(eEnum.AsEObjectInternal(), EENUM__ELITERALS, EENUM_LITERAL__EENUM, true, true, true, false, false)
 }
 
-func (eEnum *eEnumImpl) EGetFromID(featureID int, resolve bool) any {
+func (eEnum *EEnumImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EENUM__ELITERALS:
 		return eEnum.asEEnum().GetELiterals()
 	default:
-		return eEnum.eDataTypeExt.EGetFromID(featureID, resolve)
+		return eEnum.EDataTypeExt.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eEnum *eEnumImpl) ESetFromID(featureID int, newValue any) {
+func (eEnum *EEnumImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EENUM__ELITERALS:
 		list := eEnum.asEEnum().GetELiterals()
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	default:
-		eEnum.eDataTypeExt.ESetFromID(featureID, newValue)
+		eEnum.EDataTypeExt.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eEnum *eEnumImpl) EUnsetFromID(featureID int) {
+func (eEnum *EEnumImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EENUM__ELITERALS:
 		eEnum.asEEnum().GetELiterals().Clear()
 	default:
-		eEnum.eDataTypeExt.EUnsetFromID(featureID)
+		eEnum.EDataTypeExt.EUnsetFromID(featureID)
 	}
 }
 
-func (eEnum *eEnumImpl) EIsSetFromID(featureID int) bool {
+func (eEnum *EEnumImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EENUM__ELITERALS:
 		return eEnum.eLiterals != nil && eEnum.eLiterals.Size() != 0
 	default:
-		return eEnum.eDataTypeExt.EIsSetFromID(featureID)
+		return eEnum.EDataTypeExt.EIsSetFromID(featureID)
 	}
 }
 
-func (eEnum *eEnumImpl) EInvokeFromID(operationID int, arguments EList) any {
+func (eEnum *EEnumImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EENUM__GET_EENUM_LITERAL_BY_LITERAL_ESTRING:
 		return eEnum.asEEnum().GetEEnumLiteralByLiteral(arguments.Get(0).(string))
@@ -123,26 +123,26 @@ func (eEnum *eEnumImpl) EInvokeFromID(operationID int, arguments EList) any {
 	case EENUM__GET_EENUM_LITERAL_EINT:
 		return eEnum.asEEnum().GetEEnumLiteralByValue(arguments.Get(0).(int))
 	default:
-		return eEnum.eDataTypeExt.EInvokeFromID(operationID, arguments)
+		return eEnum.EDataTypeExt.EInvokeFromID(operationID, arguments)
 	}
 }
 
-func (eEnum *eEnumImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (eEnum *EEnumImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EENUM__ELITERALS:
 		list := eEnum.GetELiterals().(ENotifyingList)
 		return list.AddWithNotification(otherEnd, notifications)
 	default:
-		return eEnum.eDataTypeExt.EBasicInverseAdd(otherEnd, featureID, notifications)
+		return eEnum.EDataTypeExt.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
 }
 
-func (eEnum *eEnumImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (eEnum *EEnumImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EENUM__ELITERALS:
 		list := eEnum.GetELiterals().(ENotifyingList)
 		return list.RemoveWithNotification(otherEnd, notifications)
 	default:
-		return eEnum.eDataTypeExt.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return eEnum.EDataTypeExt.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

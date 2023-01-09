@@ -9,18 +9,18 @@
 
 package ecore
 
-type eEnumLiteralExt struct {
-	eEnumLiteralImpl
+type EEnumLiteralExt struct {
+	EEnumLiteralImpl
 }
 
-func newEEnumLiteralExt() *eEnumLiteralExt {
-	eEnumLiteral := new(eEnumLiteralExt)
+func newEEnumLiteralExt() *EEnumLiteralExt {
+	eEnumLiteral := new(EEnumLiteralExt)
 	eEnumLiteral.SetInterfaces(eEnumLiteral)
 	eEnumLiteral.Initialize()
 	return eEnumLiteral
 }
 
-func (eEnumLiteral *eEnumLiteralExt) GetLiteral() string {
+func (eEnumLiteral *EEnumLiteralExt) GetLiteral() string {
 	if len(eEnumLiteral.literal) == 0 {
 		return eEnumLiteral.GetName()
 	}

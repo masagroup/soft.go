@@ -15,17 +15,23 @@ type EClassExt struct {
 	adapter                *eSuperAdapter
 	nameToFeatureMap       map[string]EStructuralFeature
 	operationToOverrideMap map[EOperation]EOperation
+	subClasses             []EClassInternal
+}
+
+type EClassInternal interface {
+	getSubClasses() []EClassInternal
+	setSubClasses([]EClassInternal)
+	setModified(featureID int)
 }
 
 type eSuperAdapter struct {
 	AbstractEAdapter
-	class      *EClassExt
-	subClasses []*EClassExt
+	class *EClassExt
 }
 
 func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 	eventType := notification.GetEventType()
-	eNotifier := notification.GetNotifier().(*EClassExt)
+	eNotifier := notification.GetNotifier().(EClassInternal)
 	if eventType != REMOVING_ADAPTER {
 		featureID := notification.GetFeatureID()
 		if featureID == ECLASS__ESUPER_TYPES {
@@ -35,41 +41,43 @@ func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 			case RESOLVE:
 				oldValue := notification.GetOldValue()
 				if oldValue != nil {
-					class := oldValue.(*EClassExt)
-					for i, s := range class.adapter.subClasses {
+					class := oldValue.(EClassInternal)
+					subClasses := class.getSubClasses()
+					for i, s := range subClasses {
 						if s == eNotifier {
-							class.adapter.subClasses = append(class.adapter.subClasses[:i], class.adapter.subClasses[i+1:]...)
+							class.setSubClasses(append(subClasses[:i], subClasses[i+1:]...))
 							break
 						}
 					}
 				}
 				newValue := notification.GetNewValue()
 				if newValue != nil {
-					class := newValue.(*EClassExt)
-					class.adapter.subClasses = append(class.adapter.subClasses, eNotifier)
+					class := newValue.(EClassInternal)
+					class.setSubClasses(append(class.getSubClasses(), eNotifier))
 				}
 			case ADD:
 				newValue := notification.GetNewValue()
 				if newValue != nil {
-					class := newValue.(*EClassExt)
-					class.adapter.subClasses = append(class.adapter.subClasses, eNotifier)
+					class := newValue.(EClassInternal)
+					class.setSubClasses(append(class.getSubClasses(), eNotifier))
 				}
 			case ADD_MANY:
 				newValue := notification.GetNewValue()
 				if newValue != nil {
 					collection := newValue.([]any)
 					for _, s := range collection {
-						class := s.(*EClassExt)
-						class.adapter.subClasses = append(class.adapter.subClasses, eNotifier)
+						class := s.(EClassInternal)
+						class.setSubClasses(append(class.getSubClasses(), eNotifier))
 					}
 				}
 			case REMOVE:
 				oldValue := notification.GetOldValue()
 				if oldValue != nil {
-					class := oldValue.(*EClassExt)
-					for i, s := range class.adapter.subClasses {
+					class := oldValue.(EClassInternal)
+					subClasses := class.getSubClasses()
+					for i, s := range subClasses {
 						if s == eNotifier {
-							class.adapter.subClasses = append(class.adapter.subClasses[:i], class.adapter.subClasses[i+1:]...)
+							class.setSubClasses(append(subClasses[:i], subClasses[i+1:]...))
 							break
 						}
 					}
@@ -79,10 +87,11 @@ func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 				if oldValue != nil {
 					collection := oldValue.([]any)
 					for _, s := range collection {
-						class := s.(*EClassExt)
-						for i, s := range class.adapter.subClasses {
+						class := s.(EClassInternal)
+						subClasses := class.getSubClasses()
+						for i, s := range subClasses {
 							if s == eNotifier {
-								class.adapter.subClasses = append(class.adapter.subClasses[:i], class.adapter.subClasses[i+1:]...)
+								class.setSubClasses(append(subClasses[:i], subClasses[i+1:]...))
 								break
 							}
 						}
@@ -103,7 +112,7 @@ func newEClassExt() *EClassExt {
 
 func (eClass *EClassExt) Initialize() {
 	eClass.EClassImpl.Initialize()
-	eClass.adapter = &eSuperAdapter{class: eClass, subClasses: []*EClassExt{}}
+	eClass.adapter = &eSuperAdapter{class: eClass}
 	eClass.EAdapters().Add(eClass.adapter)
 }
 
@@ -388,6 +397,14 @@ func (eClass *EClassExt) initEIDAttribute() {
 	eClass.initEAllAttributes()
 }
 
+func (eClass *EClassExt) getSubClasses() []EClassInternal {
+	return eClass.subClasses
+}
+
+func (eClass *EClassExt) setSubClasses(subClasses []EClassInternal) {
+	eClass.subClasses = subClasses
+}
+
 func (eClass *EClassExt) setModified(featureID int) {
 	switch featureID {
 	case ECLASS__ESTRUCTURAL_FEATURES:
@@ -414,7 +431,7 @@ func (eClass *EClassExt) setModified(featureID int) {
 		eClass.eAllReferences = nil
 		eClass.eAllContainments = nil
 	}
-	for _, s := range eClass.adapter.subClasses {
+	for _, s := range eClass.subClasses {
 		s.setModified(featureID)
 	}
 }

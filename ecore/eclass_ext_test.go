@@ -22,7 +22,7 @@ func TestEClassInstance(t *testing.T) {
 }
 
 func containsSubClass(eSuper *EClassExt, eClass *EClassExt) bool {
-	for _, s := range eSuper.adapter.subClasses {
+	for _, s := range eSuper.subClasses {
 		if s == eClass {
 			return true
 		}

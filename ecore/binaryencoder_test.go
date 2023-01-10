@@ -15,7 +15,7 @@ func TestBinaryEncoder_Complex(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	// load resource
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.complex.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
@@ -77,7 +77,7 @@ func TestBinaryEncoder_ComplexBig(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	// load resource
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.complex.big.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
@@ -102,7 +102,7 @@ func TestBinaryEncoder_SimpleWithDataTypeList(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	// load resource
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.datalist.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
@@ -127,7 +127,7 @@ func TestBinaryEncoder_Maps(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	// load resource
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/emap.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
@@ -152,7 +152,7 @@ func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
 	require.NotNil(b, ePackage)
 
 	// load resource
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.complex.big.xml"), nil)
 	require.NotNil(b, eResource)
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))

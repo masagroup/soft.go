@@ -21,14 +21,14 @@ import (
 )
 
 func TestNewXmlProcessor(t *testing.T) {
-	p := NewXMLProcessor(nil)
+	p := NewXMLProcessor()
 	require.NotNil(t, p)
 	assert.NotNil(t, p.GetResourceSet())
 }
 
 func TestNewSharedXmlProcessor(t *testing.T) {
 	mockResourceSet := &MockEResourceSet{}
-	p := NewSharedXMLProcessor(mockResourceSet)
+	p := NewXMLProcessor(XMLProcessorResourceSet(mockResourceSet))
 	require.NotNil(t, p)
 	assert.Equal(t, mockResourceSet, p.GetResourceSet())
 }
@@ -55,7 +55,7 @@ func TestSaveObject(t *testing.T) {
 
 	resourceSet := NewEResourceSetImpl()
 	packageRegistry := resourceSet.GetPackageRegistry()
-	xmlProcessor := NewSharedXMLProcessor(resourceSet)
+	xmlProcessor := NewXMLProcessor(XMLProcessorResourceSet(resourceSet))
 	for _, testCase := range testsCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			ePackage, _ := xmlProcessorLoad(t, xmlProcessor, "testdata/"+testCase.meta).(EPackage)
@@ -117,6 +117,6 @@ func TestSerializationTree(t *testing.T) {
 	f := newNodeFactory(ePackage)
 	eNode := f.newNode("0", 5)
 
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	xmlProcessor.SaveObject(NewURI("testdata/tree.xml"), eNode)
 }

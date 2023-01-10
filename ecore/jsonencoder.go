@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/karlseguin/jsonwriter"
@@ -60,7 +61,7 @@ func (e *JSONEncoder) encodeObject(eObject EObject) {
 	// id
 	if idManager := e.resource.GetObjectIDManager(); len(e.idAttributeName) > 0 && idManager != nil {
 		if id := idManager.GetID(eObject); id != nil {
-			e.w.KeyValue(e.idAttributeName, id)
+			e.w.KeyValue(e.idAttributeName, fmt.Sprintf("%v", id))
 		}
 	}
 	// features

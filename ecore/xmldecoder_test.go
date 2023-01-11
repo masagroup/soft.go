@@ -37,7 +37,7 @@ func TestXMLDecoderLibraryNoRoot(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	// load resource
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.Load(NewURI("testdata/library.noroot.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
@@ -61,7 +61,7 @@ func TestXMLDecoderLibraryComplex(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	// load resource
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.Load(NewURI("testdata/library.complex.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
@@ -117,7 +117,7 @@ func TestXMLDecoderLibraryComplexWithOptions(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	// load resource
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.LoadWithOptions(
 		NewURI("testdata/library.complex.noroot.xml"),
 		map[string]any{
@@ -144,7 +144,7 @@ func TestXMLDecoderSimpleInvalidXML(t *testing.T) {
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)
 
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.Load(NewURI("testdata/library.simple.invalid.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
@@ -156,7 +156,7 @@ func TestXMLDecoderSimpleEscapeXML(t *testing.T) {
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)
 
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.Load(NewURI("testdata/library.simple.escape.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
@@ -254,7 +254,7 @@ func TestXMLDecoderLibraryComplexBig(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	// load resource
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.complex.big.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
@@ -293,7 +293,7 @@ func TestXMLDecoderMaps(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	// load resource
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/emap.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())

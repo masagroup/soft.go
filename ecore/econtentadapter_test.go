@@ -451,7 +451,7 @@ func TestEContentAdapterIntegration(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
 	// add a new object to resource & check that mockAdapter is called
-	o := NewEObjectImpl()
+	o := newEObjectImpl()
 	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == r &&
 			n.GetFeatureID() == RESOURCE__IS_LOADED &&
@@ -532,7 +532,7 @@ func BenchmarkEContentAdapterWithBigModel(b *testing.B) {
 		assert.NotNil(b, ePackage)
 
 		// load resource
-		xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+		xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 		eResource := xmlProcessor.Load(NewURI("testdata/library.complex.big.xml"))
 		require.NotNil(b, eResource)
 		assert.True(b, eResource.IsLoaded())
@@ -554,7 +554,7 @@ func BenchmarkEContentAdapterWithTreeModel(b *testing.B) {
 		assert.NotNil(b, ePackage)
 
 		// load resource
-		xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+		xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 		eResource := xmlProcessor.Load(NewURI("testdata/tree.xml"))
 		require.NotNil(b, eResource)
 		assert.True(b, eResource.IsLoaded())

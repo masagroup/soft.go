@@ -52,7 +52,7 @@ var factoryInstance EcoreFactory
 // GetFactory returns the factory for the model ecore
 func GetFactory() EcoreFactory {
 	if factoryInstance == nil {
-		factoryInstance = newEcoreFactoryExt()
+		factoryInstance = newEcoreFactoryImpl()
 	}
 	return factoryInstance
 }

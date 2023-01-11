@@ -61,8 +61,7 @@ func (r *EPackageRegistryImpl) doGetPackage(nsURI string) EPackage {
 }
 
 func (r *EPackageRegistryImpl) GetPackage(nsURI string) EPackage {
-	p := r.doGetPackage(nsURI)
-	if p != nil {
+	if p := r.doGetPackage(nsURI); p != nil {
 		return p
 	} else {
 		if r.delegate != nil {
@@ -73,8 +72,7 @@ func (r *EPackageRegistryImpl) GetPackage(nsURI string) EPackage {
 }
 
 func (r *EPackageRegistryImpl) GetFactory(nsURI string) EFactory {
-	p := r.doGetPackage(nsURI)
-	if p != nil {
+	if p := r.doGetPackage(nsURI); p != nil {
 		return p.GetEFactoryInstance()
 	} else {
 		if r.delegate != nil {

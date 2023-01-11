@@ -11,8 +11,8 @@
 
 package ecore
 
-// eModelElementImpl is the implementation of the model object 'EModelElement'
-type eModelElementImpl struct {
+// EModelElementImpl is the implementation of the model object 'EModelElement'
+type EModelElementImpl struct {
 	CompactEObjectContainer
 	eAnnotations EList
 }
@@ -20,53 +20,53 @@ type eModelElementInitializers interface {
 	initEAnnotations() EList
 }
 
-// newEModelElementImpl is the constructor of a eModelElementImpl
-func newEModelElementImpl() *eModelElementImpl {
-	eModelElement := new(eModelElementImpl)
+// newEModelElementImpl is the constructor of a EModelElementImpl
+func newEModelElementImpl() *EModelElementImpl {
+	eModelElement := new(EModelElementImpl)
 	eModelElement.SetInterfaces(eModelElement)
 	eModelElement.Initialize()
 	return eModelElement
 }
 
-func (eModelElement *eModelElementImpl) Initialize() {
+func (eModelElement *EModelElementImpl) Initialize() {
 	eModelElement.CompactEObjectContainer.Initialize()
 
 }
 
-func (eModelElement *eModelElementImpl) asEModelElement() EModelElement {
+func (eModelElement *EModelElementImpl) asEModelElement() EModelElement {
 	return eModelElement.GetInterfaces().(EModelElement)
 }
 
-func (eModelElement *eModelElementImpl) asInitializers() eModelElementInitializers {
+func (eModelElement *EModelElementImpl) asInitializers() eModelElementInitializers {
 	return eModelElement.GetInterfaces().(eModelElementInitializers)
 }
 
-func (eModelElement *eModelElementImpl) EStaticClass() EClass {
+func (eModelElement *EModelElementImpl) EStaticClass() EClass {
 	return GetPackage().GetEModelElement()
 }
 
-func (eModelElement *eModelElementImpl) EStaticFeatureCount() int {
+func (eModelElement *EModelElementImpl) EStaticFeatureCount() int {
 	return EMODEL_ELEMENT_FEATURE_COUNT
 }
 
 // GetEAnnotation default implementation
-func (eModelElement *eModelElementImpl) GetEAnnotation(string) EAnnotation {
+func (eModelElement *EModelElementImpl) GetEAnnotation(string) EAnnotation {
 	panic("GetEAnnotation not implemented")
 }
 
 // GetEAnnotations get the value of eAnnotations
-func (eModelElement *eModelElementImpl) GetEAnnotations() EList {
+func (eModelElement *EModelElementImpl) GetEAnnotations() EList {
 	if eModelElement.eAnnotations == nil {
 		eModelElement.eAnnotations = eModelElement.asInitializers().initEAnnotations()
 	}
 	return eModelElement.eAnnotations
 }
 
-func (eModelElement *eModelElementImpl) initEAnnotations() EList {
+func (eModelElement *EModelElementImpl) initEAnnotations() EList {
 	return NewBasicEObjectList(eModelElement.AsEObjectInternal(), EMODEL_ELEMENT__EANNOTATIONS, EANNOTATION__EMODEL_ELEMENT, true, true, true, false, false)
 }
 
-func (eModelElement *eModelElementImpl) EGetFromID(featureID int, resolve bool) any {
+func (eModelElement *EModelElementImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
 		return eModelElement.asEModelElement().GetEAnnotations()
@@ -75,7 +75,7 @@ func (eModelElement *eModelElementImpl) EGetFromID(featureID int, resolve bool) 
 	}
 }
 
-func (eModelElement *eModelElementImpl) ESetFromID(featureID int, newValue any) {
+func (eModelElement *EModelElementImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
 		list := eModelElement.asEModelElement().GetEAnnotations()
@@ -86,7 +86,7 @@ func (eModelElement *eModelElementImpl) ESetFromID(featureID int, newValue any) 
 	}
 }
 
-func (eModelElement *eModelElementImpl) EUnsetFromID(featureID int) {
+func (eModelElement *EModelElementImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
 		eModelElement.asEModelElement().GetEAnnotations().Clear()
@@ -95,7 +95,7 @@ func (eModelElement *eModelElementImpl) EUnsetFromID(featureID int) {
 	}
 }
 
-func (eModelElement *eModelElementImpl) EIsSetFromID(featureID int) bool {
+func (eModelElement *EModelElementImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
 		return eModelElement.eAnnotations != nil && eModelElement.eAnnotations.Size() != 0
@@ -104,7 +104,7 @@ func (eModelElement *eModelElementImpl) EIsSetFromID(featureID int) bool {
 	}
 }
 
-func (eModelElement *eModelElementImpl) EInvokeFromID(operationID int, arguments EList) any {
+func (eModelElement *EModelElementImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EMODEL_ELEMENT__GET_EANNOTATION_ESTRING:
 		return eModelElement.asEModelElement().GetEAnnotation(arguments.Get(0).(string))
@@ -113,7 +113,7 @@ func (eModelElement *eModelElementImpl) EInvokeFromID(operationID int, arguments
 	}
 }
 
-func (eModelElement *eModelElementImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (eModelElement *EModelElementImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
 		list := eModelElement.GetEAnnotations().(ENotifyingList)
@@ -123,7 +123,7 @@ func (eModelElement *eModelElementImpl) EBasicInverseAdd(otherEnd EObject, featu
 	}
 }
 
-func (eModelElement *eModelElementImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (eModelElement *EModelElementImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
 		list := eModelElement.GetEAnnotations().(ENotifyingList)

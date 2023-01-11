@@ -11,56 +11,56 @@
 
 package ecore
 
-// eFactoryImpl is the implementation of the model object 'EFactory'
-type eFactoryImpl struct {
-	eModelElementExt
+// EFactoryImpl is the implementation of the model object 'EFactory'
+type EFactoryImpl struct {
+	EModelElementExt
 }
 
 type eFactoryBasics interface {
 	basicSetEPackage(EPackage, ENotificationChain) ENotificationChain
 }
 
-// newEFactoryImpl is the constructor of a eFactoryImpl
-func newEFactoryImpl() *eFactoryImpl {
-	eFactory := new(eFactoryImpl)
+// newEFactoryImpl is the constructor of a EFactoryImpl
+func newEFactoryImpl() *EFactoryImpl {
+	eFactory := new(EFactoryImpl)
 	eFactory.SetInterfaces(eFactory)
 	eFactory.Initialize()
 	return eFactory
 }
 
-func (eFactory *eFactoryImpl) asEFactory() EFactory {
+func (eFactory *EFactoryImpl) asEFactory() EFactory {
 	return eFactory.GetInterfaces().(EFactory)
 }
 
-func (eFactory *eFactoryImpl) asBasics() eFactoryBasics {
+func (eFactory *EFactoryImpl) asBasics() eFactoryBasics {
 	return eFactory.GetInterfaces().(eFactoryBasics)
 }
 
-func (eFactory *eFactoryImpl) EStaticClass() EClass {
+func (eFactory *EFactoryImpl) EStaticClass() EClass {
 	return GetPackage().GetEFactory()
 }
 
-func (eFactory *eFactoryImpl) EStaticFeatureCount() int {
+func (eFactory *EFactoryImpl) EStaticFeatureCount() int {
 	return EFACTORY_FEATURE_COUNT
 }
 
 // ConvertToString default implementation
-func (eFactory *eFactoryImpl) ConvertToString(EDataType, any) string {
+func (eFactory *EFactoryImpl) ConvertToString(EDataType, any) string {
 	panic("ConvertToString not implemented")
 }
 
 // Create default implementation
-func (eFactory *eFactoryImpl) Create(EClass) EObject {
+func (eFactory *EFactoryImpl) Create(EClass) EObject {
 	panic("Create not implemented")
 }
 
 // CreateFromString default implementation
-func (eFactory *eFactoryImpl) CreateFromString(EDataType, string) any {
+func (eFactory *EFactoryImpl) CreateFromString(EDataType, string) any {
 	panic("CreateFromString not implemented")
 }
 
 // GetEPackage get the value of ePackage
-func (eFactory *eFactoryImpl) GetEPackage() EPackage {
+func (eFactory *EFactoryImpl) GetEPackage() EPackage {
 	if eFactory.EContainerFeatureID() == EFACTORY__EPACKAGE {
 		return eFactory.EContainer().(EPackage)
 	}
@@ -68,7 +68,7 @@ func (eFactory *eFactoryImpl) GetEPackage() EPackage {
 }
 
 // SetEPackage set the value of ePackage
-func (eFactory *eFactoryImpl) SetEPackage(newEPackage EPackage) {
+func (eFactory *EFactoryImpl) SetEPackage(newEPackage EPackage) {
 	if newEPackage != eFactory.EInternalContainer() || (newEPackage != nil && eFactory.EContainerFeatureID() != EFACTORY__EPACKAGE) {
 		var notifications ENotificationChain
 		if eFactory.EInternalContainer() != nil {
@@ -86,47 +86,47 @@ func (eFactory *eFactoryImpl) SetEPackage(newEPackage EPackage) {
 	}
 }
 
-func (eFactory *eFactoryImpl) basicSetEPackage(newEPackage EPackage, msgs ENotificationChain) ENotificationChain {
+func (eFactory *EFactoryImpl) basicSetEPackage(newEPackage EPackage, msgs ENotificationChain) ENotificationChain {
 	return eFactory.EBasicSetContainer(newEPackage, EFACTORY__EPACKAGE, msgs)
 }
 
-func (eFactory *eFactoryImpl) EGetFromID(featureID int, resolve bool) any {
+func (eFactory *EFactoryImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		return eFactory.asEFactory().GetEPackage()
 	default:
-		return eFactory.eModelElementExt.EGetFromID(featureID, resolve)
+		return eFactory.EModelElementExt.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eFactory *eFactoryImpl) ESetFromID(featureID int, newValue any) {
+func (eFactory *EFactoryImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		eFactory.asEFactory().SetEPackage(newValue.(EPackage))
 	default:
-		eFactory.eModelElementExt.ESetFromID(featureID, newValue)
+		eFactory.EModelElementExt.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eFactory *eFactoryImpl) EUnsetFromID(featureID int) {
+func (eFactory *EFactoryImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		eFactory.asEFactory().SetEPackage(nil)
 	default:
-		eFactory.eModelElementExt.EUnsetFromID(featureID)
+		eFactory.EModelElementExt.EUnsetFromID(featureID)
 	}
 }
 
-func (eFactory *eFactoryImpl) EIsSetFromID(featureID int) bool {
+func (eFactory *EFactoryImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		return eFactory.asEFactory().GetEPackage() != nil
 	default:
-		return eFactory.eModelElementExt.EIsSetFromID(featureID)
+		return eFactory.EModelElementExt.EIsSetFromID(featureID)
 	}
 }
 
-func (eFactory *eFactoryImpl) EInvokeFromID(operationID int, arguments EList) any {
+func (eFactory *EFactoryImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EFACTORY__CONVERT_TO_STRING_EDATATYPE_EJAVAOBJECT:
 		return eFactory.asEFactory().ConvertToString(arguments.Get(0).(EDataType), arguments.Get(1))
@@ -135,11 +135,11 @@ func (eFactory *eFactoryImpl) EInvokeFromID(operationID int, arguments EList) an
 	case EFACTORY__CREATE_FROM_STRING_EDATATYPE_ESTRING:
 		return eFactory.asEFactory().CreateFromString(arguments.Get(0).(EDataType), arguments.Get(1).(string))
 	default:
-		return eFactory.eModelElementExt.EInvokeFromID(operationID, arguments)
+		return eFactory.EModelElementExt.EInvokeFromID(operationID, arguments)
 	}
 }
 
-func (eFactory *eFactoryImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (eFactory *EFactoryImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		msgs := notifications
@@ -148,15 +148,15 @@ func (eFactory *eFactoryImpl) EBasicInverseAdd(otherEnd EObject, featureID int, 
 		}
 		return eFactory.asBasics().basicSetEPackage(otherEnd.(EPackage), msgs)
 	default:
-		return eFactory.eModelElementExt.EBasicInverseAdd(otherEnd, featureID, notifications)
+		return eFactory.EModelElementExt.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
 }
 
-func (eFactory *eFactoryImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (eFactory *EFactoryImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		return eFactory.asBasics().basicSetEPackage(nil, notifications)
 	default:
-		return eFactory.eModelElementExt.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return eFactory.EModelElementExt.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

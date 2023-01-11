@@ -34,7 +34,7 @@ func TestEAllContents(t *testing.T) {
 	ordersPackage, _ := ordersEcoreResource.GetContents().Get(0).(EPackage)
 	require.NotNil(t, ordersPackage)
 
-	xmlProcessor := NewXMLProcessor([]EPackage{shopPackage, ordersPackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{shopPackage, ordersPackage}))
 	ordersResource := xmlProcessor.Load(CreateFileURI("testdata/orders.xml"))
 	assertResource(t, ordersResource)
 	ordersRoot, _ := ordersResource.GetContents().Get(0).(EObject)

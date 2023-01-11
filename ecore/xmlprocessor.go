@@ -20,18 +20,42 @@ type XMLProcessor struct {
 	resourceSet    EResourceSet
 }
 
-func NewXMLProcessor(packages []EPackage) *XMLProcessor {
-	return &XMLProcessor{
-		extendMetaData: NewExtendedMetaData(),
-		packages:       packages,
+type xmlProcessorOption interface {
+	apply(*XMLProcessor)
+}
+
+type funcXmlProcessorOption struct {
+	f func(*XMLProcessor)
+}
+
+func (fdo *funcXmlProcessorOption) apply(do *XMLProcessor) {
+	fdo.f(do)
+}
+
+func newFuncXmlProcessorOption(f func(*XMLProcessor)) *funcXmlProcessorOption {
+	return &funcXmlProcessorOption{
+		f: f,
 	}
 }
 
-func NewSharedXMLProcessor(resourceSet EResourceSet) *XMLProcessor {
-	return &XMLProcessor{
-		extendMetaData: NewExtendedMetaData(),
-		resourceSet:    resourceSet,
+func XMLProcessorPackages(packages []EPackage) xmlProcessorOption {
+	return newFuncXmlProcessorOption(func(x *XMLProcessor) {
+		x.packages = packages
+	})
+}
+
+func XMLProcessorResourceSet(resourceSet EResourceSet) xmlProcessorOption {
+	return newFuncXmlProcessorOption(func(x *XMLProcessor) {
+		x.resourceSet = resourceSet
+	})
+}
+
+func NewXMLProcessor(opts ...xmlProcessorOption) *XMLProcessor {
+	p := &XMLProcessor{extendMetaData: NewExtendedMetaData()}
+	for _, opt := range opts {
+		opt.apply(p)
 	}
+	return p
 }
 
 func (p *XMLProcessor) GetResourceSet() EResourceSet {

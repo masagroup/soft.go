@@ -167,7 +167,7 @@ type eAllContentsModel struct {
 
 func loadEAllContentsModel(t *testing.T, ePackage EPackage) *eAllContentsModel {
 	// load resource
-	xmlProcessor := NewXMLProcessor([]EPackage{ePackage})
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
 	eResource := xmlProcessor.Load(NewURI("testdata/eallcontents.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())

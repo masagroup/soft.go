@@ -17,7 +17,7 @@ import (
 )
 
 func TestEFactoryExtCreate(t *testing.T) {
-	f := NewEFactoryExt()
+	f := newEFactoryExt()
 	mockClass := &MockEClass{}
 	mockPackage := &MockEPackage{}
 	mockClass.On("GetEPackage").Return(mockPackage).Once()

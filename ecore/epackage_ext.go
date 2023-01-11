@@ -26,12 +26,12 @@ func (a *ePackageExtAdapter) NotifyChanged(notification ENotification) {
 
 // EPackageExt is the extension of the model object 'EFactory'
 type EPackageExt struct {
-	ePackageImpl
+	EPackageImpl
 	adapter          EAdapter
 	nameToClassifier map[string]EClassifier
 }
 
-func NewEPackageExt() *EPackageExt {
+func newEPackageExt() *EPackageExt {
 	pack := new(EPackageExt)
 	pack.SetInterfaces(pack)
 	pack.Initialize()
@@ -39,8 +39,8 @@ func NewEPackageExt() *EPackageExt {
 }
 
 func (pack *EPackageExt) Initialize() {
-	pack.ePackageImpl.Initialize()
-	pack.SetEFactoryInstance(NewEFactoryExt())
+	pack.EPackageImpl.Initialize()
+	pack.SetEFactoryInstance(newEFactoryExt())
 	pack.adapter = &ePackageExtAdapter{pack: pack}
 	pack.EAdapters().Add(pack.adapter)
 }
@@ -57,7 +57,7 @@ func (pack *EPackageExt) GetEClassifier(classifier string) EClassifier {
 }
 
 func (pack *EPackageExt) CreateResource() EResource {
-	resource := pack.ePackageImpl.EResource()
+	resource := pack.EPackageImpl.EResource()
 	if resource == nil {
 		uri := NewURI(pack.GetNsURI())
 		resource = NewEResourceImpl()

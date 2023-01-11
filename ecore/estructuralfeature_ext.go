@@ -9,22 +9,22 @@
 
 package ecore
 
-// eStructuralFeatureExt is the extension of the model object 'EStructuralFeature'
-type eStructuralFeatureExt struct {
-	eStructuralFeatureImpl
+// EStructuralFeatureExt is the extension of the model object 'EStructuralFeature'
+type EStructuralFeatureExt struct {
+	EStructuralFeatureImpl
 	defaultValue        any
 	defaultValueFactory EFactory
 }
 
-func newEStructuralFeatureExt() *eStructuralFeatureExt {
-	eStructuralFeature := new(eStructuralFeatureExt)
+func newEStructuralFeatureExt() *EStructuralFeatureExt {
+	eStructuralFeature := new(EStructuralFeatureExt)
 	eStructuralFeature.SetInterfaces(eStructuralFeature)
 	eStructuralFeature.Initialize()
 	return eStructuralFeature
 }
 
 // GetDefaultValue get the value of defaultValue
-func (eStructuralFeature *eStructuralFeatureExt) GetDefaultValue() any {
+func (eStructuralFeature *EStructuralFeatureExt) GetDefaultValue() any {
 	eType := eStructuralFeature.GetEType()
 	defaultValueLiteral := eStructuralFeature.GetDefaultValueLiteral()
 	if eType != nil && len(defaultValueLiteral) == 0 {
@@ -48,12 +48,12 @@ func (eStructuralFeature *eStructuralFeatureExt) GetDefaultValue() any {
 }
 
 // SetDefaultValue set the value of defaultValue
-func (eStructuralFeature *eStructuralFeatureExt) SetDefaultValue(newDefaultValue any) {
+func (eStructuralFeature *EStructuralFeatureExt) SetDefaultValue(newDefaultValue any) {
 	eType := eStructuralFeature.GetEType()
 	if eDataType, _ := eType.(EDataType); eDataType != nil {
 		factory := eDataType.GetEPackage().GetEFactoryInstance()
 		literal := factory.ConvertToString(eDataType, newDefaultValue)
-		eStructuralFeature.eStructuralFeatureImpl.SetDefaultValueLiteral(literal)
+		eStructuralFeature.EStructuralFeatureImpl.SetDefaultValueLiteral(literal)
 		eStructuralFeature.defaultValueFactory = nil // reset default value
 	} else {
 		panic("Cannot serialize value to object without an EDataType eType")
@@ -61,18 +61,18 @@ func (eStructuralFeature *eStructuralFeatureExt) SetDefaultValue(newDefaultValue
 }
 
 // SetDefaultValueLiteral set the value of defaultValueLiteral
-func (eStructuralFeature *eStructuralFeatureExt) SetDefaultValueLiteral(newDefaultValueLiteral string) {
+func (eStructuralFeature *EStructuralFeatureExt) SetDefaultValueLiteral(newDefaultValueLiteral string) {
 	eStructuralFeature.defaultValueFactory = nil // reset default value
-	eStructuralFeature.eStructuralFeatureImpl.SetDefaultValueLiteral(newDefaultValueLiteral)
+	eStructuralFeature.EStructuralFeatureImpl.SetDefaultValueLiteral(newDefaultValueLiteral)
 }
 
 // GetFeatureID get the value of featureID
-func (eStructuralFeature *eStructuralFeatureExt) GetFeatureID() int {
+func (eStructuralFeature *EStructuralFeatureExt) GetFeatureID() int {
 	return eStructuralFeature.featureID
 }
 
 // SetFeatureID set the value of featureID
-func (eStructuralFeature *eStructuralFeatureExt) SetFeatureID(newFeatureID int) {
+func (eStructuralFeature *EStructuralFeatureExt) SetFeatureID(newFeatureID int) {
 	eStructuralFeature.featureID = newFeatureID
 }
 

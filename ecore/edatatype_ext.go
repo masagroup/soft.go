@@ -14,19 +14,19 @@ type EDataTypeInternal interface {
 	SetDefaultValue(defaultValue any)
 }
 
-type eDataTypeExt struct {
-	eDataTypeImpl
+type EDataTypeExt struct {
+	EDataTypeImpl
 	defaultValue any
 }
 
-func newEDataTypeExt() *eDataTypeExt {
-	eDataType := new(eDataTypeExt)
+func newEDataTypeExt() *EDataTypeExt {
+	eDataType := new(EDataTypeExt)
 	eDataType.SetInterfaces(eDataType)
 	eDataType.Initialize()
 	return eDataType
 }
 
-func (eDataType *eDataTypeExt) SetDefaultValue(newDefaultValue any) {
+func (eDataType *EDataTypeExt) SetDefaultValue(newDefaultValue any) {
 	oldDefaultValue := eDataType.defaultValue
 	eDataType.defaultValue = newDefaultValue
 	if eDataType.ENotificationRequired() {
@@ -34,6 +34,6 @@ func (eDataType *eDataTypeExt) SetDefaultValue(newDefaultValue any) {
 	}
 }
 
-func (eDataType *eDataTypeExt) GetDefaultValue() any {
+func (eDataType *EDataTypeExt) GetDefaultValue() any {
 	return eDataType.defaultValue
 }

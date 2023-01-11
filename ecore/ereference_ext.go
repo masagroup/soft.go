@@ -9,25 +9,25 @@
 
 package ecore
 
-// eReferenceExt is the extension of the model object 'EReference'
-type eReferenceExt struct {
-	eReferenceImpl
+// EReferenceExt is the extension of the model object 'EReference'
+type EReferenceExt struct {
+	EReferenceImpl
 	eReferenceType EClass
 }
 
-func newEReferenceExt() *eReferenceExt {
-	eReference := new(eReferenceExt)
+func newEReferenceExt() *EReferenceExt {
+	eReference := new(EReferenceExt)
 	eReference.SetInterfaces(eReference)
 	eReference.Initialize()
 	return eReference
 }
 
-func (eReference *eReferenceExt) IsContainer() bool {
+func (eReference *EReferenceExt) IsContainer() bool {
 	opposite := eReference.interfaces.(EReference).GetEOpposite()
 	return opposite != nil && opposite.IsContainment()
 }
 
-func (eReference *eReferenceExt) GetEReferenceType() EClass {
+func (eReference *EReferenceExt) GetEReferenceType() EClass {
 	if eReference.eReferenceType == nil || eReference.eReferenceType.EIsProxy() {
 		eType := eReference.GetEType()
 		eReferenceType, _ := eType.(EClass)
@@ -38,7 +38,7 @@ func (eReference *eReferenceExt) GetEReferenceType() EClass {
 	return eReference.eReferenceType
 }
 
-func (eReference *eReferenceExt) basicGetEReferenceType() EClass {
+func (eReference *EReferenceExt) basicGetEReferenceType() EClass {
 	if eReference.eReferenceType == nil {
 		eType := eReference.basicGetEType()
 		eReferenceType, _ := eType.(EClass)

@@ -15,13 +15,21 @@ type XMIProcessor struct {
 	XMLProcessor
 }
 
-func NewXMIProcessor() *XMIProcessor {
-	return &XMIProcessor{XMLProcessor{
-		extendMetaData: NewExtendedMetaData(),
-	}}
+type xmiProcessorOption xmlProcessorOption
+
+var XMIProcessorPackages = XMLProcessorPackages
+
+var XMIProcessorResourceSet = XMLProcessorResourceSet
+
+func NewXMIProcessor(opts ...xmiProcessorOption) *XMIProcessor {
+	p := &XMIProcessor{XMLProcessor{extendMetaData: NewExtendedMetaData()}}
+	for _, opt := range opts {
+		opt.apply(&p.XMLProcessor)
+	}
+	return p
 }
 
-func NewSharedXMIProcessor(resourceSet EResourceSet) *XMIProcessor {
+func NewXMIProcessorWithResourceSet(resourceSet EResourceSet) *XMIProcessor {
 	return &XMIProcessor{XMLProcessor{
 		extendMetaData: NewExtendedMetaData(),
 		resourceSet:    resourceSet,

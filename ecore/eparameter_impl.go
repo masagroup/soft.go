@@ -11,58 +11,58 @@
 
 package ecore
 
-// eParameterImpl is the implementation of the model object 'EParameter'
-type eParameterImpl struct {
-	eTypedElementExt
+// EParameterImpl is the implementation of the model object 'EParameter'
+type EParameterImpl struct {
+	ETypedElementExt
 }
 
-// newEParameterImpl is the constructor of a eParameterImpl
-func newEParameterImpl() *eParameterImpl {
-	eParameter := new(eParameterImpl)
+// newEParameterImpl is the constructor of a EParameterImpl
+func newEParameterImpl() *EParameterImpl {
+	eParameter := new(EParameterImpl)
 	eParameter.SetInterfaces(eParameter)
 	eParameter.Initialize()
 	return eParameter
 }
 
-func (eParameter *eParameterImpl) asEParameter() EParameter {
+func (eParameter *EParameterImpl) asEParameter() EParameter {
 	return eParameter.GetInterfaces().(EParameter)
 }
 
-func (eParameter *eParameterImpl) EStaticClass() EClass {
+func (eParameter *EParameterImpl) EStaticClass() EClass {
 	return GetPackage().GetEParameter()
 }
 
-func (eParameter *eParameterImpl) EStaticFeatureCount() int {
+func (eParameter *EParameterImpl) EStaticFeatureCount() int {
 	return EPARAMETER_FEATURE_COUNT
 }
 
 // GetEOperation get the value of eOperation
-func (eParameter *eParameterImpl) GetEOperation() EOperation {
+func (eParameter *EParameterImpl) GetEOperation() EOperation {
 	if eParameter.EContainerFeatureID() == EPARAMETER__EOPERATION {
 		return eParameter.EContainer().(EOperation)
 	}
 	return nil
 }
 
-func (eParameter *eParameterImpl) EGetFromID(featureID int, resolve bool) any {
+func (eParameter *EParameterImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EPARAMETER__EOPERATION:
 		return eParameter.asEParameter().GetEOperation()
 	default:
-		return eParameter.eTypedElementExt.EGetFromID(featureID, resolve)
+		return eParameter.ETypedElementExt.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eParameter *eParameterImpl) EIsSetFromID(featureID int) bool {
+func (eParameter *EParameterImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EPARAMETER__EOPERATION:
 		return eParameter.asEParameter().GetEOperation() != nil
 	default:
-		return eParameter.eTypedElementExt.EIsSetFromID(featureID)
+		return eParameter.ETypedElementExt.EIsSetFromID(featureID)
 	}
 }
 
-func (eParameter *eParameterImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (eParameter *EParameterImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EPARAMETER__EOPERATION:
 		msgs := notifications
@@ -71,15 +71,15 @@ func (eParameter *eParameterImpl) EBasicInverseAdd(otherEnd EObject, featureID i
 		}
 		return eParameter.EBasicSetContainer(otherEnd, EPARAMETER__EOPERATION, msgs)
 	default:
-		return eParameter.eTypedElementExt.EBasicInverseAdd(otherEnd, featureID, notifications)
+		return eParameter.ETypedElementExt.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
 }
 
-func (eParameter *eParameterImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (eParameter *EParameterImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EPARAMETER__EOPERATION:
 		return eParameter.EBasicSetContainer(nil, EPARAMETER__EOPERATION, notifications)
 	default:
-		return eParameter.eTypedElementExt.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return eParameter.ETypedElementExt.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

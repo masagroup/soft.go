@@ -16,11 +16,11 @@ import (
 
 // EFactoryExt is the extension of the model object 'EFactory'
 type EFactoryExt struct {
-	eFactoryImpl
+	EFactoryImpl
 }
 
-// NewEFactoryExt ...
-func NewEFactoryExt() *EFactoryExt {
+// newEFactoryExt ...
+func newEFactoryExt() *EFactoryExt {
 	eFactory := new(EFactoryExt)
 	eFactory.SetInterfaces(eFactory)
 	eFactory.Initialize()

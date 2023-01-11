@@ -11,9 +11,9 @@
 
 package ecore
 
-// ePackageImpl is the implementation of the model object 'EPackage'
-type ePackageImpl struct {
-	eNamedElementImpl
+// EPackageImpl is the implementation of the model object 'EPackage'
+type EPackageImpl struct {
+	ENamedElementImpl
 	eClassifiers     EList
 	eFactoryInstance EFactory
 	eSubPackages     EList
@@ -29,48 +29,48 @@ type ePackageBasics interface {
 	basicSetEFactoryInstance(EFactory, ENotificationChain) ENotificationChain
 }
 
-// newEPackageImpl is the constructor of a ePackageImpl
-func newEPackageImpl() *ePackageImpl {
-	ePackage := new(ePackageImpl)
+// newEPackageImpl is the constructor of a EPackageImpl
+func newEPackageImpl() *EPackageImpl {
+	ePackage := new(EPackageImpl)
 	ePackage.SetInterfaces(ePackage)
 	ePackage.Initialize()
 	return ePackage
 }
 
-func (ePackage *ePackageImpl) Initialize() {
-	ePackage.eNamedElementImpl.Initialize()
+func (ePackage *EPackageImpl) Initialize() {
+	ePackage.ENamedElementImpl.Initialize()
 	ePackage.nsPrefix = ""
 	ePackage.nsURI = ""
 
 }
 
-func (ePackage *ePackageImpl) asEPackage() EPackage {
+func (ePackage *EPackageImpl) asEPackage() EPackage {
 	return ePackage.GetInterfaces().(EPackage)
 }
 
-func (ePackage *ePackageImpl) asInitializers() ePackageInitializers {
+func (ePackage *EPackageImpl) asInitializers() ePackageInitializers {
 	return ePackage.GetInterfaces().(ePackageInitializers)
 }
 
-func (ePackage *ePackageImpl) asBasics() ePackageBasics {
+func (ePackage *EPackageImpl) asBasics() ePackageBasics {
 	return ePackage.GetInterfaces().(ePackageBasics)
 }
 
-func (ePackage *ePackageImpl) EStaticClass() EClass {
+func (ePackage *EPackageImpl) EStaticClass() EClass {
 	return GetPackage().GetEPackage()
 }
 
-func (ePackage *ePackageImpl) EStaticFeatureCount() int {
+func (ePackage *EPackageImpl) EStaticFeatureCount() int {
 	return EPACKAGE_FEATURE_COUNT
 }
 
 // GetEClassifier default implementation
-func (ePackage *ePackageImpl) GetEClassifier(string) EClassifier {
+func (ePackage *EPackageImpl) GetEClassifier(string) EClassifier {
 	panic("GetEClassifier not implemented")
 }
 
 // GetEClassifiers get the value of eClassifiers
-func (ePackage *ePackageImpl) GetEClassifiers() EList {
+func (ePackage *EPackageImpl) GetEClassifiers() EList {
 	if ePackage.eClassifiers == nil {
 		ePackage.eClassifiers = ePackage.asInitializers().initEClassifiers()
 	}
@@ -78,12 +78,12 @@ func (ePackage *ePackageImpl) GetEClassifiers() EList {
 }
 
 // GetEFactoryInstance get the value of eFactoryInstance
-func (ePackage *ePackageImpl) GetEFactoryInstance() EFactory {
+func (ePackage *EPackageImpl) GetEFactoryInstance() EFactory {
 	return ePackage.eFactoryInstance
 }
 
 // SetEFactoryInstance set the value of eFactoryInstance
-func (ePackage *ePackageImpl) SetEFactoryInstance(newEFactoryInstance EFactory) {
+func (ePackage *EPackageImpl) SetEFactoryInstance(newEFactoryInstance EFactory) {
 	if newEFactoryInstance != ePackage.eFactoryInstance {
 		var notifications ENotificationChain
 		if oldEFactoryInstanceInternal, _ := ePackage.eFactoryInstance.(EObjectInternal); oldEFactoryInstanceInternal != nil {
@@ -99,7 +99,7 @@ func (ePackage *ePackageImpl) SetEFactoryInstance(newEFactoryInstance EFactory) 
 	}
 }
 
-func (ePackage *ePackageImpl) basicSetEFactoryInstance(newEFactoryInstance EFactory, msgs ENotificationChain) ENotificationChain {
+func (ePackage *EPackageImpl) basicSetEFactoryInstance(newEFactoryInstance EFactory, msgs ENotificationChain) ENotificationChain {
 	oldEFactoryInstance := ePackage.eFactoryInstance
 	ePackage.eFactoryInstance = newEFactoryInstance
 	notifications := msgs
@@ -115,7 +115,7 @@ func (ePackage *ePackageImpl) basicSetEFactoryInstance(newEFactoryInstance EFact
 }
 
 // GetESubPackages get the value of eSubPackages
-func (ePackage *ePackageImpl) GetESubPackages() EList {
+func (ePackage *EPackageImpl) GetESubPackages() EList {
 	if ePackage.eSubPackages == nil {
 		ePackage.eSubPackages = ePackage.asInitializers().initESubPackages()
 	}
@@ -123,7 +123,7 @@ func (ePackage *ePackageImpl) GetESubPackages() EList {
 }
 
 // GetESuperPackage get the value of eSuperPackage
-func (ePackage *ePackageImpl) GetESuperPackage() EPackage {
+func (ePackage *EPackageImpl) GetESuperPackage() EPackage {
 	if ePackage.EContainerFeatureID() == EPACKAGE__ESUPER_PACKAGE {
 		return ePackage.EContainer().(EPackage)
 	}
@@ -131,12 +131,12 @@ func (ePackage *ePackageImpl) GetESuperPackage() EPackage {
 }
 
 // GetNsPrefix get the value of nsPrefix
-func (ePackage *ePackageImpl) GetNsPrefix() string {
+func (ePackage *EPackageImpl) GetNsPrefix() string {
 	return ePackage.nsPrefix
 }
 
 // SetNsPrefix set the value of nsPrefix
-func (ePackage *ePackageImpl) SetNsPrefix(newNsPrefix string) {
+func (ePackage *EPackageImpl) SetNsPrefix(newNsPrefix string) {
 	oldNsPrefix := ePackage.nsPrefix
 	ePackage.nsPrefix = newNsPrefix
 	if ePackage.ENotificationRequired() {
@@ -145,12 +145,12 @@ func (ePackage *ePackageImpl) SetNsPrefix(newNsPrefix string) {
 }
 
 // GetNsURI get the value of nsURI
-func (ePackage *ePackageImpl) GetNsURI() string {
+func (ePackage *EPackageImpl) GetNsURI() string {
 	return ePackage.nsURI
 }
 
 // SetNsURI set the value of nsURI
-func (ePackage *ePackageImpl) SetNsURI(newNsURI string) {
+func (ePackage *EPackageImpl) SetNsURI(newNsURI string) {
 	oldNsURI := ePackage.nsURI
 	ePackage.nsURI = newNsURI
 	if ePackage.ENotificationRequired() {
@@ -158,15 +158,15 @@ func (ePackage *ePackageImpl) SetNsURI(newNsURI string) {
 	}
 }
 
-func (ePackage *ePackageImpl) initEClassifiers() EList {
+func (ePackage *EPackageImpl) initEClassifiers() EList {
 	return NewBasicEObjectList(ePackage.AsEObjectInternal(), EPACKAGE__ECLASSIFIERS, ECLASSIFIER__EPACKAGE, true, true, true, false, false)
 }
 
-func (ePackage *ePackageImpl) initESubPackages() EList {
+func (ePackage *EPackageImpl) initESubPackages() EList {
 	return NewBasicEObjectList(ePackage.AsEObjectInternal(), EPACKAGE__ESUB_PACKAGES, EPACKAGE__ESUPER_PACKAGE, true, true, true, false, false)
 }
 
-func (ePackage *ePackageImpl) EGetFromID(featureID int, resolve bool) any {
+func (ePackage *EPackageImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EPACKAGE__ECLASSIFIERS:
 		return ePackage.asEPackage().GetEClassifiers()
@@ -181,11 +181,11 @@ func (ePackage *ePackageImpl) EGetFromID(featureID int, resolve bool) any {
 	case EPACKAGE__NS_URI:
 		return ePackage.asEPackage().GetNsURI()
 	default:
-		return ePackage.eNamedElementImpl.EGetFromID(featureID, resolve)
+		return ePackage.ENamedElementImpl.EGetFromID(featureID, resolve)
 	}
 }
 
-func (ePackage *ePackageImpl) ESetFromID(featureID int, newValue any) {
+func (ePackage *EPackageImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EPACKAGE__ECLASSIFIERS:
 		list := ePackage.asEPackage().GetEClassifiers()
@@ -202,11 +202,11 @@ func (ePackage *ePackageImpl) ESetFromID(featureID int, newValue any) {
 	case EPACKAGE__NS_URI:
 		ePackage.asEPackage().SetNsURI(newValue.(string))
 	default:
-		ePackage.eNamedElementImpl.ESetFromID(featureID, newValue)
+		ePackage.ENamedElementImpl.ESetFromID(featureID, newValue)
 	}
 }
 
-func (ePackage *ePackageImpl) EUnsetFromID(featureID int) {
+func (ePackage *EPackageImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EPACKAGE__ECLASSIFIERS:
 		ePackage.asEPackage().GetEClassifiers().Clear()
@@ -219,11 +219,11 @@ func (ePackage *ePackageImpl) EUnsetFromID(featureID int) {
 	case EPACKAGE__NS_URI:
 		ePackage.asEPackage().SetNsURI("")
 	default:
-		ePackage.eNamedElementImpl.EUnsetFromID(featureID)
+		ePackage.ENamedElementImpl.EUnsetFromID(featureID)
 	}
 }
 
-func (ePackage *ePackageImpl) EIsSetFromID(featureID int) bool {
+func (ePackage *EPackageImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EPACKAGE__ECLASSIFIERS:
 		return ePackage.eClassifiers != nil && ePackage.eClassifiers.Size() != 0
@@ -238,20 +238,20 @@ func (ePackage *ePackageImpl) EIsSetFromID(featureID int) bool {
 	case EPACKAGE__NS_URI:
 		return ePackage.nsURI != ""
 	default:
-		return ePackage.eNamedElementImpl.EIsSetFromID(featureID)
+		return ePackage.ENamedElementImpl.EIsSetFromID(featureID)
 	}
 }
 
-func (ePackage *ePackageImpl) EInvokeFromID(operationID int, arguments EList) any {
+func (ePackage *EPackageImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EPACKAGE__GET_ECLASSIFIER_ESTRING:
 		return ePackage.asEPackage().GetEClassifier(arguments.Get(0).(string))
 	default:
-		return ePackage.eNamedElementImpl.EInvokeFromID(operationID, arguments)
+		return ePackage.ENamedElementImpl.EInvokeFromID(operationID, arguments)
 	}
 }
 
-func (ePackage *ePackageImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (ePackage *EPackageImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EPACKAGE__ECLASSIFIERS:
 		list := ePackage.GetEClassifiers().(ENotifyingList)
@@ -273,11 +273,11 @@ func (ePackage *ePackageImpl) EBasicInverseAdd(otherEnd EObject, featureID int, 
 		}
 		return ePackage.EBasicSetContainer(otherEnd, EPACKAGE__ESUPER_PACKAGE, msgs)
 	default:
-		return ePackage.eNamedElementImpl.EBasicInverseAdd(otherEnd, featureID, notifications)
+		return ePackage.ENamedElementImpl.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
 }
 
-func (ePackage *ePackageImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (ePackage *EPackageImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EPACKAGE__ECLASSIFIERS:
 		list := ePackage.GetEClassifiers().(ENotifyingList)
@@ -290,6 +290,6 @@ func (ePackage *ePackageImpl) EBasicInverseRemove(otherEnd EObject, featureID in
 	case EPACKAGE__ESUPER_PACKAGE:
 		return ePackage.EBasicSetContainer(nil, EPACKAGE__ESUPER_PACKAGE, notifications)
 	default:
-		return ePackage.eNamedElementImpl.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return ePackage.ENamedElementImpl.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

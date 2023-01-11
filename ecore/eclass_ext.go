@@ -9,23 +9,29 @@
 
 package ecore
 
-// eClassExt is the extension of the model object 'EClass'
-type eClassExt struct {
-	eClassImpl
+// EClassExt is the extension of the model object 'EClass'
+type EClassExt struct {
+	EClassImpl
 	adapter                *eSuperAdapter
 	nameToFeatureMap       map[string]EStructuralFeature
 	operationToOverrideMap map[EOperation]EOperation
+	subClasses             []EClassInternal
+}
+
+type EClassInternal interface {
+	getSubClasses() []EClassInternal
+	setSubClasses([]EClassInternal)
+	setModified(featureID int)
 }
 
 type eSuperAdapter struct {
 	AbstractEAdapter
-	class      *eClassExt
-	subClasses []*eClassExt
+	class *EClassExt
 }
 
 func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 	eventType := notification.GetEventType()
-	eNotifier := notification.GetNotifier().(*eClassExt)
+	eNotifier := notification.GetNotifier().(EClassInternal)
 	if eventType != REMOVING_ADAPTER {
 		featureID := notification.GetFeatureID()
 		if featureID == ECLASS__ESUPER_TYPES {
@@ -35,41 +41,43 @@ func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 			case RESOLVE:
 				oldValue := notification.GetOldValue()
 				if oldValue != nil {
-					class := oldValue.(*eClassExt)
-					for i, s := range class.adapter.subClasses {
+					class := oldValue.(EClassInternal)
+					subClasses := class.getSubClasses()
+					for i, s := range subClasses {
 						if s == eNotifier {
-							class.adapter.subClasses = append(class.adapter.subClasses[:i], class.adapter.subClasses[i+1:]...)
+							class.setSubClasses(append(subClasses[:i], subClasses[i+1:]...))
 							break
 						}
 					}
 				}
 				newValue := notification.GetNewValue()
 				if newValue != nil {
-					class := newValue.(*eClassExt)
-					class.adapter.subClasses = append(class.adapter.subClasses, eNotifier)
+					class := newValue.(EClassInternal)
+					class.setSubClasses(append(class.getSubClasses(), eNotifier))
 				}
 			case ADD:
 				newValue := notification.GetNewValue()
 				if newValue != nil {
-					class := newValue.(*eClassExt)
-					class.adapter.subClasses = append(class.adapter.subClasses, eNotifier)
+					class := newValue.(EClassInternal)
+					class.setSubClasses(append(class.getSubClasses(), eNotifier))
 				}
 			case ADD_MANY:
 				newValue := notification.GetNewValue()
 				if newValue != nil {
 					collection := newValue.([]any)
 					for _, s := range collection {
-						class := s.(*eClassExt)
-						class.adapter.subClasses = append(class.adapter.subClasses, eNotifier)
+						class := s.(EClassInternal)
+						class.setSubClasses(append(class.getSubClasses(), eNotifier))
 					}
 				}
 			case REMOVE:
 				oldValue := notification.GetOldValue()
 				if oldValue != nil {
-					class := oldValue.(*eClassExt)
-					for i, s := range class.adapter.subClasses {
+					class := oldValue.(EClassInternal)
+					subClasses := class.getSubClasses()
+					for i, s := range subClasses {
 						if s == eNotifier {
-							class.adapter.subClasses = append(class.adapter.subClasses[:i], class.adapter.subClasses[i+1:]...)
+							class.setSubClasses(append(subClasses[:i], subClasses[i+1:]...))
 							break
 						}
 					}
@@ -79,10 +87,11 @@ func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 				if oldValue != nil {
 					collection := oldValue.([]any)
 					for _, s := range collection {
-						class := s.(*eClassExt)
-						for i, s := range class.adapter.subClasses {
+						class := s.(EClassInternal)
+						subClasses := class.getSubClasses()
+						for i, s := range subClasses {
 							if s == eNotifier {
-								class.adapter.subClasses = append(class.adapter.subClasses[:i], class.adapter.subClasses[i+1:]...)
+								class.setSubClasses(append(subClasses[:i], subClasses[i+1:]...))
 								break
 							}
 						}
@@ -94,28 +103,28 @@ func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 	}
 }
 
-func newEClassExt() *eClassExt {
-	eClass := new(eClassExt)
+func newEClassExt() *EClassExt {
+	eClass := new(EClassExt)
 	eClass.SetInterfaces(eClass)
 	eClass.Initialize()
 	return eClass
 }
 
-func (eClass *eClassExt) Initialize() {
-	eClass.eClassImpl.Initialize()
-	eClass.adapter = &eSuperAdapter{class: eClass, subClasses: []*eClassExt{}}
+func (eClass *EClassExt) Initialize() {
+	eClass.EClassImpl.Initialize()
+	eClass.adapter = &eSuperAdapter{class: eClass}
 	eClass.EAdapters().Add(eClass.adapter)
 }
 
-func (eClass *eClassExt) IsSuperTypeOf(someClass EClass) bool {
+func (eClass *EClassExt) IsSuperTypeOf(someClass EClass) bool {
 	return someClass == eClass || (someClass != nil && someClass.GetEAllSuperTypes().Contains(eClass))
 }
 
-func (eClass *eClassExt) GetFeatureCount() int {
+func (eClass *EClassExt) GetFeatureCount() int {
 	return eClass.GetEAllStructuralFeatures().Size()
 }
 
-func (eClass *eClassExt) GetEStructuralFeature(featureID int) EStructuralFeature {
+func (eClass *EClassExt) GetEStructuralFeature(featureID int) EStructuralFeature {
 	features := eClass.GetEAllStructuralFeatures()
 	if featureID >= 0 && featureID < features.Size() {
 		return features.Get(featureID).(EStructuralFeature)
@@ -123,12 +132,12 @@ func (eClass *eClassExt) GetEStructuralFeature(featureID int) EStructuralFeature
 	return nil
 }
 
-func (eClass *eClassExt) GetEStructuralFeatureFromName(featureName string) EStructuralFeature {
+func (eClass *EClassExt) GetEStructuralFeatureFromName(featureName string) EStructuralFeature {
 	eClass.initNameToFeatureMap()
 	return eClass.nameToFeatureMap[featureName]
 }
 
-func (eClass *eClassExt) initNameToFeatureMap() {
+func (eClass *EClassExt) initNameToFeatureMap() {
 	eClass.initEAllStructuralFeatures()
 
 	if eClass.nameToFeatureMap != nil {
@@ -141,7 +150,7 @@ func (eClass *eClassExt) initNameToFeatureMap() {
 	}
 }
 
-func (eClass *eClassExt) GetFeatureID(feature EStructuralFeature) int {
+func (eClass *EClassExt) GetFeatureID(feature EStructuralFeature) int {
 	features := eClass.GetEAllStructuralFeatures()
 	featureID := feature.GetFeatureID()
 	if featureID != -1 {
@@ -154,11 +163,11 @@ func (eClass *eClassExt) GetFeatureID(feature EStructuralFeature) int {
 	return -1
 }
 
-func (eClass *eClassExt) GetOperationCount() int {
+func (eClass *EClassExt) GetOperationCount() int {
 	return eClass.GetEAllOperations().Size()
 }
 
-func (eClass *eClassExt) GetEOperation(operationID int) EOperation {
+func (eClass *EClassExt) GetEOperation(operationID int) EOperation {
 	operations := eClass.GetEAllOperations()
 	if operationID >= 0 && operationID < operations.Size() {
 		return operations.Get(operationID).(EOperation)
@@ -166,7 +175,7 @@ func (eClass *eClassExt) GetEOperation(operationID int) EOperation {
 	return nil
 }
 
-func (eClass *eClassExt) GetOperationID(operation EOperation) int {
+func (eClass *EClassExt) GetOperationID(operation EOperation) int {
 	operations := eClass.GetEAllOperations()
 	operationID := operation.GetOperationID()
 	if operationID != -1 {
@@ -179,12 +188,12 @@ func (eClass *eClassExt) GetOperationID(operation EOperation) int {
 	return -1
 }
 
-func (eClass *eClassExt) GetOverride(operation EOperation) EOperation {
+func (eClass *EClassExt) GetOverride(operation EOperation) EOperation {
 	eClass.initOperationToOverrideMap()
 	return eClass.operationToOverrideMap[operation]
 }
 
-func (eClass *eClassExt) initOperationToOverrideMap() {
+func (eClass *EClassExt) initOperationToOverrideMap() {
 	eClass.initEAllOperations()
 
 	if eClass.operationToOverrideMap != nil {
@@ -204,23 +213,23 @@ func (eClass *eClassExt) initOperationToOverrideMap() {
 	}
 }
 
-func (eClass *eClassExt) initEAttributes() {
+func (eClass *EClassExt) initEAttributes() {
 	eClass.initEAllAttributes()
 }
 
-func (eClass *eClassExt) initEReferences() {
+func (eClass *EClassExt) initEReferences() {
 	eClass.initEAllReferences()
 }
 
-func (eClass *eClassExt) initEContainmentFeatures() {
+func (eClass *EClassExt) initEContainmentFeatures() {
 	eClass.initFeaturesSubSet()
 }
 
-func (eClass *eClassExt) initECrossReferenceFeatures() {
+func (eClass *EClassExt) initECrossReferenceFeatures() {
 	eClass.initFeaturesSubSet()
 }
 
-func (eClass *eClassExt) initFeaturesSubSet() {
+func (eClass *EClassExt) initFeaturesSubSet() {
 	eClass.initEAllStructuralFeatures()
 
 	if eClass.eContainmentFeatures != nil {
@@ -248,7 +257,7 @@ func (eClass *eClassExt) initFeaturesSubSet() {
 	eClass.eCrossReferenceFeatures = NewImmutableEList(crossReferences)
 }
 
-func (eClass *eClassExt) initEAllAttributes() {
+func (eClass *EClassExt) initEAllAttributes() {
 	if eClass.eAllAttributes != nil {
 		return
 	}
@@ -282,7 +291,7 @@ func (eClass *eClassExt) initEAllAttributes() {
 	eClass.eAllAttributes = NewImmutableEList(allAttributes)
 }
 
-func (eClass *eClassExt) initEAllReferences() {
+func (eClass *EClassExt) initEAllReferences() {
 	if eClass.eAllReferences != nil {
 		return
 	}
@@ -306,7 +315,7 @@ func (eClass *eClassExt) initEAllReferences() {
 	eClass.eAllReferences = NewImmutableEList(allReferences)
 }
 
-func (eClass *eClassExt) initEAllContainments() {
+func (eClass *EClassExt) initEAllContainments() {
 	if eClass.eAllContainments != nil {
 		return
 	}
@@ -320,7 +329,7 @@ func (eClass *eClassExt) initEAllContainments() {
 	eClass.eAllContainments = NewImmutableEList(allContainments)
 }
 
-func (eClass *eClassExt) initEAllOperations() {
+func (eClass *EClassExt) initEAllOperations() {
 	if eClass.eAllOperations != nil {
 		return
 	}
@@ -345,7 +354,7 @@ func (eClass *eClassExt) initEAllOperations() {
 	eClass.eAllOperations = NewImmutableEList(allOperations)
 }
 
-func (eClass *eClassExt) initEAllStructuralFeatures() {
+func (eClass *EClassExt) initEAllStructuralFeatures() {
 	if eClass.eAllStructuralFeatures != nil {
 		return
 	}
@@ -370,7 +379,7 @@ func (eClass *eClassExt) initEAllStructuralFeatures() {
 	eClass.eAllStructuralFeatures = NewImmutableEList(allFeatures)
 }
 
-func (eClass *eClassExt) initEAllSuperTypes() {
+func (eClass *EClassExt) initEAllSuperTypes() {
 	if eClass.eAllSuperTypes != nil {
 		return
 	}
@@ -384,11 +393,19 @@ func (eClass *eClassExt) initEAllSuperTypes() {
 	eClass.eAllSuperTypes = NewImmutableEList(allSuperTypes)
 }
 
-func (eClass *eClassExt) initEIDAttribute() {
+func (eClass *EClassExt) initEIDAttribute() {
 	eClass.initEAllAttributes()
 }
 
-func (eClass *eClassExt) setModified(featureID int) {
+func (eClass *EClassExt) getSubClasses() []EClassInternal {
+	return eClass.subClasses
+}
+
+func (eClass *EClassExt) setSubClasses(subClasses []EClassInternal) {
+	eClass.subClasses = subClasses
+}
+
+func (eClass *EClassExt) setModified(featureID int) {
 	switch featureID {
 	case ECLASS__ESTRUCTURAL_FEATURES:
 		eClass.eAllAttributes = nil
@@ -414,7 +431,7 @@ func (eClass *eClassExt) setModified(featureID int) {
 		eClass.eAllReferences = nil
 		eClass.eAllContainments = nil
 	}
-	for _, s := range eClass.adapter.subClasses {
+	for _, s := range eClass.subClasses {
 		s.setModified(featureID)
 	}
 }

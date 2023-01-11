@@ -9,26 +9,26 @@
 
 package ecore
 
-// eTypedElementExt is the extension of the model object 'ETypedElement'
-type eTypedElementExt struct {
-	eTypedElementImpl
+// ETypedElementExt is the extension of the model object 'ETypedElement'
+type ETypedElementExt struct {
+	ETypedElementImpl
 }
 
-func newETypedElementExt() *eTypedElementExt {
-	eTypedElement := new(eTypedElementExt)
+func newETypedElementExt() *ETypedElementExt {
+	eTypedElement := new(ETypedElementExt)
 	eTypedElement.SetInterfaces(eTypedElement)
 	eTypedElement.Initialize()
 	return eTypedElement
 }
 
 // IsMany get the value of isMany
-func (eTypedElement *eTypedElementExt) IsMany() bool {
+func (eTypedElement *ETypedElementExt) IsMany() bool {
 	upper := eTypedElement.GetUpperBound()
 	return upper > 1 || upper == UNBOUNDED_MULTIPLICITY
 }
 
 // IsRequired get the value of isRequired
-func (eTypedElement *eTypedElementExt) IsRequired() bool {
+func (eTypedElement *ETypedElementExt) IsRequired() bool {
 	lower := eTypedElement.GetLowerBound()
 	return lower >= 1
 }

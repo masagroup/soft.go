@@ -21,8 +21,8 @@ func TestEClassInstance(t *testing.T) {
 	assert.Equal(t, eClass.GetName(), "eClass")
 }
 
-func containsSubClass(eSuper *eClassExt, eClass *eClassExt) bool {
-	for _, s := range eSuper.adapter.subClasses {
+func containsSubClass(eSuper *EClassExt, eClass *EClassExt) bool {
+	for _, s := range eSuper.subClasses {
 		if s == eClass {
 			return true
 		}

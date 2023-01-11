@@ -11,8 +11,8 @@
 
 package ecore
 
-// eGenericTypeImpl is the implementation of the model object 'EGenericType'
-type eGenericTypeImpl struct {
+// EGenericTypeImpl is the implementation of the model object 'EGenericType'
+type EGenericTypeImpl struct {
 	CompactEObjectContainer
 	eClassifier    EClassifier
 	eLowerBound    EGenericType
@@ -33,46 +33,46 @@ type eGenericTypeBasics interface {
 	basicSetEUpperBound(EGenericType, ENotificationChain) ENotificationChain
 }
 
-// newEGenericTypeImpl is the constructor of a eGenericTypeImpl
-func newEGenericTypeImpl() *eGenericTypeImpl {
-	eGenericType := new(eGenericTypeImpl)
+// newEGenericTypeImpl is the constructor of a EGenericTypeImpl
+func newEGenericTypeImpl() *EGenericTypeImpl {
+	eGenericType := new(EGenericTypeImpl)
 	eGenericType.SetInterfaces(eGenericType)
 	eGenericType.Initialize()
 	return eGenericType
 }
 
-func (eGenericType *eGenericTypeImpl) Initialize() {
+func (eGenericType *EGenericTypeImpl) Initialize() {
 	eGenericType.CompactEObjectContainer.Initialize()
 
 }
 
-func (eGenericType *eGenericTypeImpl) asEGenericType() EGenericType {
+func (eGenericType *EGenericTypeImpl) asEGenericType() EGenericType {
 	return eGenericType.GetInterfaces().(EGenericType)
 }
 
-func (eGenericType *eGenericTypeImpl) asInitializers() eGenericTypeInitializers {
+func (eGenericType *EGenericTypeImpl) asInitializers() eGenericTypeInitializers {
 	return eGenericType.GetInterfaces().(eGenericTypeInitializers)
 }
 
-func (eGenericType *eGenericTypeImpl) asBasics() eGenericTypeBasics {
+func (eGenericType *EGenericTypeImpl) asBasics() eGenericTypeBasics {
 	return eGenericType.GetInterfaces().(eGenericTypeBasics)
 }
 
-func (eGenericType *eGenericTypeImpl) EStaticClass() EClass {
+func (eGenericType *EGenericTypeImpl) EStaticClass() EClass {
 	return GetPackage().GetEGenericType()
 }
 
-func (eGenericType *eGenericTypeImpl) EStaticFeatureCount() int {
+func (eGenericType *EGenericTypeImpl) EStaticFeatureCount() int {
 	return EGENERIC_TYPE_FEATURE_COUNT
 }
 
 // IsInstance default implementation
-func (eGenericType *eGenericTypeImpl) IsInstance(any) bool {
+func (eGenericType *EGenericTypeImpl) IsInstance(any) bool {
 	panic("IsInstance not implemented")
 }
 
 // GetEClassifier get the value of eClassifier
-func (eGenericType *eGenericTypeImpl) GetEClassifier() EClassifier {
+func (eGenericType *EGenericTypeImpl) GetEClassifier() EClassifier {
 	if eGenericType.eClassifier != nil && eGenericType.eClassifier.EIsProxy() {
 		oldEClassifier := eGenericType.eClassifier
 		newEClassifier := eGenericType.EResolveProxy(oldEClassifier).(EClassifier)
@@ -86,12 +86,12 @@ func (eGenericType *eGenericTypeImpl) GetEClassifier() EClassifier {
 	return eGenericType.eClassifier
 }
 
-func (eGenericType *eGenericTypeImpl) basicGetEClassifier() EClassifier {
+func (eGenericType *EGenericTypeImpl) basicGetEClassifier() EClassifier {
 	return eGenericType.eClassifier
 }
 
 // SetEClassifier set the value of eClassifier
-func (eGenericType *eGenericTypeImpl) SetEClassifier(newEClassifier EClassifier) {
+func (eGenericType *EGenericTypeImpl) SetEClassifier(newEClassifier EClassifier) {
 	oldEClassifier := eGenericType.eClassifier
 	eGenericType.eClassifier = newEClassifier
 	if eGenericType.ENotificationRequired() {
@@ -100,12 +100,12 @@ func (eGenericType *eGenericTypeImpl) SetEClassifier(newEClassifier EClassifier)
 }
 
 // GetELowerBound get the value of eLowerBound
-func (eGenericType *eGenericTypeImpl) GetELowerBound() EGenericType {
+func (eGenericType *EGenericTypeImpl) GetELowerBound() EGenericType {
 	return eGenericType.eLowerBound
 }
 
 // SetELowerBound set the value of eLowerBound
-func (eGenericType *eGenericTypeImpl) SetELowerBound(newELowerBound EGenericType) {
+func (eGenericType *EGenericTypeImpl) SetELowerBound(newELowerBound EGenericType) {
 	if newELowerBound != eGenericType.eLowerBound {
 		var notifications ENotificationChain
 		if oldELowerBoundInternal, _ := eGenericType.eLowerBound.(EObjectInternal); oldELowerBoundInternal != nil {
@@ -121,7 +121,7 @@ func (eGenericType *eGenericTypeImpl) SetELowerBound(newELowerBound EGenericType
 	}
 }
 
-func (eGenericType *eGenericTypeImpl) basicSetELowerBound(newELowerBound EGenericType, msgs ENotificationChain) ENotificationChain {
+func (eGenericType *EGenericTypeImpl) basicSetELowerBound(newELowerBound EGenericType, msgs ENotificationChain) ENotificationChain {
 	oldELowerBound := eGenericType.eLowerBound
 	eGenericType.eLowerBound = newELowerBound
 	notifications := msgs
@@ -137,7 +137,7 @@ func (eGenericType *eGenericTypeImpl) basicSetELowerBound(newELowerBound EGeneri
 }
 
 // GetERawType get the value of eRawType
-func (eGenericType *eGenericTypeImpl) GetERawType() EClassifier {
+func (eGenericType *EGenericTypeImpl) GetERawType() EClassifier {
 	if eGenericType.eRawType != nil && eGenericType.eRawType.EIsProxy() {
 		oldERawType := eGenericType.eRawType
 		newERawType := eGenericType.EResolveProxy(oldERawType).(EClassifier)
@@ -151,12 +151,12 @@ func (eGenericType *eGenericTypeImpl) GetERawType() EClassifier {
 	return eGenericType.eRawType
 }
 
-func (eGenericType *eGenericTypeImpl) basicGetERawType() EClassifier {
+func (eGenericType *EGenericTypeImpl) basicGetERawType() EClassifier {
 	return eGenericType.eRawType
 }
 
 // GetETypeArguments get the value of eTypeArguments
-func (eGenericType *eGenericTypeImpl) GetETypeArguments() EList {
+func (eGenericType *EGenericTypeImpl) GetETypeArguments() EList {
 	if eGenericType.eTypeArguments == nil {
 		eGenericType.eTypeArguments = eGenericType.asInitializers().initETypeArguments()
 	}
@@ -164,12 +164,12 @@ func (eGenericType *eGenericTypeImpl) GetETypeArguments() EList {
 }
 
 // GetETypeParameter get the value of eTypeParameter
-func (eGenericType *eGenericTypeImpl) GetETypeParameter() ETypeParameter {
+func (eGenericType *EGenericTypeImpl) GetETypeParameter() ETypeParameter {
 	return eGenericType.eTypeParameter
 }
 
 // SetETypeParameter set the value of eTypeParameter
-func (eGenericType *eGenericTypeImpl) SetETypeParameter(newETypeParameter ETypeParameter) {
+func (eGenericType *EGenericTypeImpl) SetETypeParameter(newETypeParameter ETypeParameter) {
 	oldETypeParameter := eGenericType.eTypeParameter
 	eGenericType.eTypeParameter = newETypeParameter
 	if eGenericType.ENotificationRequired() {
@@ -178,12 +178,12 @@ func (eGenericType *eGenericTypeImpl) SetETypeParameter(newETypeParameter ETypeP
 }
 
 // GetEUpperBound get the value of eUpperBound
-func (eGenericType *eGenericTypeImpl) GetEUpperBound() EGenericType {
+func (eGenericType *EGenericTypeImpl) GetEUpperBound() EGenericType {
 	return eGenericType.eUpperBound
 }
 
 // SetEUpperBound set the value of eUpperBound
-func (eGenericType *eGenericTypeImpl) SetEUpperBound(newEUpperBound EGenericType) {
+func (eGenericType *EGenericTypeImpl) SetEUpperBound(newEUpperBound EGenericType) {
 	if newEUpperBound != eGenericType.eUpperBound {
 		var notifications ENotificationChain
 		if oldEUpperBoundInternal, _ := eGenericType.eUpperBound.(EObjectInternal); oldEUpperBoundInternal != nil {
@@ -199,7 +199,7 @@ func (eGenericType *eGenericTypeImpl) SetEUpperBound(newEUpperBound EGenericType
 	}
 }
 
-func (eGenericType *eGenericTypeImpl) basicSetEUpperBound(newEUpperBound EGenericType, msgs ENotificationChain) ENotificationChain {
+func (eGenericType *EGenericTypeImpl) basicSetEUpperBound(newEUpperBound EGenericType, msgs ENotificationChain) ENotificationChain {
 	oldEUpperBound := eGenericType.eUpperBound
 	eGenericType.eUpperBound = newEUpperBound
 	notifications := msgs
@@ -214,11 +214,11 @@ func (eGenericType *eGenericTypeImpl) basicSetEUpperBound(newEUpperBound EGeneri
 	return notifications
 }
 
-func (eGenericType *eGenericTypeImpl) initETypeArguments() EList {
+func (eGenericType *EGenericTypeImpl) initETypeArguments() EList {
 	return NewBasicEObjectList(eGenericType.AsEObjectInternal(), EGENERIC_TYPE__ETYPE_ARGUMENTS, -1, true, true, false, false, false)
 }
 
-func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve bool) any {
+func (eGenericType *EGenericTypeImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
 		if resolve {
@@ -243,7 +243,7 @@ func (eGenericType *eGenericTypeImpl) EGetFromID(featureID int, resolve bool) an
 	}
 }
 
-func (eGenericType *eGenericTypeImpl) ESetFromID(featureID int, newValue any) {
+func (eGenericType *EGenericTypeImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
 		eGenericType.asEGenericType().SetEClassifier(newValue.(EClassifier))
@@ -262,7 +262,7 @@ func (eGenericType *eGenericTypeImpl) ESetFromID(featureID int, newValue any) {
 	}
 }
 
-func (eGenericType *eGenericTypeImpl) EUnsetFromID(featureID int) {
+func (eGenericType *EGenericTypeImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
 		eGenericType.asEGenericType().SetEClassifier(nil)
@@ -279,7 +279,7 @@ func (eGenericType *eGenericTypeImpl) EUnsetFromID(featureID int) {
 	}
 }
 
-func (eGenericType *eGenericTypeImpl) EIsSetFromID(featureID int) bool {
+func (eGenericType *EGenericTypeImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
 		return eGenericType.eClassifier != nil
@@ -298,7 +298,7 @@ func (eGenericType *eGenericTypeImpl) EIsSetFromID(featureID int) bool {
 	}
 }
 
-func (eGenericType *eGenericTypeImpl) EInvokeFromID(operationID int, arguments EList) any {
+func (eGenericType *EGenericTypeImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EGENERIC_TYPE__IS_INSTANCE_EJAVAOBJECT:
 		return eGenericType.asEGenericType().IsInstance(arguments.Get(0))
@@ -307,7 +307,7 @@ func (eGenericType *eGenericTypeImpl) EInvokeFromID(operationID int, arguments E
 	}
 }
 
-func (eGenericType *eGenericTypeImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (eGenericType *EGenericTypeImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EGENERIC_TYPE__ELOWER_BOUND:
 		return eGenericType.asBasics().basicSetELowerBound(nil, notifications)

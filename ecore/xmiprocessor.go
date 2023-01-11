@@ -29,13 +29,6 @@ func NewXMIProcessor(opts ...xmiProcessorOption) *XMIProcessor {
 	return p
 }
 
-func NewXMIProcessorWithResourceSet(resourceSet EResourceSet) *XMIProcessor {
-	return &XMIProcessor{XMLProcessor{
-		extendMetaData: NewExtendedMetaData(),
-		resourceSet:    resourceSet,
-	}}
-}
-
 func (p *XMIProcessor) LoadWithReader(r io.Reader, options map[string]any) EResource {
 	rs := p.GetResourceSet()
 	rc := rs.CreateResource(NewURI("*.ecore"))

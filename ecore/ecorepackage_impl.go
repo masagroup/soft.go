@@ -73,18 +73,18 @@ type EcorePackageImpl struct {
 func newEcorePackageImpl() *EcorePackageImpl {
 	p := new(EcorePackageImpl)
 	p.SetInterfaces(p)
-	p.Initialize(GetFactory())
+	p.Initialize(GetFactory(), GetFactory())
 	return p
 }
 
-func (p *EcorePackageImpl) Initialize(packageFactory EcoreFactory) {
+func (p *EcorePackageImpl) Initialize(packageFactory EcoreFactory, ecoreFactory EcoreFactory) {
 	p.EPackageExt.Initialize()
 	p.SetName(NAME)
 	p.SetNsPrefix(NS_PREFIX)
 	p.SetNsURI(NS_URI)
 	p.SetEFactoryInstance(packageFactory)
-	p.createPackageContents(GetFactory())
-	p.initializePackageContents()
+	p.createPackageContents(ecoreFactory)
+	p.initializePackageContents(ecoreFactory)
 	p.CreateResource()
 }
 
@@ -1133,7 +1133,7 @@ func (p *EcorePackageImpl) createPackageContents(ecoreFactory EcoreFactory) {
 
 }
 
-func (p *EcorePackageImpl) initializePackageContents() {
+func (p *EcorePackageImpl) initializePackageContents(ecoreFactory EcoreFactory) {
 
 	p.eAnnotation.GetESuperTypes().Add(p.GetEModelElement())
 	p.eAttribute.GetESuperTypes().Add(p.GetEStructuralFeature())

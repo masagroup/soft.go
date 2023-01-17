@@ -1,3 +1,12 @@
+// *****************************************************************************
+// Copyright(c) 2021 MASA Group
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+// *****************************************************************************
+
 package ecore
 
 import (
@@ -17,6 +26,22 @@ func (_m *MockEResource) Attached(object EObject) {
 // Detached provides a mock function with given fields: object
 func (_m *MockEResource) Detached(object EObject) {
 	_m.Called(object)
+}
+
+// GetResourceListeners provides a mock function with given fields:
+func (_m *MockEResource) GetResourceListeners() EList {
+	ret := _m.Called()
+
+	var r0 EList
+	if rf, ok := ret.Get(0).(func() EList); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(EList)
+		}
+	}
+
+	return r0
 }
 
 // GetAllContents provides a mock function with given fields:

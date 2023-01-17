@@ -184,3 +184,18 @@ func TestResourceIDManager(t *testing.T) {
 	eBookList.AddAll(NewImmutableEList([]any{eBook1, eBook2}))
 	mock.AssertExpectationsForObjects(t, mockIDManager)
 }
+
+func TestResourceListeners(t *testing.T) {
+	mockListener := NewMockEResourceListener(t)
+	mockObject := &MockEObject{}
+	eResource := NewEResourceImpl()
+	eResource.GetResourceListeners().Add(mockListener)
+
+	mockListener.On("Attached", mockObject).Once()
+	mockObject.On("EContents").Return(NewEmptyImmutableEList())
+	eResource.Attached(mockObject)
+
+	mockListener.On("Detached", mockObject).Once()
+	mockObject.On("EContents").Return(NewEmptyImmutableEList())
+	eResource.Detached(mockObject)
+}

@@ -21,6 +21,7 @@ const (
 // EResource ...
 type EResource interface {
 	ENotifier
+	EResourceListener
 
 	GetResourceSet() EResourceSet
 
@@ -32,9 +33,6 @@ type EResource interface {
 
 	GetEObject(string) EObject
 	GetURIFragment(EObject) string
-
-	Attached(object EObject)
-	Detached(object EObject)
 
 	IsLoading() bool
 	IsLoaded() bool
@@ -54,4 +52,6 @@ type EResource interface {
 
 	SetObjectIDManager(EObjectIDManager)
 	GetObjectIDManager() EObjectIDManager
+
+	GetResourceListeners() EList
 }

@@ -168,6 +168,7 @@ type EResourceImpl struct {
 	warnings        EList
 	isLoaded        bool
 	isLoading       bool
+	listeners       EList
 }
 
 // NewBasicEObject is BasicEObject constructor
@@ -211,6 +212,13 @@ func (r *EResourceImpl) GetContents() EList {
 
 func (r *EResourceImpl) GetAllContents() EIterator {
 	return r.getAllContentsResolve(r.GetInterfaces(), true)
+}
+
+func (r *EResourceImpl) GetResourceListeners() EList {
+	if r.listeners == nil {
+		r.listeners = NewEmptyBasicEList()
+	}
+	return r.listeners
 }
 
 func (r *EResourceImpl) getAllContentsResolve(root any, resolve bool) EIterator {
@@ -343,7 +351,7 @@ func (r *EResourceImpl) getObjectForRootSegment(rootSegment string) EObject {
 }
 
 func (r *EResourceImpl) IsAttachedDetachedRequired() bool {
-	return r.objectIDManager != nil
+	return r.objectIDManager != nil || (r.listeners != nil && !r.listeners.Empty())
 }
 
 func (r *EResourceImpl) Attached(object EObject) {
@@ -361,6 +369,12 @@ func (r *EResourceImpl) DoAttached(object EObject) {
 	if r.objectIDManager != nil {
 		r.objectIDManager.Register(object)
 	}
+	if r.listeners != nil {
+		for itListener := r.listeners.Iterator(); itListener.HasNext(); {
+			listener := itListener.Next().(EResourceListener)
+			listener.Attached(object)
+		}
+	}
 }
 
 func (r *EResourceImpl) Detached(object EObject) {
@@ -377,6 +391,12 @@ func (r *EResourceImpl) Detached(object EObject) {
 func (r *EResourceImpl) DoDetached(object EObject) {
 	if r.objectIDManager != nil {
 		r.objectIDManager.UnRegister(object)
+	}
+	if r.listeners != nil {
+		for itListener := r.listeners.Iterator(); itListener.HasNext(); {
+			listener := itListener.Next().(EResourceListener)
+			listener.Detached(object)
+		}
 	}
 }
 

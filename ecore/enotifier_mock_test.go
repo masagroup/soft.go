@@ -16,51 +16,58 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+type mockENotifierRun struct {
+	mock.Mock
+}
+
+func (m *mockENotifierRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTMockENotifierRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockENotifierRun creates a new instance of MockEList. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockENotifierRun(t mockConstructorTestingTMockENotifierRun, args ...any) *mockENotifierRun {
+	mock := &mockENotifierRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 func TestMockENotifierEAdapters(t *testing.T) {
-	n := &MockENotifier{}
-	a := &MockEList{}
-	n.On("EAdapters").Return(a).Once()
-	n.On("EAdapters").Return(func() EList {
-		return a
-	}).Once()
+	n := NewMockENotifier(t)
+	a := NewMockEList(t)
+	m := newMockENotifierRun(t)
+	n.EXPECT().EAdapters().Run(func() { m.Run() }).Return(a).Once()
+	n.EXPECT().EAdapters().Once().Return(func() EList { return a })
 	assert.Equal(t, a, n.EAdapters())
 	assert.Equal(t, a, n.EAdapters())
-	mock.AssertExpectationsForObjects(t, n, a)
 }
 
 func TestMockENotifierEDeliver(t *testing.T) {
-	n := &MockENotifier{}
-	n.On("EDeliver").Return(false).Once()
-	n.On("EDeliver").Return(func() bool {
-		return true
-	}).Once()
+	n := NewMockENotifier(t)
+	m := newMockENotifierRun(t)
+	n.EXPECT().EDeliver().Run(func() { m.Run() }).Return(false).Once()
+	n.EXPECT().EDeliver().Once().Return(func() bool { return true }).Once()
 	assert.False(t, n.EDeliver())
 	assert.True(t, n.EDeliver())
-	mock.AssertExpectationsForObjects(t, n)
 }
 
 func TestMockENotifierESetDeliver(t *testing.T) {
-	n := &MockENotifier{}
-	n.On("ESetDeliver", true).Once()
+	n := NewMockENotifier(t)
+	m := newMockENotifierRun(t, true)
+	n.EXPECT().ESetDeliver(true).Run(func(_a0 bool) { m.Run(_a0) }).Once()
 	n.ESetDeliver(true)
-	mock.AssertExpectationsForObjects(t, n)
 }
 
 func TestMockENotifierENotify(t *testing.T) {
-	n := &MockENotifier{}
-	notif := &MockENotification{}
-	n.On("ENotify", notif).Once()
+	n := NewMockENotifier(t)
+	notif := NewMockENotification(t)
+	m := newMockENotifierRun(t, notif)
+	n.EXPECT().ENotify(notif).Run(func(_a0 ENotification) { m.Run(_a0) }).Once()
 	n.ENotify(notif)
-	mock.AssertExpectationsForObjects(t, n, notif)
-}
-
-func TestMockENotifierENotificationRequired(t *testing.T) {
-	n := &MockENotifier{}
-	n.On("ENotificationRequired").Return(false).Once()
-	n.On("ENotificationRequired").Return(func() bool {
-		return true
-	}).Once()
-	assert.False(t, n.ENotificationRequired())
-	assert.True(t, n.ENotificationRequired())
-	mock.AssertExpectationsForObjects(t, n)
 }

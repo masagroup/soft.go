@@ -13,6 +13,7 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -21,17 +22,37 @@ func discardMockEFactory() {
 	_ = testing.Coverage
 }
 
+type mockEFactoryRun struct {
+	mock.Mock
+}
+
+func (m *mockEFactoryRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTmockEFactoryRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockEFactoryRun creates a new instance of mockEFactoryRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockEFactoryRun(t mockConstructorTestingTmockEFactoryRun, args ...any) *mockEFactoryRun {
+	mock := &mockEFactoryRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 // TestMockEFactoryGetEPackage tests method GetEPackage
 func TestMockEFactoryGetEPackage(t *testing.T) {
-	o := &MockEFactory{}
+	o := NewMockEFactory(t)
 	r := new(MockEPackage)
-	o.On("GetEPackage").Once().Return(r)
-	o.On("GetEPackage").Once().Return(func() EPackage {
-		return r
-	})
+	m := newMockEFactoryRun(t)
+	o.EXPECT().GetEPackage().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetEPackage().Once().Return(func() EPackage { return r })
 	assert.Equal(t, r, o.GetEPackage())
 	assert.Equal(t, r, o.GetEPackage())
-	o.AssertExpectations(t)
 }
 
 // TestMockEFactorySetEPackage tests method SetEPackage

@@ -11,8 +11,22 @@
 
 package ecore
 
+import (
+	"github.com/stretchr/testify/mock"
+)
+
 type MockEClass struct {
 	MockEClassifier
+}
+
+type MockEClass_Expecter struct {
+	MockEClassifier_Expecter
+}
+
+func (eClass *MockEClass) EXPECT() *MockEClass_Expecter {
+	e := &MockEClass_Expecter{}
+	e.Mock = &eClass.Mock
+	return e
 }
 
 // IsAbstract get the value of isAbstract
@@ -31,9 +45,49 @@ func (eClass *MockEClass) IsAbstract() bool {
 	return r
 }
 
+type MockEClass_IsAbstract_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) IsAbstract() *MockEClass_IsAbstract_Call {
+	return &MockEClass_IsAbstract_Call{Call: e.Mock.On("IsAbstract")}
+}
+
+func (c *MockEClass_IsAbstract_Call) Run(run func()) *MockEClass_IsAbstract_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_IsAbstract_Call) Return(isAbstract bool) *MockEClass_IsAbstract_Call {
+	c.Call.Return(isAbstract)
+	return c
+}
+
 // SetAbstract provides mock implementation for setting the value of isAbstract
 func (eClass *MockEClass) SetAbstract(newIsAbstract bool) {
 	eClass.Called(newIsAbstract)
+}
+
+type MockEClass_SetAbstract_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) SetAbstract(newIsAbstract bool) *MockEClass_SetAbstract_Call {
+	return &MockEClass_SetAbstract_Call{Call: e.Mock.On("SetAbstract", newIsAbstract)}
+}
+
+func (c *MockEClass_SetAbstract_Call) Run(run func(newIsAbstract bool)) *MockEClass_SetAbstract_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(bool))
+	})
+	return c
+}
+
+func (c *MockEClass_SetAbstract_Call) Return() *MockEClass_SetAbstract_Call {
+	c.Call.Return()
+	return c
 }
 
 // GetEAllAttributes get the value of eAllAttributes
@@ -52,6 +106,26 @@ func (eClass *MockEClass) GetEAllAttributes() EList {
 	return r
 }
 
+type MockEClass_GetEAllAttributes_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetEAllAttributes() *MockEClass_GetEAllAttributes_Call {
+	return &MockEClass_GetEAllAttributes_Call{Call: e.Mock.On("GetEAllAttributes")}
+}
+
+func (c *MockEClass_GetEAllAttributes_Call) Run(run func()) *MockEClass_GetEAllAttributes_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEAllAttributes_Call) Return(eAllAttributes EList) *MockEClass_GetEAllAttributes_Call {
+	c.Call.Return(eAllAttributes)
+	return c
+}
+
 // GetEAllContainments get the value of eAllContainments
 func (eClass *MockEClass) GetEAllContainments() EList {
 	ret := eClass.Called()
@@ -66,6 +140,26 @@ func (eClass *MockEClass) GetEAllContainments() EList {
 	}
 
 	return r
+}
+
+type MockEClass_GetEAllContainments_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetEAllContainments() *MockEClass_GetEAllContainments_Call {
+	return &MockEClass_GetEAllContainments_Call{Call: e.Mock.On("GetEAllContainments")}
+}
+
+func (c *MockEClass_GetEAllContainments_Call) Run(run func()) *MockEClass_GetEAllContainments_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEAllContainments_Call) Return(eAllContainments EList) *MockEClass_GetEAllContainments_Call {
+	c.Call.Return(eAllContainments)
+	return c
 }
 
 // GetEAllOperations get the value of eAllOperations
@@ -84,6 +178,26 @@ func (eClass *MockEClass) GetEAllOperations() EList {
 	return r
 }
 
+type MockEClass_GetEAllOperations_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetEAllOperations() *MockEClass_GetEAllOperations_Call {
+	return &MockEClass_GetEAllOperations_Call{Call: e.Mock.On("GetEAllOperations")}
+}
+
+func (c *MockEClass_GetEAllOperations_Call) Run(run func()) *MockEClass_GetEAllOperations_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEAllOperations_Call) Return(eAllOperations EList) *MockEClass_GetEAllOperations_Call {
+	c.Call.Return(eAllOperations)
+	return c
+}
+
 // GetEAllReferences get the value of eAllReferences
 func (eClass *MockEClass) GetEAllReferences() EList {
 	ret := eClass.Called()
@@ -98,6 +212,26 @@ func (eClass *MockEClass) GetEAllReferences() EList {
 	}
 
 	return r
+}
+
+type MockEClass_GetEAllReferences_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetEAllReferences() *MockEClass_GetEAllReferences_Call {
+	return &MockEClass_GetEAllReferences_Call{Call: e.Mock.On("GetEAllReferences")}
+}
+
+func (c *MockEClass_GetEAllReferences_Call) Run(run func()) *MockEClass_GetEAllReferences_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEAllReferences_Call) Return(eAllReferences EList) *MockEClass_GetEAllReferences_Call {
+	c.Call.Return(eAllReferences)
+	return c
 }
 
 // GetEAllStructuralFeatures get the value of eAllStructuralFeatures
@@ -116,6 +250,26 @@ func (eClass *MockEClass) GetEAllStructuralFeatures() EList {
 	return r
 }
 
+type MockEClass_GetEAllStructuralFeatures_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetEAllStructuralFeatures() *MockEClass_GetEAllStructuralFeatures_Call {
+	return &MockEClass_GetEAllStructuralFeatures_Call{Call: e.Mock.On("GetEAllStructuralFeatures")}
+}
+
+func (c *MockEClass_GetEAllStructuralFeatures_Call) Run(run func()) *MockEClass_GetEAllStructuralFeatures_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEAllStructuralFeatures_Call) Return(eAllStructuralFeatures EList) *MockEClass_GetEAllStructuralFeatures_Call {
+	c.Call.Return(eAllStructuralFeatures)
+	return c
+}
+
 // GetEAllSuperTypes get the value of eAllSuperTypes
 func (eClass *MockEClass) GetEAllSuperTypes() EList {
 	ret := eClass.Called()
@@ -130,6 +284,26 @@ func (eClass *MockEClass) GetEAllSuperTypes() EList {
 	}
 
 	return r
+}
+
+type MockEClass_GetEAllSuperTypes_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetEAllSuperTypes() *MockEClass_GetEAllSuperTypes_Call {
+	return &MockEClass_GetEAllSuperTypes_Call{Call: e.Mock.On("GetEAllSuperTypes")}
+}
+
+func (c *MockEClass_GetEAllSuperTypes_Call) Run(run func()) *MockEClass_GetEAllSuperTypes_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEAllSuperTypes_Call) Return(eAllSuperTypes EList) *MockEClass_GetEAllSuperTypes_Call {
+	c.Call.Return(eAllSuperTypes)
+	return c
 }
 
 // GetEAttributes get the value of eAttributes
@@ -148,6 +322,26 @@ func (eClass *MockEClass) GetEAttributes() EList {
 	return r
 }
 
+type MockEClass_GetEAttributes_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetEAttributes() *MockEClass_GetEAttributes_Call {
+	return &MockEClass_GetEAttributes_Call{Call: e.Mock.On("GetEAttributes")}
+}
+
+func (c *MockEClass_GetEAttributes_Call) Run(run func()) *MockEClass_GetEAttributes_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEAttributes_Call) Return(eAttributes EList) *MockEClass_GetEAttributes_Call {
+	c.Call.Return(eAttributes)
+	return c
+}
+
 // GetEContainmentFeatures get the value of eContainmentFeatures
 func (eClass *MockEClass) GetEContainmentFeatures() EList {
 	ret := eClass.Called()
@@ -162,6 +356,26 @@ func (eClass *MockEClass) GetEContainmentFeatures() EList {
 	}
 
 	return r
+}
+
+type MockEClass_GetEContainmentFeatures_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetEContainmentFeatures() *MockEClass_GetEContainmentFeatures_Call {
+	return &MockEClass_GetEContainmentFeatures_Call{Call: e.Mock.On("GetEContainmentFeatures")}
+}
+
+func (c *MockEClass_GetEContainmentFeatures_Call) Run(run func()) *MockEClass_GetEContainmentFeatures_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEContainmentFeatures_Call) Return(eContainmentFeatures EList) *MockEClass_GetEContainmentFeatures_Call {
+	c.Call.Return(eContainmentFeatures)
+	return c
 }
 
 // GetECrossReferenceFeatures get the value of eCrossReferenceFeatures
@@ -180,6 +394,26 @@ func (eClass *MockEClass) GetECrossReferenceFeatures() EList {
 	return r
 }
 
+type MockEClass_GetECrossReferenceFeatures_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetECrossReferenceFeatures() *MockEClass_GetECrossReferenceFeatures_Call {
+	return &MockEClass_GetECrossReferenceFeatures_Call{Call: e.Mock.On("GetECrossReferenceFeatures")}
+}
+
+func (c *MockEClass_GetECrossReferenceFeatures_Call) Run(run func()) *MockEClass_GetECrossReferenceFeatures_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetECrossReferenceFeatures_Call) Return(eCrossReferenceFeatures EList) *MockEClass_GetECrossReferenceFeatures_Call {
+	c.Call.Return(eCrossReferenceFeatures)
+	return c
+}
+
 // GetEIDAttribute get the value of eIDAttribute
 func (eClass *MockEClass) GetEIDAttribute() EAttribute {
 	ret := eClass.Called()
@@ -194,6 +428,26 @@ func (eClass *MockEClass) GetEIDAttribute() EAttribute {
 	}
 
 	return r
+}
+
+type MockEClass_GetEIDAttribute_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetEIDAttribute() *MockEClass_GetEIDAttribute_Call {
+	return &MockEClass_GetEIDAttribute_Call{Call: e.Mock.On("GetEIDAttribute")}
+}
+
+func (c *MockEClass_GetEIDAttribute_Call) Run(run func()) *MockEClass_GetEIDAttribute_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEIDAttribute_Call) Return(eIDAttribute EAttribute) *MockEClass_GetEIDAttribute_Call {
+	c.Call.Return(eIDAttribute)
+	return c
 }
 
 // GetEOperations get the value of eOperations
@@ -212,6 +466,26 @@ func (eClass *MockEClass) GetEOperations() EList {
 	return r
 }
 
+type MockEClass_GetEOperations_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetEOperations() *MockEClass_GetEOperations_Call {
+	return &MockEClass_GetEOperations_Call{Call: e.Mock.On("GetEOperations")}
+}
+
+func (c *MockEClass_GetEOperations_Call) Run(run func()) *MockEClass_GetEOperations_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEOperations_Call) Return(eOperations EList) *MockEClass_GetEOperations_Call {
+	c.Call.Return(eOperations)
+	return c
+}
+
 // GetEReferences get the value of eReferences
 func (eClass *MockEClass) GetEReferences() EList {
 	ret := eClass.Called()
@@ -226,6 +500,26 @@ func (eClass *MockEClass) GetEReferences() EList {
 	}
 
 	return r
+}
+
+type MockEClass_GetEReferences_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetEReferences() *MockEClass_GetEReferences_Call {
+	return &MockEClass_GetEReferences_Call{Call: e.Mock.On("GetEReferences")}
+}
+
+func (c *MockEClass_GetEReferences_Call) Run(run func()) *MockEClass_GetEReferences_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEReferences_Call) Return(eReferences EList) *MockEClass_GetEReferences_Call {
+	c.Call.Return(eReferences)
+	return c
 }
 
 // GetEStructuralFeatures get the value of eStructuralFeatures
@@ -244,6 +538,26 @@ func (eClass *MockEClass) GetEStructuralFeatures() EList {
 	return r
 }
 
+type MockEClass_GetEStructuralFeatures_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetEStructuralFeatures() *MockEClass_GetEStructuralFeatures_Call {
+	return &MockEClass_GetEStructuralFeatures_Call{Call: e.Mock.On("GetEStructuralFeatures")}
+}
+
+func (c *MockEClass_GetEStructuralFeatures_Call) Run(run func()) *MockEClass_GetEStructuralFeatures_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEStructuralFeatures_Call) Return(eStructuralFeatures EList) *MockEClass_GetEStructuralFeatures_Call {
+	c.Call.Return(eStructuralFeatures)
+	return c
+}
+
 // GetESuperTypes get the value of eSuperTypes
 func (eClass *MockEClass) GetESuperTypes() EList {
 	ret := eClass.Called()
@@ -258,6 +572,26 @@ func (eClass *MockEClass) GetESuperTypes() EList {
 	}
 
 	return r
+}
+
+type MockEClass_GetESuperTypes_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) GetESuperTypes() *MockEClass_GetESuperTypes_Call {
+	return &MockEClass_GetESuperTypes_Call{Call: e.Mock.On("GetESuperTypes")}
+}
+
+func (c *MockEClass_GetESuperTypes_Call) Run(run func()) *MockEClass_GetESuperTypes_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetESuperTypes_Call) Return(eSuperTypes EList) *MockEClass_GetESuperTypes_Call {
+	c.Call.Return(eSuperTypes)
+	return c
 }
 
 // IsInterface get the value of isInterface
@@ -276,9 +610,49 @@ func (eClass *MockEClass) IsInterface() bool {
 	return r
 }
 
+type MockEClass_IsInterface_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) IsInterface() *MockEClass_IsInterface_Call {
+	return &MockEClass_IsInterface_Call{Call: e.Mock.On("IsInterface")}
+}
+
+func (c *MockEClass_IsInterface_Call) Run(run func()) *MockEClass_IsInterface_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_IsInterface_Call) Return(isInterface bool) *MockEClass_IsInterface_Call {
+	c.Call.Return(isInterface)
+	return c
+}
+
 // SetInterface provides mock implementation for setting the value of isInterface
 func (eClass *MockEClass) SetInterface(newIsInterface bool) {
 	eClass.Called(newIsInterface)
+}
+
+type MockEClass_SetInterface_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter) SetInterface(newIsInterface bool) *MockEClass_SetInterface_Call {
+	return &MockEClass_SetInterface_Call{Call: e.Mock.On("SetInterface", newIsInterface)}
+}
+
+func (c *MockEClass_SetInterface_Call) Run(run func(newIsInterface bool)) *MockEClass_SetInterface_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(bool))
+	})
+	return c
+}
+
+func (c *MockEClass_SetInterface_Call) Return() *MockEClass_SetInterface_Call {
+	c.Call.Return()
+	return c
 }
 
 // GetEOperation provides mock implementation
@@ -439,4 +813,17 @@ func (eClass *MockEClass) IsSuperTypeOf(someClass EClass) bool {
 	}
 
 	return r
+}
+
+type mockConstructorTestingTNewMockEClass interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockEClass creates a new instance of MockEClass. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEClass(t mockConstructorTestingTNewMockEClass) *MockEClass {
+	mock := &MockEClass{}
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

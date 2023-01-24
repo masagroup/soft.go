@@ -13,6 +13,7 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -21,18 +22,37 @@ func discardMockEEnum() {
 	_ = testing.Coverage
 }
 
+type mockEEnumRun struct {
+	mock.Mock
+}
+
+func (m *mockEEnumRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTmockEEnumRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockEEnumRun creates a new instance of mockEEnumRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockEEnumRun(t mockConstructorTestingTmockEEnumRun, args ...any) *mockEEnumRun {
+	mock := &mockEEnumRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 // TestMockEEnumGetELiterals tests method GetELiterals
 func TestMockEEnumGetELiterals(t *testing.T) {
 	o := &MockEEnum{}
 	l := &MockEList{}
-	// return a value
-	o.On("GetELiterals").Once().Return(l)
-	o.On("GetELiterals").Once().Return(func() EList {
-		return l
-	})
+	m := newMockEEnumRun(t)
+	o.EXPECT().GetELiterals().Run(func() { m.Run() }).Return(l).Once()
+	o.EXPECT().GetELiterals().Once().Return(func() EList { return l })
 	assert.Equal(t, l, o.GetELiterals())
 	assert.Equal(t, l, o.GetELiterals())
-	o.AssertExpectations(t)
 }
 
 // TestMockEEnumGetEEnumLiteralByLiteral tests method GetEEnumLiteralByLiteral

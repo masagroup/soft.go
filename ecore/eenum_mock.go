@@ -11,8 +11,22 @@
 
 package ecore
 
+import (
+	"github.com/stretchr/testify/mock"
+)
+
 type MockEEnum struct {
 	MockEDataType
+}
+
+type MockEEnum_Expecter struct {
+	MockEDataType_Expecter
+}
+
+func (eEnum *MockEEnum) EXPECT() *MockEEnum_Expecter {
+	e := &MockEEnum_Expecter{}
+	e.Mock = &eEnum.Mock
+	return e
 }
 
 // GetELiterals get the value of eLiterals
@@ -29,6 +43,26 @@ func (eEnum *MockEEnum) GetELiterals() EList {
 	}
 
 	return r
+}
+
+type MockEEnum_GetELiterals_Call struct {
+	*mock.Call
+}
+
+func (e *MockEEnum_Expecter) GetELiterals() *MockEEnum_GetELiterals_Call {
+	return &MockEEnum_GetELiterals_Call{Call: e.Mock.On("GetELiterals")}
+}
+
+func (c *MockEEnum_GetELiterals_Call) Run(run func()) *MockEEnum_GetELiterals_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEEnum_GetELiterals_Call) Return(eLiterals EList) *MockEEnum_GetELiterals_Call {
+	c.Call.Return(eLiterals)
+	return c
 }
 
 // GetEEnumLiteralByLiteral provides mock implementation
@@ -77,4 +111,17 @@ func (eEnum *MockEEnum) GetEEnumLiteralByValue(value int) EEnumLiteral {
 	}
 
 	return r
+}
+
+type mockConstructorTestingTNewMockEEnum interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockEEnum creates a new instance of MockEEnum. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEEnum(t mockConstructorTestingTNewMockEEnum) *MockEEnum {
+	mock := &MockEEnum{}
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

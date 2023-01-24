@@ -13,6 +13,7 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -21,30 +22,48 @@ func discardMockEAttribute() {
 	_ = testing.Coverage
 }
 
+type mockEAttributeRun struct {
+	mock.Mock
+}
+
+func (m *mockEAttributeRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTmockEAttributeRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockEAttributeRun creates a new instance of mockEAttributeRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockEAttributeRun(t mockConstructorTestingTmockEAttributeRun, args ...any) *mockEAttributeRun {
+	mock := &mockEAttributeRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 // TestMockEAttributeGetEAttributeType tests method GetEAttributeType
 func TestMockEAttributeGetEAttributeType(t *testing.T) {
-	o := &MockEAttribute{}
+	o := NewMockEAttribute(t)
 	r := new(MockEDataType)
-	o.On("GetEAttributeType").Once().Return(r)
-	o.On("GetEAttributeType").Once().Return(func() EDataType {
-		return r
-	})
+	m := newMockEAttributeRun(t)
+	o.EXPECT().GetEAttributeType().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetEAttributeType().Once().Return(func() EDataType { return r })
 	assert.Equal(t, r, o.GetEAttributeType())
 	assert.Equal(t, r, o.GetEAttributeType())
-	o.AssertExpectations(t)
 }
 
 // TestMockEAttributeIsID tests method IsID
 func TestMockEAttributeIsID(t *testing.T) {
-	o := &MockEAttribute{}
+	o := NewMockEAttribute(t)
 	r := bool(true)
-	o.On("IsID").Once().Return(r)
-	o.On("IsID").Once().Return(func() bool {
-		return r
-	})
+	m := newMockEAttributeRun(t)
+	o.EXPECT().IsID().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().IsID().Once().Return(func() bool { return r })
 	assert.Equal(t, r, o.IsID())
 	assert.Equal(t, r, o.IsID())
-	o.AssertExpectations(t)
 }
 
 // TestMockEAttributeSetID tests method SetID

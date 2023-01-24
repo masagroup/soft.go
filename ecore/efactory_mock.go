@@ -11,8 +11,22 @@
 
 package ecore
 
+import (
+	"github.com/stretchr/testify/mock"
+)
+
 type MockEFactory struct {
 	MockEModelElement
+}
+
+type MockEFactory_Expecter struct {
+	MockEModelElement_Expecter
+}
+
+func (eFactory *MockEFactory) EXPECT() *MockEFactory_Expecter {
+	e := &MockEFactory_Expecter{}
+	e.Mock = &eFactory.Mock
+	return e
 }
 
 // GetEPackage get the value of ePackage
@@ -31,9 +45,49 @@ func (eFactory *MockEFactory) GetEPackage() EPackage {
 	return r
 }
 
+type MockEFactory_GetEPackage_Call struct {
+	*mock.Call
+}
+
+func (e *MockEFactory_Expecter) GetEPackage() *MockEFactory_GetEPackage_Call {
+	return &MockEFactory_GetEPackage_Call{Call: e.Mock.On("GetEPackage")}
+}
+
+func (c *MockEFactory_GetEPackage_Call) Run(run func()) *MockEFactory_GetEPackage_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEFactory_GetEPackage_Call) Return(ePackage EPackage) *MockEFactory_GetEPackage_Call {
+	c.Call.Return(ePackage)
+	return c
+}
+
 // SetEPackage provides mock implementation for setting the value of ePackage
 func (eFactory *MockEFactory) SetEPackage(newEPackage EPackage) {
 	eFactory.Called(newEPackage)
+}
+
+type MockEFactory_SetEPackage_Call struct {
+	*mock.Call
+}
+
+func (e *MockEFactory_Expecter) SetEPackage(newEPackage EPackage) *MockEFactory_SetEPackage_Call {
+	return &MockEFactory_SetEPackage_Call{Call: e.Mock.On("SetEPackage", newEPackage)}
+}
+
+func (c *MockEFactory_SetEPackage_Call) Run(run func(newEPackage EPackage)) *MockEFactory_SetEPackage_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(EPackage))
+	})
+	return c
+}
+
+func (c *MockEFactory_SetEPackage_Call) Return() *MockEFactory_SetEPackage_Call {
+	c.Call.Return()
+	return c
 }
 
 // ConvertToString provides mock implementation
@@ -82,4 +136,17 @@ func (eFactory *MockEFactory) CreateFromString(eDataType EDataType, literalValue
 	}
 
 	return r
+}
+
+type mockConstructorTestingTNewMockEFactory interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockEFactory creates a new instance of MockEFactory. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEFactory(t mockConstructorTestingTNewMockEFactory) *MockEFactory {
+	mock := &MockEFactory{}
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

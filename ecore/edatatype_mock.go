@@ -11,8 +11,22 @@
 
 package ecore
 
+import (
+	"github.com/stretchr/testify/mock"
+)
+
 type MockEDataType struct {
 	MockEClassifier
+}
+
+type MockEDataType_Expecter struct {
+	MockEClassifier_Expecter
+}
+
+func (eDataType *MockEDataType) EXPECT() *MockEDataType_Expecter {
+	e := &MockEDataType_Expecter{}
+	e.Mock = &eDataType.Mock
+	return e
 }
 
 // IsSerializable get the value of isSerializable
@@ -31,7 +45,60 @@ func (eDataType *MockEDataType) IsSerializable() bool {
 	return r
 }
 
+type MockEDataType_IsSerializable_Call struct {
+	*mock.Call
+}
+
+func (e *MockEDataType_Expecter) IsSerializable() *MockEDataType_IsSerializable_Call {
+	return &MockEDataType_IsSerializable_Call{Call: e.Mock.On("IsSerializable")}
+}
+
+func (c *MockEDataType_IsSerializable_Call) Run(run func()) *MockEDataType_IsSerializable_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEDataType_IsSerializable_Call) Return(isSerializable bool) *MockEDataType_IsSerializable_Call {
+	c.Call.Return(isSerializable)
+	return c
+}
+
 // SetSerializable provides mock implementation for setting the value of isSerializable
 func (eDataType *MockEDataType) SetSerializable(newIsSerializable bool) {
 	eDataType.Called(newIsSerializable)
+}
+
+type MockEDataType_SetSerializable_Call struct {
+	*mock.Call
+}
+
+func (e *MockEDataType_Expecter) SetSerializable(newIsSerializable bool) *MockEDataType_SetSerializable_Call {
+	return &MockEDataType_SetSerializable_Call{Call: e.Mock.On("SetSerializable", newIsSerializable)}
+}
+
+func (c *MockEDataType_SetSerializable_Call) Run(run func(newIsSerializable bool)) *MockEDataType_SetSerializable_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(bool))
+	})
+	return c
+}
+
+func (c *MockEDataType_SetSerializable_Call) Return() *MockEDataType_SetSerializable_Call {
+	c.Call.Return()
+	return c
+}
+
+type mockConstructorTestingTNewMockEDataType interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockEDataType creates a new instance of MockEDataType. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEDataType(t mockConstructorTestingTNewMockEDataType) *MockEDataType {
+	mock := &MockEDataType{}
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

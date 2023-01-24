@@ -11,8 +11,22 @@
 
 package ecore
 
+import (
+	"github.com/stretchr/testify/mock"
+)
+
 type MockEParameter struct {
 	MockETypedElement
+}
+
+type MockEParameter_Expecter struct {
+	MockETypedElement_Expecter
+}
+
+func (eParameter *MockEParameter) EXPECT() *MockEParameter_Expecter {
+	e := &MockEParameter_Expecter{}
+	e.Mock = &eParameter.Mock
+	return e
 }
 
 // GetEOperation get the value of eOperation
@@ -29,4 +43,37 @@ func (eParameter *MockEParameter) GetEOperation() EOperation {
 	}
 
 	return r
+}
+
+type MockEParameter_GetEOperation_Call struct {
+	*mock.Call
+}
+
+func (e *MockEParameter_Expecter) GetEOperation() *MockEParameter_GetEOperation_Call {
+	return &MockEParameter_GetEOperation_Call{Call: e.Mock.On("GetEOperation")}
+}
+
+func (c *MockEParameter_GetEOperation_Call) Run(run func()) *MockEParameter_GetEOperation_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEParameter_GetEOperation_Call) Return(eOperation EOperation) *MockEParameter_GetEOperation_Call {
+	c.Call.Return(eOperation)
+	return c
+}
+
+type mockConstructorTestingTNewMockEParameter interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockEParameter creates a new instance of MockEParameter. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEParameter(t mockConstructorTestingTNewMockEParameter) *MockEParameter {
+	mock := &MockEParameter{}
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

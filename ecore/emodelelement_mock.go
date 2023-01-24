@@ -11,8 +11,22 @@
 
 package ecore
 
+import (
+	"github.com/stretchr/testify/mock"
+)
+
 type MockEModelElement struct {
 	MockEObjectInternal
+}
+
+type MockEModelElement_Expecter struct {
+	MockEObjectInternal_Expecter
+}
+
+func (eModelElement *MockEModelElement) EXPECT() *MockEModelElement_Expecter {
+	e := &MockEModelElement_Expecter{}
+	e.Mock = &eModelElement.Mock
+	return e
 }
 
 // GetEAnnotations get the value of eAnnotations
@@ -31,6 +45,26 @@ func (eModelElement *MockEModelElement) GetEAnnotations() EList {
 	return r
 }
 
+type MockEModelElement_GetEAnnotations_Call struct {
+	*mock.Call
+}
+
+func (e *MockEModelElement_Expecter) GetEAnnotations() *MockEModelElement_GetEAnnotations_Call {
+	return &MockEModelElement_GetEAnnotations_Call{Call: e.Mock.On("GetEAnnotations")}
+}
+
+func (c *MockEModelElement_GetEAnnotations_Call) Run(run func()) *MockEModelElement_GetEAnnotations_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEModelElement_GetEAnnotations_Call) Return(eAnnotations EList) *MockEModelElement_GetEAnnotations_Call {
+	c.Call.Return(eAnnotations)
+	return c
+}
+
 // GetEAnnotation provides mock implementation
 func (eModelElement *MockEModelElement) GetEAnnotation(source string) EAnnotation {
 	ret := eModelElement.Called(source)
@@ -45,4 +79,17 @@ func (eModelElement *MockEModelElement) GetEAnnotation(source string) EAnnotatio
 	}
 
 	return r
+}
+
+type mockConstructorTestingTNewMockEModelElement interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockEModelElement creates a new instance of MockEModelElement. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEModelElement(t mockConstructorTestingTNewMockEModelElement) *MockEModelElement {
+	mock := &MockEModelElement{}
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

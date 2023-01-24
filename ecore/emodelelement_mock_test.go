@@ -13,6 +13,7 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -21,18 +22,37 @@ func discardMockEModelElement() {
 	_ = testing.Coverage
 }
 
+type mockEModelElementRun struct {
+	mock.Mock
+}
+
+func (m *mockEModelElementRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTmockEModelElementRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockEModelElementRun creates a new instance of mockEModelElementRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockEModelElementRun(t mockConstructorTestingTmockEModelElementRun, args ...any) *mockEModelElementRun {
+	mock := &mockEModelElementRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 // TestMockEModelElementGetEAnnotations tests method GetEAnnotations
 func TestMockEModelElementGetEAnnotations(t *testing.T) {
 	o := &MockEModelElement{}
 	l := &MockEList{}
-	// return a value
-	o.On("GetEAnnotations").Once().Return(l)
-	o.On("GetEAnnotations").Once().Return(func() EList {
-		return l
-	})
+	m := newMockEModelElementRun(t)
+	o.EXPECT().GetEAnnotations().Run(func() { m.Run() }).Return(l).Once()
+	o.EXPECT().GetEAnnotations().Once().Return(func() EList { return l })
 	assert.Equal(t, l, o.GetEAnnotations())
 	assert.Equal(t, l, o.GetEAnnotations())
-	o.AssertExpectations(t)
 }
 
 // TestMockEModelElementGetEAnnotation tests method GetEAnnotation

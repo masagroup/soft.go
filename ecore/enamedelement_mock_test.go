@@ -13,6 +13,7 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -21,17 +22,37 @@ func discardMockENamedElement() {
 	_ = testing.Coverage
 }
 
+type mockENamedElementRun struct {
+	mock.Mock
+}
+
+func (m *mockENamedElementRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTmockENamedElementRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockENamedElementRun creates a new instance of mockENamedElementRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockENamedElementRun(t mockConstructorTestingTmockENamedElementRun, args ...any) *mockENamedElementRun {
+	mock := &mockENamedElementRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 // TestMockENamedElementGetName tests method GetName
 func TestMockENamedElementGetName(t *testing.T) {
-	o := &MockENamedElement{}
+	o := NewMockENamedElement(t)
 	r := string("Test String")
-	o.On("GetName").Once().Return(r)
-	o.On("GetName").Once().Return(func() string {
-		return r
-	})
+	m := newMockENamedElementRun(t)
+	o.EXPECT().GetName().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetName().Once().Return(func() string { return r })
 	assert.Equal(t, r, o.GetName())
 	assert.Equal(t, r, o.GetName())
-	o.AssertExpectations(t)
 }
 
 // TestMockENamedElementSetName tests method SetName

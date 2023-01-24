@@ -13,6 +13,7 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -21,17 +22,37 @@ func discardMockEDataType() {
 	_ = testing.Coverage
 }
 
+type mockEDataTypeRun struct {
+	mock.Mock
+}
+
+func (m *mockEDataTypeRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTmockEDataTypeRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockEDataTypeRun creates a new instance of mockEDataTypeRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockEDataTypeRun(t mockConstructorTestingTmockEDataTypeRun, args ...any) *mockEDataTypeRun {
+	mock := &mockEDataTypeRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 // TestMockEDataTypeIsSerializable tests method IsSerializable
 func TestMockEDataTypeIsSerializable(t *testing.T) {
-	o := &MockEDataType{}
+	o := NewMockEDataType(t)
 	r := bool(true)
-	o.On("IsSerializable").Once().Return(r)
-	o.On("IsSerializable").Once().Return(func() bool {
-		return r
-	})
+	m := newMockEDataTypeRun(t)
+	o.EXPECT().IsSerializable().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().IsSerializable().Once().Return(func() bool { return r })
 	assert.Equal(t, r, o.IsSerializable())
 	assert.Equal(t, r, o.IsSerializable())
-	o.AssertExpectations(t)
 }
 
 // TestMockEDataTypeSetSerializable tests method SetSerializable

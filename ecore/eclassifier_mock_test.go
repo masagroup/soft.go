@@ -13,6 +13,7 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"reflect"
 	"testing"
 )
@@ -22,17 +23,37 @@ func discardMockEClassifier() {
 	_ = testing.Coverage
 }
 
+type mockEClassifierRun struct {
+	mock.Mock
+}
+
+func (m *mockEClassifierRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTmockEClassifierRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockEClassifierRun creates a new instance of mockEClassifierRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockEClassifierRun(t mockConstructorTestingTmockEClassifierRun, args ...any) *mockEClassifierRun {
+	mock := &mockEClassifierRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 // TestMockEClassifierGetClassifierID tests method GetClassifierID
 func TestMockEClassifierGetClassifierID(t *testing.T) {
-	o := &MockEClassifier{}
+	o := NewMockEClassifier(t)
 	r := int(45)
-	o.On("GetClassifierID").Once().Return(r)
-	o.On("GetClassifierID").Once().Return(func() int {
-		return r
-	})
+	m := newMockEClassifierRun(t)
+	o.EXPECT().GetClassifierID().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetClassifierID().Once().Return(func() int { return r })
 	assert.Equal(t, r, o.GetClassifierID())
 	assert.Equal(t, r, o.GetClassifierID())
-	o.AssertExpectations(t)
 }
 
 // TestMockEClassifierSetClassifierID tests method SetClassifierID
@@ -46,41 +67,35 @@ func TestMockEClassifierSetClassifierID(t *testing.T) {
 
 // TestMockEClassifierGetDefaultValue tests method GetDefaultValue
 func TestMockEClassifierGetDefaultValue(t *testing.T) {
-	o := &MockEClassifier{}
+	o := NewMockEClassifier(t)
 	r := any(nil)
-	o.On("GetDefaultValue").Once().Return(r)
-	o.On("GetDefaultValue").Once().Return(func() any {
-		return r
-	})
+	m := newMockEClassifierRun(t)
+	o.EXPECT().GetDefaultValue().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetDefaultValue().Once().Return(func() any { return r })
 	assert.Equal(t, r, o.GetDefaultValue())
 	assert.Equal(t, r, o.GetDefaultValue())
-	o.AssertExpectations(t)
 }
 
 // TestMockEClassifierGetEPackage tests method GetEPackage
 func TestMockEClassifierGetEPackage(t *testing.T) {
-	o := &MockEClassifier{}
+	o := NewMockEClassifier(t)
 	r := new(MockEPackage)
-	o.On("GetEPackage").Once().Return(r)
-	o.On("GetEPackage").Once().Return(func() EPackage {
-		return r
-	})
+	m := newMockEClassifierRun(t)
+	o.EXPECT().GetEPackage().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetEPackage().Once().Return(func() EPackage { return r })
 	assert.Equal(t, r, o.GetEPackage())
 	assert.Equal(t, r, o.GetEPackage())
-	o.AssertExpectations(t)
 }
 
 // TestMockEClassifierGetInstanceClass tests method GetInstanceClass
 func TestMockEClassifierGetInstanceClass(t *testing.T) {
-	o := &MockEClassifier{}
+	o := NewMockEClassifier(t)
 	r := reflect.Type(reflect.TypeOf(""))
-	o.On("GetInstanceClass").Once().Return(r)
-	o.On("GetInstanceClass").Once().Return(func() reflect.Type {
-		return r
-	})
+	m := newMockEClassifierRun(t)
+	o.EXPECT().GetInstanceClass().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetInstanceClass().Once().Return(func() reflect.Type { return r })
 	assert.Equal(t, r, o.GetInstanceClass())
 	assert.Equal(t, r, o.GetInstanceClass())
-	o.AssertExpectations(t)
 }
 
 // TestMockEClassifierSetInstanceClass tests method SetInstanceClass
@@ -94,15 +109,13 @@ func TestMockEClassifierSetInstanceClass(t *testing.T) {
 
 // TestMockEClassifierGetInstanceClassName tests method GetInstanceClassName
 func TestMockEClassifierGetInstanceClassName(t *testing.T) {
-	o := &MockEClassifier{}
+	o := NewMockEClassifier(t)
 	r := string("Test String")
-	o.On("GetInstanceClassName").Once().Return(r)
-	o.On("GetInstanceClassName").Once().Return(func() string {
-		return r
-	})
+	m := newMockEClassifierRun(t)
+	o.EXPECT().GetInstanceClassName().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetInstanceClassName().Once().Return(func() string { return r })
 	assert.Equal(t, r, o.GetInstanceClassName())
 	assert.Equal(t, r, o.GetInstanceClassName())
-	o.AssertExpectations(t)
 }
 
 // TestMockEClassifierSetInstanceClassName tests method SetInstanceClassName
@@ -116,15 +129,13 @@ func TestMockEClassifierSetInstanceClassName(t *testing.T) {
 
 // TestMockEClassifierGetInstanceTypeName tests method GetInstanceTypeName
 func TestMockEClassifierGetInstanceTypeName(t *testing.T) {
-	o := &MockEClassifier{}
+	o := NewMockEClassifier(t)
 	r := string("Test String")
-	o.On("GetInstanceTypeName").Once().Return(r)
-	o.On("GetInstanceTypeName").Once().Return(func() string {
-		return r
-	})
+	m := newMockEClassifierRun(t)
+	o.EXPECT().GetInstanceTypeName().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetInstanceTypeName().Once().Return(func() string { return r })
 	assert.Equal(t, r, o.GetInstanceTypeName())
 	assert.Equal(t, r, o.GetInstanceTypeName())
-	o.AssertExpectations(t)
 }
 
 // TestMockEClassifierSetInstanceTypeName tests method SetInstanceTypeName

@@ -13,12 +13,35 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
 func discardMockEObject() {
 	_ = assert.Equal
 	_ = testing.Coverage
+}
+
+type mockEObjectRun struct {
+	mock.Mock
+}
+
+func (m *mockEObjectRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTmockEObjectRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockEObjectRun creates a new instance of mockEObjectRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockEObjectRun(t mockConstructorTestingTmockEObjectRun, args ...any) *mockEObjectRun {
+	mock := &mockEObjectRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }
 
 // TestMockEObjectEAllContents tests method EAllContents

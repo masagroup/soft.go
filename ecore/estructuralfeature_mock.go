@@ -11,10 +11,23 @@
 
 package ecore
 
-import "reflect"
+import (
+	"github.com/stretchr/testify/mock"
+	"reflect"
+)
 
 type MockEStructuralFeature struct {
 	MockETypedElement
+}
+
+type MockEStructuralFeature_Expecter struct {
+	MockETypedElement_Expecter
+}
+
+func (eStructuralFeature *MockEStructuralFeature) EXPECT() *MockEStructuralFeature_Expecter {
+	e := &MockEStructuralFeature_Expecter{}
+	e.Mock = &eStructuralFeature.Mock
+	return e
 }
 
 // IsChangeable get the value of isChangeable
@@ -33,9 +46,49 @@ func (eStructuralFeature *MockEStructuralFeature) IsChangeable() bool {
 	return r
 }
 
+type MockEStructuralFeature_IsChangeable_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) IsChangeable() *MockEStructuralFeature_IsChangeable_Call {
+	return &MockEStructuralFeature_IsChangeable_Call{Call: e.Mock.On("IsChangeable")}
+}
+
+func (c *MockEStructuralFeature_IsChangeable_Call) Run(run func()) *MockEStructuralFeature_IsChangeable_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_IsChangeable_Call) Return(isChangeable bool) *MockEStructuralFeature_IsChangeable_Call {
+	c.Call.Return(isChangeable)
+	return c
+}
+
 // SetChangeable provides mock implementation for setting the value of isChangeable
 func (eStructuralFeature *MockEStructuralFeature) SetChangeable(newIsChangeable bool) {
 	eStructuralFeature.Called(newIsChangeable)
+}
+
+type MockEStructuralFeature_SetChangeable_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) SetChangeable(newIsChangeable bool) *MockEStructuralFeature_SetChangeable_Call {
+	return &MockEStructuralFeature_SetChangeable_Call{Call: e.Mock.On("SetChangeable", newIsChangeable)}
+}
+
+func (c *MockEStructuralFeature_SetChangeable_Call) Run(run func(newIsChangeable bool)) *MockEStructuralFeature_SetChangeable_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(bool))
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_SetChangeable_Call) Return() *MockEStructuralFeature_SetChangeable_Call {
+	c.Call.Return()
+	return c
 }
 
 // GetDefaultValue get the value of defaultValue
@@ -54,9 +107,49 @@ func (eStructuralFeature *MockEStructuralFeature) GetDefaultValue() any {
 	return r
 }
 
+type MockEStructuralFeature_GetDefaultValue_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) GetDefaultValue() *MockEStructuralFeature_GetDefaultValue_Call {
+	return &MockEStructuralFeature_GetDefaultValue_Call{Call: e.Mock.On("GetDefaultValue")}
+}
+
+func (c *MockEStructuralFeature_GetDefaultValue_Call) Run(run func()) *MockEStructuralFeature_GetDefaultValue_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_GetDefaultValue_Call) Return(defaultValue any) *MockEStructuralFeature_GetDefaultValue_Call {
+	c.Call.Return(defaultValue)
+	return c
+}
+
 // SetDefaultValue provides mock implementation for setting the value of defaultValue
 func (eStructuralFeature *MockEStructuralFeature) SetDefaultValue(newDefaultValue any) {
 	eStructuralFeature.Called(newDefaultValue)
+}
+
+type MockEStructuralFeature_SetDefaultValue_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) SetDefaultValue(newDefaultValue any) *MockEStructuralFeature_SetDefaultValue_Call {
+	return &MockEStructuralFeature_SetDefaultValue_Call{Call: e.Mock.On("SetDefaultValue", newDefaultValue)}
+}
+
+func (c *MockEStructuralFeature_SetDefaultValue_Call) Run(run func(newDefaultValue any)) *MockEStructuralFeature_SetDefaultValue_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(any))
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_SetDefaultValue_Call) Return() *MockEStructuralFeature_SetDefaultValue_Call {
+	c.Call.Return()
+	return c
 }
 
 // GetDefaultValueLiteral get the value of defaultValueLiteral
@@ -75,9 +168,49 @@ func (eStructuralFeature *MockEStructuralFeature) GetDefaultValueLiteral() strin
 	return r
 }
 
+type MockEStructuralFeature_GetDefaultValueLiteral_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) GetDefaultValueLiteral() *MockEStructuralFeature_GetDefaultValueLiteral_Call {
+	return &MockEStructuralFeature_GetDefaultValueLiteral_Call{Call: e.Mock.On("GetDefaultValueLiteral")}
+}
+
+func (c *MockEStructuralFeature_GetDefaultValueLiteral_Call) Run(run func()) *MockEStructuralFeature_GetDefaultValueLiteral_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_GetDefaultValueLiteral_Call) Return(defaultValueLiteral string) *MockEStructuralFeature_GetDefaultValueLiteral_Call {
+	c.Call.Return(defaultValueLiteral)
+	return c
+}
+
 // SetDefaultValueLiteral provides mock implementation for setting the value of defaultValueLiteral
 func (eStructuralFeature *MockEStructuralFeature) SetDefaultValueLiteral(newDefaultValueLiteral string) {
 	eStructuralFeature.Called(newDefaultValueLiteral)
+}
+
+type MockEStructuralFeature_SetDefaultValueLiteral_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) SetDefaultValueLiteral(newDefaultValueLiteral string) *MockEStructuralFeature_SetDefaultValueLiteral_Call {
+	return &MockEStructuralFeature_SetDefaultValueLiteral_Call{Call: e.Mock.On("SetDefaultValueLiteral", newDefaultValueLiteral)}
+}
+
+func (c *MockEStructuralFeature_SetDefaultValueLiteral_Call) Run(run func(newDefaultValueLiteral string)) *MockEStructuralFeature_SetDefaultValueLiteral_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_SetDefaultValueLiteral_Call) Return() *MockEStructuralFeature_SetDefaultValueLiteral_Call {
+	c.Call.Return()
+	return c
 }
 
 // IsDerived get the value of isDerived
@@ -96,9 +229,49 @@ func (eStructuralFeature *MockEStructuralFeature) IsDerived() bool {
 	return r
 }
 
+type MockEStructuralFeature_IsDerived_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) IsDerived() *MockEStructuralFeature_IsDerived_Call {
+	return &MockEStructuralFeature_IsDerived_Call{Call: e.Mock.On("IsDerived")}
+}
+
+func (c *MockEStructuralFeature_IsDerived_Call) Run(run func()) *MockEStructuralFeature_IsDerived_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_IsDerived_Call) Return(isDerived bool) *MockEStructuralFeature_IsDerived_Call {
+	c.Call.Return(isDerived)
+	return c
+}
+
 // SetDerived provides mock implementation for setting the value of isDerived
 func (eStructuralFeature *MockEStructuralFeature) SetDerived(newIsDerived bool) {
 	eStructuralFeature.Called(newIsDerived)
+}
+
+type MockEStructuralFeature_SetDerived_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) SetDerived(newIsDerived bool) *MockEStructuralFeature_SetDerived_Call {
+	return &MockEStructuralFeature_SetDerived_Call{Call: e.Mock.On("SetDerived", newIsDerived)}
+}
+
+func (c *MockEStructuralFeature_SetDerived_Call) Run(run func(newIsDerived bool)) *MockEStructuralFeature_SetDerived_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(bool))
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_SetDerived_Call) Return() *MockEStructuralFeature_SetDerived_Call {
+	c.Call.Return()
+	return c
 }
 
 // GetEContainingClass get the value of eContainingClass
@@ -117,6 +290,26 @@ func (eStructuralFeature *MockEStructuralFeature) GetEContainingClass() EClass {
 	return r
 }
 
+type MockEStructuralFeature_GetEContainingClass_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) GetEContainingClass() *MockEStructuralFeature_GetEContainingClass_Call {
+	return &MockEStructuralFeature_GetEContainingClass_Call{Call: e.Mock.On("GetEContainingClass")}
+}
+
+func (c *MockEStructuralFeature_GetEContainingClass_Call) Run(run func()) *MockEStructuralFeature_GetEContainingClass_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_GetEContainingClass_Call) Return(eContainingClass EClass) *MockEStructuralFeature_GetEContainingClass_Call {
+	c.Call.Return(eContainingClass)
+	return c
+}
+
 // GetFeatureID get the value of featureID
 func (eStructuralFeature *MockEStructuralFeature) GetFeatureID() int {
 	ret := eStructuralFeature.Called()
@@ -133,9 +326,49 @@ func (eStructuralFeature *MockEStructuralFeature) GetFeatureID() int {
 	return r
 }
 
+type MockEStructuralFeature_GetFeatureID_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) GetFeatureID() *MockEStructuralFeature_GetFeatureID_Call {
+	return &MockEStructuralFeature_GetFeatureID_Call{Call: e.Mock.On("GetFeatureID")}
+}
+
+func (c *MockEStructuralFeature_GetFeatureID_Call) Run(run func()) *MockEStructuralFeature_GetFeatureID_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_GetFeatureID_Call) Return(featureID int) *MockEStructuralFeature_GetFeatureID_Call {
+	c.Call.Return(featureID)
+	return c
+}
+
 // SetFeatureID provides mock implementation for setting the value of featureID
 func (eStructuralFeature *MockEStructuralFeature) SetFeatureID(newFeatureID int) {
 	eStructuralFeature.Called(newFeatureID)
+}
+
+type MockEStructuralFeature_SetFeatureID_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) SetFeatureID(newFeatureID int) *MockEStructuralFeature_SetFeatureID_Call {
+	return &MockEStructuralFeature_SetFeatureID_Call{Call: e.Mock.On("SetFeatureID", newFeatureID)}
+}
+
+func (c *MockEStructuralFeature_SetFeatureID_Call) Run(run func(newFeatureID int)) *MockEStructuralFeature_SetFeatureID_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int))
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_SetFeatureID_Call) Return() *MockEStructuralFeature_SetFeatureID_Call {
+	c.Call.Return()
+	return c
 }
 
 // IsTransient get the value of isTransient
@@ -154,9 +387,49 @@ func (eStructuralFeature *MockEStructuralFeature) IsTransient() bool {
 	return r
 }
 
+type MockEStructuralFeature_IsTransient_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) IsTransient() *MockEStructuralFeature_IsTransient_Call {
+	return &MockEStructuralFeature_IsTransient_Call{Call: e.Mock.On("IsTransient")}
+}
+
+func (c *MockEStructuralFeature_IsTransient_Call) Run(run func()) *MockEStructuralFeature_IsTransient_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_IsTransient_Call) Return(isTransient bool) *MockEStructuralFeature_IsTransient_Call {
+	c.Call.Return(isTransient)
+	return c
+}
+
 // SetTransient provides mock implementation for setting the value of isTransient
 func (eStructuralFeature *MockEStructuralFeature) SetTransient(newIsTransient bool) {
 	eStructuralFeature.Called(newIsTransient)
+}
+
+type MockEStructuralFeature_SetTransient_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) SetTransient(newIsTransient bool) *MockEStructuralFeature_SetTransient_Call {
+	return &MockEStructuralFeature_SetTransient_Call{Call: e.Mock.On("SetTransient", newIsTransient)}
+}
+
+func (c *MockEStructuralFeature_SetTransient_Call) Run(run func(newIsTransient bool)) *MockEStructuralFeature_SetTransient_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(bool))
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_SetTransient_Call) Return() *MockEStructuralFeature_SetTransient_Call {
+	c.Call.Return()
+	return c
 }
 
 // IsUnsettable get the value of isUnsettable
@@ -175,9 +448,49 @@ func (eStructuralFeature *MockEStructuralFeature) IsUnsettable() bool {
 	return r
 }
 
+type MockEStructuralFeature_IsUnsettable_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) IsUnsettable() *MockEStructuralFeature_IsUnsettable_Call {
+	return &MockEStructuralFeature_IsUnsettable_Call{Call: e.Mock.On("IsUnsettable")}
+}
+
+func (c *MockEStructuralFeature_IsUnsettable_Call) Run(run func()) *MockEStructuralFeature_IsUnsettable_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_IsUnsettable_Call) Return(isUnsettable bool) *MockEStructuralFeature_IsUnsettable_Call {
+	c.Call.Return(isUnsettable)
+	return c
+}
+
 // SetUnsettable provides mock implementation for setting the value of isUnsettable
 func (eStructuralFeature *MockEStructuralFeature) SetUnsettable(newIsUnsettable bool) {
 	eStructuralFeature.Called(newIsUnsettable)
+}
+
+type MockEStructuralFeature_SetUnsettable_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) SetUnsettable(newIsUnsettable bool) *MockEStructuralFeature_SetUnsettable_Call {
+	return &MockEStructuralFeature_SetUnsettable_Call{Call: e.Mock.On("SetUnsettable", newIsUnsettable)}
+}
+
+func (c *MockEStructuralFeature_SetUnsettable_Call) Run(run func(newIsUnsettable bool)) *MockEStructuralFeature_SetUnsettable_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(bool))
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_SetUnsettable_Call) Return() *MockEStructuralFeature_SetUnsettable_Call {
+	c.Call.Return()
+	return c
 }
 
 // IsVolatile get the value of isVolatile
@@ -196,9 +509,49 @@ func (eStructuralFeature *MockEStructuralFeature) IsVolatile() bool {
 	return r
 }
 
+type MockEStructuralFeature_IsVolatile_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) IsVolatile() *MockEStructuralFeature_IsVolatile_Call {
+	return &MockEStructuralFeature_IsVolatile_Call{Call: e.Mock.On("IsVolatile")}
+}
+
+func (c *MockEStructuralFeature_IsVolatile_Call) Run(run func()) *MockEStructuralFeature_IsVolatile_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_IsVolatile_Call) Return(isVolatile bool) *MockEStructuralFeature_IsVolatile_Call {
+	c.Call.Return(isVolatile)
+	return c
+}
+
 // SetVolatile provides mock implementation for setting the value of isVolatile
 func (eStructuralFeature *MockEStructuralFeature) SetVolatile(newIsVolatile bool) {
 	eStructuralFeature.Called(newIsVolatile)
+}
+
+type MockEStructuralFeature_SetVolatile_Call struct {
+	*mock.Call
+}
+
+func (e *MockEStructuralFeature_Expecter) SetVolatile(newIsVolatile bool) *MockEStructuralFeature_SetVolatile_Call {
+	return &MockEStructuralFeature_SetVolatile_Call{Call: e.Mock.On("SetVolatile", newIsVolatile)}
+}
+
+func (c *MockEStructuralFeature_SetVolatile_Call) Run(run func(newIsVolatile bool)) *MockEStructuralFeature_SetVolatile_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(bool))
+	})
+	return c
+}
+
+func (c *MockEStructuralFeature_SetVolatile_Call) Return() *MockEStructuralFeature_SetVolatile_Call {
+	c.Call.Return()
+	return c
 }
 
 // GetContainerClass provides mock implementation
@@ -215,4 +568,17 @@ func (eStructuralFeature *MockEStructuralFeature) GetContainerClass() reflect.Ty
 	}
 
 	return r
+}
+
+type mockConstructorTestingTNewMockEStructuralFeature interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockEStructuralFeature creates a new instance of MockEStructuralFeature. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEStructuralFeature(t mockConstructorTestingTNewMockEStructuralFeature) *MockEStructuralFeature {
+	mock := &MockEStructuralFeature{}
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

@@ -11,8 +11,22 @@
 
 package ecore
 
+import (
+	"github.com/stretchr/testify/mock"
+)
+
 type MockEObject struct {
 	MockENotifier
+}
+
+type MockEObject_Expecter struct {
+	MockENotifier_Expecter
+}
+
+func (eObject *MockEObject) EXPECT() *MockEObject_Expecter {
+	e := &MockEObject_Expecter{}
+	e.Mock = &eObject.Mock
+	return e
 }
 
 // EAllContents provides mock implementation
@@ -231,4 +245,17 @@ func (eObject *MockEObject) ESet(feature EStructuralFeature, newValue any) {
 // EUnset provides mock implementation
 func (eObject *MockEObject) EUnset(feature EStructuralFeature) {
 	eObject.Called(feature)
+}
+
+type mockConstructorTestingTNewMockEObject interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockEObject creates a new instance of MockEObject. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEObject(t mockConstructorTestingTNewMockEObject) *MockEObject {
+	mock := &MockEObject{}
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

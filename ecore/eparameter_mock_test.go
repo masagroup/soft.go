@@ -13,6 +13,7 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -21,15 +22,35 @@ func discardMockEParameter() {
 	_ = testing.Coverage
 }
 
+type mockEParameterRun struct {
+	mock.Mock
+}
+
+func (m *mockEParameterRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTmockEParameterRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockEParameterRun creates a new instance of mockEParameterRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockEParameterRun(t mockConstructorTestingTmockEParameterRun, args ...any) *mockEParameterRun {
+	mock := &mockEParameterRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 // TestMockEParameterGetEOperation tests method GetEOperation
 func TestMockEParameterGetEOperation(t *testing.T) {
-	o := &MockEParameter{}
+	o := NewMockEParameter(t)
 	r := new(MockEOperation)
-	o.On("GetEOperation").Once().Return(r)
-	o.On("GetEOperation").Once().Return(func() EOperation {
-		return r
-	})
+	m := newMockEParameterRun(t)
+	o.EXPECT().GetEOperation().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetEOperation().Once().Return(func() EOperation { return r })
 	assert.Equal(t, r, o.GetEOperation())
 	assert.Equal(t, r, o.GetEOperation())
-	o.AssertExpectations(t)
 }

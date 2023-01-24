@@ -14,6 +14,10 @@ type MockEObjectInternal struct {
 	MockEObject
 }
 
+type MockEObjectInternal_Expecter struct {
+	MockEObject_Expecter
+}
+
 // EBasicInverseAdd provides a mock function with given fields: otherEnd, featureID, notifications
 func (_m *MockEObjectInternal) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	ret := _m.Called(otherEnd, featureID, notifications)

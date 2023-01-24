@@ -13,6 +13,7 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -21,45 +22,59 @@ func discardMockEAnnotation() {
 	_ = testing.Coverage
 }
 
+type mockEAnnotationRun struct {
+	mock.Mock
+}
+
+func (m *mockEAnnotationRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTmockEAnnotationRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockEAnnotationRun creates a new instance of mockEAnnotationRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockEAnnotationRun(t mockConstructorTestingTmockEAnnotationRun, args ...any) *mockEAnnotationRun {
+	mock := &mockEAnnotationRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 // TestMockEAnnotationGetContents tests method GetContents
 func TestMockEAnnotationGetContents(t *testing.T) {
 	o := &MockEAnnotation{}
 	l := &MockEList{}
-	// return a value
-	o.On("GetContents").Once().Return(l)
-	o.On("GetContents").Once().Return(func() EList {
-		return l
-	})
+	m := newMockEAnnotationRun(t)
+	o.EXPECT().GetContents().Run(func() { m.Run() }).Return(l).Once()
+	o.EXPECT().GetContents().Once().Return(func() EList { return l })
 	assert.Equal(t, l, o.GetContents())
 	assert.Equal(t, l, o.GetContents())
-	o.AssertExpectations(t)
 }
 
 // TestMockEAnnotationGetDetails tests method GetDetails
 func TestMockEAnnotationGetDetails(t *testing.T) {
 	o := &MockEAnnotation{}
 	l := &MockEMap{}
-	// return a value
-	o.On("GetDetails").Once().Return(l)
-	o.On("GetDetails").Once().Return(func() EMap {
-		return l
-	})
+	m := newMockEAnnotationRun(t)
+	o.EXPECT().GetDetails().Run(func() { m.Run() }).Return(l).Once()
+	o.EXPECT().GetDetails().Once().Return(func() EMap { return l })
 	assert.Equal(t, l, o.GetDetails())
 	assert.Equal(t, l, o.GetDetails())
-	o.AssertExpectations(t)
 }
 
 // TestMockEAnnotationGetEModelElement tests method GetEModelElement
 func TestMockEAnnotationGetEModelElement(t *testing.T) {
-	o := &MockEAnnotation{}
+	o := NewMockEAnnotation(t)
 	r := new(MockEModelElement)
-	o.On("GetEModelElement").Once().Return(r)
-	o.On("GetEModelElement").Once().Return(func() EModelElement {
-		return r
-	})
+	m := newMockEAnnotationRun(t)
+	o.EXPECT().GetEModelElement().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetEModelElement().Once().Return(func() EModelElement { return r })
 	assert.Equal(t, r, o.GetEModelElement())
 	assert.Equal(t, r, o.GetEModelElement())
-	o.AssertExpectations(t)
 }
 
 // TestMockEAnnotationSetEModelElement tests method SetEModelElement
@@ -75,27 +90,22 @@ func TestMockEAnnotationSetEModelElement(t *testing.T) {
 func TestMockEAnnotationGetReferences(t *testing.T) {
 	o := &MockEAnnotation{}
 	l := &MockEList{}
-	// return a value
-	o.On("GetReferences").Once().Return(l)
-	o.On("GetReferences").Once().Return(func() EList {
-		return l
-	})
+	m := newMockEAnnotationRun(t)
+	o.EXPECT().GetReferences().Run(func() { m.Run() }).Return(l).Once()
+	o.EXPECT().GetReferences().Once().Return(func() EList { return l })
 	assert.Equal(t, l, o.GetReferences())
 	assert.Equal(t, l, o.GetReferences())
-	o.AssertExpectations(t)
 }
 
 // TestMockEAnnotationGetSource tests method GetSource
 func TestMockEAnnotationGetSource(t *testing.T) {
-	o := &MockEAnnotation{}
+	o := NewMockEAnnotation(t)
 	r := string("Test String")
-	o.On("GetSource").Once().Return(r)
-	o.On("GetSource").Once().Return(func() string {
-		return r
-	})
+	m := newMockEAnnotationRun(t)
+	o.EXPECT().GetSource().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetSource().Once().Return(func() string { return r })
 	assert.Equal(t, r, o.GetSource())
 	assert.Equal(t, r, o.GetSource())
-	o.AssertExpectations(t)
 }
 
 // TestMockEAnnotationSetSource tests method SetSource

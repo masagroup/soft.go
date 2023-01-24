@@ -57,11 +57,11 @@ func TestMockEStringToStringMapEntryGetTypedKey(t *testing.T) {
 
 // TestMockEStringToStringMapEntrySetTypedKey tests method SetTypedKey
 func TestMockEStringToStringMapEntrySetTypedKey(t *testing.T) {
-	o := &MockEStringToStringMapEntry{}
+	o := NewMockEStringToStringMapEntry(t)
 	v := string("Test String")
-	o.On("SetTypedKey", v).Once()
+	m := newMockEStringToStringMapEntryRun(t, v)
+	o.EXPECT().SetTypedKey(v).Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetTypedKey(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEStringToStringMapEntryGetTypedValue tests method GetTypedValue
@@ -77,9 +77,9 @@ func TestMockEStringToStringMapEntryGetTypedValue(t *testing.T) {
 
 // TestMockEStringToStringMapEntrySetTypedValue tests method SetTypedValue
 func TestMockEStringToStringMapEntrySetTypedValue(t *testing.T) {
-	o := &MockEStringToStringMapEntry{}
+	o := NewMockEStringToStringMapEntry(t)
 	v := string("Test String")
-	o.On("SetTypedValue", v).Once()
+	m := newMockEStringToStringMapEntryRun(t, v)
+	o.EXPECT().SetTypedValue(v).Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetTypedValue(v)
-	o.AssertExpectations(t)
 }

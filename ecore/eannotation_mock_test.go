@@ -79,11 +79,11 @@ func TestMockEAnnotationGetEModelElement(t *testing.T) {
 
 // TestMockEAnnotationSetEModelElement tests method SetEModelElement
 func TestMockEAnnotationSetEModelElement(t *testing.T) {
-	o := &MockEAnnotation{}
+	o := NewMockEAnnotation(t)
 	v := new(MockEModelElement)
-	o.On("SetEModelElement", v).Once()
+	m := newMockEAnnotationRun(t, v)
+	o.EXPECT().SetEModelElement(v).Run(func(_p0 EModelElement) { m.Run(_p0) }).Once()
 	o.SetEModelElement(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEAnnotationGetReferences tests method GetReferences
@@ -110,9 +110,9 @@ func TestMockEAnnotationGetSource(t *testing.T) {
 
 // TestMockEAnnotationSetSource tests method SetSource
 func TestMockEAnnotationSetSource(t *testing.T) {
-	o := &MockEAnnotation{}
+	o := NewMockEAnnotation(t)
 	v := string("Test String")
-	o.On("SetSource", v).Once()
+	m := newMockEAnnotationRun(t, v)
+	o.EXPECT().SetSource(v).Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetSource(v)
-	o.AssertExpectations(t)
 }

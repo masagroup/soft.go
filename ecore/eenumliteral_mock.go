@@ -116,7 +116,7 @@ func (e *MockEEnumLiteral_Expecter) SetInstance(newInstance any) *MockEEnumLiter
 
 func (c *MockEEnumLiteral_SetInstance_Call) Run(run func(newInstance any)) *MockEEnumLiteral_SetInstance_Call {
 	c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(any))
+		run(args[0])
 	})
 	return c
 }

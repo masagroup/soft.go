@@ -142,7 +142,7 @@ func (e *MockEStructuralFeature_Expecter) SetDefaultValue(newDefaultValue any) *
 
 func (c *MockEStructuralFeature_SetDefaultValue_Call) Run(run func(newDefaultValue any)) *MockEStructuralFeature_SetDefaultValue_Call {
 	c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(any))
+		run(args[0])
 	})
 	return c
 }

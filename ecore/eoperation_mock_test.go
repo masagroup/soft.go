@@ -98,11 +98,11 @@ func TestMockEOperationGetOperationID(t *testing.T) {
 
 // TestMockEOperationSetOperationID tests method SetOperationID
 func TestMockEOperationSetOperationID(t *testing.T) {
-	o := &MockEOperation{}
+	o := NewMockEOperation(t)
 	v := int(45)
-	o.On("SetOperationID", v).Once()
+	m := newMockEOperationRun(t, v)
+	o.EXPECT().SetOperationID(v).Run(func(_p0 int) { m.Run(_p0) }).Once()
 	o.SetOperationID(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEOperationIsOverrideOf tests method IsOverrideOf

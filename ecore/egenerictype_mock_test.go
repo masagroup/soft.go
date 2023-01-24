@@ -57,11 +57,11 @@ func TestMockEGenericTypeGetEClassifier(t *testing.T) {
 
 // TestMockEGenericTypeSetEClassifier tests method SetEClassifier
 func TestMockEGenericTypeSetEClassifier(t *testing.T) {
-	o := &MockEGenericType{}
+	o := NewMockEGenericType(t)
 	v := new(MockEClassifier)
-	o.On("SetEClassifier", v).Once()
+	m := newMockEGenericTypeRun(t, v)
+	o.EXPECT().SetEClassifier(v).Run(func(_p0 EClassifier) { m.Run(_p0) }).Once()
 	o.SetEClassifier(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEGenericTypeGetELowerBound tests method GetELowerBound
@@ -77,11 +77,11 @@ func TestMockEGenericTypeGetELowerBound(t *testing.T) {
 
 // TestMockEGenericTypeSetELowerBound tests method SetELowerBound
 func TestMockEGenericTypeSetELowerBound(t *testing.T) {
-	o := &MockEGenericType{}
+	o := NewMockEGenericType(t)
 	v := new(MockEGenericType)
-	o.On("SetELowerBound", v).Once()
+	m := newMockEGenericTypeRun(t, v)
+	o.EXPECT().SetELowerBound(v).Run(func(_p0 EGenericType) { m.Run(_p0) }).Once()
 	o.SetELowerBound(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEGenericTypeGetERawType tests method GetERawType
@@ -119,11 +119,11 @@ func TestMockEGenericTypeGetETypeParameter(t *testing.T) {
 
 // TestMockEGenericTypeSetETypeParameter tests method SetETypeParameter
 func TestMockEGenericTypeSetETypeParameter(t *testing.T) {
-	o := &MockEGenericType{}
+	o := NewMockEGenericType(t)
 	v := new(MockETypeParameter)
-	o.On("SetETypeParameter", v).Once()
+	m := newMockEGenericTypeRun(t, v)
+	o.EXPECT().SetETypeParameter(v).Run(func(_p0 ETypeParameter) { m.Run(_p0) }).Once()
 	o.SetETypeParameter(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEGenericTypeGetEUpperBound tests method GetEUpperBound
@@ -139,11 +139,11 @@ func TestMockEGenericTypeGetEUpperBound(t *testing.T) {
 
 // TestMockEGenericTypeSetEUpperBound tests method SetEUpperBound
 func TestMockEGenericTypeSetEUpperBound(t *testing.T) {
-	o := &MockEGenericType{}
+	o := NewMockEGenericType(t)
 	v := new(MockEGenericType)
-	o.On("SetEUpperBound", v).Once()
+	m := newMockEGenericTypeRun(t, v)
+	o.EXPECT().SetEUpperBound(v).Run(func(_p0 EGenericType) { m.Run(_p0) }).Once()
 	o.SetEUpperBound(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEGenericTypeIsInstance tests method IsInstance

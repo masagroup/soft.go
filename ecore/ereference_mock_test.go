@@ -68,11 +68,11 @@ func TestMockEReferenceIsContainment(t *testing.T) {
 
 // TestMockEReferenceSetContainment tests method SetContainment
 func TestMockEReferenceSetContainment(t *testing.T) {
-	o := &MockEReference{}
+	o := NewMockEReference(t)
 	v := bool(true)
-	o.On("SetContainment", v).Once()
+	m := newMockEReferenceRun(t, v)
+	o.EXPECT().SetContainment(v).Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetContainment(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEReferenceGetEKeys tests method GetEKeys
@@ -99,11 +99,11 @@ func TestMockEReferenceGetEOpposite(t *testing.T) {
 
 // TestMockEReferenceSetEOpposite tests method SetEOpposite
 func TestMockEReferenceSetEOpposite(t *testing.T) {
-	o := &MockEReference{}
+	o := NewMockEReference(t)
 	v := new(MockEReference)
-	o.On("SetEOpposite", v).Once()
+	m := newMockEReferenceRun(t, v)
+	o.EXPECT().SetEOpposite(v).Run(func(_p0 EReference) { m.Run(_p0) }).Once()
 	o.SetEOpposite(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEReferenceGetEReferenceType tests method GetEReferenceType
@@ -130,9 +130,9 @@ func TestMockEReferenceIsResolveProxies(t *testing.T) {
 
 // TestMockEReferenceSetResolveProxies tests method SetResolveProxies
 func TestMockEReferenceSetResolveProxies(t *testing.T) {
-	o := &MockEReference{}
+	o := NewMockEReference(t)
 	v := bool(true)
-	o.On("SetResolveProxies", v).Once()
+	m := newMockEReferenceRun(t, v)
+	o.EXPECT().SetResolveProxies(v).Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetResolveProxies(v)
-	o.AssertExpectations(t)
 }

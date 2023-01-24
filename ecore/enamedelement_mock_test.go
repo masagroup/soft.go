@@ -57,9 +57,9 @@ func TestMockENamedElementGetName(t *testing.T) {
 
 // TestMockENamedElementSetName tests method SetName
 func TestMockENamedElementSetName(t *testing.T) {
-	o := &MockENamedElement{}
+	o := NewMockENamedElement(t)
 	v := string("Test String")
-	o.On("SetName", v).Once()
+	m := newMockENamedElementRun(t, v)
+	o.EXPECT().SetName(v).Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetName(v)
-	o.AssertExpectations(t)
 }

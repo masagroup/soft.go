@@ -57,11 +57,11 @@ func TestMockEClassIsAbstract(t *testing.T) {
 
 // TestMockEClassSetAbstract tests method SetAbstract
 func TestMockEClassSetAbstract(t *testing.T) {
-	o := &MockEClass{}
+	o := NewMockEClass(t)
 	v := bool(true)
-	o.On("SetAbstract", v).Once()
+	m := newMockEClassRun(t, v)
+	o.EXPECT().SetAbstract(v).Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetAbstract(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEClassGetEAllAttributes tests method GetEAllAttributes
@@ -231,11 +231,11 @@ func TestMockEClassIsInterface(t *testing.T) {
 
 // TestMockEClassSetInterface tests method SetInterface
 func TestMockEClassSetInterface(t *testing.T) {
-	o := &MockEClass{}
+	o := NewMockEClass(t)
 	v := bool(true)
-	o.On("SetInterface", v).Once()
+	m := newMockEClassRun(t, v)
+	o.EXPECT().SetInterface(v).Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetInterface(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEClassGetEOperation tests method GetEOperation

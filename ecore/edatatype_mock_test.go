@@ -57,9 +57,9 @@ func TestMockEDataTypeIsSerializable(t *testing.T) {
 
 // TestMockEDataTypeSetSerializable tests method SetSerializable
 func TestMockEDataTypeSetSerializable(t *testing.T) {
-	o := &MockEDataType{}
+	o := NewMockEDataType(t)
 	v := bool(true)
-	o.On("SetSerializable", v).Once()
+	m := newMockEDataTypeRun(t, v)
+	o.EXPECT().SetSerializable(v).Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetSerializable(v)
-	o.AssertExpectations(t)
 }

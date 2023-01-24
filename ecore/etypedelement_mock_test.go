@@ -57,11 +57,11 @@ func TestMockETypedElementGetEType(t *testing.T) {
 
 // TestMockETypedElementSetEType tests method SetEType
 func TestMockETypedElementSetEType(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	v := new(MockEClassifier)
-	o.On("SetEType", v).Once()
+	m := newMockETypedElementRun(t, v)
+	o.EXPECT().SetEType(v).Run(func(_p0 EClassifier) { m.Run(_p0) }).Once()
 	o.SetEType(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementUnsetEType tests method UnsetEType
@@ -85,11 +85,11 @@ func TestMockETypedElementGetLowerBound(t *testing.T) {
 
 // TestMockETypedElementSetLowerBound tests method SetLowerBound
 func TestMockETypedElementSetLowerBound(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	v := int(45)
-	o.On("SetLowerBound", v).Once()
+	m := newMockETypedElementRun(t, v)
+	o.EXPECT().SetLowerBound(v).Run(func(_p0 int) { m.Run(_p0) }).Once()
 	o.SetLowerBound(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementIsMany tests method IsMany
@@ -116,11 +116,11 @@ func TestMockETypedElementIsOrdered(t *testing.T) {
 
 // TestMockETypedElementSetOrdered tests method SetOrdered
 func TestMockETypedElementSetOrdered(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	v := bool(true)
-	o.On("SetOrdered", v).Once()
+	m := newMockETypedElementRun(t, v)
+	o.EXPECT().SetOrdered(v).Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetOrdered(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementIsRequired tests method IsRequired
@@ -147,11 +147,11 @@ func TestMockETypedElementIsUnique(t *testing.T) {
 
 // TestMockETypedElementSetUnique tests method SetUnique
 func TestMockETypedElementSetUnique(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	v := bool(true)
-	o.On("SetUnique", v).Once()
+	m := newMockETypedElementRun(t, v)
+	o.EXPECT().SetUnique(v).Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetUnique(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementGetUpperBound tests method GetUpperBound
@@ -167,9 +167,9 @@ func TestMockETypedElementGetUpperBound(t *testing.T) {
 
 // TestMockETypedElementSetUpperBound tests method SetUpperBound
 func TestMockETypedElementSetUpperBound(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	v := int(45)
-	o.On("SetUpperBound", v).Once()
+	m := newMockETypedElementRun(t, v)
+	o.EXPECT().SetUpperBound(v).Run(func(_p0 int) { m.Run(_p0) }).Once()
 	o.SetUpperBound(v)
-	o.AssertExpectations(t)
 }

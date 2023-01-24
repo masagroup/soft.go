@@ -68,11 +68,11 @@ func TestMockEPackageGetEFactoryInstance(t *testing.T) {
 
 // TestMockEPackageSetEFactoryInstance tests method SetEFactoryInstance
 func TestMockEPackageSetEFactoryInstance(t *testing.T) {
-	o := &MockEPackage{}
+	o := NewMockEPackage(t)
 	v := new(MockEFactory)
-	o.On("SetEFactoryInstance", v).Once()
+	m := newMockEPackageRun(t, v)
+	o.EXPECT().SetEFactoryInstance(v).Run(func(_p0 EFactory) { m.Run(_p0) }).Once()
 	o.SetEFactoryInstance(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEPackageGetESubPackages tests method GetESubPackages
@@ -110,11 +110,11 @@ func TestMockEPackageGetNsPrefix(t *testing.T) {
 
 // TestMockEPackageSetNsPrefix tests method SetNsPrefix
 func TestMockEPackageSetNsPrefix(t *testing.T) {
-	o := &MockEPackage{}
+	o := NewMockEPackage(t)
 	v := string("Test String")
-	o.On("SetNsPrefix", v).Once()
+	m := newMockEPackageRun(t, v)
+	o.EXPECT().SetNsPrefix(v).Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetNsPrefix(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEPackageGetNsURI tests method GetNsURI
@@ -130,11 +130,11 @@ func TestMockEPackageGetNsURI(t *testing.T) {
 
 // TestMockEPackageSetNsURI tests method SetNsURI
 func TestMockEPackageSetNsURI(t *testing.T) {
-	o := &MockEPackage{}
+	o := NewMockEPackage(t)
 	v := string("Test String")
-	o.On("SetNsURI", v).Once()
+	m := newMockEPackageRun(t, v)
+	o.EXPECT().SetNsURI(v).Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetNsURI(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEPackageGetEClassifier tests method GetEClassifier

@@ -57,11 +57,11 @@ func TestMockEFactoryGetEPackage(t *testing.T) {
 
 // TestMockEFactorySetEPackage tests method SetEPackage
 func TestMockEFactorySetEPackage(t *testing.T) {
-	o := &MockEFactory{}
+	o := NewMockEFactory(t)
 	v := new(MockEPackage)
-	o.On("SetEPackage", v).Once()
+	m := newMockEFactoryRun(t, v)
+	o.EXPECT().SetEPackage(v).Run(func(_p0 EPackage) { m.Run(_p0) }).Once()
 	o.SetEPackage(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEFactoryConvertToString tests method ConvertToString

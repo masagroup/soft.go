@@ -68,9 +68,9 @@ func TestMockEAttributeIsID(t *testing.T) {
 
 // TestMockEAttributeSetID tests method SetID
 func TestMockEAttributeSetID(t *testing.T) {
-	o := &MockEAttribute{}
+	o := NewMockEAttribute(t)
 	v := bool(true)
-	o.On("SetID", v).Once()
+	m := newMockEAttributeRun(t, v)
+	o.EXPECT().SetID(v).Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetID(v)
-	o.AssertExpectations(t)
 }

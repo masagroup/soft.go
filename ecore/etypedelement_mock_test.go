@@ -66,10 +66,10 @@ func TestMockETypedElementSetEType(t *testing.T) {
 
 // TestMockETypedElementUnsetEType tests method UnsetEType
 func TestMockETypedElementUnsetEType(t *testing.T) {
-	o := &MockETypedElement{}
-	o.On("UnsetEType").Once()
+	o := NewMockETypedElement(t)
+	m := newMockETypedElementRun(t)
+	o.EXPECT().UnsetEType().Run(func() { m.Run() }).Once()
 	o.UnsetEType()
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementGetLowerBound tests method GetLowerBound

@@ -68,10 +68,10 @@ func TestMockEOperationGetEExceptions(t *testing.T) {
 
 // TestMockEOperationUnsetEExceptions tests method UnsetEExceptions
 func TestMockEOperationUnsetEExceptions(t *testing.T) {
-	o := &MockEOperation{}
-	o.On("UnsetEExceptions").Once()
+	o := NewMockEOperation(t)
+	m := newMockEOperationRun(t)
+	o.EXPECT().UnsetEExceptions().Run(func() { m.Run() }).Once()
 	o.UnsetEExceptions()
-	o.AssertExpectations(t)
 }
 
 // TestMockEOperationGetEParameters tests method GetEParameters

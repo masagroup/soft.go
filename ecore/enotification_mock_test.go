@@ -16,95 +16,103 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+type mockENotificationRun struct {
+	mock.Mock
+}
+
+func (m *mockENotificationRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTmockENotificationRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockENotificationRun creates a new instance of MockEList. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockENotificationRun(t mockConstructorTestingTmockENotificationRun, args ...any) *mockENotificationRun {
+	mock := &mockENotificationRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 func TestMockENotificationGetEventType(t *testing.T) {
-	n := &MockENotification{}
-	n.On("GetEventType").Return(SET).Once()
-	n.On("GetEventType").Return(func() EventType {
-		return SET
-	}).Once()
+	n := NewMockENotification(t)
+	m := newMockENotificationRun(t)
+	n.EXPECT().GetEventType().Run(func() { m.Run() }).Return(SET).Once()
+	n.EXPECT().GetEventType().Once().Return(func() EventType { return SET })
 	assert.Equal(t, SET, n.GetEventType())
 	assert.Equal(t, SET, n.GetEventType())
-	mock.AssertExpectationsForObjects(t, n)
 }
 
 func TestMockENotificationGetNotifier(t *testing.T) {
-	n := &MockENotification{}
-	no := &MockENotifier{}
-	n.On("GetNotifier").Return(no).Once()
-	n.On("GetNotifier").Return(func() ENotifier {
-		return no
-	}).Once()
+	n := NewMockENotification(t)
+	no := NewMockENotifier(t)
+	m := newMockENotificationRun(t)
+	n.EXPECT().GetNotifier().Run(func() { m.Run() }).Return(no).Once()
+	n.EXPECT().GetNotifier().Once().Return(func() ENotifier { return no })
 	assert.Equal(t, no, n.GetNotifier())
 	assert.Equal(t, no, n.GetNotifier())
-	mock.AssertExpectationsForObjects(t, n)
 }
 
 func TestMockENotificationGetFeature(t *testing.T) {
-	n := &MockENotification{}
+	n := NewMockENotification(t)
 	f := &MockEStructuralFeature{}
-	n.On("GetFeature").Return(f).Once()
-	n.On("GetFeature").Return(func() EStructuralFeature {
-		return f
-	}).Once()
+	m := newMockENotificationRun(t)
+	n.EXPECT().GetFeature().Run(func() { m.Run() }).Return(f).Once()
+	n.EXPECT().GetFeature().Once().Return(func() EStructuralFeature { return f })
 	assert.Equal(t, f, n.GetFeature())
 	assert.Equal(t, f, n.GetFeature())
-	mock.AssertExpectationsForObjects(t, n)
 }
 
 func TestMockENotificationGetFeatureID(t *testing.T) {
-	n := &MockENotification{}
-	n.On("GetFeatureID").Return(0).Once()
-	n.On("GetFeatureID").Return(func() int {
-		return 1
-	}).Once()
+	n := NewMockENotification(t)
+	m := newMockENotificationRun(t)
+	n.EXPECT().GetFeatureID().Run(func() { m.Run() }).Return(0).Once()
+	n.EXPECT().GetFeatureID().Once().Return(func() int { return 1 })
 	assert.Equal(t, 0, n.GetFeatureID())
 	assert.Equal(t, 1, n.GetFeatureID())
-	mock.AssertExpectationsForObjects(t, n)
 }
 
 func TestMockENotificationGetOldValue(t *testing.T) {
-	n := &MockENotification{}
+	n := NewMockENotification(t)
 	v := &MockEObject{}
-	n.On("GetOldValue").Return(v).Once()
-	n.On("GetOldValue").Return(func() any {
-		return v
-	}).Once()
+	m := newMockENotificationRun(t)
+	n.EXPECT().GetOldValue().Run(func() { m.Run() }).Return(v).Once()
+	n.EXPECT().GetOldValue().Once().Return(func() any { return v })
 	assert.Equal(t, v, n.GetOldValue())
 	assert.Equal(t, v, n.GetOldValue())
 	mock.AssertExpectationsForObjects(t, n, v)
 }
 
 func TestMockENotificationGetNewValue(t *testing.T) {
-	n := &MockENotification{}
+	n := NewMockENotification(t)
 	v := &MockEObject{}
-	n.On("GetNewValue").Return(v).Once()
-	n.On("GetNewValue").Return(func() any {
-		return v
-	}).Once()
+	m := newMockENotificationRun(t)
+	n.EXPECT().GetNewValue().Run(func() { m.Run() }).Return(v).Once()
+	n.EXPECT().GetNewValue().Once().Return(func() any { return v })
 	assert.Equal(t, v, n.GetNewValue())
 	assert.Equal(t, v, n.GetNewValue())
 	mock.AssertExpectationsForObjects(t, n, v)
 }
 
 func TestMockENotificationGetPosition(t *testing.T) {
-	n := &MockENotification{}
-	n.On("GetPosition").Return(0).Once()
-	n.On("GetPosition").Return(func() int {
-		return 1
-	}).Once()
+	n := NewMockENotification(t)
+	m := newMockENotificationRun(t)
+	n.EXPECT().GetPosition().Run(func() { m.Run() }).Return(0).Once()
+	n.EXPECT().GetPosition().Once().Return(func() int { return 1 })
 	assert.Equal(t, 0, n.GetPosition())
 	assert.Equal(t, 1, n.GetPosition())
-	mock.AssertExpectationsForObjects(t, n)
 }
 
 func TestMockENotificationMerge(t *testing.T) {
-	n := &MockENotification{}
-	no := &MockENotification{}
-	n.On("Merge", no).Return(false).Once()
-	n.On("Merge", no).Return(func(ENotification) bool {
-		return true
-	}).Once()
+	n := NewMockENotification(t)
+	no := NewMockENotification(t)
+	m := newMockENotificationRun(t, no)
+	n.EXPECT().Merge(no).Run(func(_a0 ENotification) { m.Run(_a0) }).Return(false).Once()
+	n.EXPECT().Merge(no).Once().Return(func(ENotification) bool { return true })
 	assert.False(t, n.Merge(no))
 	assert.True(t, n.Merge(no))
-	mock.AssertExpectationsForObjects(t, n)
 }

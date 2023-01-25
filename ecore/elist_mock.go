@@ -17,11 +17,11 @@ type MockEList struct {
 }
 
 type MockEList_Expecter struct {
-	mock *mock.Mock
+	Mock *mock.Mock
 }
 
 func (_m *MockEList) EXPECT() *MockEList_Expecter {
-	return &MockEList_Expecter{mock: &_m.Mock}
+	return &MockEList_Expecter{Mock: &_m.Mock}
 }
 
 // Add provides a mock function with given fields: element
@@ -46,7 +46,7 @@ type MockEList_Add_Call struct {
 // Add is a helper method to define mock.On call
 //   - element interface{}
 func (_e *MockEList_Expecter) Add(element interface{}) *MockEList_Add_Call {
-	return &MockEList_Add_Call{Call: _e.mock.On("Add", element)}
+	return &MockEList_Add_Call{Call: _e.Mock.On("Add", element)}
 }
 
 func (_c *MockEList_Add_Call) Run(run func(element interface{})) *MockEList_Add_Call {
@@ -83,7 +83,7 @@ type MockEList_AddAll_Call struct {
 // AddAll is a helper method to define mock.On call
 //   - collection EList
 func (_e *MockEList_Expecter) AddAll(collection interface{}) *MockEList_AddAll_Call {
-	return &MockEList_AddAll_Call{Call: _e.mock.On("AddAll", collection)}
+	return &MockEList_AddAll_Call{Call: _e.Mock.On("AddAll", collection)}
 }
 
 func (_c *MockEList_AddAll_Call) Run(run func(collection EList)) *MockEList_AddAll_Call {
@@ -110,7 +110,7 @@ type MockEList_Clear_Call struct {
 
 // Clear is a helper method to define mock.On call
 func (_e *MockEList_Expecter) Clear() *MockEList_Clear_Call {
-	return &MockEList_Clear_Call{Call: _e.mock.On("Clear")}
+	return &MockEList_Clear_Call{Call: _e.Mock.On("Clear")}
 }
 
 func (_c *MockEList_Clear_Call) Run(run func()) *MockEList_Clear_Call {
@@ -147,7 +147,7 @@ type MockEList_Contains_Call struct {
 // Contains is a helper method to define mock.On call
 //   - element interface{}
 func (_e *MockEList_Expecter) Contains(element interface{}) *MockEList_Contains_Call {
-	return &MockEList_Contains_Call{Call: _e.mock.On("Contains", element)}
+	return &MockEList_Contains_Call{Call: _e.Mock.On("Contains", element)}
 }
 
 func (_c *MockEList_Contains_Call) Run(run func(element interface{})) *MockEList_Contains_Call {
@@ -183,7 +183,7 @@ type MockEList_Empty_Call struct {
 
 // Empty is a helper method to define mock.On call
 func (_e *MockEList_Expecter) Empty() *MockEList_Empty_Call {
-	return &MockEList_Empty_Call{Call: _e.mock.On("Empty")}
+	return &MockEList_Empty_Call{Call: _e.Mock.On("Empty")}
 }
 
 func (_c *MockEList_Empty_Call) Run(run func()) *MockEList_Empty_Call {
@@ -222,7 +222,7 @@ type MockEList_Get_Call struct {
 // Get is a helper method to define mock.On call
 //   - index int
 func (_e *MockEList_Expecter) Get(index interface{}) *MockEList_Get_Call {
-	return &MockEList_Get_Call{Call: _e.mock.On("Get", index)}
+	return &MockEList_Get_Call{Call: _e.Mock.On("Get", index)}
 }
 
 func (_c *MockEList_Get_Call) Run(run func(index int)) *MockEList_Get_Call {
@@ -259,7 +259,7 @@ type MockEList_IndexOf_Call struct {
 // IndexOf is a helper method to define mock.On call
 //   - _a0 interface{}
 func (_e *MockEList_Expecter) IndexOf(_a0 interface{}) *MockEList_IndexOf_Call {
-	return &MockEList_IndexOf_Call{Call: _e.mock.On("IndexOf", _a0)}
+	return &MockEList_IndexOf_Call{Call: _e.Mock.On("IndexOf", _a0)}
 }
 
 func (_c *MockEList_IndexOf_Call) Run(run func(_a0 interface{})) *MockEList_IndexOf_Call {
@@ -297,7 +297,7 @@ type MockEList_Insert_Call struct {
 //   - index int
 //   - element interface{}
 func (_e *MockEList_Expecter) Insert(index interface{}, element interface{}) *MockEList_Insert_Call {
-	return &MockEList_Insert_Call{Call: _e.mock.On("Insert", index, element)}
+	return &MockEList_Insert_Call{Call: _e.Mock.On("Insert", index, element)}
 }
 
 func (_c *MockEList_Insert_Call) Run(run func(index int, element interface{})) *MockEList_Insert_Call {
@@ -335,7 +335,7 @@ type MockEList_InsertAll_Call struct {
 //   - index int
 //   - element EList
 func (_e *MockEList_Expecter) InsertAll(index interface{}, element interface{}) *MockEList_InsertAll_Call {
-	return &MockEList_InsertAll_Call{Call: _e.mock.On("InsertAll", index, element)}
+	return &MockEList_InsertAll_Call{Call: _e.Mock.On("InsertAll", index, element)}
 }
 
 func (_c *MockEList_InsertAll_Call) Run(run func(index int, element EList)) *MockEList_InsertAll_Call {
@@ -373,7 +373,7 @@ type MockEList_Iterator_Call struct {
 
 // Iterator is a helper method to define mock.On call
 func (_e *MockEList_Expecter) Iterator() *MockEList_Iterator_Call {
-	return &MockEList_Iterator_Call{Call: _e.mock.On("Iterator")}
+	return &MockEList_Iterator_Call{Call: _e.Mock.On("Iterator")}
 }
 
 func (_c *MockEList_Iterator_Call) Run(run func()) *MockEList_Iterator_Call {
@@ -413,7 +413,7 @@ type MockEList_Move_Call struct {
 //   - oldIndex int
 //   - newIndex int
 func (_e *MockEList_Expecter) Move(oldIndex interface{}, newIndex interface{}) *MockEList_Move_Call {
-	return &MockEList_Move_Call{Call: _e.mock.On("Move", oldIndex, newIndex)}
+	return &MockEList_Move_Call{Call: _e.Mock.On("Move", oldIndex, newIndex)}
 }
 
 func (_c *MockEList_Move_Call) Run(run func(oldIndex int, newIndex int)) *MockEList_Move_Call {
@@ -442,7 +442,7 @@ type MockEList_MoveObject_Call struct {
 //   - index int
 //   - element interface{}
 func (_e *MockEList_Expecter) MoveObject(index interface{}, element interface{}) *MockEList_MoveObject_Call {
-	return &MockEList_MoveObject_Call{Call: _e.mock.On("MoveObject", index, element)}
+	return &MockEList_MoveObject_Call{Call: _e.Mock.On("MoveObject", index, element)}
 }
 
 func (_c *MockEList_MoveObject_Call) Run(run func(index int, element interface{})) *MockEList_MoveObject_Call {
@@ -479,7 +479,7 @@ type MockEList_Remove_Call struct {
 // Remove is a helper method to define mock.On call
 //   - element interface{}
 func (_e *MockEList_Expecter) Remove(element interface{}) *MockEList_Remove_Call {
-	return &MockEList_Remove_Call{Call: _e.mock.On("Remove", element)}
+	return &MockEList_Remove_Call{Call: _e.Mock.On("Remove", element)}
 }
 
 func (_c *MockEList_Remove_Call) Run(run func(element interface{})) *MockEList_Remove_Call {
@@ -516,7 +516,7 @@ type MockEList_RemoveAll_Call struct {
 // RemoveAll is a helper method to define mock.On call
 //   - collection EList
 func (_e *MockEList_Expecter) RemoveAll(collection interface{}) *MockEList_RemoveAll_Call {
-	return &MockEList_RemoveAll_Call{Call: _e.mock.On("RemoveAll", collection)}
+	return &MockEList_RemoveAll_Call{Call: _e.Mock.On("RemoveAll", collection)}
 }
 
 func (_c *MockEList_RemoveAll_Call) Run(run func(collection EList)) *MockEList_RemoveAll_Call {
@@ -555,7 +555,7 @@ type MockEList_RemoveAt_Call struct {
 // RemoveAt is a helper method to define mock.On call
 //   - index int
 func (_e *MockEList_Expecter) RemoveAt(index interface{}) *MockEList_RemoveAt_Call {
-	return &MockEList_RemoveAt_Call{Call: _e.mock.On("RemoveAt", index)}
+	return &MockEList_RemoveAt_Call{Call: _e.Mock.On("RemoveAt", index)}
 }
 
 func (_c *MockEList_RemoveAt_Call) Run(run func(index int)) *MockEList_RemoveAt_Call {
@@ -584,7 +584,7 @@ type MockEList_RemoveRange_Call struct {
 //   - fromIndex int
 //   - toIndex int
 func (_e *MockEList_Expecter) RemoveRange(fromIndex interface{}, toIndex interface{}) *MockEList_RemoveRange_Call {
-	return &MockEList_RemoveRange_Call{Call: _e.mock.On("RemoveRange", fromIndex, toIndex)}
+	return &MockEList_RemoveRange_Call{Call: _e.Mock.On("RemoveRange", fromIndex, toIndex)}
 }
 
 func (_c *MockEList_RemoveRange_Call) Run(run func(fromIndex int, toIndex int)) *MockEList_RemoveRange_Call {
@@ -624,7 +624,7 @@ type MockEList_Set_Call struct {
 //   - index int
 //   - element interface{}
 func (_e *MockEList_Expecter) Set(index interface{}, element interface{}) *MockEList_Set_Call {
-	return &MockEList_Set_Call{Call: _e.mock.On("Set", index, element)}
+	return &MockEList_Set_Call{Call: _e.Mock.On("Set", index, element)}
 }
 
 func (_c *MockEList_Set_Call) Run(run func(index int, element interface{})) *MockEList_Set_Call {
@@ -660,7 +660,7 @@ type MockEList_Size_Call struct {
 
 // Size is a helper method to define mock.On call
 func (_e *MockEList_Expecter) Size() *MockEList_Size_Call {
-	return &MockEList_Size_Call{Call: _e.mock.On("Size")}
+	return &MockEList_Size_Call{Call: _e.Mock.On("Size")}
 }
 
 func (_c *MockEList_Size_Call) Run(run func()) *MockEList_Size_Call {
@@ -698,7 +698,7 @@ type MockEList_ToArray_Call struct {
 
 // ToArray is a helper method to define mock.On call
 func (_e *MockEList_Expecter) ToArray() *MockEList_ToArray_Call {
-	return &MockEList_ToArray_Call{Call: _e.mock.On("ToArray")}
+	return &MockEList_ToArray_Call{Call: _e.Mock.On("ToArray")}
 }
 
 func (_c *MockEList_ToArray_Call) Run(run func()) *MockEList_ToArray_Call {

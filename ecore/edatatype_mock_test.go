@@ -49,7 +49,7 @@ func TestMockEDataTypeIsSerializable(t *testing.T) {
 	o := NewMockEDataType(t)
 	r := bool(true)
 	m := newMockEDataTypeRun(t)
-	o.EXPECT().IsSerializable().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().IsSerializable().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().IsSerializable().Once().Return(func() bool { return r })
 	assert.Equal(t, r, o.IsSerializable())
 	assert.Equal(t, r, o.IsSerializable())
@@ -60,6 +60,6 @@ func TestMockEDataTypeSetSerializable(t *testing.T) {
 	o := NewMockEDataType(t)
 	v := bool(true)
 	m := newMockEDataTypeRun(t, v)
-	o.EXPECT().SetSerializable(v).Run(func(_p0 bool) { m.Run(_p0) }).Once()
+	o.EXPECT().SetSerializable(v).Return().Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetSerializable(v)
 }

@@ -49,7 +49,7 @@ func TestMockEReferenceIsContainer(t *testing.T) {
 	o := NewMockEReference(t)
 	r := bool(true)
 	m := newMockEReferenceRun(t)
-	o.EXPECT().IsContainer().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().IsContainer().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().IsContainer().Once().Return(func() bool { return r })
 	assert.Equal(t, r, o.IsContainer())
 	assert.Equal(t, r, o.IsContainer())
@@ -60,7 +60,7 @@ func TestMockEReferenceIsContainment(t *testing.T) {
 	o := NewMockEReference(t)
 	r := bool(true)
 	m := newMockEReferenceRun(t)
-	o.EXPECT().IsContainment().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().IsContainment().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().IsContainment().Once().Return(func() bool { return r })
 	assert.Equal(t, r, o.IsContainment())
 	assert.Equal(t, r, o.IsContainment())
@@ -71,16 +71,16 @@ func TestMockEReferenceSetContainment(t *testing.T) {
 	o := NewMockEReference(t)
 	v := bool(true)
 	m := newMockEReferenceRun(t, v)
-	o.EXPECT().SetContainment(v).Run(func(_p0 bool) { m.Run(_p0) }).Once()
+	o.EXPECT().SetContainment(v).Return().Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetContainment(v)
 }
 
 // TestMockEReferenceGetEKeys tests method GetEKeys
 func TestMockEReferenceGetEKeys(t *testing.T) {
-	o := &MockEReference{}
-	l := &MockEList{}
+	o := NewMockEReference(t)
+	l := NewMockEList(t)
 	m := newMockEReferenceRun(t)
-	o.EXPECT().GetEKeys().Run(func() { m.Run() }).Return(l).Once()
+	o.EXPECT().GetEKeys().Return(l).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEKeys().Once().Return(func() EList { return l })
 	assert.Equal(t, l, o.GetEKeys())
 	assert.Equal(t, l, o.GetEKeys())
@@ -91,7 +91,7 @@ func TestMockEReferenceGetEOpposite(t *testing.T) {
 	o := NewMockEReference(t)
 	r := new(MockEReference)
 	m := newMockEReferenceRun(t)
-	o.EXPECT().GetEOpposite().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetEOpposite().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEOpposite().Once().Return(func() EReference { return r })
 	assert.Equal(t, r, o.GetEOpposite())
 	assert.Equal(t, r, o.GetEOpposite())
@@ -102,7 +102,7 @@ func TestMockEReferenceSetEOpposite(t *testing.T) {
 	o := NewMockEReference(t)
 	v := new(MockEReference)
 	m := newMockEReferenceRun(t, v)
-	o.EXPECT().SetEOpposite(v).Run(func(_p0 EReference) { m.Run(_p0) }).Once()
+	o.EXPECT().SetEOpposite(v).Return().Run(func(_p0 EReference) { m.Run(_p0) }).Once()
 	o.SetEOpposite(v)
 }
 
@@ -111,7 +111,7 @@ func TestMockEReferenceGetEReferenceType(t *testing.T) {
 	o := NewMockEReference(t)
 	r := new(MockEClass)
 	m := newMockEReferenceRun(t)
-	o.EXPECT().GetEReferenceType().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetEReferenceType().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEReferenceType().Once().Return(func() EClass { return r })
 	assert.Equal(t, r, o.GetEReferenceType())
 	assert.Equal(t, r, o.GetEReferenceType())
@@ -122,7 +122,7 @@ func TestMockEReferenceIsResolveProxies(t *testing.T) {
 	o := NewMockEReference(t)
 	r := bool(true)
 	m := newMockEReferenceRun(t)
-	o.EXPECT().IsResolveProxies().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().IsResolveProxies().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().IsResolveProxies().Once().Return(func() bool { return r })
 	assert.Equal(t, r, o.IsResolveProxies())
 	assert.Equal(t, r, o.IsResolveProxies())
@@ -133,6 +133,6 @@ func TestMockEReferenceSetResolveProxies(t *testing.T) {
 	o := NewMockEReference(t)
 	v := bool(true)
 	m := newMockEReferenceRun(t, v)
-	o.EXPECT().SetResolveProxies(v).Run(func(_p0 bool) { m.Run(_p0) }).Once()
+	o.EXPECT().SetResolveProxies(v).Return().Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetResolveProxies(v)
 }

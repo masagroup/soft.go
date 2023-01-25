@@ -49,7 +49,7 @@ func TestMockEObjectEAllContents(t *testing.T) {
 	o := &MockEObject{}
 	m := newMockEObjectRun(t)
 	r := EIterator(nil)
-	o.EXPECT().EAllContents().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().EAllContents().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().EAllContents().Once().Return(func() EIterator {
 		return r
 	})
@@ -63,7 +63,7 @@ func TestMockEObjectEClass(t *testing.T) {
 	o := &MockEObject{}
 	m := newMockEObjectRun(t)
 	r := new(MockEClass)
-	o.EXPECT().EClass().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().EClass().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().EClass().Once().Return(func() EClass {
 		return r
 	})
@@ -77,7 +77,7 @@ func TestMockEObjectEContainer(t *testing.T) {
 	o := &MockEObject{}
 	m := newMockEObjectRun(t)
 	r := new(MockEObjectInternal)
-	o.EXPECT().EContainer().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().EContainer().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().EContainer().Once().Return(func() EObject {
 		return r
 	})
@@ -91,7 +91,7 @@ func TestMockEObjectEContainingFeature(t *testing.T) {
 	o := &MockEObject{}
 	m := newMockEObjectRun(t)
 	r := new(MockEStructuralFeature)
-	o.EXPECT().EContainingFeature().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().EContainingFeature().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().EContainingFeature().Once().Return(func() EStructuralFeature {
 		return r
 	})
@@ -105,7 +105,7 @@ func TestMockEObjectEContainmentFeature(t *testing.T) {
 	o := &MockEObject{}
 	m := newMockEObjectRun(t)
 	r := new(MockEReference)
-	o.EXPECT().EContainmentFeature().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().EContainmentFeature().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().EContainmentFeature().Once().Return(func() EReference {
 		return r
 	})
@@ -119,7 +119,7 @@ func TestMockEObjectEContents(t *testing.T) {
 	o := &MockEObject{}
 	m := newMockEObjectRun(t)
 	r := EList(NewEmptyBasicEList())
-	o.EXPECT().EContents().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().EContents().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().EContents().Once().Return(func() EList {
 		return r
 	})
@@ -133,7 +133,7 @@ func TestMockEObjectECrossReferences(t *testing.T) {
 	o := &MockEObject{}
 	m := newMockEObjectRun(t)
 	r := EList(NewEmptyBasicEList())
-	o.EXPECT().ECrossReferences().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().ECrossReferences().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().ECrossReferences().Once().Return(func() EList {
 		return r
 	})
@@ -148,7 +148,7 @@ func TestMockEObjectEGet(t *testing.T) {
 	feature := new(MockEStructuralFeature)
 	m := newMockEObjectRun(t, feature)
 	r := any(nil)
-	o.EXPECT().EGet(feature).Run(func(feature EStructuralFeature) { m.Run(feature) }).Return(r).Once()
+	o.EXPECT().EGet(feature).Return(r).Run(func(feature EStructuralFeature) { m.Run(feature) }).Once()
 	o.EXPECT().EGet(feature).Once().Return(func() any {
 		return r
 	})
@@ -164,7 +164,7 @@ func TestMockEObjectEGetResolve(t *testing.T) {
 	resolve := bool(true)
 	m := newMockEObjectRun(t, feature, resolve)
 	r := any(nil)
-	o.EXPECT().EGetResolve(feature, resolve).Run(func(feature EStructuralFeature, resolve bool) { m.Run(feature, resolve) }).Return(r).Once()
+	o.EXPECT().EGetResolve(feature, resolve).Return(r).Run(func(feature EStructuralFeature, resolve bool) { m.Run(feature, resolve) }).Once()
 	o.EXPECT().EGetResolve(feature, resolve).Once().Return(func() any {
 		return r
 	})
@@ -180,7 +180,7 @@ func TestMockEObjectEInvoke(t *testing.T) {
 	arguments := EList(NewEmptyBasicEList())
 	m := newMockEObjectRun(t, operation, arguments)
 	r := any(nil)
-	o.EXPECT().EInvoke(operation, arguments).Run(func(operation EOperation, arguments EList) { m.Run(operation, arguments) }).Return(r).Once()
+	o.EXPECT().EInvoke(operation, arguments).Return(r).Run(func(operation EOperation, arguments EList) { m.Run(operation, arguments) }).Once()
 	o.EXPECT().EInvoke(operation, arguments).Once().Return(func() any {
 		return r
 	})
@@ -194,7 +194,7 @@ func TestMockEObjectEIsProxy(t *testing.T) {
 	o := &MockEObject{}
 	m := newMockEObjectRun(t)
 	r := bool(true)
-	o.EXPECT().EIsProxy().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().EIsProxy().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().EIsProxy().Once().Return(func() bool {
 		return r
 	})
@@ -209,7 +209,7 @@ func TestMockEObjectEIsSet(t *testing.T) {
 	feature := new(MockEStructuralFeature)
 	m := newMockEObjectRun(t, feature)
 	r := bool(true)
-	o.EXPECT().EIsSet(feature).Run(func(feature EStructuralFeature) { m.Run(feature) }).Return(r).Once()
+	o.EXPECT().EIsSet(feature).Return(r).Run(func(feature EStructuralFeature) { m.Run(feature) }).Once()
 	o.EXPECT().EIsSet(feature).Once().Return(func() bool {
 		return r
 	})
@@ -223,7 +223,7 @@ func TestMockEObjectEResource(t *testing.T) {
 	o := &MockEObject{}
 	m := newMockEObjectRun(t)
 	r := EResource(nil)
-	o.EXPECT().EResource().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().EResource().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().EResource().Once().Return(func() EResource {
 		return r
 	})
@@ -238,7 +238,7 @@ func TestMockEObjectESet(t *testing.T) {
 	feature := new(MockEStructuralFeature)
 	newValue := any(nil)
 	m := newMockEObjectRun(t, feature, newValue)
-	o.EXPECT().ESet(feature, newValue).Run(func(feature EStructuralFeature, newValue any) { m.Run(feature, newValue) }).Once()
+	o.EXPECT().ESet(feature, newValue).Return().Run(func(feature EStructuralFeature, newValue any) { m.Run(feature, newValue) }).Once()
 	o.ESet(feature, newValue)
 	o.AssertExpectations(t)
 }
@@ -248,7 +248,7 @@ func TestMockEObjectEUnset(t *testing.T) {
 	o := &MockEObject{}
 	feature := new(MockEStructuralFeature)
 	m := newMockEObjectRun(t, feature)
-	o.EXPECT().EUnset(feature).Run(func(feature EStructuralFeature) { m.Run(feature) }).Once()
+	o.EXPECT().EUnset(feature).Return().Run(func(feature EStructuralFeature) { m.Run(feature) }).Once()
 	o.EUnset(feature)
 	o.AssertExpectations(t)
 }

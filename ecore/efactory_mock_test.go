@@ -49,7 +49,7 @@ func TestMockEFactoryGetEPackage(t *testing.T) {
 	o := NewMockEFactory(t)
 	r := new(MockEPackage)
 	m := newMockEFactoryRun(t)
-	o.EXPECT().GetEPackage().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetEPackage().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEPackage().Once().Return(func() EPackage { return r })
 	assert.Equal(t, r, o.GetEPackage())
 	assert.Equal(t, r, o.GetEPackage())
@@ -60,7 +60,7 @@ func TestMockEFactorySetEPackage(t *testing.T) {
 	o := NewMockEFactory(t)
 	v := new(MockEPackage)
 	m := newMockEFactoryRun(t, v)
-	o.EXPECT().SetEPackage(v).Run(func(_p0 EPackage) { m.Run(_p0) }).Once()
+	o.EXPECT().SetEPackage(v).Return().Run(func(_p0 EPackage) { m.Run(_p0) }).Once()
 	o.SetEPackage(v)
 }
 
@@ -71,7 +71,7 @@ func TestMockEFactoryConvertToString(t *testing.T) {
 	instanceValue := any(nil)
 	m := newMockEFactoryRun(t, eDataType, instanceValue)
 	r := string("Test String")
-	o.EXPECT().ConvertToString(eDataType, instanceValue).Run(func(eDataType EDataType, instanceValue any) { m.Run(eDataType, instanceValue) }).Return(r).Once()
+	o.EXPECT().ConvertToString(eDataType, instanceValue).Return(r).Run(func(eDataType EDataType, instanceValue any) { m.Run(eDataType, instanceValue) }).Once()
 	o.EXPECT().ConvertToString(eDataType, instanceValue).Once().Return(func() string {
 		return r
 	})
@@ -86,7 +86,7 @@ func TestMockEFactoryCreate(t *testing.T) {
 	eClass := new(MockEClass)
 	m := newMockEFactoryRun(t, eClass)
 	r := new(MockEObjectInternal)
-	o.EXPECT().Create(eClass).Run(func(eClass EClass) { m.Run(eClass) }).Return(r).Once()
+	o.EXPECT().Create(eClass).Return(r).Run(func(eClass EClass) { m.Run(eClass) }).Once()
 	o.EXPECT().Create(eClass).Once().Return(func() EObject {
 		return r
 	})
@@ -102,7 +102,7 @@ func TestMockEFactoryCreateFromString(t *testing.T) {
 	literalValue := string("Test String")
 	m := newMockEFactoryRun(t, eDataType, literalValue)
 	r := any(nil)
-	o.EXPECT().CreateFromString(eDataType, literalValue).Run(func(eDataType EDataType, literalValue string) { m.Run(eDataType, literalValue) }).Return(r).Once()
+	o.EXPECT().CreateFromString(eDataType, literalValue).Return(r).Run(func(eDataType EDataType, literalValue string) { m.Run(eDataType, literalValue) }).Once()
 	o.EXPECT().CreateFromString(eDataType, literalValue).Once().Return(func() any {
 		return r
 	})

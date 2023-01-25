@@ -46,10 +46,10 @@ func newMockETypeParameterRun(t mockConstructorTestingTmockETypeParameterRun, ar
 
 // TestMockETypeParameterGetEBounds tests method GetEBounds
 func TestMockETypeParameterGetEBounds(t *testing.T) {
-	o := &MockETypeParameter{}
-	l := &MockEList{}
+	o := NewMockETypeParameter(t)
+	l := NewMockEList(t)
 	m := newMockETypeParameterRun(t)
-	o.EXPECT().GetEBounds().Run(func() { m.Run() }).Return(l).Once()
+	o.EXPECT().GetEBounds().Return(l).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEBounds().Once().Return(func() EList { return l })
 	assert.Equal(t, l, o.GetEBounds())
 	assert.Equal(t, l, o.GetEBounds())

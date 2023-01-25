@@ -49,7 +49,7 @@ func TestMockENamedElementGetName(t *testing.T) {
 	o := NewMockENamedElement(t)
 	r := string("Test String")
 	m := newMockENamedElementRun(t)
-	o.EXPECT().GetName().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetName().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetName().Once().Return(func() string { return r })
 	assert.Equal(t, r, o.GetName())
 	assert.Equal(t, r, o.GetName())
@@ -60,6 +60,6 @@ func TestMockENamedElementSetName(t *testing.T) {
 	o := NewMockENamedElement(t)
 	v := string("Test String")
 	m := newMockENamedElementRun(t, v)
-	o.EXPECT().SetName(v).Run(func(_p0 string) { m.Run(_p0) }).Once()
+	o.EXPECT().SetName(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetName(v)
 }

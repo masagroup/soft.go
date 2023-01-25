@@ -49,7 +49,7 @@ func TestMockEParameterGetEOperation(t *testing.T) {
 	o := NewMockEParameter(t)
 	r := new(MockEOperation)
 	m := newMockEParameterRun(t)
-	o.EXPECT().GetEOperation().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetEOperation().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEOperation().Once().Return(func() EOperation { return r })
 	assert.Equal(t, r, o.GetEOperation())
 	assert.Equal(t, r, o.GetEOperation())

@@ -46,10 +46,10 @@ func newMockEEnumRun(t mockConstructorTestingTmockEEnumRun, args ...any) *mockEE
 
 // TestMockEEnumGetELiterals tests method GetELiterals
 func TestMockEEnumGetELiterals(t *testing.T) {
-	o := &MockEEnum{}
-	l := &MockEList{}
+	o := NewMockEEnum(t)
+	l := NewMockEList(t)
 	m := newMockEEnumRun(t)
-	o.EXPECT().GetELiterals().Run(func() { m.Run() }).Return(l).Once()
+	o.EXPECT().GetELiterals().Return(l).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetELiterals().Once().Return(func() EList { return l })
 	assert.Equal(t, l, o.GetELiterals())
 	assert.Equal(t, l, o.GetELiterals())
@@ -61,7 +61,7 @@ func TestMockEEnumGetEEnumLiteralByLiteral(t *testing.T) {
 	literal := string("Test String")
 	m := newMockEEnumRun(t, literal)
 	r := new(MockEEnumLiteral)
-	o.EXPECT().GetEEnumLiteralByLiteral(literal).Run(func(literal string) { m.Run(literal) }).Return(r).Once()
+	o.EXPECT().GetEEnumLiteralByLiteral(literal).Return(r).Run(func(literal string) { m.Run(literal) }).Once()
 	o.EXPECT().GetEEnumLiteralByLiteral(literal).Once().Return(func() EEnumLiteral {
 		return r
 	})
@@ -76,7 +76,7 @@ func TestMockEEnumGetEEnumLiteralByName(t *testing.T) {
 	name := string("Test String")
 	m := newMockEEnumRun(t, name)
 	r := new(MockEEnumLiteral)
-	o.EXPECT().GetEEnumLiteralByName(name).Run(func(name string) { m.Run(name) }).Return(r).Once()
+	o.EXPECT().GetEEnumLiteralByName(name).Return(r).Run(func(name string) { m.Run(name) }).Once()
 	o.EXPECT().GetEEnumLiteralByName(name).Once().Return(func() EEnumLiteral {
 		return r
 	})
@@ -91,7 +91,7 @@ func TestMockEEnumGetEEnumLiteralByValue(t *testing.T) {
 	value := int(45)
 	m := newMockEEnumRun(t, value)
 	r := new(MockEEnumLiteral)
-	o.EXPECT().GetEEnumLiteralByValue(value).Run(func(value int) { m.Run(value) }).Return(r).Once()
+	o.EXPECT().GetEEnumLiteralByValue(value).Return(r).Run(func(value int) { m.Run(value) }).Once()
 	o.EXPECT().GetEEnumLiteralByValue(value).Once().Return(func() EEnumLiteral {
 		return r
 	})

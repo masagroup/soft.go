@@ -49,7 +49,7 @@ func TestMockEStringToStringMapEntryGetTypedKey(t *testing.T) {
 	o := NewMockEStringToStringMapEntry(t)
 	r := string("Test String")
 	m := newMockEStringToStringMapEntryRun(t)
-	o.EXPECT().GetTypedKey().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetTypedKey().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetTypedKey().Once().Return(func() string { return r })
 	assert.Equal(t, r, o.GetTypedKey())
 	assert.Equal(t, r, o.GetTypedKey())
@@ -60,7 +60,7 @@ func TestMockEStringToStringMapEntrySetTypedKey(t *testing.T) {
 	o := NewMockEStringToStringMapEntry(t)
 	v := string("Test String")
 	m := newMockEStringToStringMapEntryRun(t, v)
-	o.EXPECT().SetTypedKey(v).Run(func(_p0 string) { m.Run(_p0) }).Once()
+	o.EXPECT().SetTypedKey(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetTypedKey(v)
 }
 
@@ -69,7 +69,7 @@ func TestMockEStringToStringMapEntryGetTypedValue(t *testing.T) {
 	o := NewMockEStringToStringMapEntry(t)
 	r := string("Test String")
 	m := newMockEStringToStringMapEntryRun(t)
-	o.EXPECT().GetTypedValue().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetTypedValue().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetTypedValue().Once().Return(func() string { return r })
 	assert.Equal(t, r, o.GetTypedValue())
 	assert.Equal(t, r, o.GetTypedValue())
@@ -80,6 +80,6 @@ func TestMockEStringToStringMapEntrySetTypedValue(t *testing.T) {
 	o := NewMockEStringToStringMapEntry(t)
 	v := string("Test String")
 	m := newMockEStringToStringMapEntryRun(t, v)
-	o.EXPECT().SetTypedValue(v).Run(func(_p0 string) { m.Run(_p0) }).Once()
+	o.EXPECT().SetTypedValue(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetTypedValue(v)
 }

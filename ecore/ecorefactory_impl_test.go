@@ -19,6 +19,12 @@ import (
 	"time"
 )
 
+func TestFactoryAs(t *testing.T) {
+	factory := newEcoreFactoryImpl()
+	assert.Equal(t, factory, factory.AsInternal())
+	assert.Equal(t, factory, factory.AsEFactory())
+}
+
 func TestFactoryCreateFromEClass(t *testing.T) {
 	_ = mock.Anything
 	factory := newEcoreFactoryImpl()

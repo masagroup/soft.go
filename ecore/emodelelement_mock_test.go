@@ -46,10 +46,10 @@ func newMockEModelElementRun(t mockConstructorTestingTmockEModelElementRun, args
 
 // TestMockEModelElementGetEAnnotations tests method GetEAnnotations
 func TestMockEModelElementGetEAnnotations(t *testing.T) {
-	o := &MockEModelElement{}
-	l := &MockEList{}
+	o := NewMockEModelElement(t)
+	l := NewMockEList(t)
 	m := newMockEModelElementRun(t)
-	o.EXPECT().GetEAnnotations().Run(func() { m.Run() }).Return(l).Once()
+	o.EXPECT().GetEAnnotations().Return(l).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEAnnotations().Once().Return(func() EList { return l })
 	assert.Equal(t, l, o.GetEAnnotations())
 	assert.Equal(t, l, o.GetEAnnotations())
@@ -61,7 +61,7 @@ func TestMockEModelElementGetEAnnotation(t *testing.T) {
 	source := string("Test String")
 	m := newMockEModelElementRun(t, source)
 	r := new(MockEAnnotation)
-	o.EXPECT().GetEAnnotation(source).Run(func(source string) { m.Run(source) }).Return(r).Once()
+	o.EXPECT().GetEAnnotation(source).Return(r).Run(func(source string) { m.Run(source) }).Once()
 	o.EXPECT().GetEAnnotation(source).Once().Return(func() EAnnotation {
 		return r
 	})

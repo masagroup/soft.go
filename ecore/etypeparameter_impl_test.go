@@ -58,7 +58,7 @@ func TestETypeParameterESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEGenericType)
 		l := NewImmutableEList([]any{mockValue})
-		mockValue.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-ETYPE_PARAMETER__EBOUNDS, mock.Anything).Return(nil).Once()
+		mockValue.EXPECT().EInverseAdd(o, EOPPOSITE_FEATURE_BASE-ETYPE_PARAMETER__EBOUNDS, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
 		o.ESetFromID(ETYPE_PARAMETER__EBOUNDS, l)
@@ -91,14 +91,14 @@ func TestETypeParameterEUnsetFromID(t *testing.T) {
 func TestETypeParameterEBasicInverseRemove(t *testing.T) {
 	o := newETypeParameterImpl()
 	{
-		mockObject := new(MockEObject)
-		mockNotifications := new(MockENotificationChain)
+		mockObject := NewMockEObject(t)
+		mockNotifications := NewMockENotificationChain(t)
 		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
 	}
 	{
 		// initialize list with a mock object
 		mockObject := new(MockEGenericType)
-		mockObject.On("EInverseAdd", o, EOPPOSITE_FEATURE_BASE-ETYPE_PARAMETER__EBOUNDS, mock.Anything).Return(nil).Once()
+		mockObject.EXPECT().EInverseAdd(o, EOPPOSITE_FEATURE_BASE-ETYPE_PARAMETER__EBOUNDS, mock.Anything).Return(nil).Once()
 
 		l := o.GetEBounds()
 		l.Add(mockObject)

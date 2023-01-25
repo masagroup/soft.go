@@ -109,11 +109,12 @@ func TestMockEOperationSetOperationID(t *testing.T) {
 func TestMockEOperationIsOverrideOf(t *testing.T) {
 	o := &MockEOperation{}
 	someOperation := new(MockEOperation)
+	m := newMockEOperationRun(t, someOperation)
 	r := bool(true)
-	o.On("IsOverrideOf", someOperation).Return(r).Once()
-	o.On("IsOverrideOf", someOperation).Return(func() bool {
+	o.EXPECT().IsOverrideOf(someOperation).Run(func(someOperation EOperation) { m.Run(someOperation) }).Return(r).Once()
+	o.EXPECT().IsOverrideOf(someOperation).Once().Return(func() bool {
 		return r
-	}).Once()
+	})
 	assert.Equal(t, r, o.IsOverrideOf(someOperation))
 	assert.Equal(t, r, o.IsOverrideOf(someOperation))
 	o.AssertExpectations(t)

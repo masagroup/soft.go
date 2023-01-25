@@ -138,19 +138,21 @@ func (c *MockEAnnotation_GetEModelElement_Call) Return(eModelElement EModelEleme
 }
 
 // SetEModelElement provides mock implementation for setting the value of eModelElement
-func (eAnnotation *MockEAnnotation) SetEModelElement(newEModelElement EModelElement) {
-	eAnnotation.Called(newEModelElement)
+func (eAnnotation *MockEAnnotation) SetEModelElement(eModelElement EModelElement) {
+	eAnnotation.Called(eModelElement)
 }
 
 type MockEAnnotation_SetEModelElement_Call struct {
 	*mock.Call
 }
 
-func (e *MockEAnnotation_Expecter) SetEModelElement(newEModelElement EModelElement) *MockEAnnotation_SetEModelElement_Call {
-	return &MockEAnnotation_SetEModelElement_Call{Call: e.Mock.On("SetEModelElement", newEModelElement)}
+// SetEModelElementis a helper method to define mock.On call
+// - eModelElement EModelElement
+func (e *MockEAnnotation_Expecter) SetEModelElement(eModelElement any) *MockEAnnotation_SetEModelElement_Call {
+	return &MockEAnnotation_SetEModelElement_Call{Call: e.Mock.On("SetEModelElement", eModelElement)}
 }
 
-func (c *MockEAnnotation_SetEModelElement_Call) Run(run func(newEModelElement EModelElement)) *MockEAnnotation_SetEModelElement_Call {
+func (c *MockEAnnotation_SetEModelElement_Call) Run(run func(eModelElement EModelElement)) *MockEAnnotation_SetEModelElement_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(EModelElement))
 	})
@@ -235,19 +237,21 @@ func (c *MockEAnnotation_GetSource_Call) Return(source string) *MockEAnnotation_
 }
 
 // SetSource provides mock implementation for setting the value of source
-func (eAnnotation *MockEAnnotation) SetSource(newSource string) {
-	eAnnotation.Called(newSource)
+func (eAnnotation *MockEAnnotation) SetSource(source string) {
+	eAnnotation.Called(source)
 }
 
 type MockEAnnotation_SetSource_Call struct {
 	*mock.Call
 }
 
-func (e *MockEAnnotation_Expecter) SetSource(newSource string) *MockEAnnotation_SetSource_Call {
-	return &MockEAnnotation_SetSource_Call{Call: e.Mock.On("SetSource", newSource)}
+// SetSourceis a helper method to define mock.On call
+// - source string
+func (e *MockEAnnotation_Expecter) SetSource(source any) *MockEAnnotation_SetSource_Call {
+	return &MockEAnnotation_SetSource_Call{Call: e.Mock.On("SetSource", source)}
 }
 
-func (c *MockEAnnotation_SetSource_Call) Run(run func(newSource string)) *MockEAnnotation_SetSource_Call {
+func (c *MockEAnnotation_SetSource_Call) Run(run func(source string)) *MockEAnnotation_SetSource_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(string))
 	})

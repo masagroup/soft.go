@@ -66,19 +66,21 @@ func (c *MockEGenericType_GetEClassifier_Call) Return(eClassifier EClassifier) *
 }
 
 // SetEClassifier provides mock implementation for setting the value of eClassifier
-func (eGenericType *MockEGenericType) SetEClassifier(newEClassifier EClassifier) {
-	eGenericType.Called(newEClassifier)
+func (eGenericType *MockEGenericType) SetEClassifier(eClassifier EClassifier) {
+	eGenericType.Called(eClassifier)
 }
 
 type MockEGenericType_SetEClassifier_Call struct {
 	*mock.Call
 }
 
-func (e *MockEGenericType_Expecter) SetEClassifier(newEClassifier EClassifier) *MockEGenericType_SetEClassifier_Call {
-	return &MockEGenericType_SetEClassifier_Call{Call: e.Mock.On("SetEClassifier", newEClassifier)}
+// SetEClassifieris a helper method to define mock.On call
+// - eClassifier EClassifier
+func (e *MockEGenericType_Expecter) SetEClassifier(eClassifier any) *MockEGenericType_SetEClassifier_Call {
+	return &MockEGenericType_SetEClassifier_Call{Call: e.Mock.On("SetEClassifier", eClassifier)}
 }
 
-func (c *MockEGenericType_SetEClassifier_Call) Run(run func(newEClassifier EClassifier)) *MockEGenericType_SetEClassifier_Call {
+func (c *MockEGenericType_SetEClassifier_Call) Run(run func(eClassifier EClassifier)) *MockEGenericType_SetEClassifier_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(EClassifier))
 	})
@@ -127,19 +129,21 @@ func (c *MockEGenericType_GetELowerBound_Call) Return(eLowerBound EGenericType) 
 }
 
 // SetELowerBound provides mock implementation for setting the value of eLowerBound
-func (eGenericType *MockEGenericType) SetELowerBound(newELowerBound EGenericType) {
-	eGenericType.Called(newELowerBound)
+func (eGenericType *MockEGenericType) SetELowerBound(eLowerBound EGenericType) {
+	eGenericType.Called(eLowerBound)
 }
 
 type MockEGenericType_SetELowerBound_Call struct {
 	*mock.Call
 }
 
-func (e *MockEGenericType_Expecter) SetELowerBound(newELowerBound EGenericType) *MockEGenericType_SetELowerBound_Call {
-	return &MockEGenericType_SetELowerBound_Call{Call: e.Mock.On("SetELowerBound", newELowerBound)}
+// SetELowerBoundis a helper method to define mock.On call
+// - eLowerBound EGenericType
+func (e *MockEGenericType_Expecter) SetELowerBound(eLowerBound any) *MockEGenericType_SetELowerBound_Call {
+	return &MockEGenericType_SetELowerBound_Call{Call: e.Mock.On("SetELowerBound", eLowerBound)}
 }
 
-func (c *MockEGenericType_SetELowerBound_Call) Run(run func(newELowerBound EGenericType)) *MockEGenericType_SetELowerBound_Call {
+func (c *MockEGenericType_SetELowerBound_Call) Run(run func(eLowerBound EGenericType)) *MockEGenericType_SetELowerBound_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(EGenericType))
 	})
@@ -260,19 +264,21 @@ func (c *MockEGenericType_GetETypeParameter_Call) Return(eTypeParameter ETypePar
 }
 
 // SetETypeParameter provides mock implementation for setting the value of eTypeParameter
-func (eGenericType *MockEGenericType) SetETypeParameter(newETypeParameter ETypeParameter) {
-	eGenericType.Called(newETypeParameter)
+func (eGenericType *MockEGenericType) SetETypeParameter(eTypeParameter ETypeParameter) {
+	eGenericType.Called(eTypeParameter)
 }
 
 type MockEGenericType_SetETypeParameter_Call struct {
 	*mock.Call
 }
 
-func (e *MockEGenericType_Expecter) SetETypeParameter(newETypeParameter ETypeParameter) *MockEGenericType_SetETypeParameter_Call {
-	return &MockEGenericType_SetETypeParameter_Call{Call: e.Mock.On("SetETypeParameter", newETypeParameter)}
+// SetETypeParameteris a helper method to define mock.On call
+// - eTypeParameter ETypeParameter
+func (e *MockEGenericType_Expecter) SetETypeParameter(eTypeParameter any) *MockEGenericType_SetETypeParameter_Call {
+	return &MockEGenericType_SetETypeParameter_Call{Call: e.Mock.On("SetETypeParameter", eTypeParameter)}
 }
 
-func (c *MockEGenericType_SetETypeParameter_Call) Run(run func(newETypeParameter ETypeParameter)) *MockEGenericType_SetETypeParameter_Call {
+func (c *MockEGenericType_SetETypeParameter_Call) Run(run func(eTypeParameter ETypeParameter)) *MockEGenericType_SetETypeParameter_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(ETypeParameter))
 	})
@@ -321,19 +327,21 @@ func (c *MockEGenericType_GetEUpperBound_Call) Return(eUpperBound EGenericType) 
 }
 
 // SetEUpperBound provides mock implementation for setting the value of eUpperBound
-func (eGenericType *MockEGenericType) SetEUpperBound(newEUpperBound EGenericType) {
-	eGenericType.Called(newEUpperBound)
+func (eGenericType *MockEGenericType) SetEUpperBound(eUpperBound EGenericType) {
+	eGenericType.Called(eUpperBound)
 }
 
 type MockEGenericType_SetEUpperBound_Call struct {
 	*mock.Call
 }
 
-func (e *MockEGenericType_Expecter) SetEUpperBound(newEUpperBound EGenericType) *MockEGenericType_SetEUpperBound_Call {
-	return &MockEGenericType_SetEUpperBound_Call{Call: e.Mock.On("SetEUpperBound", newEUpperBound)}
+// SetEUpperBoundis a helper method to define mock.On call
+// - eUpperBound EGenericType
+func (e *MockEGenericType_Expecter) SetEUpperBound(eUpperBound any) *MockEGenericType_SetEUpperBound_Call {
+	return &MockEGenericType_SetEUpperBound_Call{Call: e.Mock.On("SetEUpperBound", eUpperBound)}
 }
 
-func (c *MockEGenericType_SetEUpperBound_Call) Run(run func(newEUpperBound EGenericType)) *MockEGenericType_SetEUpperBound_Call {
+func (c *MockEGenericType_SetEUpperBound_Call) Run(run func(eUpperBound EGenericType)) *MockEGenericType_SetEUpperBound_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(EGenericType))
 	})
@@ -359,6 +367,28 @@ func (eGenericType *MockEGenericType) IsInstance(object any) bool {
 	}
 
 	return r
+}
+
+type MockEGenericType_IsInstance_Call struct {
+	*mock.Call
+}
+
+// IsInstanceis a helper method to define mock.On call
+// - object any
+func (e *MockEGenericType_Expecter) IsInstance(object any) *MockEGenericType_IsInstance_Call {
+	return &MockEGenericType_IsInstance_Call{Call: e.Mock.On("IsInstance", object)}
+}
+
+func (c *MockEGenericType_IsInstance_Call) Run(run func(any)) *MockEGenericType_IsInstance_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0])
+	})
+	return c
+}
+
+func (c *MockEGenericType_IsInstance_Call) Return(_a0 bool) *MockEGenericType_IsInstance_Call {
+	c.Call.Return(_a0)
+	return c
 }
 
 type mockConstructorTestingTNewMockEGenericType interface {

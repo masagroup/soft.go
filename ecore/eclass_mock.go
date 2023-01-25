@@ -66,19 +66,21 @@ func (c *MockEClass_IsAbstract_Call) Return(isAbstract bool) *MockEClass_IsAbstr
 }
 
 // SetAbstract provides mock implementation for setting the value of isAbstract
-func (eClass *MockEClass) SetAbstract(newIsAbstract bool) {
-	eClass.Called(newIsAbstract)
+func (eClass *MockEClass) SetAbstract(isAbstract bool) {
+	eClass.Called(isAbstract)
 }
 
 type MockEClass_SetAbstract_Call struct {
 	*mock.Call
 }
 
-func (e *MockEClass_Expecter) SetAbstract(newIsAbstract bool) *MockEClass_SetAbstract_Call {
-	return &MockEClass_SetAbstract_Call{Call: e.Mock.On("SetAbstract", newIsAbstract)}
+// SetAbstractis a helper method to define mock.On call
+// - isAbstract bool
+func (e *MockEClass_Expecter) SetAbstract(isAbstract any) *MockEClass_SetAbstract_Call {
+	return &MockEClass_SetAbstract_Call{Call: e.Mock.On("SetAbstract", isAbstract)}
 }
 
-func (c *MockEClass_SetAbstract_Call) Run(run func(newIsAbstract bool)) *MockEClass_SetAbstract_Call {
+func (c *MockEClass_SetAbstract_Call) Run(run func(isAbstract bool)) *MockEClass_SetAbstract_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(bool))
 	})
@@ -631,19 +633,21 @@ func (c *MockEClass_IsInterface_Call) Return(isInterface bool) *MockEClass_IsInt
 }
 
 // SetInterface provides mock implementation for setting the value of isInterface
-func (eClass *MockEClass) SetInterface(newIsInterface bool) {
-	eClass.Called(newIsInterface)
+func (eClass *MockEClass) SetInterface(isInterface bool) {
+	eClass.Called(isInterface)
 }
 
 type MockEClass_SetInterface_Call struct {
 	*mock.Call
 }
 
-func (e *MockEClass_Expecter) SetInterface(newIsInterface bool) *MockEClass_SetInterface_Call {
-	return &MockEClass_SetInterface_Call{Call: e.Mock.On("SetInterface", newIsInterface)}
+// SetInterfaceis a helper method to define mock.On call
+// - isInterface bool
+func (e *MockEClass_Expecter) SetInterface(isInterface any) *MockEClass_SetInterface_Call {
+	return &MockEClass_SetInterface_Call{Call: e.Mock.On("SetInterface", isInterface)}
 }
 
-func (c *MockEClass_SetInterface_Call) Run(run func(newIsInterface bool)) *MockEClass_SetInterface_Call {
+func (c *MockEClass_SetInterface_Call) Run(run func(isInterface bool)) *MockEClass_SetInterface_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(bool))
 	})
@@ -671,6 +675,28 @@ func (eClass *MockEClass) GetEOperation(operationID int) EOperation {
 	return r
 }
 
+type MockEClass_GetEOperation_Call struct {
+	*mock.Call
+}
+
+// GetEOperationis a helper method to define mock.On call
+// - operationID int
+func (e *MockEClass_Expecter) GetEOperation(operationID any) *MockEClass_GetEOperation_Call {
+	return &MockEClass_GetEOperation_Call{Call: e.Mock.On("GetEOperation", operationID)}
+}
+
+func (c *MockEClass_GetEOperation_Call) Run(run func(int)) *MockEClass_GetEOperation_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(int))
+	})
+	return c
+}
+
+func (c *MockEClass_GetEOperation_Call) Return(_a0 EOperation) *MockEClass_GetEOperation_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
 // GetEStructuralFeature provides mock implementation
 func (eClass *MockEClass) GetEStructuralFeature(featureID int) EStructuralFeature {
 	ret := eClass.Called(featureID)
@@ -685,6 +711,28 @@ func (eClass *MockEClass) GetEStructuralFeature(featureID int) EStructuralFeatur
 	}
 
 	return r
+}
+
+type MockEClass_GetEStructuralFeature_Call struct {
+	*mock.Call
+}
+
+// GetEStructuralFeatureis a helper method to define mock.On call
+// - featureID int
+func (e *MockEClass_Expecter) GetEStructuralFeature(featureID any) *MockEClass_GetEStructuralFeature_Call {
+	return &MockEClass_GetEStructuralFeature_Call{Call: e.Mock.On("GetEStructuralFeature", featureID)}
+}
+
+func (c *MockEClass_GetEStructuralFeature_Call) Run(run func(int)) *MockEClass_GetEStructuralFeature_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(int))
+	})
+	return c
+}
+
+func (c *MockEClass_GetEStructuralFeature_Call) Return(_a0 EStructuralFeature) *MockEClass_GetEStructuralFeature_Call {
+	c.Call.Return(_a0)
+	return c
 }
 
 // GetEStructuralFeatureFromName provides mock implementation
@@ -703,6 +751,28 @@ func (eClass *MockEClass) GetEStructuralFeatureFromName(featureName string) EStr
 	return r
 }
 
+type MockEClass_GetEStructuralFeatureFromName_Call struct {
+	*mock.Call
+}
+
+// GetEStructuralFeatureFromNameis a helper method to define mock.On call
+// - featureName string
+func (e *MockEClass_Expecter) GetEStructuralFeatureFromName(featureName any) *MockEClass_GetEStructuralFeatureFromName_Call {
+	return &MockEClass_GetEStructuralFeatureFromName_Call{Call: e.Mock.On("GetEStructuralFeatureFromName", featureName)}
+}
+
+func (c *MockEClass_GetEStructuralFeatureFromName_Call) Run(run func(string)) *MockEClass_GetEStructuralFeatureFromName_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(string))
+	})
+	return c
+}
+
+func (c *MockEClass_GetEStructuralFeatureFromName_Call) Return(_a0 EStructuralFeature) *MockEClass_GetEStructuralFeatureFromName_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
 // GetFeatureCount provides mock implementation
 func (eClass *MockEClass) GetFeatureCount() int {
 	ret := eClass.Called()
@@ -717,6 +787,27 @@ func (eClass *MockEClass) GetFeatureCount() int {
 	}
 
 	return r
+}
+
+type MockEClass_GetFeatureCount_Call struct {
+	*mock.Call
+}
+
+// GetFeatureCountis a helper method to define mock.On call
+func (e *MockEClass_Expecter) GetFeatureCount() *MockEClass_GetFeatureCount_Call {
+	return &MockEClass_GetFeatureCount_Call{Call: e.Mock.On("GetFeatureCount")}
+}
+
+func (c *MockEClass_GetFeatureCount_Call) Run(run func()) *MockEClass_GetFeatureCount_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetFeatureCount_Call) Return(_a0 int) *MockEClass_GetFeatureCount_Call {
+	c.Call.Return(_a0)
+	return c
 }
 
 // GetFeatureID provides mock implementation
@@ -735,6 +826,28 @@ func (eClass *MockEClass) GetFeatureID(feature EStructuralFeature) int {
 	return r
 }
 
+type MockEClass_GetFeatureID_Call struct {
+	*mock.Call
+}
+
+// GetFeatureIDis a helper method to define mock.On call
+// - feature EStructuralFeature
+func (e *MockEClass_Expecter) GetFeatureID(feature any) *MockEClass_GetFeatureID_Call {
+	return &MockEClass_GetFeatureID_Call{Call: e.Mock.On("GetFeatureID", feature)}
+}
+
+func (c *MockEClass_GetFeatureID_Call) Run(run func(EStructuralFeature)) *MockEClass_GetFeatureID_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(EStructuralFeature))
+	})
+	return c
+}
+
+func (c *MockEClass_GetFeatureID_Call) Return(_a0 int) *MockEClass_GetFeatureID_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
 // GetFeatureType provides mock implementation
 func (eClass *MockEClass) GetFeatureType(feature EStructuralFeature) EClassifier {
 	ret := eClass.Called(feature)
@@ -749,6 +862,28 @@ func (eClass *MockEClass) GetFeatureType(feature EStructuralFeature) EClassifier
 	}
 
 	return r
+}
+
+type MockEClass_GetFeatureType_Call struct {
+	*mock.Call
+}
+
+// GetFeatureTypeis a helper method to define mock.On call
+// - feature EStructuralFeature
+func (e *MockEClass_Expecter) GetFeatureType(feature any) *MockEClass_GetFeatureType_Call {
+	return &MockEClass_GetFeatureType_Call{Call: e.Mock.On("GetFeatureType", feature)}
+}
+
+func (c *MockEClass_GetFeatureType_Call) Run(run func(EStructuralFeature)) *MockEClass_GetFeatureType_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(EStructuralFeature))
+	})
+	return c
+}
+
+func (c *MockEClass_GetFeatureType_Call) Return(_a0 EClassifier) *MockEClass_GetFeatureType_Call {
+	c.Call.Return(_a0)
+	return c
 }
 
 // GetOperationCount provides mock implementation
@@ -767,6 +902,27 @@ func (eClass *MockEClass) GetOperationCount() int {
 	return r
 }
 
+type MockEClass_GetOperationCount_Call struct {
+	*mock.Call
+}
+
+// GetOperationCountis a helper method to define mock.On call
+func (e *MockEClass_Expecter) GetOperationCount() *MockEClass_GetOperationCount_Call {
+	return &MockEClass_GetOperationCount_Call{Call: e.Mock.On("GetOperationCount")}
+}
+
+func (c *MockEClass_GetOperationCount_Call) Run(run func()) *MockEClass_GetOperationCount_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetOperationCount_Call) Return(_a0 int) *MockEClass_GetOperationCount_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
 // GetOperationID provides mock implementation
 func (eClass *MockEClass) GetOperationID(operation EOperation) int {
 	ret := eClass.Called(operation)
@@ -781,6 +937,28 @@ func (eClass *MockEClass) GetOperationID(operation EOperation) int {
 	}
 
 	return r
+}
+
+type MockEClass_GetOperationID_Call struct {
+	*mock.Call
+}
+
+// GetOperationIDis a helper method to define mock.On call
+// - operation EOperation
+func (e *MockEClass_Expecter) GetOperationID(operation any) *MockEClass_GetOperationID_Call {
+	return &MockEClass_GetOperationID_Call{Call: e.Mock.On("GetOperationID", operation)}
+}
+
+func (c *MockEClass_GetOperationID_Call) Run(run func(EOperation)) *MockEClass_GetOperationID_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(EOperation))
+	})
+	return c
+}
+
+func (c *MockEClass_GetOperationID_Call) Return(_a0 int) *MockEClass_GetOperationID_Call {
+	c.Call.Return(_a0)
+	return c
 }
 
 // GetOverride provides mock implementation
@@ -799,6 +977,28 @@ func (eClass *MockEClass) GetOverride(operation EOperation) EOperation {
 	return r
 }
 
+type MockEClass_GetOverride_Call struct {
+	*mock.Call
+}
+
+// GetOverrideis a helper method to define mock.On call
+// - operation EOperation
+func (e *MockEClass_Expecter) GetOverride(operation any) *MockEClass_GetOverride_Call {
+	return &MockEClass_GetOverride_Call{Call: e.Mock.On("GetOverride", operation)}
+}
+
+func (c *MockEClass_GetOverride_Call) Run(run func(EOperation)) *MockEClass_GetOverride_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(EOperation))
+	})
+	return c
+}
+
+func (c *MockEClass_GetOverride_Call) Return(_a0 EOperation) *MockEClass_GetOverride_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
 // IsSuperTypeOf provides mock implementation
 func (eClass *MockEClass) IsSuperTypeOf(someClass EClass) bool {
 	ret := eClass.Called(someClass)
@@ -813,6 +1013,28 @@ func (eClass *MockEClass) IsSuperTypeOf(someClass EClass) bool {
 	}
 
 	return r
+}
+
+type MockEClass_IsSuperTypeOf_Call struct {
+	*mock.Call
+}
+
+// IsSuperTypeOfis a helper method to define mock.On call
+// - someClass EClass
+func (e *MockEClass_Expecter) IsSuperTypeOf(someClass any) *MockEClass_IsSuperTypeOf_Call {
+	return &MockEClass_IsSuperTypeOf_Call{Call: e.Mock.On("IsSuperTypeOf", someClass)}
+}
+
+func (c *MockEClass_IsSuperTypeOf_Call) Run(run func(EClass)) *MockEClass_IsSuperTypeOf_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(EClass))
+	})
+	return c
+}
+
+func (c *MockEClass_IsSuperTypeOf_Call) Return(_a0 bool) *MockEClass_IsSuperTypeOf_Call {
+	c.Call.Return(_a0)
+	return c
 }
 
 type mockConstructorTestingTNewMockEClass interface {

@@ -102,19 +102,21 @@ func (c *MockEEnumLiteral_GetInstance_Call) Return(instance any) *MockEEnumLiter
 }
 
 // SetInstance provides mock implementation for setting the value of instance
-func (eEnumLiteral *MockEEnumLiteral) SetInstance(newInstance any) {
-	eEnumLiteral.Called(newInstance)
+func (eEnumLiteral *MockEEnumLiteral) SetInstance(instance any) {
+	eEnumLiteral.Called(instance)
 }
 
 type MockEEnumLiteral_SetInstance_Call struct {
 	*mock.Call
 }
 
-func (e *MockEEnumLiteral_Expecter) SetInstance(newInstance any) *MockEEnumLiteral_SetInstance_Call {
-	return &MockEEnumLiteral_SetInstance_Call{Call: e.Mock.On("SetInstance", newInstance)}
+// SetInstanceis a helper method to define mock.On call
+// - instance any
+func (e *MockEEnumLiteral_Expecter) SetInstance(instance any) *MockEEnumLiteral_SetInstance_Call {
+	return &MockEEnumLiteral_SetInstance_Call{Call: e.Mock.On("SetInstance", instance)}
 }
 
-func (c *MockEEnumLiteral_SetInstance_Call) Run(run func(newInstance any)) *MockEEnumLiteral_SetInstance_Call {
+func (c *MockEEnumLiteral_SetInstance_Call) Run(run func(instance any)) *MockEEnumLiteral_SetInstance_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0])
 	})
@@ -163,19 +165,21 @@ func (c *MockEEnumLiteral_GetLiteral_Call) Return(literal string) *MockEEnumLite
 }
 
 // SetLiteral provides mock implementation for setting the value of literal
-func (eEnumLiteral *MockEEnumLiteral) SetLiteral(newLiteral string) {
-	eEnumLiteral.Called(newLiteral)
+func (eEnumLiteral *MockEEnumLiteral) SetLiteral(literal string) {
+	eEnumLiteral.Called(literal)
 }
 
 type MockEEnumLiteral_SetLiteral_Call struct {
 	*mock.Call
 }
 
-func (e *MockEEnumLiteral_Expecter) SetLiteral(newLiteral string) *MockEEnumLiteral_SetLiteral_Call {
-	return &MockEEnumLiteral_SetLiteral_Call{Call: e.Mock.On("SetLiteral", newLiteral)}
+// SetLiteralis a helper method to define mock.On call
+// - literal string
+func (e *MockEEnumLiteral_Expecter) SetLiteral(literal any) *MockEEnumLiteral_SetLiteral_Call {
+	return &MockEEnumLiteral_SetLiteral_Call{Call: e.Mock.On("SetLiteral", literal)}
 }
 
-func (c *MockEEnumLiteral_SetLiteral_Call) Run(run func(newLiteral string)) *MockEEnumLiteral_SetLiteral_Call {
+func (c *MockEEnumLiteral_SetLiteral_Call) Run(run func(literal string)) *MockEEnumLiteral_SetLiteral_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(string))
 	})
@@ -224,19 +228,21 @@ func (c *MockEEnumLiteral_GetValue_Call) Return(value int) *MockEEnumLiteral_Get
 }
 
 // SetValue provides mock implementation for setting the value of value
-func (eEnumLiteral *MockEEnumLiteral) SetValue(newValue int) {
-	eEnumLiteral.Called(newValue)
+func (eEnumLiteral *MockEEnumLiteral) SetValue(value int) {
+	eEnumLiteral.Called(value)
 }
 
 type MockEEnumLiteral_SetValue_Call struct {
 	*mock.Call
 }
 
-func (e *MockEEnumLiteral_Expecter) SetValue(newValue int) *MockEEnumLiteral_SetValue_Call {
-	return &MockEEnumLiteral_SetValue_Call{Call: e.Mock.On("SetValue", newValue)}
+// SetValueis a helper method to define mock.On call
+// - value int
+func (e *MockEEnumLiteral_Expecter) SetValue(value any) *MockEEnumLiteral_SetValue_Call {
+	return &MockEEnumLiteral_SetValue_Call{Call: e.Mock.On("SetValue", value)}
 }
 
-func (c *MockEEnumLiteral_SetValue_Call) Run(run func(newValue int)) *MockEEnumLiteral_SetValue_Call {
+func (c *MockEEnumLiteral_SetValue_Call) Run(run func(value int)) *MockEEnumLiteral_SetValue_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(int))
 	})

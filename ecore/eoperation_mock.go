@@ -199,19 +199,21 @@ func (c *MockEOperation_GetOperationID_Call) Return(operationID int) *MockEOpera
 }
 
 // SetOperationID provides mock implementation for setting the value of operationID
-func (eOperation *MockEOperation) SetOperationID(newOperationID int) {
-	eOperation.Called(newOperationID)
+func (eOperation *MockEOperation) SetOperationID(operationID int) {
+	eOperation.Called(operationID)
 }
 
 type MockEOperation_SetOperationID_Call struct {
 	*mock.Call
 }
 
-func (e *MockEOperation_Expecter) SetOperationID(newOperationID int) *MockEOperation_SetOperationID_Call {
-	return &MockEOperation_SetOperationID_Call{Call: e.Mock.On("SetOperationID", newOperationID)}
+// SetOperationIDis a helper method to define mock.On call
+// - operationID int
+func (e *MockEOperation_Expecter) SetOperationID(operationID any) *MockEOperation_SetOperationID_Call {
+	return &MockEOperation_SetOperationID_Call{Call: e.Mock.On("SetOperationID", operationID)}
 }
 
-func (c *MockEOperation_SetOperationID_Call) Run(run func(newOperationID int)) *MockEOperation_SetOperationID_Call {
+func (c *MockEOperation_SetOperationID_Call) Run(run func(operationID int)) *MockEOperation_SetOperationID_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(int))
 	})
@@ -237,6 +239,28 @@ func (eOperation *MockEOperation) IsOverrideOf(someOperation EOperation) bool {
 	}
 
 	return r
+}
+
+type MockEOperation_IsOverrideOf_Call struct {
+	*mock.Call
+}
+
+// IsOverrideOfis a helper method to define mock.On call
+// - someOperation EOperation
+func (e *MockEOperation_Expecter) IsOverrideOf(someOperation any) *MockEOperation_IsOverrideOf_Call {
+	return &MockEOperation_IsOverrideOf_Call{Call: e.Mock.On("IsOverrideOf", someOperation)}
+}
+
+func (c *MockEOperation_IsOverrideOf_Call) Run(run func(EOperation)) *MockEOperation_IsOverrideOf_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(EOperation))
+	})
+	return c
+}
+
+func (c *MockEOperation_IsOverrideOf_Call) Return(_a0 bool) *MockEOperation_IsOverrideOf_Call {
+	c.Call.Return(_a0)
+	return c
 }
 
 type mockConstructorTestingTNewMockEOperation interface {

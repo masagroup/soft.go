@@ -102,19 +102,21 @@ func (c *MockEAttribute_IsID_Call) Return(isID bool) *MockEAttribute_IsID_Call {
 }
 
 // SetID provides mock implementation for setting the value of isID
-func (eAttribute *MockEAttribute) SetID(newIsID bool) {
-	eAttribute.Called(newIsID)
+func (eAttribute *MockEAttribute) SetID(isID bool) {
+	eAttribute.Called(isID)
 }
 
 type MockEAttribute_SetID_Call struct {
 	*mock.Call
 }
 
-func (e *MockEAttribute_Expecter) SetID(newIsID bool) *MockEAttribute_SetID_Call {
-	return &MockEAttribute_SetID_Call{Call: e.Mock.On("SetID", newIsID)}
+// SetIDis a helper method to define mock.On call
+// - isID bool
+func (e *MockEAttribute_Expecter) SetID(isID any) *MockEAttribute_SetID_Call {
+	return &MockEAttribute_SetID_Call{Call: e.Mock.On("SetID", isID)}
 }
 
-func (c *MockEAttribute_SetID_Call) Run(run func(newIsID bool)) *MockEAttribute_SetID_Call {
+func (c *MockEAttribute_SetID_Call) Run(run func(isID bool)) *MockEAttribute_SetID_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(bool))
 	})

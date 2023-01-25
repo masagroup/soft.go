@@ -102,19 +102,21 @@ func (c *MockEReference_IsContainment_Call) Return(isContainment bool) *MockERef
 }
 
 // SetContainment provides mock implementation for setting the value of isContainment
-func (eReference *MockEReference) SetContainment(newIsContainment bool) {
-	eReference.Called(newIsContainment)
+func (eReference *MockEReference) SetContainment(isContainment bool) {
+	eReference.Called(isContainment)
 }
 
 type MockEReference_SetContainment_Call struct {
 	*mock.Call
 }
 
-func (e *MockEReference_Expecter) SetContainment(newIsContainment bool) *MockEReference_SetContainment_Call {
-	return &MockEReference_SetContainment_Call{Call: e.Mock.On("SetContainment", newIsContainment)}
+// SetContainmentis a helper method to define mock.On call
+// - isContainment bool
+func (e *MockEReference_Expecter) SetContainment(isContainment any) *MockEReference_SetContainment_Call {
+	return &MockEReference_SetContainment_Call{Call: e.Mock.On("SetContainment", isContainment)}
 }
 
-func (c *MockEReference_SetContainment_Call) Run(run func(newIsContainment bool)) *MockEReference_SetContainment_Call {
+func (c *MockEReference_SetContainment_Call) Run(run func(isContainment bool)) *MockEReference_SetContainment_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(bool))
 	})
@@ -199,19 +201,21 @@ func (c *MockEReference_GetEOpposite_Call) Return(eOpposite EReference) *MockERe
 }
 
 // SetEOpposite provides mock implementation for setting the value of eOpposite
-func (eReference *MockEReference) SetEOpposite(newEOpposite EReference) {
-	eReference.Called(newEOpposite)
+func (eReference *MockEReference) SetEOpposite(eOpposite EReference) {
+	eReference.Called(eOpposite)
 }
 
 type MockEReference_SetEOpposite_Call struct {
 	*mock.Call
 }
 
-func (e *MockEReference_Expecter) SetEOpposite(newEOpposite EReference) *MockEReference_SetEOpposite_Call {
-	return &MockEReference_SetEOpposite_Call{Call: e.Mock.On("SetEOpposite", newEOpposite)}
+// SetEOppositeis a helper method to define mock.On call
+// - eOpposite EReference
+func (e *MockEReference_Expecter) SetEOpposite(eOpposite any) *MockEReference_SetEOpposite_Call {
+	return &MockEReference_SetEOpposite_Call{Call: e.Mock.On("SetEOpposite", eOpposite)}
 }
 
-func (c *MockEReference_SetEOpposite_Call) Run(run func(newEOpposite EReference)) *MockEReference_SetEOpposite_Call {
+func (c *MockEReference_SetEOpposite_Call) Run(run func(eOpposite EReference)) *MockEReference_SetEOpposite_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(EReference))
 	})
@@ -296,19 +300,21 @@ func (c *MockEReference_IsResolveProxies_Call) Return(isResolveProxies bool) *Mo
 }
 
 // SetResolveProxies provides mock implementation for setting the value of isResolveProxies
-func (eReference *MockEReference) SetResolveProxies(newIsResolveProxies bool) {
-	eReference.Called(newIsResolveProxies)
+func (eReference *MockEReference) SetResolveProxies(isResolveProxies bool) {
+	eReference.Called(isResolveProxies)
 }
 
 type MockEReference_SetResolveProxies_Call struct {
 	*mock.Call
 }
 
-func (e *MockEReference_Expecter) SetResolveProxies(newIsResolveProxies bool) *MockEReference_SetResolveProxies_Call {
-	return &MockEReference_SetResolveProxies_Call{Call: e.Mock.On("SetResolveProxies", newIsResolveProxies)}
+// SetResolveProxiesis a helper method to define mock.On call
+// - isResolveProxies bool
+func (e *MockEReference_Expecter) SetResolveProxies(isResolveProxies any) *MockEReference_SetResolveProxies_Call {
+	return &MockEReference_SetResolveProxies_Call{Call: e.Mock.On("SetResolveProxies", isResolveProxies)}
 }
 
-func (c *MockEReference_SetResolveProxies_Call) Run(run func(newIsResolveProxies bool)) *MockEReference_SetResolveProxies_Call {
+func (c *MockEReference_SetResolveProxies_Call) Run(run func(isResolveProxies bool)) *MockEReference_SetResolveProxies_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(bool))
 	})

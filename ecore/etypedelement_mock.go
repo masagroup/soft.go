@@ -66,19 +66,21 @@ func (c *MockETypedElement_GetEType_Call) Return(eType EClassifier) *MockETypedE
 }
 
 // SetEType provides mock implementation for setting the value of eType
-func (eTypedElement *MockETypedElement) SetEType(newEType EClassifier) {
-	eTypedElement.Called(newEType)
+func (eTypedElement *MockETypedElement) SetEType(eType EClassifier) {
+	eTypedElement.Called(eType)
 }
 
 type MockETypedElement_SetEType_Call struct {
 	*mock.Call
 }
 
-func (e *MockETypedElement_Expecter) SetEType(newEType EClassifier) *MockETypedElement_SetEType_Call {
-	return &MockETypedElement_SetEType_Call{Call: e.Mock.On("SetEType", newEType)}
+// SetETypeis a helper method to define mock.On call
+// - eType EClassifier
+func (e *MockETypedElement_Expecter) SetEType(eType any) *MockETypedElement_SetEType_Call {
+	return &MockETypedElement_SetEType_Call{Call: e.Mock.On("SetEType", eType)}
 }
 
-func (c *MockETypedElement_SetEType_Call) Run(run func(newEType EClassifier)) *MockETypedElement_SetEType_Call {
+func (c *MockETypedElement_SetEType_Call) Run(run func(eType EClassifier)) *MockETypedElement_SetEType_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(EClassifier))
 	})
@@ -152,19 +154,21 @@ func (c *MockETypedElement_GetLowerBound_Call) Return(lowerBound int) *MockEType
 }
 
 // SetLowerBound provides mock implementation for setting the value of lowerBound
-func (eTypedElement *MockETypedElement) SetLowerBound(newLowerBound int) {
-	eTypedElement.Called(newLowerBound)
+func (eTypedElement *MockETypedElement) SetLowerBound(lowerBound int) {
+	eTypedElement.Called(lowerBound)
 }
 
 type MockETypedElement_SetLowerBound_Call struct {
 	*mock.Call
 }
 
-func (e *MockETypedElement_Expecter) SetLowerBound(newLowerBound int) *MockETypedElement_SetLowerBound_Call {
-	return &MockETypedElement_SetLowerBound_Call{Call: e.Mock.On("SetLowerBound", newLowerBound)}
+// SetLowerBoundis a helper method to define mock.On call
+// - lowerBound int
+func (e *MockETypedElement_Expecter) SetLowerBound(lowerBound any) *MockETypedElement_SetLowerBound_Call {
+	return &MockETypedElement_SetLowerBound_Call{Call: e.Mock.On("SetLowerBound", lowerBound)}
 }
 
-func (c *MockETypedElement_SetLowerBound_Call) Run(run func(newLowerBound int)) *MockETypedElement_SetLowerBound_Call {
+func (c *MockETypedElement_SetLowerBound_Call) Run(run func(lowerBound int)) *MockETypedElement_SetLowerBound_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(int))
 	})
@@ -249,19 +253,21 @@ func (c *MockETypedElement_IsOrdered_Call) Return(isOrdered bool) *MockETypedEle
 }
 
 // SetOrdered provides mock implementation for setting the value of isOrdered
-func (eTypedElement *MockETypedElement) SetOrdered(newIsOrdered bool) {
-	eTypedElement.Called(newIsOrdered)
+func (eTypedElement *MockETypedElement) SetOrdered(isOrdered bool) {
+	eTypedElement.Called(isOrdered)
 }
 
 type MockETypedElement_SetOrdered_Call struct {
 	*mock.Call
 }
 
-func (e *MockETypedElement_Expecter) SetOrdered(newIsOrdered bool) *MockETypedElement_SetOrdered_Call {
-	return &MockETypedElement_SetOrdered_Call{Call: e.Mock.On("SetOrdered", newIsOrdered)}
+// SetOrderedis a helper method to define mock.On call
+// - isOrdered bool
+func (e *MockETypedElement_Expecter) SetOrdered(isOrdered any) *MockETypedElement_SetOrdered_Call {
+	return &MockETypedElement_SetOrdered_Call{Call: e.Mock.On("SetOrdered", isOrdered)}
 }
 
-func (c *MockETypedElement_SetOrdered_Call) Run(run func(newIsOrdered bool)) *MockETypedElement_SetOrdered_Call {
+func (c *MockETypedElement_SetOrdered_Call) Run(run func(isOrdered bool)) *MockETypedElement_SetOrdered_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(bool))
 	})
@@ -346,19 +352,21 @@ func (c *MockETypedElement_IsUnique_Call) Return(isUnique bool) *MockETypedEleme
 }
 
 // SetUnique provides mock implementation for setting the value of isUnique
-func (eTypedElement *MockETypedElement) SetUnique(newIsUnique bool) {
-	eTypedElement.Called(newIsUnique)
+func (eTypedElement *MockETypedElement) SetUnique(isUnique bool) {
+	eTypedElement.Called(isUnique)
 }
 
 type MockETypedElement_SetUnique_Call struct {
 	*mock.Call
 }
 
-func (e *MockETypedElement_Expecter) SetUnique(newIsUnique bool) *MockETypedElement_SetUnique_Call {
-	return &MockETypedElement_SetUnique_Call{Call: e.Mock.On("SetUnique", newIsUnique)}
+// SetUniqueis a helper method to define mock.On call
+// - isUnique bool
+func (e *MockETypedElement_Expecter) SetUnique(isUnique any) *MockETypedElement_SetUnique_Call {
+	return &MockETypedElement_SetUnique_Call{Call: e.Mock.On("SetUnique", isUnique)}
 }
 
-func (c *MockETypedElement_SetUnique_Call) Run(run func(newIsUnique bool)) *MockETypedElement_SetUnique_Call {
+func (c *MockETypedElement_SetUnique_Call) Run(run func(isUnique bool)) *MockETypedElement_SetUnique_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(bool))
 	})
@@ -407,19 +415,21 @@ func (c *MockETypedElement_GetUpperBound_Call) Return(upperBound int) *MockEType
 }
 
 // SetUpperBound provides mock implementation for setting the value of upperBound
-func (eTypedElement *MockETypedElement) SetUpperBound(newUpperBound int) {
-	eTypedElement.Called(newUpperBound)
+func (eTypedElement *MockETypedElement) SetUpperBound(upperBound int) {
+	eTypedElement.Called(upperBound)
 }
 
 type MockETypedElement_SetUpperBound_Call struct {
 	*mock.Call
 }
 
-func (e *MockETypedElement_Expecter) SetUpperBound(newUpperBound int) *MockETypedElement_SetUpperBound_Call {
-	return &MockETypedElement_SetUpperBound_Call{Call: e.Mock.On("SetUpperBound", newUpperBound)}
+// SetUpperBoundis a helper method to define mock.On call
+// - upperBound int
+func (e *MockETypedElement_Expecter) SetUpperBound(upperBound any) *MockETypedElement_SetUpperBound_Call {
+	return &MockETypedElement_SetUpperBound_Call{Call: e.Mock.On("SetUpperBound", upperBound)}
 }
 
-func (c *MockETypedElement_SetUpperBound_Call) Run(run func(newUpperBound int)) *MockETypedElement_SetUpperBound_Call {
+func (c *MockETypedElement_SetUpperBound_Call) Run(run func(upperBound int)) *MockETypedElement_SetUpperBound_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(int))
 	})

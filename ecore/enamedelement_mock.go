@@ -66,19 +66,21 @@ func (c *MockENamedElement_GetName_Call) Return(name string) *MockENamedElement_
 }
 
 // SetName provides mock implementation for setting the value of name
-func (eNamedElement *MockENamedElement) SetName(newName string) {
-	eNamedElement.Called(newName)
+func (eNamedElement *MockENamedElement) SetName(name string) {
+	eNamedElement.Called(name)
 }
 
 type MockENamedElement_SetName_Call struct {
 	*mock.Call
 }
 
-func (e *MockENamedElement_Expecter) SetName(newName string) *MockENamedElement_SetName_Call {
-	return &MockENamedElement_SetName_Call{Call: e.Mock.On("SetName", newName)}
+// SetNameis a helper method to define mock.On call
+// - name string
+func (e *MockENamedElement_Expecter) SetName(name any) *MockENamedElement_SetName_Call {
+	return &MockENamedElement_SetName_Call{Call: e.Mock.On("SetName", name)}
 }
 
-func (c *MockENamedElement_SetName_Call) Run(run func(newName string)) *MockENamedElement_SetName_Call {
+func (c *MockENamedElement_SetName_Call) Run(run func(name string)) *MockENamedElement_SetName_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(string))
 	})

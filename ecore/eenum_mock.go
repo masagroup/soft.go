@@ -81,6 +81,28 @@ func (eEnum *MockEEnum) GetEEnumLiteralByLiteral(literal string) EEnumLiteral {
 	return r
 }
 
+type MockEEnum_GetEEnumLiteralByLiteral_Call struct {
+	*mock.Call
+}
+
+// GetEEnumLiteralByLiteralis a helper method to define mock.On call
+// - literal string
+func (e *MockEEnum_Expecter) GetEEnumLiteralByLiteral(literal any) *MockEEnum_GetEEnumLiteralByLiteral_Call {
+	return &MockEEnum_GetEEnumLiteralByLiteral_Call{Call: e.Mock.On("GetEEnumLiteralByLiteral", literal)}
+}
+
+func (c *MockEEnum_GetEEnumLiteralByLiteral_Call) Run(run func(string)) *MockEEnum_GetEEnumLiteralByLiteral_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(string))
+	})
+	return c
+}
+
+func (c *MockEEnum_GetEEnumLiteralByLiteral_Call) Return(_a0 EEnumLiteral) *MockEEnum_GetEEnumLiteralByLiteral_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
 // GetEEnumLiteralByName provides mock implementation
 func (eEnum *MockEEnum) GetEEnumLiteralByName(name string) EEnumLiteral {
 	ret := eEnum.Called(name)
@@ -97,6 +119,28 @@ func (eEnum *MockEEnum) GetEEnumLiteralByName(name string) EEnumLiteral {
 	return r
 }
 
+type MockEEnum_GetEEnumLiteralByName_Call struct {
+	*mock.Call
+}
+
+// GetEEnumLiteralByNameis a helper method to define mock.On call
+// - name string
+func (e *MockEEnum_Expecter) GetEEnumLiteralByName(name any) *MockEEnum_GetEEnumLiteralByName_Call {
+	return &MockEEnum_GetEEnumLiteralByName_Call{Call: e.Mock.On("GetEEnumLiteralByName", name)}
+}
+
+func (c *MockEEnum_GetEEnumLiteralByName_Call) Run(run func(string)) *MockEEnum_GetEEnumLiteralByName_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(string))
+	})
+	return c
+}
+
+func (c *MockEEnum_GetEEnumLiteralByName_Call) Return(_a0 EEnumLiteral) *MockEEnum_GetEEnumLiteralByName_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
 // GetEEnumLiteralByValue provides mock implementation
 func (eEnum *MockEEnum) GetEEnumLiteralByValue(value int) EEnumLiteral {
 	ret := eEnum.Called(value)
@@ -111,6 +155,28 @@ func (eEnum *MockEEnum) GetEEnumLiteralByValue(value int) EEnumLiteral {
 	}
 
 	return r
+}
+
+type MockEEnum_GetEEnumLiteralByValue_Call struct {
+	*mock.Call
+}
+
+// GetEEnumLiteralByValueis a helper method to define mock.On call
+// - value int
+func (e *MockEEnum_Expecter) GetEEnumLiteralByValue(value any) *MockEEnum_GetEEnumLiteralByValue_Call {
+	return &MockEEnum_GetEEnumLiteralByValue_Call{Call: e.Mock.On("GetEEnumLiteralByValue", value)}
+}
+
+func (c *MockEEnum_GetEEnumLiteralByValue_Call) Run(run func(int)) *MockEEnum_GetEEnumLiteralByValue_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(int))
+	})
+	return c
+}
+
+func (c *MockEEnum_GetEEnumLiteralByValue_Call) Return(_a0 EEnumLiteral) *MockEEnum_GetEEnumLiteralByValue_Call {
+	c.Call.Return(_a0)
+	return c
 }
 
 type mockConstructorTestingTNewMockEEnum interface {

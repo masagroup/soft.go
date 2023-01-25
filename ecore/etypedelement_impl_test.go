@@ -49,30 +49,30 @@ func TestETypedElementETypeGet(t *testing.T) {
 	o.eType = mockValue
 
 	// events
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
 	// set object resource
-	mockResourceSet := new(MockEResourceSet)
-	mockResource := new(MockEResource)
+	mockResourceSet := NewMockEResourceSet(t)
+	mockResource := NewMockEResource(t)
 	o.ESetInternalResource(mockResource)
 
 	// get non resolved value
-	mockValue.On("EIsProxy").Return(false).Once()
+	mockValue.EXPECT().EIsProxy().Return(false).Once()
 	assert.Equal(t, mockValue, o.GetEType())
 	mock.AssertExpectationsForObjects(t, mockValue, mockAdapter, mockResource, mockResourceSet)
 
 	// get a resolved value
 	mockURI := NewURI("test:///file.t")
 	mockResolved := new(MockEClassifier)
-	mockResolved.On("EProxyURI").Return(nil).Once()
-	mockResource.On("GetResourceSet").Return(mockResourceSet).Once()
-	mockResourceSet.On("GetEObject", mockURI, true).Return(mockResolved).Once()
-	mockValue.On("EIsProxy").Return(true).Once()
-	mockValue.On("EProxyURI").Return(mockURI).Twice()
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+	mockResolved.EXPECT().EProxyURI().Return(nil).Once()
+	mockResource.EXPECT().GetResourceSet().Return(mockResourceSet).Once()
+	mockResourceSet.EXPECT().GetEObject(mockURI, true).Return(mockResolved).Once()
+	mockValue.EXPECT().EIsProxy().Return(true).Once()
+	mockValue.EXPECT().EProxyURI().Return(mockURI).Twice()
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(notification ENotification) bool {
 		return notification.GetEventType() == RESOLVE && notification.GetFeatureID() == ETYPED_ELEMENT__ETYPE && notification.GetOldValue() == mockValue && notification.GetNewValue() == mockResolved
 	})).Once()
 	assert.Equal(t, mockResolved, o.GetEType())
@@ -82,9 +82,9 @@ func TestETypedElementETypeGet(t *testing.T) {
 func TestETypedElementETypeSet(t *testing.T) {
 	o := newETypedElementImpl()
 	v := new(MockEClassifier)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetEType(v)
 	mockAdapter.AssertExpectations(t)
@@ -92,11 +92,11 @@ func TestETypedElementETypeSet(t *testing.T) {
 
 func TestETypedElementETypeUnSet(t *testing.T) {
 	o := newETypedElementImpl()
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
 	o.EAdapters().Add(mockAdapter)
 
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(notification ENotification) bool {
 		return notification.GetEventType() == UNSET && notification.GetFeatureID() == ETYPED_ELEMENT__ETYPE
 	})).Once()
 	o.UnsetEType()
@@ -122,9 +122,9 @@ func TestETypedElementOrderedGet(t *testing.T) {
 func TestETypedElementOrderedSet(t *testing.T) {
 	o := newETypedElementImpl()
 	v := bool(true)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetOrdered(v)
 	mockAdapter.AssertExpectations(t)
@@ -148,9 +148,9 @@ func TestETypedElementUniqueGet(t *testing.T) {
 func TestETypedElementUniqueSet(t *testing.T) {
 	o := newETypedElementImpl()
 	v := bool(true)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetUnique(v)
 	mockAdapter.AssertExpectations(t)
@@ -169,9 +169,9 @@ func TestETypedElementLowerBoundGet(t *testing.T) {
 func TestETypedElementLowerBoundSet(t *testing.T) {
 	o := newETypedElementImpl()
 	v := int(45)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetLowerBound(v)
 	mockAdapter.AssertExpectations(t)
@@ -190,9 +190,9 @@ func TestETypedElementUpperBoundGet(t *testing.T) {
 func TestETypedElementUpperBoundSet(t *testing.T) {
 	o := newETypedElementImpl()
 	v := int(45)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetUpperBound(v)
 	mockAdapter.AssertExpectations(t)

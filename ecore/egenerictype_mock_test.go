@@ -150,11 +150,12 @@ func TestMockEGenericTypeSetEUpperBound(t *testing.T) {
 func TestMockEGenericTypeIsInstance(t *testing.T) {
 	o := &MockEGenericType{}
 	object := any(nil)
+	m := newMockEGenericTypeRun(t, object)
 	r := bool(true)
-	o.On("IsInstance", object).Return(r).Once()
-	o.On("IsInstance", object).Return(func() bool {
+	o.EXPECT().IsInstance(object).Run(func(object any) { m.Run(object) }).Return(r).Once()
+	o.EXPECT().IsInstance(object).Once().Return(func() bool {
 		return r
-	}).Once()
+	})
 	assert.Equal(t, r, o.IsInstance(object))
 	assert.Equal(t, r, o.IsInstance(object))
 	o.AssertExpectations(t)

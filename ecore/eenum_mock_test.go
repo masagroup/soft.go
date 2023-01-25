@@ -59,11 +59,12 @@ func TestMockEEnumGetELiterals(t *testing.T) {
 func TestMockEEnumGetEEnumLiteralByLiteral(t *testing.T) {
 	o := &MockEEnum{}
 	literal := string("Test String")
+	m := newMockEEnumRun(t, literal)
 	r := new(MockEEnumLiteral)
-	o.On("GetEEnumLiteralByLiteral", literal).Return(r).Once()
-	o.On("GetEEnumLiteralByLiteral", literal).Return(func() EEnumLiteral {
+	o.EXPECT().GetEEnumLiteralByLiteral(literal).Run(func(literal string) { m.Run(literal) }).Return(r).Once()
+	o.EXPECT().GetEEnumLiteralByLiteral(literal).Once().Return(func() EEnumLiteral {
 		return r
-	}).Once()
+	})
 	assert.Equal(t, r, o.GetEEnumLiteralByLiteral(literal))
 	assert.Equal(t, r, o.GetEEnumLiteralByLiteral(literal))
 	o.AssertExpectations(t)
@@ -73,11 +74,12 @@ func TestMockEEnumGetEEnumLiteralByLiteral(t *testing.T) {
 func TestMockEEnumGetEEnumLiteralByName(t *testing.T) {
 	o := &MockEEnum{}
 	name := string("Test String")
+	m := newMockEEnumRun(t, name)
 	r := new(MockEEnumLiteral)
-	o.On("GetEEnumLiteralByName", name).Return(r).Once()
-	o.On("GetEEnumLiteralByName", name).Return(func() EEnumLiteral {
+	o.EXPECT().GetEEnumLiteralByName(name).Run(func(name string) { m.Run(name) }).Return(r).Once()
+	o.EXPECT().GetEEnumLiteralByName(name).Once().Return(func() EEnumLiteral {
 		return r
-	}).Once()
+	})
 	assert.Equal(t, r, o.GetEEnumLiteralByName(name))
 	assert.Equal(t, r, o.GetEEnumLiteralByName(name))
 	o.AssertExpectations(t)
@@ -87,11 +89,12 @@ func TestMockEEnumGetEEnumLiteralByName(t *testing.T) {
 func TestMockEEnumGetEEnumLiteralByValue(t *testing.T) {
 	o := &MockEEnum{}
 	value := int(45)
+	m := newMockEEnumRun(t, value)
 	r := new(MockEEnumLiteral)
-	o.On("GetEEnumLiteralByValue", value).Return(r).Once()
-	o.On("GetEEnumLiteralByValue", value).Return(func() EEnumLiteral {
+	o.EXPECT().GetEEnumLiteralByValue(value).Run(func(value int) { m.Run(value) }).Return(r).Once()
+	o.EXPECT().GetEEnumLiteralByValue(value).Once().Return(func() EEnumLiteral {
 		return r
-	}).Once()
+	})
 	assert.Equal(t, r, o.GetEEnumLiteralByValue(value))
 	assert.Equal(t, r, o.GetEEnumLiteralByValue(value))
 	o.AssertExpectations(t)

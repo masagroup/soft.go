@@ -81,6 +81,28 @@ func (eModelElement *MockEModelElement) GetEAnnotation(source string) EAnnotatio
 	return r
 }
 
+type MockEModelElement_GetEAnnotation_Call struct {
+	*mock.Call
+}
+
+// GetEAnnotationis a helper method to define mock.On call
+// - source string
+func (e *MockEModelElement_Expecter) GetEAnnotation(source any) *MockEModelElement_GetEAnnotation_Call {
+	return &MockEModelElement_GetEAnnotation_Call{Call: e.Mock.On("GetEAnnotation", source)}
+}
+
+func (c *MockEModelElement_GetEAnnotation_Call) Run(run func(string)) *MockEModelElement_GetEAnnotation_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(string))
+	})
+	return c
+}
+
+func (c *MockEModelElement_GetEAnnotation_Call) Return(_a0 EAnnotation) *MockEModelElement_GetEAnnotation_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
 type mockConstructorTestingTNewMockEModelElement interface {
 	mock.TestingT
 	Cleanup(func())

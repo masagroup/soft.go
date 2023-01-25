@@ -66,19 +66,21 @@ func (c *MockEFactory_GetEPackage_Call) Return(ePackage EPackage) *MockEFactory_
 }
 
 // SetEPackage provides mock implementation for setting the value of ePackage
-func (eFactory *MockEFactory) SetEPackage(newEPackage EPackage) {
-	eFactory.Called(newEPackage)
+func (eFactory *MockEFactory) SetEPackage(ePackage EPackage) {
+	eFactory.Called(ePackage)
 }
 
 type MockEFactory_SetEPackage_Call struct {
 	*mock.Call
 }
 
-func (e *MockEFactory_Expecter) SetEPackage(newEPackage EPackage) *MockEFactory_SetEPackage_Call {
-	return &MockEFactory_SetEPackage_Call{Call: e.Mock.On("SetEPackage", newEPackage)}
+// SetEPackageis a helper method to define mock.On call
+// - ePackage EPackage
+func (e *MockEFactory_Expecter) SetEPackage(ePackage any) *MockEFactory_SetEPackage_Call {
+	return &MockEFactory_SetEPackage_Call{Call: e.Mock.On("SetEPackage", ePackage)}
 }
 
-func (c *MockEFactory_SetEPackage_Call) Run(run func(newEPackage EPackage)) *MockEFactory_SetEPackage_Call {
+func (c *MockEFactory_SetEPackage_Call) Run(run func(ePackage EPackage)) *MockEFactory_SetEPackage_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(EPackage))
 	})
@@ -106,6 +108,29 @@ func (eFactory *MockEFactory) ConvertToString(eDataType EDataType, instanceValue
 	return r
 }
 
+type MockEFactory_ConvertToString_Call struct {
+	*mock.Call
+}
+
+// ConvertToStringis a helper method to define mock.On call
+// - eDataType EDataType
+// - instanceValue any
+func (e *MockEFactory_Expecter) ConvertToString(eDataType any, instanceValue any) *MockEFactory_ConvertToString_Call {
+	return &MockEFactory_ConvertToString_Call{Call: e.Mock.On("ConvertToString", eDataType, instanceValue)}
+}
+
+func (c *MockEFactory_ConvertToString_Call) Run(run func(EDataType, any)) *MockEFactory_ConvertToString_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(EDataType), _args[1])
+	})
+	return c
+}
+
+func (c *MockEFactory_ConvertToString_Call) Return(_a0 string) *MockEFactory_ConvertToString_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
 // Create provides mock implementation
 func (eFactory *MockEFactory) Create(eClass EClass) EObject {
 	ret := eFactory.Called(eClass)
@@ -122,6 +147,28 @@ func (eFactory *MockEFactory) Create(eClass EClass) EObject {
 	return r
 }
 
+type MockEFactory_Create_Call struct {
+	*mock.Call
+}
+
+// Createis a helper method to define mock.On call
+// - eClass EClass
+func (e *MockEFactory_Expecter) Create(eClass any) *MockEFactory_Create_Call {
+	return &MockEFactory_Create_Call{Call: e.Mock.On("Create", eClass)}
+}
+
+func (c *MockEFactory_Create_Call) Run(run func(EClass)) *MockEFactory_Create_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(EClass))
+	})
+	return c
+}
+
+func (c *MockEFactory_Create_Call) Return(_a0 EObject) *MockEFactory_Create_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
 // CreateFromString provides mock implementation
 func (eFactory *MockEFactory) CreateFromString(eDataType EDataType, literalValue string) any {
 	ret := eFactory.Called(eDataType, literalValue)
@@ -131,11 +178,34 @@ func (eFactory *MockEFactory) CreateFromString(eDataType EDataType, literalValue
 		r = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(any)
+			r = ret.Get(0)
 		}
 	}
 
 	return r
+}
+
+type MockEFactory_CreateFromString_Call struct {
+	*mock.Call
+}
+
+// CreateFromStringis a helper method to define mock.On call
+// - eDataType EDataType
+// - literalValue string
+func (e *MockEFactory_Expecter) CreateFromString(eDataType any, literalValue any) *MockEFactory_CreateFromString_Call {
+	return &MockEFactory_CreateFromString_Call{Call: e.Mock.On("CreateFromString", eDataType, literalValue)}
+}
+
+func (c *MockEFactory_CreateFromString_Call) Run(run func(EDataType, string)) *MockEFactory_CreateFromString_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(EDataType), _args[1].(string))
+	})
+	return c
+}
+
+func (c *MockEFactory_CreateFromString_Call) Return(_a0 any) *MockEFactory_CreateFromString_Call {
+	c.Call.Return(_a0)
+	return c
 }
 
 type mockConstructorTestingTNewMockEFactory interface {

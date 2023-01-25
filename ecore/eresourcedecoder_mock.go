@@ -58,21 +58,15 @@ func (_m *MockEResourceDecoder) DecodeObject() (EObject, error) {
 	ret := _m.Called()
 
 	var r0 EObject
-	if rf, ok := ret.Get(0).(func() EObject); ok {
-		r0 = rf()
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (EObject, error)); ok {
+		r0, r1 = rf()
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(EObject)
 		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
 		r1 = ret.Error(1)
 	}
-
 	return r0, r1
 }
 

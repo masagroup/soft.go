@@ -102,19 +102,21 @@ func (c *MockEPackage_GetEFactoryInstance_Call) Return(eFactoryInstance EFactory
 }
 
 // SetEFactoryInstance provides mock implementation for setting the value of eFactoryInstance
-func (ePackage *MockEPackage) SetEFactoryInstance(newEFactoryInstance EFactory) {
-	ePackage.Called(newEFactoryInstance)
+func (ePackage *MockEPackage) SetEFactoryInstance(eFactoryInstance EFactory) {
+	ePackage.Called(eFactoryInstance)
 }
 
 type MockEPackage_SetEFactoryInstance_Call struct {
 	*mock.Call
 }
 
-func (e *MockEPackage_Expecter) SetEFactoryInstance(newEFactoryInstance EFactory) *MockEPackage_SetEFactoryInstance_Call {
-	return &MockEPackage_SetEFactoryInstance_Call{Call: e.Mock.On("SetEFactoryInstance", newEFactoryInstance)}
+// SetEFactoryInstanceis a helper method to define mock.On call
+// - eFactoryInstance EFactory
+func (e *MockEPackage_Expecter) SetEFactoryInstance(eFactoryInstance any) *MockEPackage_SetEFactoryInstance_Call {
+	return &MockEPackage_SetEFactoryInstance_Call{Call: e.Mock.On("SetEFactoryInstance", eFactoryInstance)}
 }
 
-func (c *MockEPackage_SetEFactoryInstance_Call) Run(run func(newEFactoryInstance EFactory)) *MockEPackage_SetEFactoryInstance_Call {
+func (c *MockEPackage_SetEFactoryInstance_Call) Run(run func(eFactoryInstance EFactory)) *MockEPackage_SetEFactoryInstance_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(EFactory))
 	})
@@ -235,19 +237,21 @@ func (c *MockEPackage_GetNsPrefix_Call) Return(nsPrefix string) *MockEPackage_Ge
 }
 
 // SetNsPrefix provides mock implementation for setting the value of nsPrefix
-func (ePackage *MockEPackage) SetNsPrefix(newNsPrefix string) {
-	ePackage.Called(newNsPrefix)
+func (ePackage *MockEPackage) SetNsPrefix(nsPrefix string) {
+	ePackage.Called(nsPrefix)
 }
 
 type MockEPackage_SetNsPrefix_Call struct {
 	*mock.Call
 }
 
-func (e *MockEPackage_Expecter) SetNsPrefix(newNsPrefix string) *MockEPackage_SetNsPrefix_Call {
-	return &MockEPackage_SetNsPrefix_Call{Call: e.Mock.On("SetNsPrefix", newNsPrefix)}
+// SetNsPrefixis a helper method to define mock.On call
+// - nsPrefix string
+func (e *MockEPackage_Expecter) SetNsPrefix(nsPrefix any) *MockEPackage_SetNsPrefix_Call {
+	return &MockEPackage_SetNsPrefix_Call{Call: e.Mock.On("SetNsPrefix", nsPrefix)}
 }
 
-func (c *MockEPackage_SetNsPrefix_Call) Run(run func(newNsPrefix string)) *MockEPackage_SetNsPrefix_Call {
+func (c *MockEPackage_SetNsPrefix_Call) Run(run func(nsPrefix string)) *MockEPackage_SetNsPrefix_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(string))
 	})
@@ -296,19 +300,21 @@ func (c *MockEPackage_GetNsURI_Call) Return(nsURI string) *MockEPackage_GetNsURI
 }
 
 // SetNsURI provides mock implementation for setting the value of nsURI
-func (ePackage *MockEPackage) SetNsURI(newNsURI string) {
-	ePackage.Called(newNsURI)
+func (ePackage *MockEPackage) SetNsURI(nsURI string) {
+	ePackage.Called(nsURI)
 }
 
 type MockEPackage_SetNsURI_Call struct {
 	*mock.Call
 }
 
-func (e *MockEPackage_Expecter) SetNsURI(newNsURI string) *MockEPackage_SetNsURI_Call {
-	return &MockEPackage_SetNsURI_Call{Call: e.Mock.On("SetNsURI", newNsURI)}
+// SetNsURIis a helper method to define mock.On call
+// - nsURI string
+func (e *MockEPackage_Expecter) SetNsURI(nsURI any) *MockEPackage_SetNsURI_Call {
+	return &MockEPackage_SetNsURI_Call{Call: e.Mock.On("SetNsURI", nsURI)}
 }
 
-func (c *MockEPackage_SetNsURI_Call) Run(run func(newNsURI string)) *MockEPackage_SetNsURI_Call {
+func (c *MockEPackage_SetNsURI_Call) Run(run func(nsURI string)) *MockEPackage_SetNsURI_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(string))
 	})
@@ -334,6 +340,28 @@ func (ePackage *MockEPackage) GetEClassifier(name string) EClassifier {
 	}
 
 	return r
+}
+
+type MockEPackage_GetEClassifier_Call struct {
+	*mock.Call
+}
+
+// GetEClassifieris a helper method to define mock.On call
+// - name string
+func (e *MockEPackage_Expecter) GetEClassifier(name any) *MockEPackage_GetEClassifier_Call {
+	return &MockEPackage_GetEClassifier_Call{Call: e.Mock.On("GetEClassifier", name)}
+}
+
+func (c *MockEPackage_GetEClassifier_Call) Run(run func(string)) *MockEPackage_GetEClassifier_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(string))
+	})
+	return c
+}
+
+func (c *MockEPackage_GetEClassifier_Call) Return(_a0 EClassifier) *MockEPackage_GetEClassifier_Call {
+	c.Call.Return(_a0)
+	return c
 }
 
 type mockConstructorTestingTNewMockEPackage interface {

@@ -71,7 +71,7 @@ func TestEEnumESetFromID(t *testing.T) {
 		// list with a value
 		mockValue := new(MockEEnumLiteral)
 		l := NewImmutableEList([]any{mockValue})
-		mockValue.On("EInverseAdd", o, EENUM_LITERAL__EENUM, mock.Anything).Return(nil).Once()
+		mockValue.EXPECT().EInverseAdd(o, EENUM_LITERAL__EENUM, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
 		o.ESetFromID(EENUM__ELITERALS, l)
@@ -112,8 +112,8 @@ func TestEEnumEInvokeFromID(t *testing.T) {
 func TestEEnumEBasicInverseAdd(t *testing.T) {
 	o := newEEnumImpl()
 	{
-		mockObject := new(MockEObject)
-		mockNotifications := new(MockENotificationChain)
+		mockObject := NewMockEObject(t)
+		mockNotifications := NewMockENotificationChain(t)
 		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
 	}
 	{
@@ -129,14 +129,14 @@ func TestEEnumEBasicInverseAdd(t *testing.T) {
 func TestEEnumEBasicInverseRemove(t *testing.T) {
 	o := newEEnumImpl()
 	{
-		mockObject := new(MockEObject)
-		mockNotifications := new(MockENotificationChain)
+		mockObject := NewMockEObject(t)
+		mockNotifications := NewMockENotificationChain(t)
 		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
 	}
 	{
 		// initialize list with a mock object
 		mockObject := new(MockEEnumLiteral)
-		mockObject.On("EInverseAdd", o, EENUM_LITERAL__EENUM, mock.Anything).Return(nil).Once()
+		mockObject.EXPECT().EInverseAdd(o, EENUM_LITERAL__EENUM, mock.Anything).Return(nil).Once()
 
 		l := o.GetELiterals()
 		l.Add(mockObject)

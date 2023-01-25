@@ -219,11 +219,12 @@ func TestMockEStructuralFeatureSetVolatile(t *testing.T) {
 // TestMockEStructuralFeatureGetContainerClass tests method GetContainerClass
 func TestMockEStructuralFeatureGetContainerClass(t *testing.T) {
 	o := &MockEStructuralFeature{}
+	m := newMockEStructuralFeatureRun(t)
 	r := reflect.Type(reflect.TypeOf(""))
-	o.On("GetContainerClass").Return(r).Once()
-	o.On("GetContainerClass").Return(func() reflect.Type {
+	o.EXPECT().GetContainerClass().Run(func() { m.Run() }).Return(r).Once()
+	o.EXPECT().GetContainerClass().Once().Return(func() reflect.Type {
 		return r
-	}).Once()
+	})
 	assert.Equal(t, r, o.GetContainerClass())
 	assert.Equal(t, r, o.GetContainerClass())
 	o.AssertExpectations(t)

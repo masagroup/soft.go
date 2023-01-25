@@ -66,19 +66,21 @@ func (c *MockEDataType_IsSerializable_Call) Return(isSerializable bool) *MockEDa
 }
 
 // SetSerializable provides mock implementation for setting the value of isSerializable
-func (eDataType *MockEDataType) SetSerializable(newIsSerializable bool) {
-	eDataType.Called(newIsSerializable)
+func (eDataType *MockEDataType) SetSerializable(isSerializable bool) {
+	eDataType.Called(isSerializable)
 }
 
 type MockEDataType_SetSerializable_Call struct {
 	*mock.Call
 }
 
-func (e *MockEDataType_Expecter) SetSerializable(newIsSerializable bool) *MockEDataType_SetSerializable_Call {
-	return &MockEDataType_SetSerializable_Call{Call: e.Mock.On("SetSerializable", newIsSerializable)}
+// SetSerializableis a helper method to define mock.On call
+// - isSerializable bool
+func (e *MockEDataType_Expecter) SetSerializable(isSerializable any) *MockEDataType_SetSerializable_Call {
+	return &MockEDataType_SetSerializable_Call{Call: e.Mock.On("SetSerializable", isSerializable)}
 }
 
-func (c *MockEDataType_SetSerializable_Call) Run(run func(newIsSerializable bool)) *MockEDataType_SetSerializable_Call {
+func (c *MockEDataType_SetSerializable_Call) Run(run func(isSerializable bool)) *MockEDataType_SetSerializable_Call {
 	c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(bool))
 	})

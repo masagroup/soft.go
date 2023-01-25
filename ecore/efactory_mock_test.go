@@ -69,11 +69,12 @@ func TestMockEFactoryConvertToString(t *testing.T) {
 	o := &MockEFactory{}
 	eDataType := new(MockEDataType)
 	instanceValue := any(nil)
+	m := newMockEFactoryRun(t, eDataType, instanceValue)
 	r := string("Test String")
-	o.On("ConvertToString", eDataType, instanceValue).Return(r).Once()
-	o.On("ConvertToString", eDataType, instanceValue).Return(func() string {
+	o.EXPECT().ConvertToString(eDataType, instanceValue).Run(func(eDataType EDataType, instanceValue any) { m.Run(eDataType, instanceValue) }).Return(r).Once()
+	o.EXPECT().ConvertToString(eDataType, instanceValue).Once().Return(func() string {
 		return r
-	}).Once()
+	})
 	assert.Equal(t, r, o.ConvertToString(eDataType, instanceValue))
 	assert.Equal(t, r, o.ConvertToString(eDataType, instanceValue))
 	o.AssertExpectations(t)
@@ -83,11 +84,12 @@ func TestMockEFactoryConvertToString(t *testing.T) {
 func TestMockEFactoryCreate(t *testing.T) {
 	o := &MockEFactory{}
 	eClass := new(MockEClass)
+	m := newMockEFactoryRun(t, eClass)
 	r := new(MockEObjectInternal)
-	o.On("Create", eClass).Return(r).Once()
-	o.On("Create", eClass).Return(func() EObject {
+	o.EXPECT().Create(eClass).Run(func(eClass EClass) { m.Run(eClass) }).Return(r).Once()
+	o.EXPECT().Create(eClass).Once().Return(func() EObject {
 		return r
-	}).Once()
+	})
 	assert.Equal(t, r, o.Create(eClass))
 	assert.Equal(t, r, o.Create(eClass))
 	o.AssertExpectations(t)
@@ -98,11 +100,12 @@ func TestMockEFactoryCreateFromString(t *testing.T) {
 	o := &MockEFactory{}
 	eDataType := new(MockEDataType)
 	literalValue := string("Test String")
+	m := newMockEFactoryRun(t, eDataType, literalValue)
 	r := any(nil)
-	o.On("CreateFromString", eDataType, literalValue).Return(r).Once()
-	o.On("CreateFromString", eDataType, literalValue).Return(func() any {
+	o.EXPECT().CreateFromString(eDataType, literalValue).Run(func(eDataType EDataType, literalValue string) { m.Run(eDataType, literalValue) }).Return(r).Once()
+	o.EXPECT().CreateFromString(eDataType, literalValue).Once().Return(func() any {
 		return r
-	}).Once()
+	})
 	assert.Equal(t, r, o.CreateFromString(eDataType, literalValue))
 	assert.Equal(t, r, o.CreateFromString(eDataType, literalValue))
 	o.AssertExpectations(t)

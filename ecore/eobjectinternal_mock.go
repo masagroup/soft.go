@@ -284,7 +284,7 @@ func (_m *MockEObjectInternal) EGetFromID(featureID int, resolve bool) interface
 		r0 = rf(featureID, resolve)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0)
 		}
 	}
 

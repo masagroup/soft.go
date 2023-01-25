@@ -141,11 +141,12 @@ func TestMockEPackageSetNsURI(t *testing.T) {
 func TestMockEPackageGetEClassifier(t *testing.T) {
 	o := &MockEPackage{}
 	name := string("Test String")
+	m := newMockEPackageRun(t, name)
 	r := new(MockEClassifier)
-	o.On("GetEClassifier", name).Return(r).Once()
-	o.On("GetEClassifier", name).Return(func() EClassifier {
+	o.EXPECT().GetEClassifier(name).Run(func(name string) { m.Run(name) }).Return(r).Once()
+	o.EXPECT().GetEClassifier(name).Once().Return(func() EClassifier {
 		return r
-	}).Once()
+	})
 	assert.Equal(t, r, o.GetEClassifier(name))
 	assert.Equal(t, r, o.GetEClassifier(name))
 	o.AssertExpectations(t)

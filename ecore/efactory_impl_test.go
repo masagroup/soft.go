@@ -48,7 +48,7 @@ func TestEFactoryEPackageGet(t *testing.T) {
 	o.ESetInternalContainer(v, EFACTORY__EPACKAGE)
 
 	// no proxy
-	v.On("EIsProxy").Return(false)
+	v.EXPECT().EIsProxy().Return(false).Once()
 	assert.Equal(t, v, o.GetEPackage())
 }
 
@@ -57,36 +57,36 @@ func TestEFactoryEPackageSet(t *testing.T) {
 	o := newEFactoryImpl()
 
 	// add listener
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
 	// set with the mock value
 	mockValue := new(MockEPackage)
-	mockResource := new(MockEResource)
-	mockValue.On("EInverseAdd", o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
-	mockValue.On("EResource").Return(mockResource).Once()
-	mockResource.On("Attached", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockResource := NewMockEResource(t)
+	mockValue.EXPECT().EInverseAdd(o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
+	mockValue.EXPECT().EResource().Return(mockResource).Once()
+	mockResource.EXPECT().Attached(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.SetEPackage(mockValue)
 	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockResource)
 
 	// set with the same mock value
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.SetEPackage(mockValue)
 	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockResource)
 
 	// another value - in a different resource
 	mockValue2 := new(MockEPackage)
-	mockResource2 := new(MockEResource)
-	mockValue.On("EInverseRemove", o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
-	mockValue.On("EResource").Return(mockResource).Once()
-	mockValue2.On("EInverseAdd", o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
-	mockValue2.On("EResource").Return(mockResource2).Once()
-	mockResource.On("Detached", o).Once()
-	mockResource2.On("Attached", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockResource2 := NewMockEResource(t)
+	mockValue.EXPECT().EInverseRemove(o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
+	mockValue.EXPECT().EResource().Return(mockResource).Once()
+	mockValue2.EXPECT().EInverseAdd(o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
+	mockValue2.EXPECT().EResource().Return(mockResource2).Once()
+	mockResource.EXPECT().Detached(o).Once()
+	mockResource2.EXPECT().Attached(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.SetEPackage(mockValue2)
 	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue, mockResource, mockValue2, mockResource2)
 }
@@ -95,15 +95,15 @@ func TestEFactoryEPackageBasicSet(t *testing.T) {
 	o := newEFactoryImpl()
 
 	// add listener
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
 	mockValue := new(MockEPackage)
-	mockNotifications := new(MockENotificationChain)
-	mockValue.On("EResource").Return(nil).Once()
-	mockNotifications.On("Add", mock.MatchedBy(func(notification ENotification) bool {
+	mockNotifications := NewMockENotificationChain(t)
+	mockValue.EXPECT().EResource().Return(nil).Once()
+	mockNotifications.EXPECT().Add(mock.MatchedBy(func(notification ENotification) bool {
 		return notification.GetEventType() == SET && notification.GetFeatureID() == EFACTORY__EPACKAGE
 	})).Return(true).Once()
 	o.basicSetEPackage(mockValue, mockNotifications)
@@ -134,9 +134,9 @@ func TestEFactoryESetFromID(t *testing.T) {
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
 		mockValue := new(MockEPackage)
-		mockValue.On("EIsProxy").Return(false).Once()
-		mockValue.On("EResource").Return(nil).Once()
-		mockValue.On("EInverseAdd", o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
+		mockValue.EXPECT().EIsProxy().Return(false).Once()
+		mockValue.EXPECT().EResource().Return(nil).Once()
+		mockValue.EXPECT().EInverseAdd(o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
 		o.ESetFromID(EFACTORY__EPACKAGE, mockValue)
 		assert.Equal(t, mockValue, o.EGetFromID(EFACTORY__EPACKAGE, false))
 		mock.AssertExpectationsForObjects(t, mockValue)
@@ -170,23 +170,23 @@ func TestEFactoryEInvokeFromID(t *testing.T) {
 func TestEFactoryEBasicInverseAdd(t *testing.T) {
 	o := newEFactoryImpl()
 	{
-		mockObject := new(MockEObject)
-		mockNotifications := new(MockENotificationChain)
+		mockObject := NewMockEObject(t)
+		mockNotifications := NewMockENotificationChain(t)
 		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
 	}
 	{
 		mockObject := new(MockEPackage)
-		mockObject.On("EResource").Return(nil).Once()
-		mockObject.On("EIsProxy").Return(false).Once()
+		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EIsProxy().Return(false).Once()
 		o.EBasicInverseAdd(mockObject, EFACTORY__EPACKAGE, nil)
 		assert.Equal(t, mockObject, o.GetEPackage())
 		mock.AssertExpectationsForObjects(t, mockObject)
 
 		mockOther := new(MockEPackage)
-		mockOther.On("EResource").Return(nil).Once()
-		mockOther.On("EIsProxy").Return(false).Once()
-		mockObject.On("EResource").Return(nil).Once()
-		mockObject.On("EInverseRemove", o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
+		mockOther.EXPECT().EResource().Return(nil).Once()
+		mockOther.EXPECT().EIsProxy().Return(false).Once()
+		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EInverseRemove(o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, EFACTORY__EPACKAGE, nil)
 		assert.Equal(t, mockOther, o.GetEPackage())
 		mock.AssertExpectationsForObjects(t, mockObject, mockOther)
@@ -197,8 +197,8 @@ func TestEFactoryEBasicInverseAdd(t *testing.T) {
 func TestEFactoryEBasicInverseRemove(t *testing.T) {
 	o := newEFactoryImpl()
 	{
-		mockObject := new(MockEObject)
-		mockNotifications := new(MockENotificationChain)
+		mockObject := NewMockEObject(t)
+		mockNotifications := NewMockENotificationChain(t)
 		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
 	}
 	{

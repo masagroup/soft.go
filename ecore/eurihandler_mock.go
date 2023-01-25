@@ -71,22 +71,16 @@ func (_c *MockEURIHandler_CanHandle_Call) Return(_a0 bool) *MockEURIHandler_CanH
 func (_m *MockEURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {
 	ret := _m.Called(uri)
 
+	var r1 error
 	var r0 io.ReadCloser
-	if rf, ok := ret.Get(0).(func(*URI) io.ReadCloser); ok {
-		r0 = rf(uri)
+	if rf, ok := ret.Get(0).(func(*URI) (io.ReadCloser, error)); ok {
+		r0, r1 = rf(uri)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(io.ReadCloser)
 		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*URI) error); ok {
-		r1 = rf(uri)
-	} else {
 		r1 = ret.Error(1)
 	}
-
 	return r0, r1
 }
 
@@ -118,18 +112,13 @@ func (_m *MockEURIHandler) CreateWriter(uri *URI) (io.WriteCloser, error) {
 	ret := _m.Called(uri)
 
 	var r0 io.WriteCloser
-	if rf, ok := ret.Get(0).(func(*URI) io.WriteCloser); ok {
-		r0 = rf(uri)
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*URI) (io.WriteCloser, error)); ok {
+		r0, r1 = rf(uri)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(io.WriteCloser)
 		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*URI) error); ok {
-		r1 = rf(uri)
-	} else {
 		r1 = ret.Error(1)
 	}
 

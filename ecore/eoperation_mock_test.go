@@ -70,7 +70,7 @@ func TestMockEOperationGetEExceptions(t *testing.T) {
 func TestMockEOperationUnsetEExceptions(t *testing.T) {
 	o := NewMockEOperation(t)
 	m := newMockEOperationRun(t)
-	o.EXPECT().UnsetEExceptions().Run(func() { m.Run() }).Once()
+	o.EXPECT().UnsetEExceptions().Return().Run(func() { m.Run() }).Once()
 	o.UnsetEExceptions()
 }
 

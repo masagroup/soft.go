@@ -68,7 +68,7 @@ func TestMockETypedElementSetEType(t *testing.T) {
 func TestMockETypedElementUnsetEType(t *testing.T) {
 	o := NewMockETypedElement(t)
 	m := newMockETypedElementRun(t)
-	o.EXPECT().UnsetEType().Run(func() { m.Run() }).Once()
+	o.EXPECT().UnsetEType().Return().Run(func() { m.Run() }).Once()
 	o.UnsetEType()
 }
 

@@ -13,35 +13,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
-
-type mockENotifierRun struct {
-	mock.Mock
-}
-
-func (m *mockENotifierRun) Run(args ...any) {
-	m.Called(args...)
-}
-
-type mockConstructorTestingTMockENotifierRun interface {
-	mock.TestingT
-	Cleanup(func())
-}
-
-// newMockENotifierRun creates a new instance of MockEList. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func newMockENotifierRun(t mockConstructorTestingTMockENotifierRun, args ...any) *mockENotifierRun {
-	mock := &mockENotifierRun{}
-	mock.Test(t)
-	mock.On("Run", args...).Once()
-	t.Cleanup(func() { mock.AssertExpectations(t) })
-	return mock
-}
 
 func TestMockENotifierEAdapters(t *testing.T) {
 	n := NewMockENotifier(t)
 	a := NewMockEList(t)
-	m := newMockENotifierRun(t)
+	m := NewMockRun(t)
 	n.EXPECT().EAdapters().Run(func() { m.Run() }).Return(a).Once()
 	n.EXPECT().EAdapters().Once().Return(func() EList { return a })
 	assert.Equal(t, a, n.EAdapters())
@@ -50,7 +27,7 @@ func TestMockENotifierEAdapters(t *testing.T) {
 
 func TestMockENotifierEDeliver(t *testing.T) {
 	n := NewMockENotifier(t)
-	m := newMockENotifierRun(t)
+	m := NewMockRun(t)
 	n.EXPECT().EDeliver().Run(func() { m.Run() }).Return(false).Once()
 	n.EXPECT().EDeliver().Once().Return(func() bool { return true }).Once()
 	assert.False(t, n.EDeliver())
@@ -59,7 +36,7 @@ func TestMockENotifierEDeliver(t *testing.T) {
 
 func TestMockENotifierESetDeliver(t *testing.T) {
 	n := NewMockENotifier(t)
-	m := newMockENotifierRun(t, true)
+	m := NewMockRun(t, true)
 	n.EXPECT().ESetDeliver(true).Return().Run(func(_a0 bool) { m.Run(_a0) }).Once()
 	n.ESetDeliver(true)
 }
@@ -67,7 +44,7 @@ func TestMockENotifierESetDeliver(t *testing.T) {
 func TestMockENotifierENotify(t *testing.T) {
 	n := NewMockENotifier(t)
 	notif := NewMockENotification(t)
-	m := newMockENotifierRun(t, notif)
+	m := NewMockRun(t, notif)
 	n.EXPECT().ENotify(notif).Return().Run(func(_a0 ENotification) { m.Run(_a0) }).Once()
 	n.ENotify(notif)
 }

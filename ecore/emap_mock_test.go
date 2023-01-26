@@ -13,34 +13,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
-
-type mockEMapRun struct {
-	mock.Mock
-}
-
-func (m *mockEMapRun) Run(args ...any) {
-	m.Called(args...)
-}
-
-type mockConstructorTestingTMockEMapRun interface {
-	mock.TestingT
-	Cleanup(func())
-}
-
-// newMockEMapRun creates a new instance of MockEMap. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func newMockEMapRun(t mockConstructorTestingTMockEMapRun, args ...any) *mockEMapRun {
-	mock := &mockEMapRun{}
-	mock.Test(t)
-	mock.On("Run", args...).Once()
-	t.Cleanup(func() { mock.AssertExpectations(t) })
-	return mock
-}
 
 func TestMockEMap_ContainsKey(t *testing.T) {
 	l := NewMockEMap(t)
-	m := newMockEMapRun(t, 1)
+	m := NewMockRun(t, 1)
 	l.EXPECT().ContainsKey(1).Return(true).Run(func(key any) { m.Run(key) }).Once()
 	l.EXPECT().ContainsKey(2).Call.Return(func(any) bool {
 		return true
@@ -51,7 +28,7 @@ func TestMockEMap_ContainsKey(t *testing.T) {
 
 func TestMockEMap_ContainsValue(t *testing.T) {
 	l := NewMockEMap(t)
-	m := newMockEMapRun(t, 1)
+	m := NewMockRun(t, 1)
 	l.EXPECT().ContainsValue(1).Return(true).Run(func(key any) { m.Run(key) }).Once()
 	l.EXPECT().ContainsValue(2).Call.Return(func(any) bool {
 		return true
@@ -62,7 +39,7 @@ func TestMockEMap_ContainsValue(t *testing.T) {
 
 func TestMockEMap_RemoveKey(t *testing.T) {
 	l := NewMockEMap(t)
-	m := newMockEMapRun(t, 1)
+	m := NewMockRun(t, 1)
 	l.EXPECT().RemoveKey(1).Return("1").Run(func(key any) { m.Run(key) }).Once()
 	l.EXPECT().RemoveKey(2).Call.Return(func(any) any {
 		return "2"
@@ -73,14 +50,14 @@ func TestMockEMap_RemoveKey(t *testing.T) {
 
 func TestMockEMap_Put(t *testing.T) {
 	l := NewMockEMap(t)
-	m := newMockEMapRun(t, 1, "1")
+	m := NewMockRun(t, 1, "1")
 	l.EXPECT().Put(1, "1").Return().Run(func(key any, value any) { m.Run(key, value) }).Once()
 	l.Put(1, "1")
 }
 
 func TestMockEMap_GetValue(t *testing.T) {
 	l := NewMockEMap(t)
-	m := newMockEMapRun(t, 1)
+	m := NewMockRun(t, 1)
 	l.EXPECT().GetValue(1).Return("1").Run(func(key any) { m.Run(key) }).Once()
 	l.EXPECT().GetValue(2).Call.Return(func(any) any {
 		return "2"
@@ -92,7 +69,7 @@ func TestMockEMap_GetValue(t *testing.T) {
 func TestMockEMap_ToMap(t *testing.T) {
 	l := NewMockEMap(t)
 	m := map[any]any{}
-	mr := newMockEMapRun(t)
+	mr := NewMockRun(t)
 	l.EXPECT().ToMap().Return(m).Run(func() { mr.Run() }).Once()
 	l.EXPECT().ToMap().Call.Return(func() map[any]any {
 		return m

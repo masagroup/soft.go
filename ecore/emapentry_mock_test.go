@@ -13,34 +13,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
-
-type mockEMapEntryRun struct {
-	mock.Mock
-}
-
-func (m *mockEMapEntryRun) Run(args ...any) {
-	m.Called(args...)
-}
-
-type mockConstructorTestingTMockMockEMapEntryRun interface {
-	mock.TestingT
-	Cleanup(func())
-}
-
-// newMockEListRun creates a new instance of MockEList. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func newMockEMapEntryRun(t mockConstructorTestingTMockMockEMapEntryRun, args ...any) *mockEMapEntryRun {
-	mock := &mockEMapEntryRun{}
-	mock.Test(t)
-	mock.On("Run", args...).Once()
-	t.Cleanup(func() { mock.AssertExpectations(t) })
-	return mock
-}
 
 func TestMockEMapEntry_GetKey(t *testing.T) {
 	l := NewMockEMapEntry(t)
-	m := newMockEMapEntryRun(t)
+	m := NewMockRun(t)
 	l.EXPECT().GetKey().Return("1").Run(func() { m.Run() }).Once()
 	l.EXPECT().GetKey().Call.Return(func() any {
 		return "2"
@@ -51,14 +28,14 @@ func TestMockEMapEntry_GetKey(t *testing.T) {
 
 func TestMockEMapEntry_SetKey(t *testing.T) {
 	l := NewMockEMapEntry(t)
-	m := newMockEMapEntryRun(t, 1)
+	m := NewMockRun(t, 1)
 	l.EXPECT().SetKey(1).Return().Run(func(_a0 interface{}) { m.Run(_a0) }).Once()
 	l.SetKey(1)
 }
 
 func TestMockEMapEntry_GetValue(t *testing.T) {
 	l := NewMockEMapEntry(t)
-	m := newMockEMapEntryRun(t)
+	m := NewMockRun(t)
 	l.EXPECT().GetValue().Return("1").Run(func() { m.Run() }).Once()
 	l.EXPECT().GetValue().Call.Return(func() any {
 		return "2"
@@ -69,7 +46,7 @@ func TestMockEMapEntry_GetValue(t *testing.T) {
 
 func TestMockEMapEntry_SetValue(t *testing.T) {
 	l := NewMockEMapEntry(t)
-	m := newMockEMapEntryRun(t, 1)
+	m := NewMockRun(t, 1)
 	l.EXPECT().SetValue(1).Return().Run(func(_a0 interface{}) { m.Run(_a0) }).Once()
 	l.SetValue(1)
 }

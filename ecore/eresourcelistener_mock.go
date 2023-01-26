@@ -19,11 +19,11 @@ type MockEResourceListener struct {
 }
 
 type MockEResourceListener_Expecter struct {
-	mock *mock.Mock
+	*mock.Mock
 }
 
 func (_m *MockEResourceListener) EXPECT() *MockEResourceListener_Expecter {
-	return &MockEResourceListener_Expecter{mock: &_m.Mock}
+	return &MockEResourceListener_Expecter{Mock: &_m.Mock}
 }
 
 // Attached provides a mock function with given fields: object
@@ -39,7 +39,7 @@ type MockEResourceListener_Attached_Call struct {
 // Attached is a helper method to define mock.On call
 //   - object EObject
 func (_e *MockEResourceListener_Expecter) Attached(object interface{}) *MockEResourceListener_Attached_Call {
-	return &MockEResourceListener_Attached_Call{Call: _e.mock.On("Attached", object)}
+	return &MockEResourceListener_Attached_Call{Call: _e.Mock.On("Attached", object)}
 }
 
 func (_c *MockEResourceListener_Attached_Call) Run(run func(object EObject)) *MockEResourceListener_Attached_Call {
@@ -67,7 +67,7 @@ type MockEResourceListener_Detached_Call struct {
 // Detached is a helper method to define mock.On call
 //   - object EObject
 func (_e *MockEResourceListener_Expecter) Detached(object interface{}) *MockEResourceListener_Detached_Call {
-	return &MockEResourceListener_Detached_Call{Call: _e.mock.On("Detached", object)}
+	return &MockEResourceListener_Detached_Call{Call: _e.Mock.On("Detached", object)}
 }
 
 func (_c *MockEResourceListener_Detached_Call) Run(run func(object EObject)) *MockEResourceListener_Detached_Call {

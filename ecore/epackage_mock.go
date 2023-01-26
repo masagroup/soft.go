@@ -16,21 +16,26 @@ import (
 )
 
 type MockEPackage struct {
-	MockENamedElement
+	MockEPackage_Prototype
+	mock.Mock
+}
+
+type MockEPackage_Prototype struct {
+	MockENamedElement_Prototype
 }
 
 type MockEPackage_Expecter struct {
 	MockENamedElement_Expecter
 }
 
-func (ePackage *MockEPackage) EXPECT() *MockEPackage_Expecter {
+func (ePackage *MockEPackage_Prototype) EXPECT() *MockEPackage_Expecter {
 	e := &MockEPackage_Expecter{}
-	e.Mock = &ePackage.Mock
+	e.Mock = ePackage.Mock
 	return e
 }
 
 // GetEClassifiers get the value of eClassifiers
-func (ePackage *MockEPackage) GetEClassifiers() EList {
+func (ePackage *MockEPackage_Prototype) GetEClassifiers() EList {
 	ret := ePackage.Called()
 
 	var r EList
@@ -66,7 +71,7 @@ func (c *MockEPackage_GetEClassifiers_Call) Return(eClassifiers EList) *MockEPac
 }
 
 // GetEFactoryInstance get the value of eFactoryInstance
-func (ePackage *MockEPackage) GetEFactoryInstance() EFactory {
+func (ePackage *MockEPackage_Prototype) GetEFactoryInstance() EFactory {
 	ret := ePackage.Called()
 
 	var r EFactory
@@ -102,7 +107,7 @@ func (c *MockEPackage_GetEFactoryInstance_Call) Return(eFactoryInstance EFactory
 }
 
 // SetEFactoryInstance provides mock implementation for setting the value of eFactoryInstance
-func (ePackage *MockEPackage) SetEFactoryInstance(eFactoryInstance EFactory) {
+func (ePackage *MockEPackage_Prototype) SetEFactoryInstance(eFactoryInstance EFactory) {
 	ePackage.Called(eFactoryInstance)
 }
 
@@ -129,7 +134,7 @@ func (c *MockEPackage_SetEFactoryInstance_Call) Return() *MockEPackage_SetEFacto
 }
 
 // GetESubPackages get the value of eSubPackages
-func (ePackage *MockEPackage) GetESubPackages() EList {
+func (ePackage *MockEPackage_Prototype) GetESubPackages() EList {
 	ret := ePackage.Called()
 
 	var r EList
@@ -165,7 +170,7 @@ func (c *MockEPackage_GetESubPackages_Call) Return(eSubPackages EList) *MockEPac
 }
 
 // GetESuperPackage get the value of eSuperPackage
-func (ePackage *MockEPackage) GetESuperPackage() EPackage {
+func (ePackage *MockEPackage_Prototype) GetESuperPackage() EPackage {
 	ret := ePackage.Called()
 
 	var r EPackage
@@ -201,7 +206,7 @@ func (c *MockEPackage_GetESuperPackage_Call) Return(eSuperPackage EPackage) *Moc
 }
 
 // GetNsPrefix get the value of nsPrefix
-func (ePackage *MockEPackage) GetNsPrefix() string {
+func (ePackage *MockEPackage_Prototype) GetNsPrefix() string {
 	ret := ePackage.Called()
 
 	var r string
@@ -237,7 +242,7 @@ func (c *MockEPackage_GetNsPrefix_Call) Return(nsPrefix string) *MockEPackage_Ge
 }
 
 // SetNsPrefix provides mock implementation for setting the value of nsPrefix
-func (ePackage *MockEPackage) SetNsPrefix(nsPrefix string) {
+func (ePackage *MockEPackage_Prototype) SetNsPrefix(nsPrefix string) {
 	ePackage.Called(nsPrefix)
 }
 
@@ -264,7 +269,7 @@ func (c *MockEPackage_SetNsPrefix_Call) Return() *MockEPackage_SetNsPrefix_Call 
 }
 
 // GetNsURI get the value of nsURI
-func (ePackage *MockEPackage) GetNsURI() string {
+func (ePackage *MockEPackage_Prototype) GetNsURI() string {
 	ret := ePackage.Called()
 
 	var r string
@@ -300,7 +305,7 @@ func (c *MockEPackage_GetNsURI_Call) Return(nsURI string) *MockEPackage_GetNsURI
 }
 
 // SetNsURI provides mock implementation for setting the value of nsURI
-func (ePackage *MockEPackage) SetNsURI(nsURI string) {
+func (ePackage *MockEPackage_Prototype) SetNsURI(nsURI string) {
 	ePackage.Called(nsURI)
 }
 
@@ -327,7 +332,7 @@ func (c *MockEPackage_SetNsURI_Call) Return() *MockEPackage_SetNsURI_Call {
 }
 
 // GetEClassifier provides mock implementation
-func (ePackage *MockEPackage) GetEClassifier(name string) EClassifier {
+func (ePackage *MockEPackage_Prototype) GetEClassifier(name string) EClassifier {
 	ret := ePackage.Called(name)
 
 	var r EClassifier
@@ -372,6 +377,7 @@ type mockConstructorTestingTNewMockEPackage interface {
 // NewMockEPackage creates a new instance of MockEPackage. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEPackage(t mockConstructorTestingTNewMockEPackage) *MockEPackage {
 	mock := &MockEPackage{}
+	mock.MockEPackage_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

@@ -24,7 +24,7 @@ func discardMockETypedElement() {
 // TestMockETypedElementGetEType tests method GetEType
 func TestMockETypedElementGetEType(t *testing.T) {
 	o := NewMockETypedElement(t)
-	r := new(MockEClassifier)
+	r := NewMockEClassifier(t)
 	m := NewMockRun(t)
 	o.EXPECT().GetEType().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEType().Call.Return(func() EClassifier { return r }).Once()
@@ -35,7 +35,7 @@ func TestMockETypedElementGetEType(t *testing.T) {
 // TestMockETypedElementSetEType tests method SetEType
 func TestMockETypedElementSetEType(t *testing.T) {
 	o := NewMockETypedElement(t)
-	v := new(MockEClassifier)
+	v := NewMockEClassifier(t)
 	m := NewMockRun(t, v)
 	o.EXPECT().SetEType(v).Return().Run(func(_p0 EClassifier) { m.Run(_p0) }).Once()
 	o.SetEType(v)

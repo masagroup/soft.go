@@ -24,8 +24,8 @@ func TestDynamicEObjectConstructor(t *testing.T) {
 
 func TestDynamicEObject_EClass(t *testing.T) {
 	o := NewDynamicEObjectImpl()
-	mockClass := &MockEClass{}
-	mockAdapters := &MockEList{}
+	mockClass := NewMockEClass(t)
+	mockAdapters := NewMockEList(t)
 	mockClass.On("GetFeatureCount").Return(0)
 	mockClass.On("EAdapters").Return(mockAdapters)
 	mockAdapters.On("Add", mock.Anything).Return(true).Once()

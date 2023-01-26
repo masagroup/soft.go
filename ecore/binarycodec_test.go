@@ -11,7 +11,7 @@ import (
 
 func TestBinaryCodec_NewEncoder(t *testing.T) {
 	c := &BinaryCodec{}
-	mockResource := &MockEResource{}
+	mockResource := NewMockEResource(t)
 	mockResource.On("GetURI").Return(nil).Once()
 	e := c.NewEncoder(mockResource, nil, nil)
 	require.NotNil(t, e)
@@ -20,7 +20,7 @@ func TestBinaryCodec_NewEncoder(t *testing.T) {
 
 func TestBinaryCodec_NewDecoder(t *testing.T) {
 	c := &BinaryCodec{}
-	mockResource := &MockEResource{}
+	mockResource := NewMockEResource(t)
 	mockResource.On("GetURI").Return(nil).Once()
 	e := c.NewDecoder(mockResource, nil, nil)
 	require.NotNil(t, e)
@@ -28,7 +28,7 @@ func TestBinaryCodec_NewDecoder(t *testing.T) {
 }
 
 func TestBinaryCodec_GetFeatureKind_Reference(t *testing.T) {
-	mockReference := &MockEReference{}
+	mockReference := NewMockEReference(t)
 	mockReference.On("IsContainment").Return(true).Once()
 	mockReference.On("IsResolveProxies").Return(true).Once()
 	mockReference.On("IsMany").Return(true).Once()
@@ -95,18 +95,18 @@ func TestBinaryCodec_GetFeatureKind_Reference(t *testing.T) {
 }
 
 func TestBinaryCodec_GetFeatureKind_Attribute(t *testing.T) {
-	mockAttribute := &MockEAttribute{}
+	mockAttribute := NewMockEAttribute(t)
 	mockAttribute.On("IsMany").Return(true).Once()
 	assert.Equal(t, bfkDataList, getBinaryCodecFeatureKind(mockAttribute))
 	mockAttribute.AssertExpectations(t)
 
-	mockEnum := &MockEEnum{}
+	mockEnum := NewMockEEnum(t)
 	mockAttribute.On("IsMany").Return(false).Once()
 	mockAttribute.On("GetEAttributeType").Return(mockEnum).Once()
 	assert.Equal(t, bfkEnum, getBinaryCodecFeatureKind(mockAttribute))
 	mock.AssertExpectationsForObjects(t, mockAttribute, mockEnum)
 
-	mockDataType := &MockEDataType{}
+	mockDataType := NewMockEDataType(t)
 	mockAttribute.On("IsMany").Return(false).Once()
 	mockAttribute.On("GetEAttributeType").Return(mockDataType).Once()
 	mockDataType.On("GetInstanceTypeName").Return("float64").Once()

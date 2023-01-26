@@ -16,7 +16,7 @@ import (
 )
 
 func TestEListIterator(t *testing.T) {
-	mockList := &MockEList{}
+	mockList := NewMockEList(t)
 	mockList.On("Size").Return(3)
 	for i := 0; i < 3; i++ {
 		mockList.On("Get", i).Return(i)

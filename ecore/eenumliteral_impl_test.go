@@ -44,7 +44,7 @@ func TestEEnumLiteralEEnumGet(t *testing.T) {
 	assert.Nil(t, o.GetEEnum())
 
 	// set a mock container
-	v := new(MockEEnum)
+	v := NewMockEEnum(t)
 	o.ESetInternalContainer(v, EENUM_LITERAL__EENUM)
 
 	// no proxy
@@ -182,14 +182,14 @@ func TestEEnumLiteralEBasicInverseAdd(t *testing.T) {
 		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEEnum)
+		mockObject := NewMockEEnum(t)
 		mockObject.EXPECT().EResource().Return(nil).Once()
 		mockObject.EXPECT().EIsProxy().Return(false).Once()
 		o.EBasicInverseAdd(mockObject, EENUM_LITERAL__EENUM, nil)
 		assert.Equal(t, mockObject, o.GetEEnum())
 		mock.AssertExpectationsForObjects(t, mockObject)
 
-		mockOther := new(MockEEnum)
+		mockOther := NewMockEEnum(t)
 		mockOther.EXPECT().EResource().Return(nil).Once()
 		mockOther.EXPECT().EIsProxy().Return(false).Once()
 		mockObject.EXPECT().EResource().Return(nil).Once()
@@ -209,7 +209,7 @@ func TestEEnumLiteralEBasicInverseRemove(t *testing.T) {
 		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEEnum)
+		mockObject := NewMockEEnum(t)
 		o.EBasicInverseRemove(mockObject, EENUM_LITERAL__EENUM, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}

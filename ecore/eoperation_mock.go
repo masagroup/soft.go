@@ -16,21 +16,26 @@ import (
 )
 
 type MockEOperation struct {
-	MockETypedElement
+	MockEOperation_Prototype
+	mock.Mock
+}
+
+type MockEOperation_Prototype struct {
+	MockETypedElement_Prototype
 }
 
 type MockEOperation_Expecter struct {
 	MockETypedElement_Expecter
 }
 
-func (eOperation *MockEOperation) EXPECT() *MockEOperation_Expecter {
+func (eOperation *MockEOperation_Prototype) EXPECT() *MockEOperation_Expecter {
 	e := &MockEOperation_Expecter{}
-	e.Mock = &eOperation.Mock
+	e.Mock = eOperation.Mock
 	return e
 }
 
 // GetEContainingClass get the value of eContainingClass
-func (eOperation *MockEOperation) GetEContainingClass() EClass {
+func (eOperation *MockEOperation_Prototype) GetEContainingClass() EClass {
 	ret := eOperation.Called()
 
 	var r EClass
@@ -66,7 +71,7 @@ func (c *MockEOperation_GetEContainingClass_Call) Return(eContainingClass EClass
 }
 
 // GetEExceptions get the value of eExceptions
-func (eOperation *MockEOperation) GetEExceptions() EList {
+func (eOperation *MockEOperation_Prototype) GetEExceptions() EList {
 	ret := eOperation.Called()
 
 	var r EList
@@ -102,7 +107,7 @@ func (c *MockEOperation_GetEExceptions_Call) Return(eExceptions EList) *MockEOpe
 }
 
 // UnsetEExceptions provides mock implementation for unset the value of eExceptions
-func (eOperation *MockEOperation) UnsetEExceptions() {
+func (eOperation *MockEOperation_Prototype) UnsetEExceptions() {
 	eOperation.Called()
 }
 
@@ -127,7 +132,7 @@ func (c *MockEOperation_UnsetEExceptions_Call) Return() *MockEOperation_UnsetEEx
 }
 
 // GetEParameters get the value of eParameters
-func (eOperation *MockEOperation) GetEParameters() EList {
+func (eOperation *MockEOperation_Prototype) GetEParameters() EList {
 	ret := eOperation.Called()
 
 	var r EList
@@ -163,7 +168,7 @@ func (c *MockEOperation_GetEParameters_Call) Return(eParameters EList) *MockEOpe
 }
 
 // GetOperationID get the value of operationID
-func (eOperation *MockEOperation) GetOperationID() int {
+func (eOperation *MockEOperation_Prototype) GetOperationID() int {
 	ret := eOperation.Called()
 
 	var r int
@@ -199,7 +204,7 @@ func (c *MockEOperation_GetOperationID_Call) Return(operationID int) *MockEOpera
 }
 
 // SetOperationID provides mock implementation for setting the value of operationID
-func (eOperation *MockEOperation) SetOperationID(operationID int) {
+func (eOperation *MockEOperation_Prototype) SetOperationID(operationID int) {
 	eOperation.Called(operationID)
 }
 
@@ -226,7 +231,7 @@ func (c *MockEOperation_SetOperationID_Call) Return() *MockEOperation_SetOperati
 }
 
 // IsOverrideOf provides mock implementation
-func (eOperation *MockEOperation) IsOverrideOf(someOperation EOperation) bool {
+func (eOperation *MockEOperation_Prototype) IsOverrideOf(someOperation EOperation) bool {
 	ret := eOperation.Called(someOperation)
 
 	var r bool
@@ -271,6 +276,7 @@ type mockConstructorTestingTNewMockEOperation interface {
 // NewMockEOperation creates a new instance of MockEOperation. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEOperation(t mockConstructorTestingTNewMockEOperation) *MockEOperation {
 	mock := &MockEOperation{}
+	mock.MockEOperation_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

@@ -16,21 +16,26 @@ import (
 )
 
 type MockEObject struct {
-	MockENotifier
+	MockEObject_Prototype
+	mock.Mock
+}
+
+type MockEObject_Prototype struct {
+	MockENotifier_Prototype
 }
 
 type MockEObject_Expecter struct {
 	MockENotifier_Expecter
 }
 
-func (eObject *MockEObject) EXPECT() *MockEObject_Expecter {
+func (eObject *MockEObject_Prototype) EXPECT() *MockEObject_Expecter {
 	e := &MockEObject_Expecter{}
-	e.Mock = &eObject.Mock
+	e.Mock = eObject.Mock
 	return e
 }
 
 // EAllContents provides mock implementation
-func (eObject *MockEObject) EAllContents() EIterator {
+func (eObject *MockEObject_Prototype) EAllContents() EIterator {
 	ret := eObject.Called()
 
 	var r EIterator
@@ -67,7 +72,7 @@ func (c *MockEObject_EAllContents_Call) Return(_a0 EIterator) *MockEObject_EAllC
 }
 
 // EClass provides mock implementation
-func (eObject *MockEObject) EClass() EClass {
+func (eObject *MockEObject_Prototype) EClass() EClass {
 	ret := eObject.Called()
 
 	var r EClass
@@ -104,7 +109,7 @@ func (c *MockEObject_EClass_Call) Return(_a0 EClass) *MockEObject_EClass_Call {
 }
 
 // EContainer provides mock implementation
-func (eObject *MockEObject) EContainer() EObject {
+func (eObject *MockEObject_Prototype) EContainer() EObject {
 	ret := eObject.Called()
 
 	var r EObject
@@ -141,7 +146,7 @@ func (c *MockEObject_EContainer_Call) Return(_a0 EObject) *MockEObject_EContaine
 }
 
 // EContainingFeature provides mock implementation
-func (eObject *MockEObject) EContainingFeature() EStructuralFeature {
+func (eObject *MockEObject_Prototype) EContainingFeature() EStructuralFeature {
 	ret := eObject.Called()
 
 	var r EStructuralFeature
@@ -178,7 +183,7 @@ func (c *MockEObject_EContainingFeature_Call) Return(_a0 EStructuralFeature) *Mo
 }
 
 // EContainmentFeature provides mock implementation
-func (eObject *MockEObject) EContainmentFeature() EReference {
+func (eObject *MockEObject_Prototype) EContainmentFeature() EReference {
 	ret := eObject.Called()
 
 	var r EReference
@@ -215,7 +220,7 @@ func (c *MockEObject_EContainmentFeature_Call) Return(_a0 EReference) *MockEObje
 }
 
 // EContents provides mock implementation
-func (eObject *MockEObject) EContents() EList {
+func (eObject *MockEObject_Prototype) EContents() EList {
 	ret := eObject.Called()
 
 	var r EList
@@ -252,7 +257,7 @@ func (c *MockEObject_EContents_Call) Return(_a0 EList) *MockEObject_EContents_Ca
 }
 
 // ECrossReferences provides mock implementation
-func (eObject *MockEObject) ECrossReferences() EList {
+func (eObject *MockEObject_Prototype) ECrossReferences() EList {
 	ret := eObject.Called()
 
 	var r EList
@@ -289,7 +294,7 @@ func (c *MockEObject_ECrossReferences_Call) Return(_a0 EList) *MockEObject_ECros
 }
 
 // EGet provides mock implementation
-func (eObject *MockEObject) EGet(feature EStructuralFeature) any {
+func (eObject *MockEObject_Prototype) EGet(feature EStructuralFeature) any {
 	ret := eObject.Called(feature)
 
 	var r any
@@ -327,7 +332,7 @@ func (c *MockEObject_EGet_Call) Return(_a0 any) *MockEObject_EGet_Call {
 }
 
 // EGetResolve provides mock implementation
-func (eObject *MockEObject) EGetResolve(feature EStructuralFeature, resolve bool) any {
+func (eObject *MockEObject_Prototype) EGetResolve(feature EStructuralFeature, resolve bool) any {
 	ret := eObject.Called(feature, resolve)
 
 	var r any
@@ -366,7 +371,7 @@ func (c *MockEObject_EGetResolve_Call) Return(_a0 any) *MockEObject_EGetResolve_
 }
 
 // EInvoke provides mock implementation
-func (eObject *MockEObject) EInvoke(operation EOperation, arguments EList) any {
+func (eObject *MockEObject_Prototype) EInvoke(operation EOperation, arguments EList) any {
 	ret := eObject.Called(operation, arguments)
 
 	var r any
@@ -405,7 +410,7 @@ func (c *MockEObject_EInvoke_Call) Return(_a0 any) *MockEObject_EInvoke_Call {
 }
 
 // EIsProxy provides mock implementation
-func (eObject *MockEObject) EIsProxy() bool {
+func (eObject *MockEObject_Prototype) EIsProxy() bool {
 	ret := eObject.Called()
 
 	var r bool
@@ -442,7 +447,7 @@ func (c *MockEObject_EIsProxy_Call) Return(_a0 bool) *MockEObject_EIsProxy_Call 
 }
 
 // EIsSet provides mock implementation
-func (eObject *MockEObject) EIsSet(feature EStructuralFeature) bool {
+func (eObject *MockEObject_Prototype) EIsSet(feature EStructuralFeature) bool {
 	ret := eObject.Called(feature)
 
 	var r bool
@@ -480,7 +485,7 @@ func (c *MockEObject_EIsSet_Call) Return(_a0 bool) *MockEObject_EIsSet_Call {
 }
 
 // EResource provides mock implementation
-func (eObject *MockEObject) EResource() EResource {
+func (eObject *MockEObject_Prototype) EResource() EResource {
 	ret := eObject.Called()
 
 	var r EResource
@@ -517,7 +522,7 @@ func (c *MockEObject_EResource_Call) Return(_a0 EResource) *MockEObject_EResourc
 }
 
 // ESet provides mock implementation
-func (eObject *MockEObject) ESet(feature EStructuralFeature, newValue any) {
+func (eObject *MockEObject_Prototype) ESet(feature EStructuralFeature, newValue any) {
 	eObject.Called(feature, newValue)
 }
 
@@ -540,7 +545,7 @@ func (c *MockEObject_ESet_Call) Return() *MockEObject_ESet_Call {
 	c.Call.Return()
 	return c
 } // EUnset provides mock implementation
-func (eObject *MockEObject) EUnset(feature EStructuralFeature) {
+func (eObject *MockEObject_Prototype) EUnset(feature EStructuralFeature) {
 	eObject.Called(feature)
 }
 
@@ -572,6 +577,7 @@ type mockConstructorTestingTNewMockEObject interface {
 // NewMockEObject creates a new instance of MockEObject. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEObject(t mockConstructorTestingTNewMockEObject) *MockEObject {
 	mock := &MockEObject{}
+	mock.MockEObject_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

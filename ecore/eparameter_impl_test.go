@@ -44,7 +44,7 @@ func TestEParameterEOperationGet(t *testing.T) {
 	assert.Nil(t, o.GetEOperation())
 
 	// set a mock container
-	v := new(MockEOperation)
+	v := NewMockEOperation(t)
 	o.ESetInternalContainer(v, EPARAMETER__EOPERATION)
 
 	// no proxy
@@ -72,14 +72,14 @@ func TestEParameterEBasicInverseAdd(t *testing.T) {
 		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEOperation)
+		mockObject := NewMockEOperation(t)
 		mockObject.EXPECT().EResource().Return(nil).Once()
 		mockObject.EXPECT().EIsProxy().Return(false).Once()
 		o.EBasicInverseAdd(mockObject, EPARAMETER__EOPERATION, nil)
 		assert.Equal(t, mockObject, o.GetEOperation())
 		mock.AssertExpectationsForObjects(t, mockObject)
 
-		mockOther := new(MockEOperation)
+		mockOther := NewMockEOperation(t)
 		mockOther.EXPECT().EResource().Return(nil).Once()
 		mockOther.EXPECT().EIsProxy().Return(false).Once()
 		mockObject.EXPECT().EResource().Return(nil).Once()
@@ -99,7 +99,7 @@ func TestEParameterEBasicInverseRemove(t *testing.T) {
 		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEOperation)
+		mockObject := NewMockEOperation(t)
 		o.EBasicInverseRemove(mockObject, EPARAMETER__EOPERATION, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}

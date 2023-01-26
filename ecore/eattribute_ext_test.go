@@ -20,7 +20,7 @@ func TestEAttributeEClass(t *testing.T) {
 }
 
 func TestEAttribute_GetEAttributeType(t *testing.T) {
-	mockType := new(MockEDataType)
+	mockType := NewMockEDataType(t)
 	a := newEAttributeExt()
 	a.SetEType(mockType)
 
@@ -30,7 +30,7 @@ func TestEAttribute_GetEAttributeType(t *testing.T) {
 }
 
 func TestEAttribute_BasicGetEAttributeType(t *testing.T) {
-	mockType := new(MockEDataType)
+	mockType := NewMockEDataType(t)
 	a := newEAttributeExt()
 	a.SetEType(mockType)
 	assert.Equal(t, mockType, a.basicGetEAttributeType())

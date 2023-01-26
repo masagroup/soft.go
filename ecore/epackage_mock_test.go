@@ -35,7 +35,7 @@ func TestMockEPackageGetEClassifiers(t *testing.T) {
 // TestMockEPackageGetEFactoryInstance tests method GetEFactoryInstance
 func TestMockEPackageGetEFactoryInstance(t *testing.T) {
 	o := NewMockEPackage(t)
-	r := new(MockEFactory)
+	r := NewMockEFactory(t)
 	m := NewMockRun(t)
 	o.EXPECT().GetEFactoryInstance().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEFactoryInstance().Call.Return(func() EFactory { return r }).Once()
@@ -46,7 +46,7 @@ func TestMockEPackageGetEFactoryInstance(t *testing.T) {
 // TestMockEPackageSetEFactoryInstance tests method SetEFactoryInstance
 func TestMockEPackageSetEFactoryInstance(t *testing.T) {
 	o := NewMockEPackage(t)
-	v := new(MockEFactory)
+	v := NewMockEFactory(t)
 	m := NewMockRun(t, v)
 	o.EXPECT().SetEFactoryInstance(v).Return().Run(func(_p0 EFactory) { m.Run(_p0) }).Once()
 	o.SetEFactoryInstance(v)
@@ -66,7 +66,7 @@ func TestMockEPackageGetESubPackages(t *testing.T) {
 // TestMockEPackageGetESuperPackage tests method GetESuperPackage
 func TestMockEPackageGetESuperPackage(t *testing.T) {
 	o := NewMockEPackage(t)
-	r := new(MockEPackage)
+	r := NewMockEPackage(t)
 	m := NewMockRun(t)
 	o.EXPECT().GetESuperPackage().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetESuperPackage().Call.Return(func() EPackage { return r }).Once()
@@ -119,12 +119,11 @@ func TestMockEPackageGetEClassifier(t *testing.T) {
 	o := NewMockEPackage(t)
 	name := string("Test String")
 	m := NewMockRun(t, name)
-	r := new(MockEClassifier)
+	r := NewMockEClassifier(t)
 	o.EXPECT().GetEClassifier(name).Return(r).Run(func(name string) { m.Run(name) }).Once()
 	o.EXPECT().GetEClassifier(name).Call.Return(func() EClassifier {
 		return r
 	}).Once()
 	assert.Equal(t, r, o.GetEClassifier(name))
 	assert.Equal(t, r, o.GetEClassifier(name))
-	o.AssertExpectations(t)
 }

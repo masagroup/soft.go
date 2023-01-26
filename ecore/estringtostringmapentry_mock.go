@@ -16,21 +16,26 @@ import (
 )
 
 type MockEStringToStringMapEntry struct {
-	MockEObjectInternal
+	MockEStringToStringMapEntry_Prototype
+	mock.Mock
+}
+
+type MockEStringToStringMapEntry_Prototype struct {
+	MockEObjectInternal_Prototype
 }
 
 type MockEStringToStringMapEntry_Expecter struct {
 	MockEObjectInternal_Expecter
 }
 
-func (eStringToStringMapEntry *MockEStringToStringMapEntry) EXPECT() *MockEStringToStringMapEntry_Expecter {
+func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype) EXPECT() *MockEStringToStringMapEntry_Expecter {
 	e := &MockEStringToStringMapEntry_Expecter{}
-	e.Mock = &eStringToStringMapEntry.Mock
+	e.Mock = eStringToStringMapEntry.Mock
 	return e
 }
 
 // GetTypedKey get the value of key
-func (eStringToStringMapEntry *MockEStringToStringMapEntry) GetTypedKey() string {
+func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype) GetTypedKey() string {
 	ret := eStringToStringMapEntry.Called()
 
 	var r string
@@ -66,7 +71,7 @@ func (c *MockEStringToStringMapEntry_GetTypedKey_Call) Return(key string) *MockE
 }
 
 // SetTypedKey provides mock implementation for setting the value of key
-func (eStringToStringMapEntry *MockEStringToStringMapEntry) SetTypedKey(key string) {
+func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype) SetTypedKey(key string) {
 	eStringToStringMapEntry.Called(key)
 }
 
@@ -93,7 +98,7 @@ func (c *MockEStringToStringMapEntry_SetTypedKey_Call) Return() *MockEStringToSt
 }
 
 // GetTypedValue get the value of value
-func (eStringToStringMapEntry *MockEStringToStringMapEntry) GetTypedValue() string {
+func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype) GetTypedValue() string {
 	ret := eStringToStringMapEntry.Called()
 
 	var r string
@@ -129,7 +134,7 @@ func (c *MockEStringToStringMapEntry_GetTypedValue_Call) Return(value string) *M
 }
 
 // SetTypedValue provides mock implementation for setting the value of value
-func (eStringToStringMapEntry *MockEStringToStringMapEntry) SetTypedValue(value string) {
+func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype) SetTypedValue(value string) {
 	eStringToStringMapEntry.Called(value)
 }
 
@@ -163,6 +168,7 @@ type mockConstructorTestingTNewMockEStringToStringMapEntry interface {
 // NewMockEStringToStringMapEntry creates a new instance of MockEStringToStringMapEntry. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEStringToStringMapEntry(t mockConstructorTestingTNewMockEStringToStringMapEntry) *MockEStringToStringMapEntry {
 	mock := &MockEStringToStringMapEntry{}
+	mock.MockEStringToStringMapEntry_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

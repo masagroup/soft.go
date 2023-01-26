@@ -27,7 +27,7 @@ func TestNewXmlProcessor(t *testing.T) {
 }
 
 func TestNewSharedXmlProcessor(t *testing.T) {
-	mockResourceSet := &MockEResourceSet{}
+	mockResourceSet := NewMockEResourceSet(t)
 	p := NewXMLProcessor(XMLProcessorResourceSet(mockResourceSet))
 	require.NotNil(t, p)
 	assert.Equal(t, mockResourceSet, p.GetResourceSet())

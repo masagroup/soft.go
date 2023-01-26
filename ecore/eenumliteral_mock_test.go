@@ -24,7 +24,7 @@ func discardMockEEnumLiteral() {
 // TestMockEEnumLiteralGetEEnum tests method GetEEnum
 func TestMockEEnumLiteralGetEEnum(t *testing.T) {
 	o := NewMockEEnumLiteral(t)
-	r := new(MockEEnum)
+	r := NewMockEEnum(t)
 	m := NewMockRun(t)
 	o.EXPECT().GetEEnum().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEEnum().Call.Return(func() EEnum { return r }).Once()

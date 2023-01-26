@@ -37,38 +37,39 @@ func TestMockEEnumGetEEnumLiteralByLiteral(t *testing.T) {
 	o := NewMockEEnum(t)
 	literal := string("Test String")
 	m := NewMockRun(t, literal)
-	r := new(MockEEnumLiteral)
+	r := NewMockEEnumLiteral(t)
 	o.EXPECT().GetEEnumLiteralByLiteral(literal).Return(r).Run(func(literal string) { m.Run(literal) }).Once()
 	o.EXPECT().GetEEnumLiteralByLiteral(literal).Call.Return(func() EEnumLiteral {
 		return r
 	}).Once()
 	assert.Equal(t, r, o.GetEEnumLiteralByLiteral(literal))
 	assert.Equal(t, r, o.GetEEnumLiteralByLiteral(literal))
-	o.AssertExpectations(t)
-} // TestMockEEnumGetEEnumLiteralByName tests method GetEEnumLiteralByName
+}
+
+// TestMockEEnumGetEEnumLiteralByName tests method GetEEnumLiteralByName
 func TestMockEEnumGetEEnumLiteralByName(t *testing.T) {
 	o := NewMockEEnum(t)
 	name := string("Test String")
 	m := NewMockRun(t, name)
-	r := new(MockEEnumLiteral)
+	r := NewMockEEnumLiteral(t)
 	o.EXPECT().GetEEnumLiteralByName(name).Return(r).Run(func(name string) { m.Run(name) }).Once()
 	o.EXPECT().GetEEnumLiteralByName(name).Call.Return(func() EEnumLiteral {
 		return r
 	}).Once()
 	assert.Equal(t, r, o.GetEEnumLiteralByName(name))
 	assert.Equal(t, r, o.GetEEnumLiteralByName(name))
-	o.AssertExpectations(t)
-} // TestMockEEnumGetEEnumLiteralByValue tests method GetEEnumLiteralByValue
+}
+
+// TestMockEEnumGetEEnumLiteralByValue tests method GetEEnumLiteralByValue
 func TestMockEEnumGetEEnumLiteralByValue(t *testing.T) {
 	o := NewMockEEnum(t)
 	value := int(45)
 	m := NewMockRun(t, value)
-	r := new(MockEEnumLiteral)
+	r := NewMockEEnumLiteral(t)
 	o.EXPECT().GetEEnumLiteralByValue(value).Return(r).Run(func(value int) { m.Run(value) }).Once()
 	o.EXPECT().GetEEnumLiteralByValue(value).Call.Return(func() EEnumLiteral {
 		return r
 	}).Once()
 	assert.Equal(t, r, o.GetEEnumLiteralByValue(value))
 	assert.Equal(t, r, o.GetEEnumLiteralByValue(value))
-	o.AssertExpectations(t)
 }

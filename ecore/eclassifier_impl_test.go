@@ -71,7 +71,7 @@ func TestEClassifierEPackageGet(t *testing.T) {
 	assert.Nil(t, o.GetEPackage())
 
 	// set a mock container
-	v := new(MockEPackage)
+	v := NewMockEPackage(t)
 	o.ESetInternalContainer(v, ECLASSIFIER__EPACKAGE)
 
 	// no proxy
@@ -220,14 +220,14 @@ func TestEClassifierEBasicInverseAdd(t *testing.T) {
 		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEPackage)
+		mockObject := NewMockEPackage(t)
 		mockObject.EXPECT().EResource().Return(nil).Once()
 		mockObject.EXPECT().EIsProxy().Return(false).Once()
 		o.EBasicInverseAdd(mockObject, ECLASSIFIER__EPACKAGE, nil)
 		assert.Equal(t, mockObject, o.GetEPackage())
 		mock.AssertExpectationsForObjects(t, mockObject)
 
-		mockOther := new(MockEPackage)
+		mockOther := NewMockEPackage(t)
 		mockOther.EXPECT().EResource().Return(nil).Once()
 		mockOther.EXPECT().EIsProxy().Return(false).Once()
 		mockObject.EXPECT().EResource().Return(nil).Once()
@@ -247,7 +247,7 @@ func TestEClassifierEBasicInverseRemove(t *testing.T) {
 		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEPackage)
+		mockObject := NewMockEPackage(t)
 		o.EBasicInverseRemove(mockObject, ECLASSIFIER__EPACKAGE, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}

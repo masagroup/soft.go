@@ -16,21 +16,26 @@ import (
 )
 
 type MockEClass struct {
-	MockEClassifier
+	MockEClass_Prototype
+	mock.Mock
+}
+
+type MockEClass_Prototype struct {
+	MockEClassifier_Prototype
 }
 
 type MockEClass_Expecter struct {
 	MockEClassifier_Expecter
 }
 
-func (eClass *MockEClass) EXPECT() *MockEClass_Expecter {
+func (eClass *MockEClass_Prototype) EXPECT() *MockEClass_Expecter {
 	e := &MockEClass_Expecter{}
-	e.Mock = &eClass.Mock
+	e.Mock = eClass.Mock
 	return e
 }
 
 // IsAbstract get the value of isAbstract
-func (eClass *MockEClass) IsAbstract() bool {
+func (eClass *MockEClass_Prototype) IsAbstract() bool {
 	ret := eClass.Called()
 
 	var r bool
@@ -66,7 +71,7 @@ func (c *MockEClass_IsAbstract_Call) Return(isAbstract bool) *MockEClass_IsAbstr
 }
 
 // SetAbstract provides mock implementation for setting the value of isAbstract
-func (eClass *MockEClass) SetAbstract(isAbstract bool) {
+func (eClass *MockEClass_Prototype) SetAbstract(isAbstract bool) {
 	eClass.Called(isAbstract)
 }
 
@@ -93,7 +98,7 @@ func (c *MockEClass_SetAbstract_Call) Return() *MockEClass_SetAbstract_Call {
 }
 
 // GetEAllAttributes get the value of eAllAttributes
-func (eClass *MockEClass) GetEAllAttributes() EList {
+func (eClass *MockEClass_Prototype) GetEAllAttributes() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -129,7 +134,7 @@ func (c *MockEClass_GetEAllAttributes_Call) Return(eAllAttributes EList) *MockEC
 }
 
 // GetEAllContainments get the value of eAllContainments
-func (eClass *MockEClass) GetEAllContainments() EList {
+func (eClass *MockEClass_Prototype) GetEAllContainments() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -165,7 +170,7 @@ func (c *MockEClass_GetEAllContainments_Call) Return(eAllContainments EList) *Mo
 }
 
 // GetEAllOperations get the value of eAllOperations
-func (eClass *MockEClass) GetEAllOperations() EList {
+func (eClass *MockEClass_Prototype) GetEAllOperations() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -201,7 +206,7 @@ func (c *MockEClass_GetEAllOperations_Call) Return(eAllOperations EList) *MockEC
 }
 
 // GetEAllReferences get the value of eAllReferences
-func (eClass *MockEClass) GetEAllReferences() EList {
+func (eClass *MockEClass_Prototype) GetEAllReferences() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -237,7 +242,7 @@ func (c *MockEClass_GetEAllReferences_Call) Return(eAllReferences EList) *MockEC
 }
 
 // GetEAllStructuralFeatures get the value of eAllStructuralFeatures
-func (eClass *MockEClass) GetEAllStructuralFeatures() EList {
+func (eClass *MockEClass_Prototype) GetEAllStructuralFeatures() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -273,7 +278,7 @@ func (c *MockEClass_GetEAllStructuralFeatures_Call) Return(eAllStructuralFeature
 }
 
 // GetEAllSuperTypes get the value of eAllSuperTypes
-func (eClass *MockEClass) GetEAllSuperTypes() EList {
+func (eClass *MockEClass_Prototype) GetEAllSuperTypes() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -309,7 +314,7 @@ func (c *MockEClass_GetEAllSuperTypes_Call) Return(eAllSuperTypes EList) *MockEC
 }
 
 // GetEAttributes get the value of eAttributes
-func (eClass *MockEClass) GetEAttributes() EList {
+func (eClass *MockEClass_Prototype) GetEAttributes() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -345,7 +350,7 @@ func (c *MockEClass_GetEAttributes_Call) Return(eAttributes EList) *MockEClass_G
 }
 
 // GetEContainmentFeatures get the value of eContainmentFeatures
-func (eClass *MockEClass) GetEContainmentFeatures() EList {
+func (eClass *MockEClass_Prototype) GetEContainmentFeatures() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -381,7 +386,7 @@ func (c *MockEClass_GetEContainmentFeatures_Call) Return(eContainmentFeatures EL
 }
 
 // GetECrossReferenceFeatures get the value of eCrossReferenceFeatures
-func (eClass *MockEClass) GetECrossReferenceFeatures() EList {
+func (eClass *MockEClass_Prototype) GetECrossReferenceFeatures() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -417,7 +422,7 @@ func (c *MockEClass_GetECrossReferenceFeatures_Call) Return(eCrossReferenceFeatu
 }
 
 // GetEIDAttribute get the value of eIDAttribute
-func (eClass *MockEClass) GetEIDAttribute() EAttribute {
+func (eClass *MockEClass_Prototype) GetEIDAttribute() EAttribute {
 	ret := eClass.Called()
 
 	var r EAttribute
@@ -453,7 +458,7 @@ func (c *MockEClass_GetEIDAttribute_Call) Return(eIDAttribute EAttribute) *MockE
 }
 
 // GetEOperations get the value of eOperations
-func (eClass *MockEClass) GetEOperations() EList {
+func (eClass *MockEClass_Prototype) GetEOperations() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -489,7 +494,7 @@ func (c *MockEClass_GetEOperations_Call) Return(eOperations EList) *MockEClass_G
 }
 
 // GetEReferences get the value of eReferences
-func (eClass *MockEClass) GetEReferences() EList {
+func (eClass *MockEClass_Prototype) GetEReferences() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -525,7 +530,7 @@ func (c *MockEClass_GetEReferences_Call) Return(eReferences EList) *MockEClass_G
 }
 
 // GetEStructuralFeatures get the value of eStructuralFeatures
-func (eClass *MockEClass) GetEStructuralFeatures() EList {
+func (eClass *MockEClass_Prototype) GetEStructuralFeatures() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -561,7 +566,7 @@ func (c *MockEClass_GetEStructuralFeatures_Call) Return(eStructuralFeatures ELis
 }
 
 // GetESuperTypes get the value of eSuperTypes
-func (eClass *MockEClass) GetESuperTypes() EList {
+func (eClass *MockEClass_Prototype) GetESuperTypes() EList {
 	ret := eClass.Called()
 
 	var r EList
@@ -597,7 +602,7 @@ func (c *MockEClass_GetESuperTypes_Call) Return(eSuperTypes EList) *MockEClass_G
 }
 
 // IsInterface get the value of isInterface
-func (eClass *MockEClass) IsInterface() bool {
+func (eClass *MockEClass_Prototype) IsInterface() bool {
 	ret := eClass.Called()
 
 	var r bool
@@ -633,7 +638,7 @@ func (c *MockEClass_IsInterface_Call) Return(isInterface bool) *MockEClass_IsInt
 }
 
 // SetInterface provides mock implementation for setting the value of isInterface
-func (eClass *MockEClass) SetInterface(isInterface bool) {
+func (eClass *MockEClass_Prototype) SetInterface(isInterface bool) {
 	eClass.Called(isInterface)
 }
 
@@ -660,7 +665,7 @@ func (c *MockEClass_SetInterface_Call) Return() *MockEClass_SetInterface_Call {
 }
 
 // GetEOperation provides mock implementation
-func (eClass *MockEClass) GetEOperation(operationID int) EOperation {
+func (eClass *MockEClass_Prototype) GetEOperation(operationID int) EOperation {
 	ret := eClass.Called(operationID)
 
 	var r EOperation
@@ -698,7 +703,7 @@ func (c *MockEClass_GetEOperation_Call) Return(_a0 EOperation) *MockEClass_GetEO
 }
 
 // GetEStructuralFeature provides mock implementation
-func (eClass *MockEClass) GetEStructuralFeature(featureID int) EStructuralFeature {
+func (eClass *MockEClass_Prototype) GetEStructuralFeature(featureID int) EStructuralFeature {
 	ret := eClass.Called(featureID)
 
 	var r EStructuralFeature
@@ -736,7 +741,7 @@ func (c *MockEClass_GetEStructuralFeature_Call) Return(_a0 EStructuralFeature) *
 }
 
 // GetEStructuralFeatureFromName provides mock implementation
-func (eClass *MockEClass) GetEStructuralFeatureFromName(featureName string) EStructuralFeature {
+func (eClass *MockEClass_Prototype) GetEStructuralFeatureFromName(featureName string) EStructuralFeature {
 	ret := eClass.Called(featureName)
 
 	var r EStructuralFeature
@@ -774,7 +779,7 @@ func (c *MockEClass_GetEStructuralFeatureFromName_Call) Return(_a0 EStructuralFe
 }
 
 // GetFeatureCount provides mock implementation
-func (eClass *MockEClass) GetFeatureCount() int {
+func (eClass *MockEClass_Prototype) GetFeatureCount() int {
 	ret := eClass.Called()
 
 	var r int
@@ -811,7 +816,7 @@ func (c *MockEClass_GetFeatureCount_Call) Return(_a0 int) *MockEClass_GetFeature
 }
 
 // GetFeatureID provides mock implementation
-func (eClass *MockEClass) GetFeatureID(feature EStructuralFeature) int {
+func (eClass *MockEClass_Prototype) GetFeatureID(feature EStructuralFeature) int {
 	ret := eClass.Called(feature)
 
 	var r int
@@ -849,7 +854,7 @@ func (c *MockEClass_GetFeatureID_Call) Return(_a0 int) *MockEClass_GetFeatureID_
 }
 
 // GetFeatureType provides mock implementation
-func (eClass *MockEClass) GetFeatureType(feature EStructuralFeature) EClassifier {
+func (eClass *MockEClass_Prototype) GetFeatureType(feature EStructuralFeature) EClassifier {
 	ret := eClass.Called(feature)
 
 	var r EClassifier
@@ -887,7 +892,7 @@ func (c *MockEClass_GetFeatureType_Call) Return(_a0 EClassifier) *MockEClass_Get
 }
 
 // GetOperationCount provides mock implementation
-func (eClass *MockEClass) GetOperationCount() int {
+func (eClass *MockEClass_Prototype) GetOperationCount() int {
 	ret := eClass.Called()
 
 	var r int
@@ -924,7 +929,7 @@ func (c *MockEClass_GetOperationCount_Call) Return(_a0 int) *MockEClass_GetOpera
 }
 
 // GetOperationID provides mock implementation
-func (eClass *MockEClass) GetOperationID(operation EOperation) int {
+func (eClass *MockEClass_Prototype) GetOperationID(operation EOperation) int {
 	ret := eClass.Called(operation)
 
 	var r int
@@ -962,7 +967,7 @@ func (c *MockEClass_GetOperationID_Call) Return(_a0 int) *MockEClass_GetOperatio
 }
 
 // GetOverride provides mock implementation
-func (eClass *MockEClass) GetOverride(operation EOperation) EOperation {
+func (eClass *MockEClass_Prototype) GetOverride(operation EOperation) EOperation {
 	ret := eClass.Called(operation)
 
 	var r EOperation
@@ -1000,7 +1005,7 @@ func (c *MockEClass_GetOverride_Call) Return(_a0 EOperation) *MockEClass_GetOver
 }
 
 // IsSuperTypeOf provides mock implementation
-func (eClass *MockEClass) IsSuperTypeOf(someClass EClass) bool {
+func (eClass *MockEClass_Prototype) IsSuperTypeOf(someClass EClass) bool {
 	ret := eClass.Called(someClass)
 
 	var r bool
@@ -1045,6 +1050,7 @@ type mockConstructorTestingTNewMockEClass interface {
 // NewMockEClass creates a new instance of MockEClass. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEClass(t mockConstructorTestingTNewMockEClass) *MockEClass {
 	mock := &MockEClass{}
+	mock.MockEClass_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

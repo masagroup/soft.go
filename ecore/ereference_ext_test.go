@@ -18,7 +18,7 @@ import (
 
 func TestEReferenceExt_GetEReferenceType(t *testing.T) {
 	r := newEReferenceExt()
-	mockType := &MockEClass{}
+	mockType := NewMockEClass(t)
 	mockType.On("EIsProxy").Return(false).Once()
 	r.SetEType(mockType)
 	assert.Equal(t, mockType, r.GetEReferenceType())
@@ -27,7 +27,7 @@ func TestEReferenceExt_GetEReferenceType(t *testing.T) {
 
 func TestEReferenceExt_basicGetEReferenceType(t *testing.T) {
 	r := newEReferenceExt()
-	mockType := &MockEClass{}
+	mockType := NewMockEClass(t)
 	r.SetEType(mockType)
 	assert.Equal(t, mockType, r.basicGetEReferenceType())
 	mock.AssertExpectationsForObjects(t, mockType)

@@ -46,7 +46,7 @@ func TestMockEAnnotationGetDetails(t *testing.T) {
 // TestMockEAnnotationGetEModelElement tests method GetEModelElement
 func TestMockEAnnotationGetEModelElement(t *testing.T) {
 	o := NewMockEAnnotation(t)
-	r := new(MockEModelElement)
+	r := NewMockEModelElement(t)
 	m := NewMockRun(t)
 	o.EXPECT().GetEModelElement().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEModelElement().Call.Return(func() EModelElement { return r }).Once()
@@ -57,7 +57,7 @@ func TestMockEAnnotationGetEModelElement(t *testing.T) {
 // TestMockEAnnotationSetEModelElement tests method SetEModelElement
 func TestMockEAnnotationSetEModelElement(t *testing.T) {
 	o := NewMockEAnnotation(t)
-	v := new(MockEModelElement)
+	v := NewMockEModelElement(t)
 	m := NewMockRun(t, v)
 	o.EXPECT().SetEModelElement(v).Return().Run(func(_p0 EModelElement) { m.Run(_p0) }).Once()
 	o.SetEModelElement(v)

@@ -24,7 +24,7 @@ func discardMockEAttribute() {
 // TestMockEAttributeGetEAttributeType tests method GetEAttributeType
 func TestMockEAttributeGetEAttributeType(t *testing.T) {
 	o := NewMockEAttribute(t)
-	r := new(MockEDataType)
+	r := NewMockEDataType(t)
 	m := NewMockRun(t)
 	o.EXPECT().GetEAttributeType().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEAttributeType().Call.Return(func() EDataType { return r }).Once()

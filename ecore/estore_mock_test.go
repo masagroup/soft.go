@@ -17,10 +17,10 @@ import (
 )
 
 func TestMockEStoreGet(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
-	mockResult := &MockEObject{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockResult := NewMockEObject(t)
 	o.On("Get", mockObject, mockFeature, 0).Return(mockResult).Once()
 	o.On("Get", mockObject, mockFeature, 0).Return(func(EObject, EStructuralFeature, int) any {
 		return mockResult
@@ -31,11 +31,11 @@ func TestMockEStoreGet(t *testing.T) {
 }
 
 func TestMockEStoreSet(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
-	mockValue := &MockEObject{}
-	mockOld := &MockEObject{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockValue := NewMockEObject(t)
+	mockOld := NewMockEObject(t)
 	o.On("Set", mockObject, mockFeature, 0, mockValue).Return(mockOld).Once()
 	o.On("Set", mockObject, mockFeature, 0, mockValue).Return(func(object EObject, feature EStructuralFeature, index int, value any) any {
 		return mockOld
@@ -46,9 +46,9 @@ func TestMockEStoreSet(t *testing.T) {
 }
 
 func TestMockEStoreIsSet(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
 	o.On("IsSet", mockObject, mockFeature).Return(false).Once()
 	o.On("IsSet", mockObject, mockFeature).Return(func(EObject, EStructuralFeature) bool {
 		return true
@@ -59,18 +59,18 @@ func TestMockEStoreIsSet(t *testing.T) {
 }
 
 func TestMockEStoreUnSet(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
 	o.On("UnSet", mockObject, mockFeature).Once()
 	o.UnSet(mockObject, mockFeature)
 	o.AssertExpectations(t)
 }
 
 func TestMockEStoreIsEmpty(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
 	o.On("IsEmpty", mockObject, mockFeature).Return(false).Once()
 	o.On("IsEmpty", mockObject, mockFeature).Return(func(EObject, EStructuralFeature) bool {
 		return true
@@ -81,10 +81,10 @@ func TestMockEStoreIsEmpty(t *testing.T) {
 }
 
 func TestMockEStoreContains(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
-	mockValue := &MockEObject{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockValue := NewMockEObject(t)
 	o.On("Contains", mockObject, mockFeature, mockValue).Return(false).Once()
 	o.On("Contains", mockObject, mockFeature, mockValue).Return(func(EObject, EStructuralFeature, any) bool {
 		return true
@@ -95,9 +95,9 @@ func TestMockEStoreContains(t *testing.T) {
 }
 
 func TestMockEStoreSize(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
 	o.On("Size", mockObject, mockFeature).Return(1).Once()
 	o.On("Size", mockObject, mockFeature).Return(func(EObject, EStructuralFeature) int {
 		return 2
@@ -108,10 +108,10 @@ func TestMockEStoreSize(t *testing.T) {
 }
 
 func TestMockEStoreIndexOf(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
-	mockValue := &MockEObject{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockValue := NewMockEObject(t)
 	o.On("IndexOf", mockObject, mockFeature, mockValue).Return(1).Once()
 	o.On("IndexOf", mockObject, mockFeature, mockValue).Return(func(EObject, EStructuralFeature, any) int {
 		return 2
@@ -122,10 +122,10 @@ func TestMockEStoreIndexOf(t *testing.T) {
 }
 
 func TestMockEStoreLastIndexOf(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
-	mockValue := &MockEObject{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockValue := NewMockEObject(t)
 	o.On("LastIndexOf", mockObject, mockFeature, mockValue).Return(1).Once()
 	o.On("LastIndexOf", mockObject, mockFeature, mockValue).Return(func(EObject, EStructuralFeature, any) int {
 		return 2
@@ -136,20 +136,20 @@ func TestMockEStoreLastIndexOf(t *testing.T) {
 }
 
 func TestMockEStoreAdd(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
-	mockValue := &MockEObject{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockValue := NewMockEObject(t)
 	o.On("Add", mockObject, mockFeature, 0, mockValue).Once()
 	o.Add(mockObject, mockFeature, 0, mockValue)
 	o.AssertExpectations(t)
 }
 
 func TestMockEStoreRemove(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
-	mockOld := &MockEObject{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockOld := NewMockEObject(t)
 	o.On("Remove", mockObject, mockFeature, 0).Return(mockOld).Once()
 	o.On("Remove", mockObject, mockFeature, 0).Return(func(object EObject, feature EStructuralFeature, index int) any {
 		return mockOld
@@ -160,10 +160,10 @@ func TestMockEStoreRemove(t *testing.T) {
 }
 
 func TestMockEStoreMove(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
-	mockOld := &MockEObject{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockOld := NewMockEObject(t)
 	o.On("Move", mockObject, mockFeature, 0, 1).Return(mockOld).Once()
 	o.On("Move", mockObject, mockFeature, 0, 1).Return(func(object EObject, feature EStructuralFeature, index int, old int) any {
 		return mockOld
@@ -174,18 +174,18 @@ func TestMockEStoreMove(t *testing.T) {
 }
 
 func TestMockEStoreClear(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
 	o.On("Clear", mockObject, mockFeature).Once()
 	o.Clear(mockObject, mockFeature)
 	o.AssertExpectations(t)
 }
 
 func TestMockEStoreToArray(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockFeature := &MockEStructuralFeature{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
 	mockResult := []any{}
 	o.On("ToArray", mockObject, mockFeature).Return(mockResult).Once()
 	o.On("ToArray", mockObject, mockFeature).Return(func(EObject, EStructuralFeature) []any {
@@ -197,9 +197,9 @@ func TestMockEStoreToArray(t *testing.T) {
 }
 
 func TestMockEStoreGetContainer(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockResult := &MockEObject{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockResult := NewMockEObject(t)
 	o.On("GetContainer", mockObject).Return(mockResult).Once()
 	o.On("GetContainer", mockObject).Return(func(EObject) EObject {
 		return mockResult
@@ -210,9 +210,9 @@ func TestMockEStoreGetContainer(t *testing.T) {
 }
 
 func TestMockEStoreGetContainingFeature(t *testing.T) {
-	o := &MockEStore{}
-	mockObject := &MockEObject{}
-	mockResult := &MockEStructuralFeature{}
+	o := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockResult := NewMockEStructuralFeature(t)
 	o.On("GetContainingFeature", mockObject).Return(mockResult).Once()
 	o.On("GetContainingFeature", mockObject).Return(func(EObject) EStructuralFeature {
 		return mockResult
@@ -223,9 +223,9 @@ func TestMockEStoreGetContainingFeature(t *testing.T) {
 }
 
 func TestMockEStoreCreate(t *testing.T) {
-	o := &MockEStore{}
-	mockClass := &MockEClass{}
-	mockResult := &MockEObject{}
+	o := NewMockEStore(t)
+	mockClass := NewMockEClass(t)
+	mockResult := NewMockEObject(t)
 	o.On("Create", mockClass).Return(mockResult).Once()
 	o.On("Create", mockClass).Return(func(EClass) EObject {
 		return mockResult

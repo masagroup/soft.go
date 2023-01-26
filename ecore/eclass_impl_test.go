@@ -249,7 +249,7 @@ func TestEClassESetFromID(t *testing.T) {
 	}
 	{
 		// list with a value
-		mockValue := new(MockEOperation)
+		mockValue := NewMockEOperation(t)
 		l := NewImmutableEList([]any{mockValue})
 		mockValue.EXPECT().EInverseAdd(o, EOPERATION__ECONTAINING_CLASS, mock.Anything).Return(nil).Once()
 
@@ -262,7 +262,7 @@ func TestEClassESetFromID(t *testing.T) {
 	}
 	{
 		// list with a value
-		mockValue := new(MockEStructuralFeature)
+		mockValue := NewMockEStructuralFeature(t)
 		l := NewImmutableEList([]any{mockValue})
 		mockValue.EXPECT().EInverseAdd(o, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, mock.Anything).Return(nil).Once()
 
@@ -275,7 +275,7 @@ func TestEClassESetFromID(t *testing.T) {
 	}
 	{
 		// list with a value
-		mockValue := new(MockEClass)
+		mockValue := NewMockEClass(t)
 		l := NewImmutableEList([]any{mockValue})
 		mockValue.EXPECT().EIsProxy().Return(false).Once()
 
@@ -374,14 +374,14 @@ func TestEClassEBasicInverseAdd(t *testing.T) {
 		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEOperation)
+		mockObject := NewMockEOperation(t)
 		o.EBasicInverseAdd(mockObject, ECLASS__EOPERATIONS, nil)
 		l := o.GetEOperations()
 		assert.True(t, l.Contains(mockObject))
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}
 	{
-		mockObject := new(MockEStructuralFeature)
+		mockObject := NewMockEStructuralFeature(t)
 		o.EBasicInverseAdd(mockObject, ECLASS__ESTRUCTURAL_FEATURES, nil)
 		l := o.GetEStructuralFeatures()
 		assert.True(t, l.Contains(mockObject))
@@ -399,7 +399,7 @@ func TestEClassEBasicInverseRemove(t *testing.T) {
 	}
 	{
 		// initialize list with a mock object
-		mockObject := new(MockEOperation)
+		mockObject := NewMockEOperation(t)
 		mockObject.EXPECT().EInverseAdd(o, EOPERATION__ECONTAINING_CLASS, mock.Anything).Return(nil).Once()
 
 		l := o.GetEOperations()
@@ -414,7 +414,7 @@ func TestEClassEBasicInverseRemove(t *testing.T) {
 	}
 	{
 		// initialize list with a mock object
-		mockObject := new(MockEStructuralFeature)
+		mockObject := NewMockEStructuralFeature(t)
 		mockObject.EXPECT().EInverseAdd(o, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, mock.Anything).Return(nil).Once()
 
 		l := o.GetEStructuralFeatures()

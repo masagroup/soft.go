@@ -17,7 +17,7 @@ import (
 )
 
 func TestEEnumExt_GetEEnumLiteralByName(t *testing.T) {
-	mockEnumLiteral := &MockEEnumLiteral{}
+	mockEnumLiteral := NewMockEEnumLiteral(t)
 	eEnum := newEEnumExt()
 
 	mockEnumLiteral.On("EInverseAdd", eEnum, EENUM_LITERAL__EENUM, nil).Return(nil).Once()
@@ -34,7 +34,7 @@ func TestEEnumExt_GetEEnumLiteralByName(t *testing.T) {
 }
 
 func TestEEnumExt_GetEEnumLiteralByValue(t *testing.T) {
-	mockEnumLiteral := &MockEEnumLiteral{}
+	mockEnumLiteral := NewMockEEnumLiteral(t)
 	eEnum := newEEnumExt()
 
 	mockEnumLiteral.On("EInverseAdd", eEnum, EENUM_LITERAL__EENUM, nil).Return(nil).Once()
@@ -51,7 +51,7 @@ func TestEEnumExt_GetEEnumLiteralByValue(t *testing.T) {
 }
 
 func TestEEnumExt_GetEEnumLiteralByLiteral(t *testing.T) {
-	mockEnumLiteral := &MockEEnumLiteral{}
+	mockEnumLiteral := NewMockEEnumLiteral(t)
 	eEnum := newEEnumExt()
 
 	mockEnumLiteral.On("EInverseAdd", eEnum, EENUM_LITERAL__EENUM, nil).Return(nil).Once()
@@ -70,7 +70,7 @@ func TestEEnumExt_GetEEnumLiteralByLiteral(t *testing.T) {
 func TestEEnumExt_GetDefaultValue(t *testing.T) {
 	eEnum := newEEnumExt()
 
-	mockEnumLiteral := &MockEEnumLiteral{}
+	mockEnumLiteral := NewMockEEnumLiteral(t)
 	mockEnumLiteral.On("EInverseAdd", eEnum, EENUM_LITERAL__EENUM, nil).Return(nil).Once()
 	eEnum.GetELiterals().Add(mockEnumLiteral)
 	mock.AssertExpectationsForObjects(t, mockEnumLiteral)

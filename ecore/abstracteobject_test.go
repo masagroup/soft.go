@@ -38,12 +38,12 @@ import (
 func TestAbstractEObjectContainer(t *testing.T) {
 	// set the container
 	// o := NewAbstractEObject()
-	// mockObject := new(MockEObject)
-	// mockResource := new(MockEResource)
+	// mockObject := NewMockEObject(t)
+	// mockResource := NewMockEResource(t)
 	// mockObject.On("EResource").Return(mockResource)
 	// mockObject.On("EIsProxy").Return(false)
 	// mockResource.On("Attached", o)
-	// mockNotifications := new(MockENotificationChain)
+	// mockNotifications := NewMockENotificationChain(t)
 	// assert.Equal(t, mockNotifications, o.EBasicSetContainer(mockObject, 1, mockNotifications))
 	// assert.Equal(t, mockObject, o.EContainer())
 	//assert.Equal(t, 1, o.EContainerFeatureID())
@@ -58,12 +58,12 @@ func TestAbstractEObjectContainer(t *testing.T) {
 // func TestAbstractEObjectESetResource(t *testing.T) {
 // 	// no container
 // 	o := NewAbstractEObject()
-// 	mockResource := new(MockEResource)
-// 	mockNotifications := new(MockENotificationChain)
+// 	mockResource := NewMockEResource(t)
+// 	mockNotifications := NewMockENotificationChain(t)
 // 	o.ESetResource(mockResource, mockNotifications)
 // 	mock.AssertExpectationsForObjects(t, mockResource, mockNotifications)
 
-// 	mockResource2 := new(MockEResource)
+// 	mockResource2 := NewMockEResource(t)
 // 	mockContents := new(MockENotifyingList)
 // 	mockResource.On("GetContents").Return(mockContents).Once()
 // 	mockResource.On("Detached", o).Once()

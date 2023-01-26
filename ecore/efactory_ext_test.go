@@ -13,14 +13,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestEFactoryExtCreate(t *testing.T) {
 	f := newEFactoryExt()
-	mockClass := &MockEClass{}
-	mockPackage := &MockEPackage{}
-	mockClass.On("GetEPackage").Return(mockPackage).Once()
+	mockClass := NewMockEClass(t)
+	mockPackage := NewMockEPackage(t)
+	mockClass.EXPECT().GetEPackage().Return(mockPackage).Once()
+	mockClass.EXPECT().GetName().Return("mockClass").Once()
 	assert.Panics(t, func() { f.Create(mockClass) })
-	mock.AssertExpectationsForObjects(t, mockClass, mockPackage)
 }

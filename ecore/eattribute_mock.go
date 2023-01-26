@@ -16,21 +16,26 @@ import (
 )
 
 type MockEAttribute struct {
-	MockEStructuralFeature
+	MockEAttribute_Prototype
+	mock.Mock
+}
+
+type MockEAttribute_Prototype struct {
+	MockEStructuralFeature_Prototype
 }
 
 type MockEAttribute_Expecter struct {
 	MockEStructuralFeature_Expecter
 }
 
-func (eAttribute *MockEAttribute) EXPECT() *MockEAttribute_Expecter {
+func (eAttribute *MockEAttribute_Prototype) EXPECT() *MockEAttribute_Expecter {
 	e := &MockEAttribute_Expecter{}
-	e.Mock = &eAttribute.Mock
+	e.Mock = eAttribute.Mock
 	return e
 }
 
 // GetEAttributeType get the value of eAttributeType
-func (eAttribute *MockEAttribute) GetEAttributeType() EDataType {
+func (eAttribute *MockEAttribute_Prototype) GetEAttributeType() EDataType {
 	ret := eAttribute.Called()
 
 	var r EDataType
@@ -66,7 +71,7 @@ func (c *MockEAttribute_GetEAttributeType_Call) Return(eAttributeType EDataType)
 }
 
 // IsID get the value of isID
-func (eAttribute *MockEAttribute) IsID() bool {
+func (eAttribute *MockEAttribute_Prototype) IsID() bool {
 	ret := eAttribute.Called()
 
 	var r bool
@@ -102,7 +107,7 @@ func (c *MockEAttribute_IsID_Call) Return(isID bool) *MockEAttribute_IsID_Call {
 }
 
 // SetID provides mock implementation for setting the value of isID
-func (eAttribute *MockEAttribute) SetID(isID bool) {
+func (eAttribute *MockEAttribute_Prototype) SetID(isID bool) {
 	eAttribute.Called(isID)
 }
 
@@ -136,6 +141,7 @@ type mockConstructorTestingTNewMockEAttribute interface {
 // NewMockEAttribute creates a new instance of MockEAttribute. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEAttribute(t mockConstructorTestingTNewMockEAttribute) *MockEAttribute {
 	mock := &MockEAttribute{}
+	mock.MockEAttribute_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

@@ -16,21 +16,26 @@ import (
 )
 
 type MockEParameter struct {
-	MockETypedElement
+	MockEParameter_Prototype
+	mock.Mock
+}
+
+type MockEParameter_Prototype struct {
+	MockETypedElement_Prototype
 }
 
 type MockEParameter_Expecter struct {
 	MockETypedElement_Expecter
 }
 
-func (eParameter *MockEParameter) EXPECT() *MockEParameter_Expecter {
+func (eParameter *MockEParameter_Prototype) EXPECT() *MockEParameter_Expecter {
 	e := &MockEParameter_Expecter{}
-	e.Mock = &eParameter.Mock
+	e.Mock = eParameter.Mock
 	return e
 }
 
 // GetEOperation get the value of eOperation
-func (eParameter *MockEParameter) GetEOperation() EOperation {
+func (eParameter *MockEParameter_Prototype) GetEOperation() EOperation {
 	ret := eParameter.Called()
 
 	var r EOperation
@@ -73,6 +78,7 @@ type mockConstructorTestingTNewMockEParameter interface {
 // NewMockEParameter creates a new instance of MockEParameter. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEParameter(t mockConstructorTestingTNewMockEParameter) *MockEParameter {
 	mock := &MockEParameter{}
+	mock.MockEParameter_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

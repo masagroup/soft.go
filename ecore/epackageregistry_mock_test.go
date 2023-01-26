@@ -18,7 +18,7 @@ import (
 
 func TestMockEPackageRegistryRegisterPackage(t *testing.T) {
 	rp := &MockEPackageRegistry{}
-	p := &MockEPackage{}
+	p := NewMockEPackage(t)
 	rp.On("RegisterPackage", p).Once()
 	rp.RegisterPackage(p)
 	mock.AssertExpectationsForObjects(t, rp, p)
@@ -26,7 +26,7 @@ func TestMockEPackageRegistryRegisterPackage(t *testing.T) {
 
 func TestMockEPackageRegistryUnRegisterPackage(t *testing.T) {
 	rp := &MockEPackageRegistry{}
-	p := &MockEPackage{}
+	p := NewMockEPackage(t)
 	rp.On("UnregisterPackage", p).Once()
 	rp.UnregisterPackage(p)
 	mock.AssertExpectationsForObjects(t, rp, p)
@@ -34,7 +34,7 @@ func TestMockEPackageRegistryUnRegisterPackage(t *testing.T) {
 
 func TestMockEPackageRegistryPutPackage(t *testing.T) {
 	rp := &MockEPackageRegistry{}
-	p := &MockEPackage{}
+	p := NewMockEPackage(t)
 	rp.On("PutPackage", "nsURI", p).Once()
 	rp.PutPackage("nsURI", p)
 	mock.AssertExpectationsForObjects(t, rp, p)
@@ -58,7 +58,7 @@ func TestMockEPackageRegistryRemove(t *testing.T) {
 
 func TestMockEPackageRegistryGetPackage(t *testing.T) {
 	rp := &MockEPackageRegistry{}
-	p := &MockEPackage{}
+	p := NewMockEPackage(t)
 	rp.On("GetPackage", "p").Return(p).Once()
 	rp.On("GetPackage", "p").Return(func(string) EPackage {
 		return p
@@ -70,7 +70,7 @@ func TestMockEPackageRegistryGetPackage(t *testing.T) {
 
 func TestMockEPackageRegistryGetFactory(t *testing.T) {
 	rp := &MockEPackageRegistry{}
-	f := &MockEFactory{}
+	f := NewMockEFactory(t)
 	rp.On("GetFactory", "f").Return(f).Once()
 	rp.On("GetFactory", "f").Return(func(string) EFactory {
 		return f

@@ -16,21 +16,26 @@ import (
 )
 
 type MockEEnumLiteral struct {
-	MockENamedElement
+	MockEEnumLiteral_Prototype
+	mock.Mock
+}
+
+type MockEEnumLiteral_Prototype struct {
+	MockENamedElement_Prototype
 }
 
 type MockEEnumLiteral_Expecter struct {
 	MockENamedElement_Expecter
 }
 
-func (eEnumLiteral *MockEEnumLiteral) EXPECT() *MockEEnumLiteral_Expecter {
+func (eEnumLiteral *MockEEnumLiteral_Prototype) EXPECT() *MockEEnumLiteral_Expecter {
 	e := &MockEEnumLiteral_Expecter{}
-	e.Mock = &eEnumLiteral.Mock
+	e.Mock = eEnumLiteral.Mock
 	return e
 }
 
 // GetEEnum get the value of eEnum
-func (eEnumLiteral *MockEEnumLiteral) GetEEnum() EEnum {
+func (eEnumLiteral *MockEEnumLiteral_Prototype) GetEEnum() EEnum {
 	ret := eEnumLiteral.Called()
 
 	var r EEnum
@@ -66,7 +71,7 @@ func (c *MockEEnumLiteral_GetEEnum_Call) Return(eEnum EEnum) *MockEEnumLiteral_G
 }
 
 // GetInstance get the value of instance
-func (eEnumLiteral *MockEEnumLiteral) GetInstance() any {
+func (eEnumLiteral *MockEEnumLiteral_Prototype) GetInstance() any {
 	ret := eEnumLiteral.Called()
 
 	var r any
@@ -102,7 +107,7 @@ func (c *MockEEnumLiteral_GetInstance_Call) Return(instance any) *MockEEnumLiter
 }
 
 // SetInstance provides mock implementation for setting the value of instance
-func (eEnumLiteral *MockEEnumLiteral) SetInstance(instance any) {
+func (eEnumLiteral *MockEEnumLiteral_Prototype) SetInstance(instance any) {
 	eEnumLiteral.Called(instance)
 }
 
@@ -129,7 +134,7 @@ func (c *MockEEnumLiteral_SetInstance_Call) Return() *MockEEnumLiteral_SetInstan
 }
 
 // GetLiteral get the value of literal
-func (eEnumLiteral *MockEEnumLiteral) GetLiteral() string {
+func (eEnumLiteral *MockEEnumLiteral_Prototype) GetLiteral() string {
 	ret := eEnumLiteral.Called()
 
 	var r string
@@ -165,7 +170,7 @@ func (c *MockEEnumLiteral_GetLiteral_Call) Return(literal string) *MockEEnumLite
 }
 
 // SetLiteral provides mock implementation for setting the value of literal
-func (eEnumLiteral *MockEEnumLiteral) SetLiteral(literal string) {
+func (eEnumLiteral *MockEEnumLiteral_Prototype) SetLiteral(literal string) {
 	eEnumLiteral.Called(literal)
 }
 
@@ -192,7 +197,7 @@ func (c *MockEEnumLiteral_SetLiteral_Call) Return() *MockEEnumLiteral_SetLiteral
 }
 
 // GetValue get the value of value
-func (eEnumLiteral *MockEEnumLiteral) GetValue() int {
+func (eEnumLiteral *MockEEnumLiteral_Prototype) GetValue() int {
 	ret := eEnumLiteral.Called()
 
 	var r int
@@ -228,7 +233,7 @@ func (c *MockEEnumLiteral_GetValue_Call) Return(value int) *MockEEnumLiteral_Get
 }
 
 // SetValue provides mock implementation for setting the value of value
-func (eEnumLiteral *MockEEnumLiteral) SetValue(value int) {
+func (eEnumLiteral *MockEEnumLiteral_Prototype) SetValue(value int) {
 	eEnumLiteral.Called(value)
 }
 
@@ -262,6 +267,7 @@ type mockConstructorTestingTNewMockEEnumLiteral interface {
 // NewMockEEnumLiteral creates a new instance of MockEEnumLiteral. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEEnumLiteral(t mockConstructorTestingTNewMockEEnumLiteral) *MockEEnumLiteral {
 	mock := &MockEEnumLiteral{}
+	mock.MockEEnumLiteral_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

@@ -24,7 +24,7 @@ func discardMockEOperation() {
 // TestMockEOperationGetEContainingClass tests method GetEContainingClass
 func TestMockEOperationGetEContainingClass(t *testing.T) {
 	o := NewMockEOperation(t)
-	r := new(MockEClass)
+	r := NewMockEClass(t)
 	m := NewMockRun(t)
 	o.EXPECT().GetEContainingClass().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEContainingClass().Call.Return(func() EClass { return r }).Once()
@@ -85,7 +85,7 @@ func TestMockEOperationSetOperationID(t *testing.T) {
 // TestMockEOperationIsOverrideOf tests method IsOverrideOf
 func TestMockEOperationIsOverrideOf(t *testing.T) {
 	o := NewMockEOperation(t)
-	someOperation := new(MockEOperation)
+	someOperation := NewMockEOperation(t)
 	m := NewMockRun(t, someOperation)
 	r := bool(true)
 	o.EXPECT().IsOverrideOf(someOperation).Return(r).Run(func(someOperation EOperation) { m.Run(someOperation) }).Once()
@@ -94,5 +94,4 @@ func TestMockEOperationIsOverrideOf(t *testing.T) {
 	}).Once()
 	assert.Equal(t, r, o.IsOverrideOf(someOperation))
 	assert.Equal(t, r, o.IsOverrideOf(someOperation))
-	o.AssertExpectations(t)
 }

@@ -37,12 +37,11 @@ func TestMockEModelElementGetEAnnotation(t *testing.T) {
 	o := NewMockEModelElement(t)
 	source := string("Test String")
 	m := NewMockRun(t, source)
-	r := new(MockEAnnotation)
+	r := NewMockEAnnotation(t)
 	o.EXPECT().GetEAnnotation(source).Return(r).Run(func(source string) { m.Run(source) }).Once()
 	o.EXPECT().GetEAnnotation(source).Call.Return(func() EAnnotation {
 		return r
 	}).Once()
 	assert.Equal(t, r, o.GetEAnnotation(source))
 	assert.Equal(t, r, o.GetEAnnotation(source))
-	o.AssertExpectations(t)
 }

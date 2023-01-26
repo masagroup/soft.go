@@ -41,8 +41,8 @@ func TestMockEResourceInternalDoUnLoad(t *testing.T) {
 
 func TestMockEResourceInternalBasicSetLoaded(t *testing.T) {
 	r := &MockEResourceInternal{}
-	n1 := &MockENotificationChain{}
-	n2 := &MockENotificationChain{}
+	n1 := NewMockENotificationChain(t)
+	n2 := NewMockENotificationChain(t)
 	r.On("BasicSetLoaded", false, n1).Return(n2).Once()
 	r.On("BasicSetLoaded", false, n1).Return(func(bool, ENotificationChain) ENotificationChain {
 		return n2
@@ -54,9 +54,9 @@ func TestMockEResourceInternalBasicSetLoaded(t *testing.T) {
 
 func TestMockEResourceInternalBasicSetResourceSet(t *testing.T) {
 	r := &MockEResourceInternal{}
-	rs := &MockEResourceSet{}
-	n1 := &MockENotificationChain{}
-	n2 := &MockENotificationChain{}
+	rs := NewMockEResourceSet(t)
+	n1 := NewMockENotificationChain(t)
+	n2 := NewMockENotificationChain(t)
 	r.On("BasicSetResourceSet", rs, n1).Return(n2).Once()
 	r.On("BasicSetResourceSet", rs, n1).Return(func(EResourceSet, ENotificationChain) ENotificationChain {
 		return n2
@@ -68,7 +68,7 @@ func TestMockEResourceInternalBasicSetResourceSet(t *testing.T) {
 
 func TestMockEResourceInternalDoAttached(t *testing.T) {
 	r := &MockEResourceInternal{}
-	o := &MockEObject{}
+	o := NewMockEObject(t)
 	r.On("DoAttached", o)
 	r.DoAttached(o)
 	r.AssertExpectations(t)
@@ -76,7 +76,7 @@ func TestMockEResourceInternalDoAttached(t *testing.T) {
 
 func TestMockEResourceInternalDetached(t *testing.T) {
 	r := &MockEResourceInternal{}
-	o := &MockEObject{}
+	o := NewMockEObject(t)
 	r.On("DoDetached", o)
 	r.DoDetached(o)
 	r.AssertExpectations(t)

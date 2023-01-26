@@ -103,7 +103,7 @@ func TestMockEURIConverterGetURIHandler(t *testing.T) {
 
 func TestMockEURIConverterGetURIHandlers(t *testing.T) {
 	h := &MockEURIConverter{}
-	l := &MockEList{}
+	l := NewMockEList(t)
 	h.On("GetURIHandlers").Return(l).Once()
 	h.On("GetURIHandlers").Return(func() EList {
 		return l

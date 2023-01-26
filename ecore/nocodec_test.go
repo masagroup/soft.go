@@ -7,7 +7,7 @@ import (
 )
 
 func TestNoCodec_Decoder(t *testing.T) {
-	mockResource := &MockEResource{}
+	mockResource := NewMockEResource(t)
 	cd := &NoCodec{}
 	d := cd.NewDecoder(mockResource, nil, nil)
 	d.Decode()
@@ -17,8 +17,8 @@ func TestNoCodec_Decoder(t *testing.T) {
 }
 
 func TestNoCodec_Encoder(t *testing.T) {
-	mockResource := &MockEResource{}
-	mockObject := &MockEObject{}
+	mockResource := NewMockEResource(t)
+	mockObject := NewMockEObject(t)
 	cd := &NoCodec{}
 	d := cd.NewEncoder(mockResource, nil, nil)
 	d.Encode()

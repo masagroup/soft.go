@@ -56,7 +56,7 @@ func TestETypeParameterESetFromID(t *testing.T) {
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
 		// list with a value
-		mockValue := new(MockEGenericType)
+		mockValue := NewMockEGenericType(t)
 		l := NewImmutableEList([]any{mockValue})
 		mockValue.EXPECT().EInverseAdd(o, EOPPOSITE_FEATURE_BASE-ETYPE_PARAMETER__EBOUNDS, mock.Anything).Return(nil).Once()
 
@@ -97,7 +97,7 @@ func TestETypeParameterEBasicInverseRemove(t *testing.T) {
 	}
 	{
 		// initialize list with a mock object
-		mockObject := new(MockEGenericType)
+		mockObject := NewMockEGenericType(t)
 		mockObject.EXPECT().EInverseAdd(o, EOPPOSITE_FEATURE_BASE-ETYPE_PARAMETER__EBOUNDS, mock.Anything).Return(nil).Once()
 
 		l := o.GetEBounds()

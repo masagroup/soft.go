@@ -16,21 +16,26 @@ import (
 )
 
 type MockEFactory struct {
-	MockEModelElement
+	MockEFactory_Prototype
+	mock.Mock
+}
+
+type MockEFactory_Prototype struct {
+	MockEModelElement_Prototype
 }
 
 type MockEFactory_Expecter struct {
 	MockEModelElement_Expecter
 }
 
-func (eFactory *MockEFactory) EXPECT() *MockEFactory_Expecter {
+func (eFactory *MockEFactory_Prototype) EXPECT() *MockEFactory_Expecter {
 	e := &MockEFactory_Expecter{}
-	e.Mock = &eFactory.Mock
+	e.Mock = eFactory.Mock
 	return e
 }
 
 // GetEPackage get the value of ePackage
-func (eFactory *MockEFactory) GetEPackage() EPackage {
+func (eFactory *MockEFactory_Prototype) GetEPackage() EPackage {
 	ret := eFactory.Called()
 
 	var r EPackage
@@ -66,7 +71,7 @@ func (c *MockEFactory_GetEPackage_Call) Return(ePackage EPackage) *MockEFactory_
 }
 
 // SetEPackage provides mock implementation for setting the value of ePackage
-func (eFactory *MockEFactory) SetEPackage(ePackage EPackage) {
+func (eFactory *MockEFactory_Prototype) SetEPackage(ePackage EPackage) {
 	eFactory.Called(ePackage)
 }
 
@@ -93,7 +98,7 @@ func (c *MockEFactory_SetEPackage_Call) Return() *MockEFactory_SetEPackage_Call 
 }
 
 // ConvertToString provides mock implementation
-func (eFactory *MockEFactory) ConvertToString(eDataType EDataType, instanceValue any) string {
+func (eFactory *MockEFactory_Prototype) ConvertToString(eDataType EDataType, instanceValue any) string {
 	ret := eFactory.Called(eDataType, instanceValue)
 
 	var r string
@@ -132,7 +137,7 @@ func (c *MockEFactory_ConvertToString_Call) Return(_a0 string) *MockEFactory_Con
 }
 
 // Create provides mock implementation
-func (eFactory *MockEFactory) Create(eClass EClass) EObject {
+func (eFactory *MockEFactory_Prototype) Create(eClass EClass) EObject {
 	ret := eFactory.Called(eClass)
 
 	var r EObject
@@ -170,7 +175,7 @@ func (c *MockEFactory_Create_Call) Return(_a0 EObject) *MockEFactory_Create_Call
 }
 
 // CreateFromString provides mock implementation
-func (eFactory *MockEFactory) CreateFromString(eDataType EDataType, literalValue string) any {
+func (eFactory *MockEFactory_Prototype) CreateFromString(eDataType EDataType, literalValue string) any {
 	ret := eFactory.Called(eDataType, literalValue)
 
 	var r any
@@ -216,6 +221,7 @@ type mockConstructorTestingTNewMockEFactory interface {
 // NewMockEFactory creates a new instance of MockEFactory. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEFactory(t mockConstructorTestingTNewMockEFactory) *MockEFactory {
 	mock := &MockEFactory{}
+	mock.MockEFactory_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

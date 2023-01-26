@@ -16,21 +16,26 @@ import (
 )
 
 type MockEModelElement struct {
-	MockEObjectInternal
+	MockEModelElement_Prototype
+	mock.Mock
+}
+
+type MockEModelElement_Prototype struct {
+	MockEObjectInternal_Prototype
 }
 
 type MockEModelElement_Expecter struct {
 	MockEObjectInternal_Expecter
 }
 
-func (eModelElement *MockEModelElement) EXPECT() *MockEModelElement_Expecter {
+func (eModelElement *MockEModelElement_Prototype) EXPECT() *MockEModelElement_Expecter {
 	e := &MockEModelElement_Expecter{}
-	e.Mock = &eModelElement.Mock
+	e.Mock = eModelElement.Mock
 	return e
 }
 
 // GetEAnnotations get the value of eAnnotations
-func (eModelElement *MockEModelElement) GetEAnnotations() EList {
+func (eModelElement *MockEModelElement_Prototype) GetEAnnotations() EList {
 	ret := eModelElement.Called()
 
 	var r EList
@@ -66,7 +71,7 @@ func (c *MockEModelElement_GetEAnnotations_Call) Return(eAnnotations EList) *Moc
 }
 
 // GetEAnnotation provides mock implementation
-func (eModelElement *MockEModelElement) GetEAnnotation(source string) EAnnotation {
+func (eModelElement *MockEModelElement_Prototype) GetEAnnotation(source string) EAnnotation {
 	ret := eModelElement.Called(source)
 
 	var r EAnnotation
@@ -111,6 +116,7 @@ type mockConstructorTestingTNewMockEModelElement interface {
 // NewMockEModelElement creates a new instance of MockEModelElement. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEModelElement(t mockConstructorTestingTNewMockEModelElement) *MockEModelElement {
 	mock := &MockEModelElement{}
+	mock.MockEModelElement_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

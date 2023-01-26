@@ -26,14 +26,14 @@ func TestEContentAdapter_SetTarget_EObject(t *testing.T) {
 	mockLists := []*MockEList{}
 	children := []any{}
 	for i := 0; i < nb; i++ {
-		mockObject := new(MockEObject)
-		mockAdapters := new(MockEList)
+		mockObject := NewMockEObject(t)
+		mockAdapters := NewMockEList(t)
 		mockLists = append(mockLists, mockAdapters)
 		mockObjects = append(mockObjects, mockObject)
 		children = append(children, mockObject)
 	}
 	mockChildren := NewImmutableEList(children)
-	mockObject := new(MockEObject)
+	mockObject := NewMockEObject(t)
 
 	// set adapter target -> this should recursively register adapter on all object children
 	for i := 0; i < nb; i++ {
@@ -74,14 +74,14 @@ func TestEContentAdapter_SetTarget_EObject_ResolveProxies(t *testing.T) {
 	mockLists := []*MockEList{}
 	children := []any{}
 	for i := 0; i < nb; i++ {
-		mockObject := new(MockEObject)
-		mockAdapters := new(MockEList)
+		mockObject := NewMockEObject(t)
+		mockAdapters := NewMockEList(t)
 		mockLists = append(mockLists, mockAdapters)
 		mockObjects = append(mockObjects, mockObject)
 		children = append(children, mockObject)
 	}
 	mockChildren := NewImmutableEList(children)
-	mockObject := new(MockEObject)
+	mockObject := NewMockEObject(t)
 
 	// set adapter target -> this should recursively register adapter on all object children
 	for i := 0; i < nb; i++ {
@@ -112,9 +112,9 @@ func TestEContentAdapter_SetTarget_EObject_ResolveProxies(t *testing.T) {
 
 func TestEContentAdapter_SetTarget_EResourceSet(t *testing.T) {
 	adapter := NewEContentAdapter()
-	mockResourceSet := &MockEResourceSet{}
-	mockResource := &MockEResource{}
-	mockResourceAdapters := new(MockEList)
+	mockResourceSet := NewMockEResourceSet(t)
+	mockResource := NewMockEResource(t)
+	mockResourceAdapters := NewMockEList(t)
 
 	// Set target
 	mockResourceSet.On("GetResources").Return(NewImmutableEList([]any{mockResource})).Once()
@@ -134,9 +134,9 @@ func TestEContentAdapter_SetTarget_EResourceSet(t *testing.T) {
 
 func TestEContentAdapter_SetTarget_EResource(t *testing.T) {
 	adapter := NewEContentAdapter()
-	mockResource := &MockEResource{}
-	mockObject := &MockEObject{}
-	mockObjectAdapters := new(MockEList)
+	mockResource := NewMockEResource(t)
+	mockObject := NewMockEObject(t)
+	mockObjectAdapters := NewMockEList(t)
 
 	// Set target
 	mockResource.On("GetContents").Return(NewImmutableEList([]any{mockObject})).Once()
@@ -156,15 +156,15 @@ func TestEContentAdapter_SetTarget_EResource(t *testing.T) {
 
 func TestEContentAdapterNotifyChanged(t *testing.T) {
 	adapter := NewEContentAdapter()
-	mockNotification := new(MockENotification)
-	mockObject := new(MockEObject)
+	mockNotification := NewMockENotification(t)
+	mockObject := NewMockEObject(t)
 
-	mockAttribute := new(MockEAttribute)
+	mockAttribute := NewMockEAttribute(t)
 	mockNotification.On("GetNotifier").Once().Return(mockObject)
 	mockNotification.On("GetFeature").Once().Return(mockAttribute)
 	adapter.NotifyChanged(mockNotification)
 
-	mockReference := new(MockEReference)
+	mockReference := NewMockEReference(t)
 	mockReference.On("IsContainment").Once().Return(false)
 	mockNotification.On("GetNotifier").Once().Return(mockObject)
 	mockNotification.On("GetFeature").Once().Return(mockReference)
@@ -175,11 +175,11 @@ func TestEContentAdapterNotifyChanged(t *testing.T) {
 
 func TestEContentAdapterNotifyChanged_Resolve(t *testing.T) {
 	adapter := NewEContentAdapter()
-	mockNotification := new(MockENotification)
-	mockObject := new(MockEObject)
-	mockReference := new(MockEReference)
-	mockOldObject := new(MockEObject)
-	mockOldAdapters := new(MockEList)
+	mockNotification := NewMockENotification(t)
+	mockObject := NewMockEObject(t)
+	mockReference := NewMockEReference(t)
+	mockOldObject := NewMockEObject(t)
+	mockOldAdapters := NewMockEList(t)
 
 	mockReference.On("IsContainment").Once().Return(true)
 	mockOldObject.On("EAdapters").Once().Return(mockOldAdapters)
@@ -194,13 +194,13 @@ func TestEContentAdapterNotifyChanged_Resolve(t *testing.T) {
 
 func TestEContentAdapterNotifyChanged_Resolve_Contains(t *testing.T) {
 	adapter := NewEContentAdapter()
-	mockNotification := new(MockENotification)
-	mockObject := new(MockEObject)
-	mockReference := new(MockEReference)
-	mockOldObject := new(MockEObject)
-	mockOldAdapters := new(MockEList)
-	mockNewObject := new(MockEObject)
-	mockNewAdapters := new(MockEList)
+	mockNotification := NewMockENotification(t)
+	mockObject := NewMockEObject(t)
+	mockReference := NewMockEReference(t)
+	mockOldObject := NewMockEObject(t)
+	mockOldAdapters := NewMockEList(t)
+	mockNewObject := NewMockEObject(t)
+	mockNewAdapters := NewMockEList(t)
 
 	mockReference.On("IsContainment").Once().Return(true)
 	mockOldObject.On("EAdapters").Twice().Return(mockOldAdapters)
@@ -221,13 +221,13 @@ func TestEContentAdapterNotifyChanged_Resolve_Contains(t *testing.T) {
 func TestEContentAdapterNotifyChanged_UnSet(t *testing.T) {
 
 	adapter := NewEContentAdapter()
-	mockNotification := new(MockENotification)
-	mockObject := new(MockEObjectInternal)
-	mockReference := new(MockEReference)
-	mockOldObject := new(MockEObjectInternal)
-	mockOldAdapters := new(MockEList)
-	mockNewObject := new(MockEObjectInternal)
-	mockNewAdapters := new(MockEList)
+	mockNotification := NewMockENotification(t)
+	mockObject := NewMockEObjectInternal(t)
+	mockReference := NewMockEReference(t)
+	mockOldObject := NewMockEObjectInternal(t)
+	mockOldAdapters := NewMockEList(t)
+	mockNewObject := NewMockEObjectInternal(t)
+	mockNewAdapters := NewMockEList(t)
 
 	mockReference.On("IsContainment").Once().Return(true)
 	mockOldObject.On("EAdapters").Return(mockOldAdapters)
@@ -258,13 +258,13 @@ func TestEContentAdapterNotifyChanged_UnSet(t *testing.T) {
 func TestEContentAdapterNotifyChanged_Set(t *testing.T) {
 
 	adapter := NewEContentAdapter()
-	mockNotification := new(MockENotification)
-	mockObject := new(MockEObjectInternal)
-	mockReference := new(MockEReference)
-	mockOldObject := new(MockEObjectInternal)
-	mockOldAdapters := new(MockEList)
-	mockNewObject := new(MockEObjectInternal)
-	mockNewAdapters := new(MockEList)
+	mockNotification := NewMockENotification(t)
+	mockObject := NewMockEObjectInternal(t)
+	mockReference := NewMockEReference(t)
+	mockOldObject := NewMockEObjectInternal(t)
+	mockOldAdapters := NewMockEList(t)
+	mockNewObject := NewMockEObjectInternal(t)
+	mockNewAdapters := NewMockEList(t)
 
 	mockReference.On("IsContainment").Once().Return(true)
 	mockOldObject.On("EAdapters").Return(mockOldAdapters)
@@ -295,11 +295,11 @@ func TestEContentAdapterNotifyChanged_Set(t *testing.T) {
 func TestEContentAdapterNotifyChanged_Add(t *testing.T) {
 
 	adapter := NewEContentAdapter()
-	mockNotification := new(MockENotification)
-	mockObject := new(MockEObjectInternal)
-	mockReference := new(MockEReference)
-	mockNewObject := new(MockEObjectInternal)
-	mockNewAdapters := new(MockEList)
+	mockNotification := NewMockENotification(t)
+	mockObject := NewMockEObjectInternal(t)
+	mockReference := NewMockEReference(t)
+	mockNewObject := NewMockEObjectInternal(t)
+	mockNewAdapters := NewMockEList(t)
 
 	mockReference.On("IsContainment").Once().Return(true)
 	mockNewObject.On("EAdapters").Once().Return(mockNewAdapters)
@@ -325,16 +325,16 @@ func TestEContentAdapterNotifyChanged_Add(t *testing.T) {
 func TestEContentAdapterNotifyChanged_AddMany(t *testing.T) {
 
 	adapter := NewEContentAdapter()
-	mockNotification := new(MockENotification)
-	mockObject := new(MockEObjectInternal)
-	mockReference := new(MockEReference)
+	mockNotification := NewMockENotification(t)
+	mockObject := NewMockEObjectInternal(t)
+	mockReference := NewMockEReference(t)
 
 	mockReference.On("IsContainment").Once().Return(true)
 	nb := rand.Intn(10) + 1
 	mockChildren := []any{}
 	for i := 0; i < nb; i++ {
-		mockObject := new(MockEObject)
-		mockAdapters := new(MockEList)
+		mockObject := NewMockEObject(t)
+		mockAdapters := NewMockEList(t)
 
 		mockObject.On("EAdapters").Return(mockAdapters)
 		mockAdapters.On("Contains", adapter).Return(false)
@@ -378,11 +378,11 @@ func TestEContentAdapterNotifyChanged_AddMany(t *testing.T) {
 func TestEContentAdapterNotifyChanged_Remove(t *testing.T) {
 
 	adapter := NewEContentAdapter()
-	mockNotification := new(MockENotification)
-	mockObject := new(MockEObjectInternal)
-	mockReference := new(MockEReference)
-	mockOldObject := new(MockEObjectInternal)
-	mockOldAdapters := new(MockEList)
+	mockNotification := NewMockENotification(t)
+	mockObject := NewMockEObjectInternal(t)
+	mockReference := NewMockEReference(t)
+	mockOldObject := NewMockEObjectInternal(t)
+	mockOldAdapters := NewMockEList(t)
 
 	mockReference.On("IsContainment").Once().Return(true)
 
@@ -403,17 +403,17 @@ func TestEContentAdapterNotifyChanged_Remove(t *testing.T) {
 func TestEContentAdapterNotifyChanged_RemoveMany(t *testing.T) {
 
 	adapter := NewEContentAdapter()
-	mockNotification := new(MockENotification)
-	mockObject := new(MockEObjectInternal)
-	mockReference := new(MockEReference)
+	mockNotification := NewMockENotification(t)
+	mockObject := NewMockEObjectInternal(t)
+	mockReference := NewMockEReference(t)
 
 	mockReference.On("IsContainment").Once().Return(true)
 
 	nb := rand.Intn(10) + 1
 	mockChildren := []any{}
 	for i := 0; i < nb; i++ {
-		mockObject := new(MockEObjectInternal)
-		mockAdapters := new(MockEList)
+		mockObject := NewMockEObjectInternal(t)
+		mockAdapters := NewMockEList(t)
 
 		mockObject.On("EAdapters").Return(mockAdapters)
 		mockObject.On("EInternalResource").Return(nil)

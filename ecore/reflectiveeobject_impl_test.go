@@ -20,24 +20,24 @@ func TestReflectiveEObjectImpl_EClass(t *testing.T) {
 	o := NewReflectiveEObjectImpl()
 	assert.Equal(t, GetPackage().GetEObject(), o.EClass())
 
-	mockClass := new(MockEClass)
+	mockClass := NewMockEClass(t)
 	o.SetEClass(mockClass)
 	assert.Equal(t, mockClass, o.EClass())
 
 }
 
 func TestReflectiveEObjectImpl_EContainer(t *testing.T) {
-	mockClass := new(MockEClass)
-	mockContainer := new(MockEObjectInternal)
-	mockResource := new(MockEResource)
-	mockResourceSet := new(MockEResourceSet)
+	mockClass := NewMockEClass(t)
+	mockContainer := NewMockEObjectInternal(t)
+	mockResource := NewMockEResource(t)
+	mockResourceSet := NewMockEResourceSet(t)
 
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
 	o.ESetInternalContainer(mockContainer, 0)
 	o.ESetInternalResource(mockResource)
 
-	mockAdapter := new(MockEAdapter)
+	mockAdapter := NewMockEAdapter(t)
 	mockAdapter.On("SetTarget", o).Once()
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
@@ -49,7 +49,7 @@ func TestReflectiveEObjectImpl_EContainer(t *testing.T) {
 
 	// proxy
 	mockURI, _ := ParseURI("test://file.t")
-	mockResolved := new(MockEObjectInternal)
+	mockResolved := NewMockEObjectInternal(t)
 	mockResolved.On("EProxyURI").Return(nil).Once()
 	mockResource.On("GetResourceSet").Return(mockResourceSet).Once()
 	mockResourceSet.On("GetEObject", mockURI, true).Return(mockResolved).Once()
@@ -64,9 +64,9 @@ func TestReflectiveEObjectImpl_EContainer(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_EContainmentFeature(t *testing.T) {
-	mockClass := new(MockEClass)
-	mockContainer := new(MockEObjectInternal)
-	mockReference := new(MockEReference)
+	mockClass := NewMockEClass(t)
+	mockContainer := NewMockEObjectInternal(t)
+	mockReference := NewMockEReference(t)
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
 
@@ -93,11 +93,11 @@ func TestReflectiveEObjectImpl_EContainmentFeature(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_ESetResource(t *testing.T) {
-	mockClass := new(MockEClass)
-	mockContainer := new(MockEObjectInternal)
-	mockResource := new(MockEResource)
-	mockNotifications := new(MockENotificationChain)
-	mockReference := new(MockEReference)
+	mockClass := NewMockEClass(t)
+	mockContainer := NewMockEObjectInternal(t)
+	mockResource := NewMockEResource(t)
+	mockNotifications := NewMockENotificationChain(t)
+	mockReference := NewMockEReference(t)
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
 	o.ESetInternalContainer(mockContainer, 0)
@@ -129,7 +129,7 @@ func TestReflectiveEObjectImpl_ESetResource(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_EGetFromID(t *testing.T) {
-	mockClass := new(MockEClass)
+	mockClass := NewMockEClass(t)
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
 
@@ -139,7 +139,7 @@ func TestReflectiveEObjectImpl_EGetFromID(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_ESetFromID(t *testing.T) {
-	mockClass := new(MockEClass)
+	mockClass := NewMockEClass(t)
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
 
@@ -149,7 +149,7 @@ func TestReflectiveEObjectImpl_ESetFromID(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_EUnSetFromID(t *testing.T) {
-	mockClass := new(MockEClass)
+	mockClass := NewMockEClass(t)
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
 
@@ -159,11 +159,11 @@ func TestReflectiveEObjectImpl_EUnSetFromID(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_GetAttribute(t *testing.T) {
-	mockAttribute := new(MockEAttribute)
+	mockAttribute := NewMockEAttribute(t)
 	mockAttribute.On("IsMany").Return(false).Once()
 	mockAttribute.On("GetDefaultValue").Return(nil).Once()
 
-	mockClass := new(MockEClass)
+	mockClass := NewMockEClass(t)
 	mockClass.On("GetFeatureCount").Return(2).Once()
 	mockClass.On("GetEStructuralFeature", 0).Return(mockAttribute).Once()
 
@@ -177,13 +177,13 @@ func TestReflectiveEObjectImpl_GetAttribute(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_GetAttribute_Default(t *testing.T) {
-	mockDefault := new(MockEObject)
+	mockDefault := NewMockEObject(t)
 
-	mockAttribute := new(MockEAttribute)
+	mockAttribute := NewMockEAttribute(t)
 	mockAttribute.On("IsMany").Return(false).Once()
 	mockAttribute.On("GetDefaultValue").Return(mockDefault).Once()
 
-	mockClass := new(MockEClass)
+	mockClass := NewMockEClass(t)
 	mockClass.On("GetFeatureCount").Return(2).Once()
 	mockClass.On("GetEStructuralFeature", 0).Return(mockAttribute).Once()
 
@@ -196,8 +196,8 @@ func TestReflectiveEObjectImpl_GetAttribute_Default(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_GetAttribute_Many(t *testing.T) {
-	mockAttribute := new(MockEAttribute)
-	mockClass := new(MockEClass)
+	mockAttribute := NewMockEAttribute(t)
+	mockClass := NewMockEClass(t)
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
 
@@ -217,8 +217,8 @@ func TestReflectiveEObjectImpl_GetAttribute_Many(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_GetReference_Many(t *testing.T) {
-	mockReference := new(MockEReference)
-	mockClass := new(MockEClass)
+	mockReference := NewMockEReference(t)
+	mockClass := NewMockEClass(t)
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
 
@@ -243,13 +243,13 @@ func TestReflectiveEObjectImpl_GetReference_Many(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_SetAttribute(t *testing.T) {
-	mockAttribute := new(MockEAttribute)
+	mockAttribute := NewMockEAttribute(t)
 
-	mockClass := new(MockEClass)
+	mockClass := NewMockEClass(t)
 	mockClass.On("GetFeatureCount").Return(2).Once()
 	mockClass.On("GetEStructuralFeature", 0).Return(mockAttribute).Twice()
 
-	mockObject := new(MockEObject)
+	mockObject := NewMockEObject(t)
 
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
@@ -264,15 +264,15 @@ func TestReflectiveEObjectImpl_SetAttribute(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_UnsetAttribute(t *testing.T) {
-	mockAttribute := new(MockEAttribute)
+	mockAttribute := NewMockEAttribute(t)
 	mockAttribute.On("IsMany").Return(false).Once()
 	mockAttribute.On("GetDefaultValue").Return(nil).Once()
 
-	mockClass := new(MockEClass)
+	mockClass := NewMockEClass(t)
 	mockClass.On("GetFeatureCount").Return(2).Once()
 	mockClass.On("GetEStructuralFeature", 0).Return(mockAttribute).Times(3)
 
-	mockObject := new(MockEObject)
+	mockObject := NewMockEObject(t)
 
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
@@ -288,9 +288,9 @@ func TestReflectiveEObjectImpl_UnsetAttribute(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_GetContainer(t *testing.T) {
-	mockOpposite := new(MockEReference)
-	mockReference := new(MockEReference)
-	mockClass := new(MockEClass)
+	mockOpposite := NewMockEReference(t)
+	mockReference := NewMockEReference(t)
+	mockClass := NewMockEClass(t)
 
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
@@ -305,11 +305,11 @@ func TestReflectiveEObjectImpl_GetContainer(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_SetContainer(t *testing.T) {
-	mockObject := new(MockEObjectInternal)
-	mockObjectClass := new(MockEClass)
-	mockOpposite := new(MockEReference)
-	mockReference := new(MockEReference)
-	mockClass := new(MockEClass)
+	mockObject := NewMockEObjectInternal(t)
+	mockObjectClass := NewMockEClass(t)
+	mockOpposite := NewMockEReference(t)
+	mockReference := NewMockEReference(t)
+	mockClass := NewMockEClass(t)
 
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
@@ -365,11 +365,11 @@ func TestReflectiveEObjectImpl_SetContainer(t *testing.T) {
 
 func TestReflectiveEObjectImpl_UnSetContainer(t *testing.T) {
 
-	mockObject := new(MockEObjectInternal)
-	mockObjectClass := new(MockEClass)
-	mockOpposite := new(MockEReference)
-	mockReference := new(MockEReference)
-	mockClass := new(MockEClass)
+	mockObject := NewMockEObjectInternal(t)
+	mockObjectClass := NewMockEClass(t)
+	mockOpposite := NewMockEReference(t)
+	mockReference := NewMockEReference(t)
+	mockClass := NewMockEClass(t)
 
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
@@ -406,20 +406,20 @@ func TestReflectiveEObjectImpl_UnSetContainer(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_GetReferenceProxy(t *testing.T) {
-	mockObject := new(MockEObjectInternal)
-	mockClass := new(MockEClass)
-	mockReference := new(MockEReference)
-	mockResource := new(MockEResource)
-	mockResourceSet := new(MockEResourceSet)
+	mockObject := NewMockEObjectInternal(t)
+	mockClass := NewMockEClass(t)
+	mockReference := NewMockEReference(t)
+	mockResource := NewMockEResource(t)
+	mockResourceSet := NewMockEResourceSet(t)
 	mockURI, _ := ParseURI("test://file.t")
-	mockResolved := new(MockEObjectInternal)
+	mockResolved := NewMockEObjectInternal(t)
 
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
 	o.ESetInternalResource(mockResource)
 
 	// add listener
-	mockAdapter := new(MockEAdapter)
+	mockAdapter := NewMockEAdapter(t)
 	mockAdapter.On("SetTarget", o).Once()
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
@@ -453,20 +453,20 @@ func TestReflectiveEObjectImpl_GetReferenceProxy(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_GetReferenceProxyContainment(t *testing.T) {
-	mockObject := new(MockEObjectInternal)
-	mockClass := new(MockEClass)
-	mockReference := new(MockEReference)
-	mockResource := new(MockEResource)
-	mockResourceSet := new(MockEResourceSet)
+	mockObject := NewMockEObjectInternal(t)
+	mockClass := NewMockEClass(t)
+	mockReference := NewMockEReference(t)
+	mockResource := NewMockEResource(t)
+	mockResourceSet := NewMockEResourceSet(t)
 	mockURI, _ := ParseURI("test://file.t")
-	mockResolved := new(MockEObjectInternal)
+	mockResolved := NewMockEObjectInternal(t)
 
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
 	o.ESetInternalResource(mockResource)
 
 	// add listener
-	mockAdapter := new(MockEAdapter)
+	mockAdapter := NewMockEAdapter(t)
 	mockAdapter.On("SetTarget", o).Once()
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
@@ -503,23 +503,23 @@ func TestReflectiveEObjectImpl_GetReferenceProxyContainment(t *testing.T) {
 }
 
 func TestReflectiveEObjectImpl_GetReferenceProxyContainmentBidirectional(t *testing.T) {
-	mockClass := new(MockEClass)
-	mockObject := new(MockEObjectInternal)
-	mockObjectClass := new(MockEClass)
-	mockReference := new(MockEReference)
-	mockOpposite := new(MockEReference)
-	mockResource := new(MockEResource)
-	mockResourceSet := new(MockEResourceSet)
+	mockClass := NewMockEClass(t)
+	mockObject := NewMockEObjectInternal(t)
+	mockObjectClass := NewMockEClass(t)
+	mockReference := NewMockEReference(t)
+	mockOpposite := NewMockEReference(t)
+	mockResource := NewMockEResource(t)
+	mockResourceSet := NewMockEResourceSet(t)
 	mockURI, _ := ParseURI("test://file.t")
-	mockResolved := new(MockEObjectInternal)
-	mockResolvedClass := new(MockEClass)
+	mockResolved := NewMockEObjectInternal(t)
+	mockResolvedClass := NewMockEClass(t)
 
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
 	o.ESetInternalResource(mockResource)
 
 	// add listener
-	mockAdapter := new(MockEAdapter)
+	mockAdapter := NewMockEAdapter(t)
 	mockAdapter.On("SetTarget", o).Once()
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)

@@ -105,7 +105,7 @@ func TestMockEStructuralFeatureSetDerived(t *testing.T) {
 // TestMockEStructuralFeatureGetEContainingClass tests method GetEContainingClass
 func TestMockEStructuralFeatureGetEContainingClass(t *testing.T) {
 	o := NewMockEStructuralFeature(t)
-	r := new(MockEClass)
+	r := NewMockEClass(t)
 	m := NewMockRun(t)
 	o.EXPECT().GetEContainingClass().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEContainingClass().Call.Return(func() EClass { return r }).Once()
@@ -204,5 +204,4 @@ func TestMockEStructuralFeatureGetContainerClass(t *testing.T) {
 	}).Once()
 	assert.Equal(t, r, o.GetContainerClass())
 	assert.Equal(t, r, o.GetContainerClass())
-	o.AssertExpectations(t)
 }

@@ -16,21 +16,26 @@ import (
 )
 
 type MockEEnum struct {
-	MockEDataType
+	MockEEnum_Prototype
+	mock.Mock
+}
+
+type MockEEnum_Prototype struct {
+	MockEDataType_Prototype
 }
 
 type MockEEnum_Expecter struct {
 	MockEDataType_Expecter
 }
 
-func (eEnum *MockEEnum) EXPECT() *MockEEnum_Expecter {
+func (eEnum *MockEEnum_Prototype) EXPECT() *MockEEnum_Expecter {
 	e := &MockEEnum_Expecter{}
-	e.Mock = &eEnum.Mock
+	e.Mock = eEnum.Mock
 	return e
 }
 
 // GetELiterals get the value of eLiterals
-func (eEnum *MockEEnum) GetELiterals() EList {
+func (eEnum *MockEEnum_Prototype) GetELiterals() EList {
 	ret := eEnum.Called()
 
 	var r EList
@@ -66,7 +71,7 @@ func (c *MockEEnum_GetELiterals_Call) Return(eLiterals EList) *MockEEnum_GetELit
 }
 
 // GetEEnumLiteralByLiteral provides mock implementation
-func (eEnum *MockEEnum) GetEEnumLiteralByLiteral(literal string) EEnumLiteral {
+func (eEnum *MockEEnum_Prototype) GetEEnumLiteralByLiteral(literal string) EEnumLiteral {
 	ret := eEnum.Called(literal)
 
 	var r EEnumLiteral
@@ -104,7 +109,7 @@ func (c *MockEEnum_GetEEnumLiteralByLiteral_Call) Return(_a0 EEnumLiteral) *Mock
 }
 
 // GetEEnumLiteralByName provides mock implementation
-func (eEnum *MockEEnum) GetEEnumLiteralByName(name string) EEnumLiteral {
+func (eEnum *MockEEnum_Prototype) GetEEnumLiteralByName(name string) EEnumLiteral {
 	ret := eEnum.Called(name)
 
 	var r EEnumLiteral
@@ -142,7 +147,7 @@ func (c *MockEEnum_GetEEnumLiteralByName_Call) Return(_a0 EEnumLiteral) *MockEEn
 }
 
 // GetEEnumLiteralByValue provides mock implementation
-func (eEnum *MockEEnum) GetEEnumLiteralByValue(value int) EEnumLiteral {
+func (eEnum *MockEEnum_Prototype) GetEEnumLiteralByValue(value int) EEnumLiteral {
 	ret := eEnum.Called(value)
 
 	var r EEnumLiteral
@@ -187,6 +192,7 @@ type mockConstructorTestingTNewMockEEnum interface {
 // NewMockEEnum creates a new instance of MockEEnum. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEEnum(t mockConstructorTestingTNewMockEEnum) *MockEEnum {
 	mock := &MockEEnum{}
+	mock.MockEEnum_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

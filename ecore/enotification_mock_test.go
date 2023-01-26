@@ -37,7 +37,7 @@ func TestMockENotificationGetNotifier(t *testing.T) {
 
 func TestMockENotificationGetFeature(t *testing.T) {
 	n := NewMockENotification(t)
-	f := &MockEStructuralFeature{}
+	f := NewMockEStructuralFeature(t)
 	m := NewMockRun(t)
 	n.EXPECT().GetFeature().Run(func() { m.Run() }).Return(f).Once()
 	n.EXPECT().GetFeature().Once().Return(func() EStructuralFeature { return f })
@@ -56,7 +56,7 @@ func TestMockENotificationGetFeatureID(t *testing.T) {
 
 func TestMockENotificationGetOldValue(t *testing.T) {
 	n := NewMockENotification(t)
-	v := &MockEObject{}
+	v := NewMockEObject(t)
 	m := NewMockRun(t)
 	n.EXPECT().GetOldValue().Run(func() { m.Run() }).Return(v).Once()
 	n.EXPECT().GetOldValue().Once().Return(func() any { return v })
@@ -67,7 +67,7 @@ func TestMockENotificationGetOldValue(t *testing.T) {
 
 func TestMockENotificationGetNewValue(t *testing.T) {
 	n := NewMockENotification(t)
-	v := &MockEObject{}
+	v := NewMockEObject(t)
 	m := NewMockRun(t)
 	n.EXPECT().GetNewValue().Run(func() { m.Run() }).Return(v).Once()
 	n.EXPECT().GetNewValue().Once().Return(func() any { return v })

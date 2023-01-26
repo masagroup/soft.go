@@ -56,7 +56,7 @@ func TestMockEClassifierGetDefaultValue(t *testing.T) {
 // TestMockEClassifierGetEPackage tests method GetEPackage
 func TestMockEClassifierGetEPackage(t *testing.T) {
 	o := NewMockEClassifier(t)
-	r := new(MockEPackage)
+	r := NewMockEPackage(t)
 	m := NewMockRun(t)
 	o.EXPECT().GetEPackage().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEPackage().Call.Return(func() EPackage { return r }).Once()
@@ -136,5 +136,4 @@ func TestMockEClassifierIsInstance(t *testing.T) {
 	}).Once()
 	assert.Equal(t, r, o.IsInstance(object))
 	assert.Equal(t, r, o.IsInstance(object))
-	o.AssertExpectations(t)
 }

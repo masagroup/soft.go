@@ -18,7 +18,7 @@ import (
 
 func TestMockEPackageRegistryImpl_RegisterPackage(t *testing.T) {
 	rp := NewEPackageRegistryImpl()
-	p := &MockEPackage{}
+	p := NewMockEPackage(t)
 	p.On("GetNsURI").Return("uri").Once()
 	rp.RegisterPackage(p)
 	mock.AssertExpectationsForObjects(t, p)
@@ -26,7 +26,7 @@ func TestMockEPackageRegistryImpl_RegisterPackage(t *testing.T) {
 
 func TestMockEPackageRegistryImpl_UnRegisterPackage(t *testing.T) {
 	rp := NewEPackageRegistryImpl()
-	p := &MockEPackage{}
+	p := NewMockEPackage(t)
 	p.On("GetNsURI").Return("uri").Once()
 	rp.UnregisterPackage(p)
 	mock.AssertExpectationsForObjects(t, p)
@@ -34,14 +34,14 @@ func TestMockEPackageRegistryImpl_UnRegisterPackage(t *testing.T) {
 
 func TestMockEPackageRegistryImpl_RegisterPutPackage(t *testing.T) {
 	rp := NewEPackageRegistryImpl()
-	p := &MockEPackage{}
+	p := NewMockEPackage(t)
 	rp.PutPackage("nsURI", p)
 	assert.Equal(t, p, rp.GetPackage("nsURI"))
 }
 
 func TestMockEPackageRegistryImpl_RegisterPutSupplier(t *testing.T) {
 	rp := NewEPackageRegistryImpl()
-	p := &MockEPackage{}
+	p := NewMockEPackage(t)
 	f := func() EPackage {
 		return p
 	}
@@ -51,7 +51,7 @@ func TestMockEPackageRegistryImpl_RegisterPutSupplier(t *testing.T) {
 
 func TestMockEPackageRegistryImpl_Remove(t *testing.T) {
 	rp := NewEPackageRegistryImpl()
-	p := &MockEPackage{}
+	p := NewMockEPackage(t)
 	rp.PutPackage("nsURI", p)
 	assert.Equal(t, p, rp.GetPackage("nsURI"))
 	rp.Remove("nsURI")
@@ -65,7 +65,7 @@ func TestMockEPackageRegistryImpl_GetPackage(t *testing.T) {
 	}
 	{
 		rp := NewEPackageRegistryImpl()
-		p := &MockEPackage{}
+		p := NewMockEPackage(t)
 		p.On("GetNsURI").Return("uri").Once()
 		rp.RegisterPackage(p)
 		mock.AssertExpectationsForObjects(t, p)
@@ -73,7 +73,7 @@ func TestMockEPackageRegistryImpl_GetPackage(t *testing.T) {
 	}
 	{
 		delegate := &MockEPackageRegistry{}
-		p := &MockEPackage{}
+		p := NewMockEPackage(t)
 		rp := NewEPackageRegistryImplWithDelegate(delegate)
 		delegate.On("GetPackage", "uri").Return(p).Once()
 		assert.Equal(t, p, rp.GetPackage("uri"))
@@ -88,20 +88,20 @@ func TestMockEPackageRegistryImpl_GetFactory(t *testing.T) {
 	}
 	{
 		rp := NewEPackageRegistryImpl()
-		p := &MockEPackage{}
+		p := NewMockEPackage(t)
 		p.On("GetNsURI").Return("uri").Once()
 		rp.RegisterPackage(p)
 		mock.AssertExpectationsForObjects(t, p)
 
-		f := &MockEFactory{}
+		f := NewMockEFactory(t)
 		p.On("GetEFactoryInstance").Return(f).Once()
 		assert.Equal(t, f, rp.GetFactory("uri"))
 		mock.AssertExpectationsForObjects(t, p, f)
 	}
 	{
 		delegate := &MockEPackageRegistry{}
-		p := &MockEPackage{}
-		f := &MockEFactory{}
+		p := NewMockEPackage(t)
+		f := NewMockEFactory(t)
 		rp := NewEPackageRegistryImplWithDelegate(delegate)
 		delegate.On("GetFactory", "uri").Return(f).Once()
 		assert.Equal(t, f, rp.GetFactory("uri"))

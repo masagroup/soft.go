@@ -17,8 +17,8 @@ import (
 )
 
 func TestMockEResourceSetGetResources(t *testing.T) {
-	rs := &MockEResourceSet{}
-	l := &MockEList{}
+	rs := NewMockEResourceSet(t)
+	l := NewMockEList(t)
 	rs.On("GetResources").Return(l).Once()
 	rs.On("GetResources").Return(func() EList {
 		return l
@@ -29,8 +29,8 @@ func TestMockEResourceSetGetResources(t *testing.T) {
 }
 
 func TestMockEResourceSetGetResource(t *testing.T) {
-	rs := &MockEResourceSet{}
-	r := &MockEResource{}
+	rs := NewMockEResourceSet(t)
+	r := NewMockEResource(t)
 	uri, _ := ParseURI("test://file.t")
 	rs.On("GetResource", uri, false).Return(r).Once()
 	rs.On("GetResource", uri, true).Return(func(uri *URI, loadOnDemand bool) EResource {
@@ -42,8 +42,8 @@ func TestMockEResourceSetGetResource(t *testing.T) {
 }
 
 func TestMockEResourceSetCreateResource(t *testing.T) {
-	rs := &MockEResourceSet{}
-	r := &MockEResource{}
+	rs := NewMockEResourceSet(t)
+	r := NewMockEResource(t)
 	uri, _ := ParseURI("test://file.t")
 	rs.On("CreateResource", uri).Return(r).Once()
 	rs.On("CreateResource", uri).Return(func(uri *URI) EResource {
@@ -55,8 +55,8 @@ func TestMockEResourceSetCreateResource(t *testing.T) {
 }
 
 func TestMockEResourceSetGetEObject(t *testing.T) {
-	rs := &MockEResourceSet{}
-	o := &MockEObject{}
+	rs := NewMockEResourceSet(t)
+	o := NewMockEObject(t)
 	uri, _ := ParseURI("test://file.t")
 	rs.On("GetEObject", uri, false).Return(o).Once()
 	rs.On("GetEObject", uri, true).Return(func(uri *URI, loadOnDemand bool) EObject {
@@ -68,7 +68,7 @@ func TestMockEResourceSetGetEObject(t *testing.T) {
 }
 
 func TestMockEResourceSetGetURIConverter(t *testing.T) {
-	rs := &MockEResourceSet{}
+	rs := NewMockEResourceSet(t)
 	c := &MockEURIConverter{}
 	rs.On("GetURIConverter").Return(c).Once()
 	rs.On("GetURIConverter").Return(func() EURIConverter {
@@ -80,7 +80,7 @@ func TestMockEResourceSetGetURIConverter(t *testing.T) {
 }
 
 func TestMockEResourceSetSetURIConverter(t *testing.T) {
-	rs := &MockEResourceSet{}
+	rs := NewMockEResourceSet(t)
 	c := &MockEURIConverter{}
 	rs.On("SetURIConverter", c).Once()
 	rs.SetURIConverter(c)
@@ -88,7 +88,7 @@ func TestMockEResourceSetSetURIConverter(t *testing.T) {
 }
 
 func TestMockEResourceSetGetPackageRegistry(t *testing.T) {
-	rs := &MockEResourceSet{}
+	rs := NewMockEResourceSet(t)
 	pr := &MockEPackageRegistry{}
 	rs.On("GetPackageRegistry").Return(pr).Once()
 	rs.On("GetPackageRegistry").Return(func() EPackageRegistry {
@@ -100,7 +100,7 @@ func TestMockEResourceSetGetPackageRegistry(t *testing.T) {
 }
 
 func TestMockEResourceSetSetPackageRegistry(t *testing.T) {
-	rs := &MockEResourceSet{}
+	rs := NewMockEResourceSet(t)
 	pr := &MockEPackageRegistry{}
 	rs.On("SetPackageRegistry", pr).Once()
 	rs.SetPackageRegistry(pr)
@@ -108,7 +108,7 @@ func TestMockEResourceSetSetPackageRegistry(t *testing.T) {
 }
 
 func TestMockEResourceSetGetResourceCodecRegistry(t *testing.T) {
-	rs := &MockEResourceSet{}
+	rs := NewMockEResourceSet(t)
 	pr := &MockEResourceCodecRegistry{}
 	rs.On("GetResourceCodecRegistry").Return(pr).Once()
 	rs.On("GetResourceCodecRegistry").Return(func() EResourceCodecRegistry {
@@ -120,7 +120,7 @@ func TestMockEResourceSetGetResourceCodecRegistry(t *testing.T) {
 }
 
 func TestMockEResourceSetSetResourceCodecRegistry(t *testing.T) {
-	rs := &MockEResourceSet{}
+	rs := NewMockEResourceSet(t)
 	pr := &MockEResourceCodecRegistry{}
 	rs.On("SetResourceCodecRegistry", pr).Once()
 	rs.SetResourceCodecRegistry(pr)
@@ -128,7 +128,7 @@ func TestMockEResourceSetSetResourceCodecRegistry(t *testing.T) {
 }
 
 func TestMockEResourceSetGetURIResourceMap(t *testing.T) {
-	rs := &MockEResourceSet{}
+	rs := NewMockEResourceSet(t)
 	pr := make(map[*URI]EResource)
 	rs.On("GetURIResourceMap").Return(pr).Once()
 	rs.On("GetURIResourceMap").Return(func() map[*URI]EResource {
@@ -140,7 +140,7 @@ func TestMockEResourceSetGetURIResourceMap(t *testing.T) {
 }
 
 func TestMockEResourceSetSetURIResourceMap(t *testing.T) {
-	rs := &MockEResourceSet{}
+	rs := NewMockEResourceSet(t)
 	pr := make(map[*URI]EResource)
 	rs.On("SetURIResourceMap", pr).Once()
 	rs.SetURIResourceMap(pr)

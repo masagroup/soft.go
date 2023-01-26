@@ -17,10 +17,10 @@ import (
 )
 
 func TestEcoreUtilsConvertToString(t *testing.T) {
-	mockObject := &MockEObject{}
-	mockDataType := &MockEDataType{}
-	mockPackage := &MockEPackage{}
-	mockFactory := &MockEFactory{}
+	mockObject := NewMockEObject(t)
+	mockDataType := NewMockEDataType(t)
+	mockPackage := NewMockEPackage(t)
+	mockFactory := NewMockEFactory(t)
 	mockDataType.On("GetEPackage").Once().Return(mockPackage)
 	mockPackage.On("GetEFactoryInstance").Once().Return(mockFactory)
 	mockFactory.On("ConvertToString", mockDataType, mockObject).Once().Return("test")
@@ -29,10 +29,10 @@ func TestEcoreUtilsConvertToString(t *testing.T) {
 }
 
 func TestEcoreUtilsCreateFromString(t *testing.T) {
-	mockObject := &MockEObject{}
-	mockDataType := &MockEDataType{}
-	mockPackage := &MockEPackage{}
-	mockFactory := &MockEFactory{}
+	mockObject := NewMockEObject(t)
+	mockDataType := NewMockEDataType(t)
+	mockPackage := NewMockEPackage(t)
+	mockFactory := NewMockEFactory(t)
 	mockDataType.On("GetEPackage").Once().Return(mockPackage)
 	mockPackage.On("GetEFactoryInstance").Once().Return(mockFactory)
 	mockFactory.On("CreateFromString", mockDataType, "test").Once().Return(mockObject)
@@ -41,13 +41,13 @@ func TestEcoreUtilsCreateFromString(t *testing.T) {
 }
 
 func TestEcoreUtilsGetObjectID(t *testing.T) {
-	mockObject := new(MockEObject)
-	mockAttribute := new(MockEAttribute)
-	mockClass := new(MockEClass)
-	mockDataType := new(MockEDataType)
-	mockPackage := new(MockEPackage)
-	mockFactory := new(MockEFactory)
-	mockValue := new(MockEObject)
+	mockObject := NewMockEObject(t)
+	mockAttribute := NewMockEAttribute(t)
+	mockClass := NewMockEClass(t)
+	mockDataType := NewMockEDataType(t)
+	mockPackage := NewMockEPackage(t)
+	mockFactory := NewMockEFactory(t)
+	mockValue := NewMockEObject(t)
 
 	mockObject.On("EClass").Return(mockClass).Once()
 	mockClass.On("GetEIDAttribute").Return(nil).Once()
@@ -73,13 +73,13 @@ func TestEcoreUtilsGetObjectID(t *testing.T) {
 }
 
 func TestEcoreUtilsSetObjectID(t *testing.T) {
-	mockObject := new(MockEObject)
-	mockAttribute := new(MockEAttribute)
-	mockClass := new(MockEClass)
-	mockDataType := new(MockEDataType)
-	mockPackage := new(MockEPackage)
-	mockFactory := new(MockEFactory)
-	mockValue := new(MockEObject)
+	mockObject := NewMockEObject(t)
+	mockAttribute := NewMockEAttribute(t)
+	mockClass := NewMockEClass(t)
+	mockDataType := NewMockEDataType(t)
+	mockPackage := NewMockEPackage(t)
+	mockFactory := NewMockEFactory(t)
+	mockValue := NewMockEObject(t)
 
 	mockObject.On("EClass").Return(mockClass).Once()
 	mockClass.On("GetEIDAttribute").Return(nil).Once()
@@ -109,14 +109,14 @@ func TestEcoreUtilsCopyNil(t *testing.T) {
 
 func TestEcoreUtilsEqualsNil(t *testing.T) {
 	assert.True(t, Equals(nil, nil))
-	assert.False(t, Equals(nil, &MockEObject{}))
-	assert.False(t, Equals(&MockEObject{}, nil))
+	assert.False(t, Equals(nil, NewMockEObject(t)))
+	assert.False(t, Equals(NewMockEObject(t), nil))
 }
 
 func TestEcoreUtilsEqualsProxy(t *testing.T) {
 
-	obj1 := &MockEObjectInternal{}
-	obj2 := &MockEObjectInternal{}
+	obj1 := NewMockEObjectInternal(t)
+	obj2 := NewMockEObjectInternal(t)
 	obj1.On("EIsProxy").Once().Return(true)
 	obj1.On("EProxyURI").Once().Return(NewURI("test"))
 	obj2.On("EProxyURI").Once().Return(NewURI("test"))
@@ -140,12 +140,12 @@ func TestEcoreUtilsEqualsProxy(t *testing.T) {
 }
 
 func TestEcoreUtilsEqualsClass(t *testing.T) {
-	obj1 := &MockEObjectInternal{}
-	obj2 := &MockEObjectInternal{}
+	obj1 := NewMockEObjectInternal(t)
+	obj2 := NewMockEObjectInternal(t)
 	obj1.On("EIsProxy").Once().Return(false)
 	obj2.On("EIsProxy").Once().Return(false)
-	obj1.On("EClass").Once().Return(&MockEClass{})
-	obj2.On("EClass").Once().Return(&MockEClass{})
+	obj1.On("EClass").Once().Return(NewMockEClass(t))
+	obj2.On("EClass").Once().Return(NewMockEClass(t))
 	assert.False(t, Equals(obj1, obj2))
 	mock.AssertExpectationsForObjects(t, obj1, obj2)
 }
@@ -324,54 +324,54 @@ func TestEcoreUtilsCopyReal(t *testing.T) {
 
 func TestEcoreUtils_GetURI(t *testing.T) {
 	mockURI, _ := ParseURI("test://file.t")
-	mockEObject := &MockEObjectInternal{}
+	mockEObject := NewMockEObjectInternal(t)
 	mockEObject.On("EIsProxy").Return(true).Once()
 	mockEObject.On("EProxyURI").Return(mockURI).Once()
 	assert.Equal(t, mockURI, GetURI(mockEObject))
 }
 
 func TestEcoreUtils_Remove(t *testing.T) {
-	mockObject := &MockEObjectInternal{}
-	mockReference := &MockEReference{}
-	mockContainer := &MockEObject{}
+	mockObject := NewMockEObjectInternal(t)
+	mockReference := NewMockEReference(t)
+	mockContainer := NewMockEObject(t)
 
 	// resource - container - feature single
 	mockObject.On("EInternalContainer").Return(mockContainer).Once()
 	mockObject.On("EContainmentFeature").Return(mockReference).Once()
 	mockReference.On("IsMany").Return(false).Once()
 	mockContainer.On("EUnset", mockReference).Once()
-	mockObject.On("EInternalResource").Return(nil)
+	mockObject.On("EInternalResource").Return(nil).Once()
 	Remove(mockObject)
 	mock.AssertExpectationsForObjects(t, mockObject, mockReference, mockContainer)
 
 	// resource - container - feature many
-	mockList := &MockEList{}
+	mockList := NewMockEList(t)
 	mockObject.On("EInternalContainer").Return(mockContainer).Once()
 	mockObject.On("EContainmentFeature").Return(mockReference).Once()
 	mockReference.On("IsMany").Return(true).Once()
 	mockContainer.On("EGet", mockReference).Return(mockList).Once()
 	mockList.On("Remove", mockObject).Return(true).Once()
-	mockObject.On("EInternalResource").Return(nil)
+	mockObject.On("EInternalResource").Return(nil).Once()
 	Remove(mockObject)
 	mock.AssertExpectationsForObjects(t, mockObject, mockReference, mockContainer)
 
 	// resource - no container
-	mockResource := &MockEResource{}
+	mockResource := NewMockEResource(t)
 	mockObject.On("EInternalContainer").Return(nil).Once()
-	mockObject.On("EInternalResource").Return(mockResource)
+	mockObject.On("EInternalResource").Return(mockResource).Once()
 	mockResource.On("GetContents").Return(mockList).Once()
 	mockList.On("Remove", mockObject).Return(true).Once()
 	Remove(mockObject)
-	mock.AssertExpectationsForObjects(t, mockObject, mockReference, mockContainer)
+	mock.AssertExpectationsForObjects(t, mockObject, mockReference, mockContainer, mockResource)
 }
 
 func TestEcoreUtils_GetAncestor(t *testing.T) {
 
-	mockObject0 := &MockEObject{}
-	mockObject1 := &MockEObject{}
-	mockObject2 := &MockEObject{}
-	mockClass := &MockEClass{}
-	mockOtherClass := &MockEClass{}
+	mockObject0 := NewMockEObject(t)
+	mockObject1 := NewMockEObject(t)
+	mockObject2 := NewMockEObject(t)
+	mockClass := NewMockEClass(t)
+	mockOtherClass := NewMockEClass(t)
 
 	mockObject0.On("EClass").Return(mockOtherClass).Once()
 	mockObject0.On("EContainer").Return(mockObject1).Once()
@@ -400,9 +400,9 @@ func TestEcoreUtils_GetAncestor(t *testing.T) {
 
 func TestEcoreUtils_IsAncestor(t *testing.T) {
 
-	mockObject0 := &MockEObject{}
-	mockObject1 := &MockEObject{}
-	mockObject2 := &MockEObject{}
+	mockObject0 := NewMockEObject(t)
+	mockObject1 := NewMockEObject(t)
+	mockObject2 := NewMockEObject(t)
 
 	assert.True(t, IsAncestor(nil, nil))
 

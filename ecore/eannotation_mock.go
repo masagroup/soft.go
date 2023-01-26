@@ -16,21 +16,26 @@ import (
 )
 
 type MockEAnnotation struct {
-	MockEModelElement
+	MockEAnnotation_Prototype
+	mock.Mock
+}
+
+type MockEAnnotation_Prototype struct {
+	MockEModelElement_Prototype
 }
 
 type MockEAnnotation_Expecter struct {
 	MockEModelElement_Expecter
 }
 
-func (eAnnotation *MockEAnnotation) EXPECT() *MockEAnnotation_Expecter {
+func (eAnnotation *MockEAnnotation_Prototype) EXPECT() *MockEAnnotation_Expecter {
 	e := &MockEAnnotation_Expecter{}
-	e.Mock = &eAnnotation.Mock
+	e.Mock = eAnnotation.Mock
 	return e
 }
 
 // GetContents get the value of contents
-func (eAnnotation *MockEAnnotation) GetContents() EList {
+func (eAnnotation *MockEAnnotation_Prototype) GetContents() EList {
 	ret := eAnnotation.Called()
 
 	var r EList
@@ -66,7 +71,7 @@ func (c *MockEAnnotation_GetContents_Call) Return(contents EList) *MockEAnnotati
 }
 
 // GetDetails get the value of details
-func (eAnnotation *MockEAnnotation) GetDetails() EMap {
+func (eAnnotation *MockEAnnotation_Prototype) GetDetails() EMap {
 	ret := eAnnotation.Called()
 
 	var r EMap
@@ -102,7 +107,7 @@ func (c *MockEAnnotation_GetDetails_Call) Return(details EMap) *MockEAnnotation_
 }
 
 // GetEModelElement get the value of eModelElement
-func (eAnnotation *MockEAnnotation) GetEModelElement() EModelElement {
+func (eAnnotation *MockEAnnotation_Prototype) GetEModelElement() EModelElement {
 	ret := eAnnotation.Called()
 
 	var r EModelElement
@@ -138,7 +143,7 @@ func (c *MockEAnnotation_GetEModelElement_Call) Return(eModelElement EModelEleme
 }
 
 // SetEModelElement provides mock implementation for setting the value of eModelElement
-func (eAnnotation *MockEAnnotation) SetEModelElement(eModelElement EModelElement) {
+func (eAnnotation *MockEAnnotation_Prototype) SetEModelElement(eModelElement EModelElement) {
 	eAnnotation.Called(eModelElement)
 }
 
@@ -165,7 +170,7 @@ func (c *MockEAnnotation_SetEModelElement_Call) Return() *MockEAnnotation_SetEMo
 }
 
 // GetReferences get the value of references
-func (eAnnotation *MockEAnnotation) GetReferences() EList {
+func (eAnnotation *MockEAnnotation_Prototype) GetReferences() EList {
 	ret := eAnnotation.Called()
 
 	var r EList
@@ -201,7 +206,7 @@ func (c *MockEAnnotation_GetReferences_Call) Return(references EList) *MockEAnno
 }
 
 // GetSource get the value of source
-func (eAnnotation *MockEAnnotation) GetSource() string {
+func (eAnnotation *MockEAnnotation_Prototype) GetSource() string {
 	ret := eAnnotation.Called()
 
 	var r string
@@ -237,7 +242,7 @@ func (c *MockEAnnotation_GetSource_Call) Return(source string) *MockEAnnotation_
 }
 
 // SetSource provides mock implementation for setting the value of source
-func (eAnnotation *MockEAnnotation) SetSource(source string) {
+func (eAnnotation *MockEAnnotation_Prototype) SetSource(source string) {
 	eAnnotation.Called(source)
 }
 
@@ -271,6 +276,7 @@ type mockConstructorTestingTNewMockEAnnotation interface {
 // NewMockEAnnotation creates a new instance of MockEAnnotation. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEAnnotation(t mockConstructorTestingTNewMockEAnnotation) *MockEAnnotation {
 	mock := &MockEAnnotation{}
+	mock.MockEAnnotation_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

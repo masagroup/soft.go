@@ -69,7 +69,7 @@ func TestEEnumESetFromID(t *testing.T) {
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
 		// list with a value
-		mockValue := new(MockEEnumLiteral)
+		mockValue := NewMockEEnumLiteral(t)
 		l := NewImmutableEList([]any{mockValue})
 		mockValue.EXPECT().EInverseAdd(o, EENUM_LITERAL__EENUM, mock.Anything).Return(nil).Once()
 
@@ -117,7 +117,7 @@ func TestEEnumEBasicInverseAdd(t *testing.T) {
 		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEEnumLiteral)
+		mockObject := NewMockEEnumLiteral(t)
 		o.EBasicInverseAdd(mockObject, EENUM__ELITERALS, nil)
 		l := o.GetELiterals()
 		assert.True(t, l.Contains(mockObject))
@@ -135,7 +135,7 @@ func TestEEnumEBasicInverseRemove(t *testing.T) {
 	}
 	{
 		// initialize list with a mock object
-		mockObject := new(MockEEnumLiteral)
+		mockObject := NewMockEEnumLiteral(t)
 		mockObject.EXPECT().EInverseAdd(o, EENUM_LITERAL__EENUM, mock.Anything).Return(nil).Once()
 
 		l := o.GetELiterals()

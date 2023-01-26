@@ -20,7 +20,7 @@ import (
 func TestMockEResourceCodec_NewDecoder(t *testing.T) {
 	mockCodec := &MockEResourceCodec{}
 	mockDecoder := &MockEResourceDecoder{}
-	mockResource := &MockEResource{}
+	mockResource := NewMockEResource(t)
 	options := map[string]any{}
 	var r io.Reader = nil
 	mockCodec.On("NewDecoder", mockResource, r, options).Return(mockDecoder).Once()
@@ -33,7 +33,7 @@ func TestMockEResourceCodec_NewDecoder(t *testing.T) {
 func TestMockEResourceCodec_NewEncoder(t *testing.T) {
 	mockCodec := &MockEResourceCodec{}
 	mockEncoder := &MockEResourceEncoder{}
-	mockResource := &MockEResource{}
+	mockResource := NewMockEResource(t)
 	options := map[string]any{}
 	var w io.Writer = nil
 	mockCodec.On("NewEncoder", mockResource, w, options).Return(mockEncoder).Once()

@@ -45,7 +45,7 @@ func TestEGenericTypeEClassifierGet(t *testing.T) {
 	assert.Nil(t, o.GetEClassifier())
 
 	// initialize object with a mock value
-	mockValue := new(MockEClassifier)
+	mockValue := NewMockEClassifier(t)
 	o.eClassifier = mockValue
 
 	// events
@@ -66,7 +66,7 @@ func TestEGenericTypeEClassifierGet(t *testing.T) {
 
 	// get a resolved value
 	mockURI := NewURI("test:///file.t")
-	mockResolved := new(MockEClassifier)
+	mockResolved := NewMockEClassifier(t)
 	mockResolved.EXPECT().EProxyURI().Return(nil).Once()
 	mockResource.EXPECT().GetResourceSet().Return(mockResourceSet).Once()
 	mockResourceSet.EXPECT().GetEObject(mockURI, true).Return(mockResolved).Once()
@@ -81,7 +81,7 @@ func TestEGenericTypeEClassifierGet(t *testing.T) {
 
 func TestEGenericTypeEClassifierSet(t *testing.T) {
 	o := newEGenericTypeImpl()
-	v := new(MockEClassifier)
+	v := NewMockEClassifier(t)
 	mockAdapter := NewMockEAdapter(t)
 	mockAdapter.EXPECT().SetTarget(o).Once()
 	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
@@ -96,7 +96,7 @@ func TestEGenericTypeELowerBoundGet(t *testing.T) {
 	assert.Nil(t, o.GetELowerBound())
 
 	// get initialized value
-	v := new(MockEGenericType)
+	v := NewMockEGenericType(t)
 	o.eLowerBound = v
 	assert.Equal(t, v, o.GetELowerBound())
 }
@@ -110,14 +110,14 @@ func TestEGenericTypeELowerBoundSet(t *testing.T) {
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
-	mockValue1 := new(MockEGenericType)
+	mockValue1 := NewMockEGenericType(t)
 	mockValue1.EXPECT().EInverseAdd(o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, mock.Anything).Return(nil).Once()
 	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.SetELowerBound(mockValue1)
 	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue1)
 
 	// second value
-	mockValue2 := new(MockEGenericType)
+	mockValue2 := NewMockEGenericType(t)
 	mockValue1.EXPECT().EInverseRemove(o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, nil).Return(nil).Once()
 	mockValue2.EXPECT().EInverseAdd(o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, nil).Return(nil).Once()
 	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
@@ -135,7 +135,7 @@ func TestEGenericTypeELowerBoundBasicSet(t *testing.T) {
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
-	mockValue := new(MockEGenericType)
+	mockValue := NewMockEGenericType(t)
 	mockNotifications := NewMockENotificationChain(t)
 	mockNotifications.EXPECT().Add(mock.MatchedBy(func(notification ENotification) bool {
 		return notification.GetEventType() == SET && notification.GetFeatureID() == EGENERIC_TYPE__ELOWER_BOUND
@@ -151,7 +151,7 @@ func TestEGenericTypeERawTypeGet(t *testing.T) {
 	assert.Nil(t, o.GetERawType())
 
 	// initialize object with a mock value
-	mockValue := new(MockEClassifier)
+	mockValue := NewMockEClassifier(t)
 	o.eRawType = mockValue
 
 	// events
@@ -172,7 +172,7 @@ func TestEGenericTypeERawTypeGet(t *testing.T) {
 
 	// get a resolved value
 	mockURI := NewURI("test:///file.t")
-	mockResolved := new(MockEClassifier)
+	mockResolved := NewMockEClassifier(t)
 	mockResolved.EXPECT().EProxyURI().Return(nil).Once()
 	mockResource.EXPECT().GetResourceSet().Return(mockResourceSet).Once()
 	mockResourceSet.EXPECT().GetEObject(mockURI, true).Return(mockResolved).Once()
@@ -197,14 +197,14 @@ func TestEGenericTypeETypeParameterGet(t *testing.T) {
 	assert.Nil(t, o.GetETypeParameter())
 
 	// get initialized value
-	v := new(MockETypeParameter)
+	v := NewMockETypeParameter(t)
 	o.eTypeParameter = v
 	assert.Equal(t, v, o.GetETypeParameter())
 }
 
 func TestEGenericTypeETypeParameterSet(t *testing.T) {
 	o := newEGenericTypeImpl()
-	v := new(MockETypeParameter)
+	v := NewMockETypeParameter(t)
 	mockAdapter := NewMockEAdapter(t)
 	mockAdapter.EXPECT().SetTarget(o).Once()
 	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
@@ -219,7 +219,7 @@ func TestEGenericTypeEUpperBoundGet(t *testing.T) {
 	assert.Nil(t, o.GetEUpperBound())
 
 	// get initialized value
-	v := new(MockEGenericType)
+	v := NewMockEGenericType(t)
 	o.eUpperBound = v
 	assert.Equal(t, v, o.GetEUpperBound())
 }
@@ -233,14 +233,14 @@ func TestEGenericTypeEUpperBoundSet(t *testing.T) {
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
-	mockValue1 := new(MockEGenericType)
+	mockValue1 := NewMockEGenericType(t)
 	mockValue1.EXPECT().EInverseAdd(o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, mock.Anything).Return(nil).Once()
 	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.SetEUpperBound(mockValue1)
 	mock.AssertExpectationsForObjects(t, mockAdapter, mockValue1)
 
 	// second value
-	mockValue2 := new(MockEGenericType)
+	mockValue2 := NewMockEGenericType(t)
 	mockValue1.EXPECT().EInverseRemove(o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, nil).Return(nil).Once()
 	mockValue2.EXPECT().EInverseAdd(o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, nil).Return(nil).Once()
 	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
@@ -258,7 +258,7 @@ func TestEGenericTypeEUpperBoundBasicSet(t *testing.T) {
 	o.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
-	mockValue := new(MockEGenericType)
+	mockValue := NewMockEGenericType(t)
 	mockNotifications := NewMockENotificationChain(t)
 	mockNotifications.EXPECT().Add(mock.MatchedBy(func(notification ENotification) bool {
 		return notification.GetEventType() == SET && notification.GetFeatureID() == EGENERIC_TYPE__EUPPER_BOUND
@@ -288,12 +288,12 @@ func TestEGenericTypeESetFromID(t *testing.T) {
 	o := newEGenericTypeImpl()
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
-		v := new(MockEClassifier)
+		v := NewMockEClassifier(t)
 		o.ESetFromID(EGENERIC_TYPE__ECLASSIFIER, v)
 		assert.Equal(t, v, o.EGetFromID(EGENERIC_TYPE__ECLASSIFIER, false))
 	}
 	{
-		mockValue := new(MockEGenericType)
+		mockValue := NewMockEGenericType(t)
 		mockValue.EXPECT().EInverseAdd(o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, mock.Anything).Return(nil).Once()
 		o.ESetFromID(EGENERIC_TYPE__ELOWER_BOUND, mockValue)
 		assert.Equal(t, mockValue, o.EGetFromID(EGENERIC_TYPE__ELOWER_BOUND, false))
@@ -301,7 +301,7 @@ func TestEGenericTypeESetFromID(t *testing.T) {
 	}
 	{
 		// list with a value
-		mockValue := new(MockEGenericType)
+		mockValue := NewMockEGenericType(t)
 		l := NewImmutableEList([]any{mockValue})
 		mockValue.EXPECT().EInverseAdd(o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ETYPE_ARGUMENTS, mock.Anything).Return(nil).Once()
 
@@ -313,12 +313,12 @@ func TestEGenericTypeESetFromID(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockValue)
 	}
 	{
-		v := new(MockETypeParameter)
+		v := NewMockETypeParameter(t)
 		o.ESetFromID(EGENERIC_TYPE__ETYPE_PARAMETER, v)
 		assert.Equal(t, v, o.EGetFromID(EGENERIC_TYPE__ETYPE_PARAMETER, false))
 	}
 	{
-		mockValue := new(MockEGenericType)
+		mockValue := NewMockEGenericType(t)
 		mockValue.EXPECT().EInverseAdd(o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, mock.Anything).Return(nil).Once()
 		o.ESetFromID(EGENERIC_TYPE__EUPPER_BOUND, mockValue)
 		assert.Equal(t, mockValue, o.EGetFromID(EGENERIC_TYPE__EUPPER_BOUND, false))
@@ -380,13 +380,13 @@ func TestEGenericTypeEBasicInverseRemove(t *testing.T) {
 		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEGenericType)
+		mockObject := NewMockEGenericType(t)
 		o.EBasicInverseRemove(mockObject, EGENERIC_TYPE__ELOWER_BOUND, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}
 	{
 		// initialize list with a mock object
-		mockObject := new(MockEGenericType)
+		mockObject := NewMockEGenericType(t)
 		mockObject.EXPECT().EInverseAdd(o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ETYPE_ARGUMENTS, mock.Anything).Return(nil).Once()
 
 		l := o.GetETypeArguments()
@@ -400,7 +400,7 @@ func TestEGenericTypeEBasicInverseRemove(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}
 	{
-		mockObject := new(MockEGenericType)
+		mockObject := NewMockEGenericType(t)
 		o.EBasicInverseRemove(mockObject, EGENERIC_TYPE__EUPPER_BOUND, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}

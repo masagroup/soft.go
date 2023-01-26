@@ -17,7 +17,7 @@ import (
 
 func TestMockEStoreEObjectEStore(t *testing.T) {
 	o := &MockEStoreEObject{}
-	mockStore := &MockEStore{}
+	mockStore := NewMockEStore(t)
 	o.On("EStore").Return(mockStore).Once()
 	o.On("EStore").Return(func() EStore {
 		return mockStore

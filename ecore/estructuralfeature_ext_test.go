@@ -24,10 +24,10 @@ func TestEStructuralFeatureExtGetDefaultValue(t *testing.T) {
 	{
 		// with a type & no literal
 		o := newEStructuralFeatureExt()
-		mockType := &MockEDataType{}
+		mockType := NewMockEDataType(t)
 		o.SetEType(mockType)
 
-		mockDefaultValue := &MockEObject{}
+		mockDefaultValue := NewMockEObject(t)
 		mockType.On("EIsProxy").Return(false).Once()
 		mockType.On("GetDefaultValue").Return(mockDefaultValue).Once()
 		assert.Equal(t, mockDefaultValue, o.GetDefaultValue())
@@ -36,7 +36,7 @@ func TestEStructuralFeatureExtGetDefaultValue(t *testing.T) {
 	{
 		// with a type & no literal & many
 		o := newEStructuralFeatureExt()
-		mockType := &MockEDataType{}
+		mockType := NewMockEDataType(t)
 		o.SetEType(mockType)
 		o.SetUpperBound(UNBOUNDED_MULTIPLICITY)
 
@@ -47,10 +47,10 @@ func TestEStructuralFeatureExtGetDefaultValue(t *testing.T) {
 	{
 		// with a type & literal
 		o := newEStructuralFeatureExt()
-		mockType := &MockEDataType{}
-		mockDefaultValue := &MockEObject{}
-		mockPackage := &MockEPackage{}
-		mockFactory := &MockEFactory{}
+		mockType := NewMockEDataType(t)
+		mockDefaultValue := NewMockEObject(t)
+		mockPackage := NewMockEPackage(t)
+		mockFactory := NewMockEFactory(t)
 		o.SetEType(mockType)
 		o.SetDefaultValueLiteral("defaultLiteralValue")
 		mockType.On("EIsProxy").Return(false).Once()
@@ -72,10 +72,10 @@ func TestEStructuralFeatureExtSetDefaultValue(t *testing.T) {
 	}
 	{
 		o := newEStructuralFeatureExt()
-		mockType := &MockEDataType{}
-		mockDefaultValue := &MockEObject{}
-		mockPackage := &MockEPackage{}
-		mockFactory := &MockEFactory{}
+		mockType := NewMockEDataType(t)
+		mockDefaultValue := NewMockEObject(t)
+		mockPackage := NewMockEPackage(t)
+		mockFactory := NewMockEFactory(t)
 		o.SetEType(mockType)
 		mockType.On("EIsProxy").Return(false).Once()
 		mockType.On("GetEPackage").Return(mockPackage).Once()

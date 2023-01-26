@@ -45,7 +45,7 @@ func TestETypedElementETypeGet(t *testing.T) {
 	assert.Nil(t, o.GetEType())
 
 	// initialize object with a mock value
-	mockValue := new(MockEClassifier)
+	mockValue := NewMockEClassifier(t)
 	o.eType = mockValue
 
 	// events
@@ -66,7 +66,7 @@ func TestETypedElementETypeGet(t *testing.T) {
 
 	// get a resolved value
 	mockURI := NewURI("test:///file.t")
-	mockResolved := new(MockEClassifier)
+	mockResolved := NewMockEClassifier(t)
 	mockResolved.EXPECT().EProxyURI().Return(nil).Once()
 	mockResource.EXPECT().GetResourceSet().Return(mockResourceSet).Once()
 	mockResourceSet.EXPECT().GetEObject(mockURI, true).Return(mockResolved).Once()
@@ -81,7 +81,7 @@ func TestETypedElementETypeGet(t *testing.T) {
 
 func TestETypedElementETypeSet(t *testing.T) {
 	o := newETypedElementImpl()
-	v := new(MockEClassifier)
+	v := NewMockEClassifier(t)
 	mockAdapter := NewMockEAdapter(t)
 	mockAdapter.EXPECT().SetTarget(o).Once()
 	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
@@ -216,7 +216,7 @@ func TestETypedElementESetFromID(t *testing.T) {
 	o := newETypedElementImpl()
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
-		v := new(MockEClassifier)
+		v := NewMockEClassifier(t)
 		o.ESetFromID(ETYPED_ELEMENT__ETYPE, v)
 		assert.Equal(t, v, o.EGetFromID(ETYPED_ELEMENT__ETYPE, false))
 	}

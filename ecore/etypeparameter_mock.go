@@ -16,21 +16,26 @@ import (
 )
 
 type MockETypeParameter struct {
-	MockENamedElement
+	MockETypeParameter_Prototype
+	mock.Mock
+}
+
+type MockETypeParameter_Prototype struct {
+	MockENamedElement_Prototype
 }
 
 type MockETypeParameter_Expecter struct {
 	MockENamedElement_Expecter
 }
 
-func (eTypeParameter *MockETypeParameter) EXPECT() *MockETypeParameter_Expecter {
+func (eTypeParameter *MockETypeParameter_Prototype) EXPECT() *MockETypeParameter_Expecter {
 	e := &MockETypeParameter_Expecter{}
-	e.Mock = &eTypeParameter.Mock
+	e.Mock = eTypeParameter.Mock
 	return e
 }
 
 // GetEBounds get the value of eBounds
-func (eTypeParameter *MockETypeParameter) GetEBounds() EList {
+func (eTypeParameter *MockETypeParameter_Prototype) GetEBounds() EList {
 	ret := eTypeParameter.Called()
 
 	var r EList
@@ -73,6 +78,7 @@ type mockConstructorTestingTNewMockETypeParameter interface {
 // NewMockETypeParameter creates a new instance of MockETypeParameter. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockETypeParameter(t mockConstructorTestingTNewMockETypeParameter) *MockETypeParameter {
 	mock := &MockETypeParameter{}
+	mock.MockETypeParameter_Prototype.Mock = &mock.Mock
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

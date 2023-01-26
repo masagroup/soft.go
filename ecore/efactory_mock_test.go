@@ -24,7 +24,7 @@ func discardMockEFactory() {
 // TestMockEFactoryGetEPackage tests method GetEPackage
 func TestMockEFactoryGetEPackage(t *testing.T) {
 	o := NewMockEFactory(t)
-	r := new(MockEPackage)
+	r := NewMockEPackage(t)
 	m := NewMockRun(t)
 	o.EXPECT().GetEPackage().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEPackage().Call.Return(func() EPackage { return r }).Once()
@@ -35,7 +35,7 @@ func TestMockEFactoryGetEPackage(t *testing.T) {
 // TestMockEFactorySetEPackage tests method SetEPackage
 func TestMockEFactorySetEPackage(t *testing.T) {
 	o := NewMockEFactory(t)
-	v := new(MockEPackage)
+	v := NewMockEPackage(t)
 	m := NewMockRun(t, v)
 	o.EXPECT().SetEPackage(v).Return().Run(func(_p0 EPackage) { m.Run(_p0) }).Once()
 	o.SetEPackage(v)
@@ -44,7 +44,7 @@ func TestMockEFactorySetEPackage(t *testing.T) {
 // TestMockEFactoryConvertToString tests method ConvertToString
 func TestMockEFactoryConvertToString(t *testing.T) {
 	o := NewMockEFactory(t)
-	eDataType := new(MockEDataType)
+	eDataType := NewMockEDataType(t)
 	instanceValue := any(nil)
 	m := NewMockRun(t, eDataType, instanceValue)
 	r := string("Test String")
@@ -54,24 +54,26 @@ func TestMockEFactoryConvertToString(t *testing.T) {
 	}).Once()
 	assert.Equal(t, r, o.ConvertToString(eDataType, instanceValue))
 	assert.Equal(t, r, o.ConvertToString(eDataType, instanceValue))
-	o.AssertExpectations(t)
-} // TestMockEFactoryCreate tests method Create
+}
+
+// TestMockEFactoryCreate tests method Create
 func TestMockEFactoryCreate(t *testing.T) {
 	o := NewMockEFactory(t)
-	eClass := new(MockEClass)
+	eClass := NewMockEClass(t)
 	m := NewMockRun(t, eClass)
-	r := new(MockEObjectInternal)
+	r := NewMockEObjectInternal(t)
 	o.EXPECT().Create(eClass).Return(r).Run(func(eClass EClass) { m.Run(eClass) }).Once()
 	o.EXPECT().Create(eClass).Call.Return(func() EObject {
 		return r
 	}).Once()
 	assert.Equal(t, r, o.Create(eClass))
 	assert.Equal(t, r, o.Create(eClass))
-	o.AssertExpectations(t)
-} // TestMockEFactoryCreateFromString tests method CreateFromString
+}
+
+// TestMockEFactoryCreateFromString tests method CreateFromString
 func TestMockEFactoryCreateFromString(t *testing.T) {
 	o := NewMockEFactory(t)
-	eDataType := new(MockEDataType)
+	eDataType := NewMockEDataType(t)
 	literalValue := string("Test String")
 	m := NewMockRun(t, eDataType, literalValue)
 	r := any(nil)
@@ -81,5 +83,4 @@ func TestMockEFactoryCreateFromString(t *testing.T) {
 	}).Once()
 	assert.Equal(t, r, o.CreateFromString(eDataType, literalValue))
 	assert.Equal(t, r, o.CreateFromString(eDataType, literalValue))
-	o.AssertExpectations(t)
 }

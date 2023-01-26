@@ -23,7 +23,7 @@ func TestMockEResourceDecoder_DecodeResource(t *testing.T) {
 
 func TestMockEResourceDecoder_DecodeObject(t *testing.T) {
 	mockDecoder := &MockEResourceDecoder{}
-	mockObject := &MockEObject{}
+	mockObject := NewMockEObject(t)
 	mockDecoder.On("DecodeObject").Return(mockObject, nil).Once()
 	mockDecoder.On("DecodeObject").Return(func() (EObject, error) {
 		return mockObject, nil

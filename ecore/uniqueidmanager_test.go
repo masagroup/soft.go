@@ -8,8 +8,8 @@ import (
 
 func TestIncrementalIDManagerRegister(t *testing.T) {
 	m := NewIncrementalIDManager()
-	mockObject := &MockEObject{}
-	mockOther := &MockEObject{}
+	mockObject := NewMockEObject(t)
+	mockOther := NewMockEObject(t)
 	m.Register(mockObject)
 
 	assert.Equal(t, int64(0), m.GetID(mockObject))
@@ -27,7 +27,7 @@ func TestIncrementalIDManagerUnRegister(t *testing.T) {
 	m := NewIncrementalIDManager()
 
 	// register object
-	mockObject := &MockEObject{}
+	mockObject := NewMockEObject(t)
 	m.Register(mockObject)
 	id := m.GetID(mockObject)
 	assert.Equal(t, int64(0), id)
@@ -45,8 +45,8 @@ func TestIncrementalIDManagerUnRegister(t *testing.T) {
 
 func TestIncrementalIDManagerSetID(t *testing.T) {
 	m := NewIncrementalIDManager()
-	mockObject := &MockEObject{}
-	mockOther := &MockEObject{}
+	mockObject := NewMockEObject(t)
+	mockOther := NewMockEObject(t)
 	assert.Nil(t, m.SetID(mockObject, 2))
 	assert.Equal(t, int64(2), m.GetID(mockObject))
 
@@ -64,7 +64,7 @@ func TestIncrementalIDManagerSetID(t *testing.T) {
 
 func TestIncrementalIDManagerClear(t *testing.T) {
 	m := NewIncrementalIDManager()
-	mockObject := &MockEObject{}
+	mockObject := NewMockEObject(t)
 
 	m.SetID(mockObject, 2)
 	assert.Equal(t, int64(2), m.GetID(mockObject))
@@ -75,8 +75,8 @@ func TestIncrementalIDManagerClear(t *testing.T) {
 
 func TestUUIDManagerRegister(t *testing.T) {
 	m := NewUUIDManager(20)
-	mockObject := &MockEObject{}
-	mockOther := &MockEObject{}
+	mockObject := NewMockEObject(t)
+	mockOther := NewMockEObject(t)
 	m.Register(mockObject)
 
 	id := m.GetID(mockObject)
@@ -93,7 +93,7 @@ func TestUUIDManagerUnRegister(t *testing.T) {
 	m := NewUUIDManager(20)
 
 	// register object
-	mockObject := &MockEObject{}
+	mockObject := NewMockEObject(t)
 	m.Register(mockObject)
 
 	id := m.GetID(mockObject)
@@ -112,8 +112,8 @@ func TestUUIDManagerUnRegister(t *testing.T) {
 
 func TestULIDManagerRegister(t *testing.T) {
 	m := NewULIDManager()
-	mockObject := &MockEObject{}
-	mockOther := &MockEObject{}
+	mockObject := NewMockEObject(t)
+	mockOther := NewMockEObject(t)
 	m.Register(mockObject)
 
 	id := m.GetID(mockObject)
@@ -130,7 +130,7 @@ func TestULIDManagerUnRegister(t *testing.T) {
 	m := NewULIDManager()
 
 	// register object
-	mockObject := &MockEObject{}
+	mockObject := NewMockEObject(t)
 	m.Register(mockObject)
 
 	id := m.GetID(mockObject)

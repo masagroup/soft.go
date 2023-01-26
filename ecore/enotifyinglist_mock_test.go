@@ -17,8 +17,8 @@ import (
 )
 
 func TestMockENotifyingListGetNotifier(t *testing.T) {
-	l := &MockENotifyingList{}
-	n := &MockENotifier{}
+	l := NewMockENotifyingList(t)
+	n := NewMockENotifier(t)
 	l.On("GetNotifier").Return(n).Once()
 	l.On("GetNotifier").Return(func() ENotifier {
 		return n
@@ -29,8 +29,8 @@ func TestMockENotifyingListGetNotifier(t *testing.T) {
 }
 
 func TestMockEPackageRegistryGetFeature(t *testing.T) {
-	l := &MockENotifyingList{}
-	f := &MockEStructuralFeature{}
+	l := NewMockENotifyingList(t)
+	f := NewMockEStructuralFeature(t)
 	l.On("GetFeature").Return(f).Once()
 	l.On("GetFeature").Return(func() EStructuralFeature {
 		return f
@@ -41,7 +41,7 @@ func TestMockEPackageRegistryGetFeature(t *testing.T) {
 }
 
 func TestMockEPackageRegistryGetFeatureID(t *testing.T) {
-	l := &MockENotifyingList{}
+	l := NewMockENotifyingList(t)
 	l.On("GetFeatureID").Return(1).Once()
 	l.On("GetFeatureID").Return(func() int {
 		return 2
@@ -52,9 +52,9 @@ func TestMockEPackageRegistryGetFeatureID(t *testing.T) {
 }
 
 func TestMockEPackageRegistryAddWithNotification(t *testing.T) {
-	l := &MockENotifyingList{}
-	n := &MockENotificationChain{}
-	v := &MockEObject{}
+	l := NewMockENotifyingList(t)
+	n := NewMockENotificationChain(t)
+	v := NewMockEObject(t)
 	l.On("AddWithNotification", v, n).Return(n).Once()
 	l.On("AddWithNotification", v, n).Return(func(object any, notifications ENotificationChain) ENotificationChain {
 		return n
@@ -65,9 +65,9 @@ func TestMockEPackageRegistryAddWithNotification(t *testing.T) {
 }
 
 func TestMockEPackageRegistryRemoveWithNotification(t *testing.T) {
-	l := &MockENotifyingList{}
-	n := &MockENotificationChain{}
-	v := &MockEObject{}
+	l := NewMockENotifyingList(t)
+	n := NewMockENotificationChain(t)
+	v := NewMockEObject(t)
 	l.On("RemoveWithNotification", v, n).Return(n).Once()
 	l.On("RemoveWithNotification", v, n).Return(func(object any, notifications ENotificationChain) ENotificationChain {
 		return n
@@ -78,9 +78,9 @@ func TestMockEPackageRegistryRemoveWithNotification(t *testing.T) {
 }
 
 func TestMockEPackageRegistrySetWithNotification(t *testing.T) {
-	l := &MockENotifyingList{}
-	n := &MockENotificationChain{}
-	v := &MockEObject{}
+	l := NewMockENotifyingList(t)
+	n := NewMockENotificationChain(t)
+	v := NewMockEObject(t)
 	l.On("SetWithNotification", 0, v, n).Return(n).Once()
 	l.On("SetWithNotification", 1, v, n).Return(func(index int, object any, notifications ENotificationChain) ENotificationChain {
 		return n

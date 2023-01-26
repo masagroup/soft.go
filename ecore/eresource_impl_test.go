@@ -17,7 +17,7 @@ func TestResourceURI(t *testing.T) {
 
 func TestResourceURINotifications(t *testing.T) {
 	r := NewEResourceImpl()
-	mockEAdapter := new(MockEAdapter)
+	mockEAdapter := NewMockEAdapter(t)
 	mockEAdapter.On("SetTarget", r).Once()
 	r.EAdapters().Add(mockEAdapter)
 	mock.AssertExpectationsForObjects(t, mockEAdapter)
@@ -34,7 +34,7 @@ func TestResourceURINotifications(t *testing.T) {
 func TestResourceContents(t *testing.T) {
 	r := NewEResourceImpl()
 
-	mockEObjectInternal := new(MockEObjectInternal)
+	mockEObjectInternal := NewMockEObjectInternal(t)
 	mockEObjectInternal.On("ESetResource", r, mock.Anything).Return(nil)
 	r.GetContents().Add(mockEObjectInternal)
 
@@ -55,12 +55,12 @@ func TestResourceGetURIFragment(t *testing.T) {
 	// id attribute
 	{
 		r := NewEResourceImpl()
-		mockObject := &MockEObject{}
-		mockClass := &MockEClass{}
-		mockAttribute := &MockEAttribute{}
-		mockDataType := &MockEDataType{}
-		mockPackage := &MockEPackage{}
-		mockFactory := &MockEFactory{}
+		mockObject := NewMockEObject(t)
+		mockClass := NewMockEClass(t)
+		mockAttribute := NewMockEAttribute(t)
+		mockDataType := NewMockEDataType(t)
+		mockPackage := NewMockEPackage(t)
+		mockFactory := NewMockEFactory(t)
 		mockIDValue := 0
 
 		mockObject.On("EClass").Return(mockClass).Once()
@@ -77,12 +77,12 @@ func TestResourceGetURIFragment(t *testing.T) {
 	// root
 	{
 		r := NewEResourceImpl()
-		mockObject := &MockEObjectInternal{}
+		mockObject := NewMockEObjectInternal(t)
 		mockObject.On("ESetResource", r, nil).Return(nil).Once()
 		r.GetContents().Add(mockObject)
 		mock.AssertExpectationsForObjects(t, mockObject)
 
-		mockClass := &MockEClass{}
+		mockClass := NewMockEClass(t)
 		mockObject.On("EClass").Return(mockClass).Twice()
 		mockClass.On("GetEIDAttribute").Return(nil).Twice()
 		mockObject.On("EInternalResource").Return(r).Once()
@@ -93,14 +93,14 @@ func TestResourceGetURIFragment(t *testing.T) {
 	// two roots
 	{
 		r := NewEResourceImpl()
-		mockObject1 := &MockEObjectInternal{}
-		mockObject2 := &MockEObjectInternal{}
+		mockObject1 := NewMockEObjectInternal(t)
+		mockObject2 := NewMockEObjectInternal(t)
 		mockObject1.On("ESetResource", r, mock.Anything).Return(nil).Once()
 		mockObject2.On("ESetResource", r, mock.Anything).Return(nil).Once()
 		r.GetContents().AddAll(NewImmutableEList([]any{mockObject1, mockObject2}))
 		mock.AssertExpectationsForObjects(t, mockObject1, mockObject2)
 
-		mockClass := &MockEClass{}
+		mockClass := NewMockEClass(t)
 		mockObject1.On("EClass").Return(mockClass).Twice()
 		mockClass.On("GetEIDAttribute").Return(nil).Twice()
 		mockObject1.On("EInternalResource").Return(r).Once()
@@ -111,11 +111,11 @@ func TestResourceGetURIFragment(t *testing.T) {
 	// element - no id
 	{
 		r := NewEResourceImpl()
-		mockRoot := &MockEObjectInternal{}
-		mockObject := &MockEObjectInternal{}
+		mockRoot := NewMockEObjectInternal(t)
+		mockObject := NewMockEObjectInternal(t)
 
-		mockClass := &MockEClass{}
-		mockFeature := &MockEStructuralFeature{}
+		mockClass := NewMockEClass(t)
+		mockFeature := NewMockEStructuralFeature(t)
 		mockObject.On("EClass").Return(mockClass).Twice()
 		mockClass.On("GetEIDAttribute").Return(nil).Twice()
 		mockObject.On("EInternalResource").Return(nil).Once()
@@ -132,16 +132,13 @@ func TestResourceGetURIFragment(t *testing.T) {
 		mockIDManager := &MockEObjectIDManager{}
 		r.SetObjectIDManager(mockIDManager)
 
-		mockRoot := &MockEObjectInternal{}
-		mockObject := &MockEObjectInternal{}
-		mockClass := &MockEClass{}
-		mockFeature := &MockEStructuralFeature{}
+		mockRoot := NewMockEObjectInternal(t)
+		mockObject := NewMockEObjectInternal(t)
+		mockClass := NewMockEClass(t)
 		mockObject.On("EClass").Return(mockClass).Once()
 		mockClass.On("GetEIDAttribute").Return(nil).Once()
 		mockObject.On("EInternalResource").Return(nil).Once()
 		mockObject.On("EInternalContainer").Return(mockRoot).Once()
-		mockObject.On("EContainingFeature").Return(mockFeature).Once()
-		mockRoot.On("EURIFragmentSegment", mockFeature, mockObject).Return("@fragment").Once()
 		mockIDManager.On("GetID", mockObject).Return("objectID").Once()
 		mockRoot.On("EInternalResource").Return(r).Once()
 		assert.Equal(t, "objectID", r.GetURIFragment(mockObject))
@@ -187,7 +184,7 @@ func TestResourceIDManager(t *testing.T) {
 
 func TestResourceListeners(t *testing.T) {
 	mockListener := NewMockEResourceListener(t)
-	mockObject := &MockEObject{}
+	mockObject := NewMockEObject(t)
 	eResource := NewEResourceImpl()
 	eResource.GetResourceListeners().Add(mockListener)
 

@@ -66,7 +66,7 @@ func TestMockEReferenceGetEKeys(t *testing.T) {
 // TestMockEReferenceGetEOpposite tests method GetEOpposite
 func TestMockEReferenceGetEOpposite(t *testing.T) {
 	o := NewMockEReference(t)
-	r := new(MockEReference)
+	r := NewMockEReference(t)
 	m := NewMockRun(t)
 	o.EXPECT().GetEOpposite().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEOpposite().Call.Return(func() EReference { return r }).Once()
@@ -77,7 +77,7 @@ func TestMockEReferenceGetEOpposite(t *testing.T) {
 // TestMockEReferenceSetEOpposite tests method SetEOpposite
 func TestMockEReferenceSetEOpposite(t *testing.T) {
 	o := NewMockEReference(t)
-	v := new(MockEReference)
+	v := NewMockEReference(t)
 	m := NewMockRun(t, v)
 	o.EXPECT().SetEOpposite(v).Return().Run(func(_p0 EReference) { m.Run(_p0) }).Once()
 	o.SetEOpposite(v)
@@ -86,7 +86,7 @@ func TestMockEReferenceSetEOpposite(t *testing.T) {
 // TestMockEReferenceGetEReferenceType tests method GetEReferenceType
 func TestMockEReferenceGetEReferenceType(t *testing.T) {
 	o := NewMockEReference(t)
-	r := new(MockEClass)
+	r := NewMockEClass(t)
 	m := NewMockRun(t)
 	o.EXPECT().GetEReferenceType().Return(r).Run(func() { m.Run() }).Once()
 	o.EXPECT().GetEReferenceType().Call.Return(func() EClass { return r }).Once()

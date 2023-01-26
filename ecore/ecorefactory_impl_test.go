@@ -117,7 +117,7 @@ func TestFactoryCreateEAnnotation(t *testing.T) {
 
 func TestFactoryCreateEAnnotationFromEModelElementContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEModelElement)
+	mockContainer := NewMockEModelElement(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEAnnotations().Return(mockList).Once()
@@ -132,7 +132,7 @@ func TestFactoryCreateEAttribute(t *testing.T) {
 
 func TestFactoryCreateEAttributeFromEContainingClassContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEClass)
+	mockContainer := NewMockEClass(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEStructuralFeatures().Return(mockList).Once()
@@ -142,7 +142,7 @@ func TestFactoryCreateEAttributeFromEContainingClassContainer(t *testing.T) {
 
 func TestFactoryCreateEAttributeFromEContainingClassContainerAndClassID(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEClass)
+	mockContainer := NewMockEClass(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEStructuralFeatures().Return(mockList).Once()
@@ -157,7 +157,7 @@ func TestFactoryCreateEClass(t *testing.T) {
 
 func TestFactoryCreateEClassFromEPackageContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
+	mockContainer := NewMockEPackage(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEClassifiers().Return(mockList).Once()
@@ -167,7 +167,7 @@ func TestFactoryCreateEClassFromEPackageContainer(t *testing.T) {
 
 func TestFactoryCreateEClassFromEPackageContainerAndClassID(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
+	mockContainer := NewMockEPackage(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEClassifiers().Return(mockList).Once()
@@ -182,7 +182,7 @@ func TestFactoryCreateEDataType(t *testing.T) {
 
 func TestFactoryCreateEDataTypeFromEPackageContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
+	mockContainer := NewMockEPackage(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEClassifiers().Return(mockList).Once()
@@ -192,7 +192,7 @@ func TestFactoryCreateEDataTypeFromEPackageContainer(t *testing.T) {
 
 func TestFactoryCreateEDataTypeFromEPackageContainerAndClassID(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
+	mockContainer := NewMockEPackage(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEClassifiers().Return(mockList).Once()
@@ -207,7 +207,7 @@ func TestFactoryCreateEEnum(t *testing.T) {
 
 func TestFactoryCreateEEnumFromEPackageContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
+	mockContainer := NewMockEPackage(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEClassifiers().Return(mockList).Once()
@@ -217,7 +217,7 @@ func TestFactoryCreateEEnumFromEPackageContainer(t *testing.T) {
 
 func TestFactoryCreateEEnumFromEPackageContainerAndClassID(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
+	mockContainer := NewMockEPackage(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEClassifiers().Return(mockList).Once()
@@ -232,7 +232,7 @@ func TestFactoryCreateEEnumLiteral(t *testing.T) {
 
 func TestFactoryCreateEEnumLiteralFromEEnumContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEEnum)
+	mockContainer := NewMockEEnum(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetELiterals().Return(mockList).Once()
@@ -247,7 +247,7 @@ func TestFactoryCreateEFactory(t *testing.T) {
 
 func TestFactoryCreateEFactoryFromEPackageContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
+	mockContainer := NewMockEPackage(t)
 	mockContainer.EXPECT().SetEFactoryInstance(mock.Anything).Once()
 	o := factory.CreateEFactoryFromContainer(mockContainer)
 	assert.NotNil(t, o)
@@ -270,7 +270,7 @@ func TestFactoryCreateEOperation(t *testing.T) {
 
 func TestFactoryCreateEOperationFromEContainingClassContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEClass)
+	mockContainer := NewMockEClass(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEOperations().Return(mockList).Once()
@@ -280,7 +280,7 @@ func TestFactoryCreateEOperationFromEContainingClassContainer(t *testing.T) {
 
 func TestFactoryCreateEOperationFromEContainingClassContainerAndClassID(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEClass)
+	mockContainer := NewMockEClass(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEOperations().Return(mockList).Once()
@@ -295,7 +295,7 @@ func TestFactoryCreateEPackage(t *testing.T) {
 
 func TestFactoryCreateEPackageFromESuperPackageContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
+	mockContainer := NewMockEPackage(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetESubPackages().Return(mockList).Once()
@@ -310,7 +310,7 @@ func TestFactoryCreateEParameter(t *testing.T) {
 
 func TestFactoryCreateEParameterFromEOperationContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEOperation)
+	mockContainer := NewMockEOperation(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEParameters().Return(mockList).Once()
@@ -325,7 +325,7 @@ func TestFactoryCreateEReference(t *testing.T) {
 
 func TestFactoryCreateEReferenceFromEContainingClassContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEClass)
+	mockContainer := NewMockEClass(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEStructuralFeatures().Return(mockList).Once()
@@ -335,7 +335,7 @@ func TestFactoryCreateEReferenceFromEContainingClassContainer(t *testing.T) {
 
 func TestFactoryCreateEReferenceFromEContainingClassContainerAndClassID(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEClass)
+	mockContainer := NewMockEClass(t)
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
 	mockContainer.EXPECT().GetEStructuralFeatures().Return(mockList).Once()

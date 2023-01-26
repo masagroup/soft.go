@@ -9,7 +9,7 @@ import (
 )
 
 func TestEContentsListNoFeatures(t *testing.T) {
-	mockObject := &MockEObject{}
+	mockObject := NewMockEObject(t)
 	value := struct{}{}
 	mockList := NewEmptyImmutableEList()
 	l := newEContentsList(mockObject, mockList, false)
@@ -32,8 +32,9 @@ type EContentsListTestSuite struct {
 }
 
 func (suite *EContentsListTestSuite) SetupTest() {
-	suite.mockObject = &MockEObject{}
-	suite.mockFeature = &MockEStructuralFeature{}
+	t := suite.T()
+	suite.mockObject = NewMockEObject(t)
+	suite.mockFeature = NewMockEStructuralFeature(t)
 	suite.l = newEContentsList(suite.mockObject, NewImmutableEList([]any{suite.mockFeature}), false)
 }
 
@@ -55,7 +56,7 @@ func (suite *EContentsListTestSuite) TestEmpty() {
 	assert.False(suite.T(), suite.l.Empty())
 
 	// many
-	mockList := &MockEList{}
+	mockList := NewMockEList(suite.T())
 	suite.mockObject.On("EIsSet", suite.mockFeature).Return(true).Once()
 	suite.mockObject.On("EGetResolve", suite.mockFeature, false).Return(mockList).Once()
 	suite.mockFeature.On("IsMany").Return(true).Once()
@@ -140,7 +141,7 @@ func (suite *EContentsListIteratorTestSuite) TestIteratorSingle() {
 func (suite *EContentsListIteratorTestSuite) TestIteratorManyEmpty() {
 	t := suite.T()
 	it := suite.it
-	mockList := &MockEList{}
+	mockList := NewMockEList(t)
 	mockIterator := &MockEIterator{}
 	suite.mockObject.On("EIsSet", suite.mockFeature).Once().Return(true)
 	suite.mockObject.On("EGetResolve", suite.mockFeature, false).Once().Return(mockList)
@@ -158,9 +159,9 @@ func (suite *EContentsListIteratorTestSuite) TestIteratorManyEmpty() {
 func (suite *EContentsListIteratorTestSuite) TestIteratorManyFilled() {
 	t := suite.T()
 	it := suite.it
-	mockList := &MockEList{}
+	mockList := NewMockEList(t)
 	mockIterator := &MockEIterator{}
-	mockResult := &MockEObject{}
+	mockResult := NewMockEObject(t)
 	suite.mockObject.On("EIsSet", suite.mockFeature).Once().Return(true)
 	suite.mockObject.On("EGetResolve", suite.mockFeature, false).Once().Return(mockList)
 	suite.mockFeature.On("IsMany").Once().Return(true)

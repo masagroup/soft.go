@@ -51,7 +51,7 @@ func TestEReferenceEOppositeGet(t *testing.T) {
 	assert.Nil(t, o.GetEOpposite())
 
 	// initialize object with a mock value
-	mockValue := new(MockEReference)
+	mockValue := NewMockEReference(t)
 	o.eOpposite = mockValue
 
 	// events
@@ -72,7 +72,7 @@ func TestEReferenceEOppositeGet(t *testing.T) {
 
 	// get a resolved value
 	mockURI := NewURI("test:///file.t")
-	mockResolved := new(MockEReference)
+	mockResolved := NewMockEReference(t)
 	mockResolved.EXPECT().EProxyURI().Return(nil).Once()
 	mockResource.EXPECT().GetResourceSet().Return(mockResourceSet).Once()
 	mockResourceSet.EXPECT().GetEObject(mockURI, true).Return(mockResolved).Once()
@@ -87,7 +87,7 @@ func TestEReferenceEOppositeGet(t *testing.T) {
 
 func TestEReferenceEOppositeSet(t *testing.T) {
 	o := newEReferenceImpl()
-	v := new(MockEReference)
+	v := NewMockEReference(t)
 	mockAdapter := NewMockEAdapter(t)
 	mockAdapter.EXPECT().SetTarget(o).Once()
 	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
@@ -172,7 +172,7 @@ func TestEReferenceESetFromID(t *testing.T) {
 	}
 	{
 		// list with a value
-		mockValue := new(MockEAttribute)
+		mockValue := NewMockEAttribute(t)
 		l := NewImmutableEList([]any{mockValue})
 		mockValue.EXPECT().EIsProxy().Return(false).Once()
 
@@ -184,7 +184,7 @@ func TestEReferenceESetFromID(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockValue)
 	}
 	{
-		v := new(MockEReference)
+		v := NewMockEReference(t)
 		o.ESetFromID(EREFERENCE__EOPPOSITE, v)
 		assert.Equal(t, v, o.EGetFromID(EREFERENCE__EOPPOSITE, false))
 	}

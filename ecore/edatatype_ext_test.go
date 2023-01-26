@@ -18,7 +18,7 @@ import (
 
 func TestEDataTypeExtSetDefaultValue(t *testing.T) {
 	d := newEDataTypeExt()
-	mockValue := &MockEObject{}
+	mockValue := NewMockEObject(t)
 	mockAdapter := &MockEAdapter{}
 	mockAdapter.On("SetTarget", d).Once()
 	d.EAdapters().Add(mockAdapter)
@@ -33,7 +33,7 @@ func TestEDataTypeExtSetDefaultValue(t *testing.T) {
 
 func TestEDataTypeExtGetDefaultValue(t *testing.T) {
 	d := newEDataTypeExt()
-	value := &MockEDataType{}
+	value := NewMockEDataType(t)
 	d.defaultValue = value
 	assert.Equal(t, value, d.GetDefaultValue())
 }

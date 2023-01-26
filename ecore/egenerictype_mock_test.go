@@ -13,7 +13,6 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -22,35 +21,13 @@ func discardMockEGenericType() {
 	_ = testing.Coverage
 }
 
-type mockEGenericTypeRun struct {
-	mock.Mock
-}
-
-func (m *mockEGenericTypeRun) Run(args ...any) {
-	m.Called(args...)
-}
-
-type mockConstructorTestingTmockEGenericTypeRun interface {
-	mock.TestingT
-	Cleanup(func())
-}
-
-// newMockEGenericTypeRun creates a new instance of mockEGenericTypeRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func newMockEGenericTypeRun(t mockConstructorTestingTmockEGenericTypeRun, args ...any) *mockEGenericTypeRun {
-	mock := &mockEGenericTypeRun{}
-	mock.Test(t)
-	mock.On("Run", args...).Once()
-	t.Cleanup(func() { mock.AssertExpectations(t) })
-	return mock
-}
-
 // TestMockEGenericTypeGetEClassifier tests method GetEClassifier
 func TestMockEGenericTypeGetEClassifier(t *testing.T) {
 	o := NewMockEGenericType(t)
 	r := new(MockEClassifier)
-	m := newMockEGenericTypeRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetEClassifier().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetEClassifier().Once().Return(func() EClassifier { return r })
+	o.EXPECT().GetEClassifier().Call.Return(func() EClassifier { return r }).Once()
 	assert.Equal(t, r, o.GetEClassifier())
 	assert.Equal(t, r, o.GetEClassifier())
 }
@@ -59,7 +36,7 @@ func TestMockEGenericTypeGetEClassifier(t *testing.T) {
 func TestMockEGenericTypeSetEClassifier(t *testing.T) {
 	o := NewMockEGenericType(t)
 	v := new(MockEClassifier)
-	m := newMockEGenericTypeRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetEClassifier(v).Return().Run(func(_p0 EClassifier) { m.Run(_p0) }).Once()
 	o.SetEClassifier(v)
 }
@@ -68,9 +45,9 @@ func TestMockEGenericTypeSetEClassifier(t *testing.T) {
 func TestMockEGenericTypeGetELowerBound(t *testing.T) {
 	o := NewMockEGenericType(t)
 	r := new(MockEGenericType)
-	m := newMockEGenericTypeRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetELowerBound().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetELowerBound().Once().Return(func() EGenericType { return r })
+	o.EXPECT().GetELowerBound().Call.Return(func() EGenericType { return r }).Once()
 	assert.Equal(t, r, o.GetELowerBound())
 	assert.Equal(t, r, o.GetELowerBound())
 }
@@ -79,7 +56,7 @@ func TestMockEGenericTypeGetELowerBound(t *testing.T) {
 func TestMockEGenericTypeSetELowerBound(t *testing.T) {
 	o := NewMockEGenericType(t)
 	v := new(MockEGenericType)
-	m := newMockEGenericTypeRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetELowerBound(v).Return().Run(func(_p0 EGenericType) { m.Run(_p0) }).Once()
 	o.SetELowerBound(v)
 }
@@ -88,9 +65,9 @@ func TestMockEGenericTypeSetELowerBound(t *testing.T) {
 func TestMockEGenericTypeGetERawType(t *testing.T) {
 	o := NewMockEGenericType(t)
 	r := new(MockEClassifier)
-	m := newMockEGenericTypeRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetERawType().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetERawType().Once().Return(func() EClassifier { return r })
+	o.EXPECT().GetERawType().Call.Return(func() EClassifier { return r }).Once()
 	assert.Equal(t, r, o.GetERawType())
 	assert.Equal(t, r, o.GetERawType())
 }
@@ -99,9 +76,9 @@ func TestMockEGenericTypeGetERawType(t *testing.T) {
 func TestMockEGenericTypeGetETypeArguments(t *testing.T) {
 	o := NewMockEGenericType(t)
 	l := NewMockEList(t)
-	m := newMockEGenericTypeRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetETypeArguments().Return(l).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetETypeArguments().Once().Return(func() EList { return l })
+	o.EXPECT().GetETypeArguments().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetETypeArguments())
 	assert.Equal(t, l, o.GetETypeArguments())
 }
@@ -110,9 +87,9 @@ func TestMockEGenericTypeGetETypeArguments(t *testing.T) {
 func TestMockEGenericTypeGetETypeParameter(t *testing.T) {
 	o := NewMockEGenericType(t)
 	r := new(MockETypeParameter)
-	m := newMockEGenericTypeRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetETypeParameter().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetETypeParameter().Once().Return(func() ETypeParameter { return r })
+	o.EXPECT().GetETypeParameter().Call.Return(func() ETypeParameter { return r }).Once()
 	assert.Equal(t, r, o.GetETypeParameter())
 	assert.Equal(t, r, o.GetETypeParameter())
 }
@@ -121,7 +98,7 @@ func TestMockEGenericTypeGetETypeParameter(t *testing.T) {
 func TestMockEGenericTypeSetETypeParameter(t *testing.T) {
 	o := NewMockEGenericType(t)
 	v := new(MockETypeParameter)
-	m := newMockEGenericTypeRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetETypeParameter(v).Return().Run(func(_p0 ETypeParameter) { m.Run(_p0) }).Once()
 	o.SetETypeParameter(v)
 }
@@ -130,9 +107,9 @@ func TestMockEGenericTypeSetETypeParameter(t *testing.T) {
 func TestMockEGenericTypeGetEUpperBound(t *testing.T) {
 	o := NewMockEGenericType(t)
 	r := new(MockEGenericType)
-	m := newMockEGenericTypeRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetEUpperBound().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetEUpperBound().Once().Return(func() EGenericType { return r })
+	o.EXPECT().GetEUpperBound().Call.Return(func() EGenericType { return r }).Once()
 	assert.Equal(t, r, o.GetEUpperBound())
 	assert.Equal(t, r, o.GetEUpperBound())
 }
@@ -141,21 +118,21 @@ func TestMockEGenericTypeGetEUpperBound(t *testing.T) {
 func TestMockEGenericTypeSetEUpperBound(t *testing.T) {
 	o := NewMockEGenericType(t)
 	v := new(MockEGenericType)
-	m := newMockEGenericTypeRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetEUpperBound(v).Return().Run(func(_p0 EGenericType) { m.Run(_p0) }).Once()
 	o.SetEUpperBound(v)
 }
 
 // TestMockEGenericTypeIsInstance tests method IsInstance
 func TestMockEGenericTypeIsInstance(t *testing.T) {
-	o := &MockEGenericType{}
+	o := NewMockEGenericType(t)
 	object := any(nil)
-	m := newMockEGenericTypeRun(t, object)
+	m := NewMockRun(t, object)
 	r := bool(true)
 	o.EXPECT().IsInstance(object).Return(r).Run(func(object any) { m.Run(object) }).Once()
-	o.EXPECT().IsInstance(object).Once().Return(func() bool {
+	o.EXPECT().IsInstance(object).Call.Return(func() bool {
 		return r
-	})
+	}).Once()
 	assert.Equal(t, r, o.IsInstance(object))
 	assert.Equal(t, r, o.IsInstance(object))
 	o.AssertExpectations(t)

@@ -13,7 +13,6 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -22,49 +21,27 @@ func discardMockEModelElement() {
 	_ = testing.Coverage
 }
 
-type mockEModelElementRun struct {
-	mock.Mock
-}
-
-func (m *mockEModelElementRun) Run(args ...any) {
-	m.Called(args...)
-}
-
-type mockConstructorTestingTmockEModelElementRun interface {
-	mock.TestingT
-	Cleanup(func())
-}
-
-// newMockEModelElementRun creates a new instance of mockEModelElementRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func newMockEModelElementRun(t mockConstructorTestingTmockEModelElementRun, args ...any) *mockEModelElementRun {
-	mock := &mockEModelElementRun{}
-	mock.Test(t)
-	mock.On("Run", args...).Once()
-	t.Cleanup(func() { mock.AssertExpectations(t) })
-	return mock
-}
-
 // TestMockEModelElementGetEAnnotations tests method GetEAnnotations
 func TestMockEModelElementGetEAnnotations(t *testing.T) {
 	o := NewMockEModelElement(t)
 	l := NewMockEList(t)
-	m := newMockEModelElementRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetEAnnotations().Return(l).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetEAnnotations().Once().Return(func() EList { return l })
+	o.EXPECT().GetEAnnotations().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetEAnnotations())
 	assert.Equal(t, l, o.GetEAnnotations())
 }
 
 // TestMockEModelElementGetEAnnotation tests method GetEAnnotation
 func TestMockEModelElementGetEAnnotation(t *testing.T) {
-	o := &MockEModelElement{}
+	o := NewMockEModelElement(t)
 	source := string("Test String")
-	m := newMockEModelElementRun(t, source)
+	m := NewMockRun(t, source)
 	r := new(MockEAnnotation)
 	o.EXPECT().GetEAnnotation(source).Return(r).Run(func(source string) { m.Run(source) }).Once()
-	o.EXPECT().GetEAnnotation(source).Once().Return(func() EAnnotation {
+	o.EXPECT().GetEAnnotation(source).Call.Return(func() EAnnotation {
 		return r
-	})
+	}).Once()
 	assert.Equal(t, r, o.GetEAnnotation(source))
 	assert.Equal(t, r, o.GetEAnnotation(source))
 	o.AssertExpectations(t)

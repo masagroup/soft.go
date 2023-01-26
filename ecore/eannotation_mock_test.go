@@ -13,7 +13,6 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -22,35 +21,13 @@ func discardMockEAnnotation() {
 	_ = testing.Coverage
 }
 
-type mockEAnnotationRun struct {
-	mock.Mock
-}
-
-func (m *mockEAnnotationRun) Run(args ...any) {
-	m.Called(args...)
-}
-
-type mockConstructorTestingTmockEAnnotationRun interface {
-	mock.TestingT
-	Cleanup(func())
-}
-
-// newMockEAnnotationRun creates a new instance of mockEAnnotationRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func newMockEAnnotationRun(t mockConstructorTestingTmockEAnnotationRun, args ...any) *mockEAnnotationRun {
-	mock := &mockEAnnotationRun{}
-	mock.Test(t)
-	mock.On("Run", args...).Once()
-	t.Cleanup(func() { mock.AssertExpectations(t) })
-	return mock
-}
-
 // TestMockEAnnotationGetContents tests method GetContents
 func TestMockEAnnotationGetContents(t *testing.T) {
 	o := NewMockEAnnotation(t)
 	l := NewMockEList(t)
-	m := newMockEAnnotationRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetContents().Return(l).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetContents().Once().Return(func() EList { return l })
+	o.EXPECT().GetContents().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetContents())
 	assert.Equal(t, l, o.GetContents())
 }
@@ -59,9 +36,9 @@ func TestMockEAnnotationGetContents(t *testing.T) {
 func TestMockEAnnotationGetDetails(t *testing.T) {
 	o := NewMockEAnnotation(t)
 	l := NewMockEMap(t)
-	m := newMockEAnnotationRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetDetails().Return(l).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetDetails().Once().Return(func() EMap { return l })
+	o.EXPECT().GetDetails().Call.Return(func() EMap { return l }).Once()
 	assert.Equal(t, l, o.GetDetails())
 	assert.Equal(t, l, o.GetDetails())
 }
@@ -70,9 +47,9 @@ func TestMockEAnnotationGetDetails(t *testing.T) {
 func TestMockEAnnotationGetEModelElement(t *testing.T) {
 	o := NewMockEAnnotation(t)
 	r := new(MockEModelElement)
-	m := newMockEAnnotationRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetEModelElement().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetEModelElement().Once().Return(func() EModelElement { return r })
+	o.EXPECT().GetEModelElement().Call.Return(func() EModelElement { return r }).Once()
 	assert.Equal(t, r, o.GetEModelElement())
 	assert.Equal(t, r, o.GetEModelElement())
 }
@@ -81,7 +58,7 @@ func TestMockEAnnotationGetEModelElement(t *testing.T) {
 func TestMockEAnnotationSetEModelElement(t *testing.T) {
 	o := NewMockEAnnotation(t)
 	v := new(MockEModelElement)
-	m := newMockEAnnotationRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetEModelElement(v).Return().Run(func(_p0 EModelElement) { m.Run(_p0) }).Once()
 	o.SetEModelElement(v)
 }
@@ -90,9 +67,9 @@ func TestMockEAnnotationSetEModelElement(t *testing.T) {
 func TestMockEAnnotationGetReferences(t *testing.T) {
 	o := NewMockEAnnotation(t)
 	l := NewMockEList(t)
-	m := newMockEAnnotationRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetReferences().Return(l).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetReferences().Once().Return(func() EList { return l })
+	o.EXPECT().GetReferences().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetReferences())
 	assert.Equal(t, l, o.GetReferences())
 }
@@ -101,9 +78,9 @@ func TestMockEAnnotationGetReferences(t *testing.T) {
 func TestMockEAnnotationGetSource(t *testing.T) {
 	o := NewMockEAnnotation(t)
 	r := string("Test String")
-	m := newMockEAnnotationRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetSource().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetSource().Once().Return(func() string { return r })
+	o.EXPECT().GetSource().Call.Return(func() string { return r }).Once()
 	assert.Equal(t, r, o.GetSource())
 	assert.Equal(t, r, o.GetSource())
 }
@@ -112,7 +89,7 @@ func TestMockEAnnotationGetSource(t *testing.T) {
 func TestMockEAnnotationSetSource(t *testing.T) {
 	o := NewMockEAnnotation(t)
 	v := string("Test String")
-	m := newMockEAnnotationRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetSource(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetSource(v)
 }

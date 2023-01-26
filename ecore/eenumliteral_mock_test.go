@@ -13,7 +13,6 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -22,35 +21,13 @@ func discardMockEEnumLiteral() {
 	_ = testing.Coverage
 }
 
-type mockEEnumLiteralRun struct {
-	mock.Mock
-}
-
-func (m *mockEEnumLiteralRun) Run(args ...any) {
-	m.Called(args...)
-}
-
-type mockConstructorTestingTmockEEnumLiteralRun interface {
-	mock.TestingT
-	Cleanup(func())
-}
-
-// newMockEEnumLiteralRun creates a new instance of mockEEnumLiteralRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func newMockEEnumLiteralRun(t mockConstructorTestingTmockEEnumLiteralRun, args ...any) *mockEEnumLiteralRun {
-	mock := &mockEEnumLiteralRun{}
-	mock.Test(t)
-	mock.On("Run", args...).Once()
-	t.Cleanup(func() { mock.AssertExpectations(t) })
-	return mock
-}
-
 // TestMockEEnumLiteralGetEEnum tests method GetEEnum
 func TestMockEEnumLiteralGetEEnum(t *testing.T) {
 	o := NewMockEEnumLiteral(t)
 	r := new(MockEEnum)
-	m := newMockEEnumLiteralRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetEEnum().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetEEnum().Once().Return(func() EEnum { return r })
+	o.EXPECT().GetEEnum().Call.Return(func() EEnum { return r }).Once()
 	assert.Equal(t, r, o.GetEEnum())
 	assert.Equal(t, r, o.GetEEnum())
 }
@@ -59,9 +36,9 @@ func TestMockEEnumLiteralGetEEnum(t *testing.T) {
 func TestMockEEnumLiteralGetInstance(t *testing.T) {
 	o := NewMockEEnumLiteral(t)
 	r := any(nil)
-	m := newMockEEnumLiteralRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetInstance().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetInstance().Once().Return(func() any { return r })
+	o.EXPECT().GetInstance().Call.Return(func() any { return r }).Once()
 	assert.Equal(t, r, o.GetInstance())
 	assert.Equal(t, r, o.GetInstance())
 }
@@ -70,7 +47,7 @@ func TestMockEEnumLiteralGetInstance(t *testing.T) {
 func TestMockEEnumLiteralSetInstance(t *testing.T) {
 	o := NewMockEEnumLiteral(t)
 	v := any(nil)
-	m := newMockEEnumLiteralRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetInstance(v).Return().Run(func(_p0 any) { m.Run(_p0) }).Once()
 	o.SetInstance(v)
 }
@@ -79,9 +56,9 @@ func TestMockEEnumLiteralSetInstance(t *testing.T) {
 func TestMockEEnumLiteralGetLiteral(t *testing.T) {
 	o := NewMockEEnumLiteral(t)
 	r := string("Test String")
-	m := newMockEEnumLiteralRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetLiteral().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetLiteral().Once().Return(func() string { return r })
+	o.EXPECT().GetLiteral().Call.Return(func() string { return r }).Once()
 	assert.Equal(t, r, o.GetLiteral())
 	assert.Equal(t, r, o.GetLiteral())
 }
@@ -90,7 +67,7 @@ func TestMockEEnumLiteralGetLiteral(t *testing.T) {
 func TestMockEEnumLiteralSetLiteral(t *testing.T) {
 	o := NewMockEEnumLiteral(t)
 	v := string("Test String")
-	m := newMockEEnumLiteralRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetLiteral(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetLiteral(v)
 }
@@ -99,9 +76,9 @@ func TestMockEEnumLiteralSetLiteral(t *testing.T) {
 func TestMockEEnumLiteralGetValue(t *testing.T) {
 	o := NewMockEEnumLiteral(t)
 	r := int(45)
-	m := newMockEEnumLiteralRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetValue().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetValue().Once().Return(func() int { return r })
+	o.EXPECT().GetValue().Call.Return(func() int { return r }).Once()
 	assert.Equal(t, r, o.GetValue())
 	assert.Equal(t, r, o.GetValue())
 }
@@ -110,7 +87,7 @@ func TestMockEEnumLiteralGetValue(t *testing.T) {
 func TestMockEEnumLiteralSetValue(t *testing.T) {
 	o := NewMockEEnumLiteral(t)
 	v := int(45)
-	m := newMockEEnumLiteralRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetValue(v).Return().Run(func(_p0 int) { m.Run(_p0) }).Once()
 	o.SetValue(v)
 }

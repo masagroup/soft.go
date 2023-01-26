@@ -13,7 +13,6 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -22,35 +21,13 @@ func discardMockEAttribute() {
 	_ = testing.Coverage
 }
 
-type mockEAttributeRun struct {
-	mock.Mock
-}
-
-func (m *mockEAttributeRun) Run(args ...any) {
-	m.Called(args...)
-}
-
-type mockConstructorTestingTmockEAttributeRun interface {
-	mock.TestingT
-	Cleanup(func())
-}
-
-// newMockEAttributeRun creates a new instance of mockEAttributeRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func newMockEAttributeRun(t mockConstructorTestingTmockEAttributeRun, args ...any) *mockEAttributeRun {
-	mock := &mockEAttributeRun{}
-	mock.Test(t)
-	mock.On("Run", args...).Once()
-	t.Cleanup(func() { mock.AssertExpectations(t) })
-	return mock
-}
-
 // TestMockEAttributeGetEAttributeType tests method GetEAttributeType
 func TestMockEAttributeGetEAttributeType(t *testing.T) {
 	o := NewMockEAttribute(t)
 	r := new(MockEDataType)
-	m := newMockEAttributeRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetEAttributeType().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetEAttributeType().Once().Return(func() EDataType { return r })
+	o.EXPECT().GetEAttributeType().Call.Return(func() EDataType { return r }).Once()
 	assert.Equal(t, r, o.GetEAttributeType())
 	assert.Equal(t, r, o.GetEAttributeType())
 }
@@ -59,9 +36,9 @@ func TestMockEAttributeGetEAttributeType(t *testing.T) {
 func TestMockEAttributeIsID(t *testing.T) {
 	o := NewMockEAttribute(t)
 	r := bool(true)
-	m := newMockEAttributeRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().IsID().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().IsID().Once().Return(func() bool { return r })
+	o.EXPECT().IsID().Call.Return(func() bool { return r }).Once()
 	assert.Equal(t, r, o.IsID())
 	assert.Equal(t, r, o.IsID())
 }
@@ -70,7 +47,7 @@ func TestMockEAttributeIsID(t *testing.T) {
 func TestMockEAttributeSetID(t *testing.T) {
 	o := NewMockEAttribute(t)
 	v := bool(true)
-	m := newMockEAttributeRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetID(v).Return().Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetID(v)
 }

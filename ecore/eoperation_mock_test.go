@@ -13,7 +13,6 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -22,35 +21,13 @@ func discardMockEOperation() {
 	_ = testing.Coverage
 }
 
-type mockEOperationRun struct {
-	mock.Mock
-}
-
-func (m *mockEOperationRun) Run(args ...any) {
-	m.Called(args...)
-}
-
-type mockConstructorTestingTmockEOperationRun interface {
-	mock.TestingT
-	Cleanup(func())
-}
-
-// newMockEOperationRun creates a new instance of mockEOperationRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func newMockEOperationRun(t mockConstructorTestingTmockEOperationRun, args ...any) *mockEOperationRun {
-	mock := &mockEOperationRun{}
-	mock.Test(t)
-	mock.On("Run", args...).Once()
-	t.Cleanup(func() { mock.AssertExpectations(t) })
-	return mock
-}
-
 // TestMockEOperationGetEContainingClass tests method GetEContainingClass
 func TestMockEOperationGetEContainingClass(t *testing.T) {
 	o := NewMockEOperation(t)
 	r := new(MockEClass)
-	m := newMockEOperationRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetEContainingClass().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetEContainingClass().Once().Return(func() EClass { return r })
+	o.EXPECT().GetEContainingClass().Call.Return(func() EClass { return r }).Once()
 	assert.Equal(t, r, o.GetEContainingClass())
 	assert.Equal(t, r, o.GetEContainingClass())
 }
@@ -59,9 +36,9 @@ func TestMockEOperationGetEContainingClass(t *testing.T) {
 func TestMockEOperationGetEExceptions(t *testing.T) {
 	o := NewMockEOperation(t)
 	l := NewMockEList(t)
-	m := newMockEOperationRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetEExceptions().Return(l).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetEExceptions().Once().Return(func() EList { return l })
+	o.EXPECT().GetEExceptions().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetEExceptions())
 	assert.Equal(t, l, o.GetEExceptions())
 }
@@ -69,7 +46,7 @@ func TestMockEOperationGetEExceptions(t *testing.T) {
 // TestMockEOperationUnsetEExceptions tests method UnsetEExceptions
 func TestMockEOperationUnsetEExceptions(t *testing.T) {
 	o := NewMockEOperation(t)
-	m := newMockEOperationRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().UnsetEExceptions().Return().Run(func() { m.Run() }).Once()
 	o.UnsetEExceptions()
 }
@@ -78,9 +55,9 @@ func TestMockEOperationUnsetEExceptions(t *testing.T) {
 func TestMockEOperationGetEParameters(t *testing.T) {
 	o := NewMockEOperation(t)
 	l := NewMockEList(t)
-	m := newMockEOperationRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetEParameters().Return(l).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetEParameters().Once().Return(func() EList { return l })
+	o.EXPECT().GetEParameters().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetEParameters())
 	assert.Equal(t, l, o.GetEParameters())
 }
@@ -89,9 +66,9 @@ func TestMockEOperationGetEParameters(t *testing.T) {
 func TestMockEOperationGetOperationID(t *testing.T) {
 	o := NewMockEOperation(t)
 	r := int(45)
-	m := newMockEOperationRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetOperationID().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetOperationID().Once().Return(func() int { return r })
+	o.EXPECT().GetOperationID().Call.Return(func() int { return r }).Once()
 	assert.Equal(t, r, o.GetOperationID())
 	assert.Equal(t, r, o.GetOperationID())
 }
@@ -100,21 +77,21 @@ func TestMockEOperationGetOperationID(t *testing.T) {
 func TestMockEOperationSetOperationID(t *testing.T) {
 	o := NewMockEOperation(t)
 	v := int(45)
-	m := newMockEOperationRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetOperationID(v).Return().Run(func(_p0 int) { m.Run(_p0) }).Once()
 	o.SetOperationID(v)
 }
 
 // TestMockEOperationIsOverrideOf tests method IsOverrideOf
 func TestMockEOperationIsOverrideOf(t *testing.T) {
-	o := &MockEOperation{}
+	o := NewMockEOperation(t)
 	someOperation := new(MockEOperation)
-	m := newMockEOperationRun(t, someOperation)
+	m := NewMockRun(t, someOperation)
 	r := bool(true)
 	o.EXPECT().IsOverrideOf(someOperation).Return(r).Run(func(someOperation EOperation) { m.Run(someOperation) }).Once()
-	o.EXPECT().IsOverrideOf(someOperation).Once().Return(func() bool {
+	o.EXPECT().IsOverrideOf(someOperation).Call.Return(func() bool {
 		return r
-	})
+	}).Once()
 	assert.Equal(t, r, o.IsOverrideOf(someOperation))
 	assert.Equal(t, r, o.IsOverrideOf(someOperation))
 	o.AssertExpectations(t)

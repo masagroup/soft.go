@@ -13,7 +13,6 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -22,35 +21,13 @@ func discardMockETypeParameter() {
 	_ = testing.Coverage
 }
 
-type mockETypeParameterRun struct {
-	mock.Mock
-}
-
-func (m *mockETypeParameterRun) Run(args ...any) {
-	m.Called(args...)
-}
-
-type mockConstructorTestingTmockETypeParameterRun interface {
-	mock.TestingT
-	Cleanup(func())
-}
-
-// newMockETypeParameterRun creates a new instance of mockETypeParameterRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func newMockETypeParameterRun(t mockConstructorTestingTmockETypeParameterRun, args ...any) *mockETypeParameterRun {
-	mock := &mockETypeParameterRun{}
-	mock.Test(t)
-	mock.On("Run", args...).Once()
-	t.Cleanup(func() { mock.AssertExpectations(t) })
-	return mock
-}
-
 // TestMockETypeParameterGetEBounds tests method GetEBounds
 func TestMockETypeParameterGetEBounds(t *testing.T) {
 	o := NewMockETypeParameter(t)
 	l := NewMockEList(t)
-	m := newMockETypeParameterRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetEBounds().Return(l).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetEBounds().Once().Return(func() EList { return l })
+	o.EXPECT().GetEBounds().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetEBounds())
 	assert.Equal(t, l, o.GetEBounds())
 }

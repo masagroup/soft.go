@@ -13,7 +13,6 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -22,35 +21,13 @@ func discardMockEPackage() {
 	_ = testing.Coverage
 }
 
-type mockEPackageRun struct {
-	mock.Mock
-}
-
-func (m *mockEPackageRun) Run(args ...any) {
-	m.Called(args...)
-}
-
-type mockConstructorTestingTmockEPackageRun interface {
-	mock.TestingT
-	Cleanup(func())
-}
-
-// newMockEPackageRun creates a new instance of mockEPackageRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func newMockEPackageRun(t mockConstructorTestingTmockEPackageRun, args ...any) *mockEPackageRun {
-	mock := &mockEPackageRun{}
-	mock.Test(t)
-	mock.On("Run", args...).Once()
-	t.Cleanup(func() { mock.AssertExpectations(t) })
-	return mock
-}
-
 // TestMockEPackageGetEClassifiers tests method GetEClassifiers
 func TestMockEPackageGetEClassifiers(t *testing.T) {
 	o := NewMockEPackage(t)
 	l := NewMockEList(t)
-	m := newMockEPackageRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetEClassifiers().Return(l).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetEClassifiers().Once().Return(func() EList { return l })
+	o.EXPECT().GetEClassifiers().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetEClassifiers())
 	assert.Equal(t, l, o.GetEClassifiers())
 }
@@ -59,9 +36,9 @@ func TestMockEPackageGetEClassifiers(t *testing.T) {
 func TestMockEPackageGetEFactoryInstance(t *testing.T) {
 	o := NewMockEPackage(t)
 	r := new(MockEFactory)
-	m := newMockEPackageRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetEFactoryInstance().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetEFactoryInstance().Once().Return(func() EFactory { return r })
+	o.EXPECT().GetEFactoryInstance().Call.Return(func() EFactory { return r }).Once()
 	assert.Equal(t, r, o.GetEFactoryInstance())
 	assert.Equal(t, r, o.GetEFactoryInstance())
 }
@@ -70,7 +47,7 @@ func TestMockEPackageGetEFactoryInstance(t *testing.T) {
 func TestMockEPackageSetEFactoryInstance(t *testing.T) {
 	o := NewMockEPackage(t)
 	v := new(MockEFactory)
-	m := newMockEPackageRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetEFactoryInstance(v).Return().Run(func(_p0 EFactory) { m.Run(_p0) }).Once()
 	o.SetEFactoryInstance(v)
 }
@@ -79,9 +56,9 @@ func TestMockEPackageSetEFactoryInstance(t *testing.T) {
 func TestMockEPackageGetESubPackages(t *testing.T) {
 	o := NewMockEPackage(t)
 	l := NewMockEList(t)
-	m := newMockEPackageRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetESubPackages().Return(l).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetESubPackages().Once().Return(func() EList { return l })
+	o.EXPECT().GetESubPackages().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetESubPackages())
 	assert.Equal(t, l, o.GetESubPackages())
 }
@@ -90,9 +67,9 @@ func TestMockEPackageGetESubPackages(t *testing.T) {
 func TestMockEPackageGetESuperPackage(t *testing.T) {
 	o := NewMockEPackage(t)
 	r := new(MockEPackage)
-	m := newMockEPackageRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetESuperPackage().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetESuperPackage().Once().Return(func() EPackage { return r })
+	o.EXPECT().GetESuperPackage().Call.Return(func() EPackage { return r }).Once()
 	assert.Equal(t, r, o.GetESuperPackage())
 	assert.Equal(t, r, o.GetESuperPackage())
 }
@@ -101,9 +78,9 @@ func TestMockEPackageGetESuperPackage(t *testing.T) {
 func TestMockEPackageGetNsPrefix(t *testing.T) {
 	o := NewMockEPackage(t)
 	r := string("Test String")
-	m := newMockEPackageRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetNsPrefix().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetNsPrefix().Once().Return(func() string { return r })
+	o.EXPECT().GetNsPrefix().Call.Return(func() string { return r }).Once()
 	assert.Equal(t, r, o.GetNsPrefix())
 	assert.Equal(t, r, o.GetNsPrefix())
 }
@@ -112,7 +89,7 @@ func TestMockEPackageGetNsPrefix(t *testing.T) {
 func TestMockEPackageSetNsPrefix(t *testing.T) {
 	o := NewMockEPackage(t)
 	v := string("Test String")
-	m := newMockEPackageRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetNsPrefix(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetNsPrefix(v)
 }
@@ -121,9 +98,9 @@ func TestMockEPackageSetNsPrefix(t *testing.T) {
 func TestMockEPackageGetNsURI(t *testing.T) {
 	o := NewMockEPackage(t)
 	r := string("Test String")
-	m := newMockEPackageRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetNsURI().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetNsURI().Once().Return(func() string { return r })
+	o.EXPECT().GetNsURI().Call.Return(func() string { return r }).Once()
 	assert.Equal(t, r, o.GetNsURI())
 	assert.Equal(t, r, o.GetNsURI())
 }
@@ -132,21 +109,21 @@ func TestMockEPackageGetNsURI(t *testing.T) {
 func TestMockEPackageSetNsURI(t *testing.T) {
 	o := NewMockEPackage(t)
 	v := string("Test String")
-	m := newMockEPackageRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetNsURI(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetNsURI(v)
 }
 
 // TestMockEPackageGetEClassifier tests method GetEClassifier
 func TestMockEPackageGetEClassifier(t *testing.T) {
-	o := &MockEPackage{}
+	o := NewMockEPackage(t)
 	name := string("Test String")
-	m := newMockEPackageRun(t, name)
+	m := NewMockRun(t, name)
 	r := new(MockEClassifier)
 	o.EXPECT().GetEClassifier(name).Return(r).Run(func(name string) { m.Run(name) }).Once()
-	o.EXPECT().GetEClassifier(name).Once().Return(func() EClassifier {
+	o.EXPECT().GetEClassifier(name).Call.Return(func() EClassifier {
 		return r
-	})
+	}).Once()
 	assert.Equal(t, r, o.GetEClassifier(name))
 	assert.Equal(t, r, o.GetEClassifier(name))
 	o.AssertExpectations(t)

@@ -13,7 +13,6 @@ package ecore
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -22,35 +21,13 @@ func discardMockEStringToStringMapEntry() {
 	_ = testing.Coverage
 }
 
-type mockEStringToStringMapEntryRun struct {
-	mock.Mock
-}
-
-func (m *mockEStringToStringMapEntryRun) Run(args ...any) {
-	m.Called(args...)
-}
-
-type mockConstructorTestingTmockEStringToStringMapEntryRun interface {
-	mock.TestingT
-	Cleanup(func())
-}
-
-// newMockEStringToStringMapEntryRun creates a new instance of mockEStringToStringMapEntryRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func newMockEStringToStringMapEntryRun(t mockConstructorTestingTmockEStringToStringMapEntryRun, args ...any) *mockEStringToStringMapEntryRun {
-	mock := &mockEStringToStringMapEntryRun{}
-	mock.Test(t)
-	mock.On("Run", args...).Once()
-	t.Cleanup(func() { mock.AssertExpectations(t) })
-	return mock
-}
-
 // TestMockEStringToStringMapEntryGetTypedKey tests method GetTypedKey
 func TestMockEStringToStringMapEntryGetTypedKey(t *testing.T) {
 	o := NewMockEStringToStringMapEntry(t)
 	r := string("Test String")
-	m := newMockEStringToStringMapEntryRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetTypedKey().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetTypedKey().Once().Return(func() string { return r })
+	o.EXPECT().GetTypedKey().Call.Return(func() string { return r }).Once()
 	assert.Equal(t, r, o.GetTypedKey())
 	assert.Equal(t, r, o.GetTypedKey())
 }
@@ -59,7 +36,7 @@ func TestMockEStringToStringMapEntryGetTypedKey(t *testing.T) {
 func TestMockEStringToStringMapEntrySetTypedKey(t *testing.T) {
 	o := NewMockEStringToStringMapEntry(t)
 	v := string("Test String")
-	m := newMockEStringToStringMapEntryRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetTypedKey(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetTypedKey(v)
 }
@@ -68,9 +45,9 @@ func TestMockEStringToStringMapEntrySetTypedKey(t *testing.T) {
 func TestMockEStringToStringMapEntryGetTypedValue(t *testing.T) {
 	o := NewMockEStringToStringMapEntry(t)
 	r := string("Test String")
-	m := newMockEStringToStringMapEntryRun(t)
+	m := NewMockRun(t)
 	o.EXPECT().GetTypedValue().Return(r).Run(func() { m.Run() }).Once()
-	o.EXPECT().GetTypedValue().Once().Return(func() string { return r })
+	o.EXPECT().GetTypedValue().Call.Return(func() string { return r }).Once()
 	assert.Equal(t, r, o.GetTypedValue())
 	assert.Equal(t, r, o.GetTypedValue())
 }
@@ -79,7 +56,7 @@ func TestMockEStringToStringMapEntryGetTypedValue(t *testing.T) {
 func TestMockEStringToStringMapEntrySetTypedValue(t *testing.T) {
 	o := NewMockEStringToStringMapEntry(t)
 	v := string("Test String")
-	m := newMockEStringToStringMapEntryRun(t, v)
+	m := NewMockRun(t, v)
 	o.EXPECT().SetTypedValue(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetTypedValue(v)
 }

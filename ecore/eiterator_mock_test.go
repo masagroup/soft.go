@@ -16,29 +16,44 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+type mockEIteratorRun struct {
+	mock.Mock
+}
+
+func (m *mockEIteratorRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTMockEIteratorRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockEIteratorRun creates a new instance of MockEIterator. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockEIteratorRun(t mockConstructorTestingTMockEIteratorRun, args ...any) *mockEIteratorRun {
+	mock := &mockEIteratorRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 // TestGetELiterals tests method GetELiterals
 func TestMockEIteratorHasNext(t *testing.T) {
-	o := &MockEIterator{}
-	v := true
-	o.On("HasNext").Once().Return(v)
-	assert.Equal(t, v, o.HasNext())
-
-	o.On("HasNext").Once().Return(func() bool {
-		return v
-	})
-	assert.Equal(t, v, o.HasNext())
-	o.AssertExpectations(t)
+	o := NewMockEIterator(t)
+	m := newMockEIteratorRun(t)
+	o.EXPECT().HasNext().Return(true).Run(func() { m.Run() }).Once()
+	o.EXPECT().HasNext().Call.Return(func() bool { return true }).Once()
+	assert.True(t, o.HasNext())
+	assert.True(t, o.HasNext())
 }
 
 func TestMockEIteratorNext(t *testing.T) {
-	o := &MockEIterator{}
+	o := NewMockEIterator(t)
 	v := &mock.Mock{}
-	o.On("Next").Once().Return(v)
+	m := newMockEIteratorRun(t)
+	o.EXPECT().Next().Return(v).Run(func() { m.Run() }).Once()
+	o.EXPECT().Next().Call.Return(func() any { return v }).Once()
 	assert.Equal(t, v, o.Next())
-
-	o.On("Next").Once().Return(func() any {
-		return v
-	})
 	assert.Equal(t, v, o.Next())
-	o.AssertExpectations(t)
 }

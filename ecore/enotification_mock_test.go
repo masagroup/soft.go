@@ -41,8 +41,8 @@ func newMockENotificationRun(t mockConstructorTestingTmockENotificationRun, args
 func TestMockENotificationGetEventType(t *testing.T) {
 	n := NewMockENotification(t)
 	m := newMockENotificationRun(t)
-	n.EXPECT().GetEventType().Run(func() { m.Run() }).Return(SET).Once()
-	n.EXPECT().GetEventType().Once().Return(func() EventType { return SET })
+	n.EXPECT().GetEventType().Return(SET).Run(func() { m.Run() }).Once()
+	n.EXPECT().GetEventType().Call.Return(func() EventType { return SET }).Once()
 	assert.Equal(t, SET, n.GetEventType())
 	assert.Equal(t, SET, n.GetEventType())
 }
@@ -51,8 +51,8 @@ func TestMockENotificationGetNotifier(t *testing.T) {
 	n := NewMockENotification(t)
 	no := NewMockENotifier(t)
 	m := newMockENotificationRun(t)
-	n.EXPECT().GetNotifier().Run(func() { m.Run() }).Return(no).Once()
-	n.EXPECT().GetNotifier().Once().Return(func() ENotifier { return no })
+	n.EXPECT().GetNotifier().Return(no).Run(func() { m.Run() }).Once()
+	n.EXPECT().GetNotifier().Call.Return(func() ENotifier { return no }).Once()
 	assert.Equal(t, no, n.GetNotifier())
 	assert.Equal(t, no, n.GetNotifier())
 }

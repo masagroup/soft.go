@@ -60,7 +60,7 @@ func TestMockENotifierEDeliver(t *testing.T) {
 func TestMockENotifierESetDeliver(t *testing.T) {
 	n := NewMockENotifier(t)
 	m := newMockENotifierRun(t, true)
-	n.EXPECT().ESetDeliver(true).Run(func(_a0 bool) { m.Run(_a0) }).Once()
+	n.EXPECT().ESetDeliver(true).Return().Run(func(_a0 bool) { m.Run(_a0) }).Once()
 	n.ESetDeliver(true)
 }
 
@@ -68,6 +68,6 @@ func TestMockENotifierENotify(t *testing.T) {
 	n := NewMockENotifier(t)
 	notif := NewMockENotification(t)
 	m := newMockENotifierRun(t, notif)
-	n.EXPECT().ENotify(notif).Run(func(_a0 ENotification) { m.Run(_a0) }).Once()
+	n.EXPECT().ENotify(notif).Return().Run(func(_a0 ENotification) { m.Run(_a0) }).Once()
 	n.ENotify(notif)
 }

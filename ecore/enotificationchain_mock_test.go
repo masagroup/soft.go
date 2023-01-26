@@ -16,21 +16,41 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+type mockENotificationChainRun struct {
+	mock.Mock
+}
+
+func (m *mockENotificationChainRun) Run(args ...any) {
+	m.Called(args...)
+}
+
+type mockConstructorTestingTmockENotificationChainRun interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// newMockENotificationRun creates a new instance of MockEList. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func newMockENotificationChainRun(t mockConstructorTestingTmockENotificationChainRun, args ...any) *mockENotificationChainRun {
+	mock := &mockENotificationChainRun{}
+	mock.Test(t)
+	mock.On("Run", args...).Once()
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
 func TestMockENotificationChainAdd(t *testing.T) {
-	nc := &MockENotificationChain{}
-	n := &MockENotification{}
-	nc.On("Add", n).Return(true).Once()
-	nc.On("Add", n).Return(func(ENotification) bool {
-		return false
-	}).Once()
+	nc := NewMockENotificationChain(t)
+	n := NewMockENotification(t)
+	m := newMockENotificationChainRun(t, n)
+	nc.EXPECT().Add(n).Return(true).Run(func(n ENotification) { m.Run(n) }).Once()
+	nc.EXPECT().Add(n).Call.Return(func(ENotification) bool { return false }).Once()
 	assert.True(t, nc.Add(n))
 	assert.False(t, nc.Add(n))
-	mock.AssertExpectationsForObjects(t, n, nc)
 }
 
 func TestMockENotificationChainDispatch(t *testing.T) {
-	nc := &MockENotificationChain{}
-	nc.On("Dispatch").Once()
+	nc := NewMockENotificationChain(t)
+	m := newMockENotificationChainRun(t)
+	nc.EXPECT().Dispatch().Return().Run(func() { m.Run() }).Once()
 	nc.Dispatch()
-	mock.AssertExpectationsForObjects(t, nc)
 }

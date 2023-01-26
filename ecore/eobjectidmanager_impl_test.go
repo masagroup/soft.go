@@ -1,3 +1,12 @@
+// *****************************************************************************
+// Copyright(c) 2021 MASA Group
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+// *****************************************************************************
+
 package ecore
 
 import (
@@ -7,80 +16,73 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func createMockEObjectWithID(id string) *MockEObject {
-	mockObject := &MockEObject{}
-	mockClass := &MockEClass{}
-	mockAttribute := &MockEAttribute{}
-	mockObject.On("EClass").Return(mockClass)
-	mockClass.On("GetEIDAttribute").Return(mockAttribute)
+func createMockEObjectWithID(t *testing.T, id string) *MockEObject {
+	mockObject := NewMockEObject(t)
+	mockClass := NewMockEClass(t)
+	mockAttribute := NewMockEAttribute(t)
+	mockObject.EXPECT().EClass().Return(mockClass)
+	mockClass.EXPECT().GetEIDAttribute().Return(mockAttribute)
 	if len(id) > 0 {
-		mockObject.On("EIsSet", mockAttribute).Return(true)
+		mockObject.EXPECT().EIsSet(mockAttribute).Return(true)
 
-		mockDataType := &MockEDataType{}
-		mockPackage := &MockEPackage{}
-		mockFactory := &MockEFactory{}
-		mockObject.On("EGet", mockAttribute).Return(id)
-		mockAttribute.On("GetEAttributeType").Return(mockDataType)
-		mockDataType.On("GetEPackage").Return(mockPackage)
-		mockPackage.On("GetEFactoryInstance").Return(mockFactory)
-		mockFactory.On("ConvertToString", mockDataType, id).Return(id)
+		mockDataType := NewMockEDataType(t)
+		mockPackage := NewMockEPackage(t)
+		mockFactory := NewMockEFactory(t)
+		mockObject.EXPECT().EGet(mockAttribute).Return(id)
+		mockAttribute.EXPECT().GetEAttributeType().Return(mockDataType)
+		mockDataType.EXPECT().GetEPackage().Return(mockPackage)
+		mockPackage.EXPECT().GetEFactoryInstance().Return(mockFactory)
+		mockFactory.EXPECT().ConvertToString(mockDataType, id).Return(id)
 
 	} else {
-		mockObject.On("EIsSet", mockAttribute).Return(false)
+		mockObject.EXPECT().EIsSet(mockAttribute).Return(false)
 	}
 	return mockObject
 }
 
 func TestEObjectIDManagerImplRegisterNoID(t *testing.T) {
-
 	m := NewEObjectIDManagerImpl()
-
-	mockObject := createMockEObjectWithID("")
+	mockObject := createMockEObjectWithID(t, "")
 	m.Register(mockObject)
 	assert.Nil(t, m.GetID(mockObject))
-	mock.AssertExpectationsForObjects(t, mockObject)
 }
 
 func TestEObjectIDManagerImplRegisterWithID(t *testing.T) {
-
 	m := NewEObjectIDManagerImpl()
-
-	mockObject := createMockEObjectWithID("id")
+	mockObject := createMockEObjectWithID(t, "id")
 	m.Register(mockObject)
 	assert.Equal(t, "id", m.GetID(mockObject))
-	mock.AssertExpectationsForObjects(t, mockObject)
 }
 
 func TestEObjectIDManagerImplUnRegisterWithID(t *testing.T) {
 	m := NewEObjectIDManagerImpl()
-	mockObject := createMockEObjectWithID("id")
+	mockObject := createMockEObjectWithID(t, "id")
 	m.Register(mockObject)
 	assert.Equal(t, "id", m.GetID(mockObject))
 	m.UnRegister(mockObject)
 	assert.Nil(t, m.GetID(mockObject))
 	assert.Equal(t, "id", m.GetDetachedID(mockObject))
-	mock.AssertExpectationsForObjects(t, mockObject)
 }
 
 func TestEObjectIDManagerSetID(t *testing.T) {
 	m := NewEObjectIDManagerImpl()
 
-	mockObject := &MockEObject{}
-	mockClass := &MockEClass{}
-	mockAttribute := &MockEAttribute{}
-	mockDataType := &MockEDataType{}
-	mockPackage := &MockEPackage{}
-	mockFactory := &MockEFactory{}
+	mockObject := NewMockEObject(t)
+	mockClass := NewMockEClass(t)
+	mockAttribute := NewMockEAttribute(t)
+	mockDataType := NewMockEDataType(t)
+	mockPackage := NewMockEPackage(t)
+	mockFactory := NewMockEFactory(t)
 	mockIDValue := 0
 
 	// set mock object id
-	mockObject.On("EClass").Return(mockClass).Once()
-	mockClass.On("GetEIDAttribute").Return(mockAttribute).Once()
-	mockObject.On("ESet", mockAttribute, mockIDValue).Once()
-	mockAttribute.On("GetEAttributeType").Return(mockDataType).Once()
-	mockDataType.On("GetEPackage").Return(mockPackage).Once()
-	mockPackage.On("GetEFactoryInstance").Return(mockFactory).Once()
-	mockFactory.On("CreateFromString", mockDataType, "id1").Return(mockIDValue).Once()
+	mockObject.EXPECT().EClass().Return(mockClass).Once()
+	mockClass.EXPECT().GetEIDAttribute().Return(mockAttribute).Once()
+	mockObject.EXPECT().ESet(mockAttribute, mockIDValue).Once()
+	mockAttribute.EXPECT().GetEAttributeType().Return(mockDataType).Once()
+	mockDataType.EXPECT().GetEPackage().Return(mockPackage).Once()
+	mockPackage.EXPECT().GetEFactoryInstance().Return(mockFactory).Once()
+	mockFactory.EXPECT().CreateFromString(mockDataType, "id1").Return(mockIDValue).Once()
 	assert.Nil(t, m.SetID(mockObject, "id1"))
 
 	assert.Equal(t, "id1", m.GetID(mockObject))
@@ -89,11 +91,15 @@ func TestEObjectIDManagerSetID(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockAttribute, mockDataType, mockPackage, mockFactory)
 
 	// reset mock object id
-	mockObject.On("EClass").Return(mockClass).Once()
-	mockClass.On("GetEIDAttribute").Return(mockAttribute).Once()
-	mockObject.On("EUnset", mockAttribute).Once()
+	mockObject.EXPECT().EClass().Return(mockClass).Once()
+	mockClass.EXPECT().GetEIDAttribute().Return(mockAttribute).Once()
+	mockObject.EXPECT().EUnset(mockAttribute).Once()
 	assert.Nil(t, m.SetID(mockObject, nil))
 	mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockAttribute, mockDataType, mockPackage, mockFactory)
+
+	// error
+	assert.NotNil(t, m.SetID(mockObject, 1))
+
 }
 
 func TestEObjectIDManagerGetEObjectInvalidID(t *testing.T) {
@@ -103,6 +109,7 @@ func TestEObjectIDManagerGetEObjectInvalidID(t *testing.T) {
 
 func TestEObjectIDManagerClear(t *testing.T) {
 	m := NewEObjectIDManagerImpl()
+	o := NewMockEObject(t)
 	m.Clear()
-	assert.Nil(t, m.GetID(&MockEObject{}))
+	assert.Nil(t, m.GetID(o))
 }

@@ -16,29 +16,30 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestMockEObjectInternal_EDynamicGet(t *testing.T) {
-	o := &MockEObjectProperties{}
-	obj := &MockEObject{}
-	o.On("EDynamicGet", 1).Once().Return(obj)
-	o.On("EDynamicGet", 1).Once().Return(func(dynamicFeatureID int) any {
+func TestMockEObjectProperties_EDynamicGet(t *testing.T) {
+	o := NewMockEObjectProperties(t)
+	obj := NewMockEObject(t)
+	m := NewMockRun(t, 1)
+	o.EXPECT().EDynamicGet(1).Return(obj).Run(func(dynamicFeatureID int) { m.Run(dynamicFeatureID) }).Once()
+	o.EXPECT().EDynamicGet(1).Call.Return(func(dynamicFeatureID int) any {
 		return obj
-	})
+	}).Once()
 	assert.Equal(t, obj, o.EDynamicGet(1))
 	assert.Equal(t, obj, o.EDynamicGet(1))
-	mock.AssertExpectationsForObjects(t, o, obj)
 }
 
-func TestMockEObjectInternal_EDynamicSet(t *testing.T) {
-	o := &MockEObjectProperties{}
-	obj := &MockEObject{}
-	o.On("EDynamicSet", 1, obj).Once()
+func TestMockEObjectProperties_EDynamicSet(t *testing.T) {
+	o := NewMockEObjectProperties(t)
+	obj := NewMockEObject(t)
+	m := NewMockRun(t, 1, obj)
+	o.EXPECT().EDynamicSet(1, obj).Return().Run(func(dynamicFeatureID int, newValue interface{}) { m.Run(dynamicFeatureID, newValue) }).Once()
 	o.EDynamicSet(1, obj)
-	mock.AssertExpectationsForObjects(t, o, obj)
 }
 
-func TestMockEObjectInternal_EDynamicUnset(t *testing.T) {
-	o := &MockEObjectProperties{}
-	o.On("EDynamicUnset", 1).Once()
+func TestMockEObjectProperties_EDynamicUnset(t *testing.T) {
+	o := NewMockEObjectProperties(t)
+	m := NewMockRun(t, 1)
+	o.EXPECT().EDynamicUnset(1).Return().Run(func(dynamicFeatureID int) { m.Run(dynamicFeatureID) }).Once()
 	o.EDynamicUnset(1)
 	mock.AssertExpectationsForObjects(t, o)
 }

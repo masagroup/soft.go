@@ -108,22 +108,6 @@ func (_c *MockEObjectInternal_EBasicInverseRemove_Call) Return(_a0 ENotification
 	return _c
 }
 
-// EClass provides a mock function with given fields:
-func (_m *MockEObjectInternal) EClass() EClass {
-	ret := _m.Called()
-
-	var r0 EClass
-	if rf, ok := ret.Get(0).(func() EClass); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(EClass)
-		}
-	}
-
-	return r0
-}
-
 // EDerivedFeatureID provides a mock function with given fields: container, featureID
 func (_m *MockEObjectInternal) EDerivedFeatureID(container EObject, featureID int) int {
 	ret := _m.Called(container, featureID)
@@ -518,7 +502,7 @@ func (_m *MockEObjectInternal) EInvokeFromID(operationID int, arguments EList) i
 		r0 = rf(operationID, arguments)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0)
 		}
 	}
 
@@ -545,42 +529,6 @@ func (_c *MockEObjectInternal_EInvokeFromID_Call) Run(run func(operationID int, 
 }
 
 func (_c *MockEObjectInternal_EInvokeFromID_Call) Return(_a0 interface{}) *MockEObjectInternal_EInvokeFromID_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-// EIsProxy provides a mock function with given fields:
-func (_m *MockEObjectInternal) EIsProxy() bool {
-	ret := _m.Called()
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func() bool); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	return r0
-}
-
-// MockEObjectInternal_EIsProxy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EIsProxy'
-type MockEObjectInternal_EIsProxy_Call struct {
-	*mock.Call
-}
-
-// EIsProxy is a helper method to define mock.On call
-func (_e *MockEObjectInternal_Expecter) EIsProxy() *MockEObjectInternal_EIsProxy_Call {
-	return &MockEObjectInternal_EIsProxy_Call{Call: _e.Mock.On("EIsProxy")}
-}
-
-func (_c *MockEObjectInternal_EIsProxy_Call) Run(run func()) *MockEObjectInternal_EIsProxy_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockEObjectInternal_EIsProxy_Call) Return(_a0 bool) *MockEObjectInternal_EIsProxy_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
@@ -794,7 +742,7 @@ func (_e *MockEObjectInternal_Expecter) ESetFromID(featureID interface{}, newVal
 
 func (_c *MockEObjectInternal_ESetFromID_Call) Run(run func(featureID int, newValue interface{})) *MockEObjectInternal_ESetFromID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(int), args[1].(interface{}))
+		run(args[0].(int), args[1])
 	})
 	return _c
 }

@@ -26,9 +26,9 @@ func TestDynamicEObject_EClass(t *testing.T) {
 	o := NewDynamicEObjectImpl()
 	mockClass := NewMockEClass(t)
 	mockAdapters := NewMockEList(t)
-	mockClass.On("GetFeatureCount").Return(0)
-	mockClass.On("EAdapters").Return(mockAdapters)
-	mockAdapters.On("Add", mock.Anything).Return(true).Once()
+	mockClass.EXPECT().GetFeatureCount().Return(0)
+	mockClass.EXPECT().EAdapters().Return(mockAdapters)
+	mockAdapters.EXPECT().Add(mock.Anything).Return(true).Once()
 	o.SetEClass(mockClass)
 	assert.Equal(t, mockClass, o.EClass())
 }

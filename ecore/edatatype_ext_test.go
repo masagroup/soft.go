@@ -20,11 +20,11 @@ func TestEDataTypeExtSetDefaultValue(t *testing.T) {
 	d := newEDataTypeExt()
 	mockValue := NewMockEObject(t)
 	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", d).Once()
+	mockAdapter.EXPECT().SetTarget(d).Once()
 	d.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(notification ENotification) bool {
 		return notification.GetEventType() == SET && notification.GetNewValue() == mockValue
 	})).Once()
 	d.SetDefaultValue(mockValue)

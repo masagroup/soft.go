@@ -27,34 +27,34 @@ func TestEObjectEInvokeFromID(t *testing.T) {
 	assert.NotPanics(t, func() { o.EInvokeFromID(EOBJECT__ECROSS_REFERENCES, NewImmutableEList([]any{})) })
 	assert.Panics(t, func() {
 		mockFeature := new(MockEStructuralFeature)
-		mockFeature.On("GetName").Return("name")
+		mockFeature.EXPECT().GetName().Return("name")
 		o.EInvokeFromID(EOBJECT__EGET_ESTRUCTURALFEATURE, NewImmutableEList([]any{mockFeature}))
 	})
 	assert.Panics(t, func() {
 		mockFeature := new(MockEStructuralFeature)
-		mockFeature.On("GetName").Return("name")
+		mockFeature.EXPECT().GetName().Return("name")
 		o.EInvokeFromID(EOBJECT__EGET_ESTRUCTURALFEATURE_EBOOLEAN, NewImmutableEList([]any{mockFeature, true}))
 	})
 	assert.Panics(t, func() {
 		mockOperation := new(MockEOperation)
-		mockOperation.On("GetName").Return("name")
+		mockOperation.EXPECT().GetName().Return("name")
 		o.EInvokeFromID(EOBJECT__EINVOKE_EOPERATION_EELIST, NewImmutableEList([]any{mockOperation, NewEmptyBasicEList()}))
 	})
 	assert.NotPanics(t, func() { o.EInvokeFromID(EOBJECT__EIS_PROXY, NewImmutableEList([]any{})) })
 	assert.Panics(t, func() {
 		mockFeature := new(MockEStructuralFeature)
-		mockFeature.On("GetName").Return("name")
+		mockFeature.EXPECT().GetName().Return("name")
 		o.EInvokeFromID(EOBJECT__EIS_SET_ESTRUCTURALFEATURE, NewImmutableEList([]any{mockFeature}))
 	})
 	assert.NotPanics(t, func() { o.EInvokeFromID(EOBJECT__ERESOURCE, NewImmutableEList([]any{})) })
 	assert.Panics(t, func() {
 		mockFeature := new(MockEStructuralFeature)
-		mockFeature.On("GetName").Return("name")
+		mockFeature.EXPECT().GetName().Return("name")
 		o.EInvokeFromID(EOBJECT__ESET_ESTRUCTURALFEATURE_EJAVAOBJECT, NewImmutableEList([]any{mockFeature, any(nil)}))
 	})
 	assert.Panics(t, func() {
 		mockFeature := new(MockEStructuralFeature)
-		mockFeature.On("GetName").Return("name")
+		mockFeature.EXPECT().GetName().Return("name")
 		o.EInvokeFromID(EOBJECT__EUNSET_ESTRUCTURALFEATURE, NewImmutableEList([]any{mockFeature}))
 	})
 }

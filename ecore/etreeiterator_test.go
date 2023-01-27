@@ -29,7 +29,7 @@ func TestETreeIteratorWithRoot(t *testing.T) {
 func TestEAllContentsIteratorEmpty(t *testing.T) {
 	emptyList := NewImmutableEList(nil)
 	mockObject := NewMockEObject(t)
-	mockObject.On("EContents").Return(emptyList)
+	mockObject.EXPECT().EContents().Return(emptyList)
 	it := newEAllContentsIterator(mockObject)
 	assert.False(t, it.HasNext())
 }
@@ -41,11 +41,11 @@ func TestEAllContentsIteratorNotEmpty(t *testing.T) {
 	mockGrandChild1 := NewMockEObject(t)
 	mockGrandChild2 := NewMockEObject(t)
 	mockChild2 := NewMockEObject(t)
-	mockObject.On("EContents").Return(NewImmutableEList([]any{mockChild1, mockChild2}))
-	mockChild1.On("EContents").Return(NewImmutableEList([]any{mockGrandChild1, mockGrandChild2}))
-	mockGrandChild1.On("EContents").Return(emptyList)
-	mockGrandChild2.On("EContents").Return(emptyList)
-	mockChild2.On("EContents").Return(emptyList)
+	mockObject.EXPECT().EContents().Return(NewImmutableEList([]any{mockChild1, mockChild2}))
+	mockChild1.EXPECT().EContents().Return(NewImmutableEList([]any{mockGrandChild1, mockGrandChild2}))
+	mockGrandChild1.EXPECT().EContents().Return(emptyList)
+	mockGrandChild2.EXPECT().EContents().Return(emptyList)
+	mockChild2.EXPECT().EContents().Return(emptyList)
 
 	var result []any
 	for it := newEAllContentsIterator(mockObject); it.HasNext(); {

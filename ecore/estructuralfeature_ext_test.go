@@ -28,8 +28,8 @@ func TestEStructuralFeatureExtGetDefaultValue(t *testing.T) {
 		o.SetEType(mockType)
 
 		mockDefaultValue := NewMockEObject(t)
-		mockType.On("EIsProxy").Return(false).Once()
-		mockType.On("GetDefaultValue").Return(mockDefaultValue).Once()
+		mockType.EXPECT().EIsProxy().Return(false).Once()
+		mockType.EXPECT().GetDefaultValue().Return(mockDefaultValue).Once()
 		assert.Equal(t, mockDefaultValue, o.GetDefaultValue())
 		mock.AssertExpectationsForObjects(t, mockType, mockDefaultValue)
 	}
@@ -40,7 +40,7 @@ func TestEStructuralFeatureExtGetDefaultValue(t *testing.T) {
 		o.SetEType(mockType)
 		o.SetUpperBound(UNBOUNDED_MULTIPLICITY)
 
-		mockType.On("EIsProxy").Return(false).Once()
+		mockType.EXPECT().EIsProxy().Return(false).Once()
 		assert.Nil(t, o.GetDefaultValue())
 		mock.AssertExpectationsForObjects(t, mockType)
 	}
@@ -53,11 +53,11 @@ func TestEStructuralFeatureExtGetDefaultValue(t *testing.T) {
 		mockFactory := NewMockEFactory(t)
 		o.SetEType(mockType)
 		o.SetDefaultValueLiteral("defaultLiteralValue")
-		mockType.On("EIsProxy").Return(false).Once()
-		mockType.On("GetEPackage").Return(mockPackage).Once()
-		mockType.On("IsSerializable").Return(true).Once()
-		mockPackage.On("GetEFactoryInstance").Return(mockFactory).Once()
-		mockFactory.On("CreateFromString", mockType, "defaultLiteralValue").Return(mockDefaultValue).Once()
+		mockType.EXPECT().EIsProxy().Return(false).Once()
+		mockType.EXPECT().GetEPackage().Return(mockPackage).Once()
+		mockType.EXPECT().IsSerializable().Return(true).Once()
+		mockPackage.EXPECT().GetEFactoryInstance().Return(mockFactory).Once()
+		mockFactory.EXPECT().CreateFromString(mockType, "defaultLiteralValue").Return(mockDefaultValue).Once()
 		assert.Equal(t, mockDefaultValue, o.GetDefaultValue())
 		mock.AssertExpectationsForObjects(t, mockType, mockDefaultValue, mockPackage, mockFactory)
 	}
@@ -77,10 +77,10 @@ func TestEStructuralFeatureExtSetDefaultValue(t *testing.T) {
 		mockPackage := NewMockEPackage(t)
 		mockFactory := NewMockEFactory(t)
 		o.SetEType(mockType)
-		mockType.On("EIsProxy").Return(false).Once()
-		mockType.On("GetEPackage").Return(mockPackage).Once()
-		mockPackage.On("GetEFactoryInstance").Return(mockFactory).Once()
-		mockFactory.On("ConvertToString", mockType, mockDefaultValue).Return("defaultValueLiteral").Once()
+		mockType.EXPECT().EIsProxy().Return(false).Once()
+		mockType.EXPECT().GetEPackage().Return(mockPackage).Once()
+		mockPackage.EXPECT().GetEFactoryInstance().Return(mockFactory).Once()
+		mockFactory.EXPECT().ConvertToString(mockType, mockDefaultValue).Return("defaultValueLiteral").Once()
 		o.SetDefaultValue(mockDefaultValue)
 		mock.AssertExpectationsForObjects(t, mockType, mockDefaultValue, mockPackage, mockFactory)
 	}

@@ -21,8 +21,8 @@ func TestBasicEDataTypeListAccessors(t *testing.T) {
 		assert.Equal(t, 1, list.GetFeatureID())
 		mockClass := NewMockEClass(t)
 		mockFeature := NewMockEStructuralFeature(t)
-		mockClass.On("GetEStructuralFeature", 1).Return(mockFeature)
-		mockOwner.On("EClass").Return(mockClass)
+		mockClass.EXPECT().GetEStructuralFeature(1).Return(mockFeature)
+		mockOwner.EXPECT().EClass().Return(mockClass)
 		assert.Equal(t, mockFeature, list.GetFeature())
 		mock.AssertExpectationsForObjects(t, mockOwner, mockClass, mockFeature, mockClass)
 	}

@@ -40,15 +40,15 @@ func TestEContentAdapter_SetTarget_EObject(t *testing.T) {
 		mockObject := mockObjects[i]
 		mockAdapters := mockLists[i]
 		if i%2 == 0 {
-			mockObject.On("EIsProxy").Return(false).Once()
-			mockObject.On("EAdapters").Return(mockAdapters).Once()
-			mockAdapters.On("Contains", adapter).Return(false).Once()
-			mockAdapters.On("Add", adapter).Return(true).Once()
+			mockObject.EXPECT().EIsProxy().Return(false).Once()
+			mockObject.EXPECT().EAdapters().Return(mockAdapters).Once()
+			mockAdapters.EXPECT().Contains(adapter).Return(false).Once()
+			mockAdapters.EXPECT().Add(adapter).Return(true).Once()
 		} else {
-			mockObject.On("EIsProxy").Return(true).Once()
+			mockObject.EXPECT().EIsProxy().Return(true).Once()
 		}
 	}
-	mockObject.On("EContents").Return(mockChildren).Once()
+	mockObject.EXPECT().EContents().Return(mockChildren).Once()
 	adapter.SetTarget(mockObject)
 	mock.AssertExpectationsForObjects(t, children...)
 	mock.AssertExpectationsForObjects(t, mockObject)
@@ -57,10 +57,10 @@ func TestEContentAdapter_SetTarget_EObject(t *testing.T) {
 	for i := 0; i < nb; i++ {
 		mockObject := mockObjects[i]
 		mockAdapters := mockLists[i]
-		mockObject.On("EAdapters").Return(mockAdapters).Once()
-		mockAdapters.On("Remove", adapter).Return(true).Once()
+		mockObject.EXPECT().EAdapters().Return(mockAdapters).Once()
+		mockAdapters.EXPECT().Remove(adapter).Return(true).Once()
 	}
-	mockObject.On("EContents").Return(mockChildren).Once()
+	mockObject.EXPECT().EContents().Return(mockChildren).Once()
 	adapter.UnSetTarget(mockObject)
 	mock.AssertExpectationsForObjects(t, children...)
 	mock.AssertExpectationsForObjects(t, mockObject)
@@ -87,12 +87,12 @@ func TestEContentAdapter_SetTarget_EObject_ResolveProxies(t *testing.T) {
 	for i := 0; i < nb; i++ {
 		mockObject := mockObjects[i]
 		mockAdapters := mockLists[i]
-		mockObject.On("EIsProxy").Return(false).Once()
-		mockObject.On("EAdapters").Return(mockAdapters).Once()
-		mockAdapters.On("Contains", adapter).Return(false).Once()
-		mockAdapters.On("Add", adapter).Return(true).Once()
+		mockObject.EXPECT().EIsProxy().Return(false).Once()
+		mockObject.EXPECT().EAdapters().Return(mockAdapters).Once()
+		mockAdapters.EXPECT().Contains(adapter).Return(false).Once()
+		mockAdapters.EXPECT().Add(adapter).Return(true).Once()
 	}
-	mockObject.On("EContents").Return(mockChildren).Once()
+	mockObject.EXPECT().EContents().Return(mockChildren).Once()
 	adapter.SetTarget(mockObject)
 	mock.AssertExpectationsForObjects(t, children...)
 	mock.AssertExpectationsForObjects(t, mockObject)
@@ -101,10 +101,10 @@ func TestEContentAdapter_SetTarget_EObject_ResolveProxies(t *testing.T) {
 	for i := 0; i < nb; i++ {
 		mockObject := mockObjects[i]
 		mockAdapters := mockLists[i]
-		mockObject.On("EAdapters").Return(mockAdapters).Once()
-		mockAdapters.On("Remove", adapter).Return(true).Once()
+		mockObject.EXPECT().EAdapters().Return(mockAdapters).Once()
+		mockAdapters.EXPECT().Remove(adapter).Return(true).Once()
 	}
-	mockObject.On("EContents").Return(mockChildren).Once()
+	mockObject.EXPECT().EContents().Return(mockChildren).Once()
 	adapter.UnSetTarget(mockObject)
 	mock.AssertExpectationsForObjects(t, children...)
 	mock.AssertExpectationsForObjects(t, mockObject)
@@ -117,17 +117,17 @@ func TestEContentAdapter_SetTarget_EResourceSet(t *testing.T) {
 	mockResourceAdapters := NewMockEList(t)
 
 	// Set target
-	mockResourceSet.On("GetResources").Return(NewImmutableEList([]any{mockResource})).Once()
-	mockResource.On("EAdapters").Return(mockResourceAdapters).Once()
-	mockResourceAdapters.On("Contains", adapter).Return(false).Once()
-	mockResourceAdapters.On("Add", adapter).Return(true).Once()
+	mockResourceSet.EXPECT().GetResources().Return(NewImmutableEList([]any{mockResource})).Once()
+	mockResource.EXPECT().EAdapters().Return(mockResourceAdapters).Once()
+	mockResourceAdapters.EXPECT().Contains(adapter).Return(false).Once()
+	mockResourceAdapters.EXPECT().Add(adapter).Return(true).Once()
 	adapter.SetTarget(mockResourceSet)
 	mock.AssertExpectationsForObjects(t, mockResourceSet, mockResource, mockResourceAdapters)
 
 	// UnSet target
-	mockResourceSet.On("GetResources").Return(NewImmutableEList([]any{mockResource})).Once()
-	mockResource.On("EAdapters").Return(mockResourceAdapters).Once()
-	mockResourceAdapters.On("Remove", adapter).Return(true).Once()
+	mockResourceSet.EXPECT().GetResources().Return(NewImmutableEList([]any{mockResource})).Once()
+	mockResource.EXPECT().EAdapters().Return(mockResourceAdapters).Once()
+	mockResourceAdapters.EXPECT().Remove(adapter).Return(true).Once()
 	adapter.UnSetTarget(mockResourceSet)
 	mock.AssertExpectationsForObjects(t, mockResourceSet, mockResource, mockResourceAdapters)
 }
@@ -139,17 +139,17 @@ func TestEContentAdapter_SetTarget_EResource(t *testing.T) {
 	mockObjectAdapters := NewMockEList(t)
 
 	// Set target
-	mockResource.On("GetContents").Return(NewImmutableEList([]any{mockObject})).Once()
-	mockObject.On("EAdapters").Return(mockObjectAdapters).Once()
-	mockObjectAdapters.On("Contains", adapter).Return(false).Once()
-	mockObjectAdapters.On("Add", adapter).Return(true).Once()
+	mockResource.EXPECT().GetContents().Return(NewImmutableEList([]any{mockObject})).Once()
+	mockObject.EXPECT().EAdapters().Return(mockObjectAdapters).Once()
+	mockObjectAdapters.EXPECT().Contains(adapter).Return(false).Once()
+	mockObjectAdapters.EXPECT().Add(adapter).Return(true).Once()
 	adapter.SetTarget(mockResource)
 	mock.AssertExpectationsForObjects(t, mockResource, mockObject, mockObjectAdapters)
 
 	// UnSet target
-	mockResource.On("GetContents").Return(NewImmutableEList([]any{mockObject})).Once()
-	mockObject.On("EAdapters").Return(mockObjectAdapters).Once()
-	mockObjectAdapters.On("Remove", adapter).Return(true).Once()
+	mockResource.EXPECT().GetContents().Return(NewImmutableEList([]any{mockObject})).Once()
+	mockObject.EXPECT().EAdapters().Return(mockObjectAdapters).Once()
+	mockObjectAdapters.EXPECT().Remove(adapter).Return(true).Once()
 	adapter.UnSetTarget(mockResource)
 	mock.AssertExpectationsForObjects(t, mockResource, mockObject, mockObjectAdapters)
 }
@@ -160,14 +160,14 @@ func TestEContentAdapterNotifyChanged(t *testing.T) {
 	mockObject := NewMockEObject(t)
 
 	mockAttribute := NewMockEAttribute(t)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetFeature").Once().Return(mockAttribute)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockAttribute)
 	adapter.NotifyChanged(mockNotification)
 
 	mockReference := NewMockEReference(t)
-	mockReference.On("IsContainment").Once().Return(false)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
+	mockReference.EXPECT().IsContainment().Once().Return(false)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
 	adapter.NotifyChanged(mockNotification)
 
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockAttribute, mockReference)
@@ -181,13 +181,13 @@ func TestEContentAdapterNotifyChanged_Resolve(t *testing.T) {
 	mockOldObject := NewMockEObject(t)
 	mockOldAdapters := NewMockEList(t)
 
-	mockReference.On("IsContainment").Once().Return(true)
-	mockOldObject.On("EAdapters").Once().Return(mockOldAdapters)
-	mockOldAdapters.On("Contains", adapter).Once().Return(false)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetEventType").Once().Return(RESOLVE)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
-	mockNotification.On("GetOldValue").Once().Return(mockOldObject)
+	mockReference.EXPECT().IsContainment().Once().Return(true)
+	mockOldObject.EXPECT().EAdapters().Once().Return(mockOldAdapters)
+	mockOldAdapters.EXPECT().Contains(adapter).Once().Return(false)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Once().Return(RESOLVE)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
+	mockNotification.EXPECT().GetOldValue().Once().Return(mockOldObject)
 	adapter.NotifyChanged(mockNotification)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference, mockOldObject, mockOldAdapters)
 }
@@ -202,18 +202,18 @@ func TestEContentAdapterNotifyChanged_Resolve_Contains(t *testing.T) {
 	mockNewObject := NewMockEObject(t)
 	mockNewAdapters := NewMockEList(t)
 
-	mockReference.On("IsContainment").Once().Return(true)
-	mockOldObject.On("EAdapters").Twice().Return(mockOldAdapters)
-	mockOldAdapters.On("Contains", adapter).Once().Return(true)
-	mockOldAdapters.On("Remove", adapter).Once().Return(true)
-	mockNewObject.On("EAdapters").Once().Return(mockNewAdapters)
-	mockNewAdapters.On("Contains", adapter).Once().Return(false)
-	mockNewAdapters.On("Add", adapter).Once().Return(true)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetEventType").Once().Return(RESOLVE)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
-	mockNotification.On("GetOldValue").Once().Return(mockOldObject)
-	mockNotification.On("GetNewValue").Once().Return(mockNewObject)
+	mockReference.EXPECT().IsContainment().Once().Return(true)
+	mockOldObject.EXPECT().EAdapters().Twice().Return(mockOldAdapters)
+	mockOldAdapters.EXPECT().Contains(adapter).Once().Return(true)
+	mockOldAdapters.EXPECT().Remove(adapter).Once().Return(true)
+	mockNewObject.EXPECT().EAdapters().Once().Return(mockNewAdapters)
+	mockNewAdapters.EXPECT().Contains(adapter).Once().Return(false)
+	mockNewAdapters.EXPECT().Add(adapter).Once().Return(true)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Once().Return(RESOLVE)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
+	mockNotification.EXPECT().GetOldValue().Once().Return(mockOldObject)
+	mockNotification.EXPECT().GetNewValue().Once().Return(mockNewObject)
 	adapter.NotifyChanged(mockNotification)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference, mockOldObject, mockOldAdapters, mockNewObject, mockNewAdapters)
 }
@@ -229,27 +229,27 @@ func TestEContentAdapterNotifyChanged_UnSet(t *testing.T) {
 	mockNewObject := NewMockEObjectInternal(t)
 	mockNewAdapters := NewMockEList(t)
 
-	mockReference.On("IsContainment").Once().Return(true)
-	mockOldObject.On("EAdapters").Return(mockOldAdapters)
-	mockOldObject.On("EInternalResource").Return(nil)
-	mockOldAdapters.On("Remove", adapter).Once().Return(true)
-	mockNewObject.On("EAdapters").Once().Return(mockNewAdapters)
-	mockNewAdapters.On("Contains", adapter).Once().Return(false)
-	mockNewAdapters.On("Add", adapter).Once().Return(true)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetEventType").Once().Return(UNSET)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
-	mockNotification.On("GetOldValue").Once().Return(mockOldObject)
-	mockNotification.On("GetNewValue").Once().Return(mockNewObject)
+	mockReference.EXPECT().IsContainment().Once().Return(true)
+	mockOldObject.EXPECT().EAdapters().Return(mockOldAdapters)
+	mockOldObject.EXPECT().EInternalResource().Return(nil)
+	mockOldAdapters.EXPECT().Remove(adapter).Once().Return(true)
+	mockNewObject.EXPECT().EAdapters().Once().Return(mockNewAdapters)
+	mockNewAdapters.EXPECT().Contains(adapter).Once().Return(false)
+	mockNewAdapters.EXPECT().Add(adapter).Once().Return(true)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Once().Return(UNSET)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
+	mockNotification.EXPECT().GetOldValue().Once().Return(mockOldObject)
+	mockNotification.EXPECT().GetNewValue().Once().Return(mockNewObject)
 	adapter.NotifyChanged(mockNotification)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference, mockOldObject, mockOldAdapters, mockNewObject, mockNewAdapters)
 
-	mockReference.On("IsContainment").Once().Return(true)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetEventType").Once().Return(UNSET)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
-	mockNotification.On("GetOldValue").Once().Return(nil)
-	mockNotification.On("GetNewValue").Once().Return(nil)
+	mockReference.EXPECT().IsContainment().Once().Return(true)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Once().Return(UNSET)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
+	mockNotification.EXPECT().GetOldValue().Once().Return(nil)
+	mockNotification.EXPECT().GetNewValue().Once().Return(nil)
 	adapter.NotifyChanged(mockNotification)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference, mockOldObject, mockOldAdapters, mockNewObject, mockNewAdapters)
 
@@ -266,27 +266,27 @@ func TestEContentAdapterNotifyChanged_Set(t *testing.T) {
 	mockNewObject := NewMockEObjectInternal(t)
 	mockNewAdapters := NewMockEList(t)
 
-	mockReference.On("IsContainment").Once().Return(true)
-	mockOldObject.On("EAdapters").Return(mockOldAdapters)
-	mockOldObject.On("EInternalResource").Return(nil)
-	mockOldAdapters.On("Remove", adapter).Once().Return(true)
-	mockNewObject.On("EAdapters").Once().Return(mockNewAdapters)
-	mockNewAdapters.On("Contains", adapter).Once().Return(false)
-	mockNewAdapters.On("Add", adapter).Once().Return(true)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetEventType").Once().Return(SET)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
-	mockNotification.On("GetOldValue").Once().Return(mockOldObject)
-	mockNotification.On("GetNewValue").Once().Return(mockNewObject)
+	mockReference.EXPECT().IsContainment().Once().Return(true)
+	mockOldObject.EXPECT().EAdapters().Return(mockOldAdapters)
+	mockOldObject.EXPECT().EInternalResource().Return(nil)
+	mockOldAdapters.EXPECT().Remove(adapter).Once().Return(true)
+	mockNewObject.EXPECT().EAdapters().Once().Return(mockNewAdapters)
+	mockNewAdapters.EXPECT().Contains(adapter).Once().Return(false)
+	mockNewAdapters.EXPECT().Add(adapter).Once().Return(true)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Once().Return(SET)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
+	mockNotification.EXPECT().GetOldValue().Once().Return(mockOldObject)
+	mockNotification.EXPECT().GetNewValue().Once().Return(mockNewObject)
 	adapter.NotifyChanged(mockNotification)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference, mockOldObject, mockOldAdapters, mockNewObject, mockNewAdapters)
 
-	mockReference.On("IsContainment").Once().Return(true)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetEventType").Once().Return(SET)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
-	mockNotification.On("GetOldValue").Once().Return(nil)
-	mockNotification.On("GetNewValue").Once().Return(nil)
+	mockReference.EXPECT().IsContainment().Once().Return(true)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Once().Return(SET)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
+	mockNotification.EXPECT().GetOldValue().Once().Return(nil)
+	mockNotification.EXPECT().GetNewValue().Once().Return(nil)
 	adapter.NotifyChanged(mockNotification)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference, mockOldObject, mockOldAdapters, mockNewObject, mockNewAdapters)
 
@@ -301,22 +301,22 @@ func TestEContentAdapterNotifyChanged_Add(t *testing.T) {
 	mockNewObject := NewMockEObjectInternal(t)
 	mockNewAdapters := NewMockEList(t)
 
-	mockReference.On("IsContainment").Once().Return(true)
-	mockNewObject.On("EAdapters").Once().Return(mockNewAdapters)
-	mockNewAdapters.On("Contains", adapter).Once().Return(false)
-	mockNewAdapters.On("Add", adapter).Once().Return(true)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetEventType").Once().Return(ADD)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
-	mockNotification.On("GetNewValue").Once().Return(mockNewObject)
+	mockReference.EXPECT().IsContainment().Once().Return(true)
+	mockNewObject.EXPECT().EAdapters().Once().Return(mockNewAdapters)
+	mockNewAdapters.EXPECT().Contains(adapter).Once().Return(false)
+	mockNewAdapters.EXPECT().Add(adapter).Once().Return(true)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Once().Return(ADD)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
+	mockNotification.EXPECT().GetNewValue().Once().Return(mockNewObject)
 	adapter.NotifyChanged(mockNotification)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference, mockNewObject, mockNewAdapters)
 
-	mockReference.On("IsContainment").Once().Return(true)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetEventType").Once().Return(ADD)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
-	mockNotification.On("GetNewValue").Once().Return(nil)
+	mockReference.EXPECT().IsContainment().Once().Return(true)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Once().Return(ADD)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
+	mockNotification.EXPECT().GetNewValue().Once().Return(nil)
 	adapter.NotifyChanged(mockNotification)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference, mockNewObject, mockNewAdapters)
 
@@ -329,47 +329,47 @@ func TestEContentAdapterNotifyChanged_AddMany(t *testing.T) {
 	mockObject := NewMockEObjectInternal(t)
 	mockReference := NewMockEReference(t)
 
-	mockReference.On("IsContainment").Once().Return(true)
+	mockReference.EXPECT().IsContainment().Once().Return(true)
 	nb := rand.Intn(10) + 1
 	mockChildren := []any{}
 	for i := 0; i < nb; i++ {
 		mockObject := NewMockEObject(t)
 		mockAdapters := NewMockEList(t)
 
-		mockObject.On("EAdapters").Return(mockAdapters)
-		mockAdapters.On("Contains", adapter).Return(false)
-		mockAdapters.On("Add", adapter).Return(true)
+		mockObject.EXPECT().EAdapters().Return(mockAdapters)
+		mockAdapters.EXPECT().Contains(adapter).Return(false)
+		mockAdapters.EXPECT().Add(adapter).Return(true)
 		mockChildren = append(mockChildren, mockObject)
 	}
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetEventType").Once().Return(ADD_MANY)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
-	mockNotification.On("GetNewValue").Once().Return(mockChildren)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Once().Return(ADD_MANY)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
+	mockNotification.EXPECT().GetNewValue().Once().Return(mockChildren)
 	adapter.NotifyChanged(mockNotification)
 	mock.AssertExpectationsForObjects(t, mockChildren...)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference)
 
-	mockReference.On("IsContainment").Once().Return(true)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetEventType").Once().Return(ADD_MANY)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
-	mockNotification.On("GetNewValue").Once().Return(nil)
+	mockReference.EXPECT().IsContainment().Once().Return(true)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Once().Return(ADD_MANY)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
+	mockNotification.EXPECT().GetNewValue().Once().Return(nil)
 	adapter.NotifyChanged(mockNotification)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference)
 
-	mockReference.On("IsContainment").Once().Return(true)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetEventType").Once().Return(ADD_MANY)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
-	mockNotification.On("GetNewValue").Once().Return(struct{}{})
+	mockReference.EXPECT().IsContainment().Once().Return(true)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Once().Return(ADD_MANY)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
+	mockNotification.EXPECT().GetNewValue().Once().Return(struct{}{})
 	adapter.NotifyChanged(mockNotification)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference)
 
-	mockReference.On("IsContainment").Once().Return(true)
-	mockNotification.On("GetNotifier").Once().Return(mockObject)
-	mockNotification.On("GetEventType").Once().Return(ADD_MANY)
-	mockNotification.On("GetFeature").Once().Return(mockReference)
-	mockNotification.On("GetNewValue").Once().Return([]any{struct{}{}, nil})
+	mockReference.EXPECT().IsContainment().Once().Return(true)
+	mockNotification.EXPECT().GetNotifier().Once().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Once().Return(ADD_MANY)
+	mockNotification.EXPECT().GetFeature().Once().Return(mockReference)
+	mockNotification.EXPECT().GetNewValue().Once().Return([]any{struct{}{}, nil})
 	adapter.NotifyChanged(mockNotification)
 	mock.AssertExpectationsForObjects(t, mockNotification, mockObject, mockReference)
 
@@ -384,16 +384,16 @@ func TestEContentAdapterNotifyChanged_Remove(t *testing.T) {
 	mockOldObject := NewMockEObjectInternal(t)
 	mockOldAdapters := NewMockEList(t)
 
-	mockReference.On("IsContainment").Once().Return(true)
+	mockReference.EXPECT().IsContainment().Once().Return(true)
 
-	mockOldObject.On("EAdapters").Once().Return(mockOldAdapters)
-	mockOldObject.On("EInternalResource").Return(nil)
-	mockOldAdapters.On("Remove", adapter).Once().Return(true)
+	mockOldObject.EXPECT().EAdapters().Once().Return(mockOldAdapters)
+	mockOldObject.EXPECT().EInternalResource().Return(nil)
+	mockOldAdapters.EXPECT().Remove(adapter).Once().Return(true)
 
-	mockNotification.On("GetNotifier").Return(mockObject)
-	mockNotification.On("GetEventType").Return(REMOVE)
-	mockNotification.On("GetFeature").Return(mockReference)
-	mockNotification.On("GetOldValue").Return(mockOldObject)
+	mockNotification.EXPECT().GetNotifier().Return(mockObject)
+	mockNotification.EXPECT().GetEventType().Return(REMOVE)
+	mockNotification.EXPECT().GetFeature().Return(mockReference)
+	mockNotification.EXPECT().GetOldValue().Return(mockOldObject)
 
 	adapter.NotifyChanged(mockNotification)
 
@@ -401,13 +401,12 @@ func TestEContentAdapterNotifyChanged_Remove(t *testing.T) {
 }
 
 func TestEContentAdapterNotifyChanged_RemoveMany(t *testing.T) {
-
 	adapter := NewEContentAdapter()
 	mockNotification := NewMockENotification(t)
 	mockObject := NewMockEObjectInternal(t)
 	mockReference := NewMockEReference(t)
 
-	mockReference.On("IsContainment").Once().Return(true)
+	mockReference.EXPECT().IsContainment().Once().Return(true)
 
 	nb := rand.Intn(10) + 1
 	mockChildren := []any{}
@@ -415,16 +414,16 @@ func TestEContentAdapterNotifyChanged_RemoveMany(t *testing.T) {
 		mockObject := NewMockEObjectInternal(t)
 		mockAdapters := NewMockEList(t)
 
-		mockObject.On("EAdapters").Return(mockAdapters)
-		mockObject.On("EInternalResource").Return(nil)
-		mockAdapters.On("Remove", adapter).Return(true)
+		mockObject.EXPECT().EAdapters().Return(mockAdapters)
+		mockObject.EXPECT().EInternalResource().Return(nil)
+		mockAdapters.EXPECT().Remove(adapter).Return(true)
 		mockChildren = append(mockChildren, mockObject)
 	}
 
-	mockNotification.On("GetNotifier").Twice().Return(mockObject)
-	mockNotification.On("GetFeature").Twice().Return(mockReference)
-	mockNotification.On("GetEventType").Once().Return(REMOVE_MANY)
-	mockNotification.On("GetOldValue").Once().Return(mockChildren)
+	mockNotification.EXPECT().GetNotifier().Twice().Return(mockObject)
+	mockNotification.EXPECT().GetFeature().Twice().Return(mockReference)
+	mockNotification.EXPECT().GetEventType().Once().Return(REMOVE_MANY)
+	mockNotification.EXPECT().GetOldValue().Once().Return(mockChildren)
 
 	adapter.NotifyChanged(mockNotification)
 
@@ -433,14 +432,14 @@ func TestEContentAdapterNotifyChanged_RemoveMany(t *testing.T) {
 }
 
 func TestEContentAdapterIntegration(t *testing.T) {
-	mockAdapter := NewMockContentAdapter()
+	mockAdapter := NewMockEContentAdapter(t)
 
 	rs := NewEResourceSetImpl()
 	rs.EAdapters().Add(mockAdapter)
 
 	// add a new resource to resource set & check that mockAdapter is called
 	r := NewEResourceImpl()
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == rs &&
 			n.GetFeatureID() == RESOURCE_SET__RESOURCES &&
 			n.GetNewValue() == r &&
@@ -452,7 +451,7 @@ func TestEContentAdapterIntegration(t *testing.T) {
 
 	// add a new object to resource & check that mockAdapter is called
 	o := newEObjectImpl()
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == r &&
 			n.GetFeatureID() == RESOURCE__IS_LOADED &&
 			n.GetNewValue() == true &&
@@ -460,7 +459,7 @@ func TestEContentAdapterIntegration(t *testing.T) {
 			n.GetEventType() == SET &&
 			n.GetPosition() == -1
 	})).Once()
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == r &&
 			n.GetFeatureID() == RESOURCE__CONTENTS &&
 			n.GetNewValue() == o &&
@@ -471,7 +470,7 @@ func TestEContentAdapterIntegration(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
 	// remove object from resource & check that mockAdpater is called
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == r &&
 			n.GetFeatureID() == RESOURCE__IS_LOADED &&
 			n.GetNewValue() == false &&
@@ -479,14 +478,14 @@ func TestEContentAdapterIntegration(t *testing.T) {
 			n.GetEventType() == SET &&
 			n.GetPosition() == -1
 	})).Once()
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == r &&
 			n.GetFeatureID() == RESOURCE__CONTENTS &&
 			n.GetOldValue() == o &&
 			n.GetEventType() == REMOVE &&
 			n.GetPosition() == 0
 	})).Once()
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == o &&
 			n.GetOldValue() == mockAdapter &&
 			n.GetEventType() == REMOVING_ADAPTER &&
@@ -496,7 +495,7 @@ func TestEContentAdapterIntegration(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
 	// remove resource from resource set & check that mockAdapter is called & correctly removed
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == r &&
 			n.GetFeatureID() == RESOURCE__RESOURCE_SET &&
 			n.GetOldValue() == rs &&
@@ -504,14 +503,14 @@ func TestEContentAdapterIntegration(t *testing.T) {
 			n.GetEventType() == SET &&
 			n.GetPosition() == -1
 	})).Once()
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == rs &&
 			n.GetFeatureID() == RESOURCE_SET__RESOURCES &&
 			n.GetOldValue() == r &&
 			n.GetEventType() == REMOVE &&
 			n.GetPosition() == 0
 	})).Once()
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(n ENotification) bool {
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == r &&
 			n.GetOldValue() == mockAdapter &&
 			n.GetEventType() == REMOVING_ADAPTER &&

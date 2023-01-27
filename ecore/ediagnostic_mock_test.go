@@ -17,12 +17,12 @@ import (
 
 // TestGetELiterals tests method GetELiterals
 func TestMockEDiagnosticGetMessage(t *testing.T) {
-	o := &MockEDiagnostic{}
+	o := NewMockEDiagnostic(t)
 	v := "message"
-	o.On("GetMessage").Once().Return(v)
+	o.EXPECT().GetMessage().Once().Return(v)
 	assert.Equal(t, v, o.GetMessage())
 
-	o.On("GetMessage").Once().Return(func() string {
+	o.EXPECT().GetMessage().Once().Return(func() string {
 		return v
 	})
 	assert.Equal(t, v, o.GetMessage())
@@ -30,12 +30,12 @@ func TestMockEDiagnosticGetMessage(t *testing.T) {
 }
 
 func TestMockEDiagnosticGetLocation(t *testing.T) {
-	o := &MockEDiagnostic{}
+	o := NewMockEDiagnostic(t)
 	v := "location"
-	o.On("GetLocation").Once().Return(v)
+	o.EXPECT().GetLocation().Once().Return(v)
 	assert.Equal(t, v, o.GetLocation())
 
-	o.On("GetLocation").Once().Return(func() string {
+	o.EXPECT().GetLocation().Once().Return(func() string {
 		return v
 	})
 	assert.Equal(t, v, o.GetLocation())
@@ -43,12 +43,12 @@ func TestMockEDiagnosticGetLocation(t *testing.T) {
 }
 
 func TestMockEDiagnosticGetLine(t *testing.T) {
-	o := &MockEDiagnostic{}
+	o := NewMockEDiagnostic(t)
 	v := 1
-	o.On("GetLine").Once().Return(v)
+	o.EXPECT().GetLine().Once().Return(v)
 	assert.Equal(t, v, o.GetLine())
 
-	o.On("GetLine").Once().Return(func() int {
+	o.EXPECT().GetLine().Once().Return(func() int {
 		return v
 	})
 	assert.Equal(t, v, o.GetLine())
@@ -56,12 +56,12 @@ func TestMockEDiagnosticGetLine(t *testing.T) {
 }
 
 func TestMockEDiagnosticGetColumn(t *testing.T) {
-	o := &MockEDiagnostic{}
+	o := NewMockEDiagnostic(t)
 	v := 1
-	o.On("GetColumn").Once().Return(v)
+	o.EXPECT().GetColumn().Once().Return(v)
 	assert.Equal(t, v, o.GetColumn())
 
-	o.On("GetColumn").Once().Return(func() int {
+	o.EXPECT().GetColumn().Once().Return(func() int {
 		return v
 	})
 	assert.Equal(t, v, o.GetColumn())
@@ -69,12 +69,12 @@ func TestMockEDiagnosticGetColumn(t *testing.T) {
 }
 
 func TestMockEDiagnosticError(t *testing.T) {
-	o := &MockEDiagnostic{}
+	o := NewMockEDiagnostic(t)
 	v := "error"
-	o.On("Error").Once().Return(v)
+	o.EXPECT().Error().Once().Return(v)
 	assert.Equal(t, v, o.Error())
 
-	o.On("Error").Once().Return(func() string {
+	o.EXPECT().Error().Once().Return(func() string {
 		return v
 	})
 	assert.Equal(t, v, o.Error())

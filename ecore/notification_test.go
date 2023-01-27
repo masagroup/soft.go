@@ -65,7 +65,7 @@ func TestNotificationGetFeatureID(t *testing.T) {
 	}
 	{
 		notification := NewNotificationByFeature(mockObject, ADD, mockFeature, 1, 2, NO_INDEX)
-		mockFeature.On("GetFeatureID").Return(5)
+		mockFeature.EXPECT().GetFeatureID().Return(5)
 		assert.Equal(t, 5, notification.GetFeatureID())
 		mockFeature.AssertExpectations(t)
 	}
@@ -85,8 +85,8 @@ func TestNotificationGetFeature(t *testing.T) {
 	}
 	{
 		notification := NewNotificationByFeatureID(mockObject, REMOVE_MANY, 10, 1, 2, 3)
-		mockObject.On("EClass").Return(mockClass)
-		mockClass.On("GetEStructuralFeature", 10).Return(mockFeature)
+		mockObject.EXPECT().EClass().Return(mockClass)
+		mockClass.EXPECT().GetEStructuralFeature(10).Return(mockFeature)
 		assert.Equal(t, mockFeature, notification.GetFeature())
 		mockObject.AssertExpectations(t)
 		mockClass.AssertExpectations(t)
@@ -97,7 +97,7 @@ func TestNotificationDispatch(t *testing.T) {
 	mockObject := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	notification := NewNotificationByFeature(mockObject, ADD, mockFeature, 1, 2, NO_INDEX)
-	mockObject.On("ENotify", notification).Once()
+	mockObject.EXPECT().ENotify(notification).Once()
 	notification.Dispatch()
 	mockObject.AssertExpectations(t)
 }
@@ -105,7 +105,7 @@ func TestNotificationDispatch(t *testing.T) {
 func TestNotificationMerge(t *testing.T) {
 	mockObject := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
-	mockFeature.On("GetFeatureID").Return(1)
+	mockFeature.EXPECT().GetFeatureID().Return(1)
 	{
 		notification := NewNotificationByFeatureID(mockObject, SET, 1, 1, 2, NO_INDEX)
 		other := NewNotificationByFeatureID(mockObject, SET, 1, 2, 3, NO_INDEX)
@@ -157,7 +157,7 @@ func TestNotificationMerge(t *testing.T) {
 func TestNotificationAdd(t *testing.T) {
 	mockObject := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
-	mockFeature.On("GetFeatureID").Return(1)
+	mockFeature.EXPECT().GetFeatureID().Return(1)
 	{
 		notification := NewNotificationByFeature(mockObject, SET, mockFeature, 1, 2, NO_INDEX)
 		assert.False(t, notification.Add(nil))
@@ -173,8 +173,8 @@ func TestNotificationAdd(t *testing.T) {
 		notification := NewNotificationByFeature(mockObject, ADD, mockFeature, nil, obj1, NO_INDEX)
 		other := NewNotificationByFeature(mockObject, ADD, mockFeature, nil, obj2, NO_INDEX)
 		assert.True(t, notification.Add(other))
-		mockObject.On("ENotify", notification).Once()
-		mockObject.On("ENotify", other).Once()
+		mockObject.EXPECT().ENotify(notification).Once()
+		mockObject.EXPECT().ENotify(other).Once()
 		notification.Dispatch()
 		mockObject.AssertExpectations(t)
 	}
@@ -183,11 +183,11 @@ func TestNotificationAdd(t *testing.T) {
 		notification := NewNotificationByFeature(mockObject, ADD, mockFeature, nil, mockObj, NO_INDEX)
 		mockOther := &MockENotification{}
 		mockNotifier := NewMockENotifier(t)
-		mockOther.On("GetEventType").Return(SET)
-		mockOther.On("GetNotifier").Return(mockNotifier)
+		mockOther.EXPECT().GetEventType().Return(SET)
+		mockOther.EXPECT().GetNotifier().Return(mockNotifier)
 		assert.True(t, notification.Add(mockOther))
-		mockObject.On("ENotify", notification).Once()
-		mockNotifier.On("ENotify", mockOther).Once()
+		mockObject.EXPECT().ENotify(notification).Once()
+		mockNotifier.EXPECT().ENotify(mockOther).Once()
 		notification.Dispatch()
 		mockObject.AssertExpectations(t)
 		mockOther.AssertExpectations(t)

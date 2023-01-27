@@ -24,7 +24,7 @@ func TestEAttribute_GetEAttributeType(t *testing.T) {
 	a := newEAttributeExt()
 	a.SetEType(mockType)
 
-	mockType.On("EIsProxy").Return(false).Once()
+	mockType.EXPECT().EIsProxy().Return(false).Once()
 	assert.Equal(t, mockType, a.GetEAttributeType())
 	mockType.AssertExpectations(t)
 }

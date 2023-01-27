@@ -19,7 +19,7 @@ import (
 func TestMockEPackageRegistryImpl_RegisterPackage(t *testing.T) {
 	rp := NewEPackageRegistryImpl()
 	p := NewMockEPackage(t)
-	p.On("GetNsURI").Return("uri").Once()
+	p.EXPECT().GetNsURI().Return("uri").Once()
 	rp.RegisterPackage(p)
 	mock.AssertExpectationsForObjects(t, p)
 }
@@ -27,7 +27,7 @@ func TestMockEPackageRegistryImpl_RegisterPackage(t *testing.T) {
 func TestMockEPackageRegistryImpl_UnRegisterPackage(t *testing.T) {
 	rp := NewEPackageRegistryImpl()
 	p := NewMockEPackage(t)
-	p.On("GetNsURI").Return("uri").Once()
+	p.EXPECT().GetNsURI().Return("uri").Once()
 	rp.UnregisterPackage(p)
 	mock.AssertExpectationsForObjects(t, p)
 }
@@ -66,7 +66,7 @@ func TestMockEPackageRegistryImpl_GetPackage(t *testing.T) {
 	{
 		rp := NewEPackageRegistryImpl()
 		p := NewMockEPackage(t)
-		p.On("GetNsURI").Return("uri").Once()
+		p.EXPECT().GetNsURI().Return("uri").Once()
 		rp.RegisterPackage(p)
 		mock.AssertExpectationsForObjects(t, p)
 		assert.Equal(t, p, rp.GetPackage("uri"))
@@ -75,7 +75,7 @@ func TestMockEPackageRegistryImpl_GetPackage(t *testing.T) {
 		delegate := &MockEPackageRegistry{}
 		p := NewMockEPackage(t)
 		rp := NewEPackageRegistryImplWithDelegate(delegate)
-		delegate.On("GetPackage", "uri").Return(p).Once()
+		delegate.EXPECT().GetPackage("uri").Return(p).Once()
 		assert.Equal(t, p, rp.GetPackage("uri"))
 		mock.AssertExpectationsForObjects(t, p, delegate)
 	}
@@ -89,12 +89,12 @@ func TestMockEPackageRegistryImpl_GetFactory(t *testing.T) {
 	{
 		rp := NewEPackageRegistryImpl()
 		p := NewMockEPackage(t)
-		p.On("GetNsURI").Return("uri").Once()
+		p.EXPECT().GetNsURI().Return("uri").Once()
 		rp.RegisterPackage(p)
 		mock.AssertExpectationsForObjects(t, p)
 
 		f := NewMockEFactory(t)
-		p.On("GetEFactoryInstance").Return(f).Once()
+		p.EXPECT().GetEFactoryInstance().Return(f).Once()
 		assert.Equal(t, f, rp.GetFactory("uri"))
 		mock.AssertExpectationsForObjects(t, p, f)
 	}
@@ -103,7 +103,7 @@ func TestMockEPackageRegistryImpl_GetFactory(t *testing.T) {
 		p := NewMockEPackage(t)
 		f := NewMockEFactory(t)
 		rp := NewEPackageRegistryImplWithDelegate(delegate)
-		delegate.On("GetFactory", "uri").Return(f).Once()
+		delegate.EXPECT().GetFactory("uri").Return(f).Once()
 		assert.Equal(t, f, rp.GetFactory("uri"))
 		mock.AssertExpectationsForObjects(t, p, delegate)
 	}

@@ -18,14 +18,14 @@ func TestResourceURI(t *testing.T) {
 func TestResourceURINotifications(t *testing.T) {
 	r := NewEResourceImpl()
 	mockEAdapter := NewMockEAdapter(t)
-	mockEAdapter.On("SetTarget", r).Once()
+	mockEAdapter.EXPECT().SetTarget(r).Once()
 	r.EAdapters().Add(mockEAdapter)
 	mock.AssertExpectationsForObjects(t, mockEAdapter)
 
 	u, err := ParseURI("https://example.com/foo%2fbar")
 	assert.Nil(t, err)
 
-	mockEAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockEAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	r.SetURI(u)
 	assert.Equal(t, u, r.GetURI())
 	mock.AssertExpectationsForObjects(t, mockEAdapter)
@@ -35,10 +35,10 @@ func TestResourceContents(t *testing.T) {
 	r := NewEResourceImpl()
 
 	mockEObjectInternal := NewMockEObjectInternal(t)
-	mockEObjectInternal.On("ESetResource", r, mock.Anything).Return(nil)
+	mockEObjectInternal.EXPECT().ESetResource(r, mock.Anything).Return(nil)
 	r.GetContents().Add(mockEObjectInternal)
 
-	mockEObjectInternal.On("ESetResource", nil, mock.Anything).Return(nil)
+	mockEObjectInternal.EXPECT().ESetResource(nil, mock.Anything).Return(nil)
 	r.GetContents().Remove(mockEObjectInternal)
 }
 
@@ -63,14 +63,14 @@ func TestResourceGetURIFragment(t *testing.T) {
 		mockFactory := NewMockEFactory(t)
 		mockIDValue := 0
 
-		mockObject.On("EClass").Return(mockClass).Once()
-		mockClass.On("GetEIDAttribute").Return(mockAttribute).Once()
-		mockObject.On("EIsSet", mockAttribute).Return(true).Once()
-		mockObject.On("EGet", mockAttribute).Return(mockIDValue).Once()
-		mockAttribute.On("GetEAttributeType").Return(mockDataType).Once()
-		mockDataType.On("GetEPackage").Return(mockPackage).Once()
-		mockPackage.On("GetEFactoryInstance").Return(mockFactory).Once()
-		mockFactory.On("ConvertToString", mockDataType, mockIDValue).Return("id1").Once()
+		mockObject.EXPECT().EClass().Return(mockClass).Once()
+		mockClass.EXPECT().GetEIDAttribute().Return(mockAttribute).Once()
+		mockObject.EXPECT().EIsSet(mockAttribute).Return(true).Once()
+		mockObject.EXPECT().EGet(mockAttribute).Return(mockIDValue).Once()
+		mockAttribute.EXPECT().GetEAttributeType().Return(mockDataType).Once()
+		mockDataType.EXPECT().GetEPackage().Return(mockPackage).Once()
+		mockPackage.EXPECT().GetEFactoryInstance().Return(mockFactory).Once()
+		mockFactory.EXPECT().ConvertToString(mockDataType, mockIDValue).Return("id1").Once()
 		assert.Equal(t, "id1", r.GetURIFragment(mockObject))
 		mock.AssertExpectationsForObjects(t, mockObject, mockClass, mockAttribute, mockDataType, mockPackage, mockFactory)
 	}
@@ -78,14 +78,14 @@ func TestResourceGetURIFragment(t *testing.T) {
 	{
 		r := NewEResourceImpl()
 		mockObject := NewMockEObjectInternal(t)
-		mockObject.On("ESetResource", r, nil).Return(nil).Once()
+		mockObject.EXPECT().ESetResource(r, nil).Return(nil).Once()
 		r.GetContents().Add(mockObject)
 		mock.AssertExpectationsForObjects(t, mockObject)
 
 		mockClass := NewMockEClass(t)
-		mockObject.On("EClass").Return(mockClass).Twice()
-		mockClass.On("GetEIDAttribute").Return(nil).Twice()
-		mockObject.On("EInternalResource").Return(r).Once()
+		mockObject.EXPECT().EClass().Return(mockClass).Twice()
+		mockClass.EXPECT().GetEIDAttribute().Return(nil).Twice()
+		mockObject.EXPECT().EInternalResource().Return(r).Once()
 
 		assert.Equal(t, "/", r.GetURIFragment(mockObject))
 		mock.AssertExpectationsForObjects(t, mockObject, mockClass)
@@ -95,15 +95,15 @@ func TestResourceGetURIFragment(t *testing.T) {
 		r := NewEResourceImpl()
 		mockObject1 := NewMockEObjectInternal(t)
 		mockObject2 := NewMockEObjectInternal(t)
-		mockObject1.On("ESetResource", r, mock.Anything).Return(nil).Once()
-		mockObject2.On("ESetResource", r, mock.Anything).Return(nil).Once()
+		mockObject1.EXPECT().ESetResource(r, mock.Anything).Return(nil).Once()
+		mockObject2.EXPECT().ESetResource(r, mock.Anything).Return(nil).Once()
 		r.GetContents().AddAll(NewImmutableEList([]any{mockObject1, mockObject2}))
 		mock.AssertExpectationsForObjects(t, mockObject1, mockObject2)
 
 		mockClass := NewMockEClass(t)
-		mockObject1.On("EClass").Return(mockClass).Twice()
-		mockClass.On("GetEIDAttribute").Return(nil).Twice()
-		mockObject1.On("EInternalResource").Return(r).Once()
+		mockObject1.EXPECT().EClass().Return(mockClass).Twice()
+		mockClass.EXPECT().GetEIDAttribute().Return(nil).Twice()
+		mockObject1.EXPECT().EInternalResource().Return(r).Once()
 
 		assert.Equal(t, "/0", r.GetURIFragment(mockObject1))
 		mock.AssertExpectationsForObjects(t, mockObject1, mockObject2, mockClass)
@@ -116,13 +116,13 @@ func TestResourceGetURIFragment(t *testing.T) {
 
 		mockClass := NewMockEClass(t)
 		mockFeature := NewMockEStructuralFeature(t)
-		mockObject.On("EClass").Return(mockClass).Twice()
-		mockClass.On("GetEIDAttribute").Return(nil).Twice()
-		mockObject.On("EInternalResource").Return(nil).Once()
-		mockObject.On("EInternalContainer").Return(mockRoot).Once()
-		mockObject.On("EContainingFeature").Return(mockFeature).Once()
-		mockRoot.On("EURIFragmentSegment", mockFeature, mockObject).Return("@fragment").Once()
-		mockRoot.On("EInternalResource").Return(r).Once()
+		mockObject.EXPECT().EClass().Return(mockClass).Twice()
+		mockClass.EXPECT().GetEIDAttribute().Return(nil).Twice()
+		mockObject.EXPECT().EInternalResource().Return(nil).Once()
+		mockObject.EXPECT().EInternalContainer().Return(mockRoot).Once()
+		mockObject.EXPECT().EContainingFeature().Return(mockFeature).Once()
+		mockRoot.EXPECT().EURIFragmentSegment(mockFeature, mockObject).Return("@fragment").Once()
+		mockRoot.EXPECT().EInternalResource().Return(r).Once()
 		assert.Equal(t, "//@fragment", r.GetURIFragment(mockObject))
 		mock.AssertExpectationsForObjects(t, mockObject, mockRoot, mockClass, mockFeature)
 	}
@@ -135,12 +135,12 @@ func TestResourceGetURIFragment(t *testing.T) {
 		mockRoot := NewMockEObjectInternal(t)
 		mockObject := NewMockEObjectInternal(t)
 		mockClass := NewMockEClass(t)
-		mockObject.On("EClass").Return(mockClass).Once()
-		mockClass.On("GetEIDAttribute").Return(nil).Once()
-		mockObject.On("EInternalResource").Return(nil).Once()
-		mockObject.On("EInternalContainer").Return(mockRoot).Once()
-		mockIDManager.On("GetID", mockObject).Return("objectID").Once()
-		mockRoot.On("EInternalResource").Return(r).Once()
+		mockObject.EXPECT().EClass().Return(mockClass).Once()
+		mockClass.EXPECT().GetEIDAttribute().Return(nil).Once()
+		mockObject.EXPECT().EInternalResource().Return(nil).Once()
+		mockObject.EXPECT().EInternalContainer().Return(mockRoot).Once()
+		mockIDManager.EXPECT().GetID(mockObject).Return("objectID").Once()
+		mockRoot.EXPECT().EInternalResource().Return(r).Once()
 		assert.Equal(t, "objectID", r.GetURIFragment(mockObject))
 	}
 }
@@ -166,7 +166,7 @@ func TestResourceIDManager(t *testing.T) {
 	eFactory := ePackage.GetEFactoryInstance()
 	eLibraryClass := ePackage.GetEClassifier("Library").(EClass)
 	eLibrary := eFactory.Create(eLibraryClass)
-	mockIDManager.On("Register", eLibrary).Once()
+	mockIDManager.EXPECT().Register(eLibrary).Once()
 	eResource.GetContents().Add(eLibrary)
 	mock.AssertExpectationsForObjects(t, mockIDManager)
 
@@ -176,8 +176,8 @@ func TestResourceIDManager(t *testing.T) {
 	eBookList := eLibrary.EGet(eLibraryBooksReference).(EList)
 	eBook1 := eFactory.Create(eBookClass)
 	eBook2 := eFactory.Create(eBookClass)
-	mockIDManager.On("Register", eBook1).Once()
-	mockIDManager.On("Register", eBook2).Once()
+	mockIDManager.EXPECT().Register(eBook1).Once()
+	mockIDManager.EXPECT().Register(eBook2).Once()
 	eBookList.AddAll(NewImmutableEList([]any{eBook1, eBook2}))
 	mock.AssertExpectationsForObjects(t, mockIDManager)
 }
@@ -188,11 +188,11 @@ func TestResourceListeners(t *testing.T) {
 	eResource := NewEResourceImpl()
 	eResource.GetResourceListeners().Add(mockListener)
 
-	mockListener.On("Attached", mockObject).Once()
-	mockObject.On("EContents").Return(NewEmptyImmutableEList())
+	mockListener.EXPECT().Attached(mockObject).Once()
+	mockObject.EXPECT().EContents().Return(NewEmptyImmutableEList())
 	eResource.Attached(mockObject)
 
-	mockListener.On("Detached", mockObject).Once()
-	mockObject.On("EContents").Return(NewEmptyImmutableEList())
+	mockListener.EXPECT().Detached(mockObject).Once()
+	mockObject.EXPECT().EContents().Return(NewEmptyImmutableEList())
 	eResource.Detached(mockObject)
 }

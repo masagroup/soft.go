@@ -213,7 +213,7 @@ func TestBasicNotifyingListAddWithNotification(t *testing.T) {
 
 	// with notifications
 	mockChain := NewMockENotificationChain(t)
-	mockChain.On("Add", mock.MatchedBy(func(n ENotification) bool {
+	mockChain.EXPECT().Add(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
 			n.GetFeature() == l.mockFeature &&
 			n.GetNewValue() == 2 &&
@@ -228,7 +228,7 @@ func TestBasicNotifyingListAddWithNotification(t *testing.T) {
 func TestBasicNotifyingListRemoveWithNotification(t *testing.T) {
 	l := newNotifyingListTestFromData(t, []any{1})
 	mockChain := NewMockENotificationChain(t)
-	mockChain.On("Add", mock.MatchedBy(func(n ENotification) bool {
+	mockChain.EXPECT().Add(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
 			n.GetFeature() == l.mockFeature &&
 			n.GetNewValue() == nil &&
@@ -242,7 +242,7 @@ func TestBasicNotifyingListRemoveWithNotification(t *testing.T) {
 func TestBasicNotifyingListSetWithNotification(t *testing.T) {
 	l := newNotifyingListTestFromData(t, []any{1})
 	mockChain := NewMockENotificationChain(t)
-	mockChain.On("Add", mock.MatchedBy(func(n ENotification) bool {
+	mockChain.EXPECT().Add(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&
 			n.GetFeature() == l.mockFeature &&
 			n.GetNewValue() == 2 &&

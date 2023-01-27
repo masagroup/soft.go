@@ -24,7 +24,7 @@ func TestEResourceSetConstructor(t *testing.T) {
 func TestEResourceSetResourcesWithMock(t *testing.T) {
 	rs := NewEResourceSetImpl()
 	r := NewMockEResourceInternal(t)
-	r.On("BasicSetResourceSet", rs, nil).Return(nil)
+	r.EXPECT().BasicSetResourceSet(rs, nil).Return(nil).Once()
 	rs.GetResources().Add(r)
 }
 
@@ -54,15 +54,52 @@ func TestEResourceSetGetRegisteredResource(t *testing.T) {
 
 	// register resource
 	mockResource := NewMockEResourceInternal(t)
-	mockResource.On("BasicSetResourceSet", rs, nil).Return(nil)
+	mockResource.EXPECT().BasicSetResourceSet(rs, nil).Return(nil).Once()
 	rs.GetResources().Add(mockResource)
 
 	// get registered resource - no loading
-	mockResource.On("GetURI").Return(uri)
+	mockResource.EXPECT().GetURI().Return(uri).Once()
 	assert.Equal(t, mockResource, rs.GetResource(uri, false))
 
 	// get registered resource - loading
-	mockResource.On("IsLoaded").Once().Return(false)
-	mockResource.On("Load").Once()
+	mockResource.EXPECT().GetURI().Return(uri).Once()
+	mockResource.EXPECT().IsLoaded().Once().Return(false)
+	mockResource.EXPECT().Load().Once()
 	assert.Equal(t, mockResource, rs.GetResource(uri, true))
+}
+
+func TestEResourceSet_GetURIConverter(t *testing.T) {
+	rs := NewEResourceSetImpl()
+	assert.NotNil(t, rs.GetURIConverter())
+
+	mockURIConverter := NewMockEURIConverter(t)
+	rs.SetURIConverter(mockURIConverter)
+	assert.Equal(t, mockURIConverter, rs.GetURIConverter())
+}
+
+func TestEResourceSet_GetPackageRegistry(t *testing.T) {
+	rs := NewEResourceSetImpl()
+	assert.NotNil(t, rs.GetPackageRegistry())
+
+	mockPackageRegistry := NewMockEPackageRegistry(t)
+	rs.SetPackageRegistry(mockPackageRegistry)
+	assert.Equal(t, mockPackageRegistry, rs.GetPackageRegistry())
+}
+
+func TestEResourceSet_GetResourceCodecRegistry(t *testing.T) {
+	rs := NewEResourceSetImpl()
+	assert.NotNil(t, rs.GetResourceCodecRegistry())
+
+	mockResourceCodecRegistry := NewMockEResourceCodecRegistry(t)
+	rs.SetResourceCodecRegistry(mockResourceCodecRegistry)
+	assert.Equal(t, mockResourceCodecRegistry, rs.GetResourceCodecRegistry())
+}
+
+func TestEResourceSet_GetURIResourceMap(t *testing.T) {
+	rs := NewEResourceSetImpl()
+	assert.Nil(t, rs.GetURIResourceMap())
+
+	mockURIResourceMap := map[*URI]EResource{}
+	rs.SetURIResourceMap(mockURIResourceMap)
+	assert.Equal(t, mockURIResourceMap, rs.GetURIResourceMap())
 }

@@ -10,24 +10,25 @@
 package ecore
 
 import (
+	"bytes"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestMockEResourceCodec_NewDecoder(t *testing.T) {
-	mockCodec := &MockEResourceCodec{}
-	mockDecoder := &MockEResourceDecoder{}
+	mockCodec := NewMockEResourceCodec(t)
+	mockDecoder := NewMockEResourceDecoder(t)
 	mockResource := NewMockEResource(t)
 	options := map[string]any{}
-	var r io.Reader = nil
-	mockCodec.On("NewDecoder", mockResource, r, options).Return(mockDecoder).Once()
-	mockCodec.On("NewDecoder", mockResource, r, options).Return(func(EResource, io.Reader, map[string]any) EResourceDecoder { return mockDecoder }).Once()
-	assert.Equal(t, mockDecoder, mockCodec.NewDecoder(mockResource, r, options))
-	assert.Equal(t, mockDecoder, mockCodec.NewDecoder(mockResource, r, options))
-	mock.AssertExpectationsForObjects(t, mockCodec)
+	reader := strings.NewReader("")
+	m := NewMockRun(t, mockResource, reader, options)
+	mockCodec.EXPECT().NewDecoder(mockResource, reader, options).Return(mockDecoder).Run(func(resource EResource, r io.Reader, options map[string]interface{}) { m.Run(resource, r, options) }).Once()
+	mockCodec.EXPECT().NewDecoder(mockResource, reader, options).Call.Return(func(EResource, io.Reader, map[string]any) EResourceDecoder { return mockDecoder }).Once()
+	assert.Equal(t, mockDecoder, mockCodec.NewDecoder(mockResource, reader, options))
+	assert.Equal(t, mockDecoder, mockCodec.NewDecoder(mockResource, reader, options))
 }
 
 func TestMockEResourceCodec_NewEncoder(t *testing.T) {
@@ -35,10 +36,10 @@ func TestMockEResourceCodec_NewEncoder(t *testing.T) {
 	mockEncoder := &MockEResourceEncoder{}
 	mockResource := NewMockEResource(t)
 	options := map[string]any{}
-	var w io.Writer = nil
-	mockCodec.On("NewEncoder", mockResource, w, options).Return(mockEncoder).Once()
-	mockCodec.On("NewEncoder", mockResource, w, options).Return(func(EResource, io.Writer, map[string]any) EResourceEncoder { return mockEncoder }).Once()
-	assert.Equal(t, mockEncoder, mockCodec.NewEncoder(mockResource, w, options))
-	assert.Equal(t, mockEncoder, mockCodec.NewEncoder(mockResource, w, options))
-	mock.AssertExpectationsForObjects(t, mockCodec)
+	writer := bytes.NewBufferString("")
+	m := NewMockRun(t, mockResource, writer, options)
+	mockCodec.EXPECT().NewEncoder(mockResource, writer, options).Return(mockEncoder).Run(func(resource EResource, r io.Writer, options map[string]interface{}) { m.Run(resource, r, options) }).Once()
+	mockCodec.EXPECT().NewEncoder(mockResource, writer, options).Call.Return(func(EResource, io.Writer, map[string]any) EResourceEncoder { return mockEncoder }).Once()
+	assert.Equal(t, mockEncoder, mockCodec.NewEncoder(mockResource, writer, options))
+	assert.Equal(t, mockEncoder, mockCodec.NewEncoder(mockResource, writer, options))
 }

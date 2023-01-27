@@ -19,130 +19,132 @@ import (
 func TestMockEResourceSetGetResources(t *testing.T) {
 	rs := NewMockEResourceSet(t)
 	l := NewMockEList(t)
-	rs.On("GetResources").Return(l).Once()
-	rs.On("GetResources").Return(func() EList {
+	m := NewMockRun(t)
+	rs.EXPECT().GetResources().Return(l).Run(func() { m.Run() }).Once()
+	rs.EXPECT().GetResources().Call.Return(func() EList {
 		return l
 	}).Once()
 	assert.Equal(t, l, rs.GetResources())
 	assert.Equal(t, l, rs.GetResources())
-	mock.AssertExpectationsForObjects(t, rs, l)
 }
 
 func TestMockEResourceSetGetResource(t *testing.T) {
 	rs := NewMockEResourceSet(t)
 	r := NewMockEResource(t)
 	uri, _ := ParseURI("test://file.t")
-	rs.On("GetResource", uri, false).Return(r).Once()
-	rs.On("GetResource", uri, true).Return(func(uri *URI, loadOnDemand bool) EResource {
+	m := NewMockRun(t, uri, false)
+	rs.EXPECT().GetResource(uri, false).Return(r).Run(func(uri *URI, loadOnDemand bool) { m.Run(uri, loadOnDemand) }).Once()
+	rs.EXPECT().GetResource(uri, true).Call.Return(func(uri *URI, loadOnDemand bool) EResource {
 		return r
 	}).Once()
 	assert.Equal(t, r, rs.GetResource(uri, false))
 	assert.Equal(t, r, rs.GetResource(uri, true))
-	mock.AssertExpectationsForObjects(t, r, rs)
 }
 
 func TestMockEResourceSetCreateResource(t *testing.T) {
 	rs := NewMockEResourceSet(t)
 	r := NewMockEResource(t)
 	uri, _ := ParseURI("test://file.t")
-	rs.On("CreateResource", uri).Return(r).Once()
-	rs.On("CreateResource", uri).Return(func(uri *URI) EResource {
+	m := NewMockRun(t, uri)
+	rs.EXPECT().CreateResource(uri).Return(r).Run(func(uri *URI) { m.Run(uri) }).Once()
+	rs.EXPECT().CreateResource(uri).Call.Return(func(uri *URI) EResource {
 		return r
 	}).Once()
 	assert.Equal(t, r, rs.CreateResource(uri))
 	assert.Equal(t, r, rs.CreateResource(uri))
-	mock.AssertExpectationsForObjects(t, r, rs)
 }
 
 func TestMockEResourceSetGetEObject(t *testing.T) {
 	rs := NewMockEResourceSet(t)
 	o := NewMockEObject(t)
 	uri, _ := ParseURI("test://file.t")
-	rs.On("GetEObject", uri, false).Return(o).Once()
-	rs.On("GetEObject", uri, true).Return(func(uri *URI, loadOnDemand bool) EObject {
+	m := NewMockRun(t, uri, false)
+	rs.EXPECT().GetEObject(uri, false).Return(o).Run(func(uri *URI, loadOnDemand bool) { m.Run(uri, loadOnDemand) }).Once()
+	rs.EXPECT().GetEObject(uri, true).Call.Return(func(uri *URI, loadOnDemand bool) EObject {
 		return o
 	}).Once()
 	assert.Equal(t, o, rs.GetEObject(uri, false))
 	assert.Equal(t, o, rs.GetEObject(uri, true))
-	mock.AssertExpectationsForObjects(t, o, rs)
 }
 
 func TestMockEResourceSetGetURIConverter(t *testing.T) {
 	rs := NewMockEResourceSet(t)
-	c := &MockEURIConverter{}
-	rs.On("GetURIConverter").Return(c).Once()
-	rs.On("GetURIConverter").Return(func() EURIConverter {
+	c := NewMockEURIConverter(t)
+	m := NewMockRun(t)
+	rs.EXPECT().GetURIConverter().Return(c).Run(func() { m.Run() }).Once()
+	rs.EXPECT().GetURIConverter().Call.Return(func() EURIConverter {
 		return c
 	}).Once()
 	assert.Equal(t, c, rs.GetURIConverter())
 	assert.Equal(t, c, rs.GetURIConverter())
-	mock.AssertExpectationsForObjects(t, rs, c)
 }
 
 func TestMockEResourceSetSetURIConverter(t *testing.T) {
 	rs := NewMockEResourceSet(t)
-	c := &MockEURIConverter{}
-	rs.On("SetURIConverter", c).Once()
+	c := NewMockEURIConverter(t)
+	m := NewMockRun(t, c)
+	rs.EXPECT().SetURIConverter(c).Return().Run(func(uriConverter EURIConverter) { m.Run(uriConverter) }).Once()
 	rs.SetURIConverter(c)
-	mock.AssertExpectationsForObjects(t, rs, c)
 }
 
 func TestMockEResourceSetGetPackageRegistry(t *testing.T) {
 	rs := NewMockEResourceSet(t)
-	pr := &MockEPackageRegistry{}
-	rs.On("GetPackageRegistry").Return(pr).Once()
-	rs.On("GetPackageRegistry").Return(func() EPackageRegistry {
+	pr := NewMockEPackageRegistry(t)
+	m := NewMockRun(t)
+	rs.EXPECT().GetPackageRegistry().Return(pr).Run(func() { m.Run() }).Once()
+	rs.EXPECT().GetPackageRegistry().Call.Return(func() EPackageRegistry {
 		return pr
 	}).Once()
 	assert.Equal(t, pr, rs.GetPackageRegistry())
 	assert.Equal(t, pr, rs.GetPackageRegistry())
-	mock.AssertExpectationsForObjects(t, rs, pr)
 }
 
 func TestMockEResourceSetSetPackageRegistry(t *testing.T) {
 	rs := NewMockEResourceSet(t)
-	pr := &MockEPackageRegistry{}
-	rs.On("SetPackageRegistry", pr).Once()
+	pr := NewMockEPackageRegistry(t)
+	m := NewMockRun(t, pr)
+	rs.EXPECT().SetPackageRegistry(pr).Return().Run(func(packageregistry EPackageRegistry) { m.Run(packageregistry) }).Once()
 	rs.SetPackageRegistry(pr)
 	mock.AssertExpectationsForObjects(t, rs, pr)
 }
 
 func TestMockEResourceSetGetResourceCodecRegistry(t *testing.T) {
 	rs := NewMockEResourceSet(t)
-	pr := &MockEResourceCodecRegistry{}
-	rs.On("GetResourceCodecRegistry").Return(pr).Once()
-	rs.On("GetResourceCodecRegistry").Return(func() EResourceCodecRegistry {
+	pr := NewMockEResourceCodecRegistry(t)
+	m := NewMockRun(t)
+	rs.EXPECT().GetResourceCodecRegistry().Return(pr).Run(func() { m.Run() }).Once()
+	rs.EXPECT().GetResourceCodecRegistry().Call.Return(func() EResourceCodecRegistry {
 		return pr
 	}).Once()
 	assert.Equal(t, pr, rs.GetResourceCodecRegistry())
 	assert.Equal(t, pr, rs.GetResourceCodecRegistry())
-	mock.AssertExpectationsForObjects(t, rs, pr)
 }
 
 func TestMockEResourceSetSetResourceCodecRegistry(t *testing.T) {
 	rs := NewMockEResourceSet(t)
-	pr := &MockEResourceCodecRegistry{}
-	rs.On("SetResourceCodecRegistry", pr).Once()
+	pr := NewMockEResourceCodecRegistry(t)
+	m := NewMockRun(t, pr)
+	rs.EXPECT().SetResourceCodecRegistry(pr).Return().Run(func(packageregistry EResourceCodecRegistry) { m.Run(packageregistry) }).Once()
 	rs.SetResourceCodecRegistry(pr)
-	mock.AssertExpectationsForObjects(t, rs, pr)
 }
 
 func TestMockEResourceSetGetURIResourceMap(t *testing.T) {
 	rs := NewMockEResourceSet(t)
 	pr := make(map[*URI]EResource)
-	rs.On("GetURIResourceMap").Return(pr).Once()
-	rs.On("GetURIResourceMap").Return(func() map[*URI]EResource {
+	m := NewMockRun(t)
+	rs.EXPECT().GetURIResourceMap().Return(pr).Run(func() { m.Run() }).Once()
+	rs.EXPECT().GetURIResourceMap().Call.Return(func() map[*URI]EResource {
 		return pr
 	}).Once()
 	assert.Equal(t, pr, rs.GetURIResourceMap())
 	assert.Equal(t, pr, rs.GetURIResourceMap())
-	mock.AssertExpectationsForObjects(t, rs)
 }
 
 func TestMockEResourceSetSetURIResourceMap(t *testing.T) {
 	rs := NewMockEResourceSet(t)
 	pr := make(map[*URI]EResource)
-	rs.On("SetURIResourceMap", pr).Once()
+	m := NewMockRun(t, pr)
+	rs.EXPECT().SetURIResourceMap(pr).Return().Run(func(mp map[*URI]EResource) { m.Run(mp) }).Once()
 	rs.SetURIResourceMap(pr)
 	mock.AssertExpectationsForObjects(t, rs)
 }

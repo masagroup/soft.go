@@ -252,3 +252,15 @@ func TestMockEResourceSetIDManager(t *testing.T) {
 	r.EXPECT().SetObjectIDManager(id).Return().Run(func(_a0 EObjectIDManager) { m.Run(_a0) }).Once()
 	r.SetObjectIDManager(id)
 }
+
+func TestMockEResourceGetResourceListeners(t *testing.T) {
+	r := NewMockEResource(t)
+	l := NewMockEList(t)
+	m := NewMockRun(t)
+	r.EXPECT().GetResourceListeners().Return(l).Run(func() { m.Run() }).Once()
+	r.EXPECT().GetResourceListeners().Call.Return(func() EList {
+		return l
+	}).Once()
+	assert.Equal(t, l, r.GetResourceListeners())
+	assert.Equal(t, l, r.GetResourceListeners())
+}

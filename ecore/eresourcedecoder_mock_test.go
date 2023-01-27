@@ -16,16 +16,18 @@ import (
 )
 
 func TestMockEResourceDecoder_DecodeResource(t *testing.T) {
-	mockDecoder := &MockEResourceDecoder{}
-	mockDecoder.On("Decode").Once()
+	mockDecoder := NewMockEResourceDecoder(t)
+	m := NewMockRun(t)
+	mockDecoder.EXPECT().Decode().Return().Run(func() { m.Run() }).Once()
 	mockDecoder.Decode()
 }
 
 func TestMockEResourceDecoder_DecodeObject(t *testing.T) {
-	mockDecoder := &MockEResourceDecoder{}
+	mockDecoder := NewMockEResourceDecoder(t)
 	mockObject := NewMockEObject(t)
-	mockDecoder.On("DecodeObject").Return(mockObject, nil).Once()
-	mockDecoder.On("DecodeObject").Return(func() (EObject, error) {
+	m := NewMockRun(t)
+	mockDecoder.EXPECT().DecodeObject().Return(mockObject, nil).Run(func() { m.Run() }).Once()
+	mockDecoder.EXPECT().DecodeObject().Call.Return(func() (EObject, error) {
 		return mockObject, nil
 	}).Once()
 	{

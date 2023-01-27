@@ -23,7 +23,7 @@ func TestEResourceSetConstructor(t *testing.T) {
 
 func TestEResourceSetResourcesWithMock(t *testing.T) {
 	rs := NewEResourceSetImpl()
-	r := new(MockEResourceInternal)
+	r := NewMockEResourceInternal(t)
 	r.On("BasicSetResourceSet", rs, nil).Return(nil)
 	rs.GetResources().Add(r)
 }
@@ -53,7 +53,7 @@ func TestEResourceSetGetRegisteredResource(t *testing.T) {
 	rs := NewEResourceSetImpl()
 
 	// register resource
-	mockResource := new(MockEResourceInternal)
+	mockResource := NewMockEResourceInternal(t)
 	mockResource.On("BasicSetResourceSet", rs, nil).Return(nil)
 	rs.GetResources().Add(mockResource)
 

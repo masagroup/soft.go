@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,6 +25,13 @@ func TestNewXmlProcessor(t *testing.T) {
 	p := NewXMLProcessor()
 	require.NotNil(t, p)
 	assert.NotNil(t, p.GetResourceSet())
+}
+
+func TestNewXmlProcessorWithOption(t *testing.T) {
+	mockOption := newMockXmlProcessorOption(t)
+	mockOption.EXPECT().apply(mock.AnythingOfType("*ecore.XMLProcessor")).Once()
+	p := NewXMLProcessor(mockOption)
+	require.NotNil(t, p)
 }
 
 func TestNewSharedXmlProcessor(t *testing.T) {

@@ -37,3 +37,17 @@ func TestEDataTypeExtGetDefaultValue(t *testing.T) {
 	d.defaultValue = value
 	assert.Equal(t, value, d.GetDefaultValue())
 }
+
+func TestEDataTypeExtGetInstanceTypeName(t *testing.T) {
+	mockEDataType := NewMockEDataType(t)
+	mockEDataType.EXPECT().GetEAnnotation("http://net.masagroup/soft/2019/GenGo").Return(nil).Once()
+	mockEDataType.EXPECT().GetInstanceTypeName().Return("type").Once()
+	assert.Equal(t, "type", getInstanceTypeName(mockEDataType))
+
+	mockEAnnotation := NewMockEAnnotation(t)
+	mockEMap := NewMockEMap(t)
+	mockEDataType.EXPECT().GetEAnnotation("http://net.masagroup/soft/2019/GenGo").Return(mockEAnnotation).Once()
+	mockEAnnotation.EXPECT().GetDetails().Return(mockEMap).Once()
+	mockEMap.EXPECT().GetValue("instanceTypeName").Return("type")
+	assert.Equal(t, "type", getInstanceTypeName(mockEDataType))
+}

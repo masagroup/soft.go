@@ -17,12 +17,11 @@ import (
 )
 
 func TestMockEObjectList_GetUnResolvedList(t *testing.T) {
-	o := &MockEObjectList{}
+	o := NewMockEObjectList(t)
 	l := NewMockEList(t)
-	o.EXPECT().GetUnResolvedList().Once().Return(l)
-	o.EXPECT().GetUnResolvedList().Once().Return(func() EList {
-		return l
-	})
+	m := NewMockRun(t)
+	o.EXPECT().GetUnResolvedList().Return(l).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetUnResolvedList().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetUnResolvedList())
 	assert.Equal(t, l, o.GetUnResolvedList())
 	mock.AssertExpectationsForObjects(t, o, l)

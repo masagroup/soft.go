@@ -16,7 +16,7 @@ import (
 )
 
 func TestAdapterAccessors(t *testing.T) {
-	adapter := &AbstractEAdapter{}
+	adapter := NewAbstractAdapter()
 	assert.Equal(t, nil, adapter.GetTarget())
 
 	mockNotifier := new(MockENotifier)

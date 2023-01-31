@@ -566,6 +566,9 @@ func TestBasicEObjectListUnResolvedRemoveWithNotification(t *testing.T) {
 	unresolved.RemoveWithNotification(mockObject2, nil)
 	assert.Equal(t, []any{mockObject1}, unresolved.ToArray())
 	mock.AssertExpectationsForObjects(t, mockOwner, mockObject1, mockObject2)
+
+	mockNotificationChain := NewMockENotificationChain(t)
+	assert.Equal(t, mockNotificationChain, unresolved.RemoveWithNotification(mockObject2, mockNotificationChain))
 }
 
 func TestBasicEObjectListUnResolvedSetWithNotification(t *testing.T) {

@@ -15,31 +15,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// MockEOperation is an mock type for the EOperation type
 type MockEOperation struct {
 	mock.Mock
 	MockEOperation_Prototype
 }
 
+// MockEOperation_Prototype is the mock implementation of all EOperation methods ( inherited and declared )
 type MockEOperation_Prototype struct {
 	mock *mock.Mock
 	MockETypedElement_Prototype
-	MockEOperation_Declared_Prototype
+	MockEOperation_Prototype_Methods
 }
 
 func (_mp *MockEOperation_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 	_mp.MockETypedElement_Prototype.SetMock(mock)
-	_mp.MockEOperation_Declared_Prototype.SetMock(mock)
+	_mp.MockEOperation_Prototype_Methods.SetMock(mock)
 }
 
+// MockEOperation_Expecter is the expecter implementation for all EOperation methods ( inherited and declared )
 type MockEOperation_Expecter struct {
 	MockETypedElement_Expecter
-	MockEOperation_Declared_Expecter
+	MockEOperation_Expecter_Methods
 }
 
 func (_me *MockEOperation_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockETypedElement_Expecter.SetMock(mock)
-	_me.MockEOperation_Declared_Expecter.SetMock(mock)
+	_me.MockEOperation_Expecter_Methods.SetMock(mock)
 }
 
 func (eOperation *MockEOperation_Prototype) EXPECT() *MockEOperation_Expecter {
@@ -48,24 +51,26 @@ func (eOperation *MockEOperation_Prototype) EXPECT() *MockEOperation_Expecter {
 	return expecter
 }
 
-type MockEOperation_Declared_Prototype struct {
+// MockEOperation_Prototype_Methods is the mock implementation of EOperation declared methods
+type MockEOperation_Prototype_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mdp *MockEOperation_Declared_Prototype) SetMock(mock *mock.Mock) {
+func (_mdp *MockEOperation_Prototype_Methods) SetMock(mock *mock.Mock) {
 	_mdp.mock = mock
 }
 
-type MockEOperation_Declared_Expecter struct {
+// MockEOperation_Expecter_Methods is the expecter implementation of EOperation declared methods
+type MockEOperation_Expecter_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mde *MockEOperation_Declared_Expecter) SetMock(mock *mock.Mock) {
+func (_mde *MockEOperation_Expecter_Methods) SetMock(mock *mock.Mock) {
 	_mde.mock = mock
 }
 
 // GetEContainingClass get the value of eContainingClass
-func (eOperation *MockEOperation_Declared_Prototype) GetEContainingClass() EClass {
+func (eOperation *MockEOperation_Prototype_Methods) GetEContainingClass() EClass {
 	ret := eOperation.mock.Called()
 
 	var r EClass
@@ -84,7 +89,7 @@ type MockEOperation_GetEContainingClass_Call struct {
 	*mock.Call
 }
 
-func (e *MockEOperation_Declared_Expecter) GetEContainingClass() *MockEOperation_GetEContainingClass_Call {
+func (e *MockEOperation_Expecter_Methods) GetEContainingClass() *MockEOperation_GetEContainingClass_Call {
 	return &MockEOperation_GetEContainingClass_Call{Call: e.mock.On("GetEContainingClass")}
 }
 
@@ -101,7 +106,7 @@ func (c *MockEOperation_GetEContainingClass_Call) Return(eContainingClass EClass
 }
 
 // GetEExceptions get the value of eExceptions
-func (eOperation *MockEOperation_Declared_Prototype) GetEExceptions() EList {
+func (eOperation *MockEOperation_Prototype_Methods) GetEExceptions() EList {
 	ret := eOperation.mock.Called()
 
 	var r EList
@@ -120,7 +125,7 @@ type MockEOperation_GetEExceptions_Call struct {
 	*mock.Call
 }
 
-func (e *MockEOperation_Declared_Expecter) GetEExceptions() *MockEOperation_GetEExceptions_Call {
+func (e *MockEOperation_Expecter_Methods) GetEExceptions() *MockEOperation_GetEExceptions_Call {
 	return &MockEOperation_GetEExceptions_Call{Call: e.mock.On("GetEExceptions")}
 }
 
@@ -137,7 +142,7 @@ func (c *MockEOperation_GetEExceptions_Call) Return(eExceptions EList) *MockEOpe
 }
 
 // UnsetEExceptions provides mock implementation for unset the value of eExceptions
-func (eOperation *MockEOperation_Declared_Prototype) UnsetEExceptions() {
+func (eOperation *MockEOperation_Prototype_Methods) UnsetEExceptions() {
 	eOperation.mock.Called()
 }
 
@@ -145,7 +150,7 @@ type MockEOperation_UnsetEExceptions_Call struct {
 	*mock.Call
 }
 
-func (e *MockEOperation_Declared_Expecter) UnsetEExceptions() *MockEOperation_UnsetEExceptions_Call {
+func (e *MockEOperation_Expecter_Methods) UnsetEExceptions() *MockEOperation_UnsetEExceptions_Call {
 	return &MockEOperation_UnsetEExceptions_Call{Call: e.mock.On("UnsetEExceptions")}
 }
 
@@ -162,7 +167,7 @@ func (c *MockEOperation_UnsetEExceptions_Call) Return() *MockEOperation_UnsetEEx
 }
 
 // GetEParameters get the value of eParameters
-func (eOperation *MockEOperation_Declared_Prototype) GetEParameters() EList {
+func (eOperation *MockEOperation_Prototype_Methods) GetEParameters() EList {
 	ret := eOperation.mock.Called()
 
 	var r EList
@@ -181,7 +186,7 @@ type MockEOperation_GetEParameters_Call struct {
 	*mock.Call
 }
 
-func (e *MockEOperation_Declared_Expecter) GetEParameters() *MockEOperation_GetEParameters_Call {
+func (e *MockEOperation_Expecter_Methods) GetEParameters() *MockEOperation_GetEParameters_Call {
 	return &MockEOperation_GetEParameters_Call{Call: e.mock.On("GetEParameters")}
 }
 
@@ -198,7 +203,7 @@ func (c *MockEOperation_GetEParameters_Call) Return(eParameters EList) *MockEOpe
 }
 
 // GetOperationID get the value of operationID
-func (eOperation *MockEOperation_Declared_Prototype) GetOperationID() int {
+func (eOperation *MockEOperation_Prototype_Methods) GetOperationID() int {
 	ret := eOperation.mock.Called()
 
 	var r int
@@ -217,7 +222,7 @@ type MockEOperation_GetOperationID_Call struct {
 	*mock.Call
 }
 
-func (e *MockEOperation_Declared_Expecter) GetOperationID() *MockEOperation_GetOperationID_Call {
+func (e *MockEOperation_Expecter_Methods) GetOperationID() *MockEOperation_GetOperationID_Call {
 	return &MockEOperation_GetOperationID_Call{Call: e.mock.On("GetOperationID")}
 }
 
@@ -234,7 +239,7 @@ func (c *MockEOperation_GetOperationID_Call) Return(operationID int) *MockEOpera
 }
 
 // SetOperationID provides mock implementation for setting the value of operationID
-func (eOperation *MockEOperation_Declared_Prototype) SetOperationID(operationID int) {
+func (eOperation *MockEOperation_Prototype_Methods) SetOperationID(operationID int) {
 	eOperation.mock.Called(operationID)
 }
 
@@ -244,7 +249,7 @@ type MockEOperation_SetOperationID_Call struct {
 
 // SetOperationID is a helper method to define mock.On call
 // - operationID int
-func (e *MockEOperation_Declared_Expecter) SetOperationID(operationID any) *MockEOperation_SetOperationID_Call {
+func (e *MockEOperation_Expecter_Methods) SetOperationID(operationID any) *MockEOperation_SetOperationID_Call {
 	return &MockEOperation_SetOperationID_Call{Call: e.mock.On("SetOperationID", operationID)}
 }
 
@@ -261,7 +266,7 @@ func (c *MockEOperation_SetOperationID_Call) Return() *MockEOperation_SetOperati
 }
 
 // IsOverrideOf provides mock implementation
-func (eOperation *MockEOperation_Declared_Prototype) IsOverrideOf(someOperation EOperation) bool {
+func (eOperation *MockEOperation_Prototype_Methods) IsOverrideOf(someOperation EOperation) bool {
 	ret := eOperation.mock.Called(someOperation)
 
 	var r bool
@@ -282,7 +287,7 @@ type MockEOperation_IsOverrideOf_Call struct {
 
 // IsOverrideOf is a helper method to define mock.On call
 // - someOperation EOperation
-func (e *MockEOperation_Declared_Expecter) IsOverrideOf(someOperation any) *MockEOperation_IsOverrideOf_Call {
+func (e *MockEOperation_Expecter_Methods) IsOverrideOf(someOperation any) *MockEOperation_IsOverrideOf_Call {
 	return &MockEOperation_IsOverrideOf_Call{Call: e.mock.On("IsOverrideOf", someOperation)}
 }
 

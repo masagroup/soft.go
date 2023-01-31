@@ -15,31 +15,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// MockEParameter is an mock type for the EParameter type
 type MockEParameter struct {
 	mock.Mock
 	MockEParameter_Prototype
 }
 
+// MockEParameter_Prototype is the mock implementation of all EParameter methods ( inherited and declared )
 type MockEParameter_Prototype struct {
 	mock *mock.Mock
 	MockETypedElement_Prototype
-	MockEParameter_Declared_Prototype
+	MockEParameter_Prototype_Methods
 }
 
 func (_mp *MockEParameter_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 	_mp.MockETypedElement_Prototype.SetMock(mock)
-	_mp.MockEParameter_Declared_Prototype.SetMock(mock)
+	_mp.MockEParameter_Prototype_Methods.SetMock(mock)
 }
 
+// MockEParameter_Expecter is the expecter implementation for all EParameter methods ( inherited and declared )
 type MockEParameter_Expecter struct {
 	MockETypedElement_Expecter
-	MockEParameter_Declared_Expecter
+	MockEParameter_Expecter_Methods
 }
 
 func (_me *MockEParameter_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockETypedElement_Expecter.SetMock(mock)
-	_me.MockEParameter_Declared_Expecter.SetMock(mock)
+	_me.MockEParameter_Expecter_Methods.SetMock(mock)
 }
 
 func (eParameter *MockEParameter_Prototype) EXPECT() *MockEParameter_Expecter {
@@ -48,24 +51,26 @@ func (eParameter *MockEParameter_Prototype) EXPECT() *MockEParameter_Expecter {
 	return expecter
 }
 
-type MockEParameter_Declared_Prototype struct {
+// MockEParameter_Prototype_Methods is the mock implementation of EParameter declared methods
+type MockEParameter_Prototype_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mdp *MockEParameter_Declared_Prototype) SetMock(mock *mock.Mock) {
+func (_mdp *MockEParameter_Prototype_Methods) SetMock(mock *mock.Mock) {
 	_mdp.mock = mock
 }
 
-type MockEParameter_Declared_Expecter struct {
+// MockEParameter_Expecter_Methods is the expecter implementation of EParameter declared methods
+type MockEParameter_Expecter_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mde *MockEParameter_Declared_Expecter) SetMock(mock *mock.Mock) {
+func (_mde *MockEParameter_Expecter_Methods) SetMock(mock *mock.Mock) {
 	_mde.mock = mock
 }
 
 // GetEOperation get the value of eOperation
-func (eParameter *MockEParameter_Declared_Prototype) GetEOperation() EOperation {
+func (eParameter *MockEParameter_Prototype_Methods) GetEOperation() EOperation {
 	ret := eParameter.mock.Called()
 
 	var r EOperation
@@ -84,7 +89,7 @@ type MockEParameter_GetEOperation_Call struct {
 	*mock.Call
 }
 
-func (e *MockEParameter_Declared_Expecter) GetEOperation() *MockEParameter_GetEOperation_Call {
+func (e *MockEParameter_Expecter_Methods) GetEOperation() *MockEParameter_GetEOperation_Call {
 	return &MockEParameter_GetEOperation_Call{Call: e.mock.On("GetEOperation")}
 }
 

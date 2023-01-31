@@ -18,7 +18,7 @@ type MockENotifier struct {
 }
 
 type MockENotifier_Prototype struct {
-	MockENotifier_Declared_Prototype
+	MockENotifier__Prototype_Methods
 }
 
 func (_m *MockENotifier_Prototype) EXPECT() *MockENotifier_Expecter {
@@ -28,22 +28,22 @@ func (_m *MockENotifier_Prototype) EXPECT() *MockENotifier_Expecter {
 }
 
 type MockENotifier_Expecter struct {
-	MockENotifier_Declared_Expecter
+	MockENotifier_Expecter_Methods
 }
 
-type MockENotifier_Declared_Prototype struct {
+type MockENotifier__Prototype_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mdp *MockENotifier_Declared_Prototype) SetMock(mock *mock.Mock) {
+func (_mdp *MockENotifier__Prototype_Methods) SetMock(mock *mock.Mock) {
 	_mdp.mock = mock
 }
 
-type MockENotifier_Declared_Expecter struct {
+type MockENotifier_Expecter_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mde *MockENotifier_Declared_Expecter) SetMock(mock *mock.Mock) {
+func (_mde *MockENotifier_Expecter_Methods) SetMock(mock *mock.Mock) {
 	_mde.mock = mock
 }
 

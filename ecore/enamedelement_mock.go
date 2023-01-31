@@ -15,31 +15,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// MockENamedElement is an mock type for the ENamedElement type
 type MockENamedElement struct {
 	mock.Mock
 	MockENamedElement_Prototype
 }
 
+// MockENamedElement_Prototype is the mock implementation of all ENamedElement methods ( inherited and declared )
 type MockENamedElement_Prototype struct {
 	mock *mock.Mock
 	MockEModelElement_Prototype
-	MockENamedElement_Declared_Prototype
+	MockENamedElement_Prototype_Methods
 }
 
 func (_mp *MockENamedElement_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 	_mp.MockEModelElement_Prototype.SetMock(mock)
-	_mp.MockENamedElement_Declared_Prototype.SetMock(mock)
+	_mp.MockENamedElement_Prototype_Methods.SetMock(mock)
 }
 
+// MockENamedElement_Expecter is the expecter implementation for all ENamedElement methods ( inherited and declared )
 type MockENamedElement_Expecter struct {
 	MockEModelElement_Expecter
-	MockENamedElement_Declared_Expecter
+	MockENamedElement_Expecter_Methods
 }
 
 func (_me *MockENamedElement_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEModelElement_Expecter.SetMock(mock)
-	_me.MockENamedElement_Declared_Expecter.SetMock(mock)
+	_me.MockENamedElement_Expecter_Methods.SetMock(mock)
 }
 
 func (eNamedElement *MockENamedElement_Prototype) EXPECT() *MockENamedElement_Expecter {
@@ -48,24 +51,26 @@ func (eNamedElement *MockENamedElement_Prototype) EXPECT() *MockENamedElement_Ex
 	return expecter
 }
 
-type MockENamedElement_Declared_Prototype struct {
+// MockENamedElement_Prototype_Methods is the mock implementation of ENamedElement declared methods
+type MockENamedElement_Prototype_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mdp *MockENamedElement_Declared_Prototype) SetMock(mock *mock.Mock) {
+func (_mdp *MockENamedElement_Prototype_Methods) SetMock(mock *mock.Mock) {
 	_mdp.mock = mock
 }
 
-type MockENamedElement_Declared_Expecter struct {
+// MockENamedElement_Expecter_Methods is the expecter implementation of ENamedElement declared methods
+type MockENamedElement_Expecter_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mde *MockENamedElement_Declared_Expecter) SetMock(mock *mock.Mock) {
+func (_mde *MockENamedElement_Expecter_Methods) SetMock(mock *mock.Mock) {
 	_mde.mock = mock
 }
 
 // GetName get the value of name
-func (eNamedElement *MockENamedElement_Declared_Prototype) GetName() string {
+func (eNamedElement *MockENamedElement_Prototype_Methods) GetName() string {
 	ret := eNamedElement.mock.Called()
 
 	var r string
@@ -84,7 +89,7 @@ type MockENamedElement_GetName_Call struct {
 	*mock.Call
 }
 
-func (e *MockENamedElement_Declared_Expecter) GetName() *MockENamedElement_GetName_Call {
+func (e *MockENamedElement_Expecter_Methods) GetName() *MockENamedElement_GetName_Call {
 	return &MockENamedElement_GetName_Call{Call: e.mock.On("GetName")}
 }
 
@@ -101,7 +106,7 @@ func (c *MockENamedElement_GetName_Call) Return(name string) *MockENamedElement_
 }
 
 // SetName provides mock implementation for setting the value of name
-func (eNamedElement *MockENamedElement_Declared_Prototype) SetName(name string) {
+func (eNamedElement *MockENamedElement_Prototype_Methods) SetName(name string) {
 	eNamedElement.mock.Called(name)
 }
 
@@ -111,7 +116,7 @@ type MockENamedElement_SetName_Call struct {
 
 // SetName is a helper method to define mock.On call
 // - name string
-func (e *MockENamedElement_Declared_Expecter) SetName(name any) *MockENamedElement_SetName_Call {
+func (e *MockENamedElement_Expecter_Methods) SetName(name any) *MockENamedElement_SetName_Call {
 	return &MockENamedElement_SetName_Call{Call: e.mock.On("SetName", name)}
 }
 

@@ -20,23 +20,23 @@ type MockEResourceSet struct {
 type MockEResourceSet_Prototype struct {
 	mock *mock.Mock
 	MockENotifier_Prototype
-	MockEResourceSet_Declared_Prototype
+	MockEResourceSet_Prototype_Methods
 }
 
 func (_mp *MockEResourceSet_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 	_mp.MockENotifier_Prototype.SetMock(mock)
-	_mp.MockEResourceSet_Declared_Prototype.SetMock(mock)
+	_mp.MockEResourceSet_Prototype_Methods.SetMock(mock)
 }
 
 type MockEResourceSet_Expecter struct {
 	MockENotifier_Expecter
-	MockEResourceSet_Declared_Expecter
+	MockEResourceSet_Expecter_Methods
 }
 
 func (_me *MockEResourceSet_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockENotifier_Expecter.SetMock(mock)
-	_me.MockEResourceSet_Declared_Expecter.SetMock(mock)
+	_me.MockEResourceSet_Expecter_Methods.SetMock(mock)
 }
 
 func (_m *MockEResourceSet_Prototype) EXPECT() *MockEResourceSet_Expecter {
@@ -45,24 +45,24 @@ func (_m *MockEResourceSet_Prototype) EXPECT() *MockEResourceSet_Expecter {
 	return e
 }
 
-type MockEResourceSet_Declared_Prototype struct {
+type MockEResourceSet_Prototype_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mdp *MockEResourceSet_Declared_Prototype) SetMock(mock *mock.Mock) {
+func (_mdp *MockEResourceSet_Prototype_Methods) SetMock(mock *mock.Mock) {
 	_mdp.mock = mock
 }
 
-type MockEResourceSet_Declared_Expecter struct {
+type MockEResourceSet_Expecter_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mde *MockEResourceSet_Declared_Expecter) SetMock(mock *mock.Mock) {
+func (_mde *MockEResourceSet_Expecter_Methods) SetMock(mock *mock.Mock) {
 	_mde.mock = mock
 }
 
 // CreateResource provides a mock function with given fields: uri
-func (_m *MockEResourceSet_Declared_Prototype) CreateResource(uri *URI) EResource {
+func (_m *MockEResourceSet_Prototype_Methods) CreateResource(uri *URI) EResource {
 	ret := _m.mock.Called(uri)
 
 	var r0 EResource
@@ -84,7 +84,7 @@ type MockEResourceSet_CreateResource_Call struct {
 
 // CreateResource is a helper method to define mock.On call
 //   - uri *URI
-func (_e *MockEResourceSet_Declared_Expecter) CreateResource(uri interface{}) *MockEResourceSet_CreateResource_Call {
+func (_e *MockEResourceSet_Expecter_Methods) CreateResource(uri interface{}) *MockEResourceSet_CreateResource_Call {
 	return &MockEResourceSet_CreateResource_Call{Call: _e.mock.On("CreateResource", uri)}
 }
 
@@ -101,7 +101,7 @@ func (_c *MockEResourceSet_CreateResource_Call) Return(_a0 EResource) *MockEReso
 }
 
 // GetEObject provides a mock function with given fields: uri, loadOnDemand
-func (_m *MockEResourceSet_Declared_Prototype) GetEObject(uri *URI, loadOnDemand bool) EObject {
+func (_m *MockEResourceSet_Prototype_Methods) GetEObject(uri *URI, loadOnDemand bool) EObject {
 	ret := _m.mock.Called(uri, loadOnDemand)
 
 	var r0 EObject
@@ -124,7 +124,7 @@ type MockEResourceSet_GetEObject_Call struct {
 // GetEObject is a helper method to define mock.On call
 //   - uri *URI
 //   - loadOnDemand bool
-func (_e *MockEResourceSet_Declared_Expecter) GetEObject(uri interface{}, loadOnDemand interface{}) *MockEResourceSet_GetEObject_Call {
+func (_e *MockEResourceSet_Expecter_Methods) GetEObject(uri interface{}, loadOnDemand interface{}) *MockEResourceSet_GetEObject_Call {
 	return &MockEResourceSet_GetEObject_Call{Call: _e.mock.On("GetEObject", uri, loadOnDemand)}
 }
 
@@ -141,7 +141,7 @@ func (_c *MockEResourceSet_GetEObject_Call) Return(_a0 EObject) *MockEResourceSe
 }
 
 // GetPackageRegistry provides a mock function with given fields:
-func (_m *MockEResourceSet_Declared_Prototype) GetPackageRegistry() EPackageRegistry {
+func (_m *MockEResourceSet_Prototype_Methods) GetPackageRegistry() EPackageRegistry {
 	ret := _m.mock.Called()
 
 	var r0 EPackageRegistry
@@ -162,7 +162,7 @@ type MockEResourceSet_GetPackageRegistry_Call struct {
 }
 
 // GetPackageRegistry is a helper method to define mock.On call
-func (_e *MockEResourceSet_Declared_Expecter) GetPackageRegistry() *MockEResourceSet_GetPackageRegistry_Call {
+func (_e *MockEResourceSet_Expecter_Methods) GetPackageRegistry() *MockEResourceSet_GetPackageRegistry_Call {
 	return &MockEResourceSet_GetPackageRegistry_Call{Call: _e.mock.On("GetPackageRegistry")}
 }
 
@@ -179,7 +179,7 @@ func (_c *MockEResourceSet_GetPackageRegistry_Call) Return(_a0 EPackageRegistry)
 }
 
 // GetResource provides a mock function with given fields: uri, loadOnDemand
-func (_m *MockEResourceSet_Declared_Prototype) GetResource(uri *URI, loadOnDemand bool) EResource {
+func (_m *MockEResourceSet_Prototype_Methods) GetResource(uri *URI, loadOnDemand bool) EResource {
 	ret := _m.mock.Called(uri, loadOnDemand)
 
 	var r0 EResource
@@ -202,7 +202,7 @@ type MockEResourceSet_GetResource_Call struct {
 // GetResource is a helper method to define mock.On call
 //   - uri *URI
 //   - loadOnDemand bool
-func (_e *MockEResourceSet_Declared_Expecter) GetResource(uri interface{}, loadOnDemand interface{}) *MockEResourceSet_GetResource_Call {
+func (_e *MockEResourceSet_Expecter_Methods) GetResource(uri interface{}, loadOnDemand interface{}) *MockEResourceSet_GetResource_Call {
 	return &MockEResourceSet_GetResource_Call{Call: _e.mock.On("GetResource", uri, loadOnDemand)}
 }
 
@@ -219,7 +219,7 @@ func (_c *MockEResourceSet_GetResource_Call) Return(_a0 EResource) *MockEResourc
 }
 
 // GetResourceCodecRegistry provides a mock function with given fields:
-func (_m *MockEResourceSet_Declared_Prototype) GetResourceCodecRegistry() EResourceCodecRegistry {
+func (_m *MockEResourceSet_Prototype_Methods) GetResourceCodecRegistry() EResourceCodecRegistry {
 	ret := _m.mock.Called()
 
 	var r0 EResourceCodecRegistry
@@ -240,7 +240,7 @@ type MockEResourceSet_GetResourceCodecRegistry_Call struct {
 }
 
 // GetResourceCodecRegistry is a helper method to define mock.On call
-func (_e *MockEResourceSet_Declared_Expecter) GetResourceCodecRegistry() *MockEResourceSet_GetResourceCodecRegistry_Call {
+func (_e *MockEResourceSet_Expecter_Methods) GetResourceCodecRegistry() *MockEResourceSet_GetResourceCodecRegistry_Call {
 	return &MockEResourceSet_GetResourceCodecRegistry_Call{Call: _e.mock.On("GetResourceCodecRegistry")}
 }
 
@@ -257,7 +257,7 @@ func (_c *MockEResourceSet_GetResourceCodecRegistry_Call) Return(_a0 EResourceCo
 }
 
 // GetResources provides a mock function with given fields:
-func (_m *MockEResourceSet_Declared_Prototype) GetResources() EList {
+func (_m *MockEResourceSet_Prototype_Methods) GetResources() EList {
 	ret := _m.mock.Called()
 
 	var r0 EList
@@ -278,7 +278,7 @@ type MockEResourceSet_GetResources_Call struct {
 }
 
 // GetResources is a helper method to define mock.On call
-func (_e *MockEResourceSet_Declared_Expecter) GetResources() *MockEResourceSet_GetResources_Call {
+func (_e *MockEResourceSet_Expecter_Methods) GetResources() *MockEResourceSet_GetResources_Call {
 	return &MockEResourceSet_GetResources_Call{Call: _e.mock.On("GetResources")}
 }
 
@@ -295,7 +295,7 @@ func (_c *MockEResourceSet_GetResources_Call) Return(_a0 EList) *MockEResourceSe
 }
 
 // GetURIConverter provides a mock function with given fields:
-func (_m *MockEResourceSet_Declared_Prototype) GetURIConverter() EURIConverter {
+func (_m *MockEResourceSet_Prototype_Methods) GetURIConverter() EURIConverter {
 	ret := _m.mock.Called()
 
 	var r0 EURIConverter
@@ -316,7 +316,7 @@ type MockEResourceSet_GetURIConverter_Call struct {
 }
 
 // GetURIConverter is a helper method to define mock.On call
-func (_e *MockEResourceSet_Declared_Expecter) GetURIConverter() *MockEResourceSet_GetURIConverter_Call {
+func (_e *MockEResourceSet_Expecter_Methods) GetURIConverter() *MockEResourceSet_GetURIConverter_Call {
 	return &MockEResourceSet_GetURIConverter_Call{Call: _e.mock.On("GetURIConverter")}
 }
 
@@ -333,7 +333,7 @@ func (_c *MockEResourceSet_GetURIConverter_Call) Return(_a0 EURIConverter) *Mock
 }
 
 // GetURIResourceMap provides a mock function with given fields:
-func (_m *MockEResourceSet_Declared_Prototype) GetURIResourceMap() map[*URI]EResource {
+func (_m *MockEResourceSet_Prototype_Methods) GetURIResourceMap() map[*URI]EResource {
 	ret := _m.mock.Called()
 
 	var r0 map[*URI]EResource
@@ -354,7 +354,7 @@ type MockEResourceSet_GetURIResourceMap_Call struct {
 }
 
 // GetURIResourceMap is a helper method to define mock.On call
-func (_e *MockEResourceSet_Declared_Expecter) GetURIResourceMap() *MockEResourceSet_GetURIResourceMap_Call {
+func (_e *MockEResourceSet_Expecter_Methods) GetURIResourceMap() *MockEResourceSet_GetURIResourceMap_Call {
 	return &MockEResourceSet_GetURIResourceMap_Call{Call: _e.mock.On("GetURIResourceMap")}
 }
 
@@ -371,7 +371,7 @@ func (_c *MockEResourceSet_GetURIResourceMap_Call) Return(_a0 map[*URI]EResource
 }
 
 // SetPackageRegistry provides a mock function with given fields: packageregistry
-func (_m *MockEResourceSet_Declared_Prototype) SetPackageRegistry(packageregistry EPackageRegistry) {
+func (_m *MockEResourceSet_Prototype_Methods) SetPackageRegistry(packageregistry EPackageRegistry) {
 	_m.mock.Called(packageregistry)
 }
 
@@ -382,7 +382,7 @@ type MockEResourceSet_SetPackageRegistry_Call struct {
 
 // SetPackageRegistry is a helper method to define mock.On call
 //   - packageregistry EPackageRegistry
-func (_e *MockEResourceSet_Declared_Expecter) SetPackageRegistry(packageregistry interface{}) *MockEResourceSet_SetPackageRegistry_Call {
+func (_e *MockEResourceSet_Expecter_Methods) SetPackageRegistry(packageregistry interface{}) *MockEResourceSet_SetPackageRegistry_Call {
 	return &MockEResourceSet_SetPackageRegistry_Call{Call: _e.mock.On("SetPackageRegistry", packageregistry)}
 }
 
@@ -399,7 +399,7 @@ func (_c *MockEResourceSet_SetPackageRegistry_Call) Return() *MockEResourceSet_S
 }
 
 // SetResourceCodecRegistry provides a mock function with given fields: resourceCodecRegistry
-func (_m *MockEResourceSet_Declared_Prototype) SetResourceCodecRegistry(resourceCodecRegistry EResourceCodecRegistry) {
+func (_m *MockEResourceSet_Prototype_Methods) SetResourceCodecRegistry(resourceCodecRegistry EResourceCodecRegistry) {
 	_m.mock.Called(resourceCodecRegistry)
 }
 
@@ -410,7 +410,7 @@ type MockEResourceSet_SetResourceCodecRegistry_Call struct {
 
 // SetResourceCodecRegistry is a helper method to define mock.On call
 //   - resourceCodecRegistry EResourceCodecRegistry
-func (_e *MockEResourceSet_Declared_Expecter) SetResourceCodecRegistry(resourceCodecRegistry interface{}) *MockEResourceSet_SetResourceCodecRegistry_Call {
+func (_e *MockEResourceSet_Expecter_Methods) SetResourceCodecRegistry(resourceCodecRegistry interface{}) *MockEResourceSet_SetResourceCodecRegistry_Call {
 	return &MockEResourceSet_SetResourceCodecRegistry_Call{Call: _e.mock.On("SetResourceCodecRegistry", resourceCodecRegistry)}
 }
 
@@ -427,7 +427,7 @@ func (_c *MockEResourceSet_SetResourceCodecRegistry_Call) Return() *MockEResourc
 }
 
 // SetURIConverter provides a mock function with given fields: uriConverter
-func (_m *MockEResourceSet_Declared_Prototype) SetURIConverter(uriConverter EURIConverter) {
+func (_m *MockEResourceSet_Prototype_Methods) SetURIConverter(uriConverter EURIConverter) {
 	_m.mock.Called(uriConverter)
 }
 
@@ -438,7 +438,7 @@ type MockEResourceSet_SetURIConverter_Call struct {
 
 // SetURIConverter is a helper method to define mock.On call
 //   - uriConverter EURIConverter
-func (_e *MockEResourceSet_Declared_Expecter) SetURIConverter(uriConverter interface{}) *MockEResourceSet_SetURIConverter_Call {
+func (_e *MockEResourceSet_Expecter_Methods) SetURIConverter(uriConverter interface{}) *MockEResourceSet_SetURIConverter_Call {
 	return &MockEResourceSet_SetURIConverter_Call{Call: _e.mock.On("SetURIConverter", uriConverter)}
 }
 
@@ -455,7 +455,7 @@ func (_c *MockEResourceSet_SetURIConverter_Call) Return() *MockEResourceSet_SetU
 }
 
 // SetURIResourceMap provides a mock function with given fields: uriMap
-func (_m *MockEResourceSet_Declared_Prototype) SetURIResourceMap(uriMap map[*URI]EResource) {
+func (_m *MockEResourceSet_Prototype_Methods) SetURIResourceMap(uriMap map[*URI]EResource) {
 	_m.mock.Called(uriMap)
 }
 
@@ -466,7 +466,7 @@ type MockEResourceSet_SetURIResourceMap_Call struct {
 
 // SetURIResourceMap is a helper method to define mock.On call
 //   - uriMap map[*URI]EResource
-func (_e *MockEResourceSet_Declared_Expecter) SetURIResourceMap(uriMap interface{}) *MockEResourceSet_SetURIResourceMap_Call {
+func (_e *MockEResourceSet_Expecter_Methods) SetURIResourceMap(uriMap interface{}) *MockEResourceSet_SetURIResourceMap_Call {
 	return &MockEResourceSet_SetURIResourceMap_Call{Call: _e.mock.On("SetURIResourceMap", uriMap)}
 }
 

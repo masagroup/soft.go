@@ -15,31 +15,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// MockETypeParameter is an mock type for the ETypeParameter type
 type MockETypeParameter struct {
 	mock.Mock
 	MockETypeParameter_Prototype
 }
 
+// MockETypeParameter_Prototype is the mock implementation of all ETypeParameter methods ( inherited and declared )
 type MockETypeParameter_Prototype struct {
 	mock *mock.Mock
 	MockENamedElement_Prototype
-	MockETypeParameter_Declared_Prototype
+	MockETypeParameter_Prototype_Methods
 }
 
 func (_mp *MockETypeParameter_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 	_mp.MockENamedElement_Prototype.SetMock(mock)
-	_mp.MockETypeParameter_Declared_Prototype.SetMock(mock)
+	_mp.MockETypeParameter_Prototype_Methods.SetMock(mock)
 }
 
+// MockETypeParameter_Expecter is the expecter implementation for all ETypeParameter methods ( inherited and declared )
 type MockETypeParameter_Expecter struct {
 	MockENamedElement_Expecter
-	MockETypeParameter_Declared_Expecter
+	MockETypeParameter_Expecter_Methods
 }
 
 func (_me *MockETypeParameter_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockENamedElement_Expecter.SetMock(mock)
-	_me.MockETypeParameter_Declared_Expecter.SetMock(mock)
+	_me.MockETypeParameter_Expecter_Methods.SetMock(mock)
 }
 
 func (eTypeParameter *MockETypeParameter_Prototype) EXPECT() *MockETypeParameter_Expecter {
@@ -48,24 +51,26 @@ func (eTypeParameter *MockETypeParameter_Prototype) EXPECT() *MockETypeParameter
 	return expecter
 }
 
-type MockETypeParameter_Declared_Prototype struct {
+// MockETypeParameter_Prototype_Methods is the mock implementation of ETypeParameter declared methods
+type MockETypeParameter_Prototype_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mdp *MockETypeParameter_Declared_Prototype) SetMock(mock *mock.Mock) {
+func (_mdp *MockETypeParameter_Prototype_Methods) SetMock(mock *mock.Mock) {
 	_mdp.mock = mock
 }
 
-type MockETypeParameter_Declared_Expecter struct {
+// MockETypeParameter_Expecter_Methods is the expecter implementation of ETypeParameter declared methods
+type MockETypeParameter_Expecter_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mde *MockETypeParameter_Declared_Expecter) SetMock(mock *mock.Mock) {
+func (_mde *MockETypeParameter_Expecter_Methods) SetMock(mock *mock.Mock) {
 	_mde.mock = mock
 }
 
 // GetEBounds get the value of eBounds
-func (eTypeParameter *MockETypeParameter_Declared_Prototype) GetEBounds() EList {
+func (eTypeParameter *MockETypeParameter_Prototype_Methods) GetEBounds() EList {
 	ret := eTypeParameter.mock.Called()
 
 	var r EList
@@ -84,7 +89,7 @@ type MockETypeParameter_GetEBounds_Call struct {
 	*mock.Call
 }
 
-func (e *MockETypeParameter_Declared_Expecter) GetEBounds() *MockETypeParameter_GetEBounds_Call {
+func (e *MockETypeParameter_Expecter_Methods) GetEBounds() *MockETypeParameter_GetEBounds_Call {
 	return &MockETypeParameter_GetEBounds_Call{Call: e.mock.On("GetEBounds")}
 }
 

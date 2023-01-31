@@ -24,23 +24,23 @@ type MockEResourceInternal struct {
 type MockEResourceInternal_Prototype struct {
 	mock *mock.Mock
 	MockEResource_Prototype
-	MockEResourceInternal_Declared_Prototype
+	MockEResourceInternal_Prototype_Methods
 }
 
 func (_mp *MockEResourceInternal_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 	_mp.MockEResource_Prototype.SetMock(mock)
-	_mp.MockEResourceInternal_Declared_Prototype.SetMock(mock)
+	_mp.MockEResourceInternal_Prototype_Methods.SetMock(mock)
 }
 
 type MockEResourceInternal_Expecter struct {
 	MockEResource_Expecter
-	MockEResourceInternal_Declared_Expecter
+	MockEResourceInternal_Expecter_Methods
 }
 
 func (_me *MockEResourceInternal_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEResource_Expecter.SetMock(mock)
-	_me.MockEResourceInternal_Declared_Expecter.SetMock(mock)
+	_me.MockEResourceInternal_Expecter_Methods.SetMock(mock)
 }
 
 func (_m *MockEResourceInternal_Prototype) EXPECT() *MockEResourceInternal_Expecter {
@@ -49,24 +49,24 @@ func (_m *MockEResourceInternal_Prototype) EXPECT() *MockEResourceInternal_Expec
 	return e
 }
 
-type MockEResourceInternal_Declared_Prototype struct {
+type MockEResourceInternal_Prototype_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mdp *MockEResourceInternal_Declared_Prototype) SetMock(mock *mock.Mock) {
+func (_mdp *MockEResourceInternal_Prototype_Methods) SetMock(mock *mock.Mock) {
 	_mdp.mock = mock
 }
 
-type MockEResourceInternal_Declared_Expecter struct {
+type MockEResourceInternal_Expecter_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mde *MockEResourceInternal_Declared_Expecter) SetMock(mock *mock.Mock) {
+func (_mde *MockEResourceInternal_Expecter_Methods) SetMock(mock *mock.Mock) {
 	_mde.mock = mock
 }
 
 // BasicSetLoaded provides a mock function with given fields: _a0, _a1
-func (_m *MockEResourceInternal_Declared_Prototype) BasicSetLoaded(_a0 bool, _a1 ENotificationChain) ENotificationChain {
+func (_m *MockEResourceInternal_Prototype_Methods) BasicSetLoaded(_a0 bool, _a1 ENotificationChain) ENotificationChain {
 	ret := _m.mock.Called(_a0, _a1)
 
 	var r0 ENotificationChain
@@ -89,7 +89,7 @@ type MockEResourceInternal_BasicSetLoaded_Call struct {
 // BasicSetLoaded is a helper method to define mock.On call
 //   - _a0 bool
 //   - _a1 ENotificationChain
-func (_e *MockEResourceInternal_Declared_Expecter) BasicSetLoaded(_a0 interface{}, _a1 interface{}) *MockEResourceInternal_BasicSetLoaded_Call {
+func (_e *MockEResourceInternal_Expecter_Methods) BasicSetLoaded(_a0 interface{}, _a1 interface{}) *MockEResourceInternal_BasicSetLoaded_Call {
 	return &MockEResourceInternal_BasicSetLoaded_Call{Call: _e.mock.On("BasicSetLoaded", _a0, _a1)}
 }
 
@@ -106,7 +106,7 @@ func (_c *MockEResourceInternal_BasicSetLoaded_Call) Return(_a0 ENotificationCha
 }
 
 // BasicSetResourceSet provides a mock function with given fields: _a0, _a1
-func (_m *MockEResourceInternal_Declared_Prototype) BasicSetResourceSet(_a0 EResourceSet, _a1 ENotificationChain) ENotificationChain {
+func (_m *MockEResourceInternal_Prototype_Methods) BasicSetResourceSet(_a0 EResourceSet, _a1 ENotificationChain) ENotificationChain {
 	ret := _m.mock.Called(_a0, _a1)
 
 	var r0 ENotificationChain
@@ -129,7 +129,7 @@ type MockEResourceInternal_BasicSetResourceSet_Call struct {
 // BasicSetResourceSet is a helper method to define mock.On call
 //   - _a0 EResourceSet
 //   - _a1 ENotificationChain
-func (_e *MockEResourceInternal_Declared_Expecter) BasicSetResourceSet(_a0 interface{}, _a1 interface{}) *MockEResourceInternal_BasicSetResourceSet_Call {
+func (_e *MockEResourceInternal_Expecter_Methods) BasicSetResourceSet(_a0 interface{}, _a1 interface{}) *MockEResourceInternal_BasicSetResourceSet_Call {
 	return &MockEResourceInternal_BasicSetResourceSet_Call{Call: _e.mock.On("BasicSetResourceSet", _a0, _a1)}
 }
 
@@ -146,7 +146,7 @@ func (_c *MockEResourceInternal_BasicSetResourceSet_Call) Return(_a0 ENotificati
 }
 
 // DoAttached provides a mock function with given fields: o
-func (_m *MockEResourceInternal_Declared_Prototype) DoAttached(o EObject) {
+func (_m *MockEResourceInternal_Prototype_Methods) DoAttached(o EObject) {
 	_m.mock.Called(o)
 }
 
@@ -157,7 +157,7 @@ type MockEResourceInternal_DoAttached_Call struct {
 
 // DoAttached is a helper method to define mock.On call
 //   - o EObject
-func (_e *MockEResourceInternal_Declared_Expecter) DoAttached(o interface{}) *MockEResourceInternal_DoAttached_Call {
+func (_e *MockEResourceInternal_Expecter_Methods) DoAttached(o interface{}) *MockEResourceInternal_DoAttached_Call {
 	return &MockEResourceInternal_DoAttached_Call{Call: _e.mock.On("DoAttached", o)}
 }
 
@@ -174,7 +174,7 @@ func (_c *MockEResourceInternal_DoAttached_Call) Return() *MockEResourceInternal
 }
 
 // DoDetached provides a mock function with given fields: o
-func (_m *MockEResourceInternal_Declared_Prototype) DoDetached(o EObject) {
+func (_m *MockEResourceInternal_Prototype_Methods) DoDetached(o EObject) {
 	_m.mock.Called(o)
 }
 
@@ -185,7 +185,7 @@ type MockEResourceInternal_DoDetached_Call struct {
 
 // DoDetached is a helper method to define mock.On call
 //   - o EObject
-func (_e *MockEResourceInternal_Declared_Expecter) DoDetached(o interface{}) *MockEResourceInternal_DoDetached_Call {
+func (_e *MockEResourceInternal_Expecter_Methods) DoDetached(o interface{}) *MockEResourceInternal_DoDetached_Call {
 	return &MockEResourceInternal_DoDetached_Call{Call: _e.mock.On("DoDetached", o)}
 }
 
@@ -202,7 +202,7 @@ func (_c *MockEResourceInternal_DoDetached_Call) Return() *MockEResourceInternal
 }
 
 // DoLoad provides a mock function with given fields: decoder
-func (_m *MockEResourceInternal_Declared_Prototype) DoLoad(decoder EResourceDecoder) {
+func (_m *MockEResourceInternal_Prototype_Methods) DoLoad(decoder EResourceDecoder) {
 	_m.mock.Called(decoder)
 }
 
@@ -213,7 +213,7 @@ type MockEResourceInternal_DoLoad_Call struct {
 
 // DoLoad is a helper method to define mock.On call
 //   - decoder EResourceDecoder
-func (_e *MockEResourceInternal_Declared_Expecter) DoLoad(decoder interface{}) *MockEResourceInternal_DoLoad_Call {
+func (_e *MockEResourceInternal_Expecter_Methods) DoLoad(decoder interface{}) *MockEResourceInternal_DoLoad_Call {
 	return &MockEResourceInternal_DoLoad_Call{Call: _e.mock.On("DoLoad", decoder)}
 }
 
@@ -230,7 +230,7 @@ func (_c *MockEResourceInternal_DoLoad_Call) Return() *MockEResourceInternal_DoL
 }
 
 // DoSave provides a mock function with given fields: encoder
-func (_m *MockEResourceInternal_Declared_Prototype) DoSave(encoder EResourceEncoder) {
+func (_m *MockEResourceInternal_Prototype_Methods) DoSave(encoder EResourceEncoder) {
 	_m.mock.Called(encoder)
 }
 
@@ -241,7 +241,7 @@ type MockEResourceInternal_DoSave_Call struct {
 
 // DoSave is a helper method to define mock.On call
 //   - encoder EResourceEncoder
-func (_e *MockEResourceInternal_Declared_Expecter) DoSave(encoder interface{}) *MockEResourceInternal_DoSave_Call {
+func (_e *MockEResourceInternal_Expecter_Methods) DoSave(encoder interface{}) *MockEResourceInternal_DoSave_Call {
 	return &MockEResourceInternal_DoSave_Call{Call: _e.mock.On("DoSave", encoder)}
 }
 
@@ -258,7 +258,7 @@ func (_c *MockEResourceInternal_DoSave_Call) Return() *MockEResourceInternal_DoS
 }
 
 // DoUnload provides a mock function with given fields:
-func (_m *MockEResourceInternal_Declared_Prototype) DoUnload() {
+func (_m *MockEResourceInternal_Prototype_Methods) DoUnload() {
 	_m.mock.Called()
 }
 
@@ -268,7 +268,7 @@ type MockEResourceInternal_DoUnload_Call struct {
 }
 
 // DoUnload is a helper method to define mock.On call
-func (_e *MockEResourceInternal_Declared_Expecter) DoUnload() *MockEResourceInternal_DoUnload_Call {
+func (_e *MockEResourceInternal_Expecter_Methods) DoUnload() *MockEResourceInternal_DoUnload_Call {
 	return &MockEResourceInternal_DoUnload_Call{Call: _e.mock.On("DoUnload")}
 }
 
@@ -285,7 +285,7 @@ func (_c *MockEResourceInternal_DoUnload_Call) Return() *MockEResourceInternal_D
 }
 
 // IsAttachedDetachedRequired provides a mock function with given fields:
-func (_m *MockEResourceInternal_Declared_Prototype) IsAttachedDetachedRequired() bool {
+func (_m *MockEResourceInternal_Prototype_Methods) IsAttachedDetachedRequired() bool {
 	ret := _m.mock.Called()
 
 	var r0 bool
@@ -304,7 +304,7 @@ type MockEResourceInternal_IsAttachedDetachedRequired_Call struct {
 }
 
 // IsAttachedDetachedRequired is a helper method to define mock.On call
-func (_e *MockEResourceInternal_Declared_Expecter) IsAttachedDetachedRequired() *MockEResourceInternal_IsAttachedDetachedRequired_Call {
+func (_e *MockEResourceInternal_Expecter_Methods) IsAttachedDetachedRequired() *MockEResourceInternal_IsAttachedDetachedRequired_Call {
 	return &MockEResourceInternal_IsAttachedDetachedRequired_Call{Call: _e.mock.On("IsAttachedDetachedRequired")}
 }
 

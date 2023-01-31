@@ -15,31 +15,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// MockEDataType is an mock type for the EDataType type
 type MockEDataType struct {
 	mock.Mock
 	MockEDataType_Prototype
 }
 
+// MockEDataType_Prototype is the mock implementation of all EDataType methods ( inherited and declared )
 type MockEDataType_Prototype struct {
 	mock *mock.Mock
 	MockEClassifier_Prototype
-	MockEDataType_Declared_Prototype
+	MockEDataType_Prototype_Methods
 }
 
 func (_mp *MockEDataType_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 	_mp.MockEClassifier_Prototype.SetMock(mock)
-	_mp.MockEDataType_Declared_Prototype.SetMock(mock)
+	_mp.MockEDataType_Prototype_Methods.SetMock(mock)
 }
 
+// MockEDataType_Expecter is the expecter implementation for all EDataType methods ( inherited and declared )
 type MockEDataType_Expecter struct {
 	MockEClassifier_Expecter
-	MockEDataType_Declared_Expecter
+	MockEDataType_Expecter_Methods
 }
 
 func (_me *MockEDataType_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEClassifier_Expecter.SetMock(mock)
-	_me.MockEDataType_Declared_Expecter.SetMock(mock)
+	_me.MockEDataType_Expecter_Methods.SetMock(mock)
 }
 
 func (eDataType *MockEDataType_Prototype) EXPECT() *MockEDataType_Expecter {
@@ -48,24 +51,26 @@ func (eDataType *MockEDataType_Prototype) EXPECT() *MockEDataType_Expecter {
 	return expecter
 }
 
-type MockEDataType_Declared_Prototype struct {
+// MockEDataType_Prototype_Methods is the mock implementation of EDataType declared methods
+type MockEDataType_Prototype_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mdp *MockEDataType_Declared_Prototype) SetMock(mock *mock.Mock) {
+func (_mdp *MockEDataType_Prototype_Methods) SetMock(mock *mock.Mock) {
 	_mdp.mock = mock
 }
 
-type MockEDataType_Declared_Expecter struct {
+// MockEDataType_Expecter_Methods is the expecter implementation of EDataType declared methods
+type MockEDataType_Expecter_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mde *MockEDataType_Declared_Expecter) SetMock(mock *mock.Mock) {
+func (_mde *MockEDataType_Expecter_Methods) SetMock(mock *mock.Mock) {
 	_mde.mock = mock
 }
 
 // IsSerializable get the value of isSerializable
-func (eDataType *MockEDataType_Declared_Prototype) IsSerializable() bool {
+func (eDataType *MockEDataType_Prototype_Methods) IsSerializable() bool {
 	ret := eDataType.mock.Called()
 
 	var r bool
@@ -84,7 +89,7 @@ type MockEDataType_IsSerializable_Call struct {
 	*mock.Call
 }
 
-func (e *MockEDataType_Declared_Expecter) IsSerializable() *MockEDataType_IsSerializable_Call {
+func (e *MockEDataType_Expecter_Methods) IsSerializable() *MockEDataType_IsSerializable_Call {
 	return &MockEDataType_IsSerializable_Call{Call: e.mock.On("IsSerializable")}
 }
 
@@ -101,7 +106,7 @@ func (c *MockEDataType_IsSerializable_Call) Return(isSerializable bool) *MockEDa
 }
 
 // SetSerializable provides mock implementation for setting the value of isSerializable
-func (eDataType *MockEDataType_Declared_Prototype) SetSerializable(isSerializable bool) {
+func (eDataType *MockEDataType_Prototype_Methods) SetSerializable(isSerializable bool) {
 	eDataType.mock.Called(isSerializable)
 }
 
@@ -111,7 +116,7 @@ type MockEDataType_SetSerializable_Call struct {
 
 // SetSerializable is a helper method to define mock.On call
 // - isSerializable bool
-func (e *MockEDataType_Declared_Expecter) SetSerializable(isSerializable any) *MockEDataType_SetSerializable_Call {
+func (e *MockEDataType_Expecter_Methods) SetSerializable(isSerializable any) *MockEDataType_SetSerializable_Call {
 	return &MockEDataType_SetSerializable_Call{Call: e.mock.On("SetSerializable", isSerializable)}
 }
 

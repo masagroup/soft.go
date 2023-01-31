@@ -15,31 +15,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// MockEObject is an mock type for the EObject type
 type MockEObject struct {
 	mock.Mock
 	MockEObject_Prototype
 }
 
+// MockEObject_Prototype is the mock implementation of all EObject methods ( inherited and declared )
 type MockEObject_Prototype struct {
 	mock *mock.Mock
 	MockENotifier_Prototype
-	MockEObject_Declared_Prototype
+	MockEObject_Prototype_Methods
 }
 
 func (_mp *MockEObject_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 	_mp.MockENotifier_Prototype.SetMock(mock)
-	_mp.MockEObject_Declared_Prototype.SetMock(mock)
+	_mp.MockEObject_Prototype_Methods.SetMock(mock)
 }
 
+// MockEObject_Expecter is the expecter implementation for all EObject methods ( inherited and declared )
 type MockEObject_Expecter struct {
 	MockENotifier_Expecter
-	MockEObject_Declared_Expecter
+	MockEObject_Expecter_Methods
 }
 
 func (_me *MockEObject_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockENotifier_Expecter.SetMock(mock)
-	_me.MockEObject_Declared_Expecter.SetMock(mock)
+	_me.MockEObject_Expecter_Methods.SetMock(mock)
 }
 
 func (eObject *MockEObject_Prototype) EXPECT() *MockEObject_Expecter {
@@ -48,24 +51,26 @@ func (eObject *MockEObject_Prototype) EXPECT() *MockEObject_Expecter {
 	return expecter
 }
 
-type MockEObject_Declared_Prototype struct {
+// MockEObject_Prototype_Methods is the mock implementation of EObject declared methods
+type MockEObject_Prototype_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mdp *MockEObject_Declared_Prototype) SetMock(mock *mock.Mock) {
+func (_mdp *MockEObject_Prototype_Methods) SetMock(mock *mock.Mock) {
 	_mdp.mock = mock
 }
 
-type MockEObject_Declared_Expecter struct {
+// MockEObject_Expecter_Methods is the expecter implementation of EObject declared methods
+type MockEObject_Expecter_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mde *MockEObject_Declared_Expecter) SetMock(mock *mock.Mock) {
+func (_mde *MockEObject_Expecter_Methods) SetMock(mock *mock.Mock) {
 	_mde.mock = mock
 }
 
 // EAllContents provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EAllContents() EIterator {
+func (eObject *MockEObject_Prototype_Methods) EAllContents() EIterator {
 	ret := eObject.mock.Called()
 
 	var r EIterator
@@ -85,7 +90,7 @@ type MockEObject_EAllContents_Call struct {
 }
 
 // EAllContents is a helper method to define mock.On call
-func (e *MockEObject_Declared_Expecter) EAllContents() *MockEObject_EAllContents_Call {
+func (e *MockEObject_Expecter_Methods) EAllContents() *MockEObject_EAllContents_Call {
 	return &MockEObject_EAllContents_Call{Call: e.mock.On("EAllContents")}
 }
 
@@ -102,7 +107,7 @@ func (c *MockEObject_EAllContents_Call) Return(_a0 EIterator) *MockEObject_EAllC
 }
 
 // EClass provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EClass() EClass {
+func (eObject *MockEObject_Prototype_Methods) EClass() EClass {
 	ret := eObject.mock.Called()
 
 	var r EClass
@@ -122,7 +127,7 @@ type MockEObject_EClass_Call struct {
 }
 
 // EClass is a helper method to define mock.On call
-func (e *MockEObject_Declared_Expecter) EClass() *MockEObject_EClass_Call {
+func (e *MockEObject_Expecter_Methods) EClass() *MockEObject_EClass_Call {
 	return &MockEObject_EClass_Call{Call: e.mock.On("EClass")}
 }
 
@@ -139,7 +144,7 @@ func (c *MockEObject_EClass_Call) Return(_a0 EClass) *MockEObject_EClass_Call {
 }
 
 // EContainer provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EContainer() EObject {
+func (eObject *MockEObject_Prototype_Methods) EContainer() EObject {
 	ret := eObject.mock.Called()
 
 	var r EObject
@@ -159,7 +164,7 @@ type MockEObject_EContainer_Call struct {
 }
 
 // EContainer is a helper method to define mock.On call
-func (e *MockEObject_Declared_Expecter) EContainer() *MockEObject_EContainer_Call {
+func (e *MockEObject_Expecter_Methods) EContainer() *MockEObject_EContainer_Call {
 	return &MockEObject_EContainer_Call{Call: e.mock.On("EContainer")}
 }
 
@@ -176,7 +181,7 @@ func (c *MockEObject_EContainer_Call) Return(_a0 EObject) *MockEObject_EContaine
 }
 
 // EContainingFeature provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EContainingFeature() EStructuralFeature {
+func (eObject *MockEObject_Prototype_Methods) EContainingFeature() EStructuralFeature {
 	ret := eObject.mock.Called()
 
 	var r EStructuralFeature
@@ -196,7 +201,7 @@ type MockEObject_EContainingFeature_Call struct {
 }
 
 // EContainingFeature is a helper method to define mock.On call
-func (e *MockEObject_Declared_Expecter) EContainingFeature() *MockEObject_EContainingFeature_Call {
+func (e *MockEObject_Expecter_Methods) EContainingFeature() *MockEObject_EContainingFeature_Call {
 	return &MockEObject_EContainingFeature_Call{Call: e.mock.On("EContainingFeature")}
 }
 
@@ -213,7 +218,7 @@ func (c *MockEObject_EContainingFeature_Call) Return(_a0 EStructuralFeature) *Mo
 }
 
 // EContainmentFeature provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EContainmentFeature() EReference {
+func (eObject *MockEObject_Prototype_Methods) EContainmentFeature() EReference {
 	ret := eObject.mock.Called()
 
 	var r EReference
@@ -233,7 +238,7 @@ type MockEObject_EContainmentFeature_Call struct {
 }
 
 // EContainmentFeature is a helper method to define mock.On call
-func (e *MockEObject_Declared_Expecter) EContainmentFeature() *MockEObject_EContainmentFeature_Call {
+func (e *MockEObject_Expecter_Methods) EContainmentFeature() *MockEObject_EContainmentFeature_Call {
 	return &MockEObject_EContainmentFeature_Call{Call: e.mock.On("EContainmentFeature")}
 }
 
@@ -250,7 +255,7 @@ func (c *MockEObject_EContainmentFeature_Call) Return(_a0 EReference) *MockEObje
 }
 
 // EContents provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EContents() EList {
+func (eObject *MockEObject_Prototype_Methods) EContents() EList {
 	ret := eObject.mock.Called()
 
 	var r EList
@@ -270,7 +275,7 @@ type MockEObject_EContents_Call struct {
 }
 
 // EContents is a helper method to define mock.On call
-func (e *MockEObject_Declared_Expecter) EContents() *MockEObject_EContents_Call {
+func (e *MockEObject_Expecter_Methods) EContents() *MockEObject_EContents_Call {
 	return &MockEObject_EContents_Call{Call: e.mock.On("EContents")}
 }
 
@@ -287,7 +292,7 @@ func (c *MockEObject_EContents_Call) Return(_a0 EList) *MockEObject_EContents_Ca
 }
 
 // ECrossReferences provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) ECrossReferences() EList {
+func (eObject *MockEObject_Prototype_Methods) ECrossReferences() EList {
 	ret := eObject.mock.Called()
 
 	var r EList
@@ -307,7 +312,7 @@ type MockEObject_ECrossReferences_Call struct {
 }
 
 // ECrossReferences is a helper method to define mock.On call
-func (e *MockEObject_Declared_Expecter) ECrossReferences() *MockEObject_ECrossReferences_Call {
+func (e *MockEObject_Expecter_Methods) ECrossReferences() *MockEObject_ECrossReferences_Call {
 	return &MockEObject_ECrossReferences_Call{Call: e.mock.On("ECrossReferences")}
 }
 
@@ -324,7 +329,7 @@ func (c *MockEObject_ECrossReferences_Call) Return(_a0 EList) *MockEObject_ECros
 }
 
 // EGet provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EGet(feature EStructuralFeature) any {
+func (eObject *MockEObject_Prototype_Methods) EGet(feature EStructuralFeature) any {
 	ret := eObject.mock.Called(feature)
 
 	var r any
@@ -345,7 +350,7 @@ type MockEObject_EGet_Call struct {
 
 // EGet is a helper method to define mock.On call
 // - feature EStructuralFeature
-func (e *MockEObject_Declared_Expecter) EGet(feature any) *MockEObject_EGet_Call {
+func (e *MockEObject_Expecter_Methods) EGet(feature any) *MockEObject_EGet_Call {
 	return &MockEObject_EGet_Call{Call: e.mock.On("EGet", feature)}
 }
 
@@ -362,7 +367,7 @@ func (c *MockEObject_EGet_Call) Return(_a0 any) *MockEObject_EGet_Call {
 }
 
 // EGetResolve provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EGetResolve(feature EStructuralFeature, resolve bool) any {
+func (eObject *MockEObject_Prototype_Methods) EGetResolve(feature EStructuralFeature, resolve bool) any {
 	ret := eObject.mock.Called(feature, resolve)
 
 	var r any
@@ -384,7 +389,7 @@ type MockEObject_EGetResolve_Call struct {
 // EGetResolve is a helper method to define mock.On call
 // - feature EStructuralFeature
 // - resolve bool
-func (e *MockEObject_Declared_Expecter) EGetResolve(feature any, resolve any) *MockEObject_EGetResolve_Call {
+func (e *MockEObject_Expecter_Methods) EGetResolve(feature any, resolve any) *MockEObject_EGetResolve_Call {
 	return &MockEObject_EGetResolve_Call{Call: e.mock.On("EGetResolve", feature, resolve)}
 }
 
@@ -401,7 +406,7 @@ func (c *MockEObject_EGetResolve_Call) Return(_a0 any) *MockEObject_EGetResolve_
 }
 
 // EInvoke provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EInvoke(operation EOperation, arguments EList) any {
+func (eObject *MockEObject_Prototype_Methods) EInvoke(operation EOperation, arguments EList) any {
 	ret := eObject.mock.Called(operation, arguments)
 
 	var r any
@@ -423,7 +428,7 @@ type MockEObject_EInvoke_Call struct {
 // EInvoke is a helper method to define mock.On call
 // - operation EOperation
 // - arguments EList
-func (e *MockEObject_Declared_Expecter) EInvoke(operation any, arguments any) *MockEObject_EInvoke_Call {
+func (e *MockEObject_Expecter_Methods) EInvoke(operation any, arguments any) *MockEObject_EInvoke_Call {
 	return &MockEObject_EInvoke_Call{Call: e.mock.On("EInvoke", operation, arguments)}
 }
 
@@ -440,7 +445,7 @@ func (c *MockEObject_EInvoke_Call) Return(_a0 any) *MockEObject_EInvoke_Call {
 }
 
 // EIsProxy provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EIsProxy() bool {
+func (eObject *MockEObject_Prototype_Methods) EIsProxy() bool {
 	ret := eObject.mock.Called()
 
 	var r bool
@@ -460,7 +465,7 @@ type MockEObject_EIsProxy_Call struct {
 }
 
 // EIsProxy is a helper method to define mock.On call
-func (e *MockEObject_Declared_Expecter) EIsProxy() *MockEObject_EIsProxy_Call {
+func (e *MockEObject_Expecter_Methods) EIsProxy() *MockEObject_EIsProxy_Call {
 	return &MockEObject_EIsProxy_Call{Call: e.mock.On("EIsProxy")}
 }
 
@@ -477,7 +482,7 @@ func (c *MockEObject_EIsProxy_Call) Return(_a0 bool) *MockEObject_EIsProxy_Call 
 }
 
 // EIsSet provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EIsSet(feature EStructuralFeature) bool {
+func (eObject *MockEObject_Prototype_Methods) EIsSet(feature EStructuralFeature) bool {
 	ret := eObject.mock.Called(feature)
 
 	var r bool
@@ -498,7 +503,7 @@ type MockEObject_EIsSet_Call struct {
 
 // EIsSet is a helper method to define mock.On call
 // - feature EStructuralFeature
-func (e *MockEObject_Declared_Expecter) EIsSet(feature any) *MockEObject_EIsSet_Call {
+func (e *MockEObject_Expecter_Methods) EIsSet(feature any) *MockEObject_EIsSet_Call {
 	return &MockEObject_EIsSet_Call{Call: e.mock.On("EIsSet", feature)}
 }
 
@@ -515,7 +520,7 @@ func (c *MockEObject_EIsSet_Call) Return(_a0 bool) *MockEObject_EIsSet_Call {
 }
 
 // EResource provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EResource() EResource {
+func (eObject *MockEObject_Prototype_Methods) EResource() EResource {
 	ret := eObject.mock.Called()
 
 	var r EResource
@@ -535,7 +540,7 @@ type MockEObject_EResource_Call struct {
 }
 
 // EResource is a helper method to define mock.On call
-func (e *MockEObject_Declared_Expecter) EResource() *MockEObject_EResource_Call {
+func (e *MockEObject_Expecter_Methods) EResource() *MockEObject_EResource_Call {
 	return &MockEObject_EResource_Call{Call: e.mock.On("EResource")}
 }
 
@@ -552,7 +557,7 @@ func (c *MockEObject_EResource_Call) Return(_a0 EResource) *MockEObject_EResourc
 }
 
 // ESet provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) ESet(feature EStructuralFeature, newValue any) {
+func (eObject *MockEObject_Prototype_Methods) ESet(feature EStructuralFeature, newValue any) {
 	eObject.mock.Called(feature, newValue)
 }
 
@@ -560,7 +565,7 @@ type MockEObject_ESet_Call struct {
 	*mock.Call
 }
 
-func (e *MockEObject_Declared_Expecter) ESet(feature EStructuralFeature, newValue any) *MockEObject_ESet_Call {
+func (e *MockEObject_Expecter_Methods) ESet(feature EStructuralFeature, newValue any) *MockEObject_ESet_Call {
 	return &MockEObject_ESet_Call{Call: e.mock.On("ESet", feature, newValue)}
 }
 
@@ -575,7 +580,7 @@ func (c *MockEObject_ESet_Call) Return() *MockEObject_ESet_Call {
 	c.Call.Return()
 	return c
 } // EUnset provides mock implementation
-func (eObject *MockEObject_Declared_Prototype) EUnset(feature EStructuralFeature) {
+func (eObject *MockEObject_Prototype_Methods) EUnset(feature EStructuralFeature) {
 	eObject.mock.Called(feature)
 }
 
@@ -583,7 +588,7 @@ type MockEObject_EUnset_Call struct {
 	*mock.Call
 }
 
-func (e *MockEObject_Declared_Expecter) EUnset(feature EStructuralFeature) *MockEObject_EUnset_Call {
+func (e *MockEObject_Expecter_Methods) EUnset(feature EStructuralFeature) *MockEObject_EUnset_Call {
 	return &MockEObject_EUnset_Call{Call: e.mock.On("EUnset", feature)}
 }
 

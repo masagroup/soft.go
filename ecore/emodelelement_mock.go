@@ -15,31 +15,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// MockEModelElement is an mock type for the EModelElement type
 type MockEModelElement struct {
 	mock.Mock
 	MockEModelElement_Prototype
 }
 
+// MockEModelElement_Prototype is the mock implementation of all EModelElement methods ( inherited and declared )
 type MockEModelElement_Prototype struct {
 	mock *mock.Mock
 	MockEObjectInternal_Prototype
-	MockEModelElement_Declared_Prototype
+	MockEModelElement_Prototype_Methods
 }
 
 func (_mp *MockEModelElement_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 	_mp.MockEObjectInternal_Prototype.SetMock(mock)
-	_mp.MockEModelElement_Declared_Prototype.SetMock(mock)
+	_mp.MockEModelElement_Prototype_Methods.SetMock(mock)
 }
 
+// MockEModelElement_Expecter is the expecter implementation for all EModelElement methods ( inherited and declared )
 type MockEModelElement_Expecter struct {
 	MockEObjectInternal_Expecter
-	MockEModelElement_Declared_Expecter
+	MockEModelElement_Expecter_Methods
 }
 
 func (_me *MockEModelElement_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEObjectInternal_Expecter.SetMock(mock)
-	_me.MockEModelElement_Declared_Expecter.SetMock(mock)
+	_me.MockEModelElement_Expecter_Methods.SetMock(mock)
 }
 
 func (eModelElement *MockEModelElement_Prototype) EXPECT() *MockEModelElement_Expecter {
@@ -48,24 +51,26 @@ func (eModelElement *MockEModelElement_Prototype) EXPECT() *MockEModelElement_Ex
 	return expecter
 }
 
-type MockEModelElement_Declared_Prototype struct {
+// MockEModelElement_Prototype_Methods is the mock implementation of EModelElement declared methods
+type MockEModelElement_Prototype_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mdp *MockEModelElement_Declared_Prototype) SetMock(mock *mock.Mock) {
+func (_mdp *MockEModelElement_Prototype_Methods) SetMock(mock *mock.Mock) {
 	_mdp.mock = mock
 }
 
-type MockEModelElement_Declared_Expecter struct {
+// MockEModelElement_Expecter_Methods is the expecter implementation of EModelElement declared methods
+type MockEModelElement_Expecter_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mde *MockEModelElement_Declared_Expecter) SetMock(mock *mock.Mock) {
+func (_mde *MockEModelElement_Expecter_Methods) SetMock(mock *mock.Mock) {
 	_mde.mock = mock
 }
 
 // GetEAnnotations get the value of eAnnotations
-func (eModelElement *MockEModelElement_Declared_Prototype) GetEAnnotations() EList {
+func (eModelElement *MockEModelElement_Prototype_Methods) GetEAnnotations() EList {
 	ret := eModelElement.mock.Called()
 
 	var r EList
@@ -84,7 +89,7 @@ type MockEModelElement_GetEAnnotations_Call struct {
 	*mock.Call
 }
 
-func (e *MockEModelElement_Declared_Expecter) GetEAnnotations() *MockEModelElement_GetEAnnotations_Call {
+func (e *MockEModelElement_Expecter_Methods) GetEAnnotations() *MockEModelElement_GetEAnnotations_Call {
 	return &MockEModelElement_GetEAnnotations_Call{Call: e.mock.On("GetEAnnotations")}
 }
 
@@ -101,7 +106,7 @@ func (c *MockEModelElement_GetEAnnotations_Call) Return(eAnnotations EList) *Moc
 }
 
 // GetEAnnotation provides mock implementation
-func (eModelElement *MockEModelElement_Declared_Prototype) GetEAnnotation(source string) EAnnotation {
+func (eModelElement *MockEModelElement_Prototype_Methods) GetEAnnotation(source string) EAnnotation {
 	ret := eModelElement.mock.Called(source)
 
 	var r EAnnotation
@@ -122,7 +127,7 @@ type MockEModelElement_GetEAnnotation_Call struct {
 
 // GetEAnnotation is a helper method to define mock.On call
 // - source string
-func (e *MockEModelElement_Declared_Expecter) GetEAnnotation(source any) *MockEModelElement_GetEAnnotation_Call {
+func (e *MockEModelElement_Expecter_Methods) GetEAnnotation(source any) *MockEModelElement_GetEAnnotation_Call {
 	return &MockEModelElement_GetEAnnotation_Call{Call: e.mock.On("GetEAnnotation", source)}
 }
 

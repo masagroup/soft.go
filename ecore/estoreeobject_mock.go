@@ -20,23 +20,23 @@ type MockEStoreEObject struct {
 type MockEStoreEObject_Prototype struct {
 	mock *mock.Mock
 	MockEObject_Prototype
-	MockEStoreEObject_Declared_Prototype
+	MockEStoreEObject_Prototype_Methods
 }
 
 func (_mp *MockEStoreEObject_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 	_mp.MockEObject_Prototype.SetMock(mock)
-	_mp.MockEStoreEObject_Declared_Prototype.SetMock(mock)
+	_mp.MockEStoreEObject_Prototype_Methods.SetMock(mock)
 }
 
 type MockEStoreEObject_Expecter struct {
 	MockEObject_Expecter
-	MockEStoreEObject_Declared_Expecter
+	MockEStoreEObject_Expecter_Methods
 }
 
 func (_me *MockEStoreEObject_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEObject_Expecter.SetMock(mock)
-	_me.MockEStoreEObject_Declared_Expecter.SetMock(mock)
+	_me.MockEStoreEObject_Expecter_Methods.SetMock(mock)
 }
 
 func (_m *MockEStoreEObject_Prototype) EXPECT() *MockEStoreEObject_Expecter {
@@ -45,24 +45,24 @@ func (_m *MockEStoreEObject_Prototype) EXPECT() *MockEStoreEObject_Expecter {
 	return expecter
 }
 
-type MockEStoreEObject_Declared_Prototype struct {
+type MockEStoreEObject_Prototype_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mdp *MockEStoreEObject_Declared_Prototype) SetMock(mock *mock.Mock) {
+func (_mdp *MockEStoreEObject_Prototype_Methods) SetMock(mock *mock.Mock) {
 	_mdp.mock = mock
 }
 
-type MockEStoreEObject_Declared_Expecter struct {
+type MockEStoreEObject_Expecter_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mde *MockEStoreEObject_Declared_Expecter) SetMock(mock *mock.Mock) {
+func (_mde *MockEStoreEObject_Expecter_Methods) SetMock(mock *mock.Mock) {
 	_mde.mock = mock
 }
 
 // EStore provides a mock function with given fields:
-func (_m *MockEStoreEObject_Declared_Prototype) EStore() EStore {
+func (_m *MockEStoreEObject_Prototype_Methods) EStore() EStore {
 	ret := _m.mock.Called()
 
 	var r0 EStore
@@ -83,7 +83,7 @@ type MockEStoreEObject_EStore_Call struct {
 }
 
 // EStore is a helper method to define mock.On call
-func (_e *MockEStoreEObject_Declared_Expecter) EStore() *MockEStoreEObject_EStore_Call {
+func (_e *MockEStoreEObject_Expecter_Methods) EStore() *MockEStoreEObject_EStore_Call {
 	return &MockEStoreEObject_EStore_Call{Call: _e.mock.On("EStore")}
 }
 

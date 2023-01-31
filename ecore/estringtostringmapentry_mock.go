@@ -15,31 +15,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// MockEStringToStringMapEntry is an mock type for the EStringToStringMapEntry type
 type MockEStringToStringMapEntry struct {
 	mock.Mock
 	MockEStringToStringMapEntry_Prototype
 }
 
+// MockEStringToStringMapEntry_Prototype is the mock implementation of all EStringToStringMapEntry methods ( inherited and declared )
 type MockEStringToStringMapEntry_Prototype struct {
 	mock *mock.Mock
 	MockEObjectInternal_Prototype
-	MockEStringToStringMapEntry_Declared_Prototype
+	MockEStringToStringMapEntry_Prototype_Methods
 }
 
 func (_mp *MockEStringToStringMapEntry_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 	_mp.MockEObjectInternal_Prototype.SetMock(mock)
-	_mp.MockEStringToStringMapEntry_Declared_Prototype.SetMock(mock)
+	_mp.MockEStringToStringMapEntry_Prototype_Methods.SetMock(mock)
 }
 
+// MockEStringToStringMapEntry_Expecter is the expecter implementation for all EStringToStringMapEntry methods ( inherited and declared )
 type MockEStringToStringMapEntry_Expecter struct {
 	MockEObjectInternal_Expecter
-	MockEStringToStringMapEntry_Declared_Expecter
+	MockEStringToStringMapEntry_Expecter_Methods
 }
 
 func (_me *MockEStringToStringMapEntry_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEObjectInternal_Expecter.SetMock(mock)
-	_me.MockEStringToStringMapEntry_Declared_Expecter.SetMock(mock)
+	_me.MockEStringToStringMapEntry_Expecter_Methods.SetMock(mock)
 }
 
 func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype) EXPECT() *MockEStringToStringMapEntry_Expecter {
@@ -48,24 +51,26 @@ func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype) EXPECT() *
 	return expecter
 }
 
-type MockEStringToStringMapEntry_Declared_Prototype struct {
+// MockEStringToStringMapEntry_Prototype_Methods is the mock implementation of EStringToStringMapEntry declared methods
+type MockEStringToStringMapEntry_Prototype_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mdp *MockEStringToStringMapEntry_Declared_Prototype) SetMock(mock *mock.Mock) {
+func (_mdp *MockEStringToStringMapEntry_Prototype_Methods) SetMock(mock *mock.Mock) {
 	_mdp.mock = mock
 }
 
-type MockEStringToStringMapEntry_Declared_Expecter struct {
+// MockEStringToStringMapEntry_Expecter_Methods is the expecter implementation of EStringToStringMapEntry declared methods
+type MockEStringToStringMapEntry_Expecter_Methods struct {
 	mock *mock.Mock
 }
 
-func (_mde *MockEStringToStringMapEntry_Declared_Expecter) SetMock(mock *mock.Mock) {
+func (_mde *MockEStringToStringMapEntry_Expecter_Methods) SetMock(mock *mock.Mock) {
 	_mde.mock = mock
 }
 
 // GetTypedKey get the value of key
-func (eStringToStringMapEntry *MockEStringToStringMapEntry_Declared_Prototype) GetTypedKey() string {
+func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype_Methods) GetTypedKey() string {
 	ret := eStringToStringMapEntry.mock.Called()
 
 	var r string
@@ -84,7 +89,7 @@ type MockEStringToStringMapEntry_GetTypedKey_Call struct {
 	*mock.Call
 }
 
-func (e *MockEStringToStringMapEntry_Declared_Expecter) GetTypedKey() *MockEStringToStringMapEntry_GetTypedKey_Call {
+func (e *MockEStringToStringMapEntry_Expecter_Methods) GetTypedKey() *MockEStringToStringMapEntry_GetTypedKey_Call {
 	return &MockEStringToStringMapEntry_GetTypedKey_Call{Call: e.mock.On("GetTypedKey")}
 }
 
@@ -101,7 +106,7 @@ func (c *MockEStringToStringMapEntry_GetTypedKey_Call) Return(key string) *MockE
 }
 
 // SetTypedKey provides mock implementation for setting the value of key
-func (eStringToStringMapEntry *MockEStringToStringMapEntry_Declared_Prototype) SetTypedKey(key string) {
+func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype_Methods) SetTypedKey(key string) {
 	eStringToStringMapEntry.mock.Called(key)
 }
 
@@ -111,7 +116,7 @@ type MockEStringToStringMapEntry_SetTypedKey_Call struct {
 
 // SetTypedKey is a helper method to define mock.On call
 // - key string
-func (e *MockEStringToStringMapEntry_Declared_Expecter) SetTypedKey(key any) *MockEStringToStringMapEntry_SetTypedKey_Call {
+func (e *MockEStringToStringMapEntry_Expecter_Methods) SetTypedKey(key any) *MockEStringToStringMapEntry_SetTypedKey_Call {
 	return &MockEStringToStringMapEntry_SetTypedKey_Call{Call: e.mock.On("SetTypedKey", key)}
 }
 
@@ -128,7 +133,7 @@ func (c *MockEStringToStringMapEntry_SetTypedKey_Call) Return() *MockEStringToSt
 }
 
 // GetTypedValue get the value of value
-func (eStringToStringMapEntry *MockEStringToStringMapEntry_Declared_Prototype) GetTypedValue() string {
+func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype_Methods) GetTypedValue() string {
 	ret := eStringToStringMapEntry.mock.Called()
 
 	var r string
@@ -147,7 +152,7 @@ type MockEStringToStringMapEntry_GetTypedValue_Call struct {
 	*mock.Call
 }
 
-func (e *MockEStringToStringMapEntry_Declared_Expecter) GetTypedValue() *MockEStringToStringMapEntry_GetTypedValue_Call {
+func (e *MockEStringToStringMapEntry_Expecter_Methods) GetTypedValue() *MockEStringToStringMapEntry_GetTypedValue_Call {
 	return &MockEStringToStringMapEntry_GetTypedValue_Call{Call: e.mock.On("GetTypedValue")}
 }
 
@@ -164,7 +169,7 @@ func (c *MockEStringToStringMapEntry_GetTypedValue_Call) Return(value string) *M
 }
 
 // SetTypedValue provides mock implementation for setting the value of value
-func (eStringToStringMapEntry *MockEStringToStringMapEntry_Declared_Prototype) SetTypedValue(value string) {
+func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype_Methods) SetTypedValue(value string) {
 	eStringToStringMapEntry.mock.Called(value)
 }
 
@@ -174,7 +179,7 @@ type MockEStringToStringMapEntry_SetTypedValue_Call struct {
 
 // SetTypedValue is a helper method to define mock.On call
 // - value string
-func (e *MockEStringToStringMapEntry_Declared_Expecter) SetTypedValue(value any) *MockEStringToStringMapEntry_SetTypedValue_Call {
+func (e *MockEStringToStringMapEntry_Expecter_Methods) SetTypedValue(value any) *MockEStringToStringMapEntry_SetTypedValue_Call {
 	return &MockEStringToStringMapEntry_SetTypedValue_Call{Call: e.mock.On("SetTypedValue", value)}
 }
 

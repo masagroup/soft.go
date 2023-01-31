@@ -16,27 +16,57 @@ import (
 )
 
 type MockEModelElement struct {
-	MockEModelElement_Prototype
 	mock.Mock
+	MockEModelElement_Prototype
 }
 
 type MockEModelElement_Prototype struct {
+	mock *mock.Mock
 	MockEObjectInternal_Prototype
+	MockEModelElement_Declared_Prototype
+}
+
+func (_mp *MockEModelElement_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockEObjectInternal_Prototype.SetMock(mock)
+	_mp.MockEModelElement_Declared_Prototype.SetMock(mock)
 }
 
 type MockEModelElement_Expecter struct {
 	MockEObjectInternal_Expecter
+	MockEModelElement_Declared_Expecter
+}
+
+func (_me *MockEModelElement_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockEObjectInternal_Expecter.SetMock(mock)
+	_me.MockEModelElement_Declared_Expecter.SetMock(mock)
 }
 
 func (eModelElement *MockEModelElement_Prototype) EXPECT() *MockEModelElement_Expecter {
-	e := &MockEModelElement_Expecter{}
-	e.Mock = eModelElement.Mock
-	return e
+	expecter := &MockEModelElement_Expecter{}
+	expecter.SetMock(eModelElement.mock)
+	return expecter
+}
+
+type MockEModelElement_Declared_Prototype struct {
+	mock *mock.Mock
+}
+
+func (_mdp *MockEModelElement_Declared_Prototype) SetMock(mock *mock.Mock) {
+	_mdp.mock = mock
+}
+
+type MockEModelElement_Declared_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_mde *MockEModelElement_Declared_Expecter) SetMock(mock *mock.Mock) {
+	_mde.mock = mock
 }
 
 // GetEAnnotations get the value of eAnnotations
-func (eModelElement *MockEModelElement_Prototype) GetEAnnotations() EList {
-	ret := eModelElement.Called()
+func (eModelElement *MockEModelElement_Declared_Prototype) GetEAnnotations() EList {
+	ret := eModelElement.mock.Called()
 
 	var r EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
@@ -54,8 +84,8 @@ type MockEModelElement_GetEAnnotations_Call struct {
 	*mock.Call
 }
 
-func (e *MockEModelElement_Expecter) GetEAnnotations() *MockEModelElement_GetEAnnotations_Call {
-	return &MockEModelElement_GetEAnnotations_Call{Call: e.Mock.On("GetEAnnotations")}
+func (e *MockEModelElement_Declared_Expecter) GetEAnnotations() *MockEModelElement_GetEAnnotations_Call {
+	return &MockEModelElement_GetEAnnotations_Call{Call: e.mock.On("GetEAnnotations")}
 }
 
 func (c *MockEModelElement_GetEAnnotations_Call) Run(run func()) *MockEModelElement_GetEAnnotations_Call {
@@ -71,8 +101,8 @@ func (c *MockEModelElement_GetEAnnotations_Call) Return(eAnnotations EList) *Moc
 }
 
 // GetEAnnotation provides mock implementation
-func (eModelElement *MockEModelElement_Prototype) GetEAnnotation(source string) EAnnotation {
-	ret := eModelElement.Called(source)
+func (eModelElement *MockEModelElement_Declared_Prototype) GetEAnnotation(source string) EAnnotation {
+	ret := eModelElement.mock.Called(source)
 
 	var r EAnnotation
 	if rf, ok := ret.Get(0).(func() EAnnotation); ok {
@@ -90,10 +120,10 @@ type MockEModelElement_GetEAnnotation_Call struct {
 	*mock.Call
 }
 
-// GetEAnnotationis a helper method to define mock.On call
+// GetEAnnotation is a helper method to define mock.On call
 // - source string
-func (e *MockEModelElement_Expecter) GetEAnnotation(source any) *MockEModelElement_GetEAnnotation_Call {
-	return &MockEModelElement_GetEAnnotation_Call{Call: e.Mock.On("GetEAnnotation", source)}
+func (e *MockEModelElement_Declared_Expecter) GetEAnnotation(source any) *MockEModelElement_GetEAnnotation_Call {
+	return &MockEModelElement_GetEAnnotation_Call{Call: e.mock.On("GetEAnnotation", source)}
 }
 
 func (c *MockEModelElement_GetEAnnotation_Call) Run(run func(string)) *MockEModelElement_GetEAnnotation_Call {
@@ -116,7 +146,7 @@ type mockConstructorTestingTNewMockEModelElement interface {
 // NewMockEModelElement creates a new instance of MockEModelElement. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEModelElement(t mockConstructorTestingTNewMockEModelElement) *MockEModelElement {
 	mock := &MockEModelElement{}
-	mock.MockEModelElement_Prototype.Mock = &mock.Mock
+	mock.SetMock(&mock.Mock)
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

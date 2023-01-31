@@ -16,27 +16,57 @@ import (
 )
 
 type MockETypeParameter struct {
-	MockETypeParameter_Prototype
 	mock.Mock
+	MockETypeParameter_Prototype
 }
 
 type MockETypeParameter_Prototype struct {
+	mock *mock.Mock
 	MockENamedElement_Prototype
+	MockETypeParameter_Declared_Prototype
+}
+
+func (_mp *MockETypeParameter_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockENamedElement_Prototype.SetMock(mock)
+	_mp.MockETypeParameter_Declared_Prototype.SetMock(mock)
 }
 
 type MockETypeParameter_Expecter struct {
 	MockENamedElement_Expecter
+	MockETypeParameter_Declared_Expecter
+}
+
+func (_me *MockETypeParameter_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockENamedElement_Expecter.SetMock(mock)
+	_me.MockETypeParameter_Declared_Expecter.SetMock(mock)
 }
 
 func (eTypeParameter *MockETypeParameter_Prototype) EXPECT() *MockETypeParameter_Expecter {
-	e := &MockETypeParameter_Expecter{}
-	e.Mock = eTypeParameter.Mock
-	return e
+	expecter := &MockETypeParameter_Expecter{}
+	expecter.SetMock(eTypeParameter.mock)
+	return expecter
+}
+
+type MockETypeParameter_Declared_Prototype struct {
+	mock *mock.Mock
+}
+
+func (_mdp *MockETypeParameter_Declared_Prototype) SetMock(mock *mock.Mock) {
+	_mdp.mock = mock
+}
+
+type MockETypeParameter_Declared_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_mde *MockETypeParameter_Declared_Expecter) SetMock(mock *mock.Mock) {
+	_mde.mock = mock
 }
 
 // GetEBounds get the value of eBounds
-func (eTypeParameter *MockETypeParameter_Prototype) GetEBounds() EList {
-	ret := eTypeParameter.Called()
+func (eTypeParameter *MockETypeParameter_Declared_Prototype) GetEBounds() EList {
+	ret := eTypeParameter.mock.Called()
 
 	var r EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
@@ -54,8 +84,8 @@ type MockETypeParameter_GetEBounds_Call struct {
 	*mock.Call
 }
 
-func (e *MockETypeParameter_Expecter) GetEBounds() *MockETypeParameter_GetEBounds_Call {
-	return &MockETypeParameter_GetEBounds_Call{Call: e.Mock.On("GetEBounds")}
+func (e *MockETypeParameter_Declared_Expecter) GetEBounds() *MockETypeParameter_GetEBounds_Call {
+	return &MockETypeParameter_GetEBounds_Call{Call: e.mock.On("GetEBounds")}
 }
 
 func (c *MockETypeParameter_GetEBounds_Call) Run(run func()) *MockETypeParameter_GetEBounds_Call {
@@ -78,7 +108,7 @@ type mockConstructorTestingTNewMockETypeParameter interface {
 // NewMockETypeParameter creates a new instance of MockETypeParameter. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockETypeParameter(t mockConstructorTestingTNewMockETypeParameter) *MockETypeParameter {
 	mock := &MockETypeParameter{}
-	mock.MockETypeParameter_Prototype.Mock = &mock.Mock
+	mock.SetMock(&mock.Mock)
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

@@ -30,13 +30,20 @@ func TestBasicEObjectMap_Constructor(t *testing.T) {
 }
 
 type MockEObjectEMapEntry struct {
-	MockEObjectEMapEntry_Prototype
 	mock.Mock
+	MockEObjectEMapEntry_Prototype
 }
 
 type MockEObjectEMapEntry_Prototype struct {
+	mock *mock.Mock
 	MockEObject_Prototype
 	MockEMapEntry_Prototype
+}
+
+func (_mp *MockEObjectEMapEntry_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockEObject_Prototype.SetMock(mock)
+	_mp.MockEMapEntry_Prototype.SetMock(mock)
 }
 
 type MockEObjectEMapEntry_Expecter struct {
@@ -44,10 +51,14 @@ type MockEObjectEMapEntry_Expecter struct {
 	MockEMapEntry_Expecter
 }
 
+func (_me *MockEObjectEMapEntry_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockEObject_Expecter.SetMock(mock)
+	_me.MockEMapEntry_Expecter.SetMock(mock)
+}
+
 func (eMapEntry *MockEObjectEMapEntry_Prototype) EXPECT() *MockEObjectEMapEntry_Expecter {
 	e := &MockEObjectEMapEntry_Expecter{}
-	e.MockEObject_Expecter.Mock = eMapEntry.Mock
-	e.MockEMapEntry_Expecter.Mock = eMapEntry.Mock
+	e.SetMock(eMapEntry.mock)
 	return e
 }
 
@@ -59,8 +70,7 @@ type mockConstructorTestingTNewMockEObjectEMapEntry interface {
 // NewMockENotifier creates a new instance of MockENotifier_Prototype. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEObjectEMapEntry(t mockConstructorTestingTNewMockEObjectEMapEntry) *MockEObjectEMapEntry {
 	mock := &MockEObjectEMapEntry{}
-	mock.MockEObject_Prototype.Mock = &mock.Mock
-	mock.MockEMapEntry_Prototype.Mock = &mock.Mock
+	mock.SetMock(&mock.Mock)
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

@@ -16,27 +16,57 @@ import (
 )
 
 type MockEOperation struct {
-	MockEOperation_Prototype
 	mock.Mock
+	MockEOperation_Prototype
 }
 
 type MockEOperation_Prototype struct {
+	mock *mock.Mock
 	MockETypedElement_Prototype
+	MockEOperation_Declared_Prototype
+}
+
+func (_mp *MockEOperation_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockETypedElement_Prototype.SetMock(mock)
+	_mp.MockEOperation_Declared_Prototype.SetMock(mock)
 }
 
 type MockEOperation_Expecter struct {
 	MockETypedElement_Expecter
+	MockEOperation_Declared_Expecter
+}
+
+func (_me *MockEOperation_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockETypedElement_Expecter.SetMock(mock)
+	_me.MockEOperation_Declared_Expecter.SetMock(mock)
 }
 
 func (eOperation *MockEOperation_Prototype) EXPECT() *MockEOperation_Expecter {
-	e := &MockEOperation_Expecter{}
-	e.Mock = eOperation.Mock
-	return e
+	expecter := &MockEOperation_Expecter{}
+	expecter.SetMock(eOperation.mock)
+	return expecter
+}
+
+type MockEOperation_Declared_Prototype struct {
+	mock *mock.Mock
+}
+
+func (_mdp *MockEOperation_Declared_Prototype) SetMock(mock *mock.Mock) {
+	_mdp.mock = mock
+}
+
+type MockEOperation_Declared_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_mde *MockEOperation_Declared_Expecter) SetMock(mock *mock.Mock) {
+	_mde.mock = mock
 }
 
 // GetEContainingClass get the value of eContainingClass
-func (eOperation *MockEOperation_Prototype) GetEContainingClass() EClass {
-	ret := eOperation.Called()
+func (eOperation *MockEOperation_Declared_Prototype) GetEContainingClass() EClass {
+	ret := eOperation.mock.Called()
 
 	var r EClass
 	if rf, ok := ret.Get(0).(func() EClass); ok {
@@ -54,8 +84,8 @@ type MockEOperation_GetEContainingClass_Call struct {
 	*mock.Call
 }
 
-func (e *MockEOperation_Expecter) GetEContainingClass() *MockEOperation_GetEContainingClass_Call {
-	return &MockEOperation_GetEContainingClass_Call{Call: e.Mock.On("GetEContainingClass")}
+func (e *MockEOperation_Declared_Expecter) GetEContainingClass() *MockEOperation_GetEContainingClass_Call {
+	return &MockEOperation_GetEContainingClass_Call{Call: e.mock.On("GetEContainingClass")}
 }
 
 func (c *MockEOperation_GetEContainingClass_Call) Run(run func()) *MockEOperation_GetEContainingClass_Call {
@@ -71,8 +101,8 @@ func (c *MockEOperation_GetEContainingClass_Call) Return(eContainingClass EClass
 }
 
 // GetEExceptions get the value of eExceptions
-func (eOperation *MockEOperation_Prototype) GetEExceptions() EList {
-	ret := eOperation.Called()
+func (eOperation *MockEOperation_Declared_Prototype) GetEExceptions() EList {
+	ret := eOperation.mock.Called()
 
 	var r EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
@@ -90,8 +120,8 @@ type MockEOperation_GetEExceptions_Call struct {
 	*mock.Call
 }
 
-func (e *MockEOperation_Expecter) GetEExceptions() *MockEOperation_GetEExceptions_Call {
-	return &MockEOperation_GetEExceptions_Call{Call: e.Mock.On("GetEExceptions")}
+func (e *MockEOperation_Declared_Expecter) GetEExceptions() *MockEOperation_GetEExceptions_Call {
+	return &MockEOperation_GetEExceptions_Call{Call: e.mock.On("GetEExceptions")}
 }
 
 func (c *MockEOperation_GetEExceptions_Call) Run(run func()) *MockEOperation_GetEExceptions_Call {
@@ -107,16 +137,16 @@ func (c *MockEOperation_GetEExceptions_Call) Return(eExceptions EList) *MockEOpe
 }
 
 // UnsetEExceptions provides mock implementation for unset the value of eExceptions
-func (eOperation *MockEOperation_Prototype) UnsetEExceptions() {
-	eOperation.Called()
+func (eOperation *MockEOperation_Declared_Prototype) UnsetEExceptions() {
+	eOperation.mock.Called()
 }
 
 type MockEOperation_UnsetEExceptions_Call struct {
 	*mock.Call
 }
 
-func (e *MockEOperation_Expecter) UnsetEExceptions() *MockEOperation_UnsetEExceptions_Call {
-	return &MockEOperation_UnsetEExceptions_Call{Call: e.Mock.On("UnsetEExceptions")}
+func (e *MockEOperation_Declared_Expecter) UnsetEExceptions() *MockEOperation_UnsetEExceptions_Call {
+	return &MockEOperation_UnsetEExceptions_Call{Call: e.mock.On("UnsetEExceptions")}
 }
 
 func (c *MockEOperation_UnsetEExceptions_Call) Run(run func()) *MockEOperation_UnsetEExceptions_Call {
@@ -132,8 +162,8 @@ func (c *MockEOperation_UnsetEExceptions_Call) Return() *MockEOperation_UnsetEEx
 }
 
 // GetEParameters get the value of eParameters
-func (eOperation *MockEOperation_Prototype) GetEParameters() EList {
-	ret := eOperation.Called()
+func (eOperation *MockEOperation_Declared_Prototype) GetEParameters() EList {
+	ret := eOperation.mock.Called()
 
 	var r EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
@@ -151,8 +181,8 @@ type MockEOperation_GetEParameters_Call struct {
 	*mock.Call
 }
 
-func (e *MockEOperation_Expecter) GetEParameters() *MockEOperation_GetEParameters_Call {
-	return &MockEOperation_GetEParameters_Call{Call: e.Mock.On("GetEParameters")}
+func (e *MockEOperation_Declared_Expecter) GetEParameters() *MockEOperation_GetEParameters_Call {
+	return &MockEOperation_GetEParameters_Call{Call: e.mock.On("GetEParameters")}
 }
 
 func (c *MockEOperation_GetEParameters_Call) Run(run func()) *MockEOperation_GetEParameters_Call {
@@ -168,8 +198,8 @@ func (c *MockEOperation_GetEParameters_Call) Return(eParameters EList) *MockEOpe
 }
 
 // GetOperationID get the value of operationID
-func (eOperation *MockEOperation_Prototype) GetOperationID() int {
-	ret := eOperation.Called()
+func (eOperation *MockEOperation_Declared_Prototype) GetOperationID() int {
+	ret := eOperation.mock.Called()
 
 	var r int
 	if rf, ok := ret.Get(0).(func() int); ok {
@@ -187,8 +217,8 @@ type MockEOperation_GetOperationID_Call struct {
 	*mock.Call
 }
 
-func (e *MockEOperation_Expecter) GetOperationID() *MockEOperation_GetOperationID_Call {
-	return &MockEOperation_GetOperationID_Call{Call: e.Mock.On("GetOperationID")}
+func (e *MockEOperation_Declared_Expecter) GetOperationID() *MockEOperation_GetOperationID_Call {
+	return &MockEOperation_GetOperationID_Call{Call: e.mock.On("GetOperationID")}
 }
 
 func (c *MockEOperation_GetOperationID_Call) Run(run func()) *MockEOperation_GetOperationID_Call {
@@ -204,18 +234,18 @@ func (c *MockEOperation_GetOperationID_Call) Return(operationID int) *MockEOpera
 }
 
 // SetOperationID provides mock implementation for setting the value of operationID
-func (eOperation *MockEOperation_Prototype) SetOperationID(operationID int) {
-	eOperation.Called(operationID)
+func (eOperation *MockEOperation_Declared_Prototype) SetOperationID(operationID int) {
+	eOperation.mock.Called(operationID)
 }
 
 type MockEOperation_SetOperationID_Call struct {
 	*mock.Call
 }
 
-// SetOperationIDis a helper method to define mock.On call
+// SetOperationID is a helper method to define mock.On call
 // - operationID int
-func (e *MockEOperation_Expecter) SetOperationID(operationID any) *MockEOperation_SetOperationID_Call {
-	return &MockEOperation_SetOperationID_Call{Call: e.Mock.On("SetOperationID", operationID)}
+func (e *MockEOperation_Declared_Expecter) SetOperationID(operationID any) *MockEOperation_SetOperationID_Call {
+	return &MockEOperation_SetOperationID_Call{Call: e.mock.On("SetOperationID", operationID)}
 }
 
 func (c *MockEOperation_SetOperationID_Call) Run(run func(operationID int)) *MockEOperation_SetOperationID_Call {
@@ -231,8 +261,8 @@ func (c *MockEOperation_SetOperationID_Call) Return() *MockEOperation_SetOperati
 }
 
 // IsOverrideOf provides mock implementation
-func (eOperation *MockEOperation_Prototype) IsOverrideOf(someOperation EOperation) bool {
-	ret := eOperation.Called(someOperation)
+func (eOperation *MockEOperation_Declared_Prototype) IsOverrideOf(someOperation EOperation) bool {
+	ret := eOperation.mock.Called(someOperation)
 
 	var r bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
@@ -250,10 +280,10 @@ type MockEOperation_IsOverrideOf_Call struct {
 	*mock.Call
 }
 
-// IsOverrideOfis a helper method to define mock.On call
+// IsOverrideOf is a helper method to define mock.On call
 // - someOperation EOperation
-func (e *MockEOperation_Expecter) IsOverrideOf(someOperation any) *MockEOperation_IsOverrideOf_Call {
-	return &MockEOperation_IsOverrideOf_Call{Call: e.Mock.On("IsOverrideOf", someOperation)}
+func (e *MockEOperation_Declared_Expecter) IsOverrideOf(someOperation any) *MockEOperation_IsOverrideOf_Call {
+	return &MockEOperation_IsOverrideOf_Call{Call: e.mock.On("IsOverrideOf", someOperation)}
 }
 
 func (c *MockEOperation_IsOverrideOf_Call) Run(run func(EOperation)) *MockEOperation_IsOverrideOf_Call {
@@ -276,7 +306,7 @@ type mockConstructorTestingTNewMockEOperation interface {
 // NewMockEOperation creates a new instance of MockEOperation. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEOperation(t mockConstructorTestingTNewMockEOperation) *MockEOperation {
 	mock := &MockEOperation{}
-	mock.MockEOperation_Prototype.Mock = &mock.Mock
+	mock.SetMock(&mock.Mock)
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

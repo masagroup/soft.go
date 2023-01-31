@@ -16,27 +16,57 @@ import (
 )
 
 type MockEParameter struct {
-	MockEParameter_Prototype
 	mock.Mock
+	MockEParameter_Prototype
 }
 
 type MockEParameter_Prototype struct {
+	mock *mock.Mock
 	MockETypedElement_Prototype
+	MockEParameter_Declared_Prototype
+}
+
+func (_mp *MockEParameter_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockETypedElement_Prototype.SetMock(mock)
+	_mp.MockEParameter_Declared_Prototype.SetMock(mock)
 }
 
 type MockEParameter_Expecter struct {
 	MockETypedElement_Expecter
+	MockEParameter_Declared_Expecter
+}
+
+func (_me *MockEParameter_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockETypedElement_Expecter.SetMock(mock)
+	_me.MockEParameter_Declared_Expecter.SetMock(mock)
 }
 
 func (eParameter *MockEParameter_Prototype) EXPECT() *MockEParameter_Expecter {
-	e := &MockEParameter_Expecter{}
-	e.Mock = eParameter.Mock
-	return e
+	expecter := &MockEParameter_Expecter{}
+	expecter.SetMock(eParameter.mock)
+	return expecter
+}
+
+type MockEParameter_Declared_Prototype struct {
+	mock *mock.Mock
+}
+
+func (_mdp *MockEParameter_Declared_Prototype) SetMock(mock *mock.Mock) {
+	_mdp.mock = mock
+}
+
+type MockEParameter_Declared_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_mde *MockEParameter_Declared_Expecter) SetMock(mock *mock.Mock) {
+	_mde.mock = mock
 }
 
 // GetEOperation get the value of eOperation
-func (eParameter *MockEParameter_Prototype) GetEOperation() EOperation {
-	ret := eParameter.Called()
+func (eParameter *MockEParameter_Declared_Prototype) GetEOperation() EOperation {
+	ret := eParameter.mock.Called()
 
 	var r EOperation
 	if rf, ok := ret.Get(0).(func() EOperation); ok {
@@ -54,8 +84,8 @@ type MockEParameter_GetEOperation_Call struct {
 	*mock.Call
 }
 
-func (e *MockEParameter_Expecter) GetEOperation() *MockEParameter_GetEOperation_Call {
-	return &MockEParameter_GetEOperation_Call{Call: e.Mock.On("GetEOperation")}
+func (e *MockEParameter_Declared_Expecter) GetEOperation() *MockEParameter_GetEOperation_Call {
+	return &MockEParameter_GetEOperation_Call{Call: e.mock.On("GetEOperation")}
 }
 
 func (c *MockEParameter_GetEOperation_Call) Run(run func()) *MockEParameter_GetEOperation_Call {
@@ -78,7 +108,7 @@ type mockConstructorTestingTNewMockEParameter interface {
 // NewMockEParameter creates a new instance of MockEParameter. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEParameter(t mockConstructorTestingTNewMockEParameter) *MockEParameter {
 	mock := &MockEParameter{}
-	mock.MockEParameter_Prototype.Mock = &mock.Mock
+	mock.SetMock(&mock.Mock)
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

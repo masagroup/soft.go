@@ -16,27 +16,57 @@ import (
 )
 
 type MockEFactory struct {
-	MockEFactory_Prototype
 	mock.Mock
+	MockEFactory_Prototype
 }
 
 type MockEFactory_Prototype struct {
+	mock *mock.Mock
 	MockEModelElement_Prototype
+	MockEFactory_Declared_Prototype
+}
+
+func (_mp *MockEFactory_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockEModelElement_Prototype.SetMock(mock)
+	_mp.MockEFactory_Declared_Prototype.SetMock(mock)
 }
 
 type MockEFactory_Expecter struct {
 	MockEModelElement_Expecter
+	MockEFactory_Declared_Expecter
+}
+
+func (_me *MockEFactory_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockEModelElement_Expecter.SetMock(mock)
+	_me.MockEFactory_Declared_Expecter.SetMock(mock)
 }
 
 func (eFactory *MockEFactory_Prototype) EXPECT() *MockEFactory_Expecter {
-	e := &MockEFactory_Expecter{}
-	e.Mock = eFactory.Mock
-	return e
+	expecter := &MockEFactory_Expecter{}
+	expecter.SetMock(eFactory.mock)
+	return expecter
+}
+
+type MockEFactory_Declared_Prototype struct {
+	mock *mock.Mock
+}
+
+func (_mdp *MockEFactory_Declared_Prototype) SetMock(mock *mock.Mock) {
+	_mdp.mock = mock
+}
+
+type MockEFactory_Declared_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_mde *MockEFactory_Declared_Expecter) SetMock(mock *mock.Mock) {
+	_mde.mock = mock
 }
 
 // GetEPackage get the value of ePackage
-func (eFactory *MockEFactory_Prototype) GetEPackage() EPackage {
-	ret := eFactory.Called()
+func (eFactory *MockEFactory_Declared_Prototype) GetEPackage() EPackage {
+	ret := eFactory.mock.Called()
 
 	var r EPackage
 	if rf, ok := ret.Get(0).(func() EPackage); ok {
@@ -54,8 +84,8 @@ type MockEFactory_GetEPackage_Call struct {
 	*mock.Call
 }
 
-func (e *MockEFactory_Expecter) GetEPackage() *MockEFactory_GetEPackage_Call {
-	return &MockEFactory_GetEPackage_Call{Call: e.Mock.On("GetEPackage")}
+func (e *MockEFactory_Declared_Expecter) GetEPackage() *MockEFactory_GetEPackage_Call {
+	return &MockEFactory_GetEPackage_Call{Call: e.mock.On("GetEPackage")}
 }
 
 func (c *MockEFactory_GetEPackage_Call) Run(run func()) *MockEFactory_GetEPackage_Call {
@@ -71,18 +101,18 @@ func (c *MockEFactory_GetEPackage_Call) Return(ePackage EPackage) *MockEFactory_
 }
 
 // SetEPackage provides mock implementation for setting the value of ePackage
-func (eFactory *MockEFactory_Prototype) SetEPackage(ePackage EPackage) {
-	eFactory.Called(ePackage)
+func (eFactory *MockEFactory_Declared_Prototype) SetEPackage(ePackage EPackage) {
+	eFactory.mock.Called(ePackage)
 }
 
 type MockEFactory_SetEPackage_Call struct {
 	*mock.Call
 }
 
-// SetEPackageis a helper method to define mock.On call
+// SetEPackage is a helper method to define mock.On call
 // - ePackage EPackage
-func (e *MockEFactory_Expecter) SetEPackage(ePackage any) *MockEFactory_SetEPackage_Call {
-	return &MockEFactory_SetEPackage_Call{Call: e.Mock.On("SetEPackage", ePackage)}
+func (e *MockEFactory_Declared_Expecter) SetEPackage(ePackage any) *MockEFactory_SetEPackage_Call {
+	return &MockEFactory_SetEPackage_Call{Call: e.mock.On("SetEPackage", ePackage)}
 }
 
 func (c *MockEFactory_SetEPackage_Call) Run(run func(ePackage EPackage)) *MockEFactory_SetEPackage_Call {
@@ -98,8 +128,8 @@ func (c *MockEFactory_SetEPackage_Call) Return() *MockEFactory_SetEPackage_Call 
 }
 
 // ConvertToString provides mock implementation
-func (eFactory *MockEFactory_Prototype) ConvertToString(eDataType EDataType, instanceValue any) string {
-	ret := eFactory.Called(eDataType, instanceValue)
+func (eFactory *MockEFactory_Declared_Prototype) ConvertToString(eDataType EDataType, instanceValue any) string {
+	ret := eFactory.mock.Called(eDataType, instanceValue)
 
 	var r string
 	if rf, ok := ret.Get(0).(func() string); ok {
@@ -117,11 +147,11 @@ type MockEFactory_ConvertToString_Call struct {
 	*mock.Call
 }
 
-// ConvertToStringis a helper method to define mock.On call
+// ConvertToString is a helper method to define mock.On call
 // - eDataType EDataType
 // - instanceValue any
-func (e *MockEFactory_Expecter) ConvertToString(eDataType any, instanceValue any) *MockEFactory_ConvertToString_Call {
-	return &MockEFactory_ConvertToString_Call{Call: e.Mock.On("ConvertToString", eDataType, instanceValue)}
+func (e *MockEFactory_Declared_Expecter) ConvertToString(eDataType any, instanceValue any) *MockEFactory_ConvertToString_Call {
+	return &MockEFactory_ConvertToString_Call{Call: e.mock.On("ConvertToString", eDataType, instanceValue)}
 }
 
 func (c *MockEFactory_ConvertToString_Call) Run(run func(EDataType, any)) *MockEFactory_ConvertToString_Call {
@@ -137,8 +167,8 @@ func (c *MockEFactory_ConvertToString_Call) Return(_a0 string) *MockEFactory_Con
 }
 
 // Create provides mock implementation
-func (eFactory *MockEFactory_Prototype) Create(eClass EClass) EObject {
-	ret := eFactory.Called(eClass)
+func (eFactory *MockEFactory_Declared_Prototype) Create(eClass EClass) EObject {
+	ret := eFactory.mock.Called(eClass)
 
 	var r EObject
 	if rf, ok := ret.Get(0).(func() EObject); ok {
@@ -156,10 +186,10 @@ type MockEFactory_Create_Call struct {
 	*mock.Call
 }
 
-// Createis a helper method to define mock.On call
+// Create is a helper method to define mock.On call
 // - eClass EClass
-func (e *MockEFactory_Expecter) Create(eClass any) *MockEFactory_Create_Call {
-	return &MockEFactory_Create_Call{Call: e.Mock.On("Create", eClass)}
+func (e *MockEFactory_Declared_Expecter) Create(eClass any) *MockEFactory_Create_Call {
+	return &MockEFactory_Create_Call{Call: e.mock.On("Create", eClass)}
 }
 
 func (c *MockEFactory_Create_Call) Run(run func(EClass)) *MockEFactory_Create_Call {
@@ -175,8 +205,8 @@ func (c *MockEFactory_Create_Call) Return(_a0 EObject) *MockEFactory_Create_Call
 }
 
 // CreateFromString provides mock implementation
-func (eFactory *MockEFactory_Prototype) CreateFromString(eDataType EDataType, literalValue string) any {
-	ret := eFactory.Called(eDataType, literalValue)
+func (eFactory *MockEFactory_Declared_Prototype) CreateFromString(eDataType EDataType, literalValue string) any {
+	ret := eFactory.mock.Called(eDataType, literalValue)
 
 	var r any
 	if rf, ok := ret.Get(0).(func() any); ok {
@@ -194,11 +224,11 @@ type MockEFactory_CreateFromString_Call struct {
 	*mock.Call
 }
 
-// CreateFromStringis a helper method to define mock.On call
+// CreateFromString is a helper method to define mock.On call
 // - eDataType EDataType
 // - literalValue string
-func (e *MockEFactory_Expecter) CreateFromString(eDataType any, literalValue any) *MockEFactory_CreateFromString_Call {
-	return &MockEFactory_CreateFromString_Call{Call: e.Mock.On("CreateFromString", eDataType, literalValue)}
+func (e *MockEFactory_Declared_Expecter) CreateFromString(eDataType any, literalValue any) *MockEFactory_CreateFromString_Call {
+	return &MockEFactory_CreateFromString_Call{Call: e.mock.On("CreateFromString", eDataType, literalValue)}
 }
 
 func (c *MockEFactory_CreateFromString_Call) Run(run func(EDataType, string)) *MockEFactory_CreateFromString_Call {
@@ -221,7 +251,7 @@ type mockConstructorTestingTNewMockEFactory interface {
 // NewMockEFactory creates a new instance of MockEFactory. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEFactory(t mockConstructorTestingTNewMockEFactory) *MockEFactory {
 	mock := &MockEFactory{}
-	mock.MockEFactory_Prototype.Mock = &mock.Mock
+	mock.SetMock(&mock.Mock)
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

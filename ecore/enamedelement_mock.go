@@ -16,27 +16,57 @@ import (
 )
 
 type MockENamedElement struct {
-	MockENamedElement_Prototype
 	mock.Mock
+	MockENamedElement_Prototype
 }
 
 type MockENamedElement_Prototype struct {
+	mock *mock.Mock
 	MockEModelElement_Prototype
+	MockENamedElement_Declared_Prototype
+}
+
+func (_mp *MockENamedElement_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockEModelElement_Prototype.SetMock(mock)
+	_mp.MockENamedElement_Declared_Prototype.SetMock(mock)
 }
 
 type MockENamedElement_Expecter struct {
 	MockEModelElement_Expecter
+	MockENamedElement_Declared_Expecter
+}
+
+func (_me *MockENamedElement_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockEModelElement_Expecter.SetMock(mock)
+	_me.MockENamedElement_Declared_Expecter.SetMock(mock)
 }
 
 func (eNamedElement *MockENamedElement_Prototype) EXPECT() *MockENamedElement_Expecter {
-	e := &MockENamedElement_Expecter{}
-	e.Mock = eNamedElement.Mock
-	return e
+	expecter := &MockENamedElement_Expecter{}
+	expecter.SetMock(eNamedElement.mock)
+	return expecter
+}
+
+type MockENamedElement_Declared_Prototype struct {
+	mock *mock.Mock
+}
+
+func (_mdp *MockENamedElement_Declared_Prototype) SetMock(mock *mock.Mock) {
+	_mdp.mock = mock
+}
+
+type MockENamedElement_Declared_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_mde *MockENamedElement_Declared_Expecter) SetMock(mock *mock.Mock) {
+	_mde.mock = mock
 }
 
 // GetName get the value of name
-func (eNamedElement *MockENamedElement_Prototype) GetName() string {
-	ret := eNamedElement.Called()
+func (eNamedElement *MockENamedElement_Declared_Prototype) GetName() string {
+	ret := eNamedElement.mock.Called()
 
 	var r string
 	if rf, ok := ret.Get(0).(func() string); ok {
@@ -54,8 +84,8 @@ type MockENamedElement_GetName_Call struct {
 	*mock.Call
 }
 
-func (e *MockENamedElement_Expecter) GetName() *MockENamedElement_GetName_Call {
-	return &MockENamedElement_GetName_Call{Call: e.Mock.On("GetName")}
+func (e *MockENamedElement_Declared_Expecter) GetName() *MockENamedElement_GetName_Call {
+	return &MockENamedElement_GetName_Call{Call: e.mock.On("GetName")}
 }
 
 func (c *MockENamedElement_GetName_Call) Run(run func()) *MockENamedElement_GetName_Call {
@@ -71,18 +101,18 @@ func (c *MockENamedElement_GetName_Call) Return(name string) *MockENamedElement_
 }
 
 // SetName provides mock implementation for setting the value of name
-func (eNamedElement *MockENamedElement_Prototype) SetName(name string) {
-	eNamedElement.Called(name)
+func (eNamedElement *MockENamedElement_Declared_Prototype) SetName(name string) {
+	eNamedElement.mock.Called(name)
 }
 
 type MockENamedElement_SetName_Call struct {
 	*mock.Call
 }
 
-// SetNameis a helper method to define mock.On call
+// SetName is a helper method to define mock.On call
 // - name string
-func (e *MockENamedElement_Expecter) SetName(name any) *MockENamedElement_SetName_Call {
-	return &MockENamedElement_SetName_Call{Call: e.Mock.On("SetName", name)}
+func (e *MockENamedElement_Declared_Expecter) SetName(name any) *MockENamedElement_SetName_Call {
+	return &MockENamedElement_SetName_Call{Call: e.mock.On("SetName", name)}
 }
 
 func (c *MockENamedElement_SetName_Call) Run(run func(name string)) *MockENamedElement_SetName_Call {
@@ -105,7 +135,7 @@ type mockConstructorTestingTNewMockENamedElement interface {
 // NewMockENamedElement creates a new instance of MockENamedElement. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockENamedElement(t mockConstructorTestingTNewMockENamedElement) *MockENamedElement {
 	mock := &MockENamedElement{}
-	mock.MockENamedElement_Prototype.Mock = &mock.Mock
+	mock.SetMock(&mock.Mock)
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

@@ -16,27 +16,57 @@ import (
 )
 
 type MockEDataType struct {
-	MockEDataType_Prototype
 	mock.Mock
+	MockEDataType_Prototype
 }
 
 type MockEDataType_Prototype struct {
+	mock *mock.Mock
 	MockEClassifier_Prototype
+	MockEDataType_Declared_Prototype
+}
+
+func (_mp *MockEDataType_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockEClassifier_Prototype.SetMock(mock)
+	_mp.MockEDataType_Declared_Prototype.SetMock(mock)
 }
 
 type MockEDataType_Expecter struct {
 	MockEClassifier_Expecter
+	MockEDataType_Declared_Expecter
+}
+
+func (_me *MockEDataType_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockEClassifier_Expecter.SetMock(mock)
+	_me.MockEDataType_Declared_Expecter.SetMock(mock)
 }
 
 func (eDataType *MockEDataType_Prototype) EXPECT() *MockEDataType_Expecter {
-	e := &MockEDataType_Expecter{}
-	e.Mock = eDataType.Mock
-	return e
+	expecter := &MockEDataType_Expecter{}
+	expecter.SetMock(eDataType.mock)
+	return expecter
+}
+
+type MockEDataType_Declared_Prototype struct {
+	mock *mock.Mock
+}
+
+func (_mdp *MockEDataType_Declared_Prototype) SetMock(mock *mock.Mock) {
+	_mdp.mock = mock
+}
+
+type MockEDataType_Declared_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_mde *MockEDataType_Declared_Expecter) SetMock(mock *mock.Mock) {
+	_mde.mock = mock
 }
 
 // IsSerializable get the value of isSerializable
-func (eDataType *MockEDataType_Prototype) IsSerializable() bool {
-	ret := eDataType.Called()
+func (eDataType *MockEDataType_Declared_Prototype) IsSerializable() bool {
+	ret := eDataType.mock.Called()
 
 	var r bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
@@ -54,8 +84,8 @@ type MockEDataType_IsSerializable_Call struct {
 	*mock.Call
 }
 
-func (e *MockEDataType_Expecter) IsSerializable() *MockEDataType_IsSerializable_Call {
-	return &MockEDataType_IsSerializable_Call{Call: e.Mock.On("IsSerializable")}
+func (e *MockEDataType_Declared_Expecter) IsSerializable() *MockEDataType_IsSerializable_Call {
+	return &MockEDataType_IsSerializable_Call{Call: e.mock.On("IsSerializable")}
 }
 
 func (c *MockEDataType_IsSerializable_Call) Run(run func()) *MockEDataType_IsSerializable_Call {
@@ -71,18 +101,18 @@ func (c *MockEDataType_IsSerializable_Call) Return(isSerializable bool) *MockEDa
 }
 
 // SetSerializable provides mock implementation for setting the value of isSerializable
-func (eDataType *MockEDataType_Prototype) SetSerializable(isSerializable bool) {
-	eDataType.Called(isSerializable)
+func (eDataType *MockEDataType_Declared_Prototype) SetSerializable(isSerializable bool) {
+	eDataType.mock.Called(isSerializable)
 }
 
 type MockEDataType_SetSerializable_Call struct {
 	*mock.Call
 }
 
-// SetSerializableis a helper method to define mock.On call
+// SetSerializable is a helper method to define mock.On call
 // - isSerializable bool
-func (e *MockEDataType_Expecter) SetSerializable(isSerializable any) *MockEDataType_SetSerializable_Call {
-	return &MockEDataType_SetSerializable_Call{Call: e.Mock.On("SetSerializable", isSerializable)}
+func (e *MockEDataType_Declared_Expecter) SetSerializable(isSerializable any) *MockEDataType_SetSerializable_Call {
+	return &MockEDataType_SetSerializable_Call{Call: e.mock.On("SetSerializable", isSerializable)}
 }
 
 func (c *MockEDataType_SetSerializable_Call) Run(run func(isSerializable bool)) *MockEDataType_SetSerializable_Call {
@@ -105,7 +135,7 @@ type mockConstructorTestingTNewMockEDataType interface {
 // NewMockEDataType creates a new instance of MockEDataType. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEDataType(t mockConstructorTestingTNewMockEDataType) *MockEDataType {
 	mock := &MockEDataType{}
-	mock.MockEDataType_Prototype.Mock = &mock.Mock
+	mock.SetMock(&mock.Mock)
 	mock.Mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock

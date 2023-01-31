@@ -27,6 +27,11 @@ func TestBinaryCodec_NewDecoder(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockResource)
 }
 
+func TestBinaryCodec_GetFeatureKind_Unknown(t *testing.T) {
+	mockFeature := NewMockEStructuralFeature(t)
+	assert.Equal(t, binaryFeatureKind(-1), getBinaryCodecFeatureKind(mockFeature))
+}
+
 func TestBinaryCodec_GetFeatureKind_Reference(t *testing.T) {
 	mockReference := NewMockEReference(t)
 	mockReference.EXPECT().IsContainment().Return(true).Once()

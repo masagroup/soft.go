@@ -23,7 +23,6 @@ type MockEAdapter_Prototype struct {
 	mock *mock.Mock
 }
 
-
 func (_mp *MockEAdapter_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 }

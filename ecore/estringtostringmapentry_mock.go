@@ -25,23 +25,27 @@ type MockEStringToStringMapEntry struct {
 type MockEStringToStringMapEntry_Prototype struct {
 	mock *mock.Mock
 	MockEObjectInternal_Prototype
+	MockEMapEntry_Prototype
 	MockEStringToStringMapEntry_Prototype_Methods
 }
 
 func (_mp *MockEStringToStringMapEntry_Prototype) SetMock(mock *mock.Mock) {
 	_mp.mock = mock
 	_mp.MockEObjectInternal_Prototype.SetMock(mock)
+	_mp.MockEMapEntry_Prototype.SetMock(mock)
 	_mp.MockEStringToStringMapEntry_Prototype_Methods.SetMock(mock)
 }
 
 // MockEStringToStringMapEntry_Expecter is the expecter implementation for all EStringToStringMapEntry methods ( inherited and declared )
 type MockEStringToStringMapEntry_Expecter struct {
 	MockEObjectInternal_Expecter
+	MockEMapEntry_Expecter
 	MockEStringToStringMapEntry_Expecter_Methods
 }
 
 func (_me *MockEStringToStringMapEntry_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEObjectInternal_Expecter.SetMock(mock)
+	_me.MockEMapEntry_Expecter.SetMock(mock)
 	_me.MockEStringToStringMapEntry_Expecter_Methods.SetMock(mock)
 }
 

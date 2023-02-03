@@ -19,7 +19,7 @@ import (
 func TestEDataTypeExtSetDefaultValue(t *testing.T) {
 	d := newEDataTypeExt()
 	mockValue := NewMockEObject(t)
-	mockAdapter := &MockEAdapter{}
+	mockAdapter := NewMockEAdapter(t)
 	mockAdapter.EXPECT().SetTarget(d).Once()
 	d.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)

@@ -693,7 +693,7 @@ func TestBasicEStoreList_RemoveRange(t *testing.T) {
 	mockStore := NewMockEStore(t)
 	mockObject := &mock.Mock{}
 	mockObject2 := &mock.Mock{}
-	mockAdapter := &MockEAdapter{}
+	mockAdapter := NewMockEAdapter(t)
 	list := NewBasicEStoreList(mockOwner, mockFeature, mockStore)
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 

@@ -24,7 +24,7 @@ type mockConstructorTestingTMockRun interface {
 	Cleanup(func())
 }
 
-// newMockEIteratorRun creates a new instance of MockEIterator. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// newMockEIteratorRun creates a new instance of NewMockRun. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockRun(t mockConstructorTestingTMockRun, args ...any) *MockRun {
 	mock := &MockRun{}
 	mock.Test(t)

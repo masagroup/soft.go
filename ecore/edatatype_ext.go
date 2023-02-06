@@ -37,3 +37,12 @@ func (eDataType *EDataTypeExt) SetDefaultValue(newDefaultValue any) {
 func (eDataType *EDataTypeExt) GetDefaultValue() any {
 	return eDataType.defaultValue
 }
+
+func getInstanceTypeName(eDataType EDataType) string {
+	if eAnnotation := eDataType.GetEAnnotation("http://net.masagroup/soft/2019/GenGo"); eAnnotation != nil {
+		if instanceTypeName, _ := eAnnotation.GetDetails().GetValue("instanceTypeName").(string); instanceTypeName != "" {
+			return instanceTypeName
+		}
+	}
+	return eDataType.GetInstanceTypeName()
+}

@@ -22,10 +22,10 @@ func TestOperationIsOverrideOf(t *testing.T) {
 	operation2 := newEOperationExt()
 	mockParameter1 := newEParameterImpl()
 	mockParameter2 := newEParameterImpl()
-	mockType := &MockEClassifier{}
-	mockType.On("EIsProxy").Return(false)
-	mockOtherType := &MockEClassifier{}
-	mockOtherType.On("EIsProxy").Return(false)
+	mockType := NewMockEClassifier(t)
+	mockType.EXPECT().EIsProxy().Return(false)
+	mockOtherType := NewMockEClassifier(t)
+	mockOtherType.EXPECT().EIsProxy().Return(false)
 	class1.GetEOperations().Add(operation1)
 	class2.GetEOperations().Add(operation2)
 

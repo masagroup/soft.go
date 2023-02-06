@@ -16,13 +16,13 @@ import (
 )
 
 func TestMockEStoreEObjectEStore(t *testing.T) {
-	o := &MockEStoreEObject{}
-	mockStore := &MockEStore{}
-	o.On("EStore").Return(mockStore).Once()
-	o.On("EStore").Return(func() EStore {
+	mockStoreObject := NewMockEStoreEObject(t)
+	mockStore := NewMockEStore(t)
+	m := NewMockRun(t)
+	mockStoreObject.EXPECT().EStore().Return(mockStore).Run(func() { m.Run() }).Once()
+	mockStoreObject.EXPECT().EStore().Call.Return(func() EStore {
 		return mockStore
 	}).Once()
-	assert.Equal(t, mockStore, o.EStore())
-	assert.Equal(t, mockStore, o.EStore())
-	o.AssertExpectations(t)
+	assert.Equal(t, mockStore, mockStoreObject.EStore())
+	assert.Equal(t, mockStore, mockStoreObject.EStore())
 }

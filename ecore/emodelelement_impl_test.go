@@ -61,9 +61,9 @@ func TestEModelElementESetFromID(t *testing.T) {
 	assert.Panics(t, func() { o.ESetFromID(-1, nil) })
 	{
 		// list with a value
-		mockValue := new(MockEAnnotation)
+		mockValue := NewMockEAnnotation(t)
 		l := NewImmutableEList([]any{mockValue})
-		mockValue.On("EInverseAdd", o, EANNOTATION__EMODEL_ELEMENT, mock.Anything).Return(nil).Once()
+		mockValue.EXPECT().EInverseAdd(o, EANNOTATION__EMODEL_ELEMENT, mock.Anything).Return(nil).Once()
 
 		// set list with new contents
 		o.ESetFromID(EMODEL_ELEMENT__EANNOTATIONS, l)
@@ -102,12 +102,12 @@ func TestEModelElementEInvokeFromID(t *testing.T) {
 func TestEModelElementEBasicInverseAdd(t *testing.T) {
 	o := newEModelElementImpl()
 	{
-		mockObject := new(MockEObject)
-		mockNotifications := new(MockENotificationChain)
+		mockObject := NewMockEObject(t)
+		mockNotifications := NewMockENotificationChain(t)
 		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEAnnotation)
+		mockObject := NewMockEAnnotation(t)
 		o.EBasicInverseAdd(mockObject, EMODEL_ELEMENT__EANNOTATIONS, nil)
 		l := o.GetEAnnotations()
 		assert.True(t, l.Contains(mockObject))
@@ -119,14 +119,14 @@ func TestEModelElementEBasicInverseAdd(t *testing.T) {
 func TestEModelElementEBasicInverseRemove(t *testing.T) {
 	o := newEModelElementImpl()
 	{
-		mockObject := new(MockEObject)
-		mockNotifications := new(MockENotificationChain)
+		mockObject := NewMockEObject(t)
+		mockNotifications := NewMockENotificationChain(t)
 		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
 	}
 	{
 		// initialize list with a mock object
-		mockObject := new(MockEAnnotation)
-		mockObject.On("EInverseAdd", o, EANNOTATION__EMODEL_ELEMENT, mock.Anything).Return(nil).Once()
+		mockObject := NewMockEAnnotation(t)
+		mockObject.EXPECT().EInverseAdd(o, EANNOTATION__EMODEL_ELEMENT, mock.Anything).Return(nil).Once()
 
 		l := o.GetEAnnotations()
 		l.Add(mockObject)

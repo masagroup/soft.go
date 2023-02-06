@@ -23,22 +23,20 @@ func discardMockENamedElement() {
 
 // TestMockENamedElementGetName tests method GetName
 func TestMockENamedElementGetName(t *testing.T) {
-	o := &MockENamedElement{}
+	o := NewMockENamedElement(t)
 	r := string("Test String")
-	o.On("GetName").Once().Return(r)
-	o.On("GetName").Once().Return(func() string {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().GetName().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetName().Call.Return(func() string { return r }).Once()
 	assert.Equal(t, r, o.GetName())
 	assert.Equal(t, r, o.GetName())
-	o.AssertExpectations(t)
 }
 
 // TestMockENamedElementSetName tests method SetName
 func TestMockENamedElementSetName(t *testing.T) {
-	o := &MockENamedElement{}
+	o := NewMockENamedElement(t)
 	v := string("Test String")
-	o.On("SetName", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetName(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetName(v)
-	o.AssertExpectations(t)
 }

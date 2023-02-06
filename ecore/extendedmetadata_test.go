@@ -18,22 +18,22 @@ import (
 
 func TestExtendedMetatData_GetName(t *testing.T) {
 	m := NewExtendedMetaData()
-	mockElement := &MockENamedElement{}
-	mockFeature := &MockEStructuralFeature{}
-	mockAnnotation := &MockEAnnotation{}
-	mockDetails := &MockEMap{}
+	mockElement := NewMockENamedElement(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockAnnotation := NewMockEAnnotation(t)
+	mockDetails := NewMockEMap(t)
 
 	// no annotations
-	mockElement.On("GetEAnnotation", annotationURI).Return(nil).Once()
-	mockElement.On("GetName").Return("no annotations").Once()
+	mockElement.EXPECT().GetEAnnotation(annotationURI).Return(nil).Once()
+	mockElement.EXPECT().GetName().Return("no annotations").Once()
 	assert.Equal(t, "no annotations", m.GetName(mockElement))
 	assert.Equal(t, "no annotations", m.GetName(mockElement))
 	mock.AssertExpectationsForObjects(t, mockElement)
 
 	// annotations
-	mockFeature.On("GetEAnnotation", annotationURI).Return(mockAnnotation).Once()
-	mockAnnotation.On("GetDetails").Return(mockDetails).Once()
-	mockDetails.On("GetValue", "name").Return("with annotations").Once()
+	mockFeature.EXPECT().GetEAnnotation(annotationURI).Return(mockAnnotation).Once()
+	mockAnnotation.EXPECT().GetDetails().Return(mockDetails).Once()
+	mockDetails.EXPECT().GetValue("name").Return("with annotations").Once()
 	assert.Equal(t, "with annotations", m.GetName(mockFeature))
 	assert.Equal(t, "with annotations", m.GetName(mockFeature))
 	mock.AssertExpectationsForObjects(t, mockFeature, mockAnnotation, mockDetails)
@@ -41,19 +41,19 @@ func TestExtendedMetatData_GetName(t *testing.T) {
 
 func TestExtendedMetatData_GetType(t *testing.T) {
 	m := NewExtendedMetaData()
-	mockPackage := &MockEPackage{}
-	mockClassifier1 := &MockEClassifier{}
-	mockClassifier2 := &MockEClassifier{}
-	mockAnnotation := &MockEAnnotation{}
-	mockDetails := &MockEMap{}
+	mockPackage := NewMockEPackage(t)
+	mockClassifier1 := NewMockEClassifier(t)
+	mockClassifier2 := NewMockEClassifier(t)
+	mockAnnotation := NewMockEAnnotation(t)
+	mockDetails := NewMockEMap(t)
 	mockClassifiers := NewImmutableEList([]any{mockClassifier1, mockClassifier2})
 
-	mockPackage.On("GetEClassifiers").Return(mockClassifiers).Once()
-	mockClassifier1.On("GetEAnnotation", annotationURI).Return(nil).Once()
-	mockClassifier1.On("GetName").Return("classifier1").Once()
-	mockClassifier2.On("GetEAnnotation", annotationURI).Return(mockAnnotation).Once()
-	mockAnnotation.On("GetDetails").Return(mockDetails).Once()
-	mockDetails.On("GetValue", "name").Return("classifier2").Once()
+	mockPackage.EXPECT().GetEClassifiers().Return(mockClassifiers).Once()
+	mockClassifier1.EXPECT().GetEAnnotation(annotationURI).Return(nil).Once()
+	mockClassifier1.EXPECT().GetName().Return("classifier1").Once()
+	mockClassifier2.EXPECT().GetEAnnotation(annotationURI).Return(mockAnnotation).Once()
+	mockAnnotation.EXPECT().GetDetails().Return(mockDetails).Once()
+	mockDetails.EXPECT().GetValue("name").Return("classifier2").Once()
 
 	assert.Equal(t, mockClassifier2, m.GetType(mockPackage, "classifier2"))
 	assert.Equal(t, mockClassifier1, m.GetType(mockPackage, "classifier1"))
@@ -63,35 +63,35 @@ func TestExtendedMetatData_GetType(t *testing.T) {
 func TestExtendedMetatData_GetNamespace(t *testing.T) {
 	m := NewExtendedMetaData()
 	{
-		mockFeature := &MockEStructuralFeature{}
-		mockFeature.On("GetEAnnotation", annotationURI).Return(nil).Once()
+		mockFeature := NewMockEStructuralFeature(t)
+		mockFeature.EXPECT().GetEAnnotation(annotationURI).Return(nil).Once()
 		assert.Equal(t, "", m.GetNamespace(mockFeature))
 		assert.Equal(t, "", m.GetNamespace(mockFeature))
 		mock.AssertExpectationsForObjects(t, mockFeature)
 	}
 	{
-		mockFeature := &MockEStructuralFeature{}
-		mockAnnotation := &MockEAnnotation{}
-		mockDetails := &MockEMap{}
-		mockFeature.On("GetEAnnotation", annotationURI).Return(mockAnnotation).Once()
-		mockAnnotation.On("GetDetails").Return(mockDetails).Once()
-		mockDetails.On("GetValue", "namespace").Return("namespace").Once()
+		mockFeature := NewMockEStructuralFeature(t)
+		mockAnnotation := NewMockEAnnotation(t)
+		mockDetails := NewMockEMap(t)
+		mockFeature.EXPECT().GetEAnnotation(annotationURI).Return(mockAnnotation).Once()
+		mockAnnotation.EXPECT().GetDetails().Return(mockDetails).Once()
+		mockDetails.EXPECT().GetValue("namespace").Return("namespace").Once()
 		assert.Equal(t, "namespace", m.GetNamespace(mockFeature))
 		assert.Equal(t, "namespace", m.GetNamespace(mockFeature))
 		mock.AssertExpectationsForObjects(t, mockFeature, mockAnnotation, mockDetails)
 	}
 	{
-		mockFeature := &MockEStructuralFeature{}
-		mockAnnotation := &MockEAnnotation{}
-		mockDetails := &MockEMap{}
-		mockClass := &MockEClass{}
-		mockPackage := &MockEPackage{}
-		mockFeature.On("GetEAnnotation", annotationURI).Return(mockAnnotation).Once()
-		mockAnnotation.On("GetDetails").Return(mockDetails).Once()
-		mockDetails.On("GetValue", "namespace").Return("##targetNamespace").Once()
-		mockFeature.On("GetEContainingClass").Return(mockClass).Once()
-		mockClass.On("GetEPackage").Return(mockPackage).Once()
-		mockPackage.On("GetNsURI").Return("uri").Once()
+		mockFeature := NewMockEStructuralFeature(t)
+		mockAnnotation := NewMockEAnnotation(t)
+		mockDetails := NewMockEMap(t)
+		mockClass := NewMockEClass(t)
+		mockPackage := NewMockEPackage(t)
+		mockFeature.EXPECT().GetEAnnotation(annotationURI).Return(mockAnnotation).Once()
+		mockAnnotation.EXPECT().GetDetails().Return(mockDetails).Once()
+		mockDetails.EXPECT().GetValue("namespace").Return("##targetNamespace").Once()
+		mockFeature.EXPECT().GetEContainingClass().Return(mockClass).Once()
+		mockClass.EXPECT().GetEPackage().Return(mockPackage).Once()
+		mockPackage.EXPECT().GetNsURI().Return("uri").Once()
 		assert.Equal(t, "uri", m.GetNamespace(mockFeature))
 		assert.Equal(t, "uri", m.GetNamespace(mockFeature))
 		mock.AssertExpectationsForObjects(t, mockFeature, mockAnnotation, mockDetails, mockClass, mockPackage)
@@ -101,31 +101,31 @@ func TestExtendedMetatData_GetNamespace(t *testing.T) {
 func TestExtendedMetatData_GetDocumentRoot(t *testing.T) {
 	m := NewExtendedMetaData()
 	{
-		mockPackage := &MockEPackage{}
-		mockClass1 := &MockEClass{}
-		mockClass2 := &MockEClass{}
-		mockAnnotation := &MockEAnnotation{}
-		mockDetails := &MockEMap{}
+		mockPackage := NewMockEPackage(t)
+		mockClass1 := NewMockEClass(t)
+		mockClass2 := NewMockEClass(t)
+		mockAnnotation := NewMockEAnnotation(t)
+		mockDetails := NewMockEMap(t)
 		mockClassifiers := NewImmutableEList([]any{mockClass1, mockClass2})
-		mockPackage.On("GetEClassifiers").Return(mockClassifiers).Once()
-		mockClass1.On("GetEAnnotation", annotationURI).Return(nil).Once()
-		mockClass1.On("GetName").Return("classifier1").Once()
-		mockClass2.On("GetEAnnotation", annotationURI).Return(mockAnnotation).Once()
-		mockAnnotation.On("GetDetails").Return(mockDetails).Once()
-		mockDetails.On("GetValue", "name").Return("").Once()
+		mockPackage.EXPECT().GetEClassifiers().Return(mockClassifiers).Once()
+		mockClass1.EXPECT().GetEAnnotation(annotationURI).Return(nil).Once()
+		mockClass1.EXPECT().GetName().Return("classifier1").Once()
+		mockClass2.EXPECT().GetEAnnotation(annotationURI).Return(mockAnnotation).Once()
+		mockAnnotation.EXPECT().GetDetails().Return(mockDetails).Once()
+		mockDetails.EXPECT().GetValue("name").Return("").Once()
 		assert.Equal(t, mockClass2, m.GetDocumentRoot(mockPackage))
 		mock.AssertExpectationsForObjects(t, mockPackage, mockClass1, mockClass2, mockAnnotation, mockDetails)
 	}
 	{
-		mockPackage := &MockEPackage{}
-		mockClass1 := &MockEClass{}
-		mockClass2 := &MockEClass{}
+		mockPackage := NewMockEPackage(t)
+		mockClass1 := NewMockEClass(t)
+		mockClass2 := NewMockEClass(t)
 		mockClassifiers := NewImmutableEList([]any{mockClass1, mockClass2})
-		mockPackage.On("GetEClassifiers").Return(mockClassifiers).Once()
-		mockClass1.On("GetEAnnotation", annotationURI).Return(nil).Once()
-		mockClass1.On("GetName").Return("classifier1").Once()
-		mockClass2.On("GetEAnnotation", annotationURI).Return(nil).Once()
-		mockClass2.On("GetName").Return("classifier2").Once()
+		mockPackage.EXPECT().GetEClassifiers().Return(mockClassifiers).Once()
+		mockClass1.EXPECT().GetEAnnotation(annotationURI).Return(nil).Once()
+		mockClass1.EXPECT().GetName().Return("classifier1").Once()
+		mockClass2.EXPECT().GetEAnnotation(annotationURI).Return(nil).Once()
+		mockClass2.EXPECT().GetName().Return("classifier2").Once()
 		assert.Equal(t, nil, m.GetDocumentRoot(mockPackage))
 		mock.AssertExpectationsForObjects(t, mockPackage, mockClass1, mockClass2)
 	}

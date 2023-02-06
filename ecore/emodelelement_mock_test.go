@@ -23,28 +23,25 @@ func discardMockEModelElement() {
 
 // TestMockEModelElementGetEAnnotations tests method GetEAnnotations
 func TestMockEModelElementGetEAnnotations(t *testing.T) {
-	o := &MockEModelElement{}
-	l := &MockEList{}
-	// return a value
-	o.On("GetEAnnotations").Once().Return(l)
-	o.On("GetEAnnotations").Once().Return(func() EList {
-		return l
-	})
+	o := NewMockEModelElement(t)
+	l := NewMockEList(t)
+	m := NewMockRun(t)
+	o.EXPECT().GetEAnnotations().Return(l).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetEAnnotations().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetEAnnotations())
 	assert.Equal(t, l, o.GetEAnnotations())
-	o.AssertExpectations(t)
 }
 
 // TestMockEModelElementGetEAnnotation tests method GetEAnnotation
 func TestMockEModelElementGetEAnnotation(t *testing.T) {
-	o := &MockEModelElement{}
+	o := NewMockEModelElement(t)
 	source := string("Test String")
-	r := new(MockEAnnotation)
-	o.On("GetEAnnotation", source).Return(r).Once()
-	o.On("GetEAnnotation", source).Return(func() EAnnotation {
+	m := NewMockRun(t, source)
+	r := NewMockEAnnotation(t)
+	o.EXPECT().GetEAnnotation(source).Return(r).Run(func(source string) { m.Run(source) }).Once()
+	o.EXPECT().GetEAnnotation(source).Call.Return(func() EAnnotation {
 		return r
 	}).Once()
 	assert.Equal(t, r, o.GetEAnnotation(source))
 	assert.Equal(t, r, o.GetEAnnotation(source))
-	o.AssertExpectations(t)
 }

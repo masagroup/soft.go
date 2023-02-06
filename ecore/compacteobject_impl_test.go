@@ -39,21 +39,21 @@ func TestCompactEObject_NoFields(t *testing.T) {
 }
 
 func TestCompactEObject_OneField(t *testing.T) {
-	c := &MockEObject{}
+	c := NewMockEObject(t)
 	o := &CompactEObjectImpl{}
 	o.setField(container_flag, c)
 	assert.True(t, o.hasField(container_flag))
 	assert.Equal(t, c, o.getField(container_flag))
 
-	c2 := &MockEObject{}
+	c2 := NewMockEObject(t)
 	o.setField(container_flag, c2)
 	assert.True(t, o.hasField(container_flag))
 	assert.Equal(t, c2, o.getField(container_flag))
 }
 
 func TestCompactEObject_TwoFields_Begin(t *testing.T) {
-	c := &MockEObject{}
-	r := &MockEResource{}
+	c := NewMockEObject(t)
+	r := NewMockEResource(t)
 	o := &CompactEObjectImpl{}
 	o.setField(resource_flag, r)
 	o.setField(container_flag, c)
@@ -63,15 +63,15 @@ func TestCompactEObject_TwoFields_Begin(t *testing.T) {
 	assert.Equal(t, c, o.getField(container_flag))
 	assert.Equal(t, r, o.getField(resource_flag))
 
-	c2 := &MockEObject{}
+	c2 := NewMockEObject(t)
 	o.setField(container_flag, c2)
 	assert.True(t, o.hasField(container_flag))
 	assert.Equal(t, c2, o.getField(container_flag))
 }
 
 func TestCompactEObject_TwoFields_End(t *testing.T) {
-	c := &MockEObject{}
-	r := &MockEResource{}
+	c := NewMockEObject(t)
+	r := NewMockEResource(t)
 	o := &CompactEObjectImpl{}
 	o.setField(container_flag, c)
 	o.setField(resource_flag, r)
@@ -83,8 +83,8 @@ func TestCompactEObject_TwoFields_End(t *testing.T) {
 }
 
 func TestCompactEObject_ManyFields(t *testing.T) {
-	c := &MockEObject{}
-	r := &MockEResource{}
+	c := NewMockEObject(t)
+	r := NewMockEResource(t)
 	p := []any{}
 	o := &CompactEObjectImpl{}
 	o.setField(container_flag, c)
@@ -104,7 +104,7 @@ func TestCompactEObject_RemoveNoField(t *testing.T) {
 }
 
 func TestCompactEObject_RemoveOneField(t *testing.T) {
-	c := &MockEObject{}
+	c := NewMockEObject(t)
 	o := &CompactEObjectImpl{}
 	o.setField(container_flag, c)
 	assert.True(t, o.hasField(container_flag))
@@ -113,8 +113,8 @@ func TestCompactEObject_RemoveOneField(t *testing.T) {
 }
 
 func TestCompactEObject_RemoveManyFields(t *testing.T) {
-	c := &MockEObject{}
-	r := &MockEResource{}
+	c := NewMockEObject(t)
+	r := NewMockEResource(t)
 	p := []any{}
 	o := &CompactEObjectImpl{}
 	o.setField(container_flag, c)
@@ -134,7 +134,7 @@ func TestCompactEObject_RemoveManyFields(t *testing.T) {
 }
 
 func TestCompactEObject_EClass(t *testing.T) {
-	c := &MockEClass{}
+	c := NewMockEClass(t)
 	o := &CompactEObjectImpl{}
 	o.SetInterfaces(o)
 	assert.NotNil(t, o.EClass())
@@ -167,7 +167,7 @@ func TestCompactEObject_EProxy(t *testing.T) {
 }
 
 func TestCompactEObject_EResource(t *testing.T) {
-	r := &MockEResource{}
+	r := NewMockEResource(t)
 	o := &CompactEObjectImpl{}
 	o.SetInterfaces(o)
 	assert.Nil(t, o.EInternalResource())
@@ -177,7 +177,7 @@ func TestCompactEObject_EResource(t *testing.T) {
 }
 
 func TestCompactEObject_EContainer(t *testing.T) {
-	c := &MockEObject{}
+	c := NewMockEObject(t)
 	o := &CompactEObjectImpl{}
 	o.SetInterfaces(o)
 	o.Initialize()

@@ -14,11 +14,11 @@ func TestEContentAdapterEObjectTopChanged(t *testing.T) {
 	employee := GetFactory().CreateEmployee()
 
 	// create and add a new content adapter
-	adapter := ecore.NewMockContentAdapter()
+	adapter := ecore.NewMockEContentAdapter(t)
 	library.EAdapters().Add(adapter)
 
 	// check that a notification is raised when employee is added
-	adapter.On("NotifyChanged", mock.MatchedBy(func(n ecore.ENotification) bool {
+	adapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ecore.ENotification) bool {
 		return n.GetNotifier() == library &&
 			n.GetFeatureID() == LIBRARY__EMPLOYEES &&
 			n.GetNewValue() == employee &&
@@ -42,11 +42,11 @@ func TestEContentAdapterEObjectChildChanged(t *testing.T) {
 	library.GetEmployees().Add(employee)
 
 	// create and add a new content adapter
-	adapter := ecore.NewMockContentAdapter()
+	adapter := ecore.NewMockEContentAdapter(t)
 	library.EAdapters().Add(adapter)
 
 	// check that a notification is raised when employee is added
-	adapter.On("NotifyChanged", mock.MatchedBy(func(n ecore.ENotification) bool {
+	adapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ecore.ENotification) bool {
 		return n.GetNotifier() == employee &&
 			n.GetFeatureID() == EMPLOYEE__FIRST_NAME &&
 			n.GetNewValue() == "newName" &&
@@ -73,6 +73,6 @@ func TestEContentAdapterResource(t *testing.T) {
 	assert.True(t, resource.GetErrors().Empty())
 	assert.True(t, resource.GetWarnings().Empty())
 
-	adapter := ecore.NewMockContentAdapter()
+	adapter := ecore.NewMockEContentAdapter(t)
 	resource.EAdapters().Add(adapter)
 }

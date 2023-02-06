@@ -51,9 +51,9 @@ func TestEDataTypeSerializableGet(t *testing.T) {
 func TestEDataTypeSerializableSet(t *testing.T) {
 	o := newEDataTypeImpl()
 	v := bool(true)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetSerializable(v)
 	mockAdapter.AssertExpectations(t)

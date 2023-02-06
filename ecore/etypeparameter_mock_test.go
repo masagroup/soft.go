@@ -23,14 +23,11 @@ func discardMockETypeParameter() {
 
 // TestMockETypeParameterGetEBounds tests method GetEBounds
 func TestMockETypeParameterGetEBounds(t *testing.T) {
-	o := &MockETypeParameter{}
-	l := &MockEList{}
-	// return a value
-	o.On("GetEBounds").Once().Return(l)
-	o.On("GetEBounds").Once().Return(func() EList {
-		return l
-	})
+	o := NewMockETypeParameter(t)
+	l := NewMockEList(t)
+	m := NewMockRun(t)
+	o.EXPECT().GetEBounds().Return(l).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetEBounds().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetEBounds())
 	assert.Equal(t, l, o.GetEBounds())
-	o.AssertExpectations(t)
 }

@@ -310,16 +310,16 @@ func TestEClassGetOverride(t *testing.T) {
 	eSuperClass := newEClassExt()
 	eClass.GetESuperTypes().Add(eSuperClass)
 
-	mockOperation1 := &MockEOperation{}
-	mockOperation2 := &MockEOperation{}
-	mockOperation1.On("EInverseAdd", eClass, EOPERATION__ECONTAINING_CLASS, nil).Return(nil)
-	mockOperation1.On("SetOperationID", 1)
-	mockOperation2.On("EInverseAdd", eSuperClass, EOPERATION__ECONTAINING_CLASS, nil).Return(nil)
-	mockOperation2.On("SetOperationID", 0)
+	mockOperation1 := NewMockEOperation(t)
+	mockOperation2 := NewMockEOperation(t)
+	mockOperation1.EXPECT().EInverseAdd(eClass, EOPERATION__ECONTAINING_CLASS, nil).Return(nil)
+	mockOperation1.EXPECT().SetOperationID(1)
+	mockOperation2.EXPECT().EInverseAdd(eSuperClass, EOPERATION__ECONTAINING_CLASS, nil).Return(nil)
+	mockOperation2.EXPECT().SetOperationID(0)
 	eClass.GetEOperations().Add(mockOperation1)
 	eSuperClass.GetEOperations().Add(mockOperation2)
 
-	mockOperation1.On("IsOverrideOf", mockOperation2).Return(true)
+	mockOperation1.EXPECT().IsOverrideOf(mockOperation2).Return(true)
 	assert.Equal(t, mockOperation1, eClass.GetOverride(mockOperation2))
 }
 

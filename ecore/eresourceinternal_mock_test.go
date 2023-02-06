@@ -13,82 +13,81 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestMockEResourceInternalDoLoad(t *testing.T) {
-	r := &MockEResourceInternal{}
-	mockDecoder := &MockEResourceDecoder{}
-	r.On("DoLoad", mockDecoder).Once()
-	r.DoLoad(mockDecoder)
-	mock.AssertExpectationsForObjects(t, r)
+	mockResource := NewMockEResourceInternal(t)
+	mockDecoder := NewMockEResourceDecoder(t)
+	m := NewMockRun(t, mockDecoder)
+	mockResource.EXPECT().DoLoad(mockDecoder).Return().Run(func(decoder EResourceDecoder) { m.Run(decoder) }).Once()
+	mockResource.DoLoad(mockDecoder)
 }
 
 func TestMockEResourceInternalDoSave(t *testing.T) {
-	r := &MockEResourceInternal{}
-	mockEncoder := &MockEResourceEncoder{}
-	r.On("DoSave", mockEncoder).Once()
-	r.DoSave(mockEncoder)
-	mock.AssertExpectationsForObjects(t, r)
+	mockResource := NewMockEResourceInternal(t)
+	mockEncoder := NewMockEResourceEncoder(t)
+	m := NewMockRun(t, mockEncoder)
+	mockResource.EXPECT().DoSave(mockEncoder).Return().Run(func(encoder EResourceEncoder) { m.Run(encoder) }).Once()
+	mockResource.DoSave(mockEncoder)
 }
 
 func TestMockEResourceInternalDoUnLoad(t *testing.T) {
-	r := &MockEResourceInternal{}
-	r.On("DoUnload").Once()
-	r.DoUnload()
-	mock.AssertExpectationsForObjects(t, r)
+	m := NewMockRun(t)
+	mockResource := NewMockEResourceInternal(t)
+	mockResource.EXPECT().DoUnload().Return().Run(func() { m.Run() }).Once()
+	mockResource.DoUnload()
 }
 
 func TestMockEResourceInternalBasicSetLoaded(t *testing.T) {
-	r := &MockEResourceInternal{}
-	n1 := &MockENotificationChain{}
-	n2 := &MockENotificationChain{}
-	r.On("BasicSetLoaded", false, n1).Return(n2).Once()
-	r.On("BasicSetLoaded", false, n1).Return(func(bool, ENotificationChain) ENotificationChain {
+	mockResource := NewMockEResourceInternal(t)
+	n1 := NewMockENotificationChain(t)
+	n2 := NewMockENotificationChain(t)
+	m := NewMockRun(t, false, n1)
+	mockResource.EXPECT().BasicSetLoaded(false, n1).Return(n2).Run(func(_a0 bool, _a1 ENotificationChain) { m.Run(_a0, _a1) }).Once()
+	mockResource.EXPECT().BasicSetLoaded(false, n1).Call.Return(func(bool, ENotificationChain) ENotificationChain {
 		return n2
 	}).Once()
-	assert.Equal(t, n2, r.BasicSetLoaded(false, n1))
-	assert.Equal(t, n2, r.BasicSetLoaded(false, n1))
-	mock.AssertExpectationsForObjects(t, r, n1, n2)
+	assert.Equal(t, n2, mockResource.BasicSetLoaded(false, n1))
+	assert.Equal(t, n2, mockResource.BasicSetLoaded(false, n1))
 }
 
 func TestMockEResourceInternalBasicSetResourceSet(t *testing.T) {
-	r := &MockEResourceInternal{}
-	rs := &MockEResourceSet{}
-	n1 := &MockENotificationChain{}
-	n2 := &MockENotificationChain{}
-	r.On("BasicSetResourceSet", rs, n1).Return(n2).Once()
-	r.On("BasicSetResourceSet", rs, n1).Return(func(EResourceSet, ENotificationChain) ENotificationChain {
+	mockResource := NewMockEResourceInternal(t)
+	rs := NewMockEResourceSet(t)
+	n1 := NewMockENotificationChain(t)
+	n2 := NewMockENotificationChain(t)
+	m := NewMockRun(t, rs, n1)
+	mockResource.EXPECT().BasicSetResourceSet(rs, n1).Return(n2).Run(func(_a0 EResourceSet, _a1 ENotificationChain) { m.Run(_a0, _a1) }).Once()
+	mockResource.EXPECT().BasicSetResourceSet(rs, n1).Call.Return(func(EResourceSet, ENotificationChain) ENotificationChain {
 		return n2
 	}).Once()
-	assert.Equal(t, n2, r.BasicSetResourceSet(rs, n1))
-	assert.Equal(t, n2, r.BasicSetResourceSet(rs, n1))
-	mock.AssertExpectationsForObjects(t, r, rs, n1, n2)
+	assert.Equal(t, n2, mockResource.BasicSetResourceSet(rs, n1))
+	assert.Equal(t, n2, mockResource.BasicSetResourceSet(rs, n1))
 }
 
 func TestMockEResourceInternalDoAttached(t *testing.T) {
-	r := &MockEResourceInternal{}
-	o := &MockEObject{}
-	r.On("DoAttached", o)
-	r.DoAttached(o)
-	r.AssertExpectations(t)
+	mockResource := NewMockEResourceInternal(t)
+	mockObject := NewMockEObject(t)
+	m := NewMockRun(t, mockObject)
+	mockResource.EXPECT().DoAttached(mockObject).Return().Run(func(o EObject) { m.Run(o) }).Once()
+	mockResource.DoAttached(mockObject)
 }
 
 func TestMockEResourceInternalDetached(t *testing.T) {
-	r := &MockEResourceInternal{}
-	o := &MockEObject{}
-	r.On("DoDetached", o)
-	r.DoDetached(o)
-	r.AssertExpectations(t)
+	mockResource := NewMockEResourceInternal(t)
+	mockObject := NewMockEObject(t)
+	m := NewMockRun(t, mockObject)
+	mockResource.EXPECT().DoDetached(mockObject).Return().Run(func(o EObject) { m.Run(o) }).Once()
+	mockResource.DoDetached(mockObject)
 }
 
 func TestMockEResourceInternalIsAttachedDetachedRequired(t *testing.T) {
-	r := &MockEResourceInternal{}
-	r.On("IsAttachedDetachedRequired").Return(true).Once()
-	r.On("IsAttachedDetachedRequired").Return(func() bool {
+	mockResource := NewMockEResourceInternal(t)
+	m := NewMockRun(t)
+	mockResource.EXPECT().IsAttachedDetachedRequired().Return(true).Run(func() { m.Run() }).Once()
+	mockResource.EXPECT().IsAttachedDetachedRequired().Call.Return(func() bool {
 		return false
 	}).Once()
-	assert.True(t, r.IsAttachedDetachedRequired())
-	assert.False(t, r.IsAttachedDetachedRequired())
-	mock.AssertExpectationsForObjects(t, r)
+	assert.True(t, mockResource.IsAttachedDetachedRequired())
+	assert.False(t, mockResource.IsAttachedDetachedRequired())
 }

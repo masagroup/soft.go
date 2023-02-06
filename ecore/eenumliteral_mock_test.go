@@ -23,79 +23,71 @@ func discardMockEEnumLiteral() {
 
 // TestMockEEnumLiteralGetEEnum tests method GetEEnum
 func TestMockEEnumLiteralGetEEnum(t *testing.T) {
-	o := &MockEEnumLiteral{}
-	r := new(MockEEnum)
-	o.On("GetEEnum").Once().Return(r)
-	o.On("GetEEnum").Once().Return(func() EEnum {
-		return r
-	})
+	o := NewMockEEnumLiteral(t)
+	r := NewMockEEnum(t)
+	m := NewMockRun(t)
+	o.EXPECT().GetEEnum().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetEEnum().Call.Return(func() EEnum { return r }).Once()
 	assert.Equal(t, r, o.GetEEnum())
 	assert.Equal(t, r, o.GetEEnum())
-	o.AssertExpectations(t)
 }
 
 // TestMockEEnumLiteralGetInstance tests method GetInstance
 func TestMockEEnumLiteralGetInstance(t *testing.T) {
-	o := &MockEEnumLiteral{}
+	o := NewMockEEnumLiteral(t)
 	r := any(nil)
-	o.On("GetInstance").Once().Return(r)
-	o.On("GetInstance").Once().Return(func() any {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().GetInstance().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetInstance().Call.Return(func() any { return r }).Once()
 	assert.Equal(t, r, o.GetInstance())
 	assert.Equal(t, r, o.GetInstance())
-	o.AssertExpectations(t)
 }
 
 // TestMockEEnumLiteralSetInstance tests method SetInstance
 func TestMockEEnumLiteralSetInstance(t *testing.T) {
-	o := &MockEEnumLiteral{}
+	o := NewMockEEnumLiteral(t)
 	v := any(nil)
-	o.On("SetInstance", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetInstance(v).Return().Run(func(_p0 any) { m.Run(_p0) }).Once()
 	o.SetInstance(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEEnumLiteralGetLiteral tests method GetLiteral
 func TestMockEEnumLiteralGetLiteral(t *testing.T) {
-	o := &MockEEnumLiteral{}
+	o := NewMockEEnumLiteral(t)
 	r := string("Test String")
-	o.On("GetLiteral").Once().Return(r)
-	o.On("GetLiteral").Once().Return(func() string {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().GetLiteral().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetLiteral().Call.Return(func() string { return r }).Once()
 	assert.Equal(t, r, o.GetLiteral())
 	assert.Equal(t, r, o.GetLiteral())
-	o.AssertExpectations(t)
 }
 
 // TestMockEEnumLiteralSetLiteral tests method SetLiteral
 func TestMockEEnumLiteralSetLiteral(t *testing.T) {
-	o := &MockEEnumLiteral{}
+	o := NewMockEEnumLiteral(t)
 	v := string("Test String")
-	o.On("SetLiteral", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetLiteral(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetLiteral(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEEnumLiteralGetValue tests method GetValue
 func TestMockEEnumLiteralGetValue(t *testing.T) {
-	o := &MockEEnumLiteral{}
+	o := NewMockEEnumLiteral(t)
 	r := int(45)
-	o.On("GetValue").Once().Return(r)
-	o.On("GetValue").Once().Return(func() int {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().GetValue().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetValue().Call.Return(func() int { return r }).Once()
 	assert.Equal(t, r, o.GetValue())
 	assert.Equal(t, r, o.GetValue())
-	o.AssertExpectations(t)
 }
 
 // TestMockEEnumLiteralSetValue tests method SetValue
 func TestMockEEnumLiteralSetValue(t *testing.T) {
-	o := &MockEEnumLiteral{}
+	o := NewMockEEnumLiteral(t)
 	v := int(45)
-	o.On("SetValue", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetValue(v).Return().Run(func(_p0 int) { m.Run(_p0) }).Once()
 	o.SetValue(v)
-	o.AssertExpectations(t)
 }

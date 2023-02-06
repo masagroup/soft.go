@@ -20,17 +20,17 @@ func TestEAttributeEClass(t *testing.T) {
 }
 
 func TestEAttribute_GetEAttributeType(t *testing.T) {
-	mockType := new(MockEDataType)
+	mockType := NewMockEDataType(t)
 	a := newEAttributeExt()
 	a.SetEType(mockType)
 
-	mockType.On("EIsProxy").Return(false).Once()
+	mockType.EXPECT().EIsProxy().Return(false).Once()
 	assert.Equal(t, mockType, a.GetEAttributeType())
 	mockType.AssertExpectations(t)
 }
 
 func TestEAttribute_BasicGetEAttributeType(t *testing.T) {
-	mockType := new(MockEDataType)
+	mockType := NewMockEDataType(t)
 	a := newEAttributeExt()
 	a.SetEType(mockType)
 	assert.Equal(t, mockType, a.basicGetEAttributeType())

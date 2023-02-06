@@ -12,18 +12,12 @@ package ecore
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestEListIterator(t *testing.T) {
-	mockList := NewMockEList(t)
-	mockList.EXPECT().Size().Return(3)
-	for i := 0; i < 3; i++ {
-		mockList.EXPECT().Get(i).Return(i)
-	}
-	it := &listIterator{list: mockList}
-	for i := 0; it.HasNext(); i++ {
-		assert.Equal(t, i, it.Next())
-	}
-	assert.Panics(t, func() { it.Next() })
+func TestMockXmlProcessorOption_Apply(t *testing.T) {
+	mockOption := newMockXmlProcessorOption(t)
+	mockRun := NewMockRun(t, mock.AnythingOfType("*ecore.XMLProcessor"))
+	mockOption.EXPECT().apply(mock.AnythingOfType("*ecore.XMLProcessor")).Return().Run(func(_a0 *XMLProcessor) { mockRun.Run(_a0) })
+	mockOption.apply(nil)
 }

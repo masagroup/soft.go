@@ -11,13 +11,67 @@
 
 package ecore
 
+import (
+	"github.com/stretchr/testify/mock"
+)
+
+// MockEModelElement is an mock type for the EModelElement type
 type MockEModelElement struct {
-	MockEObjectInternal
+	mock.Mock
+	MockEModelElement_Prototype
+}
+
+// MockEModelElement_Prototype is the mock implementation of all EModelElement methods ( inherited and declared )
+type MockEModelElement_Prototype struct {
+	mock *mock.Mock
+	MockEObjectInternal_Prototype
+	MockEModelElement_Prototype_Methods
+}
+
+func (_mp *MockEModelElement_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockEObjectInternal_Prototype.SetMock(mock)
+	_mp.MockEModelElement_Prototype_Methods.SetMock(mock)
+}
+
+// MockEModelElement_Expecter is the expecter implementation for all EModelElement methods ( inherited and declared )
+type MockEModelElement_Expecter struct {
+	MockEObjectInternal_Expecter
+	MockEModelElement_Expecter_Methods
+}
+
+func (_me *MockEModelElement_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockEObjectInternal_Expecter.SetMock(mock)
+	_me.MockEModelElement_Expecter_Methods.SetMock(mock)
+}
+
+func (eModelElement *MockEModelElement_Prototype) EXPECT() *MockEModelElement_Expecter {
+	expecter := &MockEModelElement_Expecter{}
+	expecter.SetMock(eModelElement.mock)
+	return expecter
+}
+
+// MockEModelElement_Prototype_Methods is the mock implementation of EModelElement declared methods
+type MockEModelElement_Prototype_Methods struct {
+	mock *mock.Mock
+}
+
+func (_mdp *MockEModelElement_Prototype_Methods) SetMock(mock *mock.Mock) {
+	_mdp.mock = mock
+}
+
+// MockEModelElement_Expecter_Methods is the expecter implementation of EModelElement declared methods
+type MockEModelElement_Expecter_Methods struct {
+	mock *mock.Mock
+}
+
+func (_mde *MockEModelElement_Expecter_Methods) SetMock(mock *mock.Mock) {
+	_mde.mock = mock
 }
 
 // GetEAnnotations get the value of eAnnotations
-func (eModelElement *MockEModelElement) GetEAnnotations() EList {
-	ret := eModelElement.Called()
+func (eModelElement *MockEModelElement_Prototype_Methods) GetEAnnotations() EList {
+	ret := eModelElement.mock.Called()
 
 	var r EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
@@ -31,9 +85,29 @@ func (eModelElement *MockEModelElement) GetEAnnotations() EList {
 	return r
 }
 
+type MockEModelElement_GetEAnnotations_Call struct {
+	*mock.Call
+}
+
+func (e *MockEModelElement_Expecter_Methods) GetEAnnotations() *MockEModelElement_GetEAnnotations_Call {
+	return &MockEModelElement_GetEAnnotations_Call{Call: e.mock.On("GetEAnnotations")}
+}
+
+func (c *MockEModelElement_GetEAnnotations_Call) Run(run func()) *MockEModelElement_GetEAnnotations_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEModelElement_GetEAnnotations_Call) Return(eAnnotations EList) *MockEModelElement_GetEAnnotations_Call {
+	c.Call.Return(eAnnotations)
+	return c
+}
+
 // GetEAnnotation provides mock implementation
-func (eModelElement *MockEModelElement) GetEAnnotation(source string) EAnnotation {
-	ret := eModelElement.Called(source)
+func (eModelElement *MockEModelElement_Prototype_Methods) GetEAnnotation(source string) EAnnotation {
+	ret := eModelElement.mock.Called(source)
 
 	var r EAnnotation
 	if rf, ok := ret.Get(0).(func() EAnnotation); ok {
@@ -45,4 +119,40 @@ func (eModelElement *MockEModelElement) GetEAnnotation(source string) EAnnotatio
 	}
 
 	return r
+}
+
+type MockEModelElement_GetEAnnotation_Call struct {
+	*mock.Call
+}
+
+// GetEAnnotation is a helper method to define mock.On call
+// - source string
+func (e *MockEModelElement_Expecter_Methods) GetEAnnotation(source any) *MockEModelElement_GetEAnnotation_Call {
+	return &MockEModelElement_GetEAnnotation_Call{Call: e.mock.On("GetEAnnotation", source)}
+}
+
+func (c *MockEModelElement_GetEAnnotation_Call) Run(run func(string)) *MockEModelElement_GetEAnnotation_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(string))
+	})
+	return c
+}
+
+func (c *MockEModelElement_GetEAnnotation_Call) Return(_a0 EAnnotation) *MockEModelElement_GetEAnnotation_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
+type mockConstructorTestingTNewMockEModelElement interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockEModelElement creates a new instance of MockEModelElement. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEModelElement(t mockConstructorTestingTNewMockEModelElement) *MockEModelElement {
+	mock := &MockEModelElement{}
+	mock.SetMock(&mock.Mock)
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

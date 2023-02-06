@@ -23,22 +23,20 @@ func discardMockEDataType() {
 
 // TestMockEDataTypeIsSerializable tests method IsSerializable
 func TestMockEDataTypeIsSerializable(t *testing.T) {
-	o := &MockEDataType{}
+	o := NewMockEDataType(t)
 	r := bool(true)
-	o.On("IsSerializable").Once().Return(r)
-	o.On("IsSerializable").Once().Return(func() bool {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().IsSerializable().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().IsSerializable().Call.Return(func() bool { return r }).Once()
 	assert.Equal(t, r, o.IsSerializable())
 	assert.Equal(t, r, o.IsSerializable())
-	o.AssertExpectations(t)
 }
 
 // TestMockEDataTypeSetSerializable tests method SetSerializable
 func TestMockEDataTypeSetSerializable(t *testing.T) {
-	o := &MockEDataType{}
+	o := NewMockEDataType(t)
 	v := bool(true)
-	o.On("SetSerializable", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetSerializable(v).Return().Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetSerializable(v)
-	o.AssertExpectations(t)
 }

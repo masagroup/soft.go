@@ -23,85 +23,75 @@ func discardMockEOperation() {
 
 // TestMockEOperationGetEContainingClass tests method GetEContainingClass
 func TestMockEOperationGetEContainingClass(t *testing.T) {
-	o := &MockEOperation{}
-	r := new(MockEClass)
-	o.On("GetEContainingClass").Once().Return(r)
-	o.On("GetEContainingClass").Once().Return(func() EClass {
-		return r
-	})
+	o := NewMockEOperation(t)
+	r := NewMockEClass(t)
+	m := NewMockRun(t)
+	o.EXPECT().GetEContainingClass().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetEContainingClass().Call.Return(func() EClass { return r }).Once()
 	assert.Equal(t, r, o.GetEContainingClass())
 	assert.Equal(t, r, o.GetEContainingClass())
-	o.AssertExpectations(t)
 }
 
 // TestMockEOperationGetEExceptions tests method GetEExceptions
 func TestMockEOperationGetEExceptions(t *testing.T) {
-	o := &MockEOperation{}
-	l := &MockEList{}
-	// return a value
-	o.On("GetEExceptions").Once().Return(l)
-	o.On("GetEExceptions").Once().Return(func() EList {
-		return l
-	})
+	o := NewMockEOperation(t)
+	l := NewMockEList(t)
+	m := NewMockRun(t)
+	o.EXPECT().GetEExceptions().Return(l).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetEExceptions().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetEExceptions())
 	assert.Equal(t, l, o.GetEExceptions())
-	o.AssertExpectations(t)
 }
 
 // TestMockEOperationUnsetEExceptions tests method UnsetEExceptions
 func TestMockEOperationUnsetEExceptions(t *testing.T) {
-	o := &MockEOperation{}
-	o.On("UnsetEExceptions").Once()
+	o := NewMockEOperation(t)
+	m := NewMockRun(t)
+	o.EXPECT().UnsetEExceptions().Return().Run(func() { m.Run() }).Once()
 	o.UnsetEExceptions()
-	o.AssertExpectations(t)
 }
 
 // TestMockEOperationGetEParameters tests method GetEParameters
 func TestMockEOperationGetEParameters(t *testing.T) {
-	o := &MockEOperation{}
-	l := &MockEList{}
-	// return a value
-	o.On("GetEParameters").Once().Return(l)
-	o.On("GetEParameters").Once().Return(func() EList {
-		return l
-	})
+	o := NewMockEOperation(t)
+	l := NewMockEList(t)
+	m := NewMockRun(t)
+	o.EXPECT().GetEParameters().Return(l).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetEParameters().Call.Return(func() EList { return l }).Once()
 	assert.Equal(t, l, o.GetEParameters())
 	assert.Equal(t, l, o.GetEParameters())
-	o.AssertExpectations(t)
 }
 
 // TestMockEOperationGetOperationID tests method GetOperationID
 func TestMockEOperationGetOperationID(t *testing.T) {
-	o := &MockEOperation{}
+	o := NewMockEOperation(t)
 	r := int(45)
-	o.On("GetOperationID").Once().Return(r)
-	o.On("GetOperationID").Once().Return(func() int {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().GetOperationID().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetOperationID().Call.Return(func() int { return r }).Once()
 	assert.Equal(t, r, o.GetOperationID())
 	assert.Equal(t, r, o.GetOperationID())
-	o.AssertExpectations(t)
 }
 
 // TestMockEOperationSetOperationID tests method SetOperationID
 func TestMockEOperationSetOperationID(t *testing.T) {
-	o := &MockEOperation{}
+	o := NewMockEOperation(t)
 	v := int(45)
-	o.On("SetOperationID", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetOperationID(v).Return().Run(func(_p0 int) { m.Run(_p0) }).Once()
 	o.SetOperationID(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEOperationIsOverrideOf tests method IsOverrideOf
 func TestMockEOperationIsOverrideOf(t *testing.T) {
-	o := &MockEOperation{}
-	someOperation := new(MockEOperation)
+	o := NewMockEOperation(t)
+	someOperation := NewMockEOperation(t)
+	m := NewMockRun(t, someOperation)
 	r := bool(true)
-	o.On("IsOverrideOf", someOperation).Return(r).Once()
-	o.On("IsOverrideOf", someOperation).Return(func() bool {
+	o.EXPECT().IsOverrideOf(someOperation).Return(r).Run(func(someOperation EOperation) { m.Run(someOperation) }).Once()
+	o.EXPECT().IsOverrideOf(someOperation).Call.Return(func() bool {
 		return r
 	}).Once()
 	assert.Equal(t, r, o.IsOverrideOf(someOperation))
 	assert.Equal(t, r, o.IsOverrideOf(someOperation))
-	o.AssertExpectations(t)
 }

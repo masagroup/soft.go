@@ -17,65 +17,65 @@ import (
 )
 
 func TestMockEPackageRegistryRegisterPackage(t *testing.T) {
-	rp := &MockEPackageRegistry{}
-	p := &MockEPackage{}
-	rp.On("RegisterPackage", p).Once()
+	rp := NewMockEPackageRegistry(t)
+	p := NewMockEPackage(t)
+	m := NewMockRun(t, p)
+	rp.EXPECT().RegisterPackage(p).Return().Run(func(pack EPackage) { m.Run(p) }).Once()
 	rp.RegisterPackage(p)
-	mock.AssertExpectationsForObjects(t, rp, p)
 }
 
 func TestMockEPackageRegistryUnRegisterPackage(t *testing.T) {
-	rp := &MockEPackageRegistry{}
-	p := &MockEPackage{}
-	rp.On("UnregisterPackage", p).Once()
+	rp := NewMockEPackageRegistry(t)
+	p := NewMockEPackage(t)
+	m := NewMockRun(t, p)
+	rp.EXPECT().UnregisterPackage(p).Return().Run(func(pack EPackage) { m.Run(p) }).Once()
 	rp.UnregisterPackage(p)
-	mock.AssertExpectationsForObjects(t, rp, p)
 }
 
 func TestMockEPackageRegistryPutPackage(t *testing.T) {
-	rp := &MockEPackageRegistry{}
-	p := &MockEPackage{}
-	rp.On("PutPackage", "nsURI", p).Once()
+	rp := NewMockEPackageRegistry(t)
+	p := NewMockEPackage(t)
+	m := NewMockRun(t, "nsURI", p)
+	rp.EXPECT().PutPackage("nsURI", p).Return().Run(func(nsURI string, pack EPackage) { m.Run(nsURI, pack) }).Once()
 	rp.PutPackage("nsURI", p)
-	mock.AssertExpectationsForObjects(t, rp, p)
 }
 
 func TestMockEPackageRegistryPutSupplier(t *testing.T) {
-	rp := &MockEPackageRegistry{}
-	rp.On("PutSupplier", "nsURI", mock.AnythingOfType("func() ecore.EPackage")).Once()
+	rp := NewMockEPackageRegistry(t)
+	m := NewMockRun(t, "nsURI", mock.AnythingOfType("func() ecore.EPackage"))
+	rp.EXPECT().PutSupplier("nsURI", mock.AnythingOfType("func() ecore.EPackage")).Return().Run(func(nsURI string, supplier func() EPackage) { m.Run(nsURI, supplier) }).Once()
 	rp.PutSupplier("nsURI", func() EPackage {
 		return nil
 	})
-	mock.AssertExpectationsForObjects(t, rp)
 }
 
 func TestMockEPackageRegistryRemove(t *testing.T) {
-	rp := &MockEPackageRegistry{}
-	rp.On("Remove", "nsURI").Once()
+	rp := NewMockEPackageRegistry(t)
+	m := NewMockRun(t, "nsURI")
+	rp.EXPECT().Remove("nsURI").Return().Run(func(nsURI string) { m.Run(nsURI) }).Once()
 	rp.Remove("nsURI")
-	mock.AssertExpectationsForObjects(t, rp)
 }
 
 func TestMockEPackageRegistryGetPackage(t *testing.T) {
-	rp := &MockEPackageRegistry{}
-	p := &MockEPackage{}
-	rp.On("GetPackage", "p").Return(p).Once()
-	rp.On("GetPackage", "p").Return(func(string) EPackage {
+	rp := NewMockEPackageRegistry(t)
+	p := NewMockEPackage(t)
+	m := NewMockRun(t, "p")
+	rp.EXPECT().GetPackage("p").Return(p).Run(func(nsURI string) { m.Run(nsURI) }).Once()
+	rp.EXPECT().GetPackage("p").Call.Return(func(string) EPackage {
 		return p
 	}).Once()
 	assert.Equal(t, p, rp.GetPackage("p"))
 	assert.Equal(t, p, rp.GetPackage("p"))
-	mock.AssertExpectationsForObjects(t, rp, p)
 }
 
 func TestMockEPackageRegistryGetFactory(t *testing.T) {
-	rp := &MockEPackageRegistry{}
-	f := &MockEFactory{}
-	rp.On("GetFactory", "f").Return(f).Once()
-	rp.On("GetFactory", "f").Return(func(string) EFactory {
+	rp := NewMockEPackageRegistry(t)
+	f := NewMockEFactory(t)
+	m := NewMockRun(t, "f")
+	rp.EXPECT().GetFactory("f").Return(f).Run(func(nsURI string) { m.Run(nsURI) }).Once()
+	rp.EXPECT().GetFactory("f").Call.Return(func(string) EFactory {
 		return f
 	}).Once()
 	assert.Equal(t, f, rp.GetFactory("f"))
 	assert.Equal(t, f, rp.GetFactory("f"))
-	mock.AssertExpectationsForObjects(t, rp, f)
 }

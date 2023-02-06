@@ -23,13 +23,11 @@ func discardMockEParameter() {
 
 // TestMockEParameterGetEOperation tests method GetEOperation
 func TestMockEParameterGetEOperation(t *testing.T) {
-	o := &MockEParameter{}
-	r := new(MockEOperation)
-	o.On("GetEOperation").Once().Return(r)
-	o.On("GetEOperation").Once().Return(func() EOperation {
-		return r
-	})
+	o := NewMockEParameter(t)
+	r := NewMockEOperation(t)
+	m := NewMockRun(t)
+	o.EXPECT().GetEOperation().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetEOperation().Call.Return(func() EOperation { return r }).Once()
 	assert.Equal(t, r, o.GetEOperation())
 	assert.Equal(t, r, o.GetEOperation())
-	o.AssertExpectations(t)
 }

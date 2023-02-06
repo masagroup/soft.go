@@ -16,27 +16,27 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestMockEURIHandlerCanHandle(t *testing.T) {
-	h := &MockEURIHandler{}
+	h := NewMockEURIHandler(t)
 	uri := NewURI("test:///file.t")
-	h.On("CanHandle", uri).Return(true).Once()
-	h.On("CanHandle", uri).Return(func(*URI) bool {
+	m := NewMockRun(t, uri)
+	h.EXPECT().CanHandle(uri).Return(true).Run(func(uri *URI) { m.Run(uri) }).Once()
+	h.EXPECT().CanHandle(uri).Call.Return(func(*URI) bool {
 		return false
 	}).Once()
 	assert.True(t, h.CanHandle(uri))
 	assert.False(t, h.CanHandle(uri))
-	mock.AssertExpectationsForObjects(t, h)
 }
 
 func TestMockEURIHandlerCreateReader(t *testing.T) {
-	h := &MockEURIHandler{}
+	h := NewMockEURIHandler(t)
 	uri := NewURI("test:///file.t")
 	f, _ := os.Open(uri.String())
-	h.On("CreateReader", uri).Return(f, nil).Once()
-	h.On("CreateReader", uri).Return(func(*URI) (io.ReadCloser, error) {
+	m := NewMockRun(t, uri)
+	h.EXPECT().CreateReader(uri).Return(f, nil).Run(func(uri *URI) { m.Run(uri) }).Once()
+	h.EXPECT().CreateReader(uri).Call.Return(func(*URI) (io.ReadCloser, error) {
 		return nil, errors.New("error")
 	}).Once()
 	{
@@ -50,15 +50,15 @@ func TestMockEURIHandlerCreateReader(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, "error", err.Error())
 	}
-	mock.AssertExpectationsForObjects(t, h)
 }
 
 func TestMockEURIHandlerCreateWriter(t *testing.T) {
-	h := &MockEURIHandler{}
+	h := NewMockEURIHandler(t)
 	uri := NewURI("test:///file.t")
 	f, _ := os.Create(uri.String())
-	h.On("CreateWriter", uri).Return(f, nil).Once()
-	h.On("CreateWriter", uri).Return(func(*URI) (io.WriteCloser, error) {
+	m := NewMockRun(t, uri)
+	h.EXPECT().CreateWriter(uri).Return(f, nil).Run(func(uri *URI) { m.Run(uri) }).Once()
+	h.EXPECT().CreateWriter(uri).Call.Return(func(*URI) (io.WriteCloser, error) {
 		return nil, errors.New("error")
 	}).Once()
 	{
@@ -72,5 +72,4 @@ func TestMockEURIHandlerCreateWriter(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, "error", err.Error())
 	}
-	mock.AssertExpectationsForObjects(t, h)
 }

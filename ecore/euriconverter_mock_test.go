@@ -20,11 +20,12 @@ import (
 )
 
 func TestMockEURIConverterCreateReader(t *testing.T) {
-	h := &MockEURIConverter{}
+	h := NewMockEURIConverter(t)
 	uri := NewURI("test:///file.t")
 	f, _ := os.Open(uri.String())
-	h.On("CreateReader", uri).Return(f, nil).Once()
-	h.On("CreateReader", uri).Return(func(*URI) (io.ReadCloser, error) {
+	m := NewMockRun(t, uri)
+	h.EXPECT().CreateReader(uri).Return(f, nil).Run(func(uri *URI) { m.Run(uri) }).Once()
+	h.EXPECT().CreateReader(uri).Call.Return(func(*URI) (io.ReadCloser, error) {
 		return nil, errors.New("error")
 	}).Once()
 	{
@@ -38,15 +39,15 @@ func TestMockEURIConverterCreateReader(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, "error", err.Error())
 	}
-	mock.AssertExpectationsForObjects(t, h)
 }
 
 func TestMockEURIConverterCreateWriter(t *testing.T) {
-	h := &MockEURIConverter{}
+	h := NewMockEURIConverter(t)
 	uri := NewURI("test:///file.t")
 	f, _ := os.Create(uri.String())
-	h.On("CreateWriter", uri).Return(f, nil).Once()
-	h.On("CreateWriter", uri).Return(func(*URI) (io.WriteCloser, error) {
+	m := NewMockRun(t, uri)
+	h.EXPECT().CreateWriter(uri).Return(f, nil).Run(func(uri *URI) { m.Run(uri) }).Once()
+	h.EXPECT().CreateWriter(uri).Call.Return(func(*URI) (io.WriteCloser, error) {
 		return nil, errors.New("error")
 	}).Once()
 	{
@@ -60,52 +61,50 @@ func TestMockEURIConverterCreateWriter(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, "error", err.Error())
 	}
-	mock.AssertExpectationsForObjects(t, h)
 }
 
 func TestMockEURIConverterGetURIMap(t *testing.T) {
-	h := &MockEURIConverter{}
-	m := map[URI]URI{*NewURI("toto"): *NewURI("tata")}
-	h.On("GetURIMap").Return(m).Once()
-	h.On("GetURIMap").Return(func() map[URI]URI {
-		return m
+	h := NewMockEURIConverter(t)
+	mp := map[URI]URI{*NewURI("toto"): *NewURI("tata")}
+	m := NewMockRun(t)
+	h.EXPECT().GetURIMap().Return(mp).Run(func() { m.Run() }).Once()
+	h.EXPECT().GetURIMap().Call.Return(func() map[URI]URI {
+		return mp
 	}).Once()
-	assert.Equal(t, m, h.GetURIMap())
-	assert.Equal(t, m, h.GetURIMap())
-	mock.AssertExpectationsForObjects(t, h)
+	assert.Equal(t, mp, h.GetURIMap())
+	assert.Equal(t, mp, h.GetURIMap())
 }
 
 func TestMockEURIConverterNormalize(t *testing.T) {
-	h := &MockEURIConverter{}
+	h := NewMockEURIConverter(t)
 	uri1 := NewURI("test:///file.t")
 	uri2 := NewURI("test:///file.t")
-	h.On("Normalize", uri1).Return(uri2).Once()
-	h.On("Normalize", uri1).Return(func(*URI) *URI {
-		return uri2
-	}).Once()
+	m := NewMockRun(t, uri1)
+	h.EXPECT().Normalize(uri1).Return(uri2).Run(func(uri *URI) { m.Run(uri) }).Once()
+	h.EXPECT().Normalize(uri1).Call.Return(func(*URI) *URI { return uri2 }).Once()
 	assert.Equal(t, uri2, h.Normalize(uri1))
 	assert.Equal(t, uri2, h.Normalize(uri1))
-	mock.AssertExpectationsForObjects(t, h)
 }
 
 func TestMockEURIConverterGetURIHandler(t *testing.T) {
-	h := &MockEURIConverter{}
-	u := &MockEURIHandler{}
+	h := NewMockEURIConverter(t)
+	u := NewMockEURIHandler(t)
 	uri := NewURI("test:///file.t")
-	h.On("GetURIHandler", uri).Return(u).Once()
-	h.On("GetURIHandler", uri).Return(func(*URI) EURIHandler {
+	m := NewMockRun(t, uri)
+	h.EXPECT().GetURIHandler(uri).Return(u).Run(func(uri *URI) { m.Run(uri) }).Once()
+	h.EXPECT().GetURIHandler(uri).Call.Return(func(*URI) EURIHandler {
 		return u
 	}).Once()
 	assert.Equal(t, u, h.GetURIHandler(uri))
 	assert.Equal(t, u, h.GetURIHandler(uri))
-	mock.AssertExpectationsForObjects(t, h, u)
 }
 
 func TestMockEURIConverterGetURIHandlers(t *testing.T) {
-	h := &MockEURIConverter{}
-	l := &MockEList{}
-	h.On("GetURIHandlers").Return(l).Once()
-	h.On("GetURIHandlers").Return(func() EList {
+	h := NewMockEURIConverter(t)
+	l := NewMockEList(t)
+	m := NewMockRun(t)
+	h.EXPECT().GetURIHandlers().Return(l).Run(func() { m.Run() }).Once()
+	h.EXPECT().GetURIHandlers().Call.Return(func() EList {
 		return l
 	}).Once()
 	assert.Equal(t, l, h.GetURIHandlers())

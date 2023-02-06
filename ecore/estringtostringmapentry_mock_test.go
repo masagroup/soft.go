@@ -23,44 +23,40 @@ func discardMockEStringToStringMapEntry() {
 
 // TestMockEStringToStringMapEntryGetTypedKey tests method GetTypedKey
 func TestMockEStringToStringMapEntryGetTypedKey(t *testing.T) {
-	o := &MockEStringToStringMapEntry{}
+	o := NewMockEStringToStringMapEntry(t)
 	r := string("Test String")
-	o.On("GetTypedKey").Once().Return(r)
-	o.On("GetTypedKey").Once().Return(func() string {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().GetTypedKey().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetTypedKey().Call.Return(func() string { return r }).Once()
 	assert.Equal(t, r, o.GetTypedKey())
 	assert.Equal(t, r, o.GetTypedKey())
-	o.AssertExpectations(t)
 }
 
 // TestMockEStringToStringMapEntrySetTypedKey tests method SetTypedKey
 func TestMockEStringToStringMapEntrySetTypedKey(t *testing.T) {
-	o := &MockEStringToStringMapEntry{}
+	o := NewMockEStringToStringMapEntry(t)
 	v := string("Test String")
-	o.On("SetTypedKey", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetTypedKey(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetTypedKey(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockEStringToStringMapEntryGetTypedValue tests method GetTypedValue
 func TestMockEStringToStringMapEntryGetTypedValue(t *testing.T) {
-	o := &MockEStringToStringMapEntry{}
+	o := NewMockEStringToStringMapEntry(t)
 	r := string("Test String")
-	o.On("GetTypedValue").Once().Return(r)
-	o.On("GetTypedValue").Once().Return(func() string {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().GetTypedValue().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetTypedValue().Call.Return(func() string { return r }).Once()
 	assert.Equal(t, r, o.GetTypedValue())
 	assert.Equal(t, r, o.GetTypedValue())
-	o.AssertExpectations(t)
 }
 
 // TestMockEStringToStringMapEntrySetTypedValue tests method SetTypedValue
 func TestMockEStringToStringMapEntrySetTypedValue(t *testing.T) {
-	o := &MockEStringToStringMapEntry{}
+	o := NewMockEStringToStringMapEntry(t)
 	v := string("Test String")
-	o.On("SetTypedValue", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetTypedValue(v).Return().Run(func(_p0 string) { m.Run(_p0) }).Once()
 	o.SetTypedValue(v)
-	o.AssertExpectations(t)
 }

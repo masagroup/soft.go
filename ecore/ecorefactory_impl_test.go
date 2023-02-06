@@ -19,87 +19,93 @@ import (
 	"time"
 )
 
+func TestFactoryAs(t *testing.T) {
+	factory := newEcoreFactoryImpl()
+	assert.Equal(t, factory, factory.AsInternal())
+	assert.Equal(t, factory, factory.AsEFactory())
+}
+
 func TestFactoryCreateFromEClass(t *testing.T) {
 	_ = mock.Anything
 	factory := newEcoreFactoryImpl()
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(-1)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(-1).Once()
 		assert.Panics(t, func() { factory.Create(mockEClass) })
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(EANNOTATION)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(EANNOTATION).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(EATTRIBUTE)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(EATTRIBUTE).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(ECLASS)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(ECLASS).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(EDATA_TYPE)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(EDATA_TYPE).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(EENUM)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(EENUM).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(EENUM_LITERAL)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(EENUM_LITERAL).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(EFACTORY)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(EFACTORY).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(EGENERIC_TYPE)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(EGENERIC_TYPE).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(EOBJECT)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(EOBJECT).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(EOPERATION)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(EOPERATION).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(EPACKAGE)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(EPACKAGE).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(EPARAMETER)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(EPARAMETER).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(EREFERENCE)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(EREFERENCE).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(ESTRING_TO_STRING_MAP_ENTRY)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(ESTRING_TO_STRING_MAP_ENTRY).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 	{
-		mockEClass := &MockEClass{}
-		mockEClass.On("GetClassifierID").Return(ETYPE_PARAMETER)
+		mockEClass := NewMockEClass(t)
+		mockEClass.EXPECT().GetClassifierID().Return(ETYPE_PARAMETER).Once()
 		assert.NotNil(t, factory.Create(mockEClass))
 	}
 }
@@ -111,10 +117,10 @@ func TestFactoryCreateEAnnotation(t *testing.T) {
 
 func TestFactoryCreateEAnnotationFromEModelElementContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEModelElement)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEAnnotations").Return(mockList).Once()
+	mockContainer := NewMockEModelElement(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEAnnotations().Return(mockList).Once()
 	o := factory.CreateEAnnotationFromContainer(mockContainer)
 	assert.NotNil(t, o)
 }
@@ -126,20 +132,20 @@ func TestFactoryCreateEAttribute(t *testing.T) {
 
 func TestFactoryCreateEAttributeFromEContainingClassContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEClass)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEStructuralFeatures").Return(mockList).Once()
+	mockContainer := NewMockEClass(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEStructuralFeatures().Return(mockList).Once()
 	o := factory.CreateEAttributeFromContainer(mockContainer)
 	assert.NotNil(t, o)
 }
 
 func TestFactoryCreateEAttributeFromEContainingClassContainerAndClassID(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEClass)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEStructuralFeatures").Return(mockList).Once()
+	mockContainer := NewMockEClass(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEStructuralFeatures().Return(mockList).Once()
 	o := factory.CreateEAttributeFromContainerAndClassID(mockContainer, 0)
 	assert.NotNil(t, o)
 }
@@ -151,20 +157,20 @@ func TestFactoryCreateEClass(t *testing.T) {
 
 func TestFactoryCreateEClassFromEPackageContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEClassifiers").Return(mockList).Once()
+	mockContainer := NewMockEPackage(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEClassifiers().Return(mockList).Once()
 	o := factory.CreateEClassFromContainer(mockContainer)
 	assert.NotNil(t, o)
 }
 
 func TestFactoryCreateEClassFromEPackageContainerAndClassID(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEClassifiers").Return(mockList).Once()
+	mockContainer := NewMockEPackage(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEClassifiers().Return(mockList).Once()
 	o := factory.CreateEClassFromContainerAndClassID(mockContainer, 0)
 	assert.NotNil(t, o)
 }
@@ -176,20 +182,20 @@ func TestFactoryCreateEDataType(t *testing.T) {
 
 func TestFactoryCreateEDataTypeFromEPackageContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEClassifiers").Return(mockList).Once()
+	mockContainer := NewMockEPackage(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEClassifiers().Return(mockList).Once()
 	o := factory.CreateEDataTypeFromContainer(mockContainer)
 	assert.NotNil(t, o)
 }
 
 func TestFactoryCreateEDataTypeFromEPackageContainerAndClassID(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEClassifiers").Return(mockList).Once()
+	mockContainer := NewMockEPackage(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEClassifiers().Return(mockList).Once()
 	o := factory.CreateEDataTypeFromContainerAndClassID(mockContainer, 0)
 	assert.NotNil(t, o)
 }
@@ -201,20 +207,20 @@ func TestFactoryCreateEEnum(t *testing.T) {
 
 func TestFactoryCreateEEnumFromEPackageContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEClassifiers").Return(mockList).Once()
+	mockContainer := NewMockEPackage(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEClassifiers().Return(mockList).Once()
 	o := factory.CreateEEnumFromContainer(mockContainer)
 	assert.NotNil(t, o)
 }
 
 func TestFactoryCreateEEnumFromEPackageContainerAndClassID(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEClassifiers").Return(mockList).Once()
+	mockContainer := NewMockEPackage(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEClassifiers().Return(mockList).Once()
 	o := factory.CreateEEnumFromContainerAndClassID(mockContainer, 0)
 	assert.NotNil(t, o)
 }
@@ -226,10 +232,10 @@ func TestFactoryCreateEEnumLiteral(t *testing.T) {
 
 func TestFactoryCreateEEnumLiteralFromEEnumContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEEnum)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetELiterals").Return(mockList).Once()
+	mockContainer := NewMockEEnum(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetELiterals().Return(mockList).Once()
 	o := factory.CreateEEnumLiteralFromContainer(mockContainer)
 	assert.NotNil(t, o)
 }
@@ -241,8 +247,8 @@ func TestFactoryCreateEFactory(t *testing.T) {
 
 func TestFactoryCreateEFactoryFromEPackageContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
-	mockContainer.On("SetEFactoryInstance", mock.Anything).Once()
+	mockContainer := NewMockEPackage(t)
+	mockContainer.EXPECT().SetEFactoryInstance(mock.Anything).Once()
 	o := factory.CreateEFactoryFromContainer(mockContainer)
 	assert.NotNil(t, o)
 }
@@ -264,20 +270,20 @@ func TestFactoryCreateEOperation(t *testing.T) {
 
 func TestFactoryCreateEOperationFromEContainingClassContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEClass)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEOperations").Return(mockList).Once()
+	mockContainer := NewMockEClass(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEOperations().Return(mockList).Once()
 	o := factory.CreateEOperationFromContainer(mockContainer)
 	assert.NotNil(t, o)
 }
 
 func TestFactoryCreateEOperationFromEContainingClassContainerAndClassID(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEClass)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEOperations").Return(mockList).Once()
+	mockContainer := NewMockEClass(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEOperations().Return(mockList).Once()
 	o := factory.CreateEOperationFromContainerAndClassID(mockContainer, 0)
 	assert.NotNil(t, o)
 }
@@ -289,10 +295,10 @@ func TestFactoryCreateEPackage(t *testing.T) {
 
 func TestFactoryCreateEPackageFromESuperPackageContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEPackage)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetESubPackages").Return(mockList).Once()
+	mockContainer := NewMockEPackage(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetESubPackages().Return(mockList).Once()
 	o := factory.CreateEPackageFromContainer(mockContainer)
 	assert.NotNil(t, o)
 }
@@ -304,10 +310,10 @@ func TestFactoryCreateEParameter(t *testing.T) {
 
 func TestFactoryCreateEParameterFromEOperationContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEOperation)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEParameters").Return(mockList).Once()
+	mockContainer := NewMockEOperation(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEParameters().Return(mockList).Once()
 	o := factory.CreateEParameterFromContainer(mockContainer)
 	assert.NotNil(t, o)
 }
@@ -319,20 +325,20 @@ func TestFactoryCreateEReference(t *testing.T) {
 
 func TestFactoryCreateEReferenceFromEContainingClassContainer(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEClass)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEStructuralFeatures").Return(mockList).Once()
+	mockContainer := NewMockEClass(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEStructuralFeatures().Return(mockList).Once()
 	o := factory.CreateEReferenceFromContainer(mockContainer)
 	assert.NotNil(t, o)
 }
 
 func TestFactoryCreateEReferenceFromEContainingClassContainerAndClassID(t *testing.T) {
 	factory := newEcoreFactoryImpl()
-	mockContainer := new(MockEClass)
-	mockList := new(MockEList)
-	mockList.On("Add", mock.Anything).Return(true).Once()
-	mockContainer.On("GetEStructuralFeatures").Return(mockList).Once()
+	mockContainer := NewMockEClass(t)
+	mockList := NewMockEList(t)
+	mockList.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockContainer.EXPECT().GetEStructuralFeatures().Return(mockList).Once()
 	o := factory.CreateEReferenceFromContainerAndClassID(mockContainer, 0)
 	assert.NotNil(t, o)
 }
@@ -350,145 +356,147 @@ func TestFactoryCreateETypeParameter(t *testing.T) {
 func TestFactoryConvert(t *testing.T) {
 	factory := newEcoreFactoryImpl()
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(-1)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(-1).Once()
+		mockEDataType.EXPECT().GetName().Return("dataType").Once()
 		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(-1)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(-1).Once()
+		mockEDataType.EXPECT().GetName().Return("dataType").Once()
 		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, nil) })
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBIG_DECIMAL)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBIG_DECIMAL)
 		assert.Equal(t, float64(3), factory.CreateFromString(mockEDataType, "3"))
 		assert.Equal(t, float64(3.2), factory.CreateFromString(mockEDataType, "3.2"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBIG_DECIMAL)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBIG_DECIMAL)
 		assert.Equal(t, "1.2", factory.ConvertToString(mockEDataType, float64(1.2)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBIG_INTEGER)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBIG_INTEGER)
 		assert.Equal(t, int64(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBIG_INTEGER)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBIG_INTEGER)
 		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int64(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBOOLEAN)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBOOLEAN)
 		assert.Equal(t, true, factory.CreateFromString(mockEDataType, "true"))
 		assert.Equal(t, false, factory.CreateFromString(mockEDataType, "false"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBOOLEAN)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBOOLEAN)
 		assert.Equal(t, "true", factory.ConvertToString(mockEDataType, true))
 		assert.Equal(t, "false", factory.ConvertToString(mockEDataType, false))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBOOLEAN_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBOOLEAN_OBJECT)
 		assert.Equal(t, true, factory.CreateFromString(mockEDataType, "true"))
 		assert.Equal(t, false, factory.CreateFromString(mockEDataType, "false"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBOOLEAN_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBOOLEAN_OBJECT)
 		assert.Equal(t, "true", factory.ConvertToString(mockEDataType, true))
 		assert.Equal(t, "false", factory.ConvertToString(mockEDataType, false))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBYTE)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBYTE)
 		assert.Equal(t, "golang\u0000", factory.CreateFromString(mockEDataType, ""))
 		assert.Equal(t, byte('a'), factory.CreateFromString(mockEDataType, "a"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBYTE)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBYTE)
 		assert.Equal(t, "a", factory.ConvertToString(mockEDataType, byte('a')))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBYTE_ARRAY)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBYTE_ARRAY)
 		assert.Equal(t, []byte("ab"), factory.CreateFromString(mockEDataType, "ab"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBYTE_ARRAY)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBYTE_ARRAY)
 		assert.Equal(t, "ab", factory.ConvertToString(mockEDataType, []byte("ab")))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBYTE_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBYTE_OBJECT)
 		assert.Equal(t, "golang\u0000", factory.CreateFromString(mockEDataType, ""))
 		assert.Equal(t, byte('a'), factory.CreateFromString(mockEDataType, "a"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EBYTE_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EBYTE_OBJECT)
 		assert.Equal(t, "a", factory.ConvertToString(mockEDataType, byte('a')))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ECHAR)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ECHAR)
 		assert.Equal(t, "golang\u0000", factory.CreateFromString(mockEDataType, ""))
 		assert.Equal(t, byte('a'), factory.CreateFromString(mockEDataType, "a"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ECHAR)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ECHAR)
 		assert.Equal(t, "a", factory.ConvertToString(mockEDataType, byte('a')))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ECHARACTER_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ECHARACTER_OBJECT)
 		assert.Equal(t, "golang\u0000", factory.CreateFromString(mockEDataType, ""))
 		assert.Equal(t, byte('a'), factory.CreateFromString(mockEDataType, "a"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ECHARACTER_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ECHARACTER_OBJECT)
 		assert.Equal(t, "a", factory.ConvertToString(mockEDataType, byte('a')))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EDATE)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EDATE)
 		date := factory.CreateFromString(mockEDataType, "2007-06-02T10:26:13.000Z")
 		expected := time.Date(2007, time.June, 2, 10, 26, 13, 0, time.UTC)
 		assert.Equal(t, &expected, date)
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EDATE)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EDATE)
 		date := time.Date(2020, time.May, 12, 17, 33, 10, 770000000, time.UTC)
 		dateStr := factory.ConvertToString(mockEDataType, &date)
 		expected := "2020-05-12T17:33:10.77Z"
@@ -496,162 +504,162 @@ func TestFactoryConvert(t *testing.T) {
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EDOUBLE)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EDOUBLE)
 		assert.Equal(t, float64(3), factory.CreateFromString(mockEDataType, "3"))
 		assert.Equal(t, float64(3.2), factory.CreateFromString(mockEDataType, "3.2"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EDOUBLE)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EDOUBLE)
 		assert.Equal(t, "1.2", factory.ConvertToString(mockEDataType, float64(1.2)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EDOUBLE_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EDOUBLE_OBJECT)
 		assert.Equal(t, float64(3), factory.CreateFromString(mockEDataType, "3"))
 		assert.Equal(t, float64(3.2), factory.CreateFromString(mockEDataType, "3.2"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EDOUBLE_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EDOUBLE_OBJECT)
 		assert.Equal(t, "1.2", factory.ConvertToString(mockEDataType, float64(1.2)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EFLOAT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EFLOAT)
 		assert.Equal(t, float32(3), factory.CreateFromString(mockEDataType, "3"))
 		assert.Equal(t, float32(3.2), factory.CreateFromString(mockEDataType, "3.2"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EFLOAT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EFLOAT)
 		assert.Equal(t, "1.2", factory.ConvertToString(mockEDataType, float32(1.2)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EFLOAT_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EFLOAT_OBJECT)
 		assert.Equal(t, float32(3), factory.CreateFromString(mockEDataType, "3"))
 		assert.Equal(t, float32(3.2), factory.CreateFromString(mockEDataType, "3.2"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EFLOAT_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EFLOAT_OBJECT)
 		assert.Equal(t, "1.2", factory.ConvertToString(mockEDataType, float32(1.2)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EINT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EINT)
 		assert.Equal(t, int(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EINT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EINT)
 		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EINTEGER_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EINTEGER_OBJECT)
 		assert.Equal(t, int(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EINTEGER_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EINTEGER_OBJECT)
 		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EJAVA_CLASS)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EJAVA_CLASS)
 		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EJAVA_CLASS)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EJAVA_CLASS)
 		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EJAVA_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EJAVA_OBJECT)
 		assert.Panics(t, func() { factory.CreateFromString(mockEDataType, "") })
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(EJAVA_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(EJAVA_OBJECT)
 		assert.Panics(t, func() { factory.ConvertToString(mockEDataType, "") })
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ELONG)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ELONG)
 		assert.Equal(t, int64(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ELONG)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ELONG)
 		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int64(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ELONG_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ELONG_OBJECT)
 		assert.Equal(t, int(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ELONG_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ELONG_OBJECT)
 		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ESHORT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ESHORT)
 		assert.Equal(t, int16(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ESHORT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ESHORT)
 		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int16(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ESHORT_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ESHORT_OBJECT)
 		assert.Equal(t, int16(3), factory.CreateFromString(mockEDataType, "3"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ESHORT_OBJECT)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ESHORT_OBJECT)
 		assert.Equal(t, "1", factory.ConvertToString(mockEDataType, int16(1)))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ESTRING)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ESTRING)
 		assert.Equal(t, "test", factory.CreateFromString(mockEDataType, "test"))
 		mockEDataType.AssertExpectations(t)
 	}
 	{
-		mockEDataType := &MockEDataType{}
-		mockEDataType.On("GetClassifierID").Return(ESTRING)
+		mockEDataType := NewMockEDataType(t)
+		mockEDataType.EXPECT().GetClassifierID().Return(ESTRING)
 		assert.Equal(t, "test", factory.ConvertToString(mockEDataType, "test"))
 		mockEDataType.AssertExpectations(t)
 	}

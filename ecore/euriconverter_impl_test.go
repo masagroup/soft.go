@@ -35,8 +35,8 @@ func TestEURIConverterCreateReader(t *testing.T) {
 
 	uri, _ := ParseURI("test:/file.ext")
 	mockFile, _ := os.Open(uri.String())
-	mockHandler.On("CanHandle", uri).Return(true).Once()
-	mockHandler.On("CreateReader", uri).Return(mockFile, nil).Once()
+	mockHandler.EXPECT().CanHandle(uri).Return(true).Once()
+	mockHandler.EXPECT().CreateReader(uri).Return(mockFile, nil).Once()
 	{
 		r, err := c.CreateReader(uri)
 		assert.Nil(t, err)
@@ -44,7 +44,7 @@ func TestEURIConverterCreateReader(t *testing.T) {
 	}
 	mock.AssertExpectationsForObjects(t, mockHandler)
 
-	mockHandler.On("CanHandle", uri).Return(false).Once()
+	mockHandler.EXPECT().CanHandle(uri).Return(false).Once()
 	{
 		r, err := c.CreateReader(uri)
 		assert.NotNil(t, err)
@@ -61,8 +61,8 @@ func TestEURIConverterCreateReaderWithMapping(t *testing.T) {
 	uri, _ := ParseURI("test:/file.ext")
 	normalized, _ := ParseURI("file:/file.ext")
 	mockFile, _ := os.Open(normalized.String())
-	mockHandler.On("CanHandle", normalized).Return(true).Once()
-	mockHandler.On("CreateReader", normalized).Return(mockFile, nil).Once()
+	mockHandler.EXPECT().CanHandle(normalized).Return(true).Once()
+	mockHandler.EXPECT().CreateReader(normalized).Return(mockFile, nil).Once()
 	{
 		r, err := c.CreateReader(uri)
 		assert.Nil(t, err)
@@ -70,7 +70,7 @@ func TestEURIConverterCreateReaderWithMapping(t *testing.T) {
 	}
 	mock.AssertExpectationsForObjects(t, mockHandler)
 
-	mockHandler.On("CanHandle", normalized).Return(false).Once()
+	mockHandler.EXPECT().CanHandle(normalized).Return(false).Once()
 	{
 		r, err := c.CreateReader(uri)
 		assert.NotNil(t, err)
@@ -87,8 +87,8 @@ func TestEURIConverterCreateWriter(t *testing.T) {
 	uri, _ := ParseURI("test:/file.ext")
 	mockFile, _ := os.Create(uri.String())
 
-	mockHandler.On("CanHandle", uri).Return(true).Once()
-	mockHandler.On("CreateWriter", uri).Return(mockFile, nil).Once()
+	mockHandler.EXPECT().CanHandle(uri).Return(true).Once()
+	mockHandler.EXPECT().CreateWriter(uri).Return(mockFile, nil).Once()
 	{
 		r, err := c.CreateWriter(uri)
 		assert.Nil(t, err)
@@ -96,7 +96,7 @@ func TestEURIConverterCreateWriter(t *testing.T) {
 	}
 	mock.AssertExpectationsForObjects(t, mockHandler)
 
-	mockHandler.On("CanHandle", uri).Return(false).Once()
+	mockHandler.EXPECT().CanHandle(uri).Return(false).Once()
 	{
 		r, err := c.CreateWriter(uri)
 		assert.NotNil(t, err)

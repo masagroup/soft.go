@@ -16,14 +16,18 @@ import (
 )
 
 func TestMockEResourceEncoder_Encode(t *testing.T) {
-	mockEncoder := &MockEResourceEncoder{}
-	mockEncoder.On("Encode").Once()
+	m := NewMockRun(t)
+	mockEncoder := NewMockEResourceEncoder(t)
+	mockEncoder.EXPECT().Encode().Return().Run(func() { m.Run() }).Once()
 	mockEncoder.Encode()
 }
 
 func TestMockEResourceEncoder_EncodeObject(t *testing.T) {
-	mockEncoder := &MockEResourceEncoder{}
-	mockObject := &MockEObject{}
-	mockEncoder.On("EncodeObject", mockObject).Return(nil).Once()
+	mockEncoder := NewMockEResourceEncoder(t)
+	mockObject := NewMockEObject(t)
+	m := NewMockRun(t, mockObject)
+	mockEncoder.EXPECT().EncodeObject(mockObject).Return(nil).Run(func(object EObject) { m.Run(object) }).Once()
+	mockEncoder.EXPECT().EncodeObject(mockObject).Call.Return(func(EObject) error { return nil }).Once()
+	assert.Nil(t, mockEncoder.EncodeObject(mockObject))
 	assert.Nil(t, mockEncoder.EncodeObject(mockObject))
 }

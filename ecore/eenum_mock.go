@@ -11,13 +11,67 @@
 
 package ecore
 
+import (
+	"github.com/stretchr/testify/mock"
+)
+
+// MockEEnum is an mock type for the EEnum type
 type MockEEnum struct {
-	MockEDataType
+	mock.Mock
+	MockEEnum_Prototype
+}
+
+// MockEEnum_Prototype is the mock implementation of all EEnum methods ( inherited and declared )
+type MockEEnum_Prototype struct {
+	mock *mock.Mock
+	MockEDataType_Prototype
+	MockEEnum_Prototype_Methods
+}
+
+func (_mp *MockEEnum_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockEDataType_Prototype.SetMock(mock)
+	_mp.MockEEnum_Prototype_Methods.SetMock(mock)
+}
+
+// MockEEnum_Expecter is the expecter implementation for all EEnum methods ( inherited and declared )
+type MockEEnum_Expecter struct {
+	MockEDataType_Expecter
+	MockEEnum_Expecter_Methods
+}
+
+func (_me *MockEEnum_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockEDataType_Expecter.SetMock(mock)
+	_me.MockEEnum_Expecter_Methods.SetMock(mock)
+}
+
+func (eEnum *MockEEnum_Prototype) EXPECT() *MockEEnum_Expecter {
+	expecter := &MockEEnum_Expecter{}
+	expecter.SetMock(eEnum.mock)
+	return expecter
+}
+
+// MockEEnum_Prototype_Methods is the mock implementation of EEnum declared methods
+type MockEEnum_Prototype_Methods struct {
+	mock *mock.Mock
+}
+
+func (_mdp *MockEEnum_Prototype_Methods) SetMock(mock *mock.Mock) {
+	_mdp.mock = mock
+}
+
+// MockEEnum_Expecter_Methods is the expecter implementation of EEnum declared methods
+type MockEEnum_Expecter_Methods struct {
+	mock *mock.Mock
+}
+
+func (_mde *MockEEnum_Expecter_Methods) SetMock(mock *mock.Mock) {
+	_mde.mock = mock
 }
 
 // GetELiterals get the value of eLiterals
-func (eEnum *MockEEnum) GetELiterals() EList {
-	ret := eEnum.Called()
+func (eEnum *MockEEnum_Prototype_Methods) GetELiterals() EList {
+	ret := eEnum.mock.Called()
 
 	var r EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
@@ -31,9 +85,29 @@ func (eEnum *MockEEnum) GetELiterals() EList {
 	return r
 }
 
+type MockEEnum_GetELiterals_Call struct {
+	*mock.Call
+}
+
+func (e *MockEEnum_Expecter_Methods) GetELiterals() *MockEEnum_GetELiterals_Call {
+	return &MockEEnum_GetELiterals_Call{Call: e.mock.On("GetELiterals")}
+}
+
+func (c *MockEEnum_GetELiterals_Call) Run(run func()) *MockEEnum_GetELiterals_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEEnum_GetELiterals_Call) Return(eLiterals EList) *MockEEnum_GetELiterals_Call {
+	c.Call.Return(eLiterals)
+	return c
+}
+
 // GetEEnumLiteralByLiteral provides mock implementation
-func (eEnum *MockEEnum) GetEEnumLiteralByLiteral(literal string) EEnumLiteral {
-	ret := eEnum.Called(literal)
+func (eEnum *MockEEnum_Prototype_Methods) GetEEnumLiteralByLiteral(literal string) EEnumLiteral {
+	ret := eEnum.mock.Called(literal)
 
 	var r EEnumLiteral
 	if rf, ok := ret.Get(0).(func() EEnumLiteral); ok {
@@ -45,11 +119,33 @@ func (eEnum *MockEEnum) GetEEnumLiteralByLiteral(literal string) EEnumLiteral {
 	}
 
 	return r
+}
+
+type MockEEnum_GetEEnumLiteralByLiteral_Call struct {
+	*mock.Call
+}
+
+// GetEEnumLiteralByLiteral is a helper method to define mock.On call
+// - literal string
+func (e *MockEEnum_Expecter_Methods) GetEEnumLiteralByLiteral(literal any) *MockEEnum_GetEEnumLiteralByLiteral_Call {
+	return &MockEEnum_GetEEnumLiteralByLiteral_Call{Call: e.mock.On("GetEEnumLiteralByLiteral", literal)}
+}
+
+func (c *MockEEnum_GetEEnumLiteralByLiteral_Call) Run(run func(string)) *MockEEnum_GetEEnumLiteralByLiteral_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(string))
+	})
+	return c
+}
+
+func (c *MockEEnum_GetEEnumLiteralByLiteral_Call) Return(_a0 EEnumLiteral) *MockEEnum_GetEEnumLiteralByLiteral_Call {
+	c.Call.Return(_a0)
+	return c
 }
 
 // GetEEnumLiteralByName provides mock implementation
-func (eEnum *MockEEnum) GetEEnumLiteralByName(name string) EEnumLiteral {
-	ret := eEnum.Called(name)
+func (eEnum *MockEEnum_Prototype_Methods) GetEEnumLiteralByName(name string) EEnumLiteral {
+	ret := eEnum.mock.Called(name)
 
 	var r EEnumLiteral
 	if rf, ok := ret.Get(0).(func() EEnumLiteral); ok {
@@ -63,9 +159,31 @@ func (eEnum *MockEEnum) GetEEnumLiteralByName(name string) EEnumLiteral {
 	return r
 }
 
+type MockEEnum_GetEEnumLiteralByName_Call struct {
+	*mock.Call
+}
+
+// GetEEnumLiteralByName is a helper method to define mock.On call
+// - name string
+func (e *MockEEnum_Expecter_Methods) GetEEnumLiteralByName(name any) *MockEEnum_GetEEnumLiteralByName_Call {
+	return &MockEEnum_GetEEnumLiteralByName_Call{Call: e.mock.On("GetEEnumLiteralByName", name)}
+}
+
+func (c *MockEEnum_GetEEnumLiteralByName_Call) Run(run func(string)) *MockEEnum_GetEEnumLiteralByName_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(string))
+	})
+	return c
+}
+
+func (c *MockEEnum_GetEEnumLiteralByName_Call) Return(_a0 EEnumLiteral) *MockEEnum_GetEEnumLiteralByName_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
 // GetEEnumLiteralByValue provides mock implementation
-func (eEnum *MockEEnum) GetEEnumLiteralByValue(value int) EEnumLiteral {
-	ret := eEnum.Called(value)
+func (eEnum *MockEEnum_Prototype_Methods) GetEEnumLiteralByValue(value int) EEnumLiteral {
+	ret := eEnum.mock.Called(value)
 
 	var r EEnumLiteral
 	if rf, ok := ret.Get(0).(func() EEnumLiteral); ok {
@@ -77,4 +195,40 @@ func (eEnum *MockEEnum) GetEEnumLiteralByValue(value int) EEnumLiteral {
 	}
 
 	return r
+}
+
+type MockEEnum_GetEEnumLiteralByValue_Call struct {
+	*mock.Call
+}
+
+// GetEEnumLiteralByValue is a helper method to define mock.On call
+// - value int
+func (e *MockEEnum_Expecter_Methods) GetEEnumLiteralByValue(value any) *MockEEnum_GetEEnumLiteralByValue_Call {
+	return &MockEEnum_GetEEnumLiteralByValue_Call{Call: e.mock.On("GetEEnumLiteralByValue", value)}
+}
+
+func (c *MockEEnum_GetEEnumLiteralByValue_Call) Run(run func(int)) *MockEEnum_GetEEnumLiteralByValue_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0].(int))
+	})
+	return c
+}
+
+func (c *MockEEnum_GetEEnumLiteralByValue_Call) Return(_a0 EEnumLiteral) *MockEEnum_GetEEnumLiteralByValue_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
+type mockConstructorTestingTNewMockEEnum interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockEEnum creates a new instance of MockEEnum. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEEnum(t mockConstructorTestingTNewMockEEnum) *MockEEnum {
+	mock := &MockEEnum{}
+	mock.SetMock(&mock.Mock)
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

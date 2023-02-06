@@ -11,13 +11,67 @@
 
 package ecore
 
+import (
+	"github.com/stretchr/testify/mock"
+)
+
+// MockEDataType is an mock type for the EDataType type
 type MockEDataType struct {
-	MockEClassifier
+	mock.Mock
+	MockEDataType_Prototype
+}
+
+// MockEDataType_Prototype is the mock implementation of all EDataType methods ( inherited and declared )
+type MockEDataType_Prototype struct {
+	mock *mock.Mock
+	MockEClassifier_Prototype
+	MockEDataType_Prototype_Methods
+}
+
+func (_mp *MockEDataType_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockEClassifier_Prototype.SetMock(mock)
+	_mp.MockEDataType_Prototype_Methods.SetMock(mock)
+}
+
+// MockEDataType_Expecter is the expecter implementation for all EDataType methods ( inherited and declared )
+type MockEDataType_Expecter struct {
+	MockEClassifier_Expecter
+	MockEDataType_Expecter_Methods
+}
+
+func (_me *MockEDataType_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockEClassifier_Expecter.SetMock(mock)
+	_me.MockEDataType_Expecter_Methods.SetMock(mock)
+}
+
+func (eDataType *MockEDataType_Prototype) EXPECT() *MockEDataType_Expecter {
+	expecter := &MockEDataType_Expecter{}
+	expecter.SetMock(eDataType.mock)
+	return expecter
+}
+
+// MockEDataType_Prototype_Methods is the mock implementation of EDataType declared methods
+type MockEDataType_Prototype_Methods struct {
+	mock *mock.Mock
+}
+
+func (_mdp *MockEDataType_Prototype_Methods) SetMock(mock *mock.Mock) {
+	_mdp.mock = mock
+}
+
+// MockEDataType_Expecter_Methods is the expecter implementation of EDataType declared methods
+type MockEDataType_Expecter_Methods struct {
+	mock *mock.Mock
+}
+
+func (_mde *MockEDataType_Expecter_Methods) SetMock(mock *mock.Mock) {
+	_mde.mock = mock
 }
 
 // IsSerializable get the value of isSerializable
-func (eDataType *MockEDataType) IsSerializable() bool {
-	ret := eDataType.Called()
+func (eDataType *MockEDataType_Prototype_Methods) IsSerializable() bool {
+	ret := eDataType.mock.Called()
 
 	var r bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
@@ -31,7 +85,63 @@ func (eDataType *MockEDataType) IsSerializable() bool {
 	return r
 }
 
+type MockEDataType_IsSerializable_Call struct {
+	*mock.Call
+}
+
+func (e *MockEDataType_Expecter_Methods) IsSerializable() *MockEDataType_IsSerializable_Call {
+	return &MockEDataType_IsSerializable_Call{Call: e.mock.On("IsSerializable")}
+}
+
+func (c *MockEDataType_IsSerializable_Call) Run(run func()) *MockEDataType_IsSerializable_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEDataType_IsSerializable_Call) Return(isSerializable bool) *MockEDataType_IsSerializable_Call {
+	c.Call.Return(isSerializable)
+	return c
+}
+
 // SetSerializable provides mock implementation for setting the value of isSerializable
-func (eDataType *MockEDataType) SetSerializable(newIsSerializable bool) {
-	eDataType.Called(newIsSerializable)
+func (eDataType *MockEDataType_Prototype_Methods) SetSerializable(isSerializable bool) {
+	eDataType.mock.Called(isSerializable)
+}
+
+type MockEDataType_SetSerializable_Call struct {
+	*mock.Call
+}
+
+// SetSerializable is a helper method to define mock.On call
+// - isSerializable bool
+func (e *MockEDataType_Expecter_Methods) SetSerializable(isSerializable any) *MockEDataType_SetSerializable_Call {
+	return &MockEDataType_SetSerializable_Call{Call: e.mock.On("SetSerializable", isSerializable)}
+}
+
+func (c *MockEDataType_SetSerializable_Call) Run(run func(isSerializable bool)) *MockEDataType_SetSerializable_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(bool))
+	})
+	return c
+}
+
+func (c *MockEDataType_SetSerializable_Call) Return() *MockEDataType_SetSerializable_Call {
+	c.Call.Return()
+	return c
+}
+
+type mockConstructorTestingTNewMockEDataType interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockEDataType creates a new instance of MockEDataType. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEDataType(t mockConstructorTestingTNewMockEDataType) *MockEDataType {
+	mock := &MockEDataType{}
+	mock.SetMock(&mock.Mock)
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

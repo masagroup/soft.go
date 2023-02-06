@@ -23,11 +23,11 @@ func TestNotificationChainAdd(t *testing.T) {
 	assert.True(t, chain.Add(mockNotif1))
 
 	mockNotif2 := &MockENotification{}
-	mockNotif1.On("Merge", mockNotif2).Return(true).Once()
+	mockNotif1.EXPECT().Merge(mockNotif2).Return(true).Once()
 	assert.False(t, chain.Add(mockNotif2))
 
 	mockNotif3 := &MockENotification{}
-	mockNotif1.On("Merge", mockNotif3).Return(false).Once()
+	mockNotif1.EXPECT().Merge(mockNotif3).Return(false).Once()
 	assert.True(t, chain.Add(mockNotif3))
 
 	mockNotif1.AssertExpectations(t)

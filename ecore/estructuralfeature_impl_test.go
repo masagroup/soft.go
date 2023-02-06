@@ -62,9 +62,9 @@ func TestEStructuralFeatureDefaultValueLiteralGet(t *testing.T) {
 func TestEStructuralFeatureDefaultValueLiteralSet(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	v := string("Test String")
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetDefaultValueLiteral(v)
 	mockAdapter.AssertExpectations(t)
@@ -76,11 +76,11 @@ func TestEStructuralFeatureEContainingClassGet(t *testing.T) {
 	assert.Nil(t, o.GetEContainingClass())
 
 	// set a mock container
-	v := new(MockEClass)
+	v := NewMockEClass(t)
 	o.ESetInternalContainer(v, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS)
 
 	// no proxy
-	v.On("EIsProxy").Return(false)
+	v.EXPECT().EIsProxy().Return(false).Once()
 	assert.Equal(t, v, o.GetEContainingClass())
 }
 
@@ -97,9 +97,9 @@ func TestEStructuralFeatureFeatureIDGet(t *testing.T) {
 func TestEStructuralFeatureFeatureIDSet(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	v := int(45)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetFeatureID(v)
 	mockAdapter.AssertExpectations(t)
@@ -118,9 +118,9 @@ func TestEStructuralFeatureChangeableGet(t *testing.T) {
 func TestEStructuralFeatureChangeableSet(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	v := bool(true)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetChangeable(v)
 	mockAdapter.AssertExpectations(t)
@@ -139,9 +139,9 @@ func TestEStructuralFeatureDerivedGet(t *testing.T) {
 func TestEStructuralFeatureDerivedSet(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	v := bool(true)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetDerived(v)
 	mockAdapter.AssertExpectations(t)
@@ -160,9 +160,9 @@ func TestEStructuralFeatureTransientGet(t *testing.T) {
 func TestEStructuralFeatureTransientSet(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	v := bool(true)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetTransient(v)
 	mockAdapter.AssertExpectations(t)
@@ -181,9 +181,9 @@ func TestEStructuralFeatureUnsettableGet(t *testing.T) {
 func TestEStructuralFeatureUnsettableSet(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	v := bool(true)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetUnsettable(v)
 	mockAdapter.AssertExpectations(t)
@@ -202,9 +202,9 @@ func TestEStructuralFeatureVolatileGet(t *testing.T) {
 func TestEStructuralFeatureVolatileSet(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	v := bool(true)
-	mockAdapter := new(MockEAdapter)
-	mockAdapter.On("SetTarget", o).Once()
-	mockAdapter.On("NotifyChanged", mock.Anything).Once()
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	mockAdapter.EXPECT().NotifyChanged(mock.Anything).Once()
 	o.EAdapters().Add(mockAdapter)
 	o.SetVolatile(v)
 	mockAdapter.AssertExpectations(t)
@@ -338,23 +338,23 @@ func TestEStructuralFeatureEInvokeFromID(t *testing.T) {
 func TestEStructuralFeatureEBasicInverseAdd(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	{
-		mockObject := new(MockEObject)
-		mockNotifications := new(MockENotificationChain)
+		mockObject := NewMockEObject(t)
+		mockNotifications := NewMockENotificationChain(t)
 		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEClass)
-		mockObject.On("EResource").Return(nil).Once()
-		mockObject.On("EIsProxy").Return(false).Once()
+		mockObject := NewMockEClass(t)
+		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EIsProxy().Return(false).Once()
 		o.EBasicInverseAdd(mockObject, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, nil)
 		assert.Equal(t, mockObject, o.GetEContainingClass())
 		mock.AssertExpectationsForObjects(t, mockObject)
 
-		mockOther := new(MockEClass)
-		mockOther.On("EResource").Return(nil).Once()
-		mockOther.On("EIsProxy").Return(false).Once()
-		mockObject.On("EResource").Return(nil).Once()
-		mockObject.On("EInverseRemove", o, ECLASS__ESTRUCTURAL_FEATURES, nil).Return(nil).Once()
+		mockOther := NewMockEClass(t)
+		mockOther.EXPECT().EResource().Return(nil).Once()
+		mockOther.EXPECT().EIsProxy().Return(false).Once()
+		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EInverseRemove(o, ECLASS__ESTRUCTURAL_FEATURES, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, nil)
 		assert.Equal(t, mockOther, o.GetEContainingClass())
 		mock.AssertExpectationsForObjects(t, mockObject, mockOther)
@@ -365,12 +365,12 @@ func TestEStructuralFeatureEBasicInverseAdd(t *testing.T) {
 func TestEStructuralFeatureEBasicInverseRemove(t *testing.T) {
 	o := newEStructuralFeatureImpl()
 	{
-		mockObject := new(MockEObject)
-		mockNotifications := new(MockENotificationChain)
+		mockObject := NewMockEObject(t)
+		mockNotifications := NewMockENotificationChain(t)
 		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEClass)
+		mockObject := NewMockEClass(t)
 		o.EBasicInverseRemove(mockObject, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}

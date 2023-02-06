@@ -43,15 +43,6 @@ func (eFactory *EFactoryExt) Create(eClass EClass) EObject {
 	}
 }
 
-func getInstanceTypeName(eDataType EDataType) string {
-	if eAnnotation := eDataType.GetEAnnotation("http://net.masagroup/soft/2019/GenGo"); eAnnotation != nil {
-		if instanceTypeName, _ := eAnnotation.GetDetails().GetValue("instanceTypeName").(string); instanceTypeName != "" {
-			return instanceTypeName
-		}
-	}
-	return eDataType.GetInstanceTypeName()
-}
-
 // CreateFromString default implementation
 func (eFactory *EFactoryExt) CreateFromString(eDataType EDataType, literalValue string) any {
 	if eFactory.GetEPackage() != eDataType.GetEPackage() {
@@ -120,8 +111,8 @@ func (eFactory *EFactoryExt) ConvertToString(eDataType EDataType, instanceValue 
 		v, _ := instanceValue.(float64)
 		return strconv.FormatFloat(v, 'f', -1, 64)
 	case "float32", "java.lang.Float", "float":
-		v, _ := instanceValue.(float64)
-		return strconv.FormatFloat(v, 'f', -1, 32)
+		v, _ := instanceValue.(float32)
+		return strconv.FormatFloat(float64(v), 'f', -1, 32)
 	case "int", "java.lang.Integer":
 		v, _ := instanceValue.(int)
 		return strconv.Itoa(v)

@@ -11,13 +11,67 @@
 
 package ecore
 
+import (
+	"github.com/stretchr/testify/mock"
+)
+
+// MockENamedElement is an mock type for the ENamedElement type
 type MockENamedElement struct {
-	MockEModelElement
+	mock.Mock
+	MockENamedElement_Prototype
+}
+
+// MockENamedElement_Prototype is the mock implementation of all ENamedElement methods ( inherited and declared )
+type MockENamedElement_Prototype struct {
+	mock *mock.Mock
+	MockEModelElement_Prototype
+	MockENamedElement_Prototype_Methods
+}
+
+func (_mp *MockENamedElement_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockEModelElement_Prototype.SetMock(mock)
+	_mp.MockENamedElement_Prototype_Methods.SetMock(mock)
+}
+
+// MockENamedElement_Expecter is the expecter implementation for all ENamedElement methods ( inherited and declared )
+type MockENamedElement_Expecter struct {
+	MockEModelElement_Expecter
+	MockENamedElement_Expecter_Methods
+}
+
+func (_me *MockENamedElement_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockEModelElement_Expecter.SetMock(mock)
+	_me.MockENamedElement_Expecter_Methods.SetMock(mock)
+}
+
+func (eNamedElement *MockENamedElement_Prototype) EXPECT() *MockENamedElement_Expecter {
+	expecter := &MockENamedElement_Expecter{}
+	expecter.SetMock(eNamedElement.mock)
+	return expecter
+}
+
+// MockENamedElement_Prototype_Methods is the mock implementation of ENamedElement declared methods
+type MockENamedElement_Prototype_Methods struct {
+	mock *mock.Mock
+}
+
+func (_mdp *MockENamedElement_Prototype_Methods) SetMock(mock *mock.Mock) {
+	_mdp.mock = mock
+}
+
+// MockENamedElement_Expecter_Methods is the expecter implementation of ENamedElement declared methods
+type MockENamedElement_Expecter_Methods struct {
+	mock *mock.Mock
+}
+
+func (_mde *MockENamedElement_Expecter_Methods) SetMock(mock *mock.Mock) {
+	_mde.mock = mock
 }
 
 // GetName get the value of name
-func (eNamedElement *MockENamedElement) GetName() string {
-	ret := eNamedElement.Called()
+func (eNamedElement *MockENamedElement_Prototype_Methods) GetName() string {
+	ret := eNamedElement.mock.Called()
 
 	var r string
 	if rf, ok := ret.Get(0).(func() string); ok {
@@ -31,7 +85,63 @@ func (eNamedElement *MockENamedElement) GetName() string {
 	return r
 }
 
+type MockENamedElement_GetName_Call struct {
+	*mock.Call
+}
+
+func (e *MockENamedElement_Expecter_Methods) GetName() *MockENamedElement_GetName_Call {
+	return &MockENamedElement_GetName_Call{Call: e.mock.On("GetName")}
+}
+
+func (c *MockENamedElement_GetName_Call) Run(run func()) *MockENamedElement_GetName_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockENamedElement_GetName_Call) Return(name string) *MockENamedElement_GetName_Call {
+	c.Call.Return(name)
+	return c
+}
+
 // SetName provides mock implementation for setting the value of name
-func (eNamedElement *MockENamedElement) SetName(newName string) {
-	eNamedElement.Called(newName)
+func (eNamedElement *MockENamedElement_Prototype_Methods) SetName(name string) {
+	eNamedElement.mock.Called(name)
+}
+
+type MockENamedElement_SetName_Call struct {
+	*mock.Call
+}
+
+// SetName is a helper method to define mock.On call
+// - name string
+func (e *MockENamedElement_Expecter_Methods) SetName(name any) *MockENamedElement_SetName_Call {
+	return &MockENamedElement_SetName_Call{Call: e.mock.On("SetName", name)}
+}
+
+func (c *MockENamedElement_SetName_Call) Run(run func(name string)) *MockENamedElement_SetName_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return c
+}
+
+func (c *MockENamedElement_SetName_Call) Return() *MockENamedElement_SetName_Call {
+	c.Call.Return()
+	return c
+}
+
+type mockConstructorTestingTNewMockENamedElement interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockENamedElement creates a new instance of MockENamedElement. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockENamedElement(t mockConstructorTestingTNewMockENamedElement) *MockENamedElement {
+	mock := &MockENamedElement{}
+	mock.SetMock(&mock.Mock)
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

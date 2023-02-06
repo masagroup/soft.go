@@ -23,35 +23,31 @@ func discardMockEAttribute() {
 
 // TestMockEAttributeGetEAttributeType tests method GetEAttributeType
 func TestMockEAttributeGetEAttributeType(t *testing.T) {
-	o := &MockEAttribute{}
-	r := new(MockEDataType)
-	o.On("GetEAttributeType").Once().Return(r)
-	o.On("GetEAttributeType").Once().Return(func() EDataType {
-		return r
-	})
+	o := NewMockEAttribute(t)
+	r := NewMockEDataType(t)
+	m := NewMockRun(t)
+	o.EXPECT().GetEAttributeType().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetEAttributeType().Call.Return(func() EDataType { return r }).Once()
 	assert.Equal(t, r, o.GetEAttributeType())
 	assert.Equal(t, r, o.GetEAttributeType())
-	o.AssertExpectations(t)
 }
 
 // TestMockEAttributeIsID tests method IsID
 func TestMockEAttributeIsID(t *testing.T) {
-	o := &MockEAttribute{}
+	o := NewMockEAttribute(t)
 	r := bool(true)
-	o.On("IsID").Once().Return(r)
-	o.On("IsID").Once().Return(func() bool {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().IsID().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().IsID().Call.Return(func() bool { return r }).Once()
 	assert.Equal(t, r, o.IsID())
 	assert.Equal(t, r, o.IsID())
-	o.AssertExpectations(t)
 }
 
 // TestMockEAttributeSetID tests method SetID
 func TestMockEAttributeSetID(t *testing.T) {
-	o := &MockEAttribute{}
+	o := NewMockEAttribute(t)
 	v := bool(true)
-	o.On("SetID", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetID(v).Return().Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetID(v)
-	o.AssertExpectations(t)
 }

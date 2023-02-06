@@ -11,15 +11,68 @@
 
 package ecore
 
-import "reflect"
+import (
+	"github.com/stretchr/testify/mock"
+	"reflect"
+)
 
+// MockEClassifier is an mock type for the EClassifier type
 type MockEClassifier struct {
-	MockENamedElement
+	mock.Mock
+	MockEClassifier_Prototype
+}
+
+// MockEClassifier_Prototype is the mock implementation of all EClassifier methods ( inherited and declared )
+type MockEClassifier_Prototype struct {
+	mock *mock.Mock
+	MockENamedElement_Prototype
+	MockEClassifier_Prototype_Methods
+}
+
+func (_mp *MockEClassifier_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockENamedElement_Prototype.SetMock(mock)
+	_mp.MockEClassifier_Prototype_Methods.SetMock(mock)
+}
+
+// MockEClassifier_Expecter is the expecter implementation for all EClassifier methods ( inherited and declared )
+type MockEClassifier_Expecter struct {
+	MockENamedElement_Expecter
+	MockEClassifier_Expecter_Methods
+}
+
+func (_me *MockEClassifier_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockENamedElement_Expecter.SetMock(mock)
+	_me.MockEClassifier_Expecter_Methods.SetMock(mock)
+}
+
+func (eClassifier *MockEClassifier_Prototype) EXPECT() *MockEClassifier_Expecter {
+	expecter := &MockEClassifier_Expecter{}
+	expecter.SetMock(eClassifier.mock)
+	return expecter
+}
+
+// MockEClassifier_Prototype_Methods is the mock implementation of EClassifier declared methods
+type MockEClassifier_Prototype_Methods struct {
+	mock *mock.Mock
+}
+
+func (_mdp *MockEClassifier_Prototype_Methods) SetMock(mock *mock.Mock) {
+	_mdp.mock = mock
+}
+
+// MockEClassifier_Expecter_Methods is the expecter implementation of EClassifier declared methods
+type MockEClassifier_Expecter_Methods struct {
+	mock *mock.Mock
+}
+
+func (_mde *MockEClassifier_Expecter_Methods) SetMock(mock *mock.Mock) {
+	_mde.mock = mock
 }
 
 // GetClassifierID get the value of classifierID
-func (eClassifier *MockEClassifier) GetClassifierID() int {
-	ret := eClassifier.Called()
+func (eClassifier *MockEClassifier_Prototype_Methods) GetClassifierID() int {
+	ret := eClassifier.mock.Called()
 
 	var r int
 	if rf, ok := ret.Get(0).(func() int); ok {
@@ -33,14 +86,56 @@ func (eClassifier *MockEClassifier) GetClassifierID() int {
 	return r
 }
 
+type MockEClassifier_GetClassifierID_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClassifier_Expecter_Methods) GetClassifierID() *MockEClassifier_GetClassifierID_Call {
+	return &MockEClassifier_GetClassifierID_Call{Call: e.mock.On("GetClassifierID")}
+}
+
+func (c *MockEClassifier_GetClassifierID_Call) Run(run func()) *MockEClassifier_GetClassifierID_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClassifier_GetClassifierID_Call) Return(classifierID int) *MockEClassifier_GetClassifierID_Call {
+	c.Call.Return(classifierID)
+	return c
+}
+
 // SetClassifierID provides mock implementation for setting the value of classifierID
-func (eClassifier *MockEClassifier) SetClassifierID(newClassifierID int) {
-	eClassifier.Called(newClassifierID)
+func (eClassifier *MockEClassifier_Prototype_Methods) SetClassifierID(classifierID int) {
+	eClassifier.mock.Called(classifierID)
+}
+
+type MockEClassifier_SetClassifierID_Call struct {
+	*mock.Call
+}
+
+// SetClassifierID is a helper method to define mock.On call
+// - classifierID int
+func (e *MockEClassifier_Expecter_Methods) SetClassifierID(classifierID any) *MockEClassifier_SetClassifierID_Call {
+	return &MockEClassifier_SetClassifierID_Call{Call: e.mock.On("SetClassifierID", classifierID)}
+}
+
+func (c *MockEClassifier_SetClassifierID_Call) Run(run func(classifierID int)) *MockEClassifier_SetClassifierID_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int))
+	})
+	return c
+}
+
+func (c *MockEClassifier_SetClassifierID_Call) Return() *MockEClassifier_SetClassifierID_Call {
+	c.Call.Return()
+	return c
 }
 
 // GetDefaultValue get the value of defaultValue
-func (eClassifier *MockEClassifier) GetDefaultValue() any {
-	ret := eClassifier.Called()
+func (eClassifier *MockEClassifier_Prototype_Methods) GetDefaultValue() any {
+	ret := eClassifier.mock.Called()
 
 	var r any
 	if rf, ok := ret.Get(0).(func() any); ok {
@@ -54,9 +149,29 @@ func (eClassifier *MockEClassifier) GetDefaultValue() any {
 	return r
 }
 
+type MockEClassifier_GetDefaultValue_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClassifier_Expecter_Methods) GetDefaultValue() *MockEClassifier_GetDefaultValue_Call {
+	return &MockEClassifier_GetDefaultValue_Call{Call: e.mock.On("GetDefaultValue")}
+}
+
+func (c *MockEClassifier_GetDefaultValue_Call) Run(run func()) *MockEClassifier_GetDefaultValue_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClassifier_GetDefaultValue_Call) Return(defaultValue any) *MockEClassifier_GetDefaultValue_Call {
+	c.Call.Return(defaultValue)
+	return c
+}
+
 // GetEPackage get the value of ePackage
-func (eClassifier *MockEClassifier) GetEPackage() EPackage {
-	ret := eClassifier.Called()
+func (eClassifier *MockEClassifier_Prototype_Methods) GetEPackage() EPackage {
+	ret := eClassifier.mock.Called()
 
 	var r EPackage
 	if rf, ok := ret.Get(0).(func() EPackage); ok {
@@ -70,9 +185,29 @@ func (eClassifier *MockEClassifier) GetEPackage() EPackage {
 	return r
 }
 
+type MockEClassifier_GetEPackage_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClassifier_Expecter_Methods) GetEPackage() *MockEClassifier_GetEPackage_Call {
+	return &MockEClassifier_GetEPackage_Call{Call: e.mock.On("GetEPackage")}
+}
+
+func (c *MockEClassifier_GetEPackage_Call) Run(run func()) *MockEClassifier_GetEPackage_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClassifier_GetEPackage_Call) Return(ePackage EPackage) *MockEClassifier_GetEPackage_Call {
+	c.Call.Return(ePackage)
+	return c
+}
+
 // GetInstanceClass get the value of instanceClass
-func (eClassifier *MockEClassifier) GetInstanceClass() reflect.Type {
-	ret := eClassifier.Called()
+func (eClassifier *MockEClassifier_Prototype_Methods) GetInstanceClass() reflect.Type {
+	ret := eClassifier.mock.Called()
 
 	var r reflect.Type
 	if rf, ok := ret.Get(0).(func() reflect.Type); ok {
@@ -86,14 +221,56 @@ func (eClassifier *MockEClassifier) GetInstanceClass() reflect.Type {
 	return r
 }
 
+type MockEClassifier_GetInstanceClass_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClassifier_Expecter_Methods) GetInstanceClass() *MockEClassifier_GetInstanceClass_Call {
+	return &MockEClassifier_GetInstanceClass_Call{Call: e.mock.On("GetInstanceClass")}
+}
+
+func (c *MockEClassifier_GetInstanceClass_Call) Run(run func()) *MockEClassifier_GetInstanceClass_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClassifier_GetInstanceClass_Call) Return(instanceClass reflect.Type) *MockEClassifier_GetInstanceClass_Call {
+	c.Call.Return(instanceClass)
+	return c
+}
+
 // SetInstanceClass provides mock implementation for setting the value of instanceClass
-func (eClassifier *MockEClassifier) SetInstanceClass(newInstanceClass reflect.Type) {
-	eClassifier.Called(newInstanceClass)
+func (eClassifier *MockEClassifier_Prototype_Methods) SetInstanceClass(instanceClass reflect.Type) {
+	eClassifier.mock.Called(instanceClass)
+}
+
+type MockEClassifier_SetInstanceClass_Call struct {
+	*mock.Call
+}
+
+// SetInstanceClass is a helper method to define mock.On call
+// - instanceClass reflect.Type
+func (e *MockEClassifier_Expecter_Methods) SetInstanceClass(instanceClass any) *MockEClassifier_SetInstanceClass_Call {
+	return &MockEClassifier_SetInstanceClass_Call{Call: e.mock.On("SetInstanceClass", instanceClass)}
+}
+
+func (c *MockEClassifier_SetInstanceClass_Call) Run(run func(instanceClass reflect.Type)) *MockEClassifier_SetInstanceClass_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(reflect.Type))
+	})
+	return c
+}
+
+func (c *MockEClassifier_SetInstanceClass_Call) Return() *MockEClassifier_SetInstanceClass_Call {
+	c.Call.Return()
+	return c
 }
 
 // GetInstanceClassName get the value of instanceClassName
-func (eClassifier *MockEClassifier) GetInstanceClassName() string {
-	ret := eClassifier.Called()
+func (eClassifier *MockEClassifier_Prototype_Methods) GetInstanceClassName() string {
+	ret := eClassifier.mock.Called()
 
 	var r string
 	if rf, ok := ret.Get(0).(func() string); ok {
@@ -105,16 +282,58 @@ func (eClassifier *MockEClassifier) GetInstanceClassName() string {
 	}
 
 	return r
+}
+
+type MockEClassifier_GetInstanceClassName_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClassifier_Expecter_Methods) GetInstanceClassName() *MockEClassifier_GetInstanceClassName_Call {
+	return &MockEClassifier_GetInstanceClassName_Call{Call: e.mock.On("GetInstanceClassName")}
+}
+
+func (c *MockEClassifier_GetInstanceClassName_Call) Run(run func()) *MockEClassifier_GetInstanceClassName_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClassifier_GetInstanceClassName_Call) Return(instanceClassName string) *MockEClassifier_GetInstanceClassName_Call {
+	c.Call.Return(instanceClassName)
+	return c
 }
 
 // SetInstanceClassName provides mock implementation for setting the value of instanceClassName
-func (eClassifier *MockEClassifier) SetInstanceClassName(newInstanceClassName string) {
-	eClassifier.Called(newInstanceClassName)
+func (eClassifier *MockEClassifier_Prototype_Methods) SetInstanceClassName(instanceClassName string) {
+	eClassifier.mock.Called(instanceClassName)
+}
+
+type MockEClassifier_SetInstanceClassName_Call struct {
+	*mock.Call
+}
+
+// SetInstanceClassName is a helper method to define mock.On call
+// - instanceClassName string
+func (e *MockEClassifier_Expecter_Methods) SetInstanceClassName(instanceClassName any) *MockEClassifier_SetInstanceClassName_Call {
+	return &MockEClassifier_SetInstanceClassName_Call{Call: e.mock.On("SetInstanceClassName", instanceClassName)}
+}
+
+func (c *MockEClassifier_SetInstanceClassName_Call) Run(run func(instanceClassName string)) *MockEClassifier_SetInstanceClassName_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return c
+}
+
+func (c *MockEClassifier_SetInstanceClassName_Call) Return() *MockEClassifier_SetInstanceClassName_Call {
+	c.Call.Return()
+	return c
 }
 
 // GetInstanceTypeName get the value of instanceTypeName
-func (eClassifier *MockEClassifier) GetInstanceTypeName() string {
-	ret := eClassifier.Called()
+func (eClassifier *MockEClassifier_Prototype_Methods) GetInstanceTypeName() string {
+	ret := eClassifier.mock.Called()
 
 	var r string
 	if rf, ok := ret.Get(0).(func() string); ok {
@@ -128,14 +347,56 @@ func (eClassifier *MockEClassifier) GetInstanceTypeName() string {
 	return r
 }
 
+type MockEClassifier_GetInstanceTypeName_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClassifier_Expecter_Methods) GetInstanceTypeName() *MockEClassifier_GetInstanceTypeName_Call {
+	return &MockEClassifier_GetInstanceTypeName_Call{Call: e.mock.On("GetInstanceTypeName")}
+}
+
+func (c *MockEClassifier_GetInstanceTypeName_Call) Run(run func()) *MockEClassifier_GetInstanceTypeName_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClassifier_GetInstanceTypeName_Call) Return(instanceTypeName string) *MockEClassifier_GetInstanceTypeName_Call {
+	c.Call.Return(instanceTypeName)
+	return c
+}
+
 // SetInstanceTypeName provides mock implementation for setting the value of instanceTypeName
-func (eClassifier *MockEClassifier) SetInstanceTypeName(newInstanceTypeName string) {
-	eClassifier.Called(newInstanceTypeName)
+func (eClassifier *MockEClassifier_Prototype_Methods) SetInstanceTypeName(instanceTypeName string) {
+	eClassifier.mock.Called(instanceTypeName)
+}
+
+type MockEClassifier_SetInstanceTypeName_Call struct {
+	*mock.Call
+}
+
+// SetInstanceTypeName is a helper method to define mock.On call
+// - instanceTypeName string
+func (e *MockEClassifier_Expecter_Methods) SetInstanceTypeName(instanceTypeName any) *MockEClassifier_SetInstanceTypeName_Call {
+	return &MockEClassifier_SetInstanceTypeName_Call{Call: e.mock.On("SetInstanceTypeName", instanceTypeName)}
+}
+
+func (c *MockEClassifier_SetInstanceTypeName_Call) Run(run func(instanceTypeName string)) *MockEClassifier_SetInstanceTypeName_Call {
+	c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return c
+}
+
+func (c *MockEClassifier_SetInstanceTypeName_Call) Return() *MockEClassifier_SetInstanceTypeName_Call {
+	c.Call.Return()
+	return c
 }
 
 // IsInstance provides mock implementation
-func (eClassifier *MockEClassifier) IsInstance(object any) bool {
-	ret := eClassifier.Called(object)
+func (eClassifier *MockEClassifier_Prototype_Methods) IsInstance(object any) bool {
+	ret := eClassifier.mock.Called(object)
 
 	var r bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
@@ -147,4 +408,40 @@ func (eClassifier *MockEClassifier) IsInstance(object any) bool {
 	}
 
 	return r
+}
+
+type MockEClassifier_IsInstance_Call struct {
+	*mock.Call
+}
+
+// IsInstance is a helper method to define mock.On call
+// - object any
+func (e *MockEClassifier_Expecter_Methods) IsInstance(object any) *MockEClassifier_IsInstance_Call {
+	return &MockEClassifier_IsInstance_Call{Call: e.mock.On("IsInstance", object)}
+}
+
+func (c *MockEClassifier_IsInstance_Call) Run(run func(any)) *MockEClassifier_IsInstance_Call {
+	c.Call.Run(func(_args mock.Arguments) {
+		run(_args[0])
+	})
+	return c
+}
+
+func (c *MockEClassifier_IsInstance_Call) Return(_a0 bool) *MockEClassifier_IsInstance_Call {
+	c.Call.Return(_a0)
+	return c
+}
+
+type mockConstructorTestingTNewMockEClassifier interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockEClassifier creates a new instance of MockEClassifier. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEClassifier(t mockConstructorTestingTNewMockEClassifier) *MockEClassifier {
+	mock := &MockEClassifier{}
+	mock.SetMock(&mock.Mock)
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

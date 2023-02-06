@@ -23,144 +23,130 @@ func discardMockETypedElement() {
 
 // TestMockETypedElementGetEType tests method GetEType
 func TestMockETypedElementGetEType(t *testing.T) {
-	o := &MockETypedElement{}
-	r := new(MockEClassifier)
-	o.On("GetEType").Once().Return(r)
-	o.On("GetEType").Once().Return(func() EClassifier {
-		return r
-	})
+	o := NewMockETypedElement(t)
+	r := NewMockEClassifier(t)
+	m := NewMockRun(t)
+	o.EXPECT().GetEType().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetEType().Call.Return(func() EClassifier { return r }).Once()
 	assert.Equal(t, r, o.GetEType())
 	assert.Equal(t, r, o.GetEType())
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementSetEType tests method SetEType
 func TestMockETypedElementSetEType(t *testing.T) {
-	o := &MockETypedElement{}
-	v := new(MockEClassifier)
-	o.On("SetEType", v).Once()
+	o := NewMockETypedElement(t)
+	v := NewMockEClassifier(t)
+	m := NewMockRun(t, v)
+	o.EXPECT().SetEType(v).Return().Run(func(_p0 EClassifier) { m.Run(_p0) }).Once()
 	o.SetEType(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementUnsetEType tests method UnsetEType
 func TestMockETypedElementUnsetEType(t *testing.T) {
-	o := &MockETypedElement{}
-	o.On("UnsetEType").Once()
+	o := NewMockETypedElement(t)
+	m := NewMockRun(t)
+	o.EXPECT().UnsetEType().Return().Run(func() { m.Run() }).Once()
 	o.UnsetEType()
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementGetLowerBound tests method GetLowerBound
 func TestMockETypedElementGetLowerBound(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	r := int(45)
-	o.On("GetLowerBound").Once().Return(r)
-	o.On("GetLowerBound").Once().Return(func() int {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().GetLowerBound().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetLowerBound().Call.Return(func() int { return r }).Once()
 	assert.Equal(t, r, o.GetLowerBound())
 	assert.Equal(t, r, o.GetLowerBound())
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementSetLowerBound tests method SetLowerBound
 func TestMockETypedElementSetLowerBound(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	v := int(45)
-	o.On("SetLowerBound", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetLowerBound(v).Return().Run(func(_p0 int) { m.Run(_p0) }).Once()
 	o.SetLowerBound(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementIsMany tests method IsMany
 func TestMockETypedElementIsMany(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	r := bool(true)
-	o.On("IsMany").Once().Return(r)
-	o.On("IsMany").Once().Return(func() bool {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().IsMany().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().IsMany().Call.Return(func() bool { return r }).Once()
 	assert.Equal(t, r, o.IsMany())
 	assert.Equal(t, r, o.IsMany())
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementIsOrdered tests method IsOrdered
 func TestMockETypedElementIsOrdered(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	r := bool(true)
-	o.On("IsOrdered").Once().Return(r)
-	o.On("IsOrdered").Once().Return(func() bool {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().IsOrdered().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().IsOrdered().Call.Return(func() bool { return r }).Once()
 	assert.Equal(t, r, o.IsOrdered())
 	assert.Equal(t, r, o.IsOrdered())
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementSetOrdered tests method SetOrdered
 func TestMockETypedElementSetOrdered(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	v := bool(true)
-	o.On("SetOrdered", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetOrdered(v).Return().Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetOrdered(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementIsRequired tests method IsRequired
 func TestMockETypedElementIsRequired(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	r := bool(true)
-	o.On("IsRequired").Once().Return(r)
-	o.On("IsRequired").Once().Return(func() bool {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().IsRequired().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().IsRequired().Call.Return(func() bool { return r }).Once()
 	assert.Equal(t, r, o.IsRequired())
 	assert.Equal(t, r, o.IsRequired())
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementIsUnique tests method IsUnique
 func TestMockETypedElementIsUnique(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	r := bool(true)
-	o.On("IsUnique").Once().Return(r)
-	o.On("IsUnique").Once().Return(func() bool {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().IsUnique().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().IsUnique().Call.Return(func() bool { return r }).Once()
 	assert.Equal(t, r, o.IsUnique())
 	assert.Equal(t, r, o.IsUnique())
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementSetUnique tests method SetUnique
 func TestMockETypedElementSetUnique(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	v := bool(true)
-	o.On("SetUnique", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetUnique(v).Return().Run(func(_p0 bool) { m.Run(_p0) }).Once()
 	o.SetUnique(v)
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementGetUpperBound tests method GetUpperBound
 func TestMockETypedElementGetUpperBound(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	r := int(45)
-	o.On("GetUpperBound").Once().Return(r)
-	o.On("GetUpperBound").Once().Return(func() int {
-		return r
-	})
+	m := NewMockRun(t)
+	o.EXPECT().GetUpperBound().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetUpperBound().Call.Return(func() int { return r }).Once()
 	assert.Equal(t, r, o.GetUpperBound())
 	assert.Equal(t, r, o.GetUpperBound())
-	o.AssertExpectations(t)
 }
 
 // TestMockETypedElementSetUpperBound tests method SetUpperBound
 func TestMockETypedElementSetUpperBound(t *testing.T) {
-	o := &MockETypedElement{}
+	o := NewMockETypedElement(t)
 	v := int(45)
-	o.On("SetUpperBound", v).Once()
+	m := NewMockRun(t, v)
+	o.EXPECT().SetUpperBound(v).Return().Run(func(_p0 int) { m.Run(_p0) }).Once()
 	o.SetUpperBound(v)
-	o.AssertExpectations(t)
 }

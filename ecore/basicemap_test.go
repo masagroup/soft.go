@@ -86,25 +86,25 @@ func TestBasicEMap_ContainsValue(t *testing.T) {
 
 func TestBasicEMap_AddEntry(t *testing.T) {
 	m := NewBasicEMap()
-	mockEntry := &MockEMapEntry{}
+	mockEntry := NewMockEMapEntry(t)
 	m.Add(mockEntry)
 	mock.AssertExpectationsForObjects(t, mockEntry)
 
-	mockEntry.On("GetKey").Once().Return(2)
-	mockEntry.On("GetValue").Once().Return("2")
+	mockEntry.EXPECT().GetKey().Once().Return(2)
+	mockEntry.EXPECT().GetValue().Once().Return("2")
 	assert.Equal(t, map[any]any{2: "2"}, m.ToMap())
 	mock.AssertExpectationsForObjects(t, mockEntry)
 }
 
 func TestBasicEMap_SetEntry(t *testing.T) {
 	m := NewBasicEMap()
-	mockEntry := &MockEMapEntry{}
+	mockEntry := NewMockEMapEntry(t)
 	m.Add(mockEntry)
 
-	mockOtherEntry := &MockEMapEntry{}
-	mockEntry.On("GetKey").Once().Return(2)
-	mockOtherEntry.On("GetKey").Once().Return(3)
-	mockOtherEntry.On("GetValue").Once().Return("3")
+	mockOtherEntry := NewMockEMapEntry(t)
+	mockEntry.EXPECT().GetKey().Once().Return(2)
+	mockOtherEntry.EXPECT().GetKey().Once().Return(3)
+	mockOtherEntry.EXPECT().GetValue().Once().Return("3")
 	m.Set(0, mockOtherEntry)
 	assert.Equal(t, map[any]any{3: "3"}, m.ToMap())
 	mock.AssertExpectationsForObjects(t, mockEntry, mockOtherEntry)
@@ -112,18 +112,18 @@ func TestBasicEMap_SetEntry(t *testing.T) {
 
 func TestBasicEMap_RemoveEntry(t *testing.T) {
 	m := NewBasicEMap()
-	mockEntry1 := &MockEMapEntry{}
-	mockEntry1.On("GetKey").Once().Return(2)
-	mockEntry1.On("GetValue").Once().Return("2")
-	mockEntry2 := &MockEMapEntry{}
-	mockEntry2.On("GetKey").Once().Return(3)
-	mockEntry2.On("GetValue").Once().Return("3")
+	mockEntry1 := NewMockEMapEntry(t)
+	mockEntry1.EXPECT().GetKey().Once().Return(2)
+	mockEntry1.EXPECT().GetValue().Once().Return("2")
+	mockEntry2 := NewMockEMapEntry(t)
+	mockEntry2.EXPECT().GetKey().Once().Return(3)
+	mockEntry2.EXPECT().GetValue().Once().Return("3")
 	m.Add(mockEntry1)
 	m.Add(mockEntry2)
 	assert.Equal(t, map[any]any{2: "2", 3: "3"}, m.ToMap())
 	mock.AssertExpectationsForObjects(t, mockEntry1, mockEntry2)
 
-	mockEntry1.On("GetKey").Once().Return(2)
+	mockEntry1.EXPECT().GetKey().Once().Return(2)
 	m.RemoveAt(0)
 	assert.Equal(t, map[any]any{3: "3"}, m.ToMap())
 	mock.AssertExpectationsForObjects(t, mockEntry1, mockEntry2)
@@ -131,8 +131,8 @@ func TestBasicEMap_RemoveEntry(t *testing.T) {
 
 func TestBasicEMap_Clear(t *testing.T) {
 	m := NewBasicEMap()
-	mockEntry1 := &MockEMapEntry{}
-	mockEntry2 := &MockEMapEntry{}
+	mockEntry1 := NewMockEMapEntry(t)
+	mockEntry2 := NewMockEMapEntry(t)
 	m.Add(mockEntry1)
 	m.Add(mockEntry2)
 

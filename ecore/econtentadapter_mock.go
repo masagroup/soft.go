@@ -18,13 +18,36 @@ type MockEContentAdapter struct {
 	EContentAdapter
 }
 
-func NewMockContentAdapter() *MockEContentAdapter {
-	c := new(MockEContentAdapter)
-	c.SetInterfaces(c)
-	return c
+type MockEContentAdapter_Expecter struct {
+	*mock.Mock
+}
+
+func (eAdapter *MockEContentAdapter) EXPECT() *MockEContentAdapter_Expecter {
+	return &MockEContentAdapter_Expecter{Mock: &eAdapter.Mock}
 }
 
 func (adapter *MockEContentAdapter) NotifyChanged(notification ENotification) {
 	adapter.Called(notification)
 	adapter.EContentAdapter.NotifyChanged(notification)
+}
+
+type MockEClass_NotifyChanged_Call struct {
+	*mock.Call
+}
+
+func (e *MockEContentAdapter_Expecter) NotifyChanged(notification any) *MockEClass_NotifyChanged_Call {
+	return &MockEClass_NotifyChanged_Call{Call: e.Mock.On("NotifyChanged", notification)}
+}
+
+type mockConstructorTestingTNewMockEContentAdapter interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+func NewMockEContentAdapter(t mockConstructorTestingTNewMockEContentAdapter) *MockEContentAdapter {
+	mock := &MockEContentAdapter{}
+	mock.SetInterfaces(mock)
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
 }

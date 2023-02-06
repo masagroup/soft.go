@@ -20,12 +20,12 @@ func TestEClassifierExtClassifierID(t *testing.T) {
 	c := newEClassifierExt()
 	assert.Equal(t, -1, c.GetClassifierID())
 
-	mockPackage := &MockEPackage{}
-	mockClassifiers := &MockEList{}
+	mockPackage := NewMockEPackage(t)
+	mockClassifiers := NewMockEList(t)
 	c.ESetInternalContainer(mockPackage, ECLASSIFIER__EPACKAGE)
-	mockPackage.On("GetEClassifiers").Return(mockClassifiers).Once()
-	mockPackage.On("EIsProxy").Return(false).Once()
-	mockClassifiers.On("IndexOf", c).Return(0).Once()
+	mockPackage.EXPECT().GetEClassifiers().Return(mockClassifiers).Once()
+	mockPackage.EXPECT().EIsProxy().Return(false).Once()
+	mockClassifiers.EXPECT().IndexOf(c).Return(0).Once()
 	assert.Equal(t, 0, c.GetClassifierID())
 	mock.AssertExpectationsForObjects(t, mockPackage, mockClassifiers)
 }

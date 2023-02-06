@@ -12,42 +12,41 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestMockEResourceCodecRegistry_GetCodec(t *testing.T) {
-	f := &MockEResourceCodecRegistry{}
-	r := &MockEResourceCodec{}
+	r := NewMockEResourceCodecRegistry(t)
+	c := NewMockEResourceCodec(t)
 	uri := NewURI("test:///file.t")
-	f.On("GetCodec", uri).Return(r).Once()
-	f.On("GetCodec", uri).Return(func(*URI) EResourceCodec {
-		return r
+	m := NewMockRun(t, uri)
+	r.EXPECT().GetCodec(uri).Return(c).Run(func(uri *URI) { m.Run(uri) }).Once()
+	r.EXPECT().GetCodec(uri).Call.Return(func(*URI) EResourceCodec {
+		return c
 	}).Once()
-	assert.Equal(t, r, f.GetCodec(uri))
-	assert.Equal(t, r, f.GetCodec(uri))
-	mock.AssertExpectationsForObjects(t, f, r)
+	assert.Equal(t, c, r.GetCodec(uri))
+	assert.Equal(t, c, r.GetCodec(uri))
 }
 
 func TestMockEResourceCodecRegistryGetProtocolToCodecMap(t *testing.T) {
-	f := &MockEResourceCodecRegistry{}
+	r := NewMockEResourceCodecRegistry(t)
 	m := make(map[string]EResourceCodec)
-	f.On("GetProtocolToCodecMap").Return(m).Once()
-	f.On("GetProtocolToCodecMap").Return(func() map[string]EResourceCodec {
+	mr := NewMockRun(t)
+	r.EXPECT().GetProtocolToCodecMap().Return(m).Run(func() { mr.Run() }).Once()
+	r.EXPECT().GetProtocolToCodecMap().Call.Return(func() map[string]EResourceCodec {
 		return m
 	}).Once()
-	assert.Equal(t, m, f.GetProtocolToCodecMap())
-	assert.Equal(t, m, f.GetProtocolToCodecMap())
-	f.AssertExpectations(t)
+	assert.Equal(t, m, r.GetProtocolToCodecMap())
+	assert.Equal(t, m, r.GetProtocolToCodecMap())
 }
 
 func TestMockEResourceCodecRegistryGetExtensionToCodecMap(t *testing.T) {
-	f := &MockEResourceCodecRegistry{}
+	r := NewMockEResourceCodecRegistry(t)
 	m := make(map[string]EResourceCodec)
-	f.On("GetExtensionToCodecMap").Return(m).Once()
-	f.On("GetExtensionToCodecMap").Return(func() map[string]EResourceCodec {
+	mr := NewMockRun(t)
+	r.EXPECT().GetExtensionToCodecMap().Return(m).Run(func() { mr.Run() }).Once()
+	r.EXPECT().GetExtensionToCodecMap().Call.Return(func() map[string]EResourceCodec {
 		return m
 	}).Once()
-	assert.Equal(t, m, f.GetExtensionToCodecMap())
-	assert.Equal(t, m, f.GetExtensionToCodecMap())
-	f.AssertExpectations(t)
+	assert.Equal(t, m, r.GetExtensionToCodecMap())
+	assert.Equal(t, m, r.GetExtensionToCodecMap())
 }

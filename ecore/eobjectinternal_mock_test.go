@@ -17,324 +17,310 @@ import (
 )
 
 func TestMockEObjectInternal_EDynamicProperties(t *testing.T) {
-	o := &MockEObjectInternal{}
-	p := &MockEObjectProperties{}
-	// return a value
-	o.On("EDynamicProperties").Once().Return(p)
-	o.On("EDynamicProperties").Once().Return(func() EDynamicProperties {
+	o := NewMockEObjectInternal(t)
+	p := NewMockEObjectProperties(t)
+	m := NewMockRun(t)
+	o.EXPECT().EDynamicProperties().Return(p).Run(func() { m.Run() }).Once()
+	o.EXPECT().EDynamicProperties().Call.Return(func() EDynamicProperties {
 		return p
-	})
+	}).Once()
 	assert.Equal(t, p, o.EDynamicProperties())
 	assert.Equal(t, p, o.EDynamicProperties())
-	mock.AssertExpectationsForObjects(t, o, p)
 }
 
 func TestMockEObjectInternal_EStaticClass(t *testing.T) {
-	o := &MockEObjectInternal{}
-	c := &MockEClass{}
-	// return a value
-	o.On("EStaticClass").Once().Return(c)
-	o.On("EStaticClass").Once().Return(func() EClass {
+	o := NewMockEObjectInternal(t)
+	c := NewMockEClass(t)
+	m := NewMockRun(t)
+	o.EXPECT().EStaticClass().Return(c).Run(func() { m.Run() }).Once()
+	o.EXPECT().EStaticClass().Call.Return(func() EClass {
 		return c
-	})
+	}).Once()
 	assert.Equal(t, c, o.EStaticClass())
 	assert.Equal(t, c, o.EStaticClass())
-	mock.AssertExpectationsForObjects(t, o, c)
 }
 
 func TestMockEObjectInternal_EStaticFeatureCount(t *testing.T) {
-	o := &MockEObjectInternal{}
-	// return a value
-	o.On("EStaticFeatureCount").Once().Return(1)
-	o.On("EStaticFeatureCount").Once().Return(func() int {
+	o := NewMockEObjectInternal(t)
+	m := NewMockRun(t)
+	o.EXPECT().EStaticFeatureCount().Return(1).Run(func() { m.Run() }).Once()
+	o.EXPECT().EStaticFeatureCount().Call.Return(func() int {
 		return 2
-	})
+	}).Once()
 	assert.Equal(t, 1, o.EStaticFeatureCount())
 	assert.Equal(t, 2, o.EStaticFeatureCount())
-	o.AssertExpectations(t)
 }
 
 func TestMockEObjectInternal_EInternalResource(t *testing.T) {
-	o := &MockEObjectInternal{}
-	r := &MockEResource{}
-	// return a value
-	o.On("EInternalResource").Once().Return(r)
-	o.On("EInternalResource").Once().Return(func() EResource {
+	o := NewMockEObjectInternal(t)
+	r := NewMockEResource(t)
+	m := NewMockRun(t)
+	o.EXPECT().EInternalResource().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().EInternalResource().Call.Return(func() EResource {
 		return r
-	})
+	}).Once()
 	assert.Equal(t, r, o.EInternalResource())
 	assert.Equal(t, r, o.EInternalResource())
 	mock.AssertExpectationsForObjects(t, o, r)
 }
 
 func TestMockEObjectInternal_EInternalContainer(t *testing.T) {
-	o := &MockEObjectInternal{}
-	c := &MockEObject{}
-	// return a value
-	o.On("EInternalContainer").Once().Return(c)
-	o.On("EInternalContainer").Once().Return(func() EObject {
+	o := NewMockEObjectInternal(t)
+	c := NewMockEObject(t)
+	m := NewMockRun(t)
+	o.EXPECT().EInternalContainer().Return(c).Run(func() { m.Run() }).Once()
+	o.EXPECT().EInternalContainer().Call.Return(func() EObject {
 		return c
-	})
+	}).Once()
 	assert.Equal(t, c, o.EInternalContainer())
 	assert.Equal(t, c, o.EInternalContainer())
-	mock.AssertExpectationsForObjects(t, o, c)
+}
+
+func TestMockEObjectInternal_ESetInternalContainer(t *testing.T) {
+	o := NewMockEObjectInternal(t)
+	c := NewMockEObject(t)
+	m := NewMockRun(t, c, 1)
+	o.EXPECT().ESetInternalContainer(c, 1).Return().Run(func(container EObject, containerFeatureID int) { m.Run(container, containerFeatureID) }).Once()
+	o.ESetInternalContainer(c, 1)
+}
+
+func TestMockEObjectInternal_ESetInternalResource(t *testing.T) {
+	o := NewMockEObjectInternal(t)
+	r := NewMockEResource(t)
+	m := NewMockRun(t, r)
+	o.EXPECT().ESetInternalResource(r).Return().Run(func(resource EResource) { m.Run(resource) }).Once()
+	o.ESetInternalResource(r)
+}
+
+func TestMockEObjectInternal_EInternalContainerFeatureID(t *testing.T) {
+	o := NewMockEObjectInternal(t)
+	m := NewMockRun(t)
+	o.EXPECT().EInternalContainerFeatureID().Return(1).Run(func() { m.Run() }).Once()
+	o.EXPECT().EInternalContainerFeatureID().Call.Return(func() int {
+		return 2
+	}).Once()
+	assert.Equal(t, 1, o.EInternalContainerFeatureID())
+	assert.Equal(t, 2, o.EInternalContainerFeatureID())
 }
 
 func TestMockEObjectInternal_ESetResource(t *testing.T) {
-	o := &MockEObjectInternal{}
-	r := &MockEResource{}
-	n := &MockENotificationChain{}
-
-	// return a value
-	o.On("ESetResource", r, n).Once().Return(n)
-	o.On("ESetResource", r, n).Once().Return(func(resource EResource, notifications ENotificationChain) ENotificationChain {
+	o := NewMockEObjectInternal(t)
+	r := NewMockEResource(t)
+	n := NewMockENotificationChain(t)
+	m := NewMockRun(t, r, n)
+	o.EXPECT().ESetResource(r, n).Return(n).Run(func(r EResource, n ENotificationChain) { m.Run(r, n) }).Once()
+	o.EXPECT().ESetResource(r, n).Call.Return(func(r EResource, n ENotificationChain) ENotificationChain {
 		return n
-	})
+	}).Once()
 	assert.Equal(t, n, o.ESetResource(r, n))
 	assert.Equal(t, n, o.ESetResource(r, n))
-	mock.AssertExpectationsForObjects(t, r, n)
 }
 
 func TestMockEObjectInternal_EInverseAdd(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-	n := &MockENotificationChain{}
-
-	// return a value
-	o.On("EInverseAdd", obj, 1, n).Once().Return(n)
-	o.On("EInverseAdd", obj, 1, n).Once().Return(func(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+	o := NewMockEObjectInternal(t)
+	obj := NewMockEObject(t)
+	n := NewMockENotificationChain(t)
+	m := NewMockRun(t, obj, 1, n)
+	o.EXPECT().EInverseAdd(obj, 1, n).Return(n).Run(func(o EObject, f int, n ENotificationChain) { m.Run(o, f, n) }).Once()
+	o.EXPECT().EInverseAdd(obj, 1, n).Call.Return(func(o EObject, f int, n ENotificationChain) ENotificationChain {
 		return n
-	})
+	}).Once()
 	assert.Equal(t, n, o.EInverseAdd(obj, 1, n))
 	assert.Equal(t, n, o.EInverseAdd(obj, 1, n))
-	mock.AssertExpectationsForObjects(t, o, obj, n)
 }
 
 func TestMockEObjectInternal_EInverseRemove(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-	n := &MockENotificationChain{}
-
-	// return a value
-	o.On("EInverseRemove", obj, 1, n).Once().Return(n)
-	o.On("EInverseRemove", obj, 1, n).Once().Return(func(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+	o := NewMockEObjectInternal(t)
+	obj := NewMockEObject(t)
+	n := NewMockENotificationChain(t)
+	m := NewMockRun(t, obj, 1, n)
+	o.EXPECT().EInverseRemove(obj, 1, n).Return(n).Run(func(o EObject, f int, n ENotificationChain) { m.Run(o, f, n) }).Once()
+	o.EXPECT().EInverseRemove(obj, 1, n).Call.Return(func(o EObject, f int, n ENotificationChain) ENotificationChain {
 		return n
-	})
+	}).Once()
 	assert.Equal(t, n, o.EInverseRemove(obj, 1, n))
 	assert.Equal(t, n, o.EInverseRemove(obj, 1, n))
-	mock.AssertExpectationsForObjects(t, o, obj, n)
 }
 
 func TestMockEObjectInternal_EBasicInverseAdd(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-	n := &MockENotificationChain{}
-
-	// return a value
-	o.On("EBasicInverseAdd", obj, 1, n).Once().Return(n)
-	o.On("EBasicInverseAdd", obj, 1, n).Once().Return(func(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+	o := NewMockEObjectInternal(t)
+	obj := NewMockEObject(t)
+	n := NewMockENotificationChain(t)
+	m := NewMockRun(t, obj, 1, n)
+	o.EXPECT().EBasicInverseAdd(obj, 1, n).Return(n).Run(func(o EObject, f int, n ENotificationChain) { m.Run(o, f, n) }).Once()
+	o.EXPECT().EBasicInverseAdd(obj, 1, n).Call.Return(func(o EObject, f int, n ENotificationChain) ENotificationChain {
 		return n
-	})
+	}).Once()
 	assert.Equal(t, n, o.EBasicInverseAdd(obj, 1, n))
 	assert.Equal(t, n, o.EBasicInverseAdd(obj, 1, n))
-	mock.AssertExpectationsForObjects(t, o, obj, n)
 }
 
 func TestMockEObjectInternal_EBasicInverseRemove(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-	n := &MockENotificationChain{}
-
-	// return a value
-	o.On("EBasicInverseRemove", obj, 1, n).Once().Return(n)
-	o.On("EBasicInverseRemove", obj, 1, n).Once().Return(func(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+	o := NewMockEObjectInternal(t)
+	obj := NewMockEObject(t)
+	n := NewMockENotificationChain(t)
+	m := NewMockRun(t, obj, 1, n)
+	o.EXPECT().EBasicInverseRemove(obj, 1, n).Return(n).Run(func(o EObject, f int, n ENotificationChain) { m.Run(o, f, n) }).Once()
+	o.EXPECT().EBasicInverseRemove(obj, 1, n).Call.Return(func(o EObject, f int, n ENotificationChain) ENotificationChain {
 		return n
-	})
+	}).Once()
 	assert.Equal(t, n, o.EBasicInverseRemove(obj, 1, n))
 	assert.Equal(t, n, o.EBasicInverseRemove(obj, 1, n))
-	mock.AssertExpectationsForObjects(t, o, obj, n)
 }
 
 func TestMockEObjectInternal_EFeatureID(t *testing.T) {
-	mockObject := &MockEObjectInternal{}
-	mockFeature := &MockEStructuralFeature{}
-
-	// return a value
-	mockObject.On("EFeatureID", mockFeature).Once().Return(2)
-	mockObject.On("EFeatureID", mockFeature).Once().Return(func(EStructuralFeature) int {
+	mockObject := NewMockEObjectInternal(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	m := NewMockRun(t, mockFeature)
+	mockObject.EXPECT().EFeatureID(mockFeature).Return(1).Run(func(f EStructuralFeature) { m.Run(f) }).Once()
+	mockObject.EXPECT().EFeatureID(mockFeature).Call.Return(func(EStructuralFeature) int {
 		return 2
-	})
+	}).Once()
+	assert.Equal(t, 1, mockObject.EFeatureID(mockFeature))
 	assert.Equal(t, 2, mockObject.EFeatureID(mockFeature))
-	assert.Equal(t, 2, mockObject.EFeatureID(mockFeature))
-	mock.AssertExpectationsForObjects(t, mockObject, mockFeature)
 }
 
 func TestMockEObjectInternal_EDerivedFeatureID(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-
-	// return a value
-	o.On("EDerivedFeatureID", obj, 1).Once().Return(2)
-	o.On("EDerivedFeatureID", obj, 1).Once().Return(func(container EObject, featureID int) int {
+	o := NewMockEObjectInternal(t)
+	obj := NewMockEObject(t)
+	m := NewMockRun(t, obj, 1)
+	o.EXPECT().EDerivedFeatureID(obj, 1).Return(1).Run(func(container EObject, featureID int) { m.Run(container, featureID) }).Once()
+	o.EXPECT().EDerivedFeatureID(obj, 1).Call.Return(func(container EObject, featureID int) int {
 		return 2
-	})
+	}).Once()
+	assert.Equal(t, 1, o.EDerivedFeatureID(obj, 1))
 	assert.Equal(t, 2, o.EDerivedFeatureID(obj, 1))
-	assert.Equal(t, 2, o.EDerivedFeatureID(obj, 1))
-	mock.AssertExpectationsForObjects(t, o, obj)
 }
 
 func TestMockEObjectInternal_EOperationID(t *testing.T) {
-	mockObject := &MockEObjectInternal{}
-	mockOperation := &MockEOperation{}
-
-	// return a value
-	mockObject.On("EOperationID", mockOperation).Once().Return(2)
-	mockObject.On("EOperationID", mockOperation).Once().Return(func(EOperation) int {
+	mockObject := NewMockEObjectInternal(t)
+	mockOperation := NewMockEOperation(t)
+	m := NewMockRun(t, mockOperation)
+	mockObject.EXPECT().EOperationID(mockOperation).Return(1).Run(func(operation EOperation) { m.Run(operation) }).Once()
+	mockObject.EXPECT().EOperationID(mockOperation).Call.Return(func(EOperation) int {
 		return 2
-	})
+	}).Once()
+	assert.Equal(t, 1, mockObject.EOperationID(mockOperation))
 	assert.Equal(t, 2, mockObject.EOperationID(mockOperation))
-	assert.Equal(t, 2, mockObject.EOperationID(mockOperation))
-	mock.AssertExpectationsForObjects(t, mockObject, mockOperation)
 }
 
 func TestMockEObjectInternal_EDerivedOperationID(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-
-	// return a value
-	o.On("EDerivedOperationID", obj, 1).Once().Return(2)
-	o.On("EDerivedOperationID", obj, 1).Once().Return(func(container EObject, featureID int) int {
+	o := NewMockEObjectInternal(t)
+	obj := NewMockEObject(t)
+	m := NewMockRun(t, obj, 1)
+	o.EXPECT().EDerivedOperationID(obj, 1).Return(1).Run(func(container EObject, featureID int) { m.Run(container, featureID) }).Once()
+	o.EXPECT().EDerivedOperationID(obj, 1).Call.Return(func(container EObject, featureID int) int {
 		return 2
-	})
+	}).Once()
+	assert.Equal(t, 1, o.EDerivedOperationID(obj, 1))
 	assert.Equal(t, 2, o.EDerivedOperationID(obj, 1))
-	assert.Equal(t, 2, o.EDerivedOperationID(obj, 1))
-	mock.AssertExpectationsForObjects(t, o, obj)
 }
 
 func TestMockEObjectInternal_EGetFromID(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-
-	// return a value
-	o.On("EGetFromID", 1, false).Once().Return(obj)
-	o.On("EGetFromID", 1, true).Once().Return(func(featureID int, resolve bool) any {
+	o := NewMockEObjectInternal(t)
+	obj := NewMockEObject(t)
+	m := NewMockRun(t, 1, false)
+	o.EXPECT().EGetFromID(1, false).Return(obj).Run(func(featureID int, resolve bool) { m.Run(featureID, resolve) }).Once()
+	o.EXPECT().EGetFromID(1, true).Call.Return(func(featureID int, resolve bool) any {
 		return obj
-	})
+	}).Once()
 	assert.Equal(t, obj, o.EGetFromID(1, false))
 	assert.Equal(t, obj, o.EGetFromID(1, true))
-	mock.AssertExpectationsForObjects(t, o, obj)
 }
 
 func TestMockEObjectInternal_EIsSetFromID(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-
-	// return a value
-	o.On("EIsSetFromID", 1).Once().Return(false)
-	o.On("EIsSetFromID", 1).Once().Return(func(featureID int) bool {
+	o := NewMockEObjectInternal(t)
+	m := NewMockRun(t, 1)
+	o.EXPECT().EIsSetFromID(1).Return(false).Run(func(featureID int) { m.Run(featureID) }).Once()
+	o.EXPECT().EIsSetFromID(1).Call.Return(func(featureID int) bool {
 		return true
-	})
+	}).Once()
 	assert.False(t, o.EIsSetFromID(1))
 	assert.True(t, o.EIsSetFromID(1))
-	mock.AssertExpectationsForObjects(t, o, obj)
 }
 
 func TestMockEObjectInternal_ESetFromID(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-
-	// return a value
-	o.On("ESetFromID", 1, obj).Once()
+	o := NewMockEObjectInternal(t)
+	obj := NewMockEObject(t)
+	m := NewMockRun(t, 1, obj)
+	o.EXPECT().ESetFromID(1, obj).Return().Run(func(featureID int, newValue interface{}) { m.Run(featureID, newValue) }).Once()
 	o.ESetFromID(1, obj)
-	mock.AssertExpectationsForObjects(t, o, obj)
 }
 
 func TestMockEObjectInternal_EUnsetFromID(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-
-	// return a value
-	o.On("EUnsetFromID", 1).Once()
+	o := NewMockEObjectInternal(t)
+	m := NewMockRun(t, 1)
+	o.EXPECT().EUnsetFromID(1).Return().Run(func(featureID int) { m.Run(featureID) }).Once()
 	o.EUnsetFromID(1)
-	mock.AssertExpectationsForObjects(t, o, obj)
 }
 
 func TestMockEObjectInternal_EInvokeFromID(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-	args := &MockEList{}
-	// return a value
-	o.On("EInvokeFromID", 1, args).Once().Return(obj)
-	o.On("EInvokeFromID", 1, args).Once().Return(func(operationID int, arguments EList) any {
+	o := NewMockEObjectInternal(t)
+	obj := NewMockEObject(t)
+	args := NewMockEList(t)
+	m := NewMockRun(t, 1, args)
+	o.EXPECT().EInvokeFromID(1, args).Return(obj).Run(func(operationID int, arguments EList) { m.Run(operationID, arguments) }).Once()
+	o.EXPECT().EInvokeFromID(1, args).Call.Return(func(operationID int, arguments EList) any {
 		return obj
-	})
+	}).Once()
 	assert.Equal(t, obj, o.EInvokeFromID(1, args))
 	assert.Equal(t, obj, o.EInvokeFromID(1, args))
-	mock.AssertExpectationsForObjects(t, o, obj)
 }
 
 func TestMockEObjectInternal_EObjectForFragmentSegment(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-	// return a value
-	o.On("EObjectForFragmentSegment", "uri").Once().Return(obj)
-	o.On("EObjectForFragmentSegment", "uri").Once().Return(func(string) EObject {
+	o := NewMockEObjectInternal(t)
+	obj := NewMockEObject(t)
+	m := NewMockRun(t, "uri")
+	o.EXPECT().EObjectForFragmentSegment("uri").Return(obj).Run(func(_a0 string) { m.Run(_a0) }).Once()
+	o.EXPECT().EObjectForFragmentSegment("uri").Call.Return(func(string) EObject {
 		return obj
-	})
+	}).Once()
 	assert.Equal(t, obj, o.EObjectForFragmentSegment("uri"))
 	assert.Equal(t, obj, o.EObjectForFragmentSegment("uri"))
-	mock.AssertExpectationsForObjects(t, o, obj)
 }
 
 func TestMockEObjectInternal_EURIFragmentSegment(t *testing.T) {
-	o := &MockEObjectInternal{}
-	f := &MockEStructuralFeature{}
-	obj := &MockEObject{}
-	// return a value
-	o.On("EURIFragmentSegment", f, obj).Once().Return("uri")
-	o.On("EURIFragmentSegment", f, obj).Once().Return(func(EStructuralFeature, EObject) string {
+	o := NewMockEObjectInternal(t)
+	f := NewMockEStructuralFeature(t)
+	obj := NewMockEObject(t)
+	m := NewMockRun(t, f, obj)
+	o.EXPECT().EURIFragmentSegment(f, obj).Return("uri").Run(func(_a0 EStructuralFeature, _a1 EObject) { m.Run(_a0, _a1) }).Once()
+	o.EXPECT().EURIFragmentSegment(f, obj).Call.Return(func(EStructuralFeature, EObject) string {
 		return "uri"
-	})
+	}).Once()
 	assert.Equal(t, "uri", o.EURIFragmentSegment(f, obj))
 	assert.Equal(t, "uri", o.EURIFragmentSegment(f, obj))
-	mock.AssertExpectationsForObjects(t, o, f, obj)
 }
 
 func TestMockEObjectInternal_EProxyURI(t *testing.T) {
-	o := &MockEObjectInternal{}
+	o := NewMockEObjectInternal(t)
 	uri := NewURI("test:///file.t")
-
-	// return a value
-	o.On("EProxyURI").Once().Return(uri)
-	o.On("EProxyURI").Once().Return(func() *URI {
+	m := NewMockRun(t)
+	o.EXPECT().EProxyURI().Return(uri).Run(func() { m.Run() }).Once()
+	o.EXPECT().EProxyURI().Call.Return(func() *URI {
 		return uri
-	})
+	}).Once()
 	assert.Equal(t, uri, o.EProxyURI())
 	assert.Equal(t, uri, o.EProxyURI())
-	mock.AssertExpectationsForObjects(t, o)
 }
 
 func TestMockEObjectInternal_ESetProxyURI(t *testing.T) {
-	o := &MockEObjectInternal{}
+	o := NewMockEObjectInternal(t)
 	mockURI := NewURI("test:///file.t")
-
-	// return a value
-	o.On("ESetProxyURI", mockURI).Once()
+	m := NewMockRun(t, mockURI)
+	o.EXPECT().ESetProxyURI(mockURI).Return().Run(func(uri *URI) { m.Run(uri) }).Once()
 	o.ESetProxyURI(mockURI)
-	mock.AssertExpectationsForObjects(t, o)
 }
 
 func TestMockEObjectInternal_EResolveProxy(t *testing.T) {
-	o := &MockEObjectInternal{}
-	obj := &MockEObject{}
-	result := &MockEObject{}
-
-	// return a value
-	o.On("EResolveProxy", obj).Once().Return(result)
-	o.On("EResolveProxy", obj).Once().Return(func(proxy EObject) EObject {
+	o := NewMockEObjectInternal(t)
+	obj := NewMockEObject(t)
+	result := NewMockEObject(t)
+	m := NewMockRun(t, obj)
+	o.EXPECT().EResolveProxy(obj).Return(result).Run(func(proxy EObject) { m.Run(proxy) }).Once()
+	o.EXPECT().EResolveProxy(obj).Call.Return(func(proxy EObject) EObject {
 		return result
-	})
+	}).Once()
 	assert.Equal(t, result, o.EResolveProxy(obj))
 	assert.Equal(t, result, o.EResolveProxy(obj))
-	mock.AssertExpectationsForObjects(t, o)
 }

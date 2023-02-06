@@ -15,14 +15,14 @@ func TestBasicEDataTypeListAccessors(t *testing.T) {
 		assert.Equal(t, 1, list.GetFeatureID())
 	}
 	{
-		mockOwner := &MockEObjectInternal{}
+		mockOwner := NewMockEObjectInternal(t)
 		list := NewBasicEDataTypeList(mockOwner, 1, true)
 		assert.Equal(t, mockOwner, list.GetNotifier())
 		assert.Equal(t, 1, list.GetFeatureID())
-		mockClass := &MockEClass{}
-		mockFeature := &MockEStructuralFeature{}
-		mockClass.On("GetEStructuralFeature", 1).Return(mockFeature)
-		mockOwner.On("EClass").Return(mockClass)
+		mockClass := NewMockEClass(t)
+		mockFeature := NewMockEStructuralFeature(t)
+		mockClass.EXPECT().GetEStructuralFeature(1).Return(mockFeature)
+		mockOwner.EXPECT().EClass().Return(mockClass)
 		assert.Equal(t, mockFeature, list.GetFeature())
 		mock.AssertExpectationsForObjects(t, mockOwner, mockClass, mockFeature, mockClass)
 	}

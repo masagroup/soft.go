@@ -28,7 +28,6 @@ type eGenericTypeInitializers interface {
 type eGenericTypeBasics interface {
 	basicGetEClassifier() EClassifier
 	basicSetELowerBound(EGenericType, ENotificationChain) ENotificationChain
-
 	basicGetERawType() EClassifier
 	basicSetEUpperBound(EGenericType, ENotificationChain) ENotificationChain
 }

@@ -18,13 +18,13 @@ import (
 
 func TestEDataTypeExtSetDefaultValue(t *testing.T) {
 	d := newEDataTypeExt()
-	mockValue := &MockEObject{}
-	mockAdapter := &MockEAdapter{}
-	mockAdapter.On("SetTarget", d).Once()
+	mockValue := NewMockEObject(t)
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(d).Once()
 	d.EAdapters().Add(mockAdapter)
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 
-	mockAdapter.On("NotifyChanged", mock.MatchedBy(func(notification ENotification) bool {
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(notification ENotification) bool {
 		return notification.GetEventType() == SET && notification.GetNewValue() == mockValue
 	})).Once()
 	d.SetDefaultValue(mockValue)
@@ -33,7 +33,21 @@ func TestEDataTypeExtSetDefaultValue(t *testing.T) {
 
 func TestEDataTypeExtGetDefaultValue(t *testing.T) {
 	d := newEDataTypeExt()
-	value := &MockEDataType{}
+	value := NewMockEDataType(t)
 	d.defaultValue = value
 	assert.Equal(t, value, d.GetDefaultValue())
+}
+
+func TestEDataTypeExtGetInstanceTypeName(t *testing.T) {
+	mockEDataType := NewMockEDataType(t)
+	mockEDataType.EXPECT().GetEAnnotation("http://net.masagroup/soft/2019/GenGo").Return(nil).Once()
+	mockEDataType.EXPECT().GetInstanceTypeName().Return("type").Once()
+	assert.Equal(t, "type", getInstanceTypeName(mockEDataType))
+
+	mockEAnnotation := NewMockEAnnotation(t)
+	mockEMap := NewMockEMap(t)
+	mockEDataType.EXPECT().GetEAnnotation("http://net.masagroup/soft/2019/GenGo").Return(mockEAnnotation).Once()
+	mockEAnnotation.EXPECT().GetDetails().Return(mockEMap).Once()
+	mockEMap.EXPECT().GetValue("instanceTypeName").Return("type")
+	assert.Equal(t, "type", getInstanceTypeName(mockEDataType))
 }

@@ -44,11 +44,11 @@ func TestEParameterEOperationGet(t *testing.T) {
 	assert.Nil(t, o.GetEOperation())
 
 	// set a mock container
-	v := new(MockEOperation)
+	v := NewMockEOperation(t)
 	o.ESetInternalContainer(v, EPARAMETER__EOPERATION)
 
 	// no proxy
-	v.On("EIsProxy").Return(false)
+	v.EXPECT().EIsProxy().Return(false).Once()
 	assert.Equal(t, v, o.GetEOperation())
 }
 
@@ -67,23 +67,23 @@ func TestEParameterEIsSetFromID(t *testing.T) {
 func TestEParameterEBasicInverseAdd(t *testing.T) {
 	o := newEParameterImpl()
 	{
-		mockObject := new(MockEObject)
-		mockNotifications := new(MockENotificationChain)
+		mockObject := NewMockEObject(t)
+		mockNotifications := NewMockENotificationChain(t)
 		assert.Equal(t, mockNotifications, o.EBasicInverseAdd(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEOperation)
-		mockObject.On("EResource").Return(nil).Once()
-		mockObject.On("EIsProxy").Return(false).Once()
+		mockObject := NewMockEOperation(t)
+		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EIsProxy().Return(false).Once()
 		o.EBasicInverseAdd(mockObject, EPARAMETER__EOPERATION, nil)
 		assert.Equal(t, mockObject, o.GetEOperation())
 		mock.AssertExpectationsForObjects(t, mockObject)
 
-		mockOther := new(MockEOperation)
-		mockOther.On("EResource").Return(nil).Once()
-		mockOther.On("EIsProxy").Return(false).Once()
-		mockObject.On("EResource").Return(nil).Once()
-		mockObject.On("EInverseRemove", o, EOPERATION__EPARAMETERS, nil).Return(nil).Once()
+		mockOther := NewMockEOperation(t)
+		mockOther.EXPECT().EResource().Return(nil).Once()
+		mockOther.EXPECT().EIsProxy().Return(false).Once()
+		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EInverseRemove(o, EOPERATION__EPARAMETERS, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, EPARAMETER__EOPERATION, nil)
 		assert.Equal(t, mockOther, o.GetEOperation())
 		mock.AssertExpectationsForObjects(t, mockObject, mockOther)
@@ -94,12 +94,12 @@ func TestEParameterEBasicInverseAdd(t *testing.T) {
 func TestEParameterEBasicInverseRemove(t *testing.T) {
 	o := newEParameterImpl()
 	{
-		mockObject := new(MockEObject)
-		mockNotifications := new(MockENotificationChain)
+		mockObject := NewMockEObject(t)
+		mockNotifications := NewMockENotificationChain(t)
 		assert.Equal(t, mockNotifications, o.EBasicInverseRemove(mockObject, -1, mockNotifications))
 	}
 	{
-		mockObject := new(MockEOperation)
+		mockObject := NewMockEOperation(t)
 		o.EBasicInverseRemove(mockObject, EPARAMETER__EOPERATION, nil)
 		mock.AssertExpectationsForObjects(t, mockObject)
 	}

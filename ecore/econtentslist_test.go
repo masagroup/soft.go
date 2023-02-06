@@ -9,7 +9,7 @@ import (
 )
 
 func TestEContentsListNoFeatures(t *testing.T) {
-	mockObject := &MockEObject{}
+	mockObject := NewMockEObject(t)
 	value := struct{}{}
 	mockList := NewEmptyImmutableEList()
 	l := newEContentsList(mockObject, mockList, false)
@@ -32,8 +32,9 @@ type EContentsListTestSuite struct {
 }
 
 func (suite *EContentsListTestSuite) SetupTest() {
-	suite.mockObject = &MockEObject{}
-	suite.mockFeature = &MockEStructuralFeature{}
+	t := suite.T()
+	suite.mockObject = NewMockEObject(t)
+	suite.mockFeature = NewMockEStructuralFeature(t)
 	suite.l = newEContentsList(suite.mockObject, NewImmutableEList([]any{suite.mockFeature}), false)
 }
 
@@ -43,45 +44,45 @@ func (suite *EContentsListTestSuite) AfterTest() {
 
 func (suite *EContentsListTestSuite) TestEmpty() {
 	// single not set
-	suite.mockObject.On("EIsSet", suite.mockFeature).Return(false).Once()
+	suite.mockObject.EXPECT().EIsSet(suite.mockFeature).Return(false).Once()
 	assert.True(suite.T(), suite.l.Empty())
 	mock.AssertExpectationsForObjects(suite.T(), suite.mockObject, suite.mockFeature)
 
 	// single set
 	value := struct{}{}
-	suite.mockObject.On("EIsSet", suite.mockFeature).Return(true).Once()
-	suite.mockObject.On("EGetResolve", suite.mockFeature, false).Return(value).Once()
-	suite.mockFeature.On("IsMany").Return(false).Once()
+	suite.mockObject.EXPECT().EIsSet(suite.mockFeature).Return(true).Once()
+	suite.mockObject.EXPECT().EGetResolve(suite.mockFeature, false).Return(value).Once()
+	suite.mockFeature.EXPECT().IsMany().Return(false).Once()
 	assert.False(suite.T(), suite.l.Empty())
 
 	// many
-	mockList := &MockEList{}
-	suite.mockObject.On("EIsSet", suite.mockFeature).Return(true).Once()
-	suite.mockObject.On("EGetResolve", suite.mockFeature, false).Return(mockList).Once()
-	suite.mockFeature.On("IsMany").Return(true).Once()
-	mockList.On("Empty").Return(false).Once()
+	mockList := NewMockEList(suite.T())
+	suite.mockObject.EXPECT().EIsSet(suite.mockFeature).Return(true).Once()
+	suite.mockObject.EXPECT().EGetResolve(suite.mockFeature, false).Return(mockList).Once()
+	suite.mockFeature.EXPECT().IsMany().Return(true).Once()
+	mockList.EXPECT().Empty().Return(false).Once()
 	assert.False(suite.T(), suite.l.Empty())
 }
 
 func (suite *EContentsListTestSuite) TestSize() {
 	// single not set
-	suite.mockObject.On("EIsSet", suite.mockFeature).Return(false).Once()
+	suite.mockObject.EXPECT().EIsSet(suite.mockFeature).Return(false).Once()
 	assert.Equal(suite.T(), 0, suite.l.Size())
 	mock.AssertExpectationsForObjects(suite.T(), suite.mockObject, suite.mockFeature)
 
 	// single set
 	value := struct{}{}
-	suite.mockObject.On("EIsSet", suite.mockFeature).Return(true).Once()
-	suite.mockObject.On("EGetResolve", suite.mockFeature, false).Return(value).Once()
-	suite.mockFeature.On("IsMany").Return(false).Once()
+	suite.mockObject.EXPECT().EIsSet(suite.mockFeature).Return(true).Once()
+	suite.mockObject.EXPECT().EGetResolve(suite.mockFeature, false).Return(value).Once()
+	suite.mockFeature.EXPECT().IsMany().Return(false).Once()
 	assert.Equal(suite.T(), 1, suite.l.Size())
 	mock.AssertExpectationsForObjects(suite.T(), suite.mockObject, suite.mockFeature)
 
 	// many
 	l := NewImmutableEList([]any{struct{}{}})
-	suite.mockObject.On("EIsSet", suite.mockFeature).Return(true).Once()
-	suite.mockObject.On("EGetResolve", suite.mockFeature, false).Return(l).Once()
-	suite.mockFeature.On("IsMany").Return(true).Once()
+	suite.mockObject.EXPECT().EIsSet(suite.mockFeature).Return(true).Once()
+	suite.mockObject.EXPECT().EGetResolve(suite.mockFeature, false).Return(l).Once()
+	suite.mockFeature.EXPECT().IsMany().Return(true).Once()
 	assert.Equal(suite.T(), 1, suite.l.Size())
 	mock.AssertExpectationsForObjects(suite.T(), suite.mockObject, suite.mockFeature)
 }
@@ -119,7 +120,7 @@ func (suite *EContentsListIteratorTestSuite) SetupTest() {
 func (suite *EContentsListIteratorTestSuite) TestIteratorEmpty() {
 	t := suite.T()
 	it := suite.it
-	suite.mockObject.On("EIsSet", suite.mockFeature).Once().Return(false)
+	suite.mockObject.EXPECT().EIsSet(suite.mockFeature).Once().Return(false)
 	assert.False(t, it.HasNext())
 	assert.Panics(t, func() {
 		it.Next()
@@ -130,9 +131,9 @@ func (suite *EContentsListIteratorTestSuite) TestIteratorSingle() {
 	t := suite.T()
 	it := suite.it
 	value := struct{}{}
-	suite.mockObject.On("EIsSet", suite.mockFeature).Once().Return(true)
-	suite.mockObject.On("EGetResolve", suite.mockFeature, false).Once().Return(value)
-	suite.mockFeature.On("IsMany").Once().Return(false)
+	suite.mockObject.EXPECT().EIsSet(suite.mockFeature).Once().Return(true)
+	suite.mockObject.EXPECT().EGetResolve(suite.mockFeature, false).Once().Return(value)
+	suite.mockFeature.EXPECT().IsMany().Once().Return(false)
 	assert.True(t, it.HasNext())
 	assert.Equal(t, value, it.Next())
 }
@@ -140,13 +141,13 @@ func (suite *EContentsListIteratorTestSuite) TestIteratorSingle() {
 func (suite *EContentsListIteratorTestSuite) TestIteratorManyEmpty() {
 	t := suite.T()
 	it := suite.it
-	mockList := &MockEList{}
+	mockList := NewMockEList(t)
 	mockIterator := &MockEIterator{}
-	suite.mockObject.On("EIsSet", suite.mockFeature).Once().Return(true)
-	suite.mockObject.On("EGetResolve", suite.mockFeature, false).Once().Return(mockList)
-	suite.mockFeature.On("IsMany").Once().Return(true)
-	mockList.On("Iterator").Return(mockIterator).Once()
-	mockIterator.On("HasNext").Return(false).Once()
+	suite.mockObject.EXPECT().EIsSet(suite.mockFeature).Once().Return(true)
+	suite.mockObject.EXPECT().EGetResolve(suite.mockFeature, false).Once().Return(mockList)
+	suite.mockFeature.EXPECT().IsMany().Once().Return(true)
+	mockList.EXPECT().Iterator().Return(mockIterator).Once()
+	mockIterator.EXPECT().HasNext().Return(false).Once()
 	assert.False(t, it.HasNext())
 	assert.False(t, it.HasNext())
 	assert.Panics(t, func() {
@@ -158,15 +159,15 @@ func (suite *EContentsListIteratorTestSuite) TestIteratorManyEmpty() {
 func (suite *EContentsListIteratorTestSuite) TestIteratorManyFilled() {
 	t := suite.T()
 	it := suite.it
-	mockList := &MockEList{}
+	mockList := NewMockEList(t)
 	mockIterator := &MockEIterator{}
-	mockResult := &MockEObject{}
-	suite.mockObject.On("EIsSet", suite.mockFeature).Once().Return(true)
-	suite.mockObject.On("EGetResolve", suite.mockFeature, false).Once().Return(mockList)
-	suite.mockFeature.On("IsMany").Once().Return(true)
-	mockList.On("Iterator").Return(mockIterator).Once()
-	mockIterator.On("HasNext").Return(true).Once()
-	mockIterator.On("Next").Return(mockResult).Once()
+	mockResult := NewMockEObject(t)
+	suite.mockObject.EXPECT().EIsSet(suite.mockFeature).Once().Return(true)
+	suite.mockObject.EXPECT().EGetResolve(suite.mockFeature, false).Once().Return(mockList)
+	suite.mockFeature.EXPECT().IsMany().Once().Return(true)
+	mockList.EXPECT().Iterator().Return(mockIterator).Once()
+	mockIterator.EXPECT().HasNext().Return(true).Once()
+	mockIterator.EXPECT().Next().Return(mockResult).Once()
 	assert.True(t, it.HasNext())
 	assert.Equal(t, mockResult, it.Next())
 	mock.AssertExpectationsForObjects(t, mockList, mockIterator, mockResult)

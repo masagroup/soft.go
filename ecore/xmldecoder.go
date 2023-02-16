@@ -87,7 +87,7 @@ func NewXMLDecoder(resource EResource, r io.Reader, options map[string]any) *XML
 	l.resource = resource
 	l.decoder = xml.NewDecoder(r)
 	l.decoder.CharsetReader = charset.NewReaderLabel
-	l.namespaces = newXmlNamespaces()
+	l.namespaces = newXMLNamespaces()
 	l.prefixesToURI = make(map[string]string)
 	l.spacesToFactories = make(map[string]EFactory)
 	l.notFeatures = append(l.notFeatures, xml.Name{Space: xsiURI, Local: typeAttrib}, xml.Name{Space: xsiURI, Local: schemaLocationAttrib}, xml.Name{Space: xsiURI, Local: noNamespaceSchemaLocationAttrib})

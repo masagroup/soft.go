@@ -149,7 +149,7 @@ func max(a, b int64) int64 {
 type UUIDManager = UniqueIDManager[string]
 
 func NewUUIDManager(size int) *UUIDManager {
-	return newUniqueIDManager[string](
+	return newUniqueIDManager(
 		func() string {
 			for {
 				id, error := generateRandomString(size)
@@ -175,7 +175,7 @@ func NewUUIDManager(size int) *UUIDManager {
 type ULIDManager = UniqueIDManager[string]
 
 func NewULIDManager() *ULIDManager {
-	return newUniqueIDManager[string](
+	return newUniqueIDManager(
 		func() string {
 			return ulid.Make().String()
 		},
@@ -197,7 +197,7 @@ type IncrementalIDManager = UniqueIDManager[int64]
 
 func NewIncrementalIDManager() *IncrementalIDManager {
 	currentID := int64(0)
-	return newUniqueIDManager[int64](
+	return newUniqueIDManager(
 		func() int64 {
 			id := currentID
 			currentID++

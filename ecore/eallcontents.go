@@ -197,7 +197,7 @@ func (it *eAllContentsWithClassIterator) Next() any {
 	return next
 }
 
-var notransitions []*transition = []*transition{}
+var notransitions = []*transition{}
 
 func (it *eAllContentsWithClassIterator) findNext() any {
 	for len(it.data) != 0 {

@@ -26,9 +26,9 @@ const (
 	checkContainer
 )
 
-var binaryVersion int = 0
+var binaryVersion int
 
-var binarySignature []byte = []byte{'\211', 'e', 'm', 'f', '\n', '\r', '\032', '\n'}
+var binarySignature = []byte{'\211', 'e', 'm', 'f', '\n', '\r', '\032', '\n'}
 
 type binaryEncoderPackageData struct {
 	id        int

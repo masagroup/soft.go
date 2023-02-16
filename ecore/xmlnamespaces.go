@@ -18,7 +18,7 @@ type xmlNamespaces struct {
 	contexts       []int
 }
 
-func newXmlNamespaces() *xmlNamespaces {
+func newXMLNamespaces() *xmlNamespaces {
 	n := &xmlNamespaces{
 		currentContext: -1,
 	}

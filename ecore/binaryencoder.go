@@ -414,14 +414,15 @@ func (e *BinaryEncoder) newClassID(ePackageData *binaryEncoderPackageData) int {
 }
 
 func (e *BinaryEncoder) newClassData(eClass EClass) *binaryEncoderClassData {
+	eFeatures := eClass.GetEAllStructuralFeatures()
 	ePackageData := e.encodePackage(eClass.GetEPackage())
 	eClassData := &binaryEncoderClassData{
 		packageID:   ePackageData.id,
 		id:          e.newClassID(ePackageData),
-		featureData: []*binaryEncoderFeatureData{},
+		featureData: make([]*binaryEncoderFeatureData, 0, eFeatures.Size()),
 	}
 	ePackageData.classData[eClassData.id] = eClassData
-	for it := eClass.GetEAllStructuralFeatures().Iterator(); it.HasNext(); {
+	for it := eFeatures.Iterator(); it.HasNext(); {
 		eFeature := it.Next().(EStructuralFeature)
 		eClassData.featureData = append(eClassData.featureData, e.newFeatureData(eFeature))
 	}

@@ -38,10 +38,13 @@ func newXmlString() *xmlString {
 	return s
 }
 
-func (s *xmlString) write(w io.Writer) {
+func (s *xmlString) write(w io.Writer) error {
 	for _, segment := range s.segments {
-		w.Write([]byte(segment.String()))
+		if _, err := w.Write([]byte(segment.String())); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func (s *xmlString) add(newString string) {

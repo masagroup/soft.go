@@ -148,7 +148,9 @@ func (s *XMLEncoder) encodeTopObject(eObject EObject) {
 	s.interfaces.(xmlEncoderInternal).saveNamespaces()
 
 	// write result
-	s.str.write(s.w)
+	if err := s.str.write(s.w); err != nil {
+		s.error(NewEDiagnosticImpl(err.Error(), s.resource.GetURI().String(), 0, 0))
+	}
 }
 
 func (s *XMLEncoder) saveHeader() {

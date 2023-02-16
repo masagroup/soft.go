@@ -313,7 +313,8 @@ func TestXMLEncoderSimpleObject(t *testing.T) {
 
 	var strbuff strings.Builder
 	encoder := NewXMLEncoder(eResource, &strbuff, nil)
-	encoder.EncodeObject(eBook)
+	err := encoder.EncodeObject(eBook)
+	assert.Nil(t, err)
 
 	bytes, err := os.ReadFile("testdata/book.simple.xml")
 	assert.Nil(t, err)

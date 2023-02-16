@@ -270,7 +270,8 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	r := bytes.NewReader(content)
 
 	for i := 0; i < b.N; i++ {
-		r.Seek(0, io.SeekStart)
+		_, err = r.Seek(0, io.SeekStart)
+		require.Nil(b, err)
 		binaryDecoder := NewBinaryDecoder(eResource, r, nil)
 		binaryDecoder.Decode()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))

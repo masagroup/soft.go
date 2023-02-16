@@ -203,7 +203,7 @@ func (s *XMLEncoder) getRootFeature(eClassifier EClassifier) EStructuralFeature 
 }
 
 func (s *XMLEncoder) saveNamespaces() {
-	var prefixes []string
+	prefixes := make([]string, 0, len(s.prefixesToURI))
 	for prefix := range s.prefixesToURI {
 		prefixes = append(prefixes, prefix)
 	}

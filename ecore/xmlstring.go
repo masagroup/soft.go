@@ -11,15 +11,15 @@ type xmlStringSegment struct {
 }
 
 type xmlString struct {
-	segments           []*xmlStringSegment
 	currentSegment     *xmlStringSegment
 	firstElementMark   *xmlStringSegment
+	indentation        string
+	segments           []*xmlStringSegment
+	indents            []string
+	elementNames       []string
 	lineWidth          int
 	depth              int
-	indentation        string
-	indents            []string
 	lastElementIsStart bool
-	elementNames       []string
 }
 
 const MaxInt = int(^uint(0) >> 1)

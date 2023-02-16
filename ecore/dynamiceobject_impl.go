@@ -13,8 +13,8 @@ package ecore
 type DynamicEObjectImpl struct {
 	EObjectImpl
 	class      EClass
-	properties []any
 	adapter    *dynamicFeaturesAdapter
+	properties []any
 }
 
 type dynamicFeaturesAdapter struct {

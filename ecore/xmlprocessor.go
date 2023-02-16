@@ -15,9 +15,9 @@ import (
 )
 
 type XMLProcessor struct {
+	resourceSet    EResourceSet
 	extendMetaData *ExtendedMetaData
 	packages       []EPackage
-	resourceSet    EResourceSet
 }
 
 type xmlProcessorOption interface {

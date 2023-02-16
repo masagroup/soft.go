@@ -11,11 +11,11 @@ package ecore
 
 type AbstractNotification struct {
 	interfaces any
-	eventType  EventType
 	oldValue   any
 	newValue   any
-	position   int
 	next       ENotificationChain
+	eventType  EventType
+	position   int
 }
 
 func (notif *AbstractNotification) Initialize(

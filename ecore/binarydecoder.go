@@ -31,11 +31,11 @@ type binaryDecoderClassData struct {
 }
 
 type binaryDecoderFeatureData struct {
-	featureID   int
 	eFeature    EStructuralFeature
-	featureKind binaryFeatureKind
 	eFactory    EFactory
 	eDataType   EDataType
+	featureID   int
+	featureKind binaryFeatureKind
 }
 
 type BinaryDecoder struct {

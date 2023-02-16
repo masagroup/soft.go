@@ -10,8 +10,8 @@
 package ecore
 
 type listIterator struct {
-	cursor int
 	list   EList
+	cursor int
 }
 
 // Next return the current value of the iterator

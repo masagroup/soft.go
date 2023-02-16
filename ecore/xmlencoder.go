@@ -58,18 +58,18 @@ type XMLEncoder struct {
 	interfaces       any
 	w                io.Writer
 	resource         EResource
-	str              *xmlString
-	packages         map[EPackage]string
-	uriToPrefixes    map[string][]string
+	roots            EList
 	prefixesToURI    map[string]string
+	uriToPrefixes    map[string][]string
+	packages         map[EPackage]string
 	featureKinds     map[EStructuralFeature]xmlSaveFeatureKind
 	extendedMetaData *ExtendedMetaData
-	keepDefaults     bool
+	str              *xmlString
+	errorFn          func(diagnostic EDiagnostic)
 	idAttributeName  string
-	roots            EList
 	xmlVersion       string
 	encoding         string
-	errorFn          func(diagnostic EDiagnostic)
+	keepDefaults     bool
 }
 
 func NewXMLEncoder(resource EResource, w io.Writer, options map[string]any) *XMLEncoder {

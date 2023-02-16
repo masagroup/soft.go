@@ -8,12 +8,12 @@ import (
 )
 
 type JSONEncoder struct {
-	w               *jsonwriter.Writer
 	resource        EResource
-	idAttributeName string
-	keepDefaults    bool
+	w               *jsonwriter.Writer
 	featureKinds    map[EStructuralFeature]jsonFeatureKind
 	errorFn         func(diagnostic EDiagnostic)
+	idAttributeName string
+	keepDefaults    bool
 }
 
 func NewJSONEncoder(resource EResource, w io.Writer, options map[string]interface{}) *JSONEncoder {

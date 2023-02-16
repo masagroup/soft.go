@@ -31,36 +31,36 @@ var binaryVersion int
 var binarySignature = []byte{'\211', 'e', 'm', 'f', '\n', '\r', '\032', '\n'}
 
 type binaryEncoderPackageData struct {
-	id        int
 	classData []*binaryEncoderClassData
+	id        int
 }
 
 type binaryEncoderClassData struct {
+	featureData []*binaryEncoderFeatureData
 	packageID   int
 	id          int
-	featureData []*binaryEncoderFeatureData
 }
 
 type binaryEncoderFeatureData struct {
-	name        string
-	isTransient bool
-	featureKind binaryFeatureKind
 	factory     EFactory
 	dataType    EDataType
+	name        string
+	featureKind binaryFeatureKind
+	isTransient bool
 }
 
 type BinaryEncoder struct {
 	w                    io.Writer
 	resource             EResource
-	encoder              *msgpack.Encoder
 	objectRoot           EObject
+	encoder              *msgpack.Encoder
 	baseURI              *URI
-	version              int
 	objectToID           map[EObject]int
 	classDataMap         map[EClass]*binaryEncoderClassData
 	packageDataMap       map[EPackage]*binaryEncoderPackageData
 	uriToIDMap           map[string]int
 	enumLiteralToIDMap   map[string]int
+	version              int
 	isIDAttributeEncoded bool
 }
 

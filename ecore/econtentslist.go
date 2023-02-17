@@ -8,11 +8,11 @@ type eContentsList struct {
 }
 
 type eContentsListIterator struct {
+	next          any
+	values        EIterator
 	l             *eContentsList
 	prepared      int
-	next          any
 	featureCursor int
-	values        EIterator
 }
 
 func (it *eContentsListIterator) Next() any {

@@ -80,7 +80,8 @@ func TestIncrementalIDManagerClear(t *testing.T) {
 	m := NewIncrementalIDManager()
 	mockObject := NewMockEObject(t)
 
-	m.SetID(mockObject, 2)
+	err := m.SetID(mockObject, 2)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(2), m.GetID(mockObject))
 
 	m.Clear()

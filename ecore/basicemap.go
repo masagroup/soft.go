@@ -158,7 +158,7 @@ func (m *BasicEMap) ToMap() map[any]any {
 
 func (m *BasicEMap) initDataMap() {
 	if m.mapData == nil {
-		m.mapData = map[any]any{}
+		m.mapData = make(map[any]any, m.Size())
 		for itEntry := m.Iterator(); itEntry.HasNext(); {
 			entry := itEntry.Next().(EMapEntry)
 			m.mapData[entry.GetKey()] = entry.GetValue()

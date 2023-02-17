@@ -56,29 +56,29 @@ type xmlDecoderInternal interface {
 }
 
 type XMLDecoder struct {
-	interfaces             any
-	decoder                *xml.Decoder
 	resource               EResource
-	isResolveDeferred      bool
-	isSuppressDocumentRoot bool
-	elements               []string
-	deferred               []EObject
-	objects                []EObject
-	types                  []any
-	attributes             []xml.Attr
-	references             []reference
+	interfaces             any
+	spacesToFactories      map[string]EFactory
+	attachFn               func(object EObject)
+	errorFn                func(diagnostic EDiagnostic)
+	extendedMetaData       *ExtendedMetaData
+	prefixesToURI          map[string]string
+	decoder                *xml.Decoder
 	textBuilder            *strings.Builder
 	namespaces             *xmlNamespaces
-	prefixesToURI          map[string]string
-	spacesToFactories      map[string]EFactory
+	xmlVersion             string
+	encoding               string
+	idAttributeName        string
+	references             []reference
+	attributes             []xml.Attr
 	sameDocumentProxies    []EObject
 	notFeatures            []xml.Name
-	extendedMetaData       *ExtendedMetaData
-	idAttributeName        string
-	encoding               string
-	xmlVersion             string
-	errorFn                func(diagnostic EDiagnostic)
-	attachFn               func(object EObject)
+	types                  []any
+	objects                []EObject
+	deferred               []EObject
+	elements               []string
+	isSuppressDocumentRoot bool
+	isResolveDeferred      bool
 }
 
 func NewXMLDecoder(resource EResource, r io.Reader, options map[string]any) *XMLDecoder {
@@ -87,7 +87,7 @@ func NewXMLDecoder(resource EResource, r io.Reader, options map[string]any) *XML
 	l.resource = resource
 	l.decoder = xml.NewDecoder(r)
 	l.decoder.CharsetReader = charset.NewReaderLabel
-	l.namespaces = newXmlNamespaces()
+	l.namespaces = newXMLNamespaces()
 	l.prefixesToURI = make(map[string]string)
 	l.spacesToFactories = make(map[string]EFactory)
 	l.notFeatures = append(l.notFeatures, xml.Name{Space: xsiURI, Local: typeAttrib}, xml.Name{Space: xsiURI, Local: schemaLocationAttrib}, xml.Name{Space: xsiURI, Local: noNamespaceSchemaLocationAttrib})

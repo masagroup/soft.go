@@ -11,9 +11,9 @@ package ecore
 
 type treeIterator struct {
 	object      any
+	getChildren func(any) EIterator
 	data        []EIterator
 	root        bool
-	getChildren func(any) EIterator
 }
 
 func newTreeIterator(object any, root bool, getChildren func(any) EIterator) *treeIterator {

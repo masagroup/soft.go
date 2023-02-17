@@ -15,8 +15,8 @@ import (
 
 type CompactEObjectImpl struct {
 	AbstractEObject
-	flags   int
 	storage any
+	flags   int
 }
 
 const (

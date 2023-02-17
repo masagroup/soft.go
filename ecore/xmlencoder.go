@@ -58,18 +58,18 @@ type XMLEncoder struct {
 	interfaces       any
 	w                io.Writer
 	resource         EResource
-	str              *xmlString
-	packages         map[EPackage]string
-	uriToPrefixes    map[string][]string
+	roots            EList
 	prefixesToURI    map[string]string
+	uriToPrefixes    map[string][]string
+	packages         map[EPackage]string
 	featureKinds     map[EStructuralFeature]xmlSaveFeatureKind
 	extendedMetaData *ExtendedMetaData
-	keepDefaults     bool
+	str              *xmlString
+	errorFn          func(diagnostic EDiagnostic)
 	idAttributeName  string
-	roots            EList
 	xmlVersion       string
 	encoding         string
-	errorFn          func(diagnostic EDiagnostic)
+	keepDefaults     bool
 }
 
 func NewXMLEncoder(resource EResource, w io.Writer, options map[string]any) *XMLEncoder {
@@ -148,7 +148,9 @@ func (s *XMLEncoder) encodeTopObject(eObject EObject) {
 	s.interfaces.(xmlEncoderInternal).saveNamespaces()
 
 	// write result
-	s.str.write(s.w)
+	if err := s.str.write(s.w); err != nil {
+		s.error(NewEDiagnosticImpl(err.Error(), s.resource.GetURI().String(), 0, 0))
+	}
 }
 
 func (s *XMLEncoder) saveHeader() {
@@ -201,7 +203,7 @@ func (s *XMLEncoder) getRootFeature(eClassifier EClassifier) EStructuralFeature 
 }
 
 func (s *XMLEncoder) saveNamespaces() {
-	var prefixes []string
+	prefixes := make([]string, 0, len(s.prefixesToURI))
 	for prefix := range s.prefixesToURI {
 		prefixes = append(prefixes, prefix)
 	}

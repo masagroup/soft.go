@@ -11,15 +11,15 @@ type xmlStringSegment struct {
 }
 
 type xmlString struct {
-	segments           []*xmlStringSegment
 	currentSegment     *xmlStringSegment
 	firstElementMark   *xmlStringSegment
+	indentation        string
+	segments           []*xmlStringSegment
+	indents            []string
+	elementNames       []string
 	lineWidth          int
 	depth              int
-	indentation        string
-	indents            []string
 	lastElementIsStart bool
-	elementNames       []string
 }
 
 const MaxInt = int(^uint(0) >> 1)
@@ -38,10 +38,13 @@ func newXmlString() *xmlString {
 	return s
 }
 
-func (s *xmlString) write(w io.Writer) {
+func (s *xmlString) write(w io.Writer) error {
 	for _, segment := range s.segments {
-		w.Write([]byte(segment.String()))
+		if _, err := w.Write([]byte(segment.String())); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func (s *xmlString) add(newString string) {

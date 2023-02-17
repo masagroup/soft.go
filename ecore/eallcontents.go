@@ -139,9 +139,9 @@ func computeTransitionTableForReference(sourceClass EClass, reference EReference
 type data struct {
 	eObject     EObject
 	eClass      EClass
+	iterator    EIterator
 	transition  *transition   // current transition
 	transitions []*transition // remaining transitions
-	iterator    EIterator
 }
 
 type eObjectIterator struct {
@@ -169,9 +169,9 @@ func (it *eObjectIterator) Next() any {
 }
 
 type eAllContentsWithClassIterator struct {
+	next  any
 	table *EClassTransitionsTable
 	data  []*data
-	next  any
 }
 
 func newEAllContentsWithClassIterator(eObject EObject, eClass EClass) *eAllContentsWithClassIterator {
@@ -197,7 +197,7 @@ func (it *eAllContentsWithClassIterator) Next() any {
 	return next
 }
 
-var notransitions []*transition = []*transition{}
+var notransitions = []*transition{}
 
 func (it *eAllContentsWithClassIterator) findNext() any {
 	for len(it.data) != 0 {

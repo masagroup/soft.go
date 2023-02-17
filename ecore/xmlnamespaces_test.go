@@ -20,13 +20,13 @@ func m(a, b any) []any {
 }
 
 func TestXmlNamespacesNoContext(t *testing.T) {
-	n := newXmlNamespaces()
+	n := newXMLNamespaces()
 	assert.Equal(t, m("", false), m(n.getURI("prefix")))
 	assert.Equal(t, m("", false), m(n.getPrefix("uri")))
 }
 
 func TestXmlNamespacesEmpty(t *testing.T) {
-	n := newXmlNamespaces()
+	n := newXMLNamespaces()
 	n.pushContext()
 	assert.Equal(t, m("", false), m(n.getURI("prefix")))
 	assert.Equal(t, m("", false), m(n.getPrefix("uri")))
@@ -35,7 +35,7 @@ func TestXmlNamespacesEmpty(t *testing.T) {
 }
 
 func TestXmlNamespacesContext(t *testing.T) {
-	n := newXmlNamespaces()
+	n := newXMLNamespaces()
 	n.pushContext()
 	assert.False(t, n.declarePrefix("prefix", "uri"))
 	assert.Equal(t, m("uri", true), m(n.getURI("prefix")))
@@ -56,7 +56,7 @@ func TestXmlNamespacesContext(t *testing.T) {
 }
 
 func TestXmlNamespacesContextRemap(t *testing.T) {
-	n := newXmlNamespaces()
+	n := newXMLNamespaces()
 	n.pushContext()
 	assert.False(t, n.declarePrefix("prefix", "uri"))
 	assert.Equal(t, m("uri", true), m(n.getURI("prefix")))
@@ -68,7 +68,7 @@ func TestXmlNamespacesContextRemap(t *testing.T) {
 }
 
 func TestXmlNamespacesContextNoRemap(t *testing.T) {
-	n := newXmlNamespaces()
+	n := newXMLNamespaces()
 	n.pushContext()
 	assert.False(t, n.declarePrefix("prefix", "uri"))
 	assert.Equal(t, m("uri", true), m(n.getURI("prefix")))

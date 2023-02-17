@@ -13,12 +13,12 @@ type pair [2]any
 
 type xmlNamespaces struct {
 	namespaces     []pair
+	contexts       []int
 	namespacesSize int
 	currentContext int
-	contexts       []int
 }
 
-func newXmlNamespaces() *xmlNamespaces {
+func newXMLNamespaces() *xmlNamespaces {
 	n := &xmlNamespaces{
 		currentContext: -1,
 	}

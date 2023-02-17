@@ -17,13 +17,13 @@ type basicEObjectImplProperties struct {
 
 type BasicEObjectImpl struct {
 	AbstractEObject
-	deliver            bool
-	proxy              bool
 	adapters           EList
 	resource           EResource
 	container          EObject
-	containerFeatureID int
 	properties         *basicEObjectImplProperties
+	containerFeatureID int
+	deliver            bool
+	proxy              bool
 }
 
 func (o *BasicEObjectImpl) Initialize() {

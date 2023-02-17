@@ -32,7 +32,7 @@ else
 endif
 
 .PHONY: all
-all: generate fmt build test
+all: generate fmt lint build test
 
 .PHONY: generate 
 generate:
@@ -46,6 +46,11 @@ generate:
 fmt:
 	@echo "[fmt]"
 	@$(GO) fmt ./...
+
+.PHONY: lint
+lint:
+	@echo "[lint]"
+	@docker run --rm -v $(CURDIR):/pwd -w /pwd golangci/golangci-lint:v1.51.1 golangci-lint run
 
 .PHONY: build
 build:

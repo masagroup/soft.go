@@ -9,6 +9,8 @@
 
 package ecore
 
+import "reflect"
+
 type deepEqual struct {
 	objects map[EObject]EObject
 }
@@ -118,7 +120,7 @@ func (dE *deepEqual) equalsPrimitiveList(l1 EList, l2 EList) bool {
 	for i := 0; i < size; i++ {
 		p1 := l1.Get(i)
 		p2 := l2.Get(i)
-		if p1 != p2 {
+		if !reflect.DeepEqual(p1, p2) {
 			return false
 		}
 	}
@@ -154,7 +156,7 @@ func (dE *deepEqual) equalsAttribute(eObj1 EObject, eObj2 EObject, eAttribute EA
 		l2 := value2.(EList)
 		return dE.equalsPrimitiveList(l1, l2)
 	} else {
-		return value1 == value2
+		return reflect.DeepEqual(value1, value2)
 	}
 }
 

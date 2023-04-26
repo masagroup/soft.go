@@ -9,6 +9,8 @@
 
 package ecore
 
+import "sync"
+
 type ePackageExtAdapter struct {
 	AbstractEAdapter
 	pack *EPackageExt
@@ -19,7 +21,9 @@ func (a *ePackageExtAdapter) NotifyChanged(notification ENotification) {
 	if eventType != REMOVING_ADAPTER {
 		featureID := notification.GetFeatureID()
 		if featureID == EPACKAGE__ECLASSIFIERS {
-			a.pack.nameToClassifier = nil
+			a.pack.classifierMutex.Lock()
+			a.pack.classifierCache = nil
+			a.pack.classifierMutex.Unlock()
 		}
 	}
 }
@@ -27,8 +31,9 @@ func (a *ePackageExtAdapter) NotifyChanged(notification ENotification) {
 // EPackageExt is the extension of the model object 'EFactory'
 type EPackageExt struct {
 	EPackageImpl
-	adapter          EAdapter
-	nameToClassifier map[string]EClassifier
+	adapter         EAdapter
+	classifierCache map[string]EClassifier
+	classifierMutex sync.Mutex
 }
 
 func newEPackageExt() *EPackageExt {
@@ -46,14 +51,21 @@ func (pack *EPackageExt) Initialize() {
 }
 
 func (pack *EPackageExt) GetEClassifier(classifier string) EClassifier {
-	if pack.nameToClassifier == nil {
-		pack.nameToClassifier = make(map[string]EClassifier)
+	// retrieve map
+	pack.classifierMutex.Lock()
+	defer pack.classifierMutex.Unlock()
+
+	// initialize map if needed
+	if pack.classifierCache == nil {
+		pack.classifierCache = map[string]EClassifier{}
 		for itClassifier := pack.GetEClassifiers().Iterator(); itClassifier.HasNext(); {
 			classifier := itClassifier.Next().(EClassifier)
-			pack.nameToClassifier[classifier.GetName()] = classifier
+			pack.classifierCache[classifier.GetName()] = classifier
 		}
 	}
-	return pack.nameToClassifier[classifier]
+
+	// read map value
+	return pack.classifierCache[classifier]
 }
 
 func (pack *EPackageExt) CreateResource() EResource {

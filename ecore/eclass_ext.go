@@ -9,6 +9,8 @@
 
 package ecore
 
+import "sync"
+
 // EClassExt is the extension of the model object 'EClass'
 type EClassExt struct {
 	EClassImpl
@@ -16,6 +18,7 @@ type EClassExt struct {
 	nameToFeatureMap       map[string]EStructuralFeature
 	operationToOverrideMap map[EOperation]EOperation
 	subClasses             []EClassInternal
+	mutex                  sync.Mutex
 }
 
 type EClassInternal interface {
@@ -134,20 +137,22 @@ func (eClass *EClassExt) GetEStructuralFeature(featureID int) EStructuralFeature
 
 func (eClass *EClassExt) GetEStructuralFeatureFromName(featureName string) EStructuralFeature {
 	eClass.initNameToFeatureMap()
+	eClass.mutex.Lock()
+	defer eClass.mutex.Unlock()
 	return eClass.nameToFeatureMap[featureName]
 }
 
 func (eClass *EClassExt) initNameToFeatureMap() {
 	eClass.initEAllStructuralFeatures()
-
-	if eClass.nameToFeatureMap != nil {
-		return
+	eClass.mutex.Lock()
+	if eClass.nameToFeatureMap == nil {
+		eClass.nameToFeatureMap = make(map[string]EStructuralFeature)
+		for itFeature := eClass.eAllStructuralFeatures.Iterator(); itFeature.HasNext(); {
+			feature := itFeature.Next().(EStructuralFeature)
+			eClass.nameToFeatureMap[feature.GetName()] = feature
+		}
 	}
-	eClass.nameToFeatureMap = make(map[string]EStructuralFeature)
-	for itFeature := eClass.eAllStructuralFeatures.Iterator(); itFeature.HasNext(); {
-		feature := itFeature.Next().(EStructuralFeature)
-		eClass.nameToFeatureMap[feature.GetName()] = feature
-	}
+	eClass.mutex.Unlock()
 }
 
 func (eClass *EClassExt) GetFeatureID(feature EStructuralFeature) int {
@@ -190,27 +195,28 @@ func (eClass *EClassExt) GetOperationID(operation EOperation) int {
 
 func (eClass *EClassExt) GetOverride(operation EOperation) EOperation {
 	eClass.initOperationToOverrideMap()
+	eClass.mutex.Lock()
+	defer eClass.mutex.Unlock()
 	return eClass.operationToOverrideMap[operation]
 }
 
 func (eClass *EClassExt) initOperationToOverrideMap() {
 	eClass.initEAllOperations()
-
-	if eClass.operationToOverrideMap != nil {
-		return
-	}
-
-	eClass.operationToOverrideMap = make(map[EOperation]EOperation)
-	size := eClass.eAllOperations.Size()
-	for i := 0; i < size; i++ {
-		for j := size - 1; j > i; j-- {
-			oi := eClass.eAllOperations.Get(i).(EOperation)
-			oj := eClass.eAllOperations.Get(j).(EOperation)
-			if oj.IsOverrideOf(oi) {
-				eClass.operationToOverrideMap[oi] = oj
+	eClass.mutex.Lock()
+	if eClass.operationToOverrideMap == nil {
+		eClass.operationToOverrideMap = make(map[EOperation]EOperation)
+		size := eClass.eAllOperations.Size()
+		for i := 0; i < size; i++ {
+			for j := size - 1; j > i; j-- {
+				oi := eClass.eAllOperations.Get(i).(EOperation)
+				oj := eClass.eAllOperations.Get(j).(EOperation)
+				if oj.IsOverrideOf(oi) {
+					eClass.operationToOverrideMap[oi] = oj
+				}
 			}
 		}
 	}
+	eClass.mutex.Unlock()
 }
 
 func (eClass *EClassExt) initEAttributes() {
@@ -231,166 +237,169 @@ func (eClass *EClassExt) initECrossReferenceFeatures() {
 
 func (eClass *EClassExt) initFeaturesSubSet() {
 	eClass.initEAllStructuralFeatures()
-
-	if eClass.eContainmentFeatures != nil {
-		return
-	}
-
-	containments := []any{}
-	crossReferences := []any{}
-	for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
-		ref, isRef := itFeature.Next().(EReference)
-		if isRef {
-			if ref.IsContainment() {
-				if !ref.IsDerived() {
-					containments = append(containments, ref)
-				}
-			} else if !ref.IsContainer() {
-				if !ref.IsDerived() {
-					crossReferences = append(crossReferences, ref)
+	eClass.mutex.Lock()
+	if eClass.eContainmentFeatures == nil {
+		containments := []any{}
+		crossReferences := []any{}
+		for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
+			ref, isRef := itFeature.Next().(EReference)
+			if isRef {
+				if ref.IsContainment() {
+					if !ref.IsDerived() {
+						containments = append(containments, ref)
+					}
+				} else if !ref.IsContainer() {
+					if !ref.IsDerived() {
+						crossReferences = append(crossReferences, ref)
+					}
 				}
 			}
-		}
 
+		}
+		eClass.eContainmentFeatures = NewImmutableEList(containments)
+		eClass.eCrossReferenceFeatures = NewImmutableEList(crossReferences)
 	}
-	eClass.eContainmentFeatures = NewImmutableEList(containments)
-	eClass.eCrossReferenceFeatures = NewImmutableEList(crossReferences)
+	eClass.mutex.Unlock()
 }
 
 func (eClass *EClassExt) initEAllAttributes() {
-	if eClass.eAllAttributes != nil {
-		return
-	}
+	eClass.mutex.Lock()
+	if eClass.eAllAttributes == nil {
 
-	attributes := []any{}
-	allAttributes := []any{}
-	var eIDAttribute EAttribute = nil
-	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
-		superAttributes := itClass.Next().(EClass).GetEAllAttributes()
-		for itAttribute := superAttributes.Iterator(); itAttribute.HasNext(); {
-			attribute := itAttribute.Next().(EAttribute)
-			allAttributes = append(allAttributes, attribute)
-			if attribute.IsID() && eIDAttribute == nil {
-				eIDAttribute = attribute
+		attributes := []any{}
+		allAttributes := []any{}
+		var eIDAttribute EAttribute = nil
+		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
+			superAttributes := itClass.Next().(EClass).GetEAllAttributes()
+			for itAttribute := superAttributes.Iterator(); itAttribute.HasNext(); {
+				attribute := itAttribute.Next().(EAttribute)
+				allAttributes = append(allAttributes, attribute)
+				if attribute.IsID() && eIDAttribute == nil {
+					eIDAttribute = attribute
+				}
 			}
 		}
-	}
 
-	for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
-		attribute, isAttribute := itFeature.Next().(EAttribute)
-		if isAttribute {
-			attributes = append(attributes, attribute)
-			allAttributes = append(allAttributes, attribute)
-			if attribute.IsID() && eIDAttribute == nil {
-				eIDAttribute = attribute
+		for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
+			attribute, isAttribute := itFeature.Next().(EAttribute)
+			if isAttribute {
+				attributes = append(attributes, attribute)
+				allAttributes = append(allAttributes, attribute)
+				if attribute.IsID() && eIDAttribute == nil {
+					eIDAttribute = attribute
+				}
 			}
 		}
+		eClass.eIDAttribute = eIDAttribute
+		eClass.eAttributes = NewImmutableEList(attributes)
+		eClass.eAllAttributes = NewImmutableEList(allAttributes)
 	}
-	eClass.eIDAttribute = eIDAttribute
-	eClass.eAttributes = NewImmutableEList(attributes)
-	eClass.eAllAttributes = NewImmutableEList(allAttributes)
+	eClass.mutex.Unlock()
 }
 
 func (eClass *EClassExt) initEAllReferences() {
-	if eClass.eAllReferences != nil {
-		return
-	}
-
-	allReferences := []any{}
-	references := []any{}
-	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
-		superReferences := itClass.Next().(EClass).GetEAllReferences()
-		allReferences = append(allReferences, superReferences.ToArray()...)
-	}
-
-	for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
-		reference, isReference := itFeature.Next().(EReference)
-		if isReference {
-			references = append(references, reference)
-			allReferences = append(allReferences, reference)
+	eClass.mutex.Lock()
+	if eClass.eAllReferences == nil {
+		allReferences := []any{}
+		references := []any{}
+		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
+			superReferences := itClass.Next().(EClass).GetEAllReferences()
+			allReferences = append(allReferences, superReferences.ToArray()...)
 		}
-	}
 
-	eClass.eReferences = NewImmutableEList(references)
-	eClass.eAllReferences = NewImmutableEList(allReferences)
+		for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
+			reference, isReference := itFeature.Next().(EReference)
+			if isReference {
+				references = append(references, reference)
+				allReferences = append(allReferences, reference)
+			}
+		}
+
+		eClass.eReferences = NewImmutableEList(references)
+		eClass.eAllReferences = NewImmutableEList(allReferences)
+	}
+	eClass.mutex.Unlock()
 }
 
 func (eClass *EClassExt) initEAllContainments() {
-	if eClass.eAllContainments != nil {
-		return
-	}
-	allContainments := []any{}
-	for itReference := eClass.GetEAllReferences().Iterator(); itReference.HasNext(); {
-		reference := itReference.Next().(EReference)
-		if reference.IsContainment() {
-			allContainments = append(allContainments, reference)
+	eClass.initEAllReferences()
+	eClass.mutex.Lock()
+	if eClass.eAllContainments == nil {
+		allContainments := []any{}
+		for itReference := eClass.eAllReferences.Iterator(); itReference.HasNext(); {
+			reference := itReference.Next().(EReference)
+			if reference.IsContainment() {
+				allContainments = append(allContainments, reference)
+			}
 		}
+		eClass.eAllContainments = NewImmutableEList(allContainments)
 	}
-	eClass.eAllContainments = NewImmutableEList(allContainments)
+	eClass.mutex.Unlock()
 }
 
 func (eClass *EClassExt) initEAllOperations() {
-	if eClass.eAllOperations != nil {
-		return
-	}
+	eClass.mutex.Lock()
+	if eClass.eAllOperations == nil {
+		eClass.operationToOverrideMap = nil
 
-	eClass.operationToOverrideMap = nil
-
-	allOperations := []any{}
-	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
-		superOperations := itClass.Next().(EClass).GetEAllOperations()
-		allOperations = append(allOperations, superOperations.ToArray()...)
-	}
-
-	operationID := len(allOperations)
-	for itFeature := eClass.GetEOperations().Iterator(); itFeature.HasNext(); {
-		operation, isOperation := itFeature.Next().(EOperation)
-		if isOperation {
-			operation.SetOperationID(operationID)
-			operationID++
-			allOperations = append(allOperations, operation)
+		allOperations := []any{}
+		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
+			superOperations := itClass.Next().(EClass).GetEAllOperations()
+			allOperations = append(allOperations, superOperations.ToArray()...)
 		}
+
+		operationID := len(allOperations)
+		for itFeature := eClass.GetEOperations().Iterator(); itFeature.HasNext(); {
+			operation, isOperation := itFeature.Next().(EOperation)
+			if isOperation {
+				operation.SetOperationID(operationID)
+				operationID++
+				allOperations = append(allOperations, operation)
+			}
+		}
+		eClass.eAllOperations = NewImmutableEList(allOperations)
 	}
-	eClass.eAllOperations = NewImmutableEList(allOperations)
+	eClass.mutex.Unlock()
 }
 
 func (eClass *EClassExt) initEAllStructuralFeatures() {
-	if eClass.eAllStructuralFeatures != nil {
-		return
-	}
+	eClass.mutex.Lock()
+	if eClass.eAllStructuralFeatures == nil {
+		eClass.eCrossReferenceFeatures = nil
+		eClass.eContainmentFeatures = nil
+		eClass.nameToFeatureMap = nil
 
-	eClass.eCrossReferenceFeatures = nil
-	eClass.eContainmentFeatures = nil
-	eClass.nameToFeatureMap = nil
+		allFeatures := []any{}
+		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
+			superFeatures := itClass.Next().(EClass).GetEAllStructuralFeatures()
+			allFeatures = append(allFeatures, superFeatures.ToArray()...)
+		}
 
-	allFeatures := []any{}
-	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
-		superFeatures := itClass.Next().(EClass).GetEAllStructuralFeatures()
-		allFeatures = append(allFeatures, superFeatures.ToArray()...)
+		featureID := len(allFeatures)
+		for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
+			feature := itFeature.Next().(EStructuralFeature)
+			feature.SetFeatureID(featureID)
+			featureID++
+			allFeatures = append(allFeatures, feature)
+		}
+		eClass.eAllStructuralFeatures = NewImmutableEList(allFeatures)
 	}
-
-	featureID := len(allFeatures)
-	for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
-		feature := itFeature.Next().(EStructuralFeature)
-		feature.SetFeatureID(featureID)
-		featureID++
-		allFeatures = append(allFeatures, feature)
-	}
-	eClass.eAllStructuralFeatures = NewImmutableEList(allFeatures)
+	eClass.mutex.Unlock()
 }
 
 func (eClass *EClassExt) initEAllSuperTypes() {
-	if eClass.eAllSuperTypes != nil {
-		return
+	eClass.mutex.Lock()
+	if eClass.eAllSuperTypes == nil {
+		allSuperTypes := []any{}
+		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
+			superClass := itClass.Next().(EClass)
+			superTypes := superClass.GetEAllSuperTypes()
+			allSuperTypes = append(allSuperTypes, superTypes.ToArray()...)
+			allSuperTypes = append(allSuperTypes, superClass)
+		}
+		eClass.eAllSuperTypes = NewImmutableEList(allSuperTypes)
 	}
-	allSuperTypes := []any{}
-	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
-		superClass := itClass.Next().(EClass)
-		superTypes := superClass.GetEAllSuperTypes()
-		allSuperTypes = append(allSuperTypes, superTypes.ToArray()...)
-		allSuperTypes = append(allSuperTypes, superClass)
-	}
-	eClass.eAllSuperTypes = NewImmutableEList(allSuperTypes)
+	eClass.mutex.Unlock()
 }
 
 func (eClass *EClassExt) initEIDAttribute() {
@@ -398,14 +407,19 @@ func (eClass *EClassExt) initEIDAttribute() {
 }
 
 func (eClass *EClassExt) getSubClasses() []EClassInternal {
+	eClass.mutex.Lock()
+	defer eClass.mutex.Unlock()
 	return eClass.subClasses
 }
 
 func (eClass *EClassExt) setSubClasses(subClasses []EClassInternal) {
+	eClass.mutex.Lock()
 	eClass.subClasses = subClasses
+	eClass.mutex.Unlock()
 }
 
 func (eClass *EClassExt) setModified(featureID int) {
+	eClass.mutex.Lock()
 	switch featureID {
 	case ECLASS__ESTRUCTURAL_FEATURES:
 		eClass.eAllAttributes = nil
@@ -434,6 +448,7 @@ func (eClass *EClassExt) setModified(featureID int) {
 	for _, s := range eClass.subClasses {
 		s.setModified(featureID)
 	}
+	eClass.mutex.Unlock()
 }
 
 func IsMapEntry(eClass EClass) bool {

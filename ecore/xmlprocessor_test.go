@@ -11,7 +11,6 @@ package ecore
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"strings"
 	"testing"
@@ -109,7 +108,7 @@ func (f *nodeFactory) newNode(name string, depth int) EObject {
 	n.ESet(f.eNameAttribute, name)
 	if depth > 0 {
 		children := n.EGet(f.eNodesReference).(EList)
-		for i := 0; i < rand.Intn(5); i++ {
+		for i := 0; i < depth-1; i++ {
 			c := f.newNode(fmt.Sprintf("%v.%v", name, i), depth-1)
 			children.Add(c)
 		}

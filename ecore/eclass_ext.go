@@ -322,10 +322,11 @@ func (eClass *EClassExt) initEAllReferences() {
 }
 
 func (eClass *EClassExt) initEAllContainments() {
+	eClass.initEAllReferences()
 	eClass.mutex.Lock()
 	if eClass.eAllContainments == nil {
 		allContainments := []any{}
-		for itReference := eClass.GetEAllReferences().Iterator(); itReference.HasNext(); {
+		for itReference := eClass.eAllReferences.Iterator(); itReference.HasNext(); {
 			reference := itReference.Next().(EReference)
 			if reference.IsContainment() {
 				allContainments = append(allContainments, reference)

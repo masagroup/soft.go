@@ -13,7 +13,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestDynamicEObjectConstructor(t *testing.T) {
@@ -25,10 +24,7 @@ func TestDynamicEObjectConstructor(t *testing.T) {
 func TestDynamicEObject_EClass(t *testing.T) {
 	o := NewDynamicEObjectImpl()
 	mockClass := NewMockEClass(t)
-	mockAdapters := NewMockEList(t)
-	mockClass.EXPECT().GetFeatureCount().Return(0)
-	mockClass.EXPECT().EAdapters().Return(mockAdapters)
-	mockAdapters.EXPECT().Add(mock.Anything).Return(true).Once()
+	mockClass.EXPECT().GetFeatureCount().Return(0).Once()
 	o.SetEClass(mockClass)
 	assert.Equal(t, mockClass, o.EClass())
 }
@@ -47,11 +43,11 @@ func TestDynamicEObject_MockEClass(t *testing.T) {
 func TestDynamicEObject_GetSet(t *testing.T) {
 	o := NewDynamicEObjectImpl()
 	c := GetFactory().CreateEClass()
-	o.SetEClass(c)
-	assert.Equal(t, c, o.EClass())
-
 	f := GetFactory().CreateEAttribute()
 	c.GetEStructuralFeatures().Add(f)
+
+	o.SetEClass(c)
+	assert.Equal(t, c, o.EClass())
 	assert.Nil(t, o.EGet(f))
 
 	o.ESet(f, 1)
@@ -61,11 +57,11 @@ func TestDynamicEObject_GetSet(t *testing.T) {
 func TestDynamicEObject_Unset(t *testing.T) {
 	o := NewDynamicEObjectImpl()
 	c := GetFactory().CreateEClass()
-	o.SetEClass(c)
-	assert.Equal(t, c, o.EClass())
-
 	f := GetFactory().CreateEAttribute()
 	c.GetEStructuralFeatures().Add(f)
+
+	o.SetEClass(c)
+	assert.Equal(t, c, o.EClass())
 	assert.Nil(t, o.EGet(f))
 
 	o.ESet(f, 1)

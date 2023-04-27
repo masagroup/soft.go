@@ -13,24 +13,7 @@ package ecore
 type DynamicEObjectImpl struct {
 	EObjectImpl
 	class      EClass
-	adapter    *dynamicFeaturesAdapter
 	properties []any
-}
-
-type dynamicFeaturesAdapter struct {
-	AbstractEAdapter
-	object *DynamicEObjectImpl
-}
-
-func (adapter *dynamicFeaturesAdapter) NotifyChanged(notification ENotification) {
-	eventType := notification.GetEventType()
-	if eventType != REMOVING_ADAPTER {
-		featureID := notification.GetFeatureID()
-		if featureID == ECLASS__ESTRUCTURAL_FEATURES {
-			adapter.object.resizeProperties()
-			adapter.object.resetContentsLists()
-		}
-	}
 }
 
 // NewDynamicEObjectImpl is the constructor of a DynamicEObjectImpl
@@ -43,7 +26,6 @@ func NewDynamicEObjectImpl() *DynamicEObjectImpl {
 
 func (o *DynamicEObjectImpl) Initialize() {
 	o.EObjectImpl.Initialize()
-	o.adapter = &dynamicFeaturesAdapter{object: o}
 	o.resizeProperties()
 }
 
@@ -57,15 +39,9 @@ func (o *DynamicEObjectImpl) EClass() EClass {
 
 // SetEClass ...
 func (o *DynamicEObjectImpl) SetEClass(class EClass) {
-	if o.class != nil {
-		o.class.EAdapters().Remove(o.adapter)
-	}
-
-	o.class = class
-	o.resizeProperties()
-
-	if o.class != nil {
-		o.class.EAdapters().Add(o.adapter)
+	if class != o.class {
+		o.class = class
+		o.resizeProperties()
 	}
 }
 

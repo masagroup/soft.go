@@ -101,12 +101,6 @@ func (o *BasicEObjectImpl) ECrossReferences() EList {
 	return properties.crossReferences
 }
 
-func (o *BasicEObjectImpl) resetContentsLists() {
-	properties := o.getObjectProperties()
-	properties.contents = nil
-	properties.crossReferences = nil
-}
-
 // ESetContainer ...
 func (o *BasicEObjectImpl) ESetInternalContainer(newContainer EObject, newContainerFeatureID int) {
 	o.container = newContainer

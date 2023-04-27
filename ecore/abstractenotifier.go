@@ -45,7 +45,7 @@ func newNotifierNotification(notifier *AbstractENotifier, eventType EventType, o
 func newNotifierAdapterList(notifier *AbstractENotifier) *notifierAdapterList {
 	l := new(notifierAdapterList)
 	l.data = []any{}
-	l.isUnique = true
+	l.isUnique = false
 	l.interfaces = l
 	l.notifier = notifier
 	return l

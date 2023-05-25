@@ -18,8 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMockEResourceCodec_NewDecoder(t *testing.T) {
-	mockCodec := NewMockEResourceCodec(t)
+func TestMockECodec_NewDecoder(t *testing.T) {
+	mockCodec := NewMockECodec(t)
 	mockDecoder := NewMockEResourceDecoder(t)
 	mockResource := NewMockEResource(t)
 	options := map[string]any{}
@@ -31,8 +31,8 @@ func TestMockEResourceCodec_NewDecoder(t *testing.T) {
 	assert.Equal(t, mockDecoder, mockCodec.NewDecoder(mockResource, reader, options))
 }
 
-func TestMockEResourceCodec_NewEncoder(t *testing.T) {
-	mockCodec := &MockEResourceCodec{}
+func TestMockECodec_NewEncoder(t *testing.T) {
+	mockCodec := &MockECodec{}
 	mockEncoder := &MockEResourceEncoder{}
 	mockResource := NewMockEResource(t)
 	options := map[string]any{}

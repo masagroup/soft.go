@@ -13,17 +13,17 @@ const (
 	DEFAULT_EXTENSION = "*"
 )
 
-type EResourceCodecRegistry interface {
-	GetCodec(uri *URI) EResourceCodec
-	GetProtocolToCodecMap() map[string]EResourceCodec
-	GetExtensionToCodecMap() map[string]EResourceCodec
+type ECodecRegistry interface {
+	GetCodec(uri *URI) ECodec
+	GetProtocolToCodecMap() map[string]ECodec
+	GetExtensionToCodecMap() map[string]ECodec
 }
 
-var resourceCodecRegistryInstance EResourceCodecRegistry
+var resourceCodecRegistryInstance ECodecRegistry
 
-func GetResourceCodecRegistry() EResourceCodecRegistry {
+func GetResourceCodecRegistry() ECodecRegistry {
 	if resourceCodecRegistryInstance == nil {
-		resourceCodecRegistryInstance = NewEResourceCodecRegistryImpl()
+		resourceCodecRegistryInstance = NewECodecRegistryImpl()
 		// initialize with default codecs
 		extensionToCodecs := resourceCodecRegistryInstance.GetExtensionToCodecMap()
 		extensionToCodecs["ecore"] = &XMICodec{}

@@ -42,7 +42,7 @@ type EResourceSetImpl struct {
 	resources             EList
 	uriConverter          EURIConverter
 	uriResourceMap        map[*URI]EResource
-	resourceCodecRegistry EResourceCodecRegistry
+	resourceCodecRegistry ECodecRegistry
 	packageRegistry       EPackageRegistry
 }
 
@@ -155,14 +155,14 @@ func (r *EResourceSetImpl) SetPackageRegistry(packageRegistry EPackageRegistry) 
 	r.packageRegistry = packageRegistry
 }
 
-func (r *EResourceSetImpl) GetResourceCodecRegistry() EResourceCodecRegistry {
+func (r *EResourceSetImpl) GetResourceCodecRegistry() ECodecRegistry {
 	if r.resourceCodecRegistry == nil {
-		r.resourceCodecRegistry = NewEResourceCodecRegistryImplWithDelegate(GetResourceCodecRegistry())
+		r.resourceCodecRegistry = NewECodecRegistryImplWithDelegate(GetResourceCodecRegistry())
 	}
 	return r.resourceCodecRegistry
 }
 
-func (r *EResourceSetImpl) SetResourceCodecRegistry(resourceCodecRegistry EResourceCodecRegistry) {
+func (r *EResourceSetImpl) SetResourceCodecRegistry(resourceCodecRegistry ECodecRegistry) {
 	r.resourceCodecRegistry = resourceCodecRegistry
 }
 

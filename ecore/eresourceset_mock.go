@@ -219,15 +219,15 @@ func (_c *MockEResourceSet_GetResource_Call) Return(_a0 EResource) *MockEResourc
 }
 
 // GetResourceCodecRegistry provides a mock function with given fields:
-func (_m *MockEResourceSet_Prototype_Methods) GetResourceCodecRegistry() EResourceCodecRegistry {
+func (_m *MockEResourceSet_Prototype_Methods) GetResourceCodecRegistry() ECodecRegistry {
 	ret := _m.mock.Called()
 
-	var r0 EResourceCodecRegistry
-	if rf, ok := ret.Get(0).(func() EResourceCodecRegistry); ok {
+	var r0 ECodecRegistry
+	if rf, ok := ret.Get(0).(func() ECodecRegistry); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(EResourceCodecRegistry)
+			r0 = ret.Get(0).(ECodecRegistry)
 		}
 	}
 
@@ -251,7 +251,7 @@ func (_c *MockEResourceSet_GetResourceCodecRegistry_Call) Run(run func()) *MockE
 	return _c
 }
 
-func (_c *MockEResourceSet_GetResourceCodecRegistry_Call) Return(_a0 EResourceCodecRegistry) *MockEResourceSet_GetResourceCodecRegistry_Call {
+func (_c *MockEResourceSet_GetResourceCodecRegistry_Call) Return(_a0 ECodecRegistry) *MockEResourceSet_GetResourceCodecRegistry_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
@@ -399,7 +399,7 @@ func (_c *MockEResourceSet_SetPackageRegistry_Call) Return() *MockEResourceSet_S
 }
 
 // SetResourceCodecRegistry provides a mock function with given fields: resourceCodecRegistry
-func (_m *MockEResourceSet_Prototype_Methods) SetResourceCodecRegistry(resourceCodecRegistry EResourceCodecRegistry) {
+func (_m *MockEResourceSet_Prototype_Methods) SetResourceCodecRegistry(resourceCodecRegistry ECodecRegistry) {
 	_m.mock.Called(resourceCodecRegistry)
 }
 
@@ -409,14 +409,14 @@ type MockEResourceSet_SetResourceCodecRegistry_Call struct {
 }
 
 // SetResourceCodecRegistry is a helper method to define mock.On call
-//   - resourceCodecRegistry EResourceCodecRegistry
+//   - resourceCodecRegistry ECodecRegistry
 func (_e *MockEResourceSet_Expecter_Methods) SetResourceCodecRegistry(resourceCodecRegistry interface{}) *MockEResourceSet_SetResourceCodecRegistry_Call {
 	return &MockEResourceSet_SetResourceCodecRegistry_Call{Call: _e.mock.On("SetResourceCodecRegistry", resourceCodecRegistry)}
 }
 
-func (_c *MockEResourceSet_SetResourceCodecRegistry_Call) Run(run func(resourceCodecRegistry EResourceCodecRegistry)) *MockEResourceSet_SetResourceCodecRegistry_Call {
+func (_c *MockEResourceSet_SetResourceCodecRegistry_Call) Run(run func(resourceCodecRegistry ECodecRegistry)) *MockEResourceSet_SetResourceCodecRegistry_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(EResourceCodecRegistry))
+		run(args[0].(ECodecRegistry))
 	})
 	return _c
 }

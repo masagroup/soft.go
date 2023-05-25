@@ -15,21 +15,21 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-// MockEResourceCodec is mock type for the EResourceCodec type
-type MockEResourceCodec struct {
+// MockECodec is mock type for the ECodec type
+type MockECodec struct {
 	mock.Mock
 }
 
-type MockEResourceCodec_Expecter struct {
+type MockECodec_Expecter struct {
 	mock *mock.Mock
 }
 
-func (_m *MockEResourceCodec) EXPECT() *MockEResourceCodec_Expecter {
-	return &MockEResourceCodec_Expecter{mock: &_m.Mock}
+func (_m *MockECodec) EXPECT() *MockECodec_Expecter {
+	return &MockECodec_Expecter{mock: &_m.Mock}
 }
 
 // NewDecoder provides a mock function with given fields: resource, r, options
-func (_m *MockEResourceCodec) NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EResourceDecoder {
+func (_m *MockECodec) NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EResourceDecoder {
 	ret := _m.Called(resource, r, options)
 
 	var r0 EResourceDecoder
@@ -44,8 +44,8 @@ func (_m *MockEResourceCodec) NewDecoder(resource EResource, r io.Reader, option
 	return r0
 }
 
-// MockEResourceCodec_NewDecoder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewDecoder'
-type MockEResourceCodec_NewDecoder_Call struct {
+// MockECodec_NewDecoder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewDecoder'
+type MockECodec_NewDecoder_Call struct {
 	*mock.Call
 }
 
@@ -53,24 +53,24 @@ type MockEResourceCodec_NewDecoder_Call struct {
 //   - resource EResource
 //   - r io.Reader
 //   - options map[string]interface{}
-func (_e *MockEResourceCodec_Expecter) NewDecoder(resource interface{}, r interface{}, options interface{}) *MockEResourceCodec_NewDecoder_Call {
-	return &MockEResourceCodec_NewDecoder_Call{Call: _e.mock.On("NewDecoder", resource, r, options)}
+func (_e *MockECodec_Expecter) NewDecoder(resource interface{}, r interface{}, options interface{}) *MockECodec_NewDecoder_Call {
+	return &MockECodec_NewDecoder_Call{Call: _e.mock.On("NewDecoder", resource, r, options)}
 }
 
-func (_c *MockEResourceCodec_NewDecoder_Call) Run(run func(resource EResource, r io.Reader, options map[string]interface{})) *MockEResourceCodec_NewDecoder_Call {
+func (_c *MockECodec_NewDecoder_Call) Run(run func(resource EResource, r io.Reader, options map[string]interface{})) *MockECodec_NewDecoder_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(EResource), args[1].(io.Reader), args[2].(map[string]interface{}))
 	})
 	return _c
 }
 
-func (_c *MockEResourceCodec_NewDecoder_Call) Return(_a0 EResourceDecoder) *MockEResourceCodec_NewDecoder_Call {
+func (_c *MockECodec_NewDecoder_Call) Return(_a0 EResourceDecoder) *MockECodec_NewDecoder_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
 // NewEncoder provides a mock function with given fields: resource, w, options
-func (_m *MockEResourceCodec) NewEncoder(resource EResource, w io.Writer, options map[string]interface{}) EResourceEncoder {
+func (_m *MockECodec) NewEncoder(resource EResource, w io.Writer, options map[string]interface{}) EResourceEncoder {
 	ret := _m.Called(resource, w, options)
 
 	var r0 EResourceEncoder
@@ -85,8 +85,8 @@ func (_m *MockEResourceCodec) NewEncoder(resource EResource, w io.Writer, option
 	return r0
 }
 
-// MockEResourceCodec_NewEncoder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewEncoder'
-type MockEResourceCodec_NewEncoder_Call struct {
+// MockECodec_NewEncoder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewEncoder'
+type MockECodec_NewEncoder_Call struct {
 	*mock.Call
 }
 
@@ -94,30 +94,30 @@ type MockEResourceCodec_NewEncoder_Call struct {
 //   - resource EResource
 //   - w io.Writer
 //   - options map[string]interface{}
-func (_e *MockEResourceCodec_Expecter) NewEncoder(resource interface{}, w interface{}, options interface{}) *MockEResourceCodec_NewEncoder_Call {
-	return &MockEResourceCodec_NewEncoder_Call{Call: _e.mock.On("NewEncoder", resource, w, options)}
+func (_e *MockECodec_Expecter) NewEncoder(resource interface{}, w interface{}, options interface{}) *MockECodec_NewEncoder_Call {
+	return &MockECodec_NewEncoder_Call{Call: _e.mock.On("NewEncoder", resource, w, options)}
 }
 
-func (_c *MockEResourceCodec_NewEncoder_Call) Run(run func(resource EResource, w io.Writer, options map[string]interface{})) *MockEResourceCodec_NewEncoder_Call {
+func (_c *MockECodec_NewEncoder_Call) Run(run func(resource EResource, w io.Writer, options map[string]interface{})) *MockECodec_NewEncoder_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(EResource), args[1].(io.Writer), args[2].(map[string]interface{}))
 	})
 	return _c
 }
 
-func (_c *MockEResourceCodec_NewEncoder_Call) Return(_a0 EResourceEncoder) *MockEResourceCodec_NewEncoder_Call {
+func (_c *MockECodec_NewEncoder_Call) Return(_a0 EResourceEncoder) *MockECodec_NewEncoder_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-type mockConstructorTestingTNewMockEResourceCodec interface {
+type mockConstructorTestingTNewMockECodec interface {
 	mock.TestingT
 	Cleanup(func())
 }
 
-// NewMockEResourceCodec creates a new instance of MockEResourceCodec. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func NewMockEResourceCodec(t mockConstructorTestingTNewMockEResourceCodec) *MockEResourceCodec {
-	mock := &MockEResourceCodec{}
+// NewMockECodec creates a new instance of MockECodec. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockECodec(t mockConstructorTestingTNewMockECodec) *MockECodec {
+	mock := &MockECodec{}
 	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })

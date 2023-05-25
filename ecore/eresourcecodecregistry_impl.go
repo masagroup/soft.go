@@ -11,28 +11,28 @@ package ecore
 
 import "strings"
 
-type EResourceCodecRegistryImpl struct {
-	protocolToCodec  map[string]EResourceCodec
-	extensionToCodec map[string]EResourceCodec
-	delegate         EResourceCodecRegistry
+type ECodecRegistryImpl struct {
+	protocolToCodec  map[string]ECodec
+	extensionToCodec map[string]ECodec
+	delegate         ECodecRegistry
 }
 
-func NewEResourceCodecRegistryImpl() *EResourceCodecRegistryImpl {
-	return &EResourceCodecRegistryImpl{
-		protocolToCodec:  make(map[string]EResourceCodec),
-		extensionToCodec: make(map[string]EResourceCodec),
+func NewECodecRegistryImpl() *ECodecRegistryImpl {
+	return &ECodecRegistryImpl{
+		protocolToCodec:  make(map[string]ECodec),
+		extensionToCodec: make(map[string]ECodec),
 	}
 }
 
-func NewEResourceCodecRegistryImplWithDelegate(delegate EResourceCodecRegistry) *EResourceCodecRegistryImpl {
-	return &EResourceCodecRegistryImpl{
-		protocolToCodec:  make(map[string]EResourceCodec),
-		extensionToCodec: make(map[string]EResourceCodec),
+func NewECodecRegistryImplWithDelegate(delegate ECodecRegistry) *ECodecRegistryImpl {
+	return &ECodecRegistryImpl{
+		protocolToCodec:  make(map[string]ECodec),
+		extensionToCodec: make(map[string]ECodec),
 		delegate:         delegate,
 	}
 }
 
-func (r *EResourceCodecRegistryImpl) GetCodec(uri *URI) EResourceCodec {
+func (r *ECodecRegistryImpl) GetCodec(uri *URI) ECodec {
 	if factory, ok := r.protocolToCodec[uri.scheme]; ok {
 		return factory
 	}
@@ -53,10 +53,10 @@ func (r *EResourceCodecRegistryImpl) GetCodec(uri *URI) EResourceCodec {
 	return nil
 }
 
-func (r *EResourceCodecRegistryImpl) GetProtocolToCodecMap() map[string]EResourceCodec {
+func (r *ECodecRegistryImpl) GetProtocolToCodecMap() map[string]ECodec {
 	return r.protocolToCodec
 }
 
-func (r *EResourceCodecRegistryImpl) GetExtensionToCodecMap() map[string]EResourceCodec {
+func (r *ECodecRegistryImpl) GetExtensionToCodecMap() map[string]ECodec {
 	return r.extensionToCodec
 }

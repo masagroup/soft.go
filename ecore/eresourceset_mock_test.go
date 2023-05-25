@@ -110,10 +110,10 @@ func TestMockEResourceSetSetPackageRegistry(t *testing.T) {
 
 func TestMockEResourceSetGetResourceCodecRegistry(t *testing.T) {
 	rs := NewMockEResourceSet(t)
-	pr := NewMockEResourceCodecRegistry(t)
+	pr := NewMockECodecRegistry(t)
 	m := NewMockRun(t)
 	rs.EXPECT().GetResourceCodecRegistry().Return(pr).Run(func() { m.Run() }).Once()
-	rs.EXPECT().GetResourceCodecRegistry().Call.Return(func() EResourceCodecRegistry {
+	rs.EXPECT().GetResourceCodecRegistry().Call.Return(func() ECodecRegistry {
 		return pr
 	}).Once()
 	assert.Equal(t, pr, rs.GetResourceCodecRegistry())
@@ -122,9 +122,9 @@ func TestMockEResourceSetGetResourceCodecRegistry(t *testing.T) {
 
 func TestMockEResourceSetSetResourceCodecRegistry(t *testing.T) {
 	rs := NewMockEResourceSet(t)
-	pr := NewMockEResourceCodecRegistry(t)
+	pr := NewMockECodecRegistry(t)
 	m := NewMockRun(t, pr)
-	rs.EXPECT().SetResourceCodecRegistry(pr).Return().Run(func(packageregistry EResourceCodecRegistry) { m.Run(packageregistry) }).Once()
+	rs.EXPECT().SetResourceCodecRegistry(pr).Return().Run(func(packageregistry ECodecRegistry) { m.Run(packageregistry) }).Once()
 	rs.SetResourceCodecRegistry(pr)
 }
 

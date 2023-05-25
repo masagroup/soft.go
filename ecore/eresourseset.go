@@ -29,8 +29,8 @@ type EResourceSet interface {
 	GetPackageRegistry() EPackageRegistry
 	SetPackageRegistry(packageregistry EPackageRegistry)
 
-	GetResourceCodecRegistry() EResourceCodecRegistry
-	SetResourceCodecRegistry(resourceCodecRegistry EResourceCodecRegistry)
+	GetResourceCodecRegistry() ECodecRegistry
+	SetResourceCodecRegistry(resourceCodecRegistry ECodecRegistry)
 
 	SetURIResourceMap(uriMap map[*URI]EResource)
 	GetURIResourceMap() map[*URI]EResource

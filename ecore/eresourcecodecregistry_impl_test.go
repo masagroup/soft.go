@@ -15,20 +15,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEResourceCodecRegistryGetCodecProtocol(t *testing.T) {
-	mockCodec := new(MockEResourceCodec)
+func TestECodecRegistryGetCodecProtocol(t *testing.T) {
+	mockCodec := new(MockECodec)
 
-	rfr := NewEResourceCodecRegistryImpl()
+	rfr := NewECodecRegistryImpl()
 	rfr.GetProtocolToCodecMap()["test"] = mockCodec
 
 	assert.Equal(t, mockCodec, rfr.GetCodec(NewURI("test:///file.t")))
 	assert.Nil(t, rfr.GetCodec(NewURI("file:///file.t")))
 }
 
-func TestEResourceCodecRegistryGetCodecExtension(t *testing.T) {
-	mockCodec := new(MockEResourceCodec)
+func TestECodecRegistryGetCodecExtension(t *testing.T) {
+	mockCodec := new(MockECodec)
 
-	rfr := NewEResourceCodecRegistryImpl()
+	rfr := NewECodecRegistryImpl()
 	rfr.GetExtensionToCodecMap()["test"] = mockCodec
 
 	assert.Equal(t, mockCodec, rfr.GetCodec(NewURI("test:///file.test")))

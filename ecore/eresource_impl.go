@@ -409,7 +409,7 @@ func (r *EResourceImpl) getURIConverter() EURIConverter {
 	return defaultURIConverter
 }
 
-func (r *EResourceImpl) getResourceCodecRegistry() EResourceCodecRegistry {
+func (r *EResourceImpl) getResourceCodecRegistry() ECodecRegistry {
 	if r.resourceSet != nil {
 		return r.resourceSet.GetResourceCodecRegistry()
 	}

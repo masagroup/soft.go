@@ -26,19 +26,19 @@ func (_m *MockEDecoder) EXPECT() *MockEDecoder_Expecter {
 	return &MockEDecoder_Expecter{mock: &_m.Mock}
 }
 
-// Decode provides a mock function with given fields:
-func (_m *MockEDecoder) Decode() {
+// DecodeResource provides a mock function with given fields:
+func (_m *MockEDecoder) DecodeResource() {
 	_m.Called()
 }
 
-// MockEDecoder_Decode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Decode'
+// MockEDecoder_Decode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DecodeResource'
 type MockEDecoder_Decode_Call struct {
 	*mock.Call
 }
 
-// Decode is a helper method to define mock.On call
-func (_e *MockEDecoder_Expecter) Decode() *MockEDecoder_Decode_Call {
-	return &MockEDecoder_Decode_Call{Call: _e.mock.On("Decode")}
+// DecodeResource is a helper method to define mock.On call
+func (_e *MockEDecoder_Expecter) DecodeResource() *MockEDecoder_Decode_Call {
+	return &MockEDecoder_Decode_Call{Call: _e.mock.On("DecodeResource")}
 }
 
 func (_c *MockEDecoder_Decode_Call) Run(run func()) *MockEDecoder_Decode_Call {

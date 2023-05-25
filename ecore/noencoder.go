@@ -12,7 +12,7 @@ package ecore
 type NoEncoder struct {
 }
 
-func (ne *NoEncoder) Encode() {
+func (ne *NoEncoder) EncodeResource() {
 
 }
 

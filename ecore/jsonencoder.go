@@ -28,7 +28,7 @@ func NewJSONEncoder(resource EResource, w io.Writer, options map[string]interfac
 	return e
 }
 
-func (e *JSONEncoder) Encode() {
+func (e *JSONEncoder) EncodeResource() {
 	e.errorFn = func(diagnostic EDiagnostic) {
 		e.resource.GetErrors().Add(diagnostic)
 	}

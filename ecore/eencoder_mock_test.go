@@ -18,8 +18,8 @@ import (
 func TestMockEEncoder_Encode(t *testing.T) {
 	m := NewMockRun(t)
 	mockEncoder := NewMockEEncoder(t)
-	mockEncoder.EXPECT().Encode().Return().Run(func() { m.Run() }).Once()
-	mockEncoder.Encode()
+	mockEncoder.EXPECT().EncodeResource().Return().Run(func() { m.Run() }).Once()
+	mockEncoder.EncodeResource()
 }
 
 func TestMockEEncoder_EncodeObject(t *testing.T) {

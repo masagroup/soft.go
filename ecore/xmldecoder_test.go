@@ -392,7 +392,7 @@ func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 		_, err = r.Seek(0, io.SeekStart)
 		require.Nil(b, err)
 		xmlDecoder := NewXMLDecoder(eResource, r, nil)
-		xmlDecoder.Decode()
+		xmlDecoder.DecodeResource()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}
 }

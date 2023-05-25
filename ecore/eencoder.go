@@ -10,6 +10,6 @@
 package ecore
 
 type EEncoder interface {
-	Encode()
+	EncodeResource()
 	EncodeObject(object EObject) error
 }

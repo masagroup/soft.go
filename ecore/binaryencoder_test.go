@@ -25,7 +25,7 @@ func TestBinaryEncoder_Complex(t *testing.T) {
 	// w, err := os.Create("testdata/library.complex.bin")
 	w := &bytes.Buffer{}
 	binaryEncoder := NewBinaryEncoder(eResource, w, nil)
-	binaryEncoder.Encode()
+	binaryEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	//os.WriteFile("testdata/library.complex.bin", w.Bytes(), 0644)
@@ -61,7 +61,7 @@ func TestBinaryEncoder_ComplexWithID(t *testing.T) {
 
 	w := &bytes.Buffer{}
 	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]any{BINARY_OPTION_ID_ATTRIBUTE: true})
-	binaryEncoder.Encode()
+	binaryEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	//os.WriteFile("testdata/library.complex.id.bin", w.Bytes(), 0644)
@@ -86,7 +86,7 @@ func TestBinaryEncoder_ComplexBig(t *testing.T) {
 
 	w := &bytes.Buffer{}
 	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]any{})
-	binaryEncoder.Encode()
+	binaryEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	//os.WriteFile("testdata/library.complex.big.bin", w.Bytes(), 0644)
@@ -111,7 +111,7 @@ func TestBinaryEncoder_SimpleWithDataTypeList(t *testing.T) {
 
 	w := &bytes.Buffer{}
 	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]any{})
-	binaryEncoder.Encode()
+	binaryEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	//os.WriteFile("testdata/library.datalist.bin", w.Bytes(), 0644)
@@ -136,7 +136,7 @@ func TestBinaryEncoder_Maps(t *testing.T) {
 
 	w := &bytes.Buffer{}
 	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]any{})
-	binaryEncoder.Encode()
+	binaryEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	// os.WriteFile("testdata/emap.bin", w.Bytes(), 0644)
@@ -160,7 +160,7 @@ func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var buffer bytes.Buffer
 		binaryEncoder := NewBinaryEncoder(eResource, &buffer, nil)
-		binaryEncoder.Encode()
+		binaryEncoder.EncodeResource()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}
 }

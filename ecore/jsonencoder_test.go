@@ -25,7 +25,7 @@ func TestJSONEncoder_EncodeResourceSimple(t *testing.T) {
 	defer f.Close()
 
 	encoder := NewJSONEncoder(eResource, f, nil)
-	encoder.Encode()
+	encoder.EncodeResource()
 }
 
 func TestJSONEncoder_EncodeResourceComplex(t *testing.T) {
@@ -45,5 +45,5 @@ func TestJSONEncoder_EncodeResourceComplex(t *testing.T) {
 	defer f.Close()
 
 	encoder := NewJSONEncoder(eResource, f, nil)
-	encoder.Encode()
+	encoder.EncodeResource()
 }

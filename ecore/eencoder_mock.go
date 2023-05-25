@@ -17,19 +17,19 @@ func (_m *MockEEncoder) EXPECT() *MockEEncoder_Expecter {
 	return &MockEEncoder_Expecter{mock: &_m.Mock}
 }
 
-// Encode provides a mock function with given fields:
-func (_m *MockEEncoder) Encode() {
+// EncodeResource provides a mock function with given fields:
+func (_m *MockEEncoder) EncodeResource() {
 	_m.Called()
 }
 
-// MockEEncoder_Encode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Encode'
+// MockEEncoder_Encode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EncodeResource'
 type MockEEncoder_Encode_Call struct {
 	*mock.Call
 }
 
-// Encode is a helper method to define mock.On call
-func (_e *MockEEncoder_Expecter) Encode() *MockEEncoder_Encode_Call {
-	return &MockEEncoder_Encode_Call{Call: _e.mock.On("Encode")}
+// EncodeResource is a helper method to define mock.On call
+func (_e *MockEEncoder_Expecter) EncodeResource() *MockEEncoder_Encode_Call {
+	return &MockEEncoder_Encode_Call{Call: _e.mock.On("EncodeResource")}
 }
 
 func (_c *MockEEncoder_Encode_Call) Run(run func()) *MockEEncoder_Encode_Call {

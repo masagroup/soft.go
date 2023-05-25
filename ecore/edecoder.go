@@ -10,6 +10,6 @@
 package ecore
 
 type EDecoder interface {
-	Decode()
+	DecodeResource()
 	DecodeObject() (EObject, error)
 }

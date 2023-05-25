@@ -18,8 +18,8 @@ import (
 func TestMockEDecoder_DecodeResource(t *testing.T) {
 	mockDecoder := NewMockEDecoder(t)
 	m := NewMockRun(t)
-	mockDecoder.EXPECT().Decode().Return().Run(func() { m.Run() }).Once()
-	mockDecoder.Decode()
+	mockDecoder.EXPECT().DecodeResource().Return().Run(func() { m.Run() }).Once()
+	mockDecoder.DecodeResource()
 }
 
 func TestMockEDecoder_DecodeObject(t *testing.T) {

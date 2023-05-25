@@ -116,7 +116,7 @@ func (l *XMLDecoder) GetEncoding() string {
 	return l.encoding
 }
 
-func (l *XMLDecoder) Decode() {
+func (l *XMLDecoder) DecodeResource() {
 	l.attachFn = func(object EObject) {
 		l.resource.GetContents().Add(object)
 	}

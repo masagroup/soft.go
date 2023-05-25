@@ -14,7 +14,7 @@ import "io"
 type NoCodec struct {
 }
 
-func (nc *NoCodec) NewEncoder(resource EResource, w io.Writer, options map[string]any) EResourceEncoder {
+func (nc *NoCodec) NewEncoder(resource EResource, w io.Writer, options map[string]any) EEncoder {
 	return &NoEncoder{}
 }
 

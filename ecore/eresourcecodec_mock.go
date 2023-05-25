@@ -70,15 +70,15 @@ func (_c *MockECodec_NewDecoder_Call) Return(_a0 EResourceDecoder) *MockECodec_N
 }
 
 // NewEncoder provides a mock function with given fields: resource, w, options
-func (_m *MockECodec) NewEncoder(resource EResource, w io.Writer, options map[string]interface{}) EResourceEncoder {
+func (_m *MockECodec) NewEncoder(resource EResource, w io.Writer, options map[string]interface{}) EEncoder {
 	ret := _m.Called(resource, w, options)
 
-	var r0 EResourceEncoder
-	if rf, ok := ret.Get(0).(func(EResource, io.Writer, map[string]interface{}) EResourceEncoder); ok {
+	var r0 EEncoder
+	if rf, ok := ret.Get(0).(func(EResource, io.Writer, map[string]interface{}) EEncoder); ok {
 		r0 = rf(resource, w, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(EResourceEncoder)
+			r0 = ret.Get(0).(EEncoder)
 		}
 	}
 
@@ -105,7 +105,7 @@ func (_c *MockECodec_NewEncoder_Call) Run(run func(resource EResource, w io.Writ
 	return _c
 }
 
-func (_c *MockECodec_NewEncoder_Call) Return(_a0 EResourceEncoder) *MockECodec_NewEncoder_Call {
+func (_c *MockECodec_NewEncoder_Call) Return(_a0 EEncoder) *MockECodec_NewEncoder_Call {
 	_c.Call.Return(_a0)
 	return _c
 }

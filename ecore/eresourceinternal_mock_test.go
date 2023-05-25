@@ -25,9 +25,9 @@ func TestMockEResourceInternalDoLoad(t *testing.T) {
 
 func TestMockEResourceInternalDoSave(t *testing.T) {
 	mockResource := NewMockEResourceInternal(t)
-	mockEncoder := NewMockEResourceEncoder(t)
+	mockEncoder := NewMockEEncoder(t)
 	m := NewMockRun(t, mockEncoder)
-	mockResource.EXPECT().DoSave(mockEncoder).Return().Run(func(encoder EResourceEncoder) { m.Run(encoder) }).Once()
+	mockResource.EXPECT().DoSave(mockEncoder).Return().Run(func(encoder EEncoder) { m.Run(encoder) }).Once()
 	mockResource.DoSave(mockEncoder)
 }
 

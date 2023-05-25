@@ -33,13 +33,13 @@ func TestMockECodec_NewDecoder(t *testing.T) {
 
 func TestMockECodec_NewEncoder(t *testing.T) {
 	mockCodec := &MockECodec{}
-	mockEncoder := &MockEResourceEncoder{}
+	mockEncoder := &MockEEncoder{}
 	mockResource := NewMockEResource(t)
 	options := map[string]any{}
 	writer := bytes.NewBufferString("")
 	m := NewMockRun(t, mockResource, writer, options)
 	mockCodec.EXPECT().NewEncoder(mockResource, writer, options).Return(mockEncoder).Run(func(resource EResource, r io.Writer, options map[string]interface{}) { m.Run(resource, r, options) }).Once()
-	mockCodec.EXPECT().NewEncoder(mockResource, writer, options).Call.Return(func(EResource, io.Writer, map[string]any) EResourceEncoder { return mockEncoder }).Once()
+	mockCodec.EXPECT().NewEncoder(mockResource, writer, options).Call.Return(func(EResource, io.Writer, map[string]any) EEncoder { return mockEncoder }).Once()
 	assert.Equal(t, mockEncoder, mockCodec.NewEncoder(mockResource, writer, options))
 	assert.Equal(t, mockEncoder, mockCodec.NewEncoder(mockResource, writer, options))
 }

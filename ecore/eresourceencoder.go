@@ -9,7 +9,7 @@
 
 package ecore
 
-type EResourceEncoder interface {
+type EEncoder interface {
 	Encode()
 	EncodeObject(object EObject) error
 }

@@ -11,7 +11,7 @@ type EResourceInternal interface {
 	EResource
 
 	DoLoad(decoder EResourceDecoder)
-	DoSave(encoder EResourceEncoder)
+	DoSave(encoder EEncoder)
 	DoUnload()
 
 	IsAttachedDetachedRequired() bool
@@ -541,7 +541,7 @@ func (r *EResourceImpl) SaveWithWriter(w io.Writer, options map[string]any) {
 	}
 }
 
-func (r *EResourceImpl) DoSave(encoder EResourceEncoder) {
+func (r *EResourceImpl) DoSave(encoder EEncoder) {
 	encoder.Encode()
 }
 

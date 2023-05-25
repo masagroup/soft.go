@@ -29,7 +29,7 @@ func TestBinaryDecoder_Complex(t *testing.T) {
 	require.Nil(t, err)
 
 	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
-	binaryDecoder.Decode()
+	binaryDecoder.DecodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	// retrieve document root class , library class & library name attribute
@@ -113,7 +113,7 @@ func TestBinaryDecoder_ComplexWithID(t *testing.T) {
 	require.Nil(t, err)
 
 	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
-	binaryDecoder.Decode()
+	binaryDecoder.DecodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	// retrieve document root class , library class & library name attribute
@@ -152,7 +152,7 @@ func TestBinaryDecoder_SimpleWithEDataTypeList(t *testing.T) {
 	require.Nil(t, err)
 
 	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
-	binaryDecoder.Decode()
+	binaryDecoder.DecodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	// retrieve library class & library name attribute
@@ -200,7 +200,7 @@ func TestBinaryDecoder_ComplexBig(t *testing.T) {
 	require.Nil(t, err)
 
 	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
-	binaryDecoder.Decode()
+	binaryDecoder.DecodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 }
 
@@ -222,7 +222,7 @@ func TestBinaryDecoder_Maps(t *testing.T) {
 	require.Nil(t, err)
 
 	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
-	binaryDecoder.Decode()
+	binaryDecoder.DecodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	eMapTestClass, _ := ePackage.GetEClassifier("EMapTest").(EClass)
@@ -273,7 +273,7 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 		_, err = r.Seek(0, io.SeekStart)
 		require.Nil(b, err)
 		binaryDecoder := NewBinaryDecoder(eResource, r, nil)
-		binaryDecoder.Decode()
+		binaryDecoder.DecodeResource()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}
 }

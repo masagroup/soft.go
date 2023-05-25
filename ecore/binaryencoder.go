@@ -89,7 +89,7 @@ func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[st
 	return e
 }
 
-func (e *BinaryEncoder) Encode() {
+func (e *BinaryEncoder) EncodeResource() {
 	if !binaryDebug {
 		defer func() {
 			if err, _ := recover().(error); err != nil {

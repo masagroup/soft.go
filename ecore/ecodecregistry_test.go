@@ -17,14 +17,14 @@ import (
 )
 
 func TestResoureCodecRegistrySingleton(t *testing.T) {
-	r := GetResourceCodecRegistry()
+	r := GetCodecRegistry()
 	require.NotNil(t, r)
 	assert.NotNil(t, r.GetExtensionToCodecMap()["ecore"])
 	assert.NotNil(t, r.GetExtensionToCodecMap()["xml"])
 }
 
 func TestResoureCodecRegistrySingletonGetCodec(t *testing.T) {
-	r := GetResourceCodecRegistry()
+	r := GetCodecRegistry()
 	assert.NotNil(t, r.GetCodec(NewURI("*.xml")))
 	assert.NotNil(t, r.GetCodec(NewURI("*.ecore")))
 }

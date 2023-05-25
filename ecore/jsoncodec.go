@@ -20,10 +20,10 @@ const (
 type JSONCodec struct {
 }
 
-func (jc *JSONCodec) NewEncoder(resource EResource, w io.Writer, options map[string]interface{}) EResourceEncoder {
+func (jc *JSONCodec) NewEncoder(resource EResource, w io.Writer, options map[string]interface{}) EEncoder {
 	return NewJSONEncoder(resource, w, options)
 }
-func (jc *JSONCodec) NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EResourceDecoder {
+func (jc *JSONCodec) NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EDecoder {
 	panic("not implemented")
 }
 

@@ -202,7 +202,7 @@ func (_c *MockEResourceInternal_DoDetached_Call) Return() *MockEResourceInternal
 }
 
 // DoLoad provides a mock function with given fields: decoder
-func (_m *MockEResourceInternal_Prototype_Methods) DoLoad(decoder EResourceDecoder) {
+func (_m *MockEResourceInternal_Prototype_Methods) DoLoad(decoder EDecoder) {
 	_m.mock.Called(decoder)
 }
 
@@ -212,14 +212,14 @@ type MockEResourceInternal_DoLoad_Call struct {
 }
 
 // DoLoad is a helper method to define mock.On call
-//   - decoder EResourceDecoder
+//   - decoder EDecoder
 func (_e *MockEResourceInternal_Expecter_Methods) DoLoad(decoder interface{}) *MockEResourceInternal_DoLoad_Call {
 	return &MockEResourceInternal_DoLoad_Call{Call: _e.mock.On("DoLoad", decoder)}
 }
 
-func (_c *MockEResourceInternal_DoLoad_Call) Run(run func(decoder EResourceDecoder)) *MockEResourceInternal_DoLoad_Call {
+func (_c *MockEResourceInternal_DoLoad_Call) Run(run func(decoder EDecoder)) *MockEResourceInternal_DoLoad_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(EResourceDecoder))
+		run(args[0].(EDecoder))
 	})
 	return _c
 }
@@ -230,7 +230,7 @@ func (_c *MockEResourceInternal_DoLoad_Call) Return() *MockEResourceInternal_DoL
 }
 
 // DoSave provides a mock function with given fields: encoder
-func (_m *MockEResourceInternal_Prototype_Methods) DoSave(encoder EResourceEncoder) {
+func (_m *MockEResourceInternal_Prototype_Methods) DoSave(encoder EEncoder) {
 	_m.mock.Called(encoder)
 }
 
@@ -240,14 +240,14 @@ type MockEResourceInternal_DoSave_Call struct {
 }
 
 // DoSave is a helper method to define mock.On call
-//   - encoder EResourceEncoder
+//   - encoder EEncoder
 func (_e *MockEResourceInternal_Expecter_Methods) DoSave(encoder interface{}) *MockEResourceInternal_DoSave_Call {
 	return &MockEResourceInternal_DoSave_Call{Call: _e.mock.On("DoSave", encoder)}
 }
 
-func (_c *MockEResourceInternal_DoSave_Call) Run(run func(encoder EResourceEncoder)) *MockEResourceInternal_DoSave_Call {
+func (_c *MockEResourceInternal_DoSave_Call) Run(run func(encoder EEncoder)) *MockEResourceInternal_DoSave_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(EResourceEncoder))
+		run(args[0].(EEncoder))
 	})
 	return _c
 }

@@ -10,7 +10,7 @@ func TestNoCodec_Decoder(t *testing.T) {
 	mockResource := NewMockEResource(t)
 	cd := &NoCodec{}
 	d := cd.NewDecoder(mockResource, nil, nil)
-	d.Decode()
+	d.DecodeResource()
 	o, err := d.DecodeObject()
 	assert.Nil(t, o)
 	assert.Nil(t, err)
@@ -21,7 +21,7 @@ func TestNoCodec_Encoder(t *testing.T) {
 	mockObject := NewMockEObject(t)
 	cd := &NoCodec{}
 	d := cd.NewEncoder(mockResource, nil, nil)
-	d.Encode()
+	d.EncodeResource()
 	err := d.EncodeObject(mockObject)
 	assert.Nil(t, err)
 }

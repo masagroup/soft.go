@@ -17,17 +17,17 @@ import (
 
 func TestMockEResourceInternalDoLoad(t *testing.T) {
 	mockResource := NewMockEResourceInternal(t)
-	mockDecoder := NewMockEResourceDecoder(t)
+	mockDecoder := NewMockEDecoder(t)
 	m := NewMockRun(t, mockDecoder)
-	mockResource.EXPECT().DoLoad(mockDecoder).Return().Run(func(decoder EResourceDecoder) { m.Run(decoder) }).Once()
+	mockResource.EXPECT().DoLoad(mockDecoder).Return().Run(func(decoder EDecoder) { m.Run(decoder) }).Once()
 	mockResource.DoLoad(mockDecoder)
 }
 
 func TestMockEResourceInternalDoSave(t *testing.T) {
 	mockResource := NewMockEResourceInternal(t)
-	mockEncoder := NewMockEResourceEncoder(t)
+	mockEncoder := NewMockEEncoder(t)
 	m := NewMockRun(t, mockEncoder)
-	mockResource.EXPECT().DoSave(mockEncoder).Return().Run(func(encoder EResourceEncoder) { m.Run(encoder) }).Once()
+	mockResource.EXPECT().DoSave(mockEncoder).Return().Run(func(encoder EEncoder) { m.Run(encoder) }).Once()
 	mockResource.DoSave(mockEncoder)
 }
 

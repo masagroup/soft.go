@@ -14,10 +14,10 @@ import "io"
 type NoCodec struct {
 }
 
-func (nc *NoCodec) NewEncoder(resource EResource, w io.Writer, options map[string]any) EResourceEncoder {
+func (nc *NoCodec) NewEncoder(resource EResource, w io.Writer, options map[string]any) EEncoder {
 	return &NoEncoder{}
 }
 
-func (nc *NoCodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EResourceDecoder {
+func (nc *NoCodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EDecoder {
 	return &NoDecoder{}
 }

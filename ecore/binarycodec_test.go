@@ -194,12 +194,12 @@ func TestBinaryCodec_EncodeDecodeEcore(t *testing.T) {
 	buffer := bytes.Buffer{}
 	c := &BinaryCodec{}
 	encoder := c.NewEncoder(ePackage.EResource(), &buffer, nil)
-	encoder.Encode()
+	encoder.EncodeResource()
 
 	// decode buffer into another resource
 	eNewResource := NewEResourceImpl()
 	decoder := c.NewDecoder(eNewResource, &buffer, nil)
-	decoder.Decode()
+	decoder.DecodeResource()
 	require.True(t, eNewResource.GetErrors().Empty(), diagnosticError(eNewResource.GetErrors()))
 
 	eNewPackage, _ := eNewResource.GetContents().Get(0).(EPackage)
@@ -269,7 +269,7 @@ func TestBinaryCodec_EncodeDecodeResource_WithReferences(t *testing.T) {
 	// encode orders resource
 	var buffer bytes.Buffer
 	binaryEncoder := NewBinaryEncoder(eOrdersModelResource, &buffer, binaryCodecOptions)
-	binaryEncoder.Encode()
+	binaryEncoder.EncodeResource()
 	require.True(t, eOrdersModelResource.GetErrors().Empty(), diagnosticError(eOrdersModelResource.GetErrors()))
 	eResourceSet.GetResources().Remove(eOrdersModelResource)
 
@@ -279,7 +279,7 @@ func TestBinaryCodec_EncodeDecodeResource_WithReferences(t *testing.T) {
 	eOrdersModelResource.SetURI(NewURI("testdata/orders.xml"))
 	eResourceSet.GetResources().Add(eOrdersModelResource)
 	binaryDecoder := NewBinaryDecoder(eOrdersModelResource, &buffer, binaryCodecOptions)
-	binaryDecoder.Decode()
+	binaryDecoder.DecodeResource()
 	require.True(t, eOrdersModelResource.GetErrors().Empty(), diagnosticError(eOrdersModelResource.GetErrors()))
 
 	eProducClass, _ := eShopPackage.GetEClassifier("Product").(EClass)

@@ -66,7 +66,7 @@ func NewBinaryDecoder(resource EResource, r io.Reader, options map[string]any) *
 	return d
 }
 
-func (d *BinaryDecoder) Decode() {
+func (d *BinaryDecoder) DecodeResource() {
 	if !binaryDebug {
 		defer func() {
 			if err, _ := recover().(error); err != nil {

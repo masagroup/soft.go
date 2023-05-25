@@ -12,7 +12,7 @@ package ecore
 type NoDecoder struct {
 }
 
-func (de *NoDecoder) Decode() {
+func (de *NoDecoder) DecodeResource() {
 
 }
 

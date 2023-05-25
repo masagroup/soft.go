@@ -105,7 +105,7 @@ func (s *XMLEncoder) SetXMLVersion(xmlVersion string) {
 	s.xmlVersion = xmlVersion
 }
 
-func (s *XMLEncoder) Encode() {
+func (s *XMLEncoder) EncodeResource() {
 	s.errorFn = func(diagnostic EDiagnostic) {
 		s.resource.GetErrors().Add(diagnostic)
 	}

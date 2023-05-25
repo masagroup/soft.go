@@ -409,11 +409,11 @@ func (r *EResourceImpl) getURIConverter() EURIConverter {
 	return defaultURIConverter
 }
 
-func (r *EResourceImpl) getResourceCodecRegistry() ECodecRegistry {
+func (r *EResourceImpl) GetCodecRegistry() ECodecRegistry {
 	if r.resourceSet != nil {
-		return r.resourceSet.GetResourceCodecRegistry()
+		return r.resourceSet.GetCodecRegistry()
 	}
-	return GetResourceCodecRegistry()
+	return GetCodecRegistry()
 }
 
 func (r *EResourceImpl) Load() {
@@ -439,7 +439,7 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]any) {
 
 func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]any) {
 	if !r.isLoaded {
-		codecs := r.getResourceCodecRegistry()
+		codecs := r.GetCodecRegistry()
 		if codec := codecs.GetCodec(r.uri); codec == nil {
 			errors := r.GetErrors()
 			errors.Clear()
@@ -521,7 +521,7 @@ func (r *EResourceImpl) SaveWithOptions(options map[string]any) {
 }
 
 func (r *EResourceImpl) SaveWithWriter(w io.Writer, options map[string]any) {
-	codecs := r.getResourceCodecRegistry()
+	codecs := r.GetCodecRegistry()
 	if codec := codecs.GetCodec(r.uri); codec == nil {
 		errors := r.GetErrors()
 		errors.Clear()

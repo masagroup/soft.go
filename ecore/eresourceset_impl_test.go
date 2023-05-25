@@ -86,13 +86,13 @@ func TestEResourceSet_GetPackageRegistry(t *testing.T) {
 	assert.Equal(t, mockPackageRegistry, rs.GetPackageRegistry())
 }
 
-func TestEResourceSet_GetResourceCodecRegistry(t *testing.T) {
+func TestEResourceSet_GetCodecRegistry(t *testing.T) {
 	rs := NewEResourceSetImpl()
-	assert.NotNil(t, rs.GetResourceCodecRegistry())
+	assert.NotNil(t, rs.GetCodecRegistry())
 
 	mockResourceCodecRegistry := NewMockECodecRegistry(t)
 	rs.SetResourceCodecRegistry(mockResourceCodecRegistry)
-	assert.Equal(t, mockResourceCodecRegistry, rs.GetResourceCodecRegistry())
+	assert.Equal(t, mockResourceCodecRegistry, rs.GetCodecRegistry())
 }
 
 func TestEResourceSet_GetURIResourceMap(t *testing.T) {

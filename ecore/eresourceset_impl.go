@@ -155,9 +155,9 @@ func (r *EResourceSetImpl) SetPackageRegistry(packageRegistry EPackageRegistry) 
 	r.packageRegistry = packageRegistry
 }
 
-func (r *EResourceSetImpl) GetResourceCodecRegistry() ECodecRegistry {
+func (r *EResourceSetImpl) GetCodecRegistry() ECodecRegistry {
 	if r.resourceCodecRegistry == nil {
-		r.resourceCodecRegistry = NewECodecRegistryImplWithDelegate(GetResourceCodecRegistry())
+		r.resourceCodecRegistry = NewECodecRegistryImplWithDelegate(GetCodecRegistry())
 	}
 	return r.resourceCodecRegistry
 }

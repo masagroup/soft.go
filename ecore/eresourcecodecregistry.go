@@ -21,7 +21,7 @@ type ECodecRegistry interface {
 
 var resourceCodecRegistryInstance ECodecRegistry
 
-func GetResourceCodecRegistry() ECodecRegistry {
+func GetCodecRegistry() ECodecRegistry {
 	if resourceCodecRegistryInstance == nil {
 		resourceCodecRegistryInstance = NewECodecRegistryImpl()
 		// initialize with default codecs

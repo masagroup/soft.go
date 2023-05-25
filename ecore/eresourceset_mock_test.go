@@ -108,16 +108,16 @@ func TestMockEResourceSetSetPackageRegistry(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, rs, pr)
 }
 
-func TestMockEResourceSetGetResourceCodecRegistry(t *testing.T) {
+func TestMockEResourceSetGetCodecRegistry(t *testing.T) {
 	rs := NewMockEResourceSet(t)
 	pr := NewMockECodecRegistry(t)
 	m := NewMockRun(t)
-	rs.EXPECT().GetResourceCodecRegistry().Return(pr).Run(func() { m.Run() }).Once()
-	rs.EXPECT().GetResourceCodecRegistry().Call.Return(func() ECodecRegistry {
+	rs.EXPECT().GetCodecRegistry().Return(pr).Run(func() { m.Run() }).Once()
+	rs.EXPECT().GetCodecRegistry().Call.Return(func() ECodecRegistry {
 		return pr
 	}).Once()
-	assert.Equal(t, pr, rs.GetResourceCodecRegistry())
-	assert.Equal(t, pr, rs.GetResourceCodecRegistry())
+	assert.Equal(t, pr, rs.GetCodecRegistry())
+	assert.Equal(t, pr, rs.GetCodecRegistry())
 }
 
 func TestMockEResourceSetSetResourceCodecRegistry(t *testing.T) {

@@ -9,7 +9,7 @@
 
 package ecore
 
-type EResourceDecoder interface {
+type EDecoder interface {
 	Decode()
 	DecodeObject() (EObject, error)
 }

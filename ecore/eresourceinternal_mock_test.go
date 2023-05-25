@@ -17,9 +17,9 @@ import (
 
 func TestMockEResourceInternalDoLoad(t *testing.T) {
 	mockResource := NewMockEResourceInternal(t)
-	mockDecoder := NewMockEResourceDecoder(t)
+	mockDecoder := NewMockEDecoder(t)
 	m := NewMockRun(t, mockDecoder)
-	mockResource.EXPECT().DoLoad(mockDecoder).Return().Run(func(decoder EResourceDecoder) { m.Run(decoder) }).Once()
+	mockResource.EXPECT().DoLoad(mockDecoder).Return().Run(func(decoder EDecoder) { m.Run(decoder) }).Once()
 	mockResource.DoLoad(mockDecoder)
 }
 

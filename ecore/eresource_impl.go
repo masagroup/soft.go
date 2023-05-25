@@ -10,7 +10,7 @@ import (
 type EResourceInternal interface {
 	EResource
 
-	DoLoad(decoder EResourceDecoder)
+	DoLoad(decoder EDecoder)
 	DoSave(encoder EEncoder)
 	DoUnload()
 
@@ -466,7 +466,7 @@ func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]any) {
 	}
 }
 
-func (r *EResourceImpl) DoLoad(decoder EResourceDecoder) {
+func (r *EResourceImpl) DoLoad(decoder EDecoder) {
 	decoder.Decode()
 }
 

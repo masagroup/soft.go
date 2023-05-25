@@ -15,15 +15,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMockEResourceDecoder_DecodeResource(t *testing.T) {
-	mockDecoder := NewMockEResourceDecoder(t)
+func TestMockEDecoder_DecodeResource(t *testing.T) {
+	mockDecoder := NewMockEDecoder(t)
 	m := NewMockRun(t)
 	mockDecoder.EXPECT().Decode().Return().Run(func() { m.Run() }).Once()
 	mockDecoder.Decode()
 }
 
-func TestMockEResourceDecoder_DecodeObject(t *testing.T) {
-	mockDecoder := NewMockEResourceDecoder(t)
+func TestMockEDecoder_DecodeObject(t *testing.T) {
+	mockDecoder := NewMockEDecoder(t)
 	mockObject := NewMockEObject(t)
 	m := NewMockRun(t)
 	mockDecoder.EXPECT().DecodeObject().Return(mockObject, nil).Run(func() { m.Run() }).Once()

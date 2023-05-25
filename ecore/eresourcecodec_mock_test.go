@@ -20,13 +20,13 @@ import (
 
 func TestMockECodec_NewDecoder(t *testing.T) {
 	mockCodec := NewMockECodec(t)
-	mockDecoder := NewMockEResourceDecoder(t)
+	mockDecoder := NewMockEDecoder(t)
 	mockResource := NewMockEResource(t)
 	options := map[string]any{}
 	reader := strings.NewReader("")
 	m := NewMockRun(t, mockResource, reader, options)
 	mockCodec.EXPECT().NewDecoder(mockResource, reader, options).Return(mockDecoder).Run(func(resource EResource, r io.Reader, options map[string]interface{}) { m.Run(resource, r, options) }).Once()
-	mockCodec.EXPECT().NewDecoder(mockResource, reader, options).Call.Return(func(EResource, io.Reader, map[string]any) EResourceDecoder { return mockDecoder }).Once()
+	mockCodec.EXPECT().NewDecoder(mockResource, reader, options).Call.Return(func(EResource, io.Reader, map[string]any) EDecoder { return mockDecoder }).Once()
 	assert.Equal(t, mockDecoder, mockCodec.NewDecoder(mockResource, reader, options))
 	assert.Equal(t, mockDecoder, mockCodec.NewDecoder(mockResource, reader, options))
 }

@@ -18,6 +18,6 @@ func (nc *NoCodec) NewEncoder(resource EResource, w io.Writer, options map[strin
 	return &NoEncoder{}
 }
 
-func (nc *NoCodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EResourceDecoder {
+func (nc *NoCodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EDecoder {
 	return &NoDecoder{}
 }

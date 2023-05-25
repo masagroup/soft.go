@@ -202,7 +202,7 @@ func (_c *MockEResourceInternal_DoDetached_Call) Return() *MockEResourceInternal
 }
 
 // DoLoad provides a mock function with given fields: decoder
-func (_m *MockEResourceInternal_Prototype_Methods) DoLoad(decoder EResourceDecoder) {
+func (_m *MockEResourceInternal_Prototype_Methods) DoLoad(decoder EDecoder) {
 	_m.mock.Called(decoder)
 }
 
@@ -212,14 +212,14 @@ type MockEResourceInternal_DoLoad_Call struct {
 }
 
 // DoLoad is a helper method to define mock.On call
-//   - decoder EResourceDecoder
+//   - decoder EDecoder
 func (_e *MockEResourceInternal_Expecter_Methods) DoLoad(decoder interface{}) *MockEResourceInternal_DoLoad_Call {
 	return &MockEResourceInternal_DoLoad_Call{Call: _e.mock.On("DoLoad", decoder)}
 }
 
-func (_c *MockEResourceInternal_DoLoad_Call) Run(run func(decoder EResourceDecoder)) *MockEResourceInternal_DoLoad_Call {
+func (_c *MockEResourceInternal_DoLoad_Call) Run(run func(decoder EDecoder)) *MockEResourceInternal_DoLoad_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(EResourceDecoder))
+		run(args[0].(EDecoder))
 	})
 	return _c
 }

@@ -17,6 +17,6 @@ type XMICodec struct {
 func (d *XMICodec) NewEncoder(resource EResource, w io.Writer, options map[string]any) EEncoder {
 	return NewXMIEncoder(resource, w, options)
 }
-func (d *XMICodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EResourceDecoder {
+func (d *XMICodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EDecoder {
 	return NewXMIDecoder(resource, r, options)
 }

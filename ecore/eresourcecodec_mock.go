@@ -29,15 +29,15 @@ func (_m *MockECodec) EXPECT() *MockECodec_Expecter {
 }
 
 // NewDecoder provides a mock function with given fields: resource, r, options
-func (_m *MockECodec) NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EResourceDecoder {
+func (_m *MockECodec) NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EDecoder {
 	ret := _m.Called(resource, r, options)
 
-	var r0 EResourceDecoder
-	if rf, ok := ret.Get(0).(func(EResource, io.Reader, map[string]interface{}) EResourceDecoder); ok {
+	var r0 EDecoder
+	if rf, ok := ret.Get(0).(func(EResource, io.Reader, map[string]interface{}) EDecoder); ok {
 		r0 = rf(resource, r, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(EResourceDecoder)
+			r0 = ret.Get(0).(EDecoder)
 		}
 	}
 
@@ -64,7 +64,7 @@ func (_c *MockECodec_NewDecoder_Call) Run(run func(resource EResource, r io.Read
 	return _c
 }
 
-func (_c *MockECodec_NewDecoder_Call) Return(_a0 EResourceDecoder) *MockECodec_NewDecoder_Call {
+func (_c *MockECodec_NewDecoder_Call) Return(_a0 EDecoder) *MockECodec_NewDecoder_Call {
 	_c.Call.Return(_a0)
 	return _c
 }

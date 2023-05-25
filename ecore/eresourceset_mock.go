@@ -398,30 +398,30 @@ func (_c *MockEResourceSet_SetPackageRegistry_Call) Return() *MockEResourceSet_S
 	return _c
 }
 
-// SetResourceCodecRegistry provides a mock function with given fields: resourceCodecRegistry
-func (_m *MockEResourceSet_Prototype_Methods) SetResourceCodecRegistry(resourceCodecRegistry ECodecRegistry) {
+// SetCodecRegistry provides a mock function with given fields: resourceCodecRegistry
+func (_m *MockEResourceSet_Prototype_Methods) SetCodecRegistry(resourceCodecRegistry ECodecRegistry) {
 	_m.mock.Called(resourceCodecRegistry)
 }
 
-// MockEResourceSet_SetResourceCodecRegistry_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetResourceCodecRegistry'
-type MockEResourceSet_SetResourceCodecRegistry_Call struct {
+// MockEResourceSet_SetCodecRegistry_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetCodecRegistry'
+type MockEResourceSet_SetCodecRegistry_Call struct {
 	*mock.Call
 }
 
-// SetResourceCodecRegistry is a helper method to define mock.On call
+// SetCodecRegistry is a helper method to define mock.On call
 //   - resourceCodecRegistry ECodecRegistry
-func (_e *MockEResourceSet_Expecter_Methods) SetResourceCodecRegistry(resourceCodecRegistry interface{}) *MockEResourceSet_SetResourceCodecRegistry_Call {
-	return &MockEResourceSet_SetResourceCodecRegistry_Call{Call: _e.mock.On("SetResourceCodecRegistry", resourceCodecRegistry)}
+func (_e *MockEResourceSet_Expecter_Methods) SetCodecRegistry(resourceCodecRegistry interface{}) *MockEResourceSet_SetCodecRegistry_Call {
+	return &MockEResourceSet_SetCodecRegistry_Call{Call: _e.mock.On("SetCodecRegistry", resourceCodecRegistry)}
 }
 
-func (_c *MockEResourceSet_SetResourceCodecRegistry_Call) Run(run func(resourceCodecRegistry ECodecRegistry)) *MockEResourceSet_SetResourceCodecRegistry_Call {
+func (_c *MockEResourceSet_SetCodecRegistry_Call) Run(run func(resourceCodecRegistry ECodecRegistry)) *MockEResourceSet_SetCodecRegistry_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(ECodecRegistry))
 	})
 	return _c
 }
 
-func (_c *MockEResourceSet_SetResourceCodecRegistry_Call) Return() *MockEResourceSet_SetResourceCodecRegistry_Call {
+func (_c *MockEResourceSet_SetCodecRegistry_Call) Return() *MockEResourceSet_SetCodecRegistry_Call {
 	_c.Call.Return()
 	return _c
 }

@@ -91,7 +91,7 @@ func TestEResourceSet_GetCodecRegistry(t *testing.T) {
 	assert.NotNil(t, rs.GetCodecRegistry())
 
 	mockResourceCodecRegistry := NewMockECodecRegistry(t)
-	rs.SetResourceCodecRegistry(mockResourceCodecRegistry)
+	rs.SetCodecRegistry(mockResourceCodecRegistry)
 	assert.Equal(t, mockResourceCodecRegistry, rs.GetCodecRegistry())
 }
 

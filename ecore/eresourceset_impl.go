@@ -162,7 +162,7 @@ func (r *EResourceSetImpl) GetCodecRegistry() ECodecRegistry {
 	return r.resourceCodecRegistry
 }
 
-func (r *EResourceSetImpl) SetResourceCodecRegistry(resourceCodecRegistry ECodecRegistry) {
+func (r *EResourceSetImpl) SetCodecRegistry(resourceCodecRegistry ECodecRegistry) {
 	r.resourceCodecRegistry = resourceCodecRegistry
 }
 

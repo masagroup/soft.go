@@ -1,6 +1,13 @@
 package ecore
 
-import "io"
+import (
+	"crypto/rand"
+	"encoding/hex"
+	"io"
+	"io/fs"
+	"os"
+	"path/filepath"
+)
 
 const (
 	SQL_OPTION_DRIVER            = "DRIVER_NAME"       // value of the sql driver
@@ -8,6 +15,23 @@ const (
 )
 
 type SQLCodec struct {
+}
+
+func sqlTmpDB(prefix string) (string, error) {
+	try := 0
+	for {
+		randBytes := make([]byte, 16)
+		rand.Read(randBytes)
+		f := filepath.Join(os.TempDir(), prefix+"."+hex.EncodeToString(randBytes)+".sqlite")
+		_, err := os.Stat(f)
+		if os.IsExist(err) {
+			if try++; try < 10000 {
+				continue
+			}
+			return "", &fs.PathError{Op: "sqlTmpDB", Path: prefix, Err: fs.ErrExist}
+		}
+		return f, err
+	}
 }
 
 func (d *SQLCodec) NewEncoder(resource EResource, w io.Writer, options map[string]any) EEncoder {

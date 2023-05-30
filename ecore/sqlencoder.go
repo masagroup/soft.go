@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"io"
 	"path/filepath"
+
+	_ "modernc.org/sqlite"
 )
 
 type SQLEncoder struct {
@@ -34,15 +36,43 @@ func (e *SQLEncoder) createDB() (*sql.DB, error) {
 		return nil, err
 	}
 
-	return sql.Open(e.driver, dbPath)
+	db, err := sql.Open(e.driver, dbPath)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = e.db.Exec(`
+	PRAGMA synchronous = NORMAL;
+	PRAGMA journal_mode = WAL;
+	CREATE TABLE packages ( 
+		packageID INTEGER PRIMARY KEY AUTOINCREMENT,
+		uri TEXT,
+	);
+	CREATE TABLE classes (
+		classID INTEGER PRIMARY KEY AUTOINCREMENT,
+		packageID INTEGER,
+		name TEXT,
+		FOREIGN KEY(packageID) REFERENCES packages(packageID)
+	);
+	`)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
 
 func (e *SQLEncoder) EncodeResource() {
-	_, err := e.createDB()
+	var err error
+	e.db, err = e.createDB()
 	if err != nil {
 		e.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), e.resource.GetURI().String(), 0, 0))
 		return
 	}
+	defer func() {
+		_ = e.db.Close()
+	}()
+
 }
 
 func (e *SQLEncoder) EncodeObject(object EObject) error {

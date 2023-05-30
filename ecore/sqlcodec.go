@@ -30,7 +30,7 @@ func sqlTmpDB(prefix string) (string, error) {
 			}
 			return "", &fs.PathError{Op: "sqlTmpDB", Path: prefix, Err: fs.ErrExist}
 		}
-		return f, err
+		return f, nil
 	}
 }
 

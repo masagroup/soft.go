@@ -17,6 +17,8 @@ const (
 type SQLCodec struct {
 }
 
+const sqlCodecVersion int = 1
+
 func sqlTmpDB(prefix string) (string, error) {
 	try := 0
 	for {

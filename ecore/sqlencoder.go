@@ -2,6 +2,7 @@ package ecore
 
 import (
 	"database/sql"
+	"fmt"
 	"io"
 	"path/filepath"
 
@@ -41,12 +42,25 @@ func (e *SQLEncoder) createDB() (*sql.DB, error) {
 		return nil, err
 	}
 
-	_, err = e.db.Exec(`
+	version := fmt.Sprintf(`PRAGMA user_version = %v`, sqlCodecVersion)
+	_, err = db.Exec(version)
+	if err != nil {
+		return nil, err
+	}
+
+	properties := `
 	PRAGMA synchronous = NORMAL;
 	PRAGMA journal_mode = WAL;
+	`
+	_, err = db.Exec(properties)
+	if err != nil {
+		return nil, err
+	}
+
+	tables := `
 	CREATE TABLE packages ( 
 		packageID INTEGER PRIMARY KEY AUTOINCREMENT,
-		uri TEXT,
+		uri TEXT
 	);
 	CREATE TABLE classes (
 		classID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,7 +68,8 @@ func (e *SQLEncoder) createDB() (*sql.DB, error) {
 		name TEXT,
 		FOREIGN KEY(packageID) REFERENCES packages(packageID)
 	);
-	`)
+	`
+	_, err = db.Exec(tables)
 	if err != nil {
 		return nil, err
 	}

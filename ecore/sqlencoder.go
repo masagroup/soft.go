@@ -11,6 +11,11 @@ import (
 )
 
 type sqlEncoderFeatureData struct {
+	table       string
+	factory     EFactory
+	dataType    EDataType
+	featureKind sqlFeatureKind
+	isTransient bool
 }
 
 type sqlEncoderObjectData struct {
@@ -19,13 +24,13 @@ type sqlEncoderObjectData struct {
 }
 
 type sqlEncoderClassData struct {
-	id    int64
-	table string
+	id          int64
+	table       string
+	featureData []*sqlEncoderFeatureData
 }
 
 type sqlEncoderPackageData struct {
-	id        int64
-	classData []*sqlEncoderClassData
+	id int64
 }
 
 type SQLEncoder struct {
@@ -233,10 +238,9 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 		return nil, err
 	}
 
-	// features
-	for itFeature := eClass.GetEAllStructuralFeatures().Iterator(); itFeature.HasNext(); {
-		eFeature := itFeature.Next().(EStructuralFeature)
-		e.encodeFeatureValue(eObject, objectID, eFeature)
+	// encode features values
+	for featureID, featureData := range classData.featureData {
+		e.encodeFeatureValue(eObject, featureID, objectID, featureData)
 	}
 
 	return &sqlEncoderObjectData{
@@ -245,22 +249,13 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 	}, nil
 }
 
-func (e *SQLEncoder) encodeObjectReference(eObject EObject) error {
-	// encode object class
-	_, err := e.encodeClass(eObject.EClass())
-	if err != nil {
-		return err
-	}
+func (e *SQLEncoder) encodeFeatureValue(eObject EObject, featureID int, objectID int64, featureData *sqlEncoderFeatureData) {
 
-	return nil
-}
-
-func (e *SQLEncoder) encodeFeatureValue(eObject EObject, objectID int64, eFeature EStructuralFeature) {
 }
 
 func (e *SQLEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
-	eClassData := e.classDataMap[eClass]
-	if eClassData == nil {
+	classData := e.classDataMap[eClass]
+	if classData == nil {
 		// encode package
 		ePackage := eClass.GetEPackage()
 		packageData, err := e.encodePackage(ePackage)
@@ -275,24 +270,43 @@ func (e *SQLEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
 			}
 			e.insertClassStmt = stmt
 		}
-		// insert new class
+		// insert class in sql
 		sqlResult, err := e.insertClassStmt.Exec(packageData.id, eClass.GetName())
 		if err != nil {
 			return nil, err
 		}
-		// retrieve index
+		// retrieve class index
 		id, err := sqlResult.LastInsertId()
 		if err != nil {
 			return nil, err
 		}
 		// create data
-		eClassData = &sqlEncoderClassData{
-			id:    id,
-			table: ePackage.GetNsPrefix() + "_" + strings.ToLower(eClass.GetName()),
+		eFeatures := eClass.GetEAllStructuralFeatures()
+		classData = &sqlEncoderClassData{
+			id:          id,
+			table:       ePackage.GetNsPrefix() + "_" + strings.ToLower(eClass.GetName()),
+			featureData: make([]*sqlEncoderFeatureData, 0, eFeatures.Size()),
 		}
-		e.classDataMap[eClass] = eClassData
+		// compute class features data
+		for itFeature := eFeatures.Iterator(); itFeature.HasNext(); {
+			eFeature := itFeature.Next().(EStructuralFeature)
+			featureData := &sqlEncoderFeatureData{
+				table:       classData.table + "_" + strings.ToLower(eFeature.GetName()),
+				featureKind: getSQLCodecFeatureKind(eFeature),
+			}
+			if eReference, _ := eFeature.(EReference); eReference != nil {
+				featureData.isTransient = eReference.IsTransient() || (eReference.IsContainer() && !eReference.IsResolveProxies())
+			} else if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
+				eDataType := eAttribute.GetEAttributeType()
+				featureData.isTransient = eAttribute.IsTransient()
+				featureData.dataType = eDataType
+				featureData.factory = eDataType.GetEPackage().GetEFactoryInstance()
+			}
+			classData.featureData = append(classData.featureData, featureData)
+		}
+		e.classDataMap[eClass] = classData
 	}
-	return eClassData, nil
+	return classData, nil
 }
 
 func (e *SQLEncoder) encodePackage(ePackage EPackage) (*sqlEncoderPackageData, error) {
@@ -318,8 +332,7 @@ func (e *SQLEncoder) encodePackage(ePackage EPackage) (*sqlEncoderPackageData, e
 		}
 		// create data
 		ePackageData = &sqlEncoderPackageData{
-			id:        id,
-			classData: make([]*sqlEncoderClassData, ePackage.GetEClassifiers().Size()),
+			id: id,
 		}
 		e.packageDataMap[ePackage] = ePackageData
 	}

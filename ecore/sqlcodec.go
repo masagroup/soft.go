@@ -42,3 +42,52 @@ func (d *SQLCodec) NewEncoder(resource EResource, w io.Writer, options map[strin
 func (d *SQLCodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EDecoder {
 	return NewSQLDecoder(resource, r, options)
 }
+
+type sqlFeatureKind int
+
+const (
+	sfkTransient sqlFeatureKind = iota
+	sfkData
+	sfkDataList
+	sfkObject
+	sfkObjectList
+	sfkObjectReference
+	sfkObjectReferenceList
+)
+
+func getSQLCodecFeatureKind(eFeature EStructuralFeature) sqlFeatureKind {
+	if eFeature.IsTransient() {
+		return sfkTransient
+	} else if eReference, _ := eFeature.(EReference); eReference != nil {
+		if eReference.IsContainment() {
+			if eReference.IsMany() {
+				return sfkObjectList
+			} else {
+				return sfkObject
+			}
+		}
+		opposite := eReference.GetEOpposite()
+		if opposite != nil && opposite.IsContainment() {
+			return sfkTransient
+		}
+		if eReference.IsResolveProxies() {
+			if eReference.IsMany() {
+				return sfkObjectReferenceList
+			} else {
+				return sfkObjectReference
+			}
+		}
+		if eReference.IsMany() {
+			return sfkObjectList
+		} else {
+			return sfkObject
+		}
+	} else if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
+		if eAttribute.IsMany() {
+			return sfkDataList
+		} else {
+			return sfkData
+		}
+	}
+	return -1
+}

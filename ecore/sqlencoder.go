@@ -14,7 +14,8 @@ type sqlEncoderFeatureData struct {
 }
 
 type sqlEncoderClassData struct {
-	id int64
+	id    int64
+	table string
 }
 
 type sqlEncoderPackageData struct {
@@ -125,7 +126,7 @@ func (e *SQLEncoder) EncodeObject(object EObject) error {
 func (e *SQLEncoder) encodeObject(eObject EObject) error {
 	// encode object class
 	eClass := eObject.EClass()
-	_, err := e.encodeClass(eClass)
+	eClassData, err := e.encodeClass(eClass)
 	if err != nil {
 		return err
 	}
@@ -142,7 +143,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) error {
 		{
 			var query strings.Builder
 			query.WriteString("CREATE TABLE ")
-			query.WriteString(eClass.GetName())
+			query.WriteString(eClassData.table)
 			query.WriteString("( objectID INTEGER PRIMARY KEY AUTOINCREMENT")
 			if idManager != nil {
 				query.WriteString(",")
@@ -158,7 +159,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) error {
 		{
 			var query strings.Builder
 			query.WriteString("INSERT INTO ")
-			query.WriteString(eClass.GetName())
+			query.WriteString(eClassData.table)
 			if idManager != nil {
 				query.WriteString("( ")
 				query.WriteString(e.idAttributeName)
@@ -217,7 +218,8 @@ func (e *SQLEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
 	eClassData := e.classDataMap[eClass]
 	if eClassData == nil {
 		// encode package
-		packageData, err := e.encodePackage(eClass.GetEPackage())
+		ePackage := eClass.GetEPackage()
+		packageData, err := e.encodePackage(ePackage)
 		if err != nil {
 			return nil, err
 		}
@@ -241,7 +243,8 @@ func (e *SQLEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
 		}
 		// create data
 		eClassData = &sqlEncoderClassData{
-			id: id,
+			id:    id,
+			table: ePackage.GetNsPrefix() + "-" + strings.ToLower(eClass.GetName()),
 		}
 		e.classDataMap[eClass] = eClassData
 	}

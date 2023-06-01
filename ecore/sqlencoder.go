@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
@@ -30,20 +31,24 @@ type SQLEncoder struct {
 	classDataMap      map[EClass]*sqlEncoderClassData
 	insertPackageStmt *sql.Stmt
 	insertClassStmt   *sql.Stmt
+	insertObjectStms  map[EClass]*sql.Stmt
+	idAttributeName   string
 }
 
 func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQLEncoder {
 	e := &SQLEncoder{
-		resource:       resource,
-		writer:         w,
-		driver:         "sqlite",
-		packageDataMap: map[EPackage]*sqlEncoderPackageData{},
-		classDataMap:   map[EClass]*sqlEncoderClassData{},
+		resource:         resource,
+		writer:           w,
+		driver:           "sqlite",
+		packageDataMap:   map[EPackage]*sqlEncoderPackageData{},
+		classDataMap:     map[EClass]*sqlEncoderClassData{},
+		insertObjectStms: map[EClass]*sql.Stmt{},
 	}
 	if options != nil {
 		if driver, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
 			e.driver = driver.(string)
 		}
+		e.idAttributeName, _ = options[JSON_OPTION_ID_ATTRIBUTE_NAME].(string)
 	}
 	return e
 }
@@ -119,11 +124,93 @@ func (e *SQLEncoder) EncodeObject(object EObject) error {
 
 func (e *SQLEncoder) encodeObject(eObject EObject) error {
 	// encode object class
+	eClass := eObject.EClass()
+	_, err := e.encodeClass(eClass)
+	if err != nil {
+		return err
+	}
+
+	idManager := e.resource.GetObjectIDManager()
+	if len(e.idAttributeName) == 0 {
+		idManager = nil
+	}
+
+	// create table
+	insertObjectStmt, isObjectInsertStmt := e.insertObjectStms[eClass]
+	if !isObjectInsertStmt {
+		// create table
+		{
+			var query strings.Builder
+			query.WriteString("CREATE TABLE ")
+			query.WriteString(eClass.GetName())
+			query.WriteString("( objectID INTEGER PRIMARY KEY AUTOINCREMENT")
+			if idManager != nil {
+				query.WriteString(",")
+				query.WriteString(e.idAttributeName)
+			}
+			query.WriteString(" )")
+
+			if _, err := e.db.Exec(query.String()); err != nil {
+				return err
+			}
+		}
+		// create stmt
+		{
+			var query strings.Builder
+			query.WriteString("INSERT INTO ")
+			query.WriteString(eClass.GetName())
+			if idManager != nil {
+				query.WriteString("( ")
+				query.WriteString(e.idAttributeName)
+				query.WriteString(")")
+				query.WriteString("VALUES (?)")
+			}
+
+			insertObjectStmt, err = e.db.Prepare(`INSERT packageID,name VALUES (?,?)`)
+			if err != nil {
+				return err
+			}
+
+		}
+	}
+
+	// insert object in table
+	args := []any{}
+	if idManager != nil {
+		args = append(args, idManager.GetID(eObject))
+	}
+
+	sqlResult, err := insertObjectStmt.Exec(args...)
+	if err != nil {
+		return err
+	}
+
+	// retrieve object id
+	objectID, err := sqlResult.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	// features
+	for itFeature := eClass.GetEAllStructuralFeatures().Iterator(); itFeature.HasNext(); {
+		eFeature := itFeature.Next().(EStructuralFeature)
+		e.encodeFeatureValue(eObject, objectID, eFeature)
+	}
+
+	return nil
+}
+
+func (e *SQLEncoder) encodeObjectReference(eObject EObject) error {
+	// encode object class
 	_, err := e.encodeClass(eObject.EClass())
 	if err != nil {
 		return err
 	}
+
 	return nil
+}
+
+func (e *SQLEncoder) encodeFeatureValue(eObject EObject, objectID int64, eFeature EStructuralFeature) {
 }
 
 func (e *SQLEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
@@ -157,7 +244,6 @@ func (e *SQLEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
 			id: id,
 		}
 		e.classDataMap[eClass] = eClassData
-
 	}
 	return eClassData, nil
 }

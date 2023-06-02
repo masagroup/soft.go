@@ -43,18 +43,18 @@ type SQLEncoder struct {
 	insertContentStmt *sql.Stmt
 	insertPackageStmt *sql.Stmt
 	insertClassStmt   *sql.Stmt
-	insertObjectStms  map[EClass]*sql.Stmt
+	insertObjectStmts map[EClass]*sql.Stmt
 	idAttributeName   string
 }
 
 func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQLEncoder {
 	e := &SQLEncoder{
-		resource:         resource,
-		writer:           w,
-		driver:           "sqlite",
-		packageDataMap:   map[EPackage]*sqlEncoderPackageData{},
-		classDataMap:     map[EClass]*sqlEncoderClassData{},
-		insertObjectStms: map[EClass]*sql.Stmt{},
+		resource:          resource,
+		writer:            w,
+		driver:            "sqlite",
+		packageDataMap:    map[EPackage]*sqlEncoderPackageData{},
+		classDataMap:      map[EClass]*sqlEncoderClassData{},
+		insertObjectStmts: map[EClass]*sql.Stmt{},
 	}
 	if options != nil {
 		if driver, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
@@ -151,15 +151,12 @@ func (e *SQLEncoder) encodeContent(eObject EObject) error {
 		return err
 	}
 
-	if e.insertContentStmt == nil {
-		insertContentStmt, err := e.db.Prepare(`INSERT INTO contents (classID,objectID) VALUES (?,?)`)
-		if err != nil {
-			return err
-		}
-		e.insertContentStmt = insertContentStmt
+	insertContentStmt, err := e.getInsertContentStmt()
+	if err != nil {
+		return err
 	}
 
-	if _, err := e.insertContentStmt.Exec(objectData.classData.id, objectData.id); err != nil {
+	if _, err := insertContentStmt.Exec(objectData.classData.id, objectData.id); err != nil {
 		return err
 	}
 
@@ -180,45 +177,9 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 	}
 
 	// create table
-	insertObjectStmt, isObjectInsertStmt := e.insertObjectStms[eClass]
-	if !isObjectInsertStmt {
-		// create table
-		{
-			var query strings.Builder
-			query.WriteString("CREATE TABLE ")
-			query.WriteString(classData.table)
-			query.WriteString(" (objectID INTEGER PRIMARY KEY AUTOINCREMENT")
-			if idManager != nil {
-				query.WriteString(",")
-				query.WriteString(e.idAttributeName)
-			}
-			query.WriteString(")")
-
-			if _, err := e.db.Exec(query.String()); err != nil {
-				return nil, err
-			}
-		}
-		// create stmt
-		{
-			var query strings.Builder
-			query.WriteString("INSERT INTO ")
-			query.WriteString(classData.table)
-			query.WriteString(" (objectID")
-
-			if idManager != nil {
-				query.WriteString(",")
-				query.WriteString(e.idAttributeName)
-				query.WriteString(") VALUES (NULL,?)")
-			} else {
-				query.WriteString(") VALUES (NULL)")
-			}
-
-			insertObjectStmt, err = e.db.Prepare(query.String())
-			if err != nil {
-				return nil, err
-			}
-
-		}
+	insertObjectStmt, err := e.getInsertObjectStmt(eClass, classData, idManager)
+	if err != nil {
+		return nil, err
 	}
 
 	// insert object in table
@@ -262,48 +223,25 @@ func (e *SQLEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
 		if err != nil {
 			return nil, err
 		}
-		// create statement if needed
-		if e.insertClassStmt == nil {
-			stmt, err := e.db.Prepare(`INSERT INTO classes (packageID,name) VALUES (?,?)`)
-			if err != nil {
-				return nil, err
-			}
-			e.insertClassStmt = stmt
-		}
+
 		// insert class in sql
-		sqlResult, err := e.insertClassStmt.Exec(packageData.id, eClass.GetName())
+		insertClassStmt, err := e.getInsertClassStmt()
 		if err != nil {
 			return nil, err
 		}
+		sqlResult, err := insertClassStmt.Exec(packageData.id, eClass.GetName())
+		if err != nil {
+			return nil, err
+		}
+
 		// retrieve class index
 		id, err := sqlResult.LastInsertId()
 		if err != nil {
 			return nil, err
 		}
-		// create data
-		eFeatures := eClass.GetEAllStructuralFeatures()
-		classData = &sqlEncoderClassData{
-			id:          id,
-			table:       ePackage.GetNsPrefix() + "_" + strings.ToLower(eClass.GetName()),
-			featureData: make([]*sqlEncoderFeatureData, 0, eFeatures.Size()),
-		}
-		// compute class features data
-		for itFeature := eFeatures.Iterator(); itFeature.HasNext(); {
-			eFeature := itFeature.Next().(EStructuralFeature)
-			featureData := &sqlEncoderFeatureData{
-				table:       classData.table + "_" + strings.ToLower(eFeature.GetName()),
-				featureKind: getSQLCodecFeatureKind(eFeature),
-			}
-			if eReference, _ := eFeature.(EReference); eReference != nil {
-				featureData.isTransient = eReference.IsTransient() || (eReference.IsContainer() && !eReference.IsResolveProxies())
-			} else if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
-				eDataType := eAttribute.GetEAttributeType()
-				featureData.isTransient = eAttribute.IsTransient()
-				featureData.dataType = eDataType
-				featureData.factory = eDataType.GetEPackage().GetEFactoryInstance()
-			}
-			classData.featureData = append(classData.featureData, featureData)
-		}
+
+		// create class data
+		classData = e.newClassData(eClass, id)
 		e.classDataMap[eClass] = classData
 	}
 	return classData, nil
@@ -312,16 +250,12 @@ func (e *SQLEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
 func (e *SQLEncoder) encodePackage(ePackage EPackage) (*sqlEncoderPackageData, error) {
 	ePackageData := e.packageDataMap[ePackage]
 	if ePackageData == nil {
-		// create statement if needed
-		if e.insertPackageStmt == nil {
-			stmt, err := e.db.Prepare(`INSERT INTO packages (uri) VALUES (?)`)
-			if err != nil {
-				return nil, err
-			}
-			e.insertPackageStmt = stmt
-		}
 		// insert new package
-		sqlResult, err := e.insertPackageStmt.Exec(ePackage.GetNsURI())
+		insertPackageStmt, err := e.getInsertPackageStmt()
+		if err != nil {
+			return nil, err
+		}
+		sqlResult, err := insertPackageStmt.Exec(ePackage.GetNsURI())
 		if err != nil {
 			return nil, err
 		}
@@ -331,10 +265,127 @@ func (e *SQLEncoder) encodePackage(ePackage EPackage) (*sqlEncoderPackageData, e
 			return nil, err
 		}
 		// create data
-		ePackageData = &sqlEncoderPackageData{
-			id: id,
-		}
+		ePackageData = e.newPackageData(id)
 		e.packageDataMap[ePackage] = ePackageData
 	}
 	return ePackageData, nil
+}
+
+func (e *SQLEncoder) getInsertContentStmt() (*sql.Stmt, error) {
+	if e.insertContentStmt == nil {
+		insertContentStmt, err := e.db.Prepare(`INSERT INTO contents (classID,objectID) VALUES (?,?)`)
+		if err != nil {
+			return nil, err
+		}
+		e.insertContentStmt = insertContentStmt
+	}
+	return e.insertContentStmt, nil
+}
+
+func (e *SQLEncoder) getInsertObjectStmt(eClass EClass, classData *sqlEncoderClassData, idManager EObjectIDManager) (*sql.Stmt, error) {
+	insertObjectStmt, isObjectInsertStmt := e.insertObjectStmts[eClass]
+	if !isObjectInsertStmt {
+		var err error
+		// create table
+		{
+			var query strings.Builder
+			query.WriteString("CREATE TABLE ")
+			query.WriteString(classData.table)
+			query.WriteString(" (objectID INTEGER PRIMARY KEY AUTOINCREMENT")
+			if idManager != nil {
+				query.WriteString(",")
+				query.WriteString(e.idAttributeName)
+			}
+			query.WriteString(")")
+
+			if _, err = e.db.Exec(query.String()); err != nil {
+				return nil, err
+			}
+		}
+		// create stmt
+		{
+			var query strings.Builder
+			query.WriteString("INSERT INTO ")
+			query.WriteString(classData.table)
+			query.WriteString(" (objectID")
+
+			if idManager != nil {
+				query.WriteString(",")
+				query.WriteString(e.idAttributeName)
+				query.WriteString(") VALUES (NULL,?)")
+			} else {
+				query.WriteString(") VALUES (NULL)")
+			}
+
+			insertObjectStmt, err = e.db.Prepare(query.String())
+			if err != nil {
+				return nil, err
+			}
+		}
+		// set stmt
+		e.insertObjectStmts[eClass] = insertObjectStmt
+	}
+	return insertObjectStmt, nil
+}
+
+func (e *SQLEncoder) getInsertClassStmt() (*sql.Stmt, error) {
+	if e.insertClassStmt == nil {
+		stmt, err := e.db.Prepare(`INSERT INTO classes (packageID,name) VALUES (?,?)`)
+		if err != nil {
+			return nil, err
+		}
+		e.insertClassStmt = stmt
+	}
+	return e.insertClassStmt, nil
+}
+
+func (e *SQLEncoder) getInsertPackageStmt() (*sql.Stmt, error) {
+	// create statement if needed
+	if e.insertPackageStmt == nil {
+		stmt, err := e.db.Prepare(`INSERT INTO packages (uri) VALUES (?)`)
+		if err != nil {
+			return nil, err
+		}
+		e.insertPackageStmt = stmt
+	}
+	return e.insertPackageStmt, nil
+}
+
+func (e *SQLEncoder) newPackageData(id int64) *sqlEncoderPackageData {
+	return &sqlEncoderPackageData{
+		id: id,
+	}
+}
+
+func (e *SQLEncoder) newClassData(eClass EClass, id int64) *sqlEncoderClassData {
+	// create data
+	ePackage := eClass.GetEPackage()
+	eFeatures := eClass.GetEAllStructuralFeatures()
+	classData := &sqlEncoderClassData{
+		id:          id,
+		table:       ePackage.GetNsPrefix() + "_" + strings.ToLower(eClass.GetName()),
+		featureData: make([]*sqlEncoderFeatureData, 0, eFeatures.Size()),
+	}
+	// class features data
+	for itFeature := eFeatures.Iterator(); itFeature.HasNext(); {
+		eFeature := itFeature.Next().(EStructuralFeature)
+		classData.featureData = append(classData.featureData, e.newFeatureData(eFeature, classData.table))
+	}
+	return classData
+}
+
+func (e *SQLEncoder) newFeatureData(eFeature EStructuralFeature, classTableName string) *sqlEncoderFeatureData {
+	featureData := &sqlEncoderFeatureData{
+		table:       classTableName + "_" + strings.ToLower(eFeature.GetName()),
+		featureKind: getSQLCodecFeatureKind(eFeature),
+	}
+	if eReference, _ := eFeature.(EReference); eReference != nil {
+		featureData.isTransient = eReference.IsTransient() || (eReference.IsContainer() && !eReference.IsResolveProxies())
+	} else if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
+		eDataType := eAttribute.GetEAttributeType()
+		featureData.isTransient = eAttribute.IsTransient()
+		featureData.dataType = eDataType
+		featureData.factory = eDataType.GetEPackage().GetEFactoryInstance()
+	}
+	return featureData
 }

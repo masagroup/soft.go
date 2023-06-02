@@ -47,6 +47,18 @@ type sqlFeatureKind int
 
 const (
 	sfkTransient sqlFeatureKind = iota
+	sfkFloat64
+	sfkFloat32
+	sfkInt
+	sfkInt64
+	sfkInt32
+	sfkInt16
+	sfkByte
+	sfkBool
+	sfkString
+	sfkByteArray
+	sfkEnum
+	sfkDate
 	sfkData
 	sfkDataList
 	sfkObject
@@ -86,6 +98,36 @@ func getSQLCodecFeatureKind(eFeature EStructuralFeature) sqlFeatureKind {
 		if eAttribute.IsMany() {
 			return sfkDataList
 		} else {
+			eDataType := eAttribute.GetEAttributeType()
+			if eEnum, _ := eDataType.(EEnum); eEnum != nil {
+				return sfkEnum
+			}
+
+			switch eDataType.GetInstanceTypeName() {
+			case "float64", "java.lang.Double", "double":
+				return sfkFloat64
+			case "float32", "java.lang.Float", "float":
+				return sfkFloat32
+			case "int", "java.lang.Integer":
+				return sfkInt
+			case "int64", "java.lang.Long", "java.math.BigInteger", "long":
+				return sfkInt64
+			case "int32":
+				return sfkInt32
+			case "int16", "java.lang.Short", "short":
+				return sfkInt16
+			case "byte":
+				return sfkByte
+			case "bool", "java.lang.Boolean", "boolean":
+				return sfkBool
+			case "string", "java.lang.String":
+				return sfkString
+			case "[]byte", "java.util.ByteArray":
+				return sfkByteArray
+			case "*time.Time", "java.util.Date":
+				return sfkDate
+			}
+
 			return sfkData
 		}
 	}

@@ -390,12 +390,6 @@ func (e *SQLEncoder) newPackageData(id int64) *sqlEncoderPackageData {
 	}
 }
 
-type foreignKey struct {
-	keyName       string
-	tableName     string
-	referenceName string
-}
-
 func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData, error) {
 	// create data
 	ePackage := eClass.GetEPackage()
@@ -438,13 +432,15 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 		}
 	}
 
-	foreignKeys := []foreignKey{}
-	newForeignKey := func(eFeature EStructuralFeature, tableName string, referenceName string) {
-		foreignKeys = append(foreignKeys, foreignKey{
-			keyName:       eFeature.GetName(),
-			tableName:     tableName,
-			referenceName: referenceName,
-		})
+	newForeignKey := func(eFeature EStructuralFeature, tableName, keyName string) {
+		tableQuery.WriteString(",\n")
+		tableQuery.WriteString("FOREIGN KEY(")
+		tableQuery.WriteString(eFeature.GetName())
+		tableQuery.WriteString(") REFERENCES ")
+		tableQuery.WriteString(tableName)
+		tableQuery.WriteString("(")
+		tableQuery.WriteString(keyName)
+		tableQuery.WriteString(")")
 	}
 
 	for itFeature := eFeatures.Iterator(); itFeature.HasNext(); {
@@ -497,18 +493,6 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 		case sfkDataList:
 			newTableData(eFeature)
 		}
-	}
-
-	// foreign keys
-	for _, tableData := range classData.tableData {
-		tableQuery.WriteString(",\n")
-		tableQuery.WriteString("FOREIGN KEY(")
-		tableQuery.WriteString(tableData.keyName)
-		tableQuery.WriteString(") REFERENCES ")
-		tableQuery.WriteString(tableData.tableName)
-		tableQuery.WriteString("(")
-		tableQuery.WriteString(tableData.keyName)
-		tableQuery.WriteString(")")
 	}
 
 	// end

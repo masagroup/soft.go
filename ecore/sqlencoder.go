@@ -45,8 +45,10 @@ func (b *stringBuilder) WriteArray(a []string, sep string) {
 }
 
 type sqlEncoderFeatureTableData struct {
-	tableName string
-	keyName   string
+	tableName   string
+	tableQuery  string
+	insertQuery string
+	insertStmt  *sql.Stmt
 }
 
 type sqlEncoderFeatureColumnData struct {
@@ -294,7 +296,12 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 		}
 
 		// create class data
-		classData = e.newClassData(eClass, id)
+		classData, err = e.newClassData(eClass, id)
+		if err != nil {
+			return nil, err
+		}
+
+		// register class data
 		e.classDataMap[eClass] = classData
 	}
 	return classData, nil
@@ -443,6 +450,35 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 		tableQuery.WriteString(")")
 	}
 
+	newTableData := func(eFeature EStructuralFeature, valueType string) {
+		tableName := classData.tableName + "_" + eFeature.GetName()
+
+		var tableQuery strings.Builder
+		tableQuery.WriteString("CREATE TABLE ")
+		tableQuery.WriteString(tableName)
+		tableQuery.WriteString(" (")
+		tableQuery.WriteString(classData.keyName)
+		tableQuery.WriteString("INTEGER ,\n")
+		tableQuery.WriteString(eFeature.GetName())
+		tableQuery.WriteString(" ")
+		tableQuery.WriteString(valueType)
+		tableQuery.WriteString(",\n")
+		tableQuery.WriteString("FOREIGN KEY(")
+		tableQuery.WriteString(classData.keyName)
+		tableQuery.WriteString(") REFERENCES ")
+		tableQuery.WriteString(classData.tableName)
+		tableQuery.WriteString("(")
+		tableQuery.WriteString(classData.keyName)
+		tableQuery.WriteString(")\n")
+		tableQuery.WriteString(") ")
+
+		classData.tableData[eFeature] = &sqlEncoderFeatureTableData{
+			tableName:  tableName,
+			tableQuery: tableQuery.String(),
+		}
+
+	}
+
 	for itFeature := eFeatures.Iterator(); itFeature.HasNext(); {
 		eFeature := itFeature.Next().(EStructuralFeature)
 		featureKind := getSQLCodecFeatureKind(eFeature)
@@ -469,9 +505,9 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 				return uri.String(), nil
 			})
 		case sfkObjectList:
-
+			newTableData(eFeature, "TEXT")
 		case sfkObjectReferenceList:
-
+			newTableData(eFeature, "INTEGER")
 		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum:
 			newColumnData(eFeature, "INTEGER", identity)
 		case sfkDate:
@@ -491,7 +527,7 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 				return eFactory.ConvertToString(eDataType, value), nil
 			})
 		case sfkDataList:
-			newTableData(eFeature)
+			newTableData(eFeature, "TEXT")
 		}
 	}
 
@@ -502,7 +538,7 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 	// build queries
 	classData.insertQuery = insertQuery.String()
 	classData.tableQuery = tableQuery.String()
-	return classData
+	return classData, nil
 }
 
 func identity(v any) (any, error) { return v, nil }

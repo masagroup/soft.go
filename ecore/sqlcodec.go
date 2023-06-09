@@ -89,6 +89,9 @@ func getSQLCodecFeatureKind(eFeature EStructuralFeature) sqlFeatureKind {
 				return sfkObjectReference
 			}
 		}
+		if eReference.IsContainer() {
+			return sfkTransient
+		}
 		if eReference.IsMany() {
 			return sfkObjectList
 		} else {

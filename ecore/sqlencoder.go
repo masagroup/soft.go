@@ -6,6 +6,7 @@ import (
 	"io"
 	"path/filepath"
 	"strings"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -130,7 +131,7 @@ func (t *sqlTable) insertQuery() string {
 	return tableQuery.String()
 }
 
-func (t *sqlTable) insertValues() []any {
+func (t *sqlTable) defaultValues() []any {
 	values := make([]any, 0, len(t.columns))
 	for i, c := range t.columns {
 		if c.auto {
@@ -153,6 +154,7 @@ type sqlEncoderObjectData struct {
 type sqlEncoderClassData struct {
 	id             int64
 	table          *sqlTable
+	featureKinds   map[EStructuralFeature]sqlFeatureKind
 	featureColumns map[EStructuralFeature]*sqlColumn
 	featureTables  map[EStructuralFeature]*sqlTable
 }
@@ -161,6 +163,7 @@ func newClassData(id int64, table *sqlTable) *sqlEncoderClassData {
 	return &sqlEncoderClassData{
 		id:             id,
 		table:          table,
+		featureKinds:   map[EStructuralFeature]sqlFeatureKind{},
 		featureColumns: map[EStructuralFeature]*sqlColumn{},
 		featureTables:  map[EStructuralFeature]*sqlTable{},
 	}
@@ -374,15 +377,54 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 		return nil, err
 	}
 
-	// encode features values
-	// for featureID, featureData := range classData.featureData {
-	// 	e.encodeFeatureValue(eObject, featureID, objectID, featureData)
-	// }
+	// encode features values in table columns
+	values := classData.table.defaultValues()
+	values[classData.table.key.index] = objectID
+	for eFeature, column := range classData.featureColumns {
+		values[column.index], err = e.getFeatureColumnValue(eObject, eFeature, classData.featureKinds[eFeature])
+		if err != nil {
+			return nil, err
+		}
+	}
+	insertStmt, err := e.getInsertStmt(classData.table)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := insertStmt.Exec(values...); err != nil {
+		return nil, err
+	}
+
+	// encode feature values in external table
 
 	return &sqlEncoderObjectData{
 		id:        objectID,
 		classData: classData,
 	}, nil
+}
+
+func (e *SQLEncoder) getFeatureColumnValue(eObject EObject, eFeature EStructuralFeature, featureKind sqlFeatureKind) (any, error) {
+	value := eObject.EGetResolve(eFeature, false)
+	switch featureKind {
+	case sfkObject:
+		objectData, err := e.encodeObject(value.(EObject))
+		if err != nil {
+			return nil, err
+		}
+		return objectData.id, nil
+	case sfkObjectReference:
+		return GetURI(value.(EObject)).String(), nil
+	case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum, sfkString, sfkByteArray:
+		return value, nil
+	case sfkDate:
+		t := value.(*time.Time)
+		return t.Format(time.RFC3339), nil
+	case sfkData:
+		attribute := eFeature.(EAttribute)
+		dataType := attribute.GetEAttributeType()
+		factory := dataType.GetEPackage().GetEFactoryInstance()
+		return factory.ConvertToString(dataType, value), nil
+	}
+	return nil, nil
 }
 
 func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
@@ -474,6 +516,7 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 	for itFeature := eFeatures.Iterator(); itFeature.HasNext(); {
 		eFeature := itFeature.Next().(EStructuralFeature)
 		featureKind := getSQLCodecFeatureKind(eFeature)
+		classData.featureKinds[eFeature] = featureKind
 		switch featureKind {
 		case sfkObject:
 			// retrieve object reference type

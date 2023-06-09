@@ -56,15 +56,19 @@ func newSqlTable(name string, columns ...*sqlColumn) *sqlTable {
 		name:    name,
 		columns: columns,
 	}
-	for _, column := range columns {
-		t.addColumn(column)
+	for i, column := range columns {
+		t.initColumn(column, i)
 	}
 	return t
 }
 
 func (t *sqlTable) addColumn(column *sqlColumn) {
-	column.index = len(t.columns)
+	t.initColumn(column, len(t.columns))
 	t.columns = append(t.columns, column)
+}
+
+func (t *sqlTable) initColumn(column *sqlColumn, index int) {
+	column.index = index
 	if column.primary {
 		t.key = column
 	}
@@ -79,7 +83,6 @@ func (t *sqlTable) createQuery() string {
 		if i != 0 {
 			tableQuery.WriteString(",")
 		}
-		tableQuery.WriteString("\n")
 		tableQuery.WriteString(c.columnName)
 		tableQuery.WriteString(" ")
 		tableQuery.WriteString(c.columnType)
@@ -90,8 +93,7 @@ func (t *sqlTable) createQuery() string {
 			}
 		}
 		if c.reference != nil {
-			tableQuery.WriteString(",\n")
-			tableQuery.WriteString("FOREIGN KEY(")
+			tableQuery.WriteString(", FOREIGN KEY(")
 			tableQuery.WriteString(c.columnName)
 			tableQuery.WriteString(") REFERENCES ")
 			tableQuery.WriteString(c.reference.name)
@@ -273,7 +275,7 @@ func (e *SQLEncoder) createDB() (*sql.DB, error) {
 		e.objectsTable,
 		e.contentsTable,
 	} {
-		if _, err := e.db.Exec(table.createQuery()); err != nil {
+		if _, err := db.Exec(table.createQuery()); err != nil {
 			return nil, err
 		}
 	}

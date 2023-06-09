@@ -127,7 +127,6 @@ func (t *sqlTable) insertQuery() string {
 		} else {
 			tableQuery.WriteString("?")
 		}
-		tableQuery.WriteString(c.columnName)
 	}
 	tableQuery.WriteString(")")
 	return tableQuery.String()
@@ -505,10 +504,17 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 		featureData.column = column
 	}
 
-	newFeatureAttributeColum := func(featureData *sqlEncoderFeatureData, eFeature EStructuralFeature, columnType string) {
+	newFeatureAttributeColumn := func(featureData *sqlEncoderFeatureData, eFeature EStructuralFeature, columnType string) {
 		column := newSqlAttributeColumn(eFeature.GetName(), columnType)
 		classTable.addColumn(column)
 		featureData.column = column
+	}
+
+	newFeatureTable := func(featureData *sqlEncoderFeatureData, eFeature EStructuralFeature, columns ...*sqlColumn) {
+		featureData.table = newSqlTable(
+			classTable.name+"_"+eFeature.GetName(),
+			columns...,
+		)
 	}
 
 	for itFeature := eFeatures.Iterator(); itFeature.HasNext(); {
@@ -524,7 +530,7 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 			}
 			newFeatureReferenceColumn(featureData, eFeature, referenceData.table)
 		case sfkObjectReference:
-			newFeatureAttributeColum(featureData, eFeature, "TEXT")
+			newFeatureAttributeColumn(featureData, eFeature, "TEXT")
 		case sfkObjectList:
 			// internal reference
 			eReference := eFeature.(EReference)
@@ -532,56 +538,41 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 			if err != nil {
 				return nil, err
 			}
-			// table descriptor
-			table := newSqlTable(
-				classTable.name+"_"+eFeature.GetName(),
+			newFeatureTable(featureData, eFeature,
 				newSqlReferenceColumn(classData.table),
 				newSqlReferenceColumn(referenceData.table),
 			)
-			// table create
-			tableQuery := table.createQuery()
-			if _, err := e.db.Exec(tableQuery); err != nil {
-				return nil, err
-			}
-			featureData.table = table
 		case sfkObjectReferenceList:
-			// table descriptor
-			table := newSqlTable(
-				classTable.name+"_"+eFeature.GetName(),
+			newFeatureTable(featureData, eFeature,
 				newSqlReferenceColumn(classData.table),
 				newSqlAttributeColumn("uri", "TEXT"),
 			)
-			// table create
-			tableQuery := table.createQuery()
-			if _, err := e.db.Exec(tableQuery); err != nil {
-				return nil, err
-			}
-			featureData.table = table
 		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum:
-			newFeatureAttributeColum(featureData, eFeature, "INTEGER")
+			newFeatureAttributeColumn(featureData, eFeature, "INTEGER")
 		case sfkDate, sfkString, sfkData:
-			newFeatureAttributeColum(featureData, eFeature, "TEXT")
+			newFeatureAttributeColumn(featureData, eFeature, "TEXT")
 		case sfkByteArray:
-			newFeatureAttributeColum(featureData, eFeature, "BLOB")
+			newFeatureAttributeColumn(featureData, eFeature, "BLOB")
 		case sfkDataList:
-			table := newSqlTable(
-				classTable.name+"_"+eFeature.GetName(),
+			newFeatureTable(featureData, eFeature,
 				newSqlReferenceColumn(classData.table),
 				newSqlAttributeColumn(eFeature.GetName(), "TEXT"),
 			)
-			// table create
-			tableQuery := table.createQuery()
-			if _, err := e.db.Exec(tableQuery); err != nil {
-				return nil, err
-			}
-			featureData.table = table
 		}
 	}
 
 	// create class table
-	tableQuery := classData.table.createQuery()
-	if _, err := e.db.Exec(tableQuery); err != nil {
+	if _, err := e.db.Exec(classData.table.createQuery()); err != nil {
 		return nil, err
+	}
+
+	// create children tables
+	for _, featureData := range classData.features {
+		if table := featureData.table; table != nil {
+			if _, err := e.db.Exec(table.createQuery()); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return classData, nil

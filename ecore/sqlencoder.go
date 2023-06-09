@@ -44,11 +44,6 @@ func (c *sqlColumn) setAuto(auto bool) *sqlColumn {
 	return c
 }
 
-func (c *sqlColumn) setReference(reference *sqlTable) *sqlColumn {
-	c.reference = reference
-	return c
-}
-
 type sqlTable struct {
 	name    string
 	key     *sqlColumn
@@ -151,8 +146,7 @@ func (t *sqlTable) insertValues() []any {
 }
 
 type sqlEncoderFeatureTableData struct {
-	table      *sqlTable
-	insertStmt *sql.Stmt
+	table *sqlTable
 }
 
 type sqlEncoderFeatureColumnData struct {
@@ -495,9 +489,8 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 	classTable := newSqlTable(ePackage.GetNsPrefix() + "_" + strings.ToLower(eClass.GetName()))
 	classTable.addColumn(newSqlAttributeColumn(strings.ToLower(eClass.GetName())+"ID", "INTEGER").setPrimary(true))
 
-	// create class data
+	// compute table columns and external tables
 	classData := newClassData(id, classTable)
-
 	for itFeature := eFeatures.Iterator(); itFeature.HasNext(); {
 		eFeature := itFeature.Next().(EStructuralFeature)
 		featureKind := getSQLCodecFeatureKind(eFeature)
@@ -537,7 +530,7 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 			referenceTable := newSqlTable(
 				classTable.name+"_"+eFeature.GetName(),
 				newSqlReferenceColumn(classData.table),
-				newSqlReferenceColumn(e.objectsTable),
+				newSqlAttributeColumn("uri", "TEXT"),
 			)
 			// table create
 			tableQuery := referenceTable.createQuery()

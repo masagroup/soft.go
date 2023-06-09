@@ -79,6 +79,7 @@ func (t *sqlTable) createQuery() string {
 	tableQuery.WriteString("CREATE TABLE ")
 	tableQuery.WriteString(t.name)
 	tableQuery.WriteString(" (")
+	// columns
 	for i, c := range t.columns {
 		if i != 0 {
 			tableQuery.WriteString(",")
@@ -92,8 +93,11 @@ func (t *sqlTable) createQuery() string {
 				tableQuery.WriteString(" AUTOINCREMENT")
 			}
 		}
+	}
+	// constraints
+	for _, c := range t.columns {
 		if c.reference != nil {
-			tableQuery.WriteString(", FOREIGN KEY(")
+			tableQuery.WriteString(",FOREIGN KEY(")
 			tableQuery.WriteString(c.columnName)
 			tableQuery.WriteString(") REFERENCES ")
 			tableQuery.WriteString(c.reference.name)
@@ -519,7 +523,11 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 
 	for itFeature := eFeatures.Iterator(); itFeature.HasNext(); {
 		eFeature := itFeature.Next().(EStructuralFeature)
+		// new feature data
 		featureData := e.newFeatureData(eFeature)
+		classData.features = append(classData.features, featureData)
+
+		// compute class table columns or children tables
 		switch featureData.featureKind {
 		case sfkObject:
 			// retrieve object reference type

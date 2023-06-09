@@ -145,64 +145,44 @@ func (t *sqlTable) insertValues() []any {
 	return values
 }
 
-type sqlEncoderFeatureTableData struct {
-	table *sqlTable
-}
-
-type sqlEncoderFeatureColumnData struct {
-	column *sqlColumn
-}
-
 type sqlEncoderObjectData struct {
 	id        int64
 	classData *sqlEncoderClassData
 }
 
 type sqlEncoderClassData struct {
-	id         int64
-	table      *sqlTable
-	columnData map[EStructuralFeature]*sqlEncoderFeatureColumnData
-	tableData  map[EStructuralFeature]*sqlEncoderFeatureTableData
+	id             int64
+	table          *sqlTable
+	featureColumns map[EStructuralFeature]*sqlColumn
+	featureTables  map[EStructuralFeature]*sqlTable
 }
 
 func newClassData(id int64, table *sqlTable) *sqlEncoderClassData {
 	return &sqlEncoderClassData{
-		id:         id,
-		table:      table,
-		columnData: map[EStructuralFeature]*sqlEncoderFeatureColumnData{},
-		tableData:  map[EStructuralFeature]*sqlEncoderFeatureTableData{},
+		id:             id,
+		table:          table,
+		featureColumns: map[EStructuralFeature]*sqlColumn{},
+		featureTables:  map[EStructuralFeature]*sqlTable{},
 	}
 }
 
-func (classData *sqlEncoderClassData) newColumnData(eFeature EStructuralFeature, column *sqlColumn) *sqlEncoderFeatureColumnData {
-	columnData := &sqlEncoderFeatureColumnData{
-		column: column,
-	}
-	classData.columnData[eFeature] = columnData
-	return columnData
-}
-
-func (classData *sqlEncoderClassData) newReferenceColumnData(eFeature EStructuralFeature, reference *sqlTable) *sqlEncoderFeatureColumnData {
-	// add column in table
+func (classData *sqlEncoderClassData) addReferenceColumn(eFeature EStructuralFeature, reference *sqlTable) *sqlColumn {
 	column := newSqlReferenceColumn(reference)
 	column.columnName = eFeature.GetName()
 	classData.table.addColumn(column)
-	// add column in data
-	return classData.newColumnData(eFeature, column)
+	classData.featureColumns[eFeature] = column
+	return column
 }
 
-func (classData *sqlEncoderClassData) newAttributeColumnData(eFeature EStructuralFeature, columnType string) *sqlEncoderFeatureColumnData {
+func (classData *sqlEncoderClassData) addAttributeColumn(eFeature EStructuralFeature, columnType string) *sqlColumn {
 	column := newSqlAttributeColumn(eFeature.GetName(), columnType)
 	classData.table.addColumn(column)
-	return classData.newColumnData(eFeature, column)
+	classData.featureColumns[eFeature] = column
+	return column
 }
 
-func (classData *sqlEncoderClassData) newFeatureTableData(eFeature EStructuralFeature, table *sqlTable) *sqlEncoderFeatureTableData {
-	tableData := &sqlEncoderFeatureTableData{
-		table: table,
-	}
-	classData.tableData[eFeature] = tableData
-	return tableData
+func (classData *sqlEncoderClassData) addFeatureTable(eFeature EStructuralFeature, table *sqlTable) {
+	classData.featureTables[eFeature] = table
 }
 
 type sqlEncoderPackageData struct {
@@ -502,9 +482,9 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 			if err != nil {
 				return nil, err
 			}
-			classData.newReferenceColumnData(eFeature, referenceData.table)
+			classData.addReferenceColumn(eFeature, referenceData.table)
 		case sfkObjectReference:
-			classData.newAttributeColumnData(eFeature, "TEXT")
+			classData.addAttributeColumn(eFeature, "TEXT")
 		case sfkObjectList:
 			// internal reference
 			eReference := eFeature.(EReference)
@@ -524,7 +504,7 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 				return nil, err
 			}
 			// table registering
-			classData.newFeatureTableData(eFeature, referenceTable)
+			classData.addFeatureTable(eFeature, referenceTable)
 		case sfkObjectReferenceList:
 			// table descriptor
 			referenceTable := newSqlTable(
@@ -538,17 +518,17 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 				return nil, err
 			}
 			// table registering
-			classData.newFeatureTableData(eFeature, referenceTable)
+			classData.addFeatureTable(eFeature, referenceTable)
 		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum:
-			classData.newAttributeColumnData(eFeature, "INTEGER")
+			classData.addAttributeColumn(eFeature, "INTEGER")
 		case sfkDate:
-			classData.newAttributeColumnData(eFeature, "TEXT")
+			classData.addAttributeColumn(eFeature, "TEXT")
 		case sfkString:
-			classData.newAttributeColumnData(eFeature, "TEXT")
+			classData.addAttributeColumn(eFeature, "TEXT")
 		case sfkByteArray:
-			classData.newAttributeColumnData(eFeature, "BLOB")
+			classData.addAttributeColumn(eFeature, "BLOB")
 		case sfkData:
-			classData.newAttributeColumnData(eFeature, "TEXT")
+			classData.addAttributeColumn(eFeature, "TEXT")
 		case sfkDataList:
 			dataTable := newSqlTable(
 				classTable.name+"_"+eFeature.GetName(),
@@ -561,7 +541,7 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 				return nil, err
 			}
 			// table registering
-			classData.newFeatureTableData(eFeature, dataTable)
+			classData.addFeatureTable(eFeature, dataTable)
 		}
 	}
 

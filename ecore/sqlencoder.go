@@ -2,6 +2,7 @@ package ecore
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -414,6 +415,48 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 	}
 
 	// encode feature values in external table
+	for featureID, featureData := range classData.features {
+		if featureData.table != nil {
+			// feature is encoded in a external table
+			featureValue := eObject.(EObjectInternal).EGetFromID(featureID, false)
+			featureList, _ := featureValue.(EList)
+			if featureList == nil {
+				return nil, errors.New("feature value is not a list")
+			}
+			// start new transaction
+			tx, err := e.db.Begin()
+			if err != nil {
+				return nil, err
+			}
+			// prepare insert statement for this transaction
+			insertStmt, err := e.getInsertStmt(featureData.table)
+			if err != nil {
+				_ = tx.Rollback()
+				return nil, err
+			}
+			insertStmt = tx.Stmt(insertStmt)
+			// for each list element, insert its value
+			index := 0.0
+			for itList := featureList.Iterator(); itList.HasNext(); {
+				value := itList.Next()
+				converted, err := e.convertFeatureValue(featureData, value)
+				if err != nil {
+					_ = tx.Rollback()
+					return nil, err
+				}
+				_, err = insertStmt.Exec(objectID, index, converted)
+				if err != nil {
+					_ = tx.Rollback()
+					return nil, err
+				}
+				index++
+			}
+			// commit transaction
+			if err := tx.Commit(); err != nil {
+				return nil, err
+			}
+		}
+	}
 
 	return &sqlEncoderObjectData{
 		id:        objectID,
@@ -578,11 +621,13 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 			}
 			newFeatureTable(featureData, eFeature,
 				newSqlReferenceColumn(classData.table),
+				newSqlAttributeColumn("index", "REAL"),
 				newSqlReferenceColumn(referenceData.table, withSqlColumnName(eFeature.GetName())),
 			)
 		case sfkObjectReferenceList:
 			newFeatureTable(featureData, eFeature,
 				newSqlReferenceColumn(classData.table),
+				newSqlAttributeColumn("index", "REAL"),
 				newSqlAttributeColumn("uri", "TEXT"),
 			)
 		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum:
@@ -594,6 +639,7 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 		case sfkDataList:
 			newFeatureTable(featureData, eFeature,
 				newSqlReferenceColumn(classData.table),
+				newSqlAttributeColumn("index", "REAL"),
 				newSqlAttributeColumn(eFeature.GetName(), "TEXT"),
 			)
 		}

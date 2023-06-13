@@ -20,29 +20,61 @@ type sqlColumn struct {
 	reference  *sqlTable
 }
 
-func newSqlAttributeColumn(columnName string, columnType string) *sqlColumn {
-	return &sqlColumn{
+type sqlColumnOption interface {
+	apply(col *sqlColumn)
+}
+
+type funcSqlColumnOption struct {
+	f func(col *sqlColumn)
+}
+
+func (fdo *funcSqlColumnOption) apply(col *sqlColumn) {
+	fdo.f(col)
+}
+
+func newFuncSqlColumnOption(f func(col *sqlColumn)) *funcSqlColumnOption {
+	return &funcSqlColumnOption{f: f}
+}
+
+func withSqlColumnName(columnName string) sqlColumnOption {
+	return newFuncSqlColumnOption(func(col *sqlColumn) {
+		col.columnName = columnName
+	})
+}
+
+func withSqlColumnPrimary(primary bool) sqlColumnOption {
+	return newFuncSqlColumnOption(func(col *sqlColumn) {
+		col.primary = primary
+	})
+}
+
+func withSqlColumnAuto(auto bool) sqlColumnOption {
+	return newFuncSqlColumnOption(func(col *sqlColumn) {
+		col.auto = auto
+	})
+}
+
+func newSqlAttributeColumn(columnName string, columnType string, options ...sqlColumnOption) *sqlColumn {
+	col := &sqlColumn{
 		columnName: columnName,
 		columnType: columnType,
 	}
+	for _, opt := range options {
+		opt.apply(col)
+	}
+	return col
 }
 
-func newSqlReferenceColumn(reference *sqlTable) *sqlColumn {
-	return &sqlColumn{
+func newSqlReferenceColumn(reference *sqlTable, options ...sqlColumnOption) *sqlColumn {
+	col := &sqlColumn{
 		columnName: reference.key.columnName,
 		columnType: reference.key.columnType,
 		reference:  reference,
 	}
-}
-
-func (c *sqlColumn) setPrimary(primary bool) *sqlColumn {
-	c.primary = primary
-	return c
-}
-
-func (c *sqlColumn) setAuto(auto bool) *sqlColumn {
-	c.auto = auto
-	return c
+	for _, opt := range options {
+		opt.apply(col)
+	}
+	return col
 }
 
 type sqlTable struct {
@@ -137,7 +169,7 @@ func (t *sqlTable) insertQuery() string {
 }
 
 func (t *sqlTable) defaultValues() []any {
-	values := make([]any, 0, len(t.columns))
+	values := make([]any, len(t.columns))
 	for i, c := range t.columns {
 		if c.auto {
 			switch c.columnType {
@@ -193,18 +225,18 @@ func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQL
 	// common tables definitions
 	packagesTable := newSqlTable(
 		"packages",
-		newSqlAttributeColumn("packageID", "INTEGER").setPrimary(true).setAuto(true),
+		newSqlAttributeColumn("packageID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
 		newSqlAttributeColumn("uri", "TEXT"),
 	)
 	classesTable := newSqlTable(
 		"classes",
-		newSqlAttributeColumn("classID", "INTEGER").setPrimary(true).setAuto(true),
-		newSqlAttributeColumn("name", "TEXT"),
+		newSqlAttributeColumn("classID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
 		newSqlReferenceColumn(packagesTable),
+		newSqlAttributeColumn("name", "TEXT"),
 	)
 	objectsTable := newSqlTable(
 		"objects",
-		newSqlAttributeColumn("objectID", "INTEGER").setPrimary(true).setAuto(true),
+		newSqlAttributeColumn("objectID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
 		newSqlReferenceColumn(classesTable),
 	)
 	contentsTable := newSqlTable(
@@ -390,22 +422,24 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 }
 
 func (e *SQLEncoder) convertFeatureValue(featureData *sqlEncoderFeatureData, value any) (any, error) {
-	switch featureData.featureKind {
-	case sfkObject, sfkObjectList:
-		objectData, err := e.encodeObject(value.(EObject))
-		if err != nil {
-			return nil, err
+	if value != nil {
+		switch featureData.featureKind {
+		case sfkObject, sfkObjectList:
+			objectData, err := e.encodeObject(value.(EObject))
+			if err != nil {
+				return nil, err
+			}
+			return objectData.id, nil
+		case sfkObjectReference, sfkObjectReferenceList:
+			return GetURI(value.(EObject)).String(), nil
+		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum, sfkString, sfkByteArray:
+			return value, nil
+		case sfkDate:
+			t := value.(*time.Time)
+			return t.Format(time.RFC3339), nil
+		case sfkData, sfkDataList:
+			return featureData.factory.ConvertToString(featureData.dataType, value), nil
 		}
-		return objectData.id, nil
-	case sfkObjectReference, sfkObjectReferenceList:
-		return GetURI(value.(EObject)).String(), nil
-	case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum, sfkString, sfkByteArray:
-		return value, nil
-	case sfkDate:
-		t := value.(*time.Time)
-		return t.Format(time.RFC3339), nil
-	case sfkData, sfkDataList:
-		return featureData.factory.ConvertToString(featureData.dataType, value), nil
 	}
 	return nil, nil
 }
@@ -437,13 +471,7 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 		}
 
 		// create class data
-		classData, err = e.newClassData(eClass, id)
-		if err != nil {
-			return nil, err
-		}
-
-		// register class data
-		e.classDataMap[eClass] = classData
+		return e.newClassData(eClass, id)
 	}
 	return classData, nil
 }
@@ -492,7 +520,7 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 	eFeatures := eClass.GetEAllStructuralFeatures()
 	// create table descriptor
 	classTable := newSqlTable(ePackage.GetNsPrefix() + "_" + strings.ToLower(eClass.GetName()))
-	classTable.addColumn(newSqlAttributeColumn(strings.ToLower(eClass.GetName())+"ID", "INTEGER").setPrimary(true))
+	classTable.addColumn(newSqlAttributeColumn(strings.ToLower(eClass.GetName())+"ID", "INTEGER", withSqlColumnPrimary(true)))
 
 	// compute table columns and external tables
 	classData := &sqlEncoderClassData{
@@ -501,9 +529,11 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 		features: make([]*sqlEncoderFeatureData, 0, eFeatures.Size()),
 	}
 
+	// register class data now to handle correctly cycles references
+	e.classDataMap[eClass] = classData
+
 	newFeatureReferenceColumn := func(featureData *sqlEncoderFeatureData, eFeature EStructuralFeature, table *sqlTable) {
-		column := newSqlReferenceColumn(table)
-		column.columnName = eFeature.GetName()
+		column := newSqlReferenceColumn(table, withSqlColumnName(eFeature.GetName()))
 		classTable.addColumn(column)
 		featureData.column = column
 	}
@@ -548,7 +578,7 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 			}
 			newFeatureTable(featureData, eFeature,
 				newSqlReferenceColumn(classData.table),
-				newSqlReferenceColumn(referenceData.table),
+				newSqlReferenceColumn(referenceData.table, withSqlColumnName(eFeature.GetName())),
 			)
 		case sfkObjectReferenceList:
 			newFeatureTable(featureData, eFeature,

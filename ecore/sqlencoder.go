@@ -455,6 +455,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 			if err := tx.Commit(); err != nil {
 				return nil, err
 			}
+
 		}
 	}
 
@@ -621,13 +622,13 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 			}
 			newFeatureTable(featureData, eFeature,
 				newSqlReferenceColumn(classData.table),
-				newSqlAttributeColumn("index", "REAL"),
+				newSqlAttributeColumn("idx", "REAL"),
 				newSqlReferenceColumn(referenceData.table, withSqlColumnName(eFeature.GetName())),
 			)
 		case sfkObjectReferenceList:
 			newFeatureTable(featureData, eFeature,
 				newSqlReferenceColumn(classData.table),
-				newSqlAttributeColumn("index", "REAL"),
+				newSqlAttributeColumn("idx", "REAL"),
 				newSqlAttributeColumn("uri", "TEXT"),
 			)
 		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum:
@@ -639,7 +640,7 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 		case sfkDataList:
 			newFeatureTable(featureData, eFeature,
 				newSqlReferenceColumn(classData.table),
-				newSqlAttributeColumn("index", "REAL"),
+				newSqlAttributeColumn("idx", "REAL"),
 				newSqlAttributeColumn(eFeature.GetName(), "TEXT"),
 			)
 		}

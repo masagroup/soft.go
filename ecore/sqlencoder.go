@@ -207,6 +207,46 @@ type sqlEncoderPackageData struct {
 	id int64
 }
 
+type sqlStmt struct {
+	stmt *sql.Stmt
+	args []any
+}
+
+type sqlStmts struct {
+	db    *sql.DB
+	stmts []*sqlStmt
+}
+
+func newSqlStmts(db *sql.DB) *sqlStmts {
+	return &sqlStmts{db: db}
+}
+
+func (s *sqlStmts) add(stmt *sql.Stmt, args ...any) {
+	s.stmts = append(s.stmts, &sqlStmt{stmt: stmt, args: args})
+}
+
+func (s *sqlStmts) exec() error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil
+	}
+	txStmts := map[*sql.Stmt]*sql.Stmt{}
+	for _, t := range s.stmts {
+		stmt := t.stmt
+		txStmt := txStmts[stmt]
+		if txStmt == nil {
+			txStmt = tx.Stmt(stmt)
+			txStmts[stmt] = txStmt
+		}
+		_, err := txStmt.Exec(t.args...)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 type SQLEncoder struct {
 	resource        EResource
 	writer          io.Writer
@@ -392,6 +432,9 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 		return nil, err
 	}
 
+	// collection of statements
+	insertStmts := newSqlStmts(e.db)
+
 	// encode features columnValues in table columns
 	columnValues := classData.table.defaultValues()
 	columnValues[classData.table.key.index] = objectID
@@ -404,59 +447,42 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 				return nil, err
 			}
 			columnValues[featureData.column.index] = columnValue
-		}
-	}
-	insertStmt, err := e.getInsertStmt(classData.table)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := insertStmt.Exec(columnValues...); err != nil {
-		return nil, err
-	}
-
-	// encode feature values in external table
-	for featureID, featureData := range classData.features {
-		if featureData.table != nil {
+		} else if featureData.table != nil {
 			// feature is encoded in a external table
 			featureValue := eObject.(EObjectInternal).EGetFromID(featureID, false)
 			featureList, _ := featureValue.(EList)
 			if featureList == nil {
 				return nil, errors.New("feature value is not a list")
 			}
-			// start new transaction
-			tx, err := e.db.Begin()
-			if err != nil {
-				return nil, err
-			}
-			// prepare insert statement for this transaction
+			// retrieve insert statement
 			insertStmt, err := e.getInsertStmt(featureData.table)
 			if err != nil {
-				_ = tx.Rollback()
 				return nil, err
 			}
-			insertStmt = tx.Stmt(insertStmt)
 			// for each list element, insert its value
 			index := 0.0
 			for itList := featureList.Iterator(); itList.HasNext(); {
 				value := itList.Next()
 				converted, err := e.convertFeatureValue(featureData, value)
 				if err != nil {
-					_ = tx.Rollback()
 					return nil, err
 				}
-				_, err = insertStmt.Exec(objectID, index, converted)
-				if err != nil {
-					_ = tx.Rollback()
-					return nil, err
-				}
+				insertStmts.add(insertStmt, objectID, index, converted)
 				index++
 			}
-			// commit transaction
-			if err := tx.Commit(); err != nil {
-				return nil, err
-			}
-
 		}
+	}
+
+	// insert new row in class column
+	insertStmt, err := e.getInsertStmt(classData.table)
+	if err != nil {
+		return nil, err
+	}
+	insertStmts.add(insertStmt, columnValues)
+
+	// execute all statements
+	if err := insertStmts.exec(); err != nil {
+		return nil, err
 	}
 
 	return &sqlEncoderObjectData{

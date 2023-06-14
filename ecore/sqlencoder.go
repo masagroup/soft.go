@@ -433,6 +433,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 	}
 
 	// collection of statements
+	// used to avoid nested transactions
 	insertStmts := newSqlStmts(e.db)
 
 	// encode features columnValues in table columns
@@ -478,7 +479,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 	if err != nil {
 		return nil, err
 	}
-	insertStmts.add(insertStmt, columnValues)
+	insertStmts.add(insertStmt, columnValues...)
 
 	// execute all statements
 	if err := insertStmts.exec(); err != nil {

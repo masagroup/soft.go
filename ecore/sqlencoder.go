@@ -198,9 +198,10 @@ type sqlEncoderFeatureData struct {
 }
 
 type sqlEncoderClassData struct {
-	id       int64
-	table    *sqlTable
-	features []*sqlEncoderFeatureData
+	id        int64
+	table     *sqlTable
+	features  map[EStructuralFeature]*sqlEncoderFeatureData
+	hierarchy []EClass
 }
 
 type sqlEncoderPackageData struct {
@@ -435,51 +436,57 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 	// collection of statements
 	// used to avoid nested transactions
 	insertStmts := newSqlStmts(e.db)
+	for _, eClass := range classData.hierarchy {
+		classData, err := e.getClassData(eClass)
+		if err != nil {
+			return nil, err
+		}
 
-	// encode features columnValues in table columns
-	columnValues := classData.table.defaultValues()
-	columnValues[classData.table.key.index] = objectID
-	for featureID, featureData := range classData.features {
-		if featureData.column != nil {
-			// feature is encoded as a column
-			featureValue := eObject.(EObjectInternal).EGetFromID(featureID, false)
-			columnValue, err := e.convertFeatureValue(featureData, featureValue)
-			if err != nil {
-				return nil, err
-			}
-			columnValues[featureData.column.index] = columnValue
-		} else if featureData.table != nil {
-			// feature is encoded in a external table
-			featureValue := eObject.(EObjectInternal).EGetFromID(featureID, false)
-			featureList, _ := featureValue.(EList)
-			if featureList == nil {
-				return nil, errors.New("feature value is not a list")
-			}
-			// retrieve insert statement
-			insertStmt, err := e.getInsertStmt(featureData.table)
-			if err != nil {
-				return nil, err
-			}
-			// for each list element, insert its value
-			index := 0.0
-			for itList := featureList.Iterator(); itList.HasNext(); {
-				value := itList.Next()
-				converted, err := e.convertFeatureValue(featureData, value)
+		// encode features columnValues in table columns
+		columnValues := classData.table.defaultValues()
+		columnValues[classData.table.key.index] = objectID
+		for eFeature, featureData := range classData.features {
+			if featureData.column != nil {
+				// feature is encoded as a column
+				featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
+				columnValue, err := e.convertFeatureValue(featureData, featureValue)
 				if err != nil {
 					return nil, err
 				}
-				insertStmts.add(insertStmt, objectID, index, converted)
-				index++
+				columnValues[featureData.column.index] = columnValue
+			} else if featureData.table != nil {
+				// feature is encoded in a external table
+				featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
+				featureList, _ := featureValue.(EList)
+				if featureList == nil {
+					return nil, errors.New("feature value is not a list")
+				}
+				// retrieve insert statement
+				insertStmt, err := e.getInsertStmt(featureData.table)
+				if err != nil {
+					return nil, err
+				}
+				// for each list element, insert its value
+				index := 0.0
+				for itList := featureList.Iterator(); itList.HasNext(); {
+					value := itList.Next()
+					converted, err := e.convertFeatureValue(featureData, value)
+					if err != nil {
+						return nil, err
+					}
+					insertStmts.add(insertStmt, objectID, index, converted)
+					index++
+				}
 			}
 		}
-	}
 
-	// insert new row in class column
-	insertStmt, err := e.getInsertStmt(classData.table)
-	if err != nil {
-		return nil, err
+		// insert new row in class column
+		insertStmt, err := e.getInsertStmt(classData.table)
+		if err != nil {
+			return nil, err
+		}
+		insertStmts.add(insertStmt, columnValues...)
 	}
-	insertStmts.add(insertStmt, columnValues...)
 
 	// execute all statements
 	if err := insertStmts.exec(); err != nil {
@@ -518,6 +525,15 @@ func (e *SQLEncoder) convertFeatureValue(featureData *sqlEncoderFeatureData, val
 func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 	classData := e.classDataMap[eClass]
 	if classData == nil {
+		// compute class data for super types
+		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
+			eClass := itClass.Next().(EClass)
+			_, err := e.getClassData(eClass)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		// encode package
 		ePackage := eClass.GetEPackage()
 		packageData, err := e.getPackageData(ePackage)
@@ -542,7 +558,10 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 		}
 
 		// create class data
-		return e.newClassData(eClass, id)
+		classData, err = e.newClassData(eClass, id)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return classData, nil
 }
@@ -588,16 +607,17 @@ func (e *SQLEncoder) newPackageData(id int64) *sqlEncoderPackageData {
 func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData, error) {
 	// create data
 	ePackage := eClass.GetEPackage()
-	eFeatures := eClass.GetEAllStructuralFeatures()
+	eFeatures := eClass.GetEStructuralFeatures()
 	// create table descriptor
 	classTable := newSqlTable(ePackage.GetNsPrefix() + "_" + strings.ToLower(eClass.GetName()))
 	classTable.addColumn(newSqlAttributeColumn(strings.ToLower(eClass.GetName())+"ID", "INTEGER", withSqlColumnPrimary(true)))
 
 	// compute table columns and external tables
 	classData := &sqlEncoderClassData{
-		id:       id,
-		table:    classTable,
-		features: make([]*sqlEncoderFeatureData, 0, eFeatures.Size()),
+		id:        id,
+		table:     classTable,
+		features:  map[EStructuralFeature]*sqlEncoderFeatureData{},
+		hierarchy: e.newClassHierarchy(eClass),
 	}
 
 	// register class data now to handle correctly cycles references
@@ -626,7 +646,7 @@ func (e *SQLEncoder) newClassData(eClass EClass, id int64) (*sqlEncoderClassData
 		eFeature := itFeature.Next().(EStructuralFeature)
 		// new feature data
 		featureData := e.newFeatureData(eFeature)
-		classData.features = append(classData.features, featureData)
+		classData.features[eFeature] = featureData
 
 		// compute class table columns or children tables
 		switch featureData.featureKind {
@@ -700,6 +720,14 @@ func (e *SQLEncoder) newFeatureData(eFeature EStructuralFeature) *sqlEncoderFeat
 		featureData.factory = eDataType.GetEPackage().GetEFactoryInstance()
 	}
 	return featureData
+}
+
+func (e *SQLEncoder) newClassHierarchy(eClass EClass) []EClass {
+	superTypes := []EClass{eClass}
+	for itClass := eClass.GetEAllSuperTypes().Iterator(); itClass.HasNext(); {
+		superTypes = append(superTypes, itClass.Next().(EClass))
+	}
+	return superTypes
 }
 
 func (e *SQLEncoder) isObjectWithID() bool {

@@ -509,7 +509,9 @@ func (e *SQLEncoder) convertFeatureValue(featureData *sqlEncoderFeatureData, val
 			}
 			return objectData.id, nil
 		case sfkObjectReference, sfkObjectReferenceList:
-			return GetURI(value.(EObject)).String(), nil
+			ref := GetURI(value.(EObject))
+			uri := e.resource.GetURI().Relativize(ref)
+			return uri.String(), nil
 		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum, sfkString, sfkByteArray:
 			return value, nil
 		case sfkDate:

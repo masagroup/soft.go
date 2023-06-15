@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -315,12 +316,7 @@ func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQL
 	return e
 }
 
-func (e *SQLEncoder) createDB() (*sql.DB, error) {
-	fileName := filepath.Base(e.resource.GetURI().Path())
-	dbPath, err := sqlTmpDB(fileName)
-	if err != nil {
-		return nil, err
-	}
+func (e *SQLEncoder) createDB(dbPath string) (*sql.DB, error) {
 
 	// open db
 	db, err := sql.Open(e.driver, dbPath)
@@ -361,23 +357,70 @@ func (e *SQLEncoder) createDB() (*sql.DB, error) {
 }
 
 func (e *SQLEncoder) EncodeResource() {
-	var err error
-	e.db, err = e.createDB()
+	// create a temp file for the database file
+	fileName := filepath.Base(e.resource.GetURI().Path())
+	dbPath, err := sqlTmpDB(fileName)
 	if err != nil {
-		e.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), e.resource.GetURI().String(), 0, 0))
+		e.addError(err)
+		return
+	}
+
+	// create db
+	e.db, err = e.createDB(dbPath)
+	if err != nil {
+		e.addError(err)
 		return
 	}
 	defer func() {
 		_ = e.db.Close()
 	}()
 
+	// encode contents into db
 	if contents := e.resource.GetContents(); !contents.Empty() {
 		object := contents.Get(0).(EObject)
 		if err := e.encodeContent(object); err != nil {
-			e.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), e.resource.GetURI().String(), 0, 0))
+			e.addError(err)
 			return
 		}
 	}
+
+	// close db
+	if err := e.db.Close(); err != nil {
+		e.addError(err)
+		return
+	}
+
+	// open db file
+	dbFile, err := os.Open(dbPath)
+	if err != nil {
+		e.addError(err)
+		return
+	}
+	defer func() {
+		_ = dbFile.Close()
+	}()
+
+	// copy db file content to writer
+	if _, err := io.Copy(e.writer, dbFile); err != nil {
+		e.addError(err)
+		return
+	}
+
+	// close db file
+	if err := dbFile.Close(); err != nil {
+		e.addError(err)
+		return
+	}
+
+	// remove it from fs
+	if err := os.Remove(dbPath); err != nil {
+		e.addError(err)
+		return
+	}
+}
+
+func (e *SQLEncoder) addError(err error) {
+	e.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), e.resource.GetURI().String(), 0, 0))
 }
 
 func (e *SQLEncoder) EncodeObject(object EObject) error {

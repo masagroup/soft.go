@@ -24,5 +24,4 @@ func TestSqlEncoder_Complex(t *testing.T) {
 	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
-
 }

@@ -20,6 +20,9 @@ func TestSqlEncoder_Complex(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
+	// w, err := os.Create("testdata/library.complex.sqlite")
+	// require.NoError(t, err)
+	// defer w.Close()
 	w := &bytes.Buffer{}
 	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
 	sqliteEncoder.EncodeResource()

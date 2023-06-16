@@ -2,10 +2,17 @@ package ecore
 
 import (
 	"database/sql"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 )
+
+type sqlDecoderClassData struct {
+}
+
+type sqlDecoderPackageData struct {
+}
 
 type SQLDecoder struct {
 	resource EResource
@@ -51,13 +58,61 @@ func (d *SQLDecoder) createDB() (*sql.DB, error) {
 }
 
 func (d *SQLDecoder) DecodeResource() {
-	_, err := d.createDB()
+	var err error
+	d.db, err = d.createDB()
 	if err != nil {
-		d.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), d.resource.GetURI().String(), 0, 0))
+		d.addError(err)
+		return
+	}
+
+	if err := d.decodeVersion(); err != nil {
+		d.addError(err)
+		return
+	}
+
+	if err := d.decodePackages(); err != nil {
+		d.addError(err)
+		return
+	}
+
+	if err := d.decodeContents(); err != nil {
+		d.addError(err)
 		return
 	}
 }
 
 func (d *SQLDecoder) DecodeObject() (EObject, error) {
 	panic("SQLDecoder doesn't support object decoding")
+}
+
+func (d *SQLDecoder) addError(err error) {
+	d.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), d.resource.GetURI().String(), 0, 0))
+}
+
+func (d *SQLDecoder) decodeVersion() error {
+	if row := d.db.QueryRow("PRAGMA user_version;"); row == nil {
+		return fmt.Errorf("unable to retrieve user version")
+	} else {
+		var v int
+		if err := row.Scan(&v); err != nil {
+			return err
+		}
+		if v != sqlCodecVersion {
+			return fmt.Errorf("history version %v is not supported", v)
+		}
+		return nil
+	}
+}
+
+func (e *SQLDecoder) decodeContents() error {
+	return nil
+}
+
+func (e *SQLDecoder) decodeObject() (EObject, error) {
+	return nil, nil
+}
+
+func (e *SQLDecoder) decodePackages() error {
+
+	return nil
 }

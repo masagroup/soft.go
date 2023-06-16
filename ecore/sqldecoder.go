@@ -6,26 +6,28 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 type sqlDecoderClassData struct {
-}
-
-type sqlDecoderPackageData struct {
+	ePackage EPackage
+	eClass   EClass
 }
 
 type SQLDecoder struct {
-	resource EResource
-	reader   io.Reader
-	driver   string
-	db       *sql.DB
+	resource    EResource
+	reader      io.Reader
+	driver      string
+	db          *sql.DB
+	classesData map[int]*sqlDecoderClassData
 }
 
 func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQLDecoder {
 	d := &SQLDecoder{
-		resource: resource,
-		reader:   r,
-		driver:   "sqlite",
+		resource:    resource,
+		reader:      r,
+		driver:      "sqlite",
+		classesData: map[int]*sqlDecoderClassData{},
 	}
 	if options != nil {
 		if driver, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
@@ -70,7 +72,7 @@ func (d *SQLDecoder) DecodeResource() {
 		return
 	}
 
-	if err := d.decodePackages(); err != nil {
+	if err := d.decodeClasses(); err != nil {
 		d.addError(err)
 		return
 	}
@@ -104,15 +106,94 @@ func (d *SQLDecoder) decodeVersion() error {
 	}
 }
 
-func (e *SQLDecoder) decodeContents() error {
+func (d *SQLDecoder) decodeContents() error {
 	return nil
 }
 
-func (e *SQLDecoder) decodeObject() (EObject, error) {
+func (d *SQLDecoder) decodeObject() (EObject, error) {
 	return nil, nil
 }
 
-func (e *SQLDecoder) decodePackages() error {
+func (d *SQLDecoder) decodeClasses() error {
+	// read packages
+	packagesData, err := d.decodePackages()
+	if err != nil {
+		return err
+	}
 
+	// read classes
+	rows, err := d.db.Query("SELECT packageID,uri FROM packages")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	classesData := map[int]*sqlDecoderClassData{}
+	rawBuffer := make([]sql.RawBytes, 3)
+	scanCallArgs := make([]any, len(rawBuffer))
+	for i := range rawBuffer {
+		scanCallArgs[i] = &rawBuffer[i]
+	}
+
+	for rows.Next() {
+		if err := rows.Scan(scanCallArgs...); err != nil {
+			return err
+		}
+		classID, _ := strconv.Atoi(string(rawBuffer[0]))
+		packageID, _ := strconv.Atoi(string(rawBuffer[1]))
+		className := string(rawBuffer[2])
+		ePackage, _ := packagesData[packageID]
+		if ePackage == nil {
+			return fmt.Errorf("unable to find package with id '%d'", packageID)
+		}
+		eClass, _ := ePackage.GetEClassifier(className).(EClass)
+		if eClass == nil {
+			return fmt.Errorf("unable to find class '%s' in package '%s'", className, ePackage.GetNsURI())
+		}
+		classesData[classID] = &sqlDecoderClassData{
+			ePackage: ePackage,
+			eClass:   eClass,
+		}
+	}
+	if err = rows.Err(); err != nil {
+		return err
+	}
 	return nil
+}
+
+func (d *SQLDecoder) decodePackages() (map[int]EPackage, error) {
+	rows, err := d.db.Query("SELECT packageID,uri FROM packages")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	packagesData := map[int]EPackage{}
+	rawBuffer := make([]sql.RawBytes, 2)
+	scanCallArgs := make([]any, len(rawBuffer))
+	for i := range rawBuffer {
+		scanCallArgs[i] = &rawBuffer[i]
+	}
+
+	for rows.Next() {
+		if err := rows.Scan(scanCallArgs...); err != nil {
+			return nil, err
+		}
+		packageID, _ := strconv.Atoi(string(rawBuffer[0]))
+		packageURI := string(rawBuffer[1])
+		packageRegistry := GetPackageRegistry()
+		resourceSet := d.resource.GetResourceSet()
+		if resourceSet != nil {
+			packageRegistry = resourceSet.GetPackageRegistry()
+		}
+		ePackage := packageRegistry.GetPackage(packageURI)
+		if ePackage == nil {
+			return nil, fmt.Errorf("unable to find package '%s'", packageURI)
+		}
+		packagesData[packageID] = ePackage
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return packagesData, nil
 }

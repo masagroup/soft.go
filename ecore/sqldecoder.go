@@ -122,7 +122,7 @@ func (d *SQLDecoder) decodeClasses() error {
 	}
 
 	// read classes
-	rows, err := d.db.Query("SELECT packageID,uri FROM packages")
+	rows, err := d.db.Query("SELECT classID,packageID,name FROM classes")
 	if err != nil {
 		return err
 	}

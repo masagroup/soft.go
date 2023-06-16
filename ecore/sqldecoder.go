@@ -154,6 +154,7 @@ func (d *SQLDecoder) decodeClasses() error {
 			ePackage: ePackage,
 			eClass:   eClass,
 		}
+
 	}
 	if err = rows.Err(); err != nil {
 		return err

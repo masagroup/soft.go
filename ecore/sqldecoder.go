@@ -10,8 +10,18 @@ import (
 )
 
 type sqlDecoderClassData struct {
-	ePackage EPackage
-	eClass   EClass
+	schema    *sqlClassSchema
+	eClass    EClass
+	eFactory  EFactory
+	features  map[EStructuralFeature]*sqlDecoderFeatureData
+	hierarchy []EClass
+}
+
+type sqlDecoderFeatureData struct {
+	schema    *sqlFeatureSchema
+	eFeature  EStructuralFeature
+	eFactory  EFactory
+	eDataType EDataType
 }
 
 type SQLDecoder struct {
@@ -19,22 +29,32 @@ type SQLDecoder struct {
 	reader      io.Reader
 	driver      string
 	db          *sql.DB
+	schema      *sqlSchema
 	classesData map[int]*sqlDecoderClassData
 }
 
 func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQLDecoder {
-	d := &SQLDecoder{
-		resource:    resource,
-		reader:      r,
-		driver:      "sqlite",
-		classesData: map[int]*sqlDecoderClassData{},
-	}
+	// options
+	schemaOptions := []sqlSchemaOption{}
+	driver := "sqlite"
 	if options != nil {
 		if driver, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
-			d.driver = driver.(string)
+			driver = driver.(string)
+		}
+
+		idAttributeName, _ := options[JSON_OPTION_ID_ATTRIBUTE_NAME].(string)
+		if resource.GetObjectIDManager() != nil && len(idAttributeName) > 0 {
+			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
 		}
 	}
-	return d
+
+	return &SQLDecoder{
+		resource:    resource,
+		reader:      r,
+		driver:      driver,
+		schema:      newSqlSchema(schemaOptions...),
+		classesData: map[int]*sqlDecoderClassData{},
+	}
 }
 
 func (d *SQLDecoder) createDB() (*sql.DB, error) {
@@ -122,7 +142,7 @@ func (d *SQLDecoder) decodeClasses() error {
 	}
 
 	// read classes
-	rows, err := d.db.Query("SELECT classID,packageID,name FROM classes")
+	rows, err := d.db.Query(d.schema.classesTable.selectAllQuery())
 	if err != nil {
 		return err
 	}
@@ -136,6 +156,7 @@ func (d *SQLDecoder) decodeClasses() error {
 	}
 
 	for rows.Next() {
+		// retrieve EClass
 		if err := rows.Scan(scanCallArgs...); err != nil {
 			return err
 		}
@@ -150,20 +171,53 @@ func (d *SQLDecoder) decodeClasses() error {
 		if eClass == nil {
 			return fmt.Errorf("unable to find class '%s' in package '%s'", className, ePackage.GetNsURI())
 		}
+
+		// get class schema
+		classSchema, err := d.schema.getClassSchema(eClass)
+		if err != nil {
+			return err
+		}
+
+		// compute class hierarchy
+		classHierarchy := []EClass{eClass}
+		for itClass := eClass.GetEAllSuperTypes().Iterator(); itClass.HasNext(); {
+			classHierarchy = append(classHierarchy, itClass.Next().(EClass))
+		}
+
+		// compute class features
+		classFeatures := map[EStructuralFeature]*sqlDecoderFeatureData{}
+		for eFeature, featureSchema := range classSchema.features {
+			eFeatureData := &sqlDecoderFeatureData{
+				eFeature: eFeature,
+				schema:   featureSchema,
+			}
+			if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
+				eFeatureData.eDataType = eAttribute.GetEAttributeType()
+				eFeatureData.eFactory = eFeatureData.eDataType.GetEPackage().GetEFactoryInstance()
+			}
+			classFeatures[eFeature] = eFeatureData
+		}
+
+		// register class data
 		classesData[classID] = &sqlDecoderClassData{
-			ePackage: ePackage,
-			eClass:   eClass,
+			eClass:    eClass,
+			eFactory:  ePackage.GetEFactoryInstance(),
+			schema:    classSchema,
+			hierarchy: classHierarchy,
+			features:  classFeatures,
 		}
 
 	}
 	if err = rows.Err(); err != nil {
 		return err
 	}
+
+	d.classesData = classesData
 	return nil
 }
 
 func (d *SQLDecoder) decodePackages() (map[int]EPackage, error) {
-	rows, err := d.db.Query("SELECT packageID,uri FROM packages")
+	rows, err := d.db.Query(d.schema.packagesTable.selectAllQuery())
 	if err != nil {
 		return nil, err
 	}

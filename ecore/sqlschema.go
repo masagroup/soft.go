@@ -177,6 +177,13 @@ func (t *sqlTable) defaultValues() []any {
 	return values
 }
 
+func (t *sqlTable) selectAllQuery() string {
+	var selectQuery strings.Builder
+	selectQuery.WriteString("SELECT * from ")
+	selectQuery.WriteString(t.name)
+	return selectQuery.String()
+}
+
 type sqlClassSchema struct {
 	table    *sqlTable
 	features map[EStructuralFeature]*sqlFeatureSchema

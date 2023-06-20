@@ -184,6 +184,16 @@ func (t *sqlTable) selectAllQuery() string {
 	return selectQuery.String()
 }
 
+func (t *sqlTable) selectQuery() string {
+	var selectQuery strings.Builder
+	selectQuery.WriteString("SELECT * from ")
+	selectQuery.WriteString(t.name)
+	selectQuery.WriteString(" WHERE ")
+	selectQuery.WriteString(t.key.columnName)
+	selectQuery.WriteString(" = ?")
+	return selectQuery.String()
+}
+
 type sqlClassSchema struct {
 	table    *sqlTable
 	features map[EStructuralFeature]*sqlFeatureSchema

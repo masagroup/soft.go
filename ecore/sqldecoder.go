@@ -30,7 +30,9 @@ type SQLDecoder struct {
 	driver      string
 	db          *sql.DB
 	schema      *sqlSchema
+	objects     map[int]EObject
 	classesData map[int]*sqlDecoderClassData
+	selectStmts map[*sqlTable]*sql.Stmt
 }
 
 func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQLDecoder {
@@ -54,6 +56,8 @@ func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQL
 		driver:      driver,
 		schema:      newSqlSchema(schemaOptions...),
 		classesData: map[int]*sqlDecoderClassData{},
+		objects:     map[int]EObject{},
+		selectStmts: map[*sqlTable]*sql.Stmt{},
 	}
 }
 
@@ -127,11 +131,74 @@ func (d *SQLDecoder) decodeVersion() error {
 }
 
 func (d *SQLDecoder) decodeContents() error {
+	rows, err := d.db.Query("SELECT * FROM contents")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	rawBuffer := make([]sql.RawBytes, 1)
+	scanCallArgs := make([]any, len(rawBuffer))
+	for i := range rawBuffer {
+		scanCallArgs[i] = &rawBuffer[i]
+	}
+
+	for rows.Next() {
+		// retrieve object id
+		if err := rows.Scan(scanCallArgs...); err != nil {
+			return err
+		}
+		objectID, _ := strconv.Atoi(string(rawBuffer[0]))
+
+		// decode object
+		eObject, err := d.decodeObject(objectID)
+		if err != nil {
+			return err
+		}
+
+		// add object to resource contents
+		d.resource.GetContents().Add(eObject)
+	}
+	if err = rows.Err(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (d *SQLDecoder) decodeObject() (EObject, error) {
+func (d *SQLDecoder) decodeObject(objectID int) (EObject, error) {
+	_, err := d.decodeClass(objectID)
+	if err != nil {
+		return nil, err
+	}
 	return nil, nil
+}
+
+func (d *SQLDecoder) decodeClass(objectID int) (EClass, error) {
+	// retrieve class id for this object
+	selectObjectStmt, err := d.getSelectStmt(d.schema.objectsTable)
+	if err != nil {
+		return nil, err
+	}
+	objectRow := selectObjectStmt.QueryRow(objectID)
+	rawBuffer := make([]sql.RawBytes, 1)
+	scanCallArgs := make([]any, len(rawBuffer))
+	for i := range rawBuffer {
+		scanCallArgs[i] = &rawBuffer[i]
+	}
+	if err := objectRow.Scan(scanCallArgs...); err != nil {
+		return nil, err
+	}
+
+	// class id is second arg
+	classID, _ := strconv.Atoi(string(rawBuffer[1]))
+
+	// retrieve class data
+	classData := d.classesData[classID]
+	if classData == nil {
+		return nil, fmt.Errorf("unable to find class with id '%v'", classID)
+	}
+	return classData.eClass, nil
 }
 
 func (d *SQLDecoder) decodeClasses() error {
@@ -251,4 +318,12 @@ func (d *SQLDecoder) decodePackages() (map[int]EPackage, error) {
 		return nil, err
 	}
 	return packagesData, nil
+}
+
+func (d *SQLDecoder) getSelectStmt(table *sqlTable) (stmt *sql.Stmt, err error) {
+	stmt = d.selectStmts[table]
+	if stmt == nil {
+		stmt, err = d.db.Prepare(table.selectQuery())
+	}
+	return
 }

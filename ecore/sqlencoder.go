@@ -18,67 +18,16 @@ type sqlEncoderObjectData struct {
 }
 
 type sqlEncoderFeatureData struct {
-	featureKind sqlFeatureKind
-	dataType    EDataType
-	factory     EFactory
-	column      *sqlColumn
-	table       *sqlTable
-}
-
-func newSqlEncoderFeatureData(eFeature EStructuralFeature) *sqlEncoderFeatureData {
-	featureData := &sqlEncoderFeatureData{
-		featureKind: getSQLCodecFeatureKind(eFeature),
-	}
-	if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
-		eDataType := eAttribute.GetEAttributeType()
-		featureData.dataType = eDataType
-		featureData.factory = eDataType.GetEPackage().GetEFactoryInstance()
-	}
-	return featureData
-}
-
-func (fd *sqlEncoderFeatureData) getFeatureKind() sqlFeatureKind {
-	return fd.featureKind
-}
-
-func (fd *sqlEncoderFeatureData) getColumn() *sqlColumn {
-	return fd.column
-}
-
-func (fd *sqlEncoderFeatureData) setColumn(column *sqlColumn) {
-	fd.column = column
-}
-
-func (fd *sqlEncoderFeatureData) getTable() *sqlTable {
-	return fd.table
-}
-
-func (fd *sqlEncoderFeatureData) setTable(table *sqlTable) {
-	fd.table = table
+	schema   *sqlFeatureSchema
+	dataType EDataType
+	factory  EFactory
 }
 
 type sqlEncoderClassData struct {
 	id        int64
-	table     *sqlTable
-	features  map[EStructuralFeature]*sqlEncoderFeatureData
+	schema    *sqlClassSchema
 	hierarchy []EClass
-}
-
-func newSqlEncoderClassData(eClass EClass, classID int64, classTable *sqlTable, hierarchy []EClass) *sqlEncoderClassData {
-	return &sqlEncoderClassData{
-		id:        classID,
-		table:     classTable,
-		features:  map[EStructuralFeature]*sqlEncoderFeatureData{},
-		hierarchy: hierarchy,
-	}
-}
-
-func (cd *sqlEncoderClassData) setFeatureData(eFeature EStructuralFeature, featureData *sqlEncoderFeatureData) {
-	cd.features[eFeature] = featureData
-}
-
-func (cd *sqlEncoderClassData) getTable() *sqlTable {
-	return cd.table
+	features  map[EStructuralFeature]*sqlEncoderFeatureData
 }
 
 type sqlEncoderPackageData struct {
@@ -136,66 +85,39 @@ type SQLEncoder struct {
 	writer          io.Writer
 	driver          string
 	db              *sql.DB
+	schema          *sqlSchema
 	insertStmts     map[*sqlTable]*sql.Stmt
 	packageDataMap  map[EPackage]*sqlEncoderPackageData
 	classDataMap    map[EClass]*sqlEncoderClassData
-	packagesTable   *sqlTable
-	classesTable    *sqlTable
-	objectsTable    *sqlTable
-	contentsTable   *sqlTable
 	idAttributeName string
 }
 
 func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQLEncoder {
-	// common tables definitions
-	packagesTable := newSqlTable(
-		"packages",
-		newSqlAttributeColumn("packageID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
-		newSqlAttributeColumn("uri", "TEXT"),
-	)
-	classesTable := newSqlTable(
-		"classes",
-		newSqlAttributeColumn("classID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
-		newSqlReferenceColumn(packagesTable),
-		newSqlAttributeColumn("name", "TEXT"),
-	)
-	objectsTable := newSqlTable(
-		"objects",
-		newSqlAttributeColumn("objectID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
-		newSqlReferenceColumn(classesTable),
-	)
-	contentsTable := newSqlTable(
-		"contents",
-		newSqlReferenceColumn(objectsTable),
-	)
+
+	// options
+	schemaOptions := []sqlSchemaOption{}
+	driver := "sqlite"
+	if options != nil {
+		if driver, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
+			driver = driver.(string)
+		}
+
+		idAttributeName, _ := options[JSON_OPTION_ID_ATTRIBUTE_NAME].(string)
+		if resource.GetObjectIDManager() != nil && len(idAttributeName) > 0 {
+			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
+		}
+	}
 
 	// encoder structure
-	e := &SQLEncoder{
+	return &SQLEncoder{
 		resource:       resource,
 		writer:         w,
-		driver:         "sqlite",
-		packagesTable:  packagesTable,
-		classesTable:   classesTable,
-		objectsTable:   objectsTable,
-		contentsTable:  contentsTable,
+		driver:         driver,
+		schema:         newSqlSchema(schemaOptions...),
 		packageDataMap: map[EPackage]*sqlEncoderPackageData{},
 		classDataMap:   map[EClass]*sqlEncoderClassData{},
 		insertStmts:    map[*sqlTable]*sql.Stmt{},
 	}
-
-	// options
-	if options != nil {
-		if driver, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
-			e.driver = driver.(string)
-		}
-
-		e.idAttributeName, _ = options[JSON_OPTION_ID_ATTRIBUTE_NAME].(string)
-		if e.isObjectWithID() {
-			e.objectsTable.addColumn(newSqlAttributeColumn(e.idAttributeName, "TEXT"))
-		}
-	}
-
-	return e
 }
 
 func (e *SQLEncoder) createDB(dbPath string) (*sql.DB, error) {
@@ -225,10 +147,10 @@ func (e *SQLEncoder) createDB(dbPath string) (*sql.DB, error) {
 
 	// tables
 	for _, table := range []*sqlTable{
-		e.packagesTable,
-		e.classesTable,
-		e.objectsTable,
-		e.contentsTable,
+		e.schema.packagesTable,
+		e.schema.classesTable,
+		e.schema.objectsTable,
+		e.schema.contentsTable,
 	} {
 		if _, err := db.Exec(table.createQuery()); err != nil {
 			return nil, err
@@ -315,7 +237,7 @@ func (e *SQLEncoder) encodeContent(eObject EObject) error {
 		return err
 	}
 
-	insertContentStmt, err := e.getInsertStmt(e.contentsTable)
+	insertContentStmt, err := e.getInsertStmt(e.schema.contentsTable)
 	if err != nil {
 		return err
 	}
@@ -336,7 +258,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 	}
 
 	// create table
-	insertObjectStmt, err := e.getInsertStmt(e.objectsTable)
+	insertObjectStmt, err := e.getInsertStmt(e.schema.objectsTable)
 	if err != nil {
 		return nil, err
 	}
@@ -366,20 +288,21 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 		if err != nil {
 			return nil, err
 		}
+		classTable := classData.schema.table
 
 		// encode features columnValues in table columns
-		columnValues := classData.table.defaultValues()
-		columnValues[classData.table.key.index] = objectID
+		columnValues := classTable.defaultValues()
+		columnValues[classTable.key.index] = objectID
 		for eFeature, featureData := range classData.features {
-			if featureData.column != nil {
+			if featureColumn := featureData.schema.column; featureColumn != nil {
 				// feature is encoded as a column
 				featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
 				columnValue, err := e.convertFeatureValue(featureData, featureValue)
 				if err != nil {
 					return nil, err
 				}
-				columnValues[featureData.column.index] = columnValue
-			} else if featureData.table != nil {
+				columnValues[featureColumn.index] = columnValue
+			} else if featureTable := featureData.schema.table; featureTable != nil {
 				// feature is encoded in a external table
 				featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
 				featureList, _ := featureValue.(EList)
@@ -387,7 +310,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 					return nil, errors.New("feature value is not a list")
 				}
 				// retrieve insert statement
-				insertStmt, err := e.getInsertStmt(featureData.table)
+				insertStmt, err := e.getInsertStmt(featureTable)
 				if err != nil {
 					return nil, err
 				}
@@ -406,7 +329,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 		}
 
 		// insert new row in class column
-		insertStmt, err := e.getInsertStmt(classData.table)
+		insertStmt, err := e.getInsertStmt(classTable)
 		if err != nil {
 			return nil, err
 		}
@@ -426,7 +349,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 
 func (e *SQLEncoder) convertFeatureValue(featureData *sqlEncoderFeatureData, value any) (any, error) {
 	if value != nil {
-		switch featureData.featureKind {
+		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:
 			objectData, err := e.encodeObject(value.(EObject))
 			if err != nil {
@@ -469,7 +392,7 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 		}
 
 		// insert class in sql
-		insertClassStmt, err := e.getInsertStmt(e.classesTable)
+		insertClassStmt, err := e.getInsertStmt(e.schema.classesTable)
 		if err != nil {
 			return nil, err
 		}
@@ -479,36 +402,59 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 		}
 
 		// retrieve class index
-		id, err := sqlResult.LastInsertId()
+		classID, err := sqlResult.LastInsertId()
 		if err != nil {
 			return nil, err
 		}
 
 		// create class data
-		classData, err = newSqlClassData[*sqlEncoderClassData, *sqlEncoderFeatureData](
-			eClass,
-			id,
-			e.classDataMap,
-			e.getClassData,
-			newSqlEncoderClassData,
-			newSqlEncoderFeatureData)
+		classSchema, err := e.schema.getClassSchema(eClass)
 		if err != nil {
 			return nil, err
 		}
 
-		// create class table
-		if _, err := e.db.Exec(classData.table.createQuery()); err != nil {
+		// compute class hierarchy
+		classHierarchy := []EClass{eClass}
+		for itClass := eClass.GetEAllSuperTypes().Iterator(); itClass.HasNext(); {
+			classHierarchy = append(classHierarchy, itClass.Next().(EClass))
+		}
+
+		// create class tables
+		if _, err := e.db.Exec(classSchema.table.createQuery()); err != nil {
 			return nil, err
 		}
 
-		// create children tables
-		for _, featureData := range classData.features {
-			if table := featureData.table; table != nil {
+		classFeatures := map[EStructuralFeature]*sqlEncoderFeatureData{}
+		for eFeature, featureSchema := range classSchema.features {
+
+			// create feature table if any
+			if table := featureSchema.table; table != nil {
 				if _, err := e.db.Exec(table.createQuery()); err != nil {
 					return nil, err
 				}
 			}
+
+			// create feature data
+			featureData := &sqlEncoderFeatureData{
+				schema: featureSchema,
+			}
+			if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
+				eDataType := eAttribute.GetEAttributeType()
+				featureData.dataType = eDataType
+				featureData.factory = eDataType.GetEPackage().GetEFactoryInstance()
+			}
+
+			classFeatures[eFeature] = featureData
 		}
+
+		// create & register class data
+		classData = &sqlEncoderClassData{
+			id:        classID,
+			schema:    classSchema,
+			features:  classFeatures,
+			hierarchy: classHierarchy,
+		}
+		e.classDataMap[eClass] = classData
 
 	}
 	return classData, nil
@@ -518,7 +464,7 @@ func (e *SQLEncoder) getPackageData(ePackage EPackage) (*sqlEncoderPackageData, 
 	ePackageData := e.packageDataMap[ePackage]
 	if ePackageData == nil {
 		// insert new package
-		insertPackageStmt, err := e.getInsertStmt(e.packagesTable)
+		insertPackageStmt, err := e.getInsertStmt(e.schema.packagesTable)
 		if err != nil {
 			return nil, err
 		}
@@ -544,9 +490,4 @@ func (e *SQLEncoder) getInsertStmt(table *sqlTable) (stmt *sql.Stmt, err error) 
 		stmt, err = e.db.Prepare(table.insertQuery())
 	}
 	return
-}
-
-func (e *SQLEncoder) isObjectWithID() bool {
-	idManager := e.resource.GetObjectIDManager()
-	return idManager != nil && len(e.idAttributeName) > 0
 }

@@ -136,18 +136,3 @@ func getSQLCodecFeatureKind(eFeature EStructuralFeature) sqlFeatureKind {
 	}
 	return -1
 }
-
-type sqlClassData[FD sqlFeatureData] interface {
-	setFeatureData(eFeature EStructuralFeature, featureData FD)
-	getTable() *sqlTable
-}
-
-type sqlFeatureData interface {
-	getFeatureKind() sqlFeatureKind
-	getColumn() *sqlColumn
-	setColumn(column *sqlColumn)
-	getTable() *sqlTable
-	setTable(table *sqlTable)
-}
-
-// newSqlClassData creates class data struct with its tables/columns structure

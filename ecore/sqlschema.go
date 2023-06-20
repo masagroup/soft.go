@@ -178,9 +178,8 @@ func (t *sqlTable) defaultValues() []any {
 }
 
 type sqlClassSchema struct {
-	table     *sqlTable
-	features  map[EStructuralFeature]*sqlFeatureSchema
-	hierarchy []EClass
+	table    *sqlTable
+	features map[EStructuralFeature]*sqlFeatureSchema
 }
 
 type sqlFeatureSchema struct {
@@ -197,7 +196,31 @@ type sqlSchema struct {
 	classSchemaMap map[EClass]*sqlClassSchema
 }
 
-func newSqlSchema() *sqlSchema {
+type sqlSchemaOption interface {
+	apply(s *sqlSchema)
+}
+
+type funcSqlSchemaOption struct {
+	f func(s *sqlSchema)
+}
+
+func (o *funcSqlSchemaOption) apply(s *sqlSchema) {
+	o.f(s)
+}
+
+func newFuncSqlSchemaOption(f func(s *sqlSchema)) *funcSqlSchemaOption {
+	return &funcSqlSchemaOption{f: f}
+}
+
+func withIDAttributeName(idAttributeName string) sqlSchemaOption {
+	return newFuncSqlSchemaOption(func(s *sqlSchema) {
+		if len(idAttributeName) > 0 {
+			s.objectsTable.addColumn(newSqlAttributeColumn(idAttributeName, "TEXT"))
+		}
+	})
+}
+
+func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 
 	// common tables definitions
 	packagesTable := newSqlTable(
@@ -220,111 +243,110 @@ func newSqlSchema() *sqlSchema {
 		"contents",
 		newSqlReferenceColumn(objectsTable),
 	)
-	return &sqlSchema{
+	s := &sqlSchema{
 		packagesTable:  packagesTable,
 		classesTable:   classesTable,
 		objectsTable:   objectsTable,
 		contentsTable:  contentsTable,
 		classSchemaMap: map[EClass]*sqlClassSchema{},
 	}
+	for _, opt := range options {
+		opt.apply(s)
+	}
+	return s
 }
 
 func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
-	// create data
-	ePackage := eClass.GetEPackage()
-	eFeatures := eClass.GetEStructuralFeatures()
+	classSchema := s.classSchemaMap[eClass]
+	if classSchema == nil {
+		// create data
+		ePackage := eClass.GetEPackage()
+		eFeatures := eClass.GetEStructuralFeatures()
 
-	// create table descriptor
-	classTable := newSqlTable(ePackage.GetNsPrefix() + "_" + strings.ToLower(eClass.GetName()))
-	classTable.addColumn(newSqlAttributeColumn(strings.ToLower(eClass.GetName())+"ID", "INTEGER", withSqlColumnPrimary(true)))
+		// create table descriptor
+		classTable := newSqlTable(ePackage.GetNsPrefix() + "_" + strings.ToLower(eClass.GetName()))
+		classTable.addColumn(newSqlAttributeColumn(strings.ToLower(eClass.GetName())+"ID", "INTEGER", withSqlColumnPrimary(true)))
 
-	// compute eclass super types
-	hierarchy := []EClass{eClass}
-	for itClass := eClass.GetEAllSuperTypes().Iterator(); itClass.HasNext(); {
-		hierarchy = append(hierarchy, itClass.Next().(EClass))
-	}
-
-	// compute table columns and external tables
-	classSchema := &sqlClassSchema{
-		table:     classTable,
-		features:  map[EStructuralFeature]*sqlFeatureSchema{},
-		hierarchy: hierarchy,
-	}
-
-	// register class data now to handle correctly cycles references
-	s.classSchemaMap[eClass] = classSchema
-
-	newFeatureReferenceColumn := func(featureSchema *sqlFeatureSchema, eFeature EStructuralFeature, table *sqlTable) {
-		column := newSqlReferenceColumn(table, withSqlColumnName(eFeature.GetName()))
-		classTable.addColumn(column)
-		featureSchema.column = column
-	}
-
-	newFeatureAttributeColumn := func(featureSchema *sqlFeatureSchema, eFeature EStructuralFeature, columnType string) {
-		column := newSqlAttributeColumn(eFeature.GetName(), columnType)
-		classTable.addColumn(column)
-		featureSchema.column = column
-	}
-
-	newFeatureTable := func(featureSchema *sqlFeatureSchema, eFeature EStructuralFeature, columns ...*sqlColumn) {
-		featureSchema.table = newSqlTable(
-			classTable.name+"_"+eFeature.GetName(),
-			columns...,
-		)
-	}
-
-	for itFeature := eFeatures.Iterator(); itFeature.HasNext(); {
-		eFeature := itFeature.Next().(EStructuralFeature)
-		// new feature data
-		featureSchema := &sqlFeatureSchema{
-			featureKind: getSQLCodecFeatureKind(eFeature),
+		// compute table columns and external tables
+		classSchema = &sqlClassSchema{
+			table:    classTable,
+			features: map[EStructuralFeature]*sqlFeatureSchema{},
 		}
-		classSchema.features[eFeature] = featureSchema
 
-		// compute class table columns or children tables
-		switch featureSchema.featureKind {
-		case sfkObject:
-			// retrieve object reference type
-			eReference := eFeature.(EReference)
-			referenceSchema, err := s.getClassSchema(eReference.GetEReferenceType())
-			if err != nil {
-				return nil, err
-			}
-			newFeatureReferenceColumn(featureSchema, eFeature, referenceSchema.table)
-		case sfkObjectReference:
-			newFeatureAttributeColumn(featureSchema, eFeature, "TEXT")
-		case sfkObjectList:
-			// internal reference
-			eReference := eFeature.(EReference)
-			referenceSchema, err := s.getClassSchema(eReference.GetEReferenceType())
-			if err != nil {
-				return nil, err
-			}
-			newFeatureTable(featureSchema, eFeature,
-				newSqlReferenceColumn(classTable),
-				newSqlAttributeColumn("idx", "REAL"),
-				newSqlReferenceColumn(referenceSchema.table, withSqlColumnName(eFeature.GetName())),
-			)
-		case sfkObjectReferenceList:
-			newFeatureTable(featureSchema, eFeature,
-				newSqlReferenceColumn(classTable),
-				newSqlAttributeColumn("idx", "REAL"),
-				newSqlAttributeColumn("uri", "TEXT"),
-			)
-		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum:
-			newFeatureAttributeColumn(featureSchema, eFeature, "INTEGER")
-		case sfkDate, sfkString, sfkData:
-			newFeatureAttributeColumn(featureSchema, eFeature, "TEXT")
-		case sfkByteArray:
-			newFeatureAttributeColumn(featureSchema, eFeature, "BLOB")
-		case sfkDataList:
-			newFeatureTable(featureSchema, eFeature,
-				newSqlReferenceColumn(classTable),
-				newSqlAttributeColumn("idx", "REAL"),
-				newSqlAttributeColumn(eFeature.GetName(), "TEXT"),
+		// register class data now to handle correctly cycles references
+		s.classSchemaMap[eClass] = classSchema
+
+		newFeatureReferenceColumn := func(featureSchema *sqlFeatureSchema, eFeature EStructuralFeature, table *sqlTable) {
+			column := newSqlReferenceColumn(table, withSqlColumnName(eFeature.GetName()))
+			classTable.addColumn(column)
+			featureSchema.column = column
+		}
+
+		newFeatureAttributeColumn := func(featureSchema *sqlFeatureSchema, eFeature EStructuralFeature, columnType string) {
+			column := newSqlAttributeColumn(eFeature.GetName(), columnType)
+			classTable.addColumn(column)
+			featureSchema.column = column
+		}
+
+		newFeatureTable := func(featureSchema *sqlFeatureSchema, eFeature EStructuralFeature, columns ...*sqlColumn) {
+			featureSchema.table = newSqlTable(
+				classTable.name+"_"+eFeature.GetName(),
+				columns...,
 			)
 		}
-	}
 
+		for itFeature := eFeatures.Iterator(); itFeature.HasNext(); {
+			eFeature := itFeature.Next().(EStructuralFeature)
+			// new feature data
+			featureSchema := &sqlFeatureSchema{
+				featureKind: getSQLCodecFeatureKind(eFeature),
+			}
+			classSchema.features[eFeature] = featureSchema
+
+			// compute class table columns or children tables
+			switch featureSchema.featureKind {
+			case sfkObject:
+				// retrieve object reference type
+				eReference := eFeature.(EReference)
+				referenceSchema, err := s.getClassSchema(eReference.GetEReferenceType())
+				if err != nil {
+					return nil, err
+				}
+				newFeatureReferenceColumn(featureSchema, eFeature, referenceSchema.table)
+			case sfkObjectReference:
+				newFeatureAttributeColumn(featureSchema, eFeature, "TEXT")
+			case sfkObjectList:
+				// internal reference
+				eReference := eFeature.(EReference)
+				referenceSchema, err := s.getClassSchema(eReference.GetEReferenceType())
+				if err != nil {
+					return nil, err
+				}
+				newFeatureTable(featureSchema, eFeature,
+					newSqlReferenceColumn(classTable),
+					newSqlAttributeColumn("idx", "REAL"),
+					newSqlReferenceColumn(referenceSchema.table, withSqlColumnName(eFeature.GetName())),
+				)
+			case sfkObjectReferenceList:
+				newFeatureTable(featureSchema, eFeature,
+					newSqlReferenceColumn(classTable),
+					newSqlAttributeColumn("idx", "REAL"),
+					newSqlAttributeColumn("uri", "TEXT"),
+				)
+			case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum:
+				newFeatureAttributeColumn(featureSchema, eFeature, "INTEGER")
+			case sfkDate, sfkString, sfkData:
+				newFeatureAttributeColumn(featureSchema, eFeature, "TEXT")
+			case sfkByteArray:
+				newFeatureAttributeColumn(featureSchema, eFeature, "BLOB")
+			case sfkDataList:
+				newFeatureTable(featureSchema, eFeature,
+					newSqlReferenceColumn(classTable),
+					newSqlAttributeColumn("idx", "REAL"),
+					newSqlAttributeColumn(eFeature.GetName(), "TEXT"),
+				)
+			}
+		}
+	}
 	return classSchema, nil
 }

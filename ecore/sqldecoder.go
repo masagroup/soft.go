@@ -170,39 +170,48 @@ func (d *SQLDecoder) decodeContents() error {
 }
 
 func (d *SQLDecoder) decodeObject(objectID int) (EObject, error) {
-	_, err := d.decodeClass(objectID)
+	classData, uniqueID, err := d.decodeClass(objectID)
 	if err != nil {
 		return nil, err
 	}
+
+	// create object & set its unique id if any
+	eObject := classData.eFactory.Create(classData.eClass)
+	if uniqueID.Valid {
+		objectIDManager := d.resource.GetObjectIDManager()
+		objectIDManager.SetID(eObject, uniqueID.String)
+	}
+
+	// decode object feature values
 
 	return nil, nil
 }
 
-func (d *SQLDecoder) decodeClass(objectID int) (*sqlDecoderClassData, error) {
+func (d *SQLDecoder) decodeClass(objectID int) (*sqlDecoderClassData, sql.NullString, error) {
 	// retrieve class id for this object
+	var uniqueID sql.NullString
 	selectObjectStmt, err := d.getSelectStmt(d.schema.objectsTable)
 	if err != nil {
-		return nil, err
+		return nil, uniqueID, err
 	}
 
 	rows, err := selectObjectStmt.Query(objectID)
 	if err != nil {
-		return nil, err
+		return nil, uniqueID, err
 	}
 	defer rows.Close()
 
 	// one row
 	if !rows.Next() {
 		if err := rows.Err(); err != nil {
-			return nil, err
+			return nil, uniqueID, err
 		}
-		return nil, sql.ErrNoRows
+		return nil, uniqueID, sql.ErrNoRows
 	}
 
 	// scan first row
 	rawBufferSize := 2
-	isObjectIDManager := d.resource.GetObjectIDManager() != nil && len(d.idAttributeName) > 0
-	if isObjectIDManager {
+	if d.isObjectWithUniqueID() {
 		rawBufferSize++
 	}
 	rawBuffer := make([]sql.RawBytes, rawBufferSize)
@@ -211,19 +220,21 @@ func (d *SQLDecoder) decodeClass(objectID int) (*sqlDecoderClassData, error) {
 		scanCallArgs[i] = &rawBuffer[i]
 	}
 	if err := rows.Scan(scanCallArgs...); err != nil {
-		return nil, err
+		return nil, uniqueID, err
 	}
 
 	// extract row args
 	classID, _ := strconv.Atoi(string(rawBuffer[1]))
-	// uniqueID
+	if d.isObjectWithUniqueID() {
+		uniqueID.Scan(string(rawBuffer[2]))
+	}
 
 	// retrieve class data
 	classData := d.classesData[classID]
 	if classData == nil {
-		return nil, fmt.Errorf("unable to find class with id '%v'", classID)
+		return nil, uniqueID, fmt.Errorf("unable to find class with id '%v'", classID)
 	}
-	return classData, nil
+	return classData, uniqueID, nil
 }
 
 func (d *SQLDecoder) decodeClasses() error {
@@ -351,4 +362,8 @@ func (d *SQLDecoder) getSelectStmt(table *sqlTable) (stmt *sql.Stmt, err error) 
 		stmt, err = d.db.Prepare(table.selectQuery())
 	}
 	return
+}
+
+func (d *SQLDecoder) isObjectWithUniqueID() bool {
+	return d.resource.GetObjectIDManager() != nil && len(d.idAttributeName) > 0
 }

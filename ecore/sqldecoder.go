@@ -2,6 +2,7 @@ package ecore
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -329,12 +330,18 @@ func (d *SQLDecoder) decodeObjectTableFeatures(objectID int, eObject EObject, cl
 func (d *SQLDecoder) decodeFeatureValue(featureData *sqlDecoderFeatureData, bytes []byte) (any, error) {
 	switch featureData.schema.featureKind {
 	case sfkObject, sfkObjectList:
+		if len(bytes) == 0 {
+			return nil, nil
+		}
 		objectID, err := strconv.Atoi(string(bytes))
 		if err != nil {
 			return nil, err
 		}
 		return d.decodeObject(objectID)
 	case sfkObjectReference, sfkObjectReferenceList:
+		if len(bytes) == 0 {
+			return nil, nil
+		}
 		// uri
 		uriStr := string(bytes)
 		uri := d.baseURI
@@ -349,6 +356,9 @@ func (d *SQLDecoder) decodeFeatureValue(featureData *sqlDecoderFeatureData, byte
 	case sfkBool:
 		return strconv.ParseBool(string(bytes))
 	case sfkByte:
+		if len(bytes) == 0 {
+			return nil, errors.New("invalid bytes length")
+		}
 		return bytes[0], nil
 	case sfkInt:
 		i, err := strconv.ParseInt(string(bytes), 10, 0)
@@ -503,7 +513,8 @@ func (d *SQLDecoder) decodeClasses() error {
 		// compute class features
 		classColumnFeatures := make([]*sqlDecoderFeatureData, 0, len(classSchema.features))
 		classTableFeatures := make([]*sqlDecoderFeatureData, 0, len(classSchema.features))
-		for eFeature, featureSchema := range classSchema.features {
+		for _, featureSchema := range classSchema.features {
+			eFeature := featureSchema.feature
 			eFeatureData := &sqlDecoderFeatureData{
 				eFeature: eFeature,
 				schema:   featureSchema,

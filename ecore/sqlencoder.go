@@ -425,7 +425,7 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 		}
 
 		classFeatures := map[EStructuralFeature]*sqlEncoderFeatureData{}
-		for eFeature, featureSchema := range classSchema.features {
+		for _, featureSchema := range classSchema.features {
 
 			// create feature table if any
 			if table := featureSchema.table; table != nil {
@@ -438,6 +438,7 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 			featureData := &sqlEncoderFeatureData{
 				schema: featureSchema,
 			}
+			eFeature := featureSchema.feature
 			if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
 				eDataType := eAttribute.GetEAttributeType()
 				featureData.dataType = eDataType

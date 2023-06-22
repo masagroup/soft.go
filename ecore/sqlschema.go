@@ -196,11 +196,12 @@ func (t *sqlTable) selectWhereQuery() string {
 
 type sqlClassSchema struct {
 	table    *sqlTable
-	features map[EStructuralFeature]*sqlFeatureSchema
+	features []*sqlFeatureSchema
 }
 
 type sqlFeatureSchema struct {
 	featureKind sqlFeatureKind
+	feature     EStructuralFeature
 	column      *sqlColumn
 	table       *sqlTable
 }
@@ -287,7 +288,7 @@ func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
 		// compute table columns and external tables
 		classSchema = &sqlClassSchema{
 			table:    classTable,
-			features: map[EStructuralFeature]*sqlFeatureSchema{},
+			features: make([]*sqlFeatureSchema, 0, eFeatures.Size()),
 		}
 
 		// register class data now to handle correctly cycles references
@@ -316,9 +317,10 @@ func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
 			eFeature := itFeature.Next().(EStructuralFeature)
 			// new feature data
 			featureSchema := &sqlFeatureSchema{
+				feature:     eFeature,
 				featureKind: getSQLCodecFeatureKind(eFeature),
 			}
-			classSchema.features[eFeature] = featureSchema
+			classSchema.features = append(classSchema.features, featureSchema)
 
 			// compute class table columns or children tables
 			switch featureSchema.featureKind {

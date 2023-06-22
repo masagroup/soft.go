@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"time"
 )
 
 type sqlDecoderClassData struct {
@@ -370,11 +371,17 @@ func (d *SQLDecoder) decodeFeatureValue(featureData *sqlDecoderFeatureData, byte
 		}
 		return int16(i), nil
 	case sfkEnum:
+		return strconv.ParseInt(string(bytes), 10, 64)
 	case sfkString:
 		return string(bytes), nil
 	case sfkByteArray:
 		return bytes, nil
 	case sfkDate:
+		t, err := time.Parse(time.RFC3339, string(bytes))
+		if err != nil {
+			return nil, err
+		}
+		return &t, nil
 	case sfkData, sfkDataList:
 		return featureData.eFactory.CreateFromString(featureData.eType.(EDataType), string(bytes)), nil
 	}

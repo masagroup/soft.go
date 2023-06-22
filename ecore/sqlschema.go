@@ -184,7 +184,7 @@ func (t *sqlTable) selectAllQuery() string {
 	return selectQuery.String()
 }
 
-func (t *sqlTable) selectQuery() string {
+func (t *sqlTable) selectWhereQuery() string {
 	var selectQuery strings.Builder
 	selectQuery.WriteString("SELECT * from ")
 	selectQuery.WriteString(t.name)

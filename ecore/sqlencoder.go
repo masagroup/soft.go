@@ -297,7 +297,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 			if featureColumn := featureData.schema.column; featureColumn != nil {
 				// feature is encoded as a column
 				featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
-				columnValue, err := e.convertFeatureValue(featureData, featureValue)
+				columnValue, err := e.encodeFeatureValue(featureData, featureValue)
 				if err != nil {
 					return nil, err
 				}
@@ -318,7 +318,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 				index := 0.0
 				for itList := featureList.Iterator(); itList.HasNext(); {
 					value := itList.Next()
-					converted, err := e.convertFeatureValue(featureData, value)
+					converted, err := e.encodeFeatureValue(featureData, value)
 					if err != nil {
 						return nil, err
 					}
@@ -347,7 +347,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 	}, nil
 }
 
-func (e *SQLEncoder) convertFeatureValue(featureData *sqlEncoderFeatureData, value any) (any, error) {
+func (e *SQLEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, value any) (any, error) {
 	if value != nil {
 		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:

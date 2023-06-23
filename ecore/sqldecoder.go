@@ -125,10 +125,6 @@ func (d *SQLDecoder) DecodeObject() (EObject, error) {
 	panic("SQLDecoder doesn't support object decoding")
 }
 
-func (d *SQLDecoder) addError(err error) {
-	d.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), d.resource.GetURI().String(), 0, 0))
-}
-
 func (d *SQLDecoder) decodeVersion() error {
 	if row := d.db.QueryRow("PRAGMA user_version;"); row == nil {
 		return fmt.Errorf("unable to retrieve user version")
@@ -145,24 +141,18 @@ func (d *SQLDecoder) decodeVersion() error {
 }
 
 func (d *SQLDecoder) decodeContents() error {
-	rows, err := d.db.Query("SELECT * FROM contents")
+	// read all object contents
+	rows, err := d.query(d.schema.contentsTable, d.selectAllQuery)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
 
-	rawBuffer := make([]sql.RawBytes, 1)
-	scanCallArgs := make([]any, len(rawBuffer))
-	for i := range rawBuffer {
-		scanCallArgs[i] = &rawBuffer[i]
-	}
-
-	for rows.Next() {
-		// retrieve object id
-		if err := rows.Scan(scanCallArgs...); err != nil {
+	return d.forEachRow(rows, func(rb []sql.RawBytes) error {
+		objectID, err := strconv.Atoi(string(rb[0]))
+		if err != nil {
 			return err
 		}
-		objectID, _ := strconv.Atoi(string(rawBuffer[0]))
 
 		// decode object
 		eObject, err := d.decodeObject(objectID)
@@ -172,12 +162,8 @@ func (d *SQLDecoder) decodeContents() error {
 
 		// add object to resource contents
 		d.resource.GetContents().Add(eObject)
-	}
-	if err = rows.Err(); err != nil {
-		return err
-	}
-
-	return nil
+		return nil
+	})
 }
 
 func (d *SQLDecoder) decodeObject(objectID int) (EObject, error) {
@@ -220,40 +206,24 @@ func (d *SQLDecoder) decodeObject(objectID int) (EObject, error) {
 
 func (d *SQLDecoder) decodeObjectColumnFeatures(objectID int, eObject EObject, classData *sqlDecoderClassData) error {
 	// stmt
-	selectStmt, err := d.getSelectStmt(classData.schema.table)
-	if err != nil {
-		return err
-	}
-
-	// query
-	rows, err := selectStmt.Query(objectID)
+	rows, err := d.query(classData.schema.table, func(table *sqlTable) string {
+		return table.selectQuery(table.columnNames(1, -1), table.key.columnName+"= ? ", "")
+	}, objectID)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
 
-	// one row
-	if !rows.Next() {
-		if err := rows.Err(); err != nil {
-			return err
-		}
-		return sql.ErrNoRows
-	}
-
-	// retrieve column values
-	rawBuffer := make([]sql.RawBytes, len(classData.columnFeatures)+1)
-	scanCallArgs := make([]any, len(rawBuffer))
-	for i := range rawBuffer {
-		scanCallArgs[i] = &rawBuffer[i]
-	}
-	if err := rows.Scan(scanCallArgs...); err != nil {
-		return err
-	}
+	var rawBuffer []sql.RawBytes
+	d.forOneRow(rows, func(rb []sql.RawBytes) error {
+		rawBuffer = rb
+		return nil
+	})
 
 	// decode feature values in this table
 	// first value is objectID in rawBuffer so we skip it
 	for i, featureData := range classData.columnFeatures {
-		columnValue, err := d.decodeFeatureValue(featureData, rawBuffer[i+1])
+		columnValue, err := d.decodeFeatureValue(featureData, rawBuffer[i])
 		if err != nil {
 			return err
 		}
@@ -265,48 +235,30 @@ func (d *SQLDecoder) decodeObjectColumnFeatures(objectID int, eObject EObject, c
 
 func (d *SQLDecoder) decodeObjectTableFeatures(objectID int, eObject EObject, classData *sqlDecoderClassData) error {
 	for _, featureData := range classData.tableFeatures {
+		// decode each list values
 		values := []any{}
 
-		// stmt
-		selectStmt, err := d.getSelectStmt(featureData.schema.table, "ORDER BY idx ASC")
-		if err != nil {
-			return err
-		}
-
 		// query
-		rows, err := selectStmt.Query(objectID)
+		rows, err := d.query(featureData.schema.table, func(table *sqlTable) string {
+			// column value is the last one
+			valueColumn := table.columns[len(table.columns)-1]
+			return table.selectQuery([]string{valueColumn.columnName}, table.key.columnName+"= ?", "idx ASC")
+		}, objectID)
 		if err != nil {
 			return err
 		}
 		defer rows.Close()
 
-		// retrieve column values
-		rawBuffer := make([]sql.RawBytes, 3)
-		scanCallArgs := make([]any, len(rawBuffer))
-		for i := range rawBuffer {
-			scanCallArgs[i] = &rawBuffer[i]
-		}
-
-		for rows.Next() {
-			// retrieve object id
-			if err := rows.Scan(scanCallArgs...); err != nil {
-				return err
-			}
-
-			// value
-			value, err := d.decodeFeatureValue(featureData, rawBuffer[2])
+		// for each row, decode feature value and add value to the list
+		d.forEachRow(rows, func(rb []sql.RawBytes) error {
+			value, err := d.decodeFeatureValue(featureData, rb[0])
 			if err != nil {
 				return err
 			}
-
 			values = append(values, value)
-
-		}
-		if err = rows.Err(); err != nil {
-			return err
-		}
-
-		// add values to the list
+			return nil
+		})
+		// set list element values
 		list := eObject.EGetResolve(featureData.eFeature, false).(EList)
 		list.AddAll(NewImmutableEList(values))
 	}
@@ -408,46 +360,35 @@ func (d *SQLDecoder) resolveURI(uri *URI) *URI {
 }
 
 func (d *SQLDecoder) decodeObjectClassAndID(objectID int) (EClass, sql.NullString, error) {
-	// retrieve class id for this object
+	// retrieve class id and unique id for this object
 	var uniqueID sql.NullString
-	selectObjectStmt, err := d.getSelectStmt(d.schema.objectsTable)
-	if err != nil {
-		return nil, uniqueID, err
-	}
+	var classID int
 
-	rows, err := selectObjectStmt.Query(objectID)
+	// query
+	objectsTable := d.schema.objectsTable
+	columns := objectsTable.columnNames(1, -1)
+	rows, err := d.query(objectsTable, func(table *sqlTable) string { return table.selectQuery(columns, table.key.columnName+" = ?", "") }, objectID)
 	if err != nil {
 		return nil, uniqueID, err
 	}
 	defer rows.Close()
 
-	// one row
-	if !rows.Next() {
-		if err := rows.Err(); err != nil {
-			return nil, uniqueID, err
+	// only one row
+	d.forOneRow(rows, func(rb []sql.RawBytes) error {
+		// classID
+		id, err := strconv.Atoi(string(rb[0]))
+		if err != nil {
+			return err
 		}
-		return nil, uniqueID, sql.ErrNoRows
-	}
-
-	// scan first row
-	rawBufferSize := 2
-	if d.isObjectWithUniqueID() {
-		rawBufferSize++
-	}
-	rawBuffer := make([]sql.RawBytes, rawBufferSize)
-	scanCallArgs := make([]any, len(rawBuffer))
-	for i := range rawBuffer {
-		scanCallArgs[i] = &rawBuffer[i]
-	}
-	if err := rows.Scan(scanCallArgs...); err != nil {
-		return nil, uniqueID, err
-	}
-
-	// extract row args
-	classID, _ := strconv.Atoi(string(rawBuffer[1]))
-	if d.isObjectWithUniqueID() {
-		uniqueID.Scan(string(rawBuffer[2]))
-	}
+		classID = id
+		// uniqueID
+		if len(rb) > 1 {
+			if err := uniqueID.Scan(string(rb[1])); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 
 	// retrieve class data
 	eClass := d.classes[classID]
@@ -465,32 +406,31 @@ func (d *SQLDecoder) decodeClasses() error {
 	}
 
 	// read classes
-	rows, err := d.db.Query(d.schema.classesTable.selectAllQuery())
+	classes := map[int]EClass{}
+	classToData := map[EClass]*sqlDecoderClassData{}
+
+	// query
+	rows, err := d.query(d.schema.classesTable, d.selectAllQuery)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
 
-	classes := map[int]EClass{}
-	classToData := map[EClass]*sqlDecoderClassData{}
-	rawBuffer := make([]sql.RawBytes, 3)
-	scanCallArgs := make([]any, len(rawBuffer))
-	for i := range rawBuffer {
-		scanCallArgs[i] = &rawBuffer[i]
-	}
-
-	for rows.Next() {
-		// retrieve EClass
-		if err := rows.Scan(scanCallArgs...); err != nil {
+	// for each row
+	if err := d.forEachRow(rows, func(rb []sql.RawBytes) error {
+		classID, err := strconv.Atoi(string(rb[0]))
+		if err != nil {
 			return err
 		}
-		classID, _ := strconv.Atoi(string(rawBuffer[0]))
-		packageID, _ := strconv.Atoi(string(rawBuffer[1]))
-		className := string(rawBuffer[2])
+		packageID, err := strconv.Atoi(string(rb[1]))
+		if err != nil {
+			return err
+		}
 		ePackage := packagesData[packageID]
 		if ePackage == nil {
 			return fmt.Errorf("unable to find package with id '%d'", packageID)
 		}
+		className := string(rb[2])
 		eClass, _ := ePackage.GetEClassifier(className).(EClass)
 		if eClass == nil {
 			return fmt.Errorf("unable to find class '%s' in package '%s'", className, ePackage.GetNsURI())
@@ -544,9 +484,8 @@ func (d *SQLDecoder) decodeClasses() error {
 			columnFeatures: classColumnFeatures,
 			tableFeatures:  classTableFeatures,
 		}
-
-	}
-	if err = rows.Err(); err != nil {
+		return nil
+	}); err != nil {
 		return err
 	}
 
@@ -556,25 +495,20 @@ func (d *SQLDecoder) decodeClasses() error {
 }
 
 func (d *SQLDecoder) decodePackages() (map[int]EPackage, error) {
-	rows, err := d.db.Query(d.schema.packagesTable.selectAllQuery())
+	// read all packages
+	packagesData := map[int]EPackage{}
+
+	// query
+	rows, err := d.query(d.schema.packagesTable, d.selectAllQuery)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	packagesData := map[int]EPackage{}
-	rawBuffer := make([]sql.RawBytes, 2)
-	scanCallArgs := make([]any, len(rawBuffer))
-	for i := range rawBuffer {
-		scanCallArgs[i] = &rawBuffer[i]
-	}
-
-	for rows.Next() {
-		if err := rows.Scan(scanCallArgs...); err != nil {
-			return nil, err
-		}
-		packageID, _ := strconv.Atoi(string(rawBuffer[0]))
-		packageURI := string(rawBuffer[1])
+	// for each row
+	if err := d.forEachRow(rows, func(rb []sql.RawBytes) error {
+		packageID, _ := strconv.Atoi(string(rb[0]))
+		packageURI := string(rb[1])
 		packageRegistry := GetPackageRegistry()
 		resourceSet := d.resource.GetResourceSet()
 		if resourceSet != nil {
@@ -582,28 +516,96 @@ func (d *SQLDecoder) decodePackages() (map[int]EPackage, error) {
 		}
 		ePackage := packageRegistry.GetPackage(packageURI)
 		if ePackage == nil {
-			return nil, fmt.Errorf("unable to find package '%s'", packageURI)
+			return fmt.Errorf("unable to find package '%s'", packageURI)
 		}
 		packagesData[packageID] = ePackage
-	}
-	if err = rows.Err(); err != nil {
+		return nil
+	}); err != nil {
 		return nil, err
 	}
+
 	return packagesData, nil
 }
 
-func (d *SQLDecoder) getSelectStmt(table *sqlTable, compounds ...string) (stmt *sql.Stmt, err error) {
+func (d *SQLDecoder) getSelectStmt(table *sqlTable, queryProvider func(table *sqlTable) string) (stmt *sql.Stmt, err error) {
 	stmt = d.selectStmts[table]
 	if stmt == nil {
-		query := table.selectWhereQuery()
-		for _, compound := range compounds {
-			query += " " + compound
-		}
+		query := queryProvider(table)
 		stmt, err = d.db.Prepare(query)
 	}
 	return
 }
 
+func (d *SQLDecoder) query(table *sqlTable, queryProvider func(table *sqlTable) string, args ...any) (*sql.Rows, error) {
+	selectStmt, err := d.getSelectStmt(table, queryProvider)
+	if err != nil {
+		return nil, err
+	}
+	return selectStmt.Query(args...)
+}
+
+func (d *SQLDecoder) selectAllQuery(table *sqlTable) string {
+	return table.selectQuery(nil, "", "")
+}
+
 func (d *SQLDecoder) isObjectWithUniqueID() bool {
 	return d.resource.GetObjectIDManager() != nil && len(d.idAttributeName) > 0
+}
+
+func (d *SQLDecoder) addError(err error) {
+	d.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), d.resource.GetURI().String(), 0, 0))
+}
+
+func (d *SQLDecoder) forOneRow(rows *sql.Rows, cb func([]sql.RawBytes) error) error {
+	// one row
+	if !rows.Next() {
+		if err := rows.Err(); err != nil {
+			return err
+		}
+		return sql.ErrNoRows
+	}
+
+	//scan raw buffer
+	columns, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+	rawBuffer := make([]sql.RawBytes, len(columns))
+	scanCallArgs := make([]any, len(rawBuffer))
+	for i := range rawBuffer {
+		scanCallArgs[i] = &rawBuffer[i]
+	}
+	if err := rows.Scan(scanCallArgs...); err != nil {
+		return err
+	}
+	// callback
+	return cb(rawBuffer)
+}
+
+func (d *SQLDecoder) forEachRow(rows *sql.Rows, cb func([]sql.RawBytes) error) error {
+	columns, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+	rawBuffer := make([]sql.RawBytes, len(columns))
+	scanCallArgs := make([]any, len(columns))
+	for i := range rawBuffer {
+		scanCallArgs[i] = &rawBuffer[i]
+	}
+
+	for rows.Next() {
+		if err := rows.Scan(scanCallArgs...); err != nil {
+			return err
+		}
+
+		if err := cb(rawBuffer); err != nil {
+			return err
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	return nil
 }

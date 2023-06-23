@@ -193,21 +193,40 @@ func (t *sqlTable) defaultValues() []any {
 	return values
 }
 
-func (t *sqlTable) selectAllQuery() string {
-	var selectQuery strings.Builder
-	selectQuery.WriteString("SELECT * from ")
-	selectQuery.WriteString(t.name)
-	return selectQuery.String()
+func (t *sqlTable) columnNames(first, last int) []string {
+	if last == -1 {
+		last = len(t.columns)
+	}
+	columns := t.columns[first:last]
+	names := make([]string, 0, len(columns))
+	for _, column := range columns {
+		names = append(names, column.columnName)
+	}
+	return names
 }
 
-func (t *sqlTable) selectWhereQuery() string {
+func (t *sqlTable) selectQuery(columns []string, selection string, orderBy string) string {
 	var selectQuery strings.Builder
-	selectQuery.WriteString("SELECT * from ")
+	selectQuery.WriteString("SELECT ")
+	if len(columns) == 0 {
+		selectQuery.WriteString("*")
+	} else {
+		for i, column := range columns {
+			if i != 0 {
+				selectQuery.WriteString(",")
+			}
+			selectQuery.WriteString(column)
+		}
+	}
+	selectQuery.WriteString(" from ")
 	selectQuery.WriteString(t.name)
-	if t.key != nil {
+	if len(selection) > 0 {
 		selectQuery.WriteString(" WHERE ")
-		selectQuery.WriteString(t.key.columnName)
-		selectQuery.WriteString(" = ?")
+		selectQuery.WriteString(selection)
+	}
+	if len(orderBy) > 0 {
+		selectQuery.WriteString(" ORDER BY ")
+		selectQuery.WriteString(orderBy)
 	}
 	return selectQuery.String()
 }

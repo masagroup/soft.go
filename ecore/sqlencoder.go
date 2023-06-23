@@ -360,7 +360,7 @@ func (e *SQLEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 			ref := GetURI(value.(EObject))
 			uri := e.resource.GetURI().Relativize(ref)
 			return uri.String(), nil
-		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum, sfkString, sfkByteArray:
+		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum, sfkString, sfkByteArray, sfkFloat32, sfkFloat64:
 			return value, nil
 		case sfkDate:
 			t := value.(*time.Time)

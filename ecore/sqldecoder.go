@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"time"
 )
@@ -195,7 +194,7 @@ func (d *SQLDecoder) decodeObject(objectID int) (EObject, error) {
 		}
 
 		// create object & set its unique id if any
-		eObject := classData.eFactory.Create(classData.eClass)
+		eObject = classData.eFactory.Create(classData.eClass)
 		if uniqueID.Valid {
 			objectIDManager := d.resource.GetObjectIDManager()
 			objectIDManager.SetID(eObject, uniqueID.String)
@@ -267,10 +266,9 @@ func (d *SQLDecoder) decodeObjectColumnFeatures(objectID int, eObject EObject, c
 func (d *SQLDecoder) decodeObjectTableFeatures(objectID int, eObject EObject, classData *sqlDecoderClassData) error {
 	for _, featureData := range classData.tableFeatures {
 		values := []any{}
-		indexes := map[int]float64{}
 
 		// stmt
-		selectStmt, err := d.getSelectStmt(classData.schema.table)
+		selectStmt, err := d.getSelectStmt(featureData.schema.table, "ORDER BY idx ASC")
 		if err != nil {
 			return err
 		}
@@ -289,16 +287,9 @@ func (d *SQLDecoder) decodeObjectTableFeatures(objectID int, eObject EObject, cl
 			scanCallArgs[i] = &rawBuffer[i]
 		}
 
-		index := 0
 		for rows.Next() {
 			// retrieve object id
 			if err := rows.Scan(scanCallArgs...); err != nil {
-				return err
-			}
-
-			// index
-			indexes[index], err = strconv.ParseFloat(string(rawBuffer[2]), 64)
-			if err != nil {
 				return err
 			}
 
@@ -314,9 +305,6 @@ func (d *SQLDecoder) decodeObjectTableFeatures(objectID int, eObject EObject, cl
 		if err = rows.Err(); err != nil {
 			return err
 		}
-
-		// sort values according to their indexes
-		sort.Slice(values, func(i, j int) bool { return indexes[i] < indexes[2] })
 
 		// add values to the list
 		list := eObject.EGetResolve(featureData.eFeature, false).(EList)
@@ -357,13 +345,15 @@ func (d *SQLDecoder) decodeFeatureValue(featureData *sqlDecoderFeatureData, byte
 		return strconv.ParseBool(string(bytes))
 	case sfkByte:
 		if len(bytes) == 0 {
-			return nil, errors.New("invalid bytes length")
+			var defaultByte byte
+			return defaultByte, errors.New("invalid bytes length")
 		}
 		return bytes[0], nil
 	case sfkInt:
 		i, err := strconv.ParseInt(string(bytes), 10, 0)
 		if err != nil {
-			return nil, err
+			var defaultInt int
+			return defaultInt, err
 		}
 		return int(i), nil
 	case sfkInt64:
@@ -371,13 +361,15 @@ func (d *SQLDecoder) decodeFeatureValue(featureData *sqlDecoderFeatureData, byte
 	case sfkInt32:
 		i, err := strconv.ParseInt(string(bytes), 10, 32)
 		if err != nil {
-			return nil, err
+			var defaultInt32 int32
+			return defaultInt32, err
 		}
 		return int32(i), nil
 	case sfkInt16:
 		i, err := strconv.ParseInt(string(bytes), 10, 16)
 		if err != nil {
-			return nil, err
+			var defaultInt16 int16
+			return defaultInt16, err
 		}
 		return int16(i), nil
 	case sfkEnum:
@@ -392,6 +384,15 @@ func (d *SQLDecoder) decodeFeatureValue(featureData *sqlDecoderFeatureData, byte
 			return nil, err
 		}
 		return &t, nil
+	case sfkFloat64:
+		return strconv.ParseFloat(string(bytes), 64)
+	case sfkFloat32:
+		f, err := strconv.ParseFloat(string(bytes), 32)
+		if err != nil {
+			var defaultFloat32 float32
+			return defaultFloat32, err
+		}
+		return f, nil
 	case sfkData, sfkDataList:
 		return featureData.eFactory.CreateFromString(featureData.eType.(EDataType), string(bytes)), nil
 	}
@@ -591,10 +592,14 @@ func (d *SQLDecoder) decodePackages() (map[int]EPackage, error) {
 	return packagesData, nil
 }
 
-func (d *SQLDecoder) getSelectStmt(table *sqlTable) (stmt *sql.Stmt, err error) {
+func (d *SQLDecoder) getSelectStmt(table *sqlTable, compounds ...string) (stmt *sql.Stmt, err error) {
 	stmt = d.selectStmts[table]
 	if stmt == nil {
-		stmt, err = d.db.Prepare(table.selectWhereQuery())
+		query := table.selectWhereQuery()
+		for _, compound := range compounds {
+			query += " " + compound
+		}
+		stmt, err = d.db.Prepare(query)
 	}
 	return
 }

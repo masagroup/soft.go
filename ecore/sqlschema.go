@@ -75,6 +75,7 @@ type sqlTable struct {
 	name    string
 	key     *sqlColumn
 	columns []*sqlColumn
+	indexes [][]*sqlColumn
 }
 
 func newSqlTable(name string, columns ...*sqlColumn) *sqlTable {
@@ -132,7 +133,22 @@ func (t *sqlTable) createQuery() string {
 			tableQuery.WriteString(")")
 		}
 	}
-	tableQuery.WriteString(")")
+	tableQuery.WriteString(");")
+	for _, index := range t.indexes {
+		tableQuery.WriteString("\n")
+		tableQuery.WriteString("CREATE INDEX idx_")
+		tableQuery.WriteString(t.name)
+		tableQuery.WriteString(" ON ")
+		tableQuery.WriteString(t.name)
+		tableQuery.WriteString("(")
+		for i, c := range index {
+			if i != 0 {
+				tableQuery.WriteString(",")
+			}
+			tableQuery.WriteString(c.columnName)
+		}
+		tableQuery.WriteString(");")
+	}
 	return tableQuery.String()
 }
 
@@ -188,9 +204,11 @@ func (t *sqlTable) selectWhereQuery() string {
 	var selectQuery strings.Builder
 	selectQuery.WriteString("SELECT * from ")
 	selectQuery.WriteString(t.name)
-	selectQuery.WriteString(" WHERE ")
-	selectQuery.WriteString(t.key.columnName)
-	selectQuery.WriteString(" = ?")
+	if t.key != nil {
+		selectQuery.WriteString(" WHERE ")
+		selectQuery.WriteString(t.key.columnName)
+		selectQuery.WriteString(" = ?")
+	}
 	return selectQuery.String()
 }
 
@@ -307,10 +325,13 @@ func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
 		}
 
 		newFeatureTable := func(featureSchema *sqlFeatureSchema, eFeature EStructuralFeature, columns ...*sqlColumn) {
-			featureSchema.table = newSqlTable(
+			table := newSqlTable(
 				classTable.name+"_"+eFeature.GetName(),
 				columns...,
 			)
+			table.key = columns[0]
+			table.indexes = [][]*sqlColumn{{columns[0], columns[1]}}
+			featureSchema.table = table
 		}
 
 		for itFeature := eFeatures.Iterator(); itFeature.HasNext(); {

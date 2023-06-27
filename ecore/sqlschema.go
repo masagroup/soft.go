@@ -104,14 +104,14 @@ func (t *sqlTable) initColumn(column *sqlColumn, index int) {
 func (t *sqlTable) createQuery() string {
 	var tableQuery strings.Builder
 	tableQuery.WriteString("CREATE TABLE ")
-	tableQuery.WriteString(t.name)
+	tableQuery.WriteString(sqlEscapeIdentifier(t.name))
 	tableQuery.WriteString(" (")
 	// columns
 	for i, c := range t.columns {
 		if i != 0 {
 			tableQuery.WriteString(",")
 		}
-		tableQuery.WriteString(c.columnName)
+		tableQuery.WriteString(sqlEscapeIdentifier(c.columnName))
 		tableQuery.WriteString(" ")
 		tableQuery.WriteString(c.columnType)
 		if c.primary {
@@ -125,27 +125,27 @@ func (t *sqlTable) createQuery() string {
 	for _, c := range t.columns {
 		if c.reference != nil {
 			tableQuery.WriteString(",FOREIGN KEY(")
-			tableQuery.WriteString(c.columnName)
+			tableQuery.WriteString(sqlEscapeIdentifier(c.columnName))
 			tableQuery.WriteString(") REFERENCES ")
-			tableQuery.WriteString(c.reference.name)
+			tableQuery.WriteString(sqlEscapeIdentifier(c.reference.name))
 			tableQuery.WriteString("(")
-			tableQuery.WriteString(c.reference.key.columnName)
+			tableQuery.WriteString(sqlEscapeIdentifier(c.reference.key.columnName))
 			tableQuery.WriteString(")")
 		}
 	}
 	tableQuery.WriteString(");")
 	for _, index := range t.indexes {
 		tableQuery.WriteString("\n")
-		tableQuery.WriteString("CREATE INDEX idx_")
+		tableQuery.WriteString("CREATE INDEX \"idx_")
 		tableQuery.WriteString(t.name)
-		tableQuery.WriteString(" ON ")
-		tableQuery.WriteString(t.name)
+		tableQuery.WriteString("\" ON ")
+		tableQuery.WriteString(sqlEscapeIdentifier(t.name))
 		tableQuery.WriteString("(")
 		for i, c := range index {
 			if i != 0 {
 				tableQuery.WriteString(",")
 			}
-			tableQuery.WriteString(c.columnName)
+			tableQuery.WriteString(sqlEscapeIdentifier(c.columnName))
 		}
 		tableQuery.WriteString(");")
 	}
@@ -155,13 +155,13 @@ func (t *sqlTable) createQuery() string {
 func (t *sqlTable) insertQuery() string {
 	var tableQuery strings.Builder
 	tableQuery.WriteString("INSERT INTO ")
-	tableQuery.WriteString(t.name)
+	tableQuery.WriteString(sqlEscapeIdentifier(t.name))
 	tableQuery.WriteString(" (")
 	for i, c := range t.columns {
 		if i != 0 {
 			tableQuery.WriteString(",")
 		}
-		tableQuery.WriteString(c.columnName)
+		tableQuery.WriteString(sqlEscapeIdentifier(c.columnName))
 	}
 	tableQuery.WriteString(") VALUES (")
 	for i, c := range t.columns {
@@ -200,9 +200,13 @@ func (t *sqlTable) columnNames(first, last int) []string {
 	columns := t.columns[first:last]
 	names := make([]string, 0, len(columns))
 	for _, column := range columns {
-		names = append(names, column.columnName)
+		names = append(names, sqlEscapeIdentifier(column.columnName))
 	}
 	return names
+}
+
+func (t *sqlTable) keyName() string {
+	return sqlEscapeIdentifier(t.key.columnName)
 }
 
 func (t *sqlTable) selectQuery(columns []string, selection string, orderBy string) string {
@@ -219,7 +223,7 @@ func (t *sqlTable) selectQuery(columns []string, selection string, orderBy strin
 		}
 	}
 	selectQuery.WriteString(" from ")
-	selectQuery.WriteString(t.name)
+	selectQuery.WriteString(sqlEscapeIdentifier(t.name))
 	if len(selection) > 0 {
 		selectQuery.WriteString(" WHERE ")
 		selectQuery.WriteString(selection)
@@ -408,4 +412,8 @@ func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
 		}
 	}
 	return classSchema, nil
+}
+
+func sqlEscapeIdentifier(id string) string {
+	return "\"" + id + "\""
 }

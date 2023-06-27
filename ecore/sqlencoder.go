@@ -89,6 +89,7 @@ type SQLEncoder struct {
 	insertStmts     map[*sqlTable]*sql.Stmt
 	packageDataMap  map[EPackage]*sqlEncoderPackageData
 	classDataMap    map[EClass]*sqlEncoderClassData
+	objectsDataMap  map[EObject]*sqlEncoderObjectData
 	idAttributeName string
 }
 
@@ -117,6 +118,7 @@ func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQL
 		packageDataMap: map[EPackage]*sqlEncoderPackageData{},
 		classDataMap:   map[EClass]*sqlEncoderClassData{},
 		insertStmts:    map[*sqlTable]*sql.Stmt{},
+		objectsDataMap: map[EObject]*sqlEncoderObjectData{},
 	}
 }
 
@@ -250,101 +252,108 @@ func (e *SQLEncoder) encodeContent(eObject EObject) error {
 }
 
 func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error) {
-	// encode object class
-	eClass := eObject.EClass()
-	classData, err := e.getClassData(eClass)
-	if err != nil {
-		return nil, err
-	}
+	objectData := e.objectsDataMap[eObject]
+	if objectData == nil {
 
-	// create table
-	insertObjectStmt, err := e.getInsertStmt(e.schema.objectsTable)
-	if err != nil {
-		return nil, err
-	}
-
-	// insert object in table
-	args := []any{classData.id}
-	if idManager := e.resource.GetObjectIDManager(); idManager != nil && len(e.idAttributeName) > 0 {
-		args = append(args, idManager.GetID(eObject))
-	}
-
-	sqlResult, err := insertObjectStmt.Exec(args...)
-	if err != nil {
-		return nil, err
-	}
-
-	// retrieve object id
-	objectID, err := sqlResult.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
-
-	// collection of statements
-	// used to avoid nested transactions
-	insertStmts := newSqlStmts(e.db)
-	for _, eClass := range classData.hierarchy {
+		// encode object class
+		eClass := eObject.EClass()
 		classData, err := e.getClassData(eClass)
+		if err != nil {
+			return nil, fmt.Errorf("getData('%s') error : %w", eClass.GetName(), err)
+		}
+
+		// create table
+		insertObjectStmt, err := e.getInsertStmt(e.schema.objectsTable)
 		if err != nil {
 			return nil, err
 		}
-		classTable := classData.schema.table
 
-		// encode features columnValues in table columns
-		columnValues := classTable.defaultValues()
-		columnValues[classTable.key.index] = objectID
-		for eFeature, featureData := range classData.features {
-			if featureColumn := featureData.schema.column; featureColumn != nil {
-				// feature is encoded as a column
-				featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
-				columnValue, err := e.encodeFeatureValue(featureData, featureValue)
-				if err != nil {
-					return nil, err
-				}
-				columnValues[featureColumn.index] = columnValue
-			} else if featureTable := featureData.schema.table; featureTable != nil {
-				// feature is encoded in a external table
-				featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
-				featureList, _ := featureValue.(EList)
-				if featureList == nil {
-					return nil, errors.New("feature value is not a list")
-				}
-				// retrieve insert statement
-				insertStmt, err := e.getInsertStmt(featureTable)
-				if err != nil {
-					return nil, err
-				}
-				// for each list element, insert its value
-				index := 0.0
-				for itList := featureList.Iterator(); itList.HasNext(); {
-					value := itList.Next()
-					converted, err := e.encodeFeatureValue(featureData, value)
+		// insert object in table
+		args := []any{classData.id}
+		if idManager := e.resource.GetObjectIDManager(); idManager != nil && len(e.idAttributeName) > 0 {
+			args = append(args, idManager.GetID(eObject))
+		}
+
+		sqlResult, err := insertObjectStmt.Exec(args...)
+		if err != nil {
+			return nil, err
+		}
+
+		// retrieve object id
+		objectID, err := sqlResult.LastInsertId()
+		if err != nil {
+			return nil, err
+		}
+
+		// collection of statements
+		// used to avoid nested transactions
+		insertStmts := newSqlStmts(e.db)
+		for _, eClass := range classData.hierarchy {
+			classData, err := e.getClassData(eClass)
+			if err != nil {
+				return nil, err
+			}
+			classTable := classData.schema.table
+
+			// encode features columnValues in table columns
+			columnValues := classTable.defaultValues()
+			columnValues[classTable.key.index] = objectID
+			for eFeature, featureData := range classData.features {
+				if featureColumn := featureData.schema.column; featureColumn != nil {
+					// feature is encoded as a column
+					featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
+					columnValue, err := e.encodeFeatureValue(featureData, featureValue)
 					if err != nil {
 						return nil, err
 					}
-					insertStmts.add(insertStmt, objectID, index, converted)
-					index++
+					columnValues[featureColumn.index] = columnValue
+				} else if featureTable := featureData.schema.table; featureTable != nil {
+					// feature is encoded in a external table
+					featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
+					featureList, _ := featureValue.(EList)
+					if featureList == nil {
+						return nil, errors.New("feature value is not a list")
+					}
+					// retrieve insert statement
+					insertStmt, err := e.getInsertStmt(featureTable)
+					if err != nil {
+						return nil, err
+					}
+					// for each list element, insert its value
+					index := 0.0
+					for itList := featureList.Iterator(); itList.HasNext(); {
+						value := itList.Next()
+						converted, err := e.encodeFeatureValue(featureData, value)
+						if err != nil {
+							return nil, err
+						}
+						insertStmts.add(insertStmt, objectID, index, converted)
+						index++
+					}
 				}
 			}
+
+			// insert new row in class column
+			insertStmt, err := e.getInsertStmt(classTable)
+			if err != nil {
+				return nil, fmt.Errorf("insertRow '%s' error : %w", eClass.GetName(), err)
+			}
+			insertStmts.add(insertStmt, columnValues...)
 		}
 
-		// insert new row in class column
-		insertStmt, err := e.getInsertStmt(classTable)
-		if err != nil {
+		// execute all statements
+		if err := insertStmts.exec(); err != nil {
 			return nil, err
 		}
-		insertStmts.add(insertStmt, columnValues...)
-	}
 
-	// execute all statements
-	if err := insertStmts.exec(); err != nil {
-		return nil, err
-	}
+		objectData = &sqlEncoderObjectData{
+			id:        objectID,
+			classData: classData,
+		}
 
-	return &sqlEncoderObjectData{
-		id:        objectID,
-		classData: classData,
-	}, nil
+		e.objectsDataMap[eObject] = objectData
+	}
+	return objectData, nil
 }
 
 func (e *SQLEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, value any) (any, error) {

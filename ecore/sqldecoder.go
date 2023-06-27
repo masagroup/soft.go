@@ -207,7 +207,7 @@ func (d *SQLDecoder) decodeObject(objectID int) (EObject, error) {
 func (d *SQLDecoder) decodeObjectColumnFeatures(objectID int, eObject EObject, classData *sqlDecoderClassData) error {
 	// stmt
 	rows, err := d.query(classData.schema.table, func(table *sqlTable) string {
-		return table.selectQuery(table.columnNames(1, -1), table.key.columnName+"= ? ", "")
+		return table.selectQuery(table.columnNames(1, -1), table.keyName()+"= ? ", "")
 	}, objectID)
 	if err != nil {
 		return err
@@ -242,7 +242,7 @@ func (d *SQLDecoder) decodeObjectTableFeatures(objectID int, eObject EObject, cl
 		rows, err := d.query(featureData.schema.table, func(table *sqlTable) string {
 			// column value is the last one
 			valueColumn := table.columns[len(table.columns)-1]
-			return table.selectQuery([]string{valueColumn.columnName}, table.key.columnName+"= ?", "idx ASC")
+			return table.selectQuery([]string{valueColumn.columnName}, table.keyName()+"= ?", "idx ASC")
 		}, objectID)
 		if err != nil {
 			return err
@@ -367,7 +367,9 @@ func (d *SQLDecoder) decodeObjectClassAndID(objectID int) (EClass, sql.NullStrin
 	// query
 	objectsTable := d.schema.objectsTable
 	columns := objectsTable.columnNames(1, -1)
-	rows, err := d.query(objectsTable, func(table *sqlTable) string { return table.selectQuery(columns, table.key.columnName+" = ?", "") }, objectID)
+	rows, err := d.query(objectsTable, func(table *sqlTable) string {
+		return table.selectQuery(columns, table.keyName()+" = ?", "")
+	}, objectID)
 	if err != nil {
 		return nil, uniqueID, err
 	}

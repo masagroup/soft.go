@@ -71,6 +71,47 @@ func newSqlReferenceColumn(reference *sqlTable, options ...sqlColumnOption) *sql
 	return col
 }
 
+type sqlTableOption interface {
+	apply(t *sqlTable)
+}
+
+type funcSqlTableOption struct {
+	f func(t *sqlTable)
+}
+
+func (o *funcSqlTableOption) apply(t *sqlTable) {
+	o.f(t)
+}
+
+func newFuncSqlTableOption(f func(t *sqlTable)) *funcSqlTableOption {
+	return &funcSqlTableOption{f: f}
+}
+
+func withSqlTableColumns(columns ...*sqlColumn) sqlTableOption {
+	return newFuncSqlTableOption(func(t *sqlTable) {
+		t.columns = columns
+		for i, column := range columns {
+			t.initColumn(column, i)
+		}
+	})
+}
+
+func withSqlTableIndexes(tableIndexes [][]string) sqlTableOption {
+	return newFuncSqlTableOption(func(t *sqlTable) {
+		nameToColumn := map[string]*sqlColumn{}
+		for _, column := range t.columns {
+			nameToColumn[column.columnName] = column
+		}
+		for _, indexes := range tableIndexes {
+			indexColumns := []*sqlColumn{}
+			for _, index := range indexes {
+				indexColumns = append(indexColumns, nameToColumn[index])
+			}
+			t.indexes = append(t.indexes, indexColumns)
+		}
+	})
+}
+
 type sqlTable struct {
 	name    string
 	key     *sqlColumn
@@ -78,13 +119,12 @@ type sqlTable struct {
 	indexes [][]*sqlColumn
 }
 
-func newSqlTable(name string, columns ...*sqlColumn) *sqlTable {
+func newSqlTable(name string, options ...sqlTableOption) *sqlTable {
 	t := &sqlTable{
-		name:    name,
-		columns: columns,
+		name: name,
 	}
-	for i, column := range columns {
-		t.initColumn(column, i)
+	for _, opt := range options {
+		opt.apply(t)
 	}
 	return t
 }
@@ -138,6 +178,10 @@ func (t *sqlTable) createQuery() string {
 		tableQuery.WriteString("\n")
 		tableQuery.WriteString("CREATE INDEX \"idx_")
 		tableQuery.WriteString(t.name)
+		for _, c := range index {
+			tableQuery.WriteString("_")
+			tableQuery.WriteString(c.columnName)
+		}
 		tableQuery.WriteString("\" ON ")
 		tableQuery.WriteString(sqlEscapeIdentifier(t.name))
 		tableQuery.WriteString("(")
@@ -284,23 +328,32 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 	// common tables definitions
 	packagesTable := newSqlTable(
 		"packages",
-		newSqlAttributeColumn("packageID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
-		newSqlAttributeColumn("uri", "TEXT"),
+		withSqlTableColumns(
+			newSqlAttributeColumn("packageID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
+			newSqlAttributeColumn("uri", "TEXT"),
+		),
 	)
 	classesTable := newSqlTable(
 		"classes",
-		newSqlAttributeColumn("classID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
-		newSqlReferenceColumn(packagesTable),
-		newSqlAttributeColumn("name", "TEXT"),
+		withSqlTableColumns(
+			newSqlAttributeColumn("classID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
+			newSqlReferenceColumn(packagesTable),
+			newSqlAttributeColumn("name", "TEXT"),
+		),
 	)
 	objectsTable := newSqlTable(
 		"objects",
-		newSqlAttributeColumn("objectID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
-		newSqlReferenceColumn(classesTable),
+		withSqlTableColumns(
+			newSqlAttributeColumn("objectID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
+			newSqlReferenceColumn(classesTable),
+		),
+		withSqlTableIndexes([][]string{{"objectID", "classID"}}),
 	)
 	contentsTable := newSqlTable(
 		"contents",
-		newSqlReferenceColumn(objectsTable),
+		withSqlTableColumns(
+			newSqlReferenceColumn(objectsTable),
+		),
 	)
 	s := &sqlSchema{
 		packagesTable:  packagesTable,
@@ -350,7 +403,7 @@ func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
 		newFeatureTable := func(featureSchema *sqlFeatureSchema, eFeature EStructuralFeature, columns ...*sqlColumn) {
 			table := newSqlTable(
 				classTable.name+"_"+eFeature.GetName(),
-				columns...,
+				withSqlTableColumns(columns...),
 			)
 			table.key = columns[0]
 			table.indexes = [][]*sqlColumn{{columns[0], columns[1]}}

@@ -550,10 +550,6 @@ func (d *SQLDecoder) selectAllQuery(table *sqlTable) string {
 	return table.selectQuery(nil, "", "")
 }
 
-func (d *SQLDecoder) isObjectWithUniqueID() bool {
-	return d.resource.GetObjectIDManager() != nil && len(d.idAttributeName) > 0
-}
-
 func (d *SQLDecoder) addError(err error) {
 	d.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), d.resource.GetURI().String(), 0, 0))
 }

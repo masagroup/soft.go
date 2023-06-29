@@ -327,14 +327,14 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 
 	// common tables definitions
 	packagesTable := newSqlTable(
-		"packages",
+		".packages",
 		withSqlTableColumns(
 			newSqlAttributeColumn("packageID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
 			newSqlAttributeColumn("uri", "TEXT"),
 		),
 	)
 	classesTable := newSqlTable(
-		"classes",
+		".classes",
 		withSqlTableColumns(
 			newSqlAttributeColumn("classID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
 			newSqlReferenceColumn(packagesTable),
@@ -342,15 +342,14 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 		),
 	)
 	objectsTable := newSqlTable(
-		"objects",
+		".objects",
 		withSqlTableColumns(
 			newSqlAttributeColumn("objectID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
 			newSqlReferenceColumn(classesTable),
 		),
-		withSqlTableIndexes([][]string{{"objectID", "classID"}}),
 	)
 	contentsTable := newSqlTable(
-		"contents",
+		".contents",
 		withSqlTableColumns(
 			newSqlReferenceColumn(objectsTable),
 		),
@@ -371,15 +370,12 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
 	classSchema := s.classSchemaMap[eClass]
 	if classSchema == nil {
-		// create data
-		ePackage := eClass.GetEPackage()
-		eFeatures := eClass.GetEStructuralFeatures()
-
 		// create table descriptor
-		classTable := newSqlTable(ePackage.GetNsPrefix() + "_" + strings.ToLower(eClass.GetName()))
+		classTable := newSqlTable(strings.ToLower(eClass.GetName()))
 		classTable.addColumn(newSqlAttributeColumn(strings.ToLower(eClass.GetName())+"ID", "INTEGER", withSqlColumnPrimary(true)))
 
 		// compute table columns and external tables
+		eFeatures := eClass.GetEStructuralFeatures()
 		classSchema = &sqlClassSchema{
 			table:    classTable,
 			features: make([]*sqlFeatureSchema, 0, eFeatures.Size()),

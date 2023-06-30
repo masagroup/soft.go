@@ -121,6 +121,11 @@ func (d *SQLDecoder) DecodeResource() {
 		return
 	}
 
+	if err := d.decodeFeatures(); err != nil {
+		d.addError(err)
+		return
+	}
+
 	if err := d.decodeContents(); err != nil {
 		d.addError(err)
 		return
@@ -274,99 +279,6 @@ func (d *SQLDecoder) decodeContents() error {
 
 // }
 
-func (d *SQLDecoder) decodeFeatureValue(featureData *sqlDecoderFeatureData, bytes []byte) (any, error) {
-	switch featureData.schema.featureKind {
-	case sfkObject, sfkObjectList:
-		if len(bytes) == 0 {
-			return nil, nil
-		}
-		objectID, err := strconv.Atoi(string(bytes))
-		if err != nil {
-			return nil, err
-		}
-		//return d.decodeObject(objectID)
-		return d.objects[objectID], nil
-	case sfkObjectReference, sfkObjectReferenceList:
-		if len(bytes) == 0 {
-			return nil, nil
-		}
-		// uri
-		uriStr := string(bytes)
-		uri := d.baseURI
-		if len(uriStr) > 0 {
-			uri = d.resolveURI(NewURI(uriStr))
-		}
-		// create proxy
-		eObject := featureData.eFactory.Create(featureData.eType.(EClass))
-		eObjectInternal := eObject.(EObjectInternal)
-		eObjectInternal.ESetProxyURI(uri)
-		return eObject, nil
-	case sfkBool:
-		return strconv.ParseBool(string(bytes))
-	case sfkByte:
-		if len(bytes) == 0 {
-			var defaultByte byte
-			return defaultByte, errors.New("invalid bytes length")
-		}
-		return bytes[0], nil
-	case sfkInt:
-		i, err := strconv.ParseInt(string(bytes), 10, 0)
-		if err != nil {
-			var defaultInt int
-			return defaultInt, err
-		}
-		return int(i), nil
-	case sfkInt64:
-		return strconv.ParseInt(string(bytes), 10, 64)
-	case sfkInt32:
-		i, err := strconv.ParseInt(string(bytes), 10, 32)
-		if err != nil {
-			var defaultInt32 int32
-			return defaultInt32, err
-		}
-		return int32(i), nil
-	case sfkInt16:
-		i, err := strconv.ParseInt(string(bytes), 10, 16)
-		if err != nil {
-			var defaultInt16 int16
-			return defaultInt16, err
-		}
-		return int16(i), nil
-	case sfkEnum:
-		return strconv.ParseInt(string(bytes), 10, 64)
-	case sfkString:
-		return string(bytes), nil
-	case sfkByteArray:
-		return bytes, nil
-	case sfkDate:
-		t, err := time.Parse(time.RFC3339, string(bytes))
-		if err != nil {
-			return nil, err
-		}
-		return &t, nil
-	case sfkFloat64:
-		return strconv.ParseFloat(string(bytes), 64)
-	case sfkFloat32:
-		f, err := strconv.ParseFloat(string(bytes), 32)
-		if err != nil {
-			var defaultFloat32 float32
-			return defaultFloat32, err
-		}
-		return f, nil
-	case sfkData, sfkDataList:
-		return featureData.eFactory.CreateFromString(featureData.eType.(EDataType), string(bytes)), nil
-	}
-
-	return nil, nil
-}
-
-func (d *SQLDecoder) resolveURI(uri *URI) *URI {
-	if d.baseURI != nil {
-		return d.baseURI.Resolve(uri)
-	}
-	return uri
-}
-
 // func (d *SQLDecoder) decodeObjectClassAndID(objectID int) (EClass, sql.NullString, error) {
 // 	// retrieve class id and unique id for this object
 // 	var uniqueID sql.NullString
@@ -517,6 +429,245 @@ func (d *SQLDecoder) decodeObjects() error {
 
 		return nil
 	})
+}
+
+func (d *SQLDecoder) decodeFeatures() error {
+	decoded := map[EClass]struct{}{}
+	// for each leaf class
+	for _, classData := range d.classes {
+		eClass := classData.eClass
+		itSuper := eClass.GetEAllSuperTypes().Iterator()
+		for eClass != nil {
+			// decode class features
+			if _, idDecoded := decoded[eClass]; !idDecoded {
+				decoded[eClass] = struct{}{}
+				if err := d.decodeClassFeatures(eClass); err != nil {
+					return err
+				}
+			}
+
+			// next super class
+			if itSuper.HasNext() {
+				eClass = itSuper.Next().(EClass)
+			} else {
+				eClass = nil
+			}
+		}
+	}
+	return nil
+}
+
+func (d *SQLDecoder) decodeClassFeatures(eClass EClass) error {
+	classSchema, err := d.schema.getClassSchema(eClass)
+	if err != nil {
+		return err
+	}
+
+	columnFeatures := []*sqlFeatureSchema{}
+	for _, featureData := range classSchema.features {
+		if featureData.column != nil {
+			columnFeatures = append(columnFeatures, featureData)
+		} else if featureData.table != nil {
+
+		}
+	}
+
+	return d.decodeColumnFeatures(classSchema.table, columnFeatures)
+}
+
+func (d *SQLDecoder) decodeColumnFeatures(table *sqlTable, columnFeatures []*sqlFeatureSchema) error {
+	// query clas table and decode all its columns
+	rows, err := d.query(table, d.selectAllQuery)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	return d.forEachRow(rows, func(rb []sql.RawBytes) error {
+		// object id
+		objectID, err := strconv.Atoi(string(rb[0]))
+		if err != nil {
+			return err
+		}
+
+		// retrieve EObject
+		eObject := d.objects[objectID]
+		if eObject == nil {
+			return fmt.Errorf("unable to find object with id '%v'", objectID)
+		}
+
+		// for each column
+		for i, columnData := range columnFeatures {
+			columnValue, err := d.decodeFeatureValue(columnData, rb[i+1])
+			if err != nil {
+				return err
+			}
+			eObject.ESet(columnData.feature, columnValue)
+		}
+
+		return nil
+	})
+}
+
+func (d *SQLDecoder) decodeTableFeature(table *sqlTable, tableFeature *sqlFeatureSchema) error {
+	// query
+	rows, err := d.query(table, func(table *sqlTable) string {
+		// column value is the last one
+		valueColumn := sqlEscapeIdentifier(table.columns[len(table.columns)-1].columnName)
+		// sort key + idx asc
+		return table.selectQuery([]string{table.keyName(), valueColumn}, "", table.keyName()+" ASC, idx ASC")
+	})
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	feature := tableFeature.feature
+	currentValues := []any{}
+	currentID := -1
+	d.forEachRow(rows, func(rb []sql.RawBytes) error {
+		objectID, err := strconv.Atoi(string(rb[0]))
+		if err != nil {
+			return err
+		}
+
+		value, err := d.decodeFeatureValue(tableFeature, rb[1])
+		if err != nil {
+			return err
+		}
+
+		if currentID == -1 {
+			currentID = objectID
+		} else if currentID != objectID {
+			if err := d.decodeFeatureList(currentID, feature, currentValues); err != nil {
+				return err
+			}
+			currentValues = nil
+		}
+
+		currentID = objectID
+		currentValues = append(currentValues, value)
+
+		return nil
+	})
+	if currentID != -1 {
+		if err := d.decodeFeatureList(currentID, feature, currentValues); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (d *SQLDecoder) decodeFeatureList(objectID int, feature EStructuralFeature, values []any) error {
+	if len(values) == 0 {
+		return nil
+	}
+	eObject := d.objects[objectID]
+	if eObject == nil {
+		return fmt.Errorf("unable to find object with id '%v'", objectID)
+	}
+	eList := eObject.EGetResolve(feature, false).(EList)
+	eList.AddAll(NewImmutableEList(values))
+	return nil
+}
+
+func (d *SQLDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, bytes []byte) (any, error) {
+	switch featureData.featureKind {
+	case sfkObject, sfkObjectList:
+		if len(bytes) == 0 {
+			return nil, nil
+		}
+		objectID, err := strconv.Atoi(string(bytes))
+		if err != nil {
+			return nil, err
+		}
+		//return d.decodeObject(objectID)
+		return d.objects[objectID], nil
+	case sfkObjectReference, sfkObjectReferenceList:
+		if len(bytes) == 0 {
+			return nil, nil
+		}
+		// uri
+		uriStr := string(bytes)
+		uri := d.baseURI
+		if len(uriStr) > 0 {
+			uri = d.resolveURI(NewURI(uriStr))
+		}
+		// create proxy
+		eFeature := featureData.feature
+		eClass := eFeature.GetEType().(EClass)
+		eFactory := eClass.GetEPackage().GetEFactoryInstance()
+		eObject := eFactory.Create(eClass)
+		eObjectInternal := eObject.(EObjectInternal)
+		eObjectInternal.ESetProxyURI(uri)
+		return eObject, nil
+	case sfkBool:
+		return strconv.ParseBool(string(bytes))
+	case sfkByte:
+		if len(bytes) == 0 {
+			var defaultByte byte
+			return defaultByte, errors.New("invalid bytes length")
+		}
+		return bytes[0], nil
+	case sfkInt:
+		i, err := strconv.ParseInt(string(bytes), 10, 0)
+		if err != nil {
+			var defaultInt int
+			return defaultInt, err
+		}
+		return int(i), nil
+	case sfkInt64:
+		return strconv.ParseInt(string(bytes), 10, 64)
+	case sfkInt32:
+		i, err := strconv.ParseInt(string(bytes), 10, 32)
+		if err != nil {
+			var defaultInt32 int32
+			return defaultInt32, err
+		}
+		return int32(i), nil
+	case sfkInt16:
+		i, err := strconv.ParseInt(string(bytes), 10, 16)
+		if err != nil {
+			var defaultInt16 int16
+			return defaultInt16, err
+		}
+		return int16(i), nil
+	case sfkEnum:
+		return strconv.ParseInt(string(bytes), 10, 64)
+	case sfkString:
+		return string(bytes), nil
+	case sfkByteArray:
+		return bytes, nil
+	case sfkDate:
+		t, err := time.Parse(time.RFC3339, string(bytes))
+		if err != nil {
+			return nil, err
+		}
+		return &t, nil
+	case sfkFloat64:
+		return strconv.ParseFloat(string(bytes), 64)
+	case sfkFloat32:
+		f, err := strconv.ParseFloat(string(bytes), 32)
+		if err != nil {
+			var defaultFloat32 float32
+			return defaultFloat32, err
+		}
+		return f, nil
+	case sfkData, sfkDataList:
+		eFeature := featureData.feature
+		eDataType := eFeature.GetEType().(EDataType)
+		eFactory := eDataType.GetEPackage().GetEFactoryInstance()
+		return eFactory.CreateFromString(eDataType, string(bytes)), nil
+	}
+
+	return nil, nil
+}
+
+func (d *SQLDecoder) resolveURI(uri *URI) *URI {
+	if d.baseURI != nil {
+		return d.baseURI.Resolve(uri)
+	}
+	return uri
 }
 
 func (d *SQLDecoder) getSelectStmt(table *sqlTable, queryProvider func(table *sqlTable) string) (stmt *sql.Stmt, err error) {

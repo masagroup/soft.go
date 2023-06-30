@@ -257,7 +257,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 
 		// encode object class
 		eClass := eObject.EClass()
-		classData, err := e.getClassData(eClass)
+		classData, err := e.encodeClass(eClass)
 		if err != nil {
 			return nil, fmt.Errorf("getData('%s') error : %w", eClass.GetName(), err)
 		}
@@ -381,21 +381,19 @@ func (e *SQLEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 	return nil, nil
 }
 
-func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
-	classData := e.classDataMap[eClass]
-	if classData == nil {
-		// compute class data for super types
-		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
-			eClass := itClass.Next().(EClass)
-			_, err := e.getClassData(eClass)
-			if err != nil {
-				return nil, err
-			}
-		}
+func (e *SQLEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
+	classData, err := e.getClassData(eClass)
+	if err != nil {
+		return nil, err
+	}
+	if classData.id == -1 {
+		// class is not encoded
+		// got to register it in the classes table
+		// and retrieve its id
 
 		// encode package
 		ePackage := eClass.GetEPackage()
-		packageData, err := e.getPackageData(ePackage)
+		packageData, err := e.encodePackage(ePackage)
 		if err != nil {
 			return nil, err
 		}
@@ -416,7 +414,24 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 			return nil, err
 		}
 
-		// create class data
+		classData.id = classID
+	}
+	return classData, nil
+}
+
+func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
+	classData := e.classDataMap[eClass]
+	if classData == nil {
+		// compute class data for super types
+		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
+			eClass := itClass.Next().(EClass)
+			_, err := e.getClassData(eClass)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// create class schema
 		classSchema, err := e.schema.getClassSchema(eClass)
 		if err != nil {
 			return nil, err
@@ -433,6 +448,7 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 			return nil, err
 		}
 
+		// computes features data
 		classFeatures := map[EStructuralFeature]*sqlEncoderFeatureData{}
 		for _, featureSchema := range classSchema.features {
 
@@ -459,7 +475,7 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 
 		// create & register class data
 		classData = &sqlEncoderClassData{
-			id:        classID,
+			id:        -1,
 			schema:    classSchema,
 			features:  classFeatures,
 			hierarchy: classHierarchy,
@@ -470,7 +486,7 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 	return classData, nil
 }
 
-func (e *SQLEncoder) getPackageData(ePackage EPackage) (*sqlEncoderPackageData, error) {
+func (e *SQLEncoder) encodePackage(ePackage EPackage) (*sqlEncoderPackageData, error) {
 	ePackageData := e.packageDataMap[ePackage]
 	if ePackageData == nil {
 		// insert new package

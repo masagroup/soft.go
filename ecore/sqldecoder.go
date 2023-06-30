@@ -12,12 +12,8 @@ import (
 )
 
 type sqlDecoderClassData struct {
-	schema         *sqlClassSchema
-	eClass         EClass
-	eFactory       EFactory
-	hierarchy      []EClass
-	columnFeatures []*sqlDecoderFeatureData
-	tableFeatures  []*sqlDecoderFeatureData
+	eClass   EClass
+	eFactory EFactory
 }
 
 type sqlDecoderFeatureData struct {
@@ -110,10 +106,20 @@ func (d *SQLDecoder) DecodeResource() {
 		return
 	}
 
-	// if err := d.decodeClasses(); err != nil {
-	// 	d.addError(err)
-	// 	return
-	// }
+	if err := d.decodePackages(); err != nil {
+		d.addError(err)
+		return
+	}
+
+	if err := d.decodeClasses(); err != nil {
+		d.addError(err)
+		return
+	}
+
+	if err := d.decodeObjects(); err != nil {
+		d.addError(err)
+		return
+	}
 
 	if err := d.decodeContents(); err != nil {
 		d.addError(err)
@@ -204,69 +210,69 @@ func (d *SQLDecoder) decodeContents() error {
 // 	return eObject, nil
 // }
 
-func (d *SQLDecoder) decodeObjectColumnFeatures(objectID int, eObject EObject, classData *sqlDecoderClassData) error {
-	if len(classData.columnFeatures) > 0 {
-		// stmt
-		rows, err := d.query(classData.schema.table, func(table *sqlTable) string {
-			return table.selectQuery(table.columnNames(1, -1), table.keyName()+"= ? ", "")
-		}, objectID)
-		if err != nil {
-			return err
-		}
-		defer rows.Close()
+// func (d *SQLDecoder) decodeObjectColumnFeatures(objectID int, eObject EObject, classData *sqlDecoderClassData) error {
+// 	if len(classData.columnFeatures) > 0 {
+// 		// stmt
+// 		rows, err := d.query(classData.schema.table, func(table *sqlTable) string {
+// 			return table.selectQuery(table.columnNames(1, -1), table.keyName()+"= ? ", "")
+// 		}, objectID)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		defer rows.Close()
 
-		var rawBuffer []sql.RawBytes
-		d.forOneRow(rows, func(rb []sql.RawBytes) error {
-			rawBuffer = rb
-			return nil
-		})
+// 		var rawBuffer []sql.RawBytes
+// 		d.forOneRow(rows, func(rb []sql.RawBytes) error {
+// 			rawBuffer = rb
+// 			return nil
+// 		})
 
-		// decode feature values in this table
-		// first value is objectID in rawBuffer so we skip it
-		for i, featureData := range classData.columnFeatures {
-			columnValue, err := d.decodeFeatureValue(featureData, rawBuffer[i])
-			if err != nil {
-				return err
-			}
-			eObject.ESet(featureData.eFeature, columnValue)
-		}
-	}
-	return nil
-}
+// 		// decode feature values in this table
+// 		// first value is objectID in rawBuffer so we skip it
+// 		for i, featureData := range classData.columnFeatures {
+// 			columnValue, err := d.decodeFeatureValue(featureData, rawBuffer[i])
+// 			if err != nil {
+// 				return err
+// 			}
+// 			eObject.ESet(featureData.eFeature, columnValue)
+// 		}
+// 	}
+// 	return nil
+// }
 
-func (d *SQLDecoder) decodeObjectTableFeatures(objectID int, eObject EObject, classData *sqlDecoderClassData) error {
-	for _, featureData := range classData.tableFeatures {
-		// decode each list values
-		values := []any{}
+// func (d *SQLDecoder) decodeObjectTableFeatures(objectID int, eObject EObject, classData *sqlDecoderClassData) error {
+// 	for _, featureData := range classData.tableFeatures {
+// 		// decode each list values
+// 		values := []any{}
 
-		// query
-		rows, err := d.query(featureData.schema.table, func(table *sqlTable) string {
-			// column value is the last one
-			valueColumn := table.columns[len(table.columns)-1]
-			return table.selectQuery([]string{valueColumn.columnName}, table.keyName()+"= ?", "idx ASC")
-		}, objectID)
-		if err != nil {
-			return err
-		}
-		defer rows.Close()
+// 		// query
+// 		rows, err := d.query(featureData.schema.table, func(table *sqlTable) string {
+// 			// column value is the last one
+// 			valueColumn := table.columns[len(table.columns)-1]
+// 			return table.selectQuery([]string{valueColumn.columnName}, table.keyName()+"= ?", "idx ASC")
+// 		}, objectID)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		defer rows.Close()
 
-		// for each row, decode feature value and add value to the list
-		d.forEachRow(rows, func(rb []sql.RawBytes) error {
-			value, err := d.decodeFeatureValue(featureData, rb[0])
-			if err != nil {
-				return err
-			}
-			values = append(values, value)
-			return nil
-		})
-		// set list element values
-		list := eObject.EGetResolve(featureData.eFeature, false).(EList)
-		list.AddAll(NewImmutableEList(values))
-	}
+// 		// for each row, decode feature value and add value to the list
+// 		d.forEachRow(rows, func(rb []sql.RawBytes) error {
+// 			value, err := d.decodeFeatureValue(featureData, rb[0])
+// 			if err != nil {
+// 				return err
+// 			}
+// 			values = append(values, value)
+// 			return nil
+// 		})
+// 		// set list element values
+// 		list := eObject.EGetResolve(featureData.eFeature, false).(EList)
+// 		list.AddAll(NewImmutableEList(values))
+// 	}
 
-	return nil
+// 	return nil
 
-}
+// }
 
 func (d *SQLDecoder) decodeFeatureValue(featureData *sqlDecoderFeatureData, bytes []byte) (any, error) {
 	switch featureData.schema.featureKind {
@@ -402,101 +408,74 @@ func (d *SQLDecoder) resolveURI(uri *URI) *URI {
 // 	return eClass, uniqueID, nil
 // }
 
-// func (d *SQLDecoder) decodeClasses() error {
-// 	// read packages
-// 	packagesData, err := d.decodePackages()
-// 	if err != nil {
-// 		return err
-// 	}
+func (d *SQLDecoder) decodePackages() error {
+	// query
+	rows, err := d.query(d.schema.packagesTable, d.selectAllQuery)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
 
-// 	// read classes
-// 	classes := map[int]EClass{}
-// 	classToData := map[EClass]*sqlDecoderClassData{}
+	// for each row, retrieve package from registry
+	return d.forEachRow(rows, func(rb []sql.RawBytes) error {
+		packageID, _ := strconv.Atoi(string(rb[0]))
+		packageURI := string(rb[1])
+		packageRegistry := GetPackageRegistry()
+		resourceSet := d.resource.GetResourceSet()
+		if resourceSet != nil {
+			packageRegistry = resourceSet.GetPackageRegistry()
+		}
+		ePackage := packageRegistry.GetPackage(packageURI)
+		if ePackage == nil {
+			return fmt.Errorf("unable to find package '%s'", packageURI)
+		}
+		d.packages[packageID] = ePackage
+		return nil
+	})
+}
 
-// 	// query
-// 	rows, err := d.query(d.schema.classesTable, d.selectAllQuery)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer rows.Close()
+func (d *SQLDecoder) decodeClasses() error {
+	// query
+	rows, err := d.query(d.schema.classesTable, d.selectAllQuery)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
 
-// 	// for each row
-// 	if err := d.forEachRow(rows, func(rb []sql.RawBytes) error {
-// 		classID, err := strconv.Atoi(string(rb[0]))
-// 		if err != nil {
-// 			return err
-// 		}
-// 		packageID, err := strconv.Atoi(string(rb[1]))
-// 		if err != nil {
-// 			return err
-// 		}
-// 		ePackage := packagesData[packageID]
-// 		if ePackage == nil {
-// 			return fmt.Errorf("unable to find package with id '%d'", packageID)
-// 		}
-// 		className := string(rb[2])
-// 		eClass, _ := ePackage.GetEClassifier(className).(EClass)
-// 		if eClass == nil {
-// 			return fmt.Errorf("unable to find class '%s' in package '%s'", className, ePackage.GetNsURI())
-// 		}
+	// for each row
+	return d.forEachRow(rows, func(rb []sql.RawBytes) error {
+		classID, err := strconv.Atoi(string(rb[0]))
+		if err != nil {
+			return err
+		}
+		packageID, err := strconv.Atoi(string(rb[1]))
+		if err != nil {
+			return err
+		}
+		ePackage := d.packages[packageID]
+		if ePackage == nil {
+			return fmt.Errorf("unable to find package with id '%d'", packageID)
+		}
+		className := string(rb[2])
+		eClass, _ := ePackage.GetEClassifier(className).(EClass)
+		if eClass == nil {
+			return fmt.Errorf("unable to find class '%s' in package '%s'", className, ePackage.GetNsURI())
+		}
 
-// 		// init map
-// 		classes[classID] = eClass
+		// compute class hierarchy
+		classHierarchy := []EClass{eClass}
+		for itClass := eClass.GetEAllSuperTypes().Iterator(); itClass.HasNext(); {
+			classHierarchy = append(classHierarchy, itClass.Next().(EClass))
+		}
 
-// 		// get class schema
-// 		classSchema, err := d.schema.getClassSchema(eClass)
-// 		if err != nil {
-// 			return err
-// 		}
+		d.classes[classID] = &sqlDecoderClassData{
+			eClass:   eClass,
+			eFactory: ePackage.GetEFactoryInstance(),
+		}
 
-// 		// compute class hierarchy
-// 		classHierarchy := []EClass{eClass}
-// 		for itClass := eClass.GetEAllSuperTypes().Iterator(); itClass.HasNext(); {
-// 			classHierarchy = append(classHierarchy, itClass.Next().(EClass))
-// 		}
-
-// 		// compute class features
-// 		classColumnFeatures := make([]*sqlDecoderFeatureData, 0, len(classSchema.features))
-// 		classTableFeatures := make([]*sqlDecoderFeatureData, 0, len(classSchema.features))
-// 		for _, featureSchema := range classSchema.features {
-// 			eFeature := featureSchema.feature
-// 			eFeatureData := &sqlDecoderFeatureData{
-// 				eFeature: eFeature,
-// 				schema:   featureSchema,
-// 			}
-// 			if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
-// 				eFeatureData.eType = eAttribute.GetEAttributeType()
-// 				eFeatureData.eFactory = eFeatureData.eType.GetEPackage().GetEFactoryInstance()
-// 			} else if eReference := eFeature.(EReference); eReference != nil {
-// 				eFeatureData.eType = eReference.GetEReferenceType()
-// 				eFeatureData.eFactory = eFeatureData.eType.GetEPackage().GetEFactoryInstance()
-// 			}
-// 			if featureSchema.column != nil {
-// 				classColumnFeatures = append(classColumnFeatures, eFeatureData)
-// 			} else if featureSchema.table != nil {
-// 				classTableFeatures = append(classTableFeatures, eFeatureData)
-// 			}
-
-// 		}
-
-// 		// register class data
-// 		classToData[eClass] = &sqlDecoderClassData{
-// 			eClass:         eClass,
-// 			eFactory:       ePackage.GetEFactoryInstance(),
-// 			schema:         classSchema,
-// 			hierarchy:      classHierarchy,
-// 			columnFeatures: classColumnFeatures,
-// 			tableFeatures:  classTableFeatures,
-// 		}
-// 		return nil
-// 	}); err != nil {
-// 		return err
-// 	}
-
-// 	d.classes = classes
-// 	d.classToData = classToData
-// 	return nil
-// }
+		return nil
+	})
+}
 
 func (d *SQLDecoder) decodeObjects() error {
 	rows, err := d.query(d.schema.objectsTable, d.selectAllQuery)
@@ -536,33 +515,6 @@ func (d *SQLDecoder) decodeObjects() error {
 			objectIDManager.SetID(eObject, uniqueID)
 		}
 
-		return nil
-	})
-
-}
-
-func (d *SQLDecoder) decodePackages() error {
-	// query
-	rows, err := d.query(d.schema.packagesTable, d.selectAllQuery)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	// for each row, retrieve package from registry
-	return d.forEachRow(rows, func(rb []sql.RawBytes) error {
-		packageID, _ := strconv.Atoi(string(rb[0]))
-		packageURI := string(rb[1])
-		packageRegistry := GetPackageRegistry()
-		resourceSet := d.resource.GetResourceSet()
-		if resourceSet != nil {
-			packageRegistry = resourceSet.GetPackageRegistry()
-		}
-		ePackage := packageRegistry.GetPackage(packageURI)
-		if ePackage == nil {
-			return fmt.Errorf("unable to find package '%s'", packageURI)
-		}
-		d.packages[packageID] = ePackage
 		return nil
 	})
 }

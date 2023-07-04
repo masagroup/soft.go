@@ -1,13 +1,14 @@
 package ecore
 
 import (
+	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 )
 
@@ -29,10 +30,9 @@ type SQLDecoder struct {
 	driver          string
 	db              *sql.DB
 	schema          *sqlSchema
-	packages        map[int]EPackage
-	objects         map[int]EObject
-	classes         map[int]*sqlDecoderClassData
-	selectStmts     map[*sqlTable]*sql.Stmt
+	packages        map[int64]EPackage
+	objects         map[int64]EObject
+	classes         map[int64]*sqlDecoderClassData
 	idAttributeName string
 	baseURI         *URI
 }
@@ -62,10 +62,9 @@ func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQL
 		reader:          r,
 		driver:          driver,
 		schema:          newSqlSchema(schemaOptions...),
-		packages:        map[int]EPackage{},
-		objects:         map[int]EObject{},
-		classes:         map[int]*sqlDecoderClassData{},
-		selectStmts:     map[*sqlTable]*sql.Stmt{},
+		packages:        map[int64]EPackage{},
+		objects:         map[int64]EObject{},
+		classes:         map[int64]*sqlDecoderClassData{},
 		idAttributeName: idAttributeName,
 		baseURI:         baseURI,
 	}
@@ -153,16 +152,11 @@ func (d *SQLDecoder) decodeVersion() error {
 
 func (d *SQLDecoder) decodeContents() error {
 	// read all object contents
-	rows, err := d.query(d.schema.contentsTable, d.selectAllQuery)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	return d.forEachRow(rows, func(rb []sql.RawBytes) error {
-		objectID, err := strconv.Atoi(string(rb[0]))
-		if err != nil {
-			return err
+	return d.query(d.schema.contentsTable.selectQuery(nil, "", ""), func(values []driver.Value) error {
+		// retrieve id
+		objectID, isInt := values[0].(int64)
+		if !isInt {
+			return fmt.Errorf("%v is not an int64 value", values[0])
 		}
 
 		// decode object
@@ -178,17 +172,17 @@ func (d *SQLDecoder) decodeContents() error {
 }
 
 func (d *SQLDecoder) decodePackages() error {
-	// query
-	rows, err := d.query(d.schema.packagesTable, d.selectAllQuery)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
+	return d.query(d.schema.packagesTable.selectQuery(nil, "", ""), func(values []driver.Value) error {
+		packageID, isInt := values[0].(int64)
+		if !isInt {
+			return fmt.Errorf("%v is not a int64 value", values[0])
+		}
 
-	// for each row, retrieve package from registry
-	return d.forEachRow(rows, func(rb []sql.RawBytes) error {
-		packageID, _ := strconv.Atoi(string(rb[0]))
-		packageURI := string(rb[1])
+		packageURI, isString := values[1].(string)
+		if !isString {
+			return fmt.Errorf("%v is not a string value", values[1])
+		}
+
 		packageRegistry := GetPackageRegistry()
 		resourceSet := d.resource.GetResourceSet()
 		if resourceSet != nil {
@@ -204,28 +198,24 @@ func (d *SQLDecoder) decodePackages() error {
 }
 
 func (d *SQLDecoder) decodeClasses() error {
-	// query
-	rows, err := d.query(d.schema.classesTable, d.selectAllQuery)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	// for each row
-	return d.forEachRow(rows, func(rb []sql.RawBytes) error {
-		classID, err := strconv.Atoi(string(rb[0]))
-		if err != nil {
-			return err
+	return d.query(d.schema.classesTable.selectQuery(nil, "", ""), func(values []driver.Value) error {
+		classID, isInt := values[0].(int64)
+		if !isInt {
+			return fmt.Errorf("%v is not a int64 value", values[0])
 		}
-		packageID, err := strconv.Atoi(string(rb[1]))
-		if err != nil {
-			return err
+
+		packageID, isInt := values[1].(int64)
+		if !isInt {
+			return fmt.Errorf("%v is not a int64 value", values[1])
 		}
 		ePackage := d.packages[packageID]
 		if ePackage == nil {
 			return fmt.Errorf("unable to find package with id '%d'", packageID)
 		}
-		className := string(rb[2])
+		className, isString := values[2].(string)
+		if !isString {
+			return fmt.Errorf("%v is not a string value", values[2])
+		}
 		eClass, _ := ePackage.GetEClassifier(className).(EClass)
 		if eClass == nil {
 			return fmt.Errorf("unable to find class '%s' in package '%s'", className, ePackage.GetNsURI())
@@ -244,27 +234,21 @@ func (d *SQLDecoder) decodeClasses() error {
 
 		return nil
 	})
+
 }
 
 func (d *SQLDecoder) decodeObjects() error {
-	rows, err := d.query(d.schema.objectsTable, d.selectAllQuery)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	// for each row, create object and retrieve used classes
-	return d.forEachRow(rows, func(rb []sql.RawBytes) error {
+	return d.query(d.schema.objectsTable.selectQuery(nil, "", ""), func(values []driver.Value) error {
 		// object id
-		objectID, err := strconv.Atoi(string(rb[0]))
-		if err != nil {
-			return err
+		objectID, isInt := values[0].(int64)
+		if !isInt {
+			return fmt.Errorf("%v is not a int64 value", values[0])
 		}
 
 		// class id
-		classID, err := strconv.Atoi(string(rb[1]))
-		if err != nil {
-			return err
+		classID, isInt := values[1].(int64)
+		if !isInt {
+			return fmt.Errorf("%v is not a int64 value", values[1])
 		}
 
 		// class data
@@ -278,8 +262,11 @@ func (d *SQLDecoder) decodeObjects() error {
 		d.objects[objectID] = eObject
 
 		// set its id
-		if len(rb) > 2 {
-			uniqueID := string(rb[1])
+		if len(values) > 2 {
+			uniqueID, isString := values[2].(string)
+			if !isString {
+				return fmt.Errorf("%v is not a string value", values[2])
+			}
 			objectIDManager := d.resource.GetObjectIDManager()
 			objectIDManager.SetID(eObject, uniqueID)
 		}
@@ -325,7 +312,9 @@ func (d *SQLDecoder) decodeClassFeatures(eClass EClass) error {
 		if featureData.column != nil {
 			columnFeatures = append(columnFeatures, featureData)
 		} else if featureData.table != nil {
-
+			if err := d.decodeTableFeature(featureData.table, featureData); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -333,18 +322,11 @@ func (d *SQLDecoder) decodeClassFeatures(eClass EClass) error {
 }
 
 func (d *SQLDecoder) decodeColumnFeatures(table *sqlTable, columnFeatures []*sqlFeatureSchema) error {
-	// query clas table and decode all its columns
-	rows, err := d.query(table, d.selectAllQuery)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	return d.forEachRow(rows, func(rb []sql.RawBytes) error {
+	return d.query(table.selectQuery(nil, "", ""), func(values []driver.Value) error {
 		// object id
-		objectID, err := strconv.Atoi(string(rb[0]))
-		if err != nil {
-			return err
+		objectID, isInt := values[0].(int64)
+		if !isInt {
+			return fmt.Errorf("%v is not a int64 value", values[0])
 		}
 
 		// retrieve EObject
@@ -355,7 +337,7 @@ func (d *SQLDecoder) decodeColumnFeatures(table *sqlTable, columnFeatures []*sql
 
 		// for each column
 		for i, columnData := range columnFeatures {
-			columnValue, err := d.decodeFeatureValue(columnData, rb[i+1])
+			columnValue, err := d.decodeFeatureValue(columnData, values[i+1])
 			if err != nil {
 				return err
 			}
@@ -364,31 +346,25 @@ func (d *SQLDecoder) decodeColumnFeatures(table *sqlTable, columnFeatures []*sql
 
 		return nil
 	})
+
 }
 
 func (d *SQLDecoder) decodeTableFeature(table *sqlTable, tableFeature *sqlFeatureSchema) error {
-	// query
-	rows, err := d.query(table, func(table *sqlTable) string {
-		// column value is the last one
-		valueColumn := sqlEscapeIdentifier(table.columns[len(table.columns)-1].columnName)
-		// sort key + idx asc
-		return table.selectQuery([]string{table.keyName(), valueColumn}, "", table.keyName()+" ASC, idx ASC")
-	})
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
+	column := sqlEscapeIdentifier(table.columns[len(table.columns)-1].columnName)
+	query := table.selectQuery([]string{table.keyName(), column}, "", table.keyName()+" ASC, idx ASC")
 
 	feature := tableFeature.feature
 	currentValues := []any{}
-	currentID := -1
-	d.forEachRow(rows, func(rb []sql.RawBytes) error {
-		objectID, err := strconv.Atoi(string(rb[0]))
-		if err != nil {
-			return err
+	var currentID int64 = -1
+
+	if err := d.query(query, func(values []driver.Value) error {
+		// object id
+		objectID, isInt := values[0].(int64)
+		if !isInt {
+			return fmt.Errorf("%v is not a int64 value", values[0])
 		}
 
-		value, err := d.decodeFeatureValue(tableFeature, rb[1])
+		value, err := d.decodeFeatureValue(tableFeature, values[1])
 		if err != nil {
 			return err
 		}
@@ -406,16 +382,20 @@ func (d *SQLDecoder) decodeTableFeature(table *sqlTable, tableFeature *sqlFeatur
 		currentValues = append(currentValues, value)
 
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+
 	if currentID != -1 {
 		if err := d.decodeFeatureList(currentID, feature, currentValues); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-func (d *SQLDecoder) decodeFeatureList(objectID int, feature EStructuralFeature, values []any) error {
+func (d *SQLDecoder) decodeFeatureList(objectID int64, feature EStructuralFeature, values []any) error {
 	if len(values) == 0 {
 		return nil
 	}
@@ -428,92 +408,145 @@ func (d *SQLDecoder) decodeFeatureList(objectID int, feature EStructuralFeature,
 	return nil
 }
 
-func (d *SQLDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, bytes []byte) (any, error) {
+func (d *SQLDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value driver.Value) (any, error) {
 	switch featureData.featureKind {
 	case sfkObject, sfkObjectList:
-		if len(bytes) == 0 {
+		switch v := value.(type) {
+		case nil:
 			return nil, nil
+		case int64:
+			return d.objects[v], nil
+		default:
+			return nil, fmt.Errorf("%v is not supported as a object id", v)
 		}
-		objectID, err := strconv.Atoi(string(bytes))
-		if err != nil {
-			return nil, err
-		}
-		return d.objects[objectID], nil
 	case sfkObjectReference, sfkObjectReferenceList:
-		if len(bytes) == 0 {
-			return nil, nil
+		switch v := value.(type) {
+		case string:
+			// no reference
+			if len(v) == 0 {
+				return nil, nil
+			}
+			// resolve uri reference
+			uri := d.resolveURI(NewURI(v))
+
+			// create proxy
+			eFeature := featureData.feature
+			eClass := eFeature.GetEType().(EClass)
+			eFactory := eClass.GetEPackage().GetEFactoryInstance()
+			eObject := eFactory.Create(eClass)
+			eObjectInternal := eObject.(EObjectInternal)
+			eObjectInternal.ESetProxyURI(uri)
+			return eObject, nil
+		default:
+			return nil, fmt.Errorf("%v is not supported as a object reference uri", v)
 		}
-		// uri
-		uriStr := string(bytes)
-		uri := d.baseURI
-		if len(uriStr) > 0 {
-			uri = d.resolveURI(NewURI(uriStr))
-		}
-		// create proxy
-		eFeature := featureData.feature
-		eClass := eFeature.GetEType().(EClass)
-		eFactory := eClass.GetEPackage().GetEFactoryInstance()
-		eObject := eFactory.Create(eClass)
-		eObjectInternal := eObject.(EObjectInternal)
-		eObjectInternal.ESetProxyURI(uri)
-		return eObject, nil
 	case sfkBool:
-		return strconv.ParseBool(string(bytes))
+		switch v := value.(type) {
+		case bool:
+			return v, nil
+		default:
+			var defaultBool bool
+			return defaultBool, fmt.Errorf("%v is not a bool value", v)
+		}
 	case sfkByte:
-		if len(bytes) == 0 {
-			var defaultByte byte
-			return defaultByte, errors.New("invalid bytes length")
-		}
-		return bytes[0], nil
+		// TODO
+		var defaultByte byte
+		return defaultByte, nil
 	case sfkInt:
-		i, err := strconv.ParseInt(string(bytes), 10, 0)
-		if err != nil {
+		switch v := value.(type) {
+		case int64:
+			return int(v), nil
+		default:
 			var defaultInt int
-			return defaultInt, err
+			return defaultInt, fmt.Errorf("%v is not a int value", v)
 		}
-		return int(i), nil
 	case sfkInt64:
-		return strconv.ParseInt(string(bytes), 10, 64)
+		switch v := value.(type) {
+		case int64:
+			return v, nil
+		default:
+			var defaultInt int64
+			return defaultInt, fmt.Errorf("%v is not a int64 value", v)
+		}
 	case sfkInt32:
-		i, err := strconv.ParseInt(string(bytes), 10, 32)
-		if err != nil {
-			var defaultInt32 int32
-			return defaultInt32, err
+		switch v := value.(type) {
+		case int64:
+			return int32(v), nil
+		default:
+			var defaultInt int32
+			return defaultInt, fmt.Errorf("%v is not a int32 value", v)
 		}
-		return int32(i), nil
 	case sfkInt16:
-		i, err := strconv.ParseInt(string(bytes), 10, 16)
-		if err != nil {
-			var defaultInt16 int16
-			return defaultInt16, err
+		switch v := value.(type) {
+		case int64:
+			return int16(v), nil
+		default:
+			var defaultInt int16
+			return defaultInt, fmt.Errorf("%v is not a int16 value", v)
 		}
-		return int16(i), nil
 	case sfkEnum:
-		return strconv.ParseInt(string(bytes), 10, 64)
+		i, isInt := value.(int64)
+		if !isInt {
+			return nil, fmt.Errorf("%v is not a int64 value", value)
+		}
+		return int64(i), nil
 	case sfkString:
-		return string(bytes), nil
+		switch v := value.(type) {
+		case string:
+			return v, nil
+		default:
+			return "", fmt.Errorf("%v is not a string value", v)
+		}
 	case sfkByteArray:
-		return bytes, nil
+		switch v := value.(type) {
+		case nil:
+			return nil, nil
+		case []byte:
+			return v, nil
+		default:
+			return "", fmt.Errorf("%v is not a byte array value", v)
+		}
 	case sfkDate:
-		t, err := time.Parse(time.RFC3339, string(bytes))
-		if err != nil {
-			return nil, err
+		switch v := value.(type) {
+		case nil:
+			return nil, nil
+		case time.Time:
+			return &v, nil
+		case string:
+			t, err := time.Parse(time.RFC3339, v)
+			if err != nil {
+				return nil, err
+			}
+			return &t, nil
+		default:
+			return "", fmt.Errorf("%v is not a time value", v)
 		}
-		return &t, nil
 	case sfkFloat64:
-		return strconv.ParseFloat(string(bytes), 64)
-	case sfkFloat32:
-		f, err := strconv.ParseFloat(string(bytes), 32)
-		if err != nil {
-			var defaultFloat32 float32
-			return defaultFloat32, err
+		switch v := value.(type) {
+		case float64:
+			return v, nil
+		default:
+			var defaultFloat float64
+			return defaultFloat, fmt.Errorf("%v is not a float64 value", value)
 		}
-		return f, nil
+	case sfkFloat32:
+		switch v := value.(type) {
+		case float64:
+			return float32(v), nil
+		default:
+			var defaultFloat float32
+			return defaultFloat, fmt.Errorf("%v is not a float64 value", value)
+		}
 	case sfkData, sfkDataList:
-		eFeature := featureData.feature
-		eDataType := eFeature.GetEType().(EDataType)
-		eFactory := eDataType.GetEPackage().GetEFactoryInstance()
-		return eFactory.CreateFromString(eDataType, string(bytes)), nil
+		switch v := value.(type) {
+		case string:
+			eFeature := featureData.feature
+			eDataType := eFeature.GetEType().(EDataType)
+			eFactory := eDataType.GetEPackage().GetEFactoryInstance()
+			return eFactory.CreateFromString(eDataType, v), nil
+		default:
+			return "", fmt.Errorf("%v is not a data value", value)
+		}
 	}
 
 	return nil, nil
@@ -526,81 +559,41 @@ func (d *SQLDecoder) resolveURI(uri *URI) *URI {
 	return uri
 }
 
-func (d *SQLDecoder) getSelectStmt(table *sqlTable, queryProvider func(table *sqlTable) string) (stmt *sql.Stmt, err error) {
-	stmt = d.selectStmts[table]
-	if stmt == nil {
-		query := queryProvider(table)
-		stmt, err = d.db.Prepare(query)
-	}
-	return
-}
-
-func (d *SQLDecoder) query(table *sqlTable, queryProvider func(table *sqlTable) string, args ...any) (*sql.Rows, error) {
-	selectStmt, err := d.getSelectStmt(table, queryProvider)
+func (d *SQLDecoder) query(q string, cb func(values []driver.Value) error, args ...driver.Value) error {
+	con, err := d.db.Conn(context.Background())
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return selectStmt.Query(args...)
-}
+	defer con.Close()
 
-func (d *SQLDecoder) selectAllQuery(table *sqlTable) string {
-	return table.selectQuery(nil, "", "")
+	return con.Raw(func(driverConn any) error {
+
+		driverQuery, _ := driverConn.(driver.Queryer)
+		if driverQuery == nil {
+			return errors.New("driver is not a driver.Queryer")
+		}
+
+		rows, err := driverQuery.Query(q, args)
+		if err != nil {
+			return err
+		}
+
+		results := make([]driver.Value, len(rows.Columns()))
+		for {
+			// retrieve results
+			if err := rows.Next(results); err != nil {
+				if err == io.EOF {
+					return nil
+				} else {
+					return err
+				}
+			}
+			// and call cb function
+			cb(results)
+		}
+	})
 }
 
 func (d *SQLDecoder) addError(err error) {
 	d.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), d.resource.GetURI().String(), 0, 0))
-}
-
-func (d *SQLDecoder) forOneRow(rows *sql.Rows, cb func([]sql.RawBytes) error) error {
-	// one row
-	if !rows.Next() {
-		if err := rows.Err(); err != nil {
-			return err
-		}
-		return sql.ErrNoRows
-	}
-
-	//scan raw buffer
-	columns, err := rows.Columns()
-	if err != nil {
-		return err
-	}
-	rawBuffer := make([]sql.RawBytes, len(columns))
-	scanCallArgs := make([]any, len(rawBuffer))
-	for i := range rawBuffer {
-		scanCallArgs[i] = &rawBuffer[i]
-	}
-	if err := rows.Scan(scanCallArgs...); err != nil {
-		return err
-	}
-	// callback
-	return cb(rawBuffer)
-}
-
-func (d *SQLDecoder) forEachRow(rows *sql.Rows, cb func([]sql.RawBytes) error) error {
-	columns, err := rows.Columns()
-	if err != nil {
-		return err
-	}
-	rawBuffer := make([]sql.RawBytes, len(columns))
-	scanCallArgs := make([]any, len(columns))
-	for i := range rawBuffer {
-		scanCallArgs[i] = &rawBuffer[i]
-	}
-
-	for rows.Next() {
-		if err := rows.Scan(scanCallArgs...); err != nil {
-			return err
-		}
-
-		if err := cb(rawBuffer); err != nil {
-			return err
-		}
-	}
-
-	if err := rows.Err(); err != nil {
-		return err
-	}
-
-	return nil
 }

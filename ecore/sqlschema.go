@@ -296,6 +296,7 @@ type sqlSchema struct {
 	classesTable   *sqlTable
 	objectsTable   *sqlTable
 	contentsTable  *sqlTable
+	enumsTable     *sqlTable
 	classSchemaMap map[EClass]*sqlClassSchema
 }
 
@@ -354,11 +355,19 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 			newSqlReferenceColumn(objectsTable),
 		),
 	)
+	enumsTable := newSqlTable(
+		".enums",
+		withSqlTableColumns(
+			newSqlAttributeColumn("enumID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
+			newSqlAttributeColumn("value", "TEXT"),
+		),
+	)
 	s := &sqlSchema{
 		packagesTable:  packagesTable,
 		classesTable:   classesTable,
 		objectsTable:   objectsTable,
 		contentsTable:  contentsTable,
+		enumsTable:     enumsTable,
 		classSchemaMap: map[EClass]*sqlClassSchema{},
 	}
 	for _, opt := range options {
@@ -445,7 +454,9 @@ func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
 					newSqlAttributeColumn("idx", "REAL"),
 					newSqlAttributeColumn("uri", "TEXT"),
 				)
-			case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum:
+			case sfkEnum:
+				newFeatureReferenceColumn(featureSchema, eFeature, s.enumsTable)
+			case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64:
 				newFeatureAttributeColumn(featureSchema, eFeature, "INTEGER")
 			case sfkDate, sfkString, sfkData:
 				newFeatureAttributeColumn(featureSchema, eFeature, "TEXT")

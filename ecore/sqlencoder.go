@@ -81,16 +81,17 @@ func (s *sqlStmts) exec() error {
 }
 
 type SQLEncoder struct {
-	resource        EResource
-	writer          io.Writer
-	driver          string
-	db              *sql.DB
-	schema          *sqlSchema
-	insertStmts     map[*sqlTable]*sql.Stmt
-	packageDataMap  map[EPackage]*sqlEncoderPackageData
-	classDataMap    map[EClass]*sqlEncoderClassData
-	objectsDataMap  map[EObject]*sqlEncoderObjectData
-	idAttributeName string
+	resource           EResource
+	writer             io.Writer
+	driver             string
+	db                 *sql.DB
+	schema             *sqlSchema
+	insertStmts        map[*sqlTable]*sql.Stmt
+	packageDataMap     map[EPackage]*sqlEncoderPackageData
+	classDataMap       map[EClass]*sqlEncoderClassData
+	objectsDataMap     map[EObject]*sqlEncoderObjectData
+	enumLiteralToIDMap map[string]int64
+	idAttributeName    string
 }
 
 func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQLEncoder {
@@ -111,14 +112,15 @@ func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQL
 
 	// encoder structure
 	return &SQLEncoder{
-		resource:       resource,
-		writer:         w,
-		driver:         driver,
-		schema:         newSqlSchema(schemaOptions...),
-		packageDataMap: map[EPackage]*sqlEncoderPackageData{},
-		classDataMap:   map[EClass]*sqlEncoderClassData{},
-		insertStmts:    map[*sqlTable]*sql.Stmt{},
-		objectsDataMap: map[EObject]*sqlEncoderObjectData{},
+		resource:           resource,
+		writer:             w,
+		driver:             driver,
+		schema:             newSqlSchema(schemaOptions...),
+		packageDataMap:     map[EPackage]*sqlEncoderPackageData{},
+		classDataMap:       map[EClass]*sqlEncoderClassData{},
+		insertStmts:        map[*sqlTable]*sql.Stmt{},
+		objectsDataMap:     map[EObject]*sqlEncoderObjectData{},
+		enumLiteralToIDMap: map[string]int64{},
 	}
 }
 
@@ -369,7 +371,30 @@ func (e *SQLEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 			ref := GetURI(value.(EObject))
 			uri := e.resource.GetURI().Relativize(ref)
 			return uri.String(), nil
-		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkEnum, sfkString, sfkByteArray, sfkFloat32, sfkFloat64:
+		case sfkEnum:
+			literalStr := featureData.factory.ConvertToString(featureData.dataType, value)
+			if enumID, isEnumID := e.enumLiteralToIDMap[literalStr]; isEnumID {
+				return enumID, nil
+			} else {
+				// insert enum in sql
+				insertEnumStmt, err := e.getInsertStmt(e.schema.enumsTable)
+				if err != nil {
+					return nil, err
+				}
+				sqlResult, err := insertEnumStmt.Exec(literalStr)
+				if err != nil {
+					return nil, err
+				}
+
+				// retrieve enum index
+				enumID, err := sqlResult.LastInsertId()
+				if err != nil {
+					return nil, err
+				}
+				e.enumLiteralToIDMap[literalStr] = enumID
+				return enumID, nil
+			}
+		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkString, sfkByteArray, sfkFloat32, sfkFloat64:
 			return value, nil
 		case sfkDate:
 			t := value.(*time.Time)

@@ -322,6 +322,9 @@ func (d *SQLDecoder) decodeClassFeatures(eClass EClass) error {
 }
 
 func (d *SQLDecoder) decodeColumnFeatures(table *sqlTable, columnFeatures []*sqlFeatureSchema) error {
+	if len(columnFeatures) == 0 {
+		return nil
+	}
 	return d.query(table.selectQuery(nil, "", ""), func(values []driver.Value) error {
 		// object id
 		objectID, isInt := values[0].(int64)

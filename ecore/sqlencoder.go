@@ -376,12 +376,18 @@ func (e *SQLEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 			if enumID, isEnumID := e.enumLiteralToIDMap[literalStr]; isEnumID {
 				return enumID, nil
 			} else {
+				eEnum := featureData.dataType.(EEnum)
+				ePackage := eEnum.GetEPackage()
+				packageData, err := e.encodePackage(ePackage)
+				if err != nil {
+					return nil, err
+				}
 				// insert enum in sql
 				insertEnumStmt, err := e.getInsertStmt(e.schema.enumsTable)
 				if err != nil {
 					return nil, err
 				}
-				sqlResult, err := insertEnumStmt.Exec(literalStr)
+				sqlResult, err := insertEnumStmt.Exec(literalStr, packageData.id, eEnum.GetName(), literalStr)
 				if err != nil {
 					return nil, err
 				}

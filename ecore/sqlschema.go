@@ -359,7 +359,9 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 		".enums",
 		withSqlTableColumns(
 			newSqlAttributeColumn("enumID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
-			newSqlAttributeColumn("value", "TEXT"),
+			newSqlReferenceColumn(packagesTable),
+			newSqlAttributeColumn("name", "TEXT"),
+			newSqlAttributeColumn("literal", "TEXT"),
 		),
 	)
 	s := &sqlSchema{

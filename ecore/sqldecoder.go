@@ -26,7 +26,7 @@ type SQLDecoder struct {
 	packages        map[int64]EPackage
 	objects         map[int64]EObject
 	classes         map[int64]*sqlDecoderClassData
-	enums           map[int64]string
+	enums           map[int64]any
 	idAttributeName string
 	baseURI         *URI
 }
@@ -59,7 +59,7 @@ func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQL
 		packages:        map[int64]EPackage{},
 		objects:         map[int64]EObject{},
 		classes:         map[int64]*sqlDecoderClassData{},
-		enums:           map[int64]string{},
+		enums:           map[int64]any{},
 		idAttributeName: idAttributeName,
 		baseURI:         baseURI,
 	}
@@ -101,6 +101,11 @@ func (d *SQLDecoder) DecodeResource() {
 	}
 
 	if err := d.decodePackages(); err != nil {
+		d.addError(err)
+		return
+	}
+
+	if err := d.decodeEnums(); err != nil {
 		d.addError(err)
 		return
 	}
@@ -188,6 +193,45 @@ func (d *SQLDecoder) decodePackages() error {
 			return fmt.Errorf("unable to find package '%s'", packageURI)
 		}
 		d.packages[packageID] = ePackage
+		return nil
+	})
+}
+
+func (d *SQLDecoder) decodeEnums() error {
+	return d.query(d.schema.enumsTable.selectQuery(nil, "", ""), func(values []driver.Value) error {
+		enumID, isInt := values[0].(int64)
+		if !isInt {
+			return fmt.Errorf("%v is not a int64 value", values[0])
+		}
+
+		// package
+		packageID, isInt := values[1].(int64)
+		if !isInt {
+			return fmt.Errorf("%v is not a string value", values[1])
+		}
+		ePackage := d.packages[packageID]
+		if ePackage == nil {
+			return fmt.Errorf("unable to find package with id '%d'", packageID)
+		}
+
+		// enum
+		enumName, isString := values[2].(string)
+		if !isString {
+			return fmt.Errorf("%v is not a string value", values[2])
+		}
+		eEnum, _ := ePackage.GetEClassifier(enumName).(EEnum)
+		if eEnum == nil {
+			return fmt.Errorf("unable to find enum '%s' in package '%s'", enumName, ePackage.GetNsURI())
+		}
+
+		// enum literal value
+		literalValue, isString := values[3].(string)
+		if !isString {
+			return fmt.Errorf("%v is not a string value", values[3])
+		}
+
+		// create map enum
+		d.enums[enumID] = ePackage.GetEFactoryInstance().CreateFromString(eEnum, literalValue)
 		return nil
 	})
 }
@@ -483,11 +527,11 @@ func (d *SQLDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value dri
 			return defaultInt, fmt.Errorf("%v is not a int16 value", v)
 		}
 	case sfkEnum:
-		i, isInt := value.(int64)
+		enumID, isInt := value.(int64)
 		if !isInt {
 			return nil, fmt.Errorf("%v is not a int64 value", value)
 		}
-		return int64(i), nil
+		return d.enums[enumID], nil
 	case sfkString:
 		switch v := value.(type) {
 		case string:

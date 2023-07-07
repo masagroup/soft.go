@@ -17,13 +17,6 @@ type sqlDecoderClassData struct {
 	eFactory EFactory
 }
 
-type sqlDecoderFeatureData struct {
-	schema   *sqlFeatureSchema
-	eFeature EStructuralFeature
-	eFactory EFactory
-	eType    EClassifier
-}
-
 type SQLDecoder struct {
 	resource        EResource
 	reader          io.Reader
@@ -33,6 +26,7 @@ type SQLDecoder struct {
 	packages        map[int64]EPackage
 	objects         map[int64]EObject
 	classes         map[int64]*sqlDecoderClassData
+	enums           map[int64]string
 	idAttributeName string
 	baseURI         *URI
 }
@@ -65,6 +59,7 @@ func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQL
 		packages:        map[int64]EPackage{},
 		objects:         map[int64]EObject{},
 		classes:         map[int64]*sqlDecoderClassData{},
+		enums:           map[int64]string{},
 		idAttributeName: idAttributeName,
 		baseURI:         baseURI,
 	}

@@ -155,6 +155,7 @@ func (e *SQLEncoder) createDB(dbPath string) (*sql.DB, error) {
 		e.schema.classesTable,
 		e.schema.objectsTable,
 		e.schema.contentsTable,
+		e.schema.enumsTable,
 	} {
 		if _, err := db.Exec(table.createQuery()); err != nil {
 			return nil, err
@@ -387,7 +388,7 @@ func (e *SQLEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 				if err != nil {
 					return nil, err
 				}
-				sqlResult, err := insertEnumStmt.Exec(literalStr, packageData.id, eEnum.GetName(), literalStr)
+				sqlResult, err := insertEnumStmt.Exec(packageData.id, eEnum.GetName(), literalStr)
 				if err != nil {
 					return nil, err
 				}

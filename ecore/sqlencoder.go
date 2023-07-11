@@ -100,8 +100,8 @@ func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQL
 	schemaOptions := []sqlSchemaOption{}
 	driver := "sqlite"
 	if options != nil {
-		if driver, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
-			driver = driver.(string)
+		if d, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
+			driver = d.(string)
 		}
 
 		idAttributeName, _ := options[JSON_OPTION_ID_ATTRIBUTE_NAME].(string)

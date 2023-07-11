@@ -37,8 +37,8 @@ func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQL
 	driver := "sqlite"
 	idAttributeName := ""
 	if options != nil {
-		if driver, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
-			driver = driver.(string)
+		if d, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
+			driver = d.(string)
 		}
 
 		idAttributeName, _ = options[JSON_OPTION_ID_ATTRIBUTE_NAME].(string)
@@ -307,7 +307,9 @@ func (d *SQLDecoder) decodeObjects() error {
 				return fmt.Errorf("%v is not a string value", values[2])
 			}
 			objectIDManager := d.resource.GetObjectIDManager()
-			objectIDManager.SetID(eObject, uniqueID)
+			if err := objectIDManager.SetID(eObject, uniqueID); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -631,7 +633,9 @@ func (d *SQLDecoder) query(q string, cb func(values []driver.Value) error, args 
 				}
 			}
 			// and call cb function
-			cb(results)
+			if err := cb(results); err != nil {
+				return err
+			}
 		}
 	})
 }

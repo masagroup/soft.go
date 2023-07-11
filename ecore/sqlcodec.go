@@ -23,9 +23,12 @@ func sqlTmpDB(prefix string) (string, error) {
 	try := 0
 	for {
 		randBytes := make([]byte, 16)
-		rand.Read(randBytes)
+		_, err := rand.Read(randBytes)
+		if err != nil {
+			return "", err
+		}
 		f := filepath.Join(os.TempDir(), prefix+"."+hex.EncodeToString(randBytes)+".sqlite")
-		_, err := os.Stat(f)
+		_, err = os.Stat(f)
 		if os.IsExist(err) {
 			if try++; try < 10000 {
 				continue

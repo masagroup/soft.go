@@ -200,6 +200,12 @@ func TestEPackageESetFromID(t *testing.T) {
 		o.ESetFromID(EPACKAGE__EFACTORY_INSTANCE, mockValue)
 		assert.Equal(t, mockValue, o.EGetFromID(EPACKAGE__EFACTORY_INSTANCE, false))
 		mock.AssertExpectationsForObjects(t, mockValue)
+
+		mockValue.EXPECT().EInverseRemove(o, EFACTORY__EPACKAGE, nil).Return(nil).Once()
+		o.ESetFromID(EPACKAGE__EFACTORY_INSTANCE, nil)
+		mock.AssertExpectationsForObjects(t, mockValue)
+		assert.Nil(t, o.EGetFromID(EPACKAGE__EFACTORY_INSTANCE, false))
+
 	}
 	{
 		// list with a value

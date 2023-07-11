@@ -192,7 +192,8 @@ func (ePackage *EPackageImpl) ESetFromID(featureID int, newValue any) {
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	case EPACKAGE__EFACTORY_INSTANCE:
-		ePackage.asEPackage().SetEFactoryInstance(newValue.(EFactory))
+		newValueOrNil, _ := newValue.(EFactory)
+		ePackage.asEPackage().SetEFactoryInstance(newValueOrNil)
 	case EPACKAGE__ESUB_PACKAGES:
 		list := ePackage.asEPackage().GetESubPackages()
 		list.Clear()

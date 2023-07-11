@@ -219,6 +219,8 @@ func TestETypedElementESetFromID(t *testing.T) {
 		v := NewMockEClassifier(t)
 		o.ESetFromID(ETYPED_ELEMENT__ETYPE, v)
 		assert.Equal(t, v, o.EGetFromID(ETYPED_ELEMENT__ETYPE, false))
+
+		o.ESetFromID(ETYPED_ELEMENT__ETYPE, nil)
 	}
 	{
 		v := int(45)

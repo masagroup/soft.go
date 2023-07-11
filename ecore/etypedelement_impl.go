@@ -188,7 +188,8 @@ func (eTypedElement *ETypedElementImpl) EGetFromID(featureID int, resolve bool) 
 func (eTypedElement *ETypedElementImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
-		eTypedElement.asETypedElement().SetEType(newValue.(EClassifier))
+		newValueOrNil, _ := newValue.(EClassifier)
+		eTypedElement.asETypedElement().SetEType(newValueOrNil)
 	case ETYPED_ELEMENT__LOWER_BOUND:
 		eTypedElement.asETypedElement().SetLowerBound(newValue.(int))
 	case ETYPED_ELEMENT__ORDERED:

@@ -178,7 +178,8 @@ func (eAnnotation *EAnnotationImpl) ESetFromID(featureID int, newValue any) {
 		m.Clear()
 		m.AddAll(newValue.(EList))
 	case EANNOTATION__EMODEL_ELEMENT:
-		eAnnotation.asEAnnotation().SetEModelElement(newValue.(EModelElement))
+		newValueOrNil, _ := newValue.(EModelElement)
+		eAnnotation.asEAnnotation().SetEModelElement(newValueOrNil)
 	case EANNOTATION__REFERENCES:
 		list := eAnnotation.asEAnnotation().GetReferences()
 		list.Clear()

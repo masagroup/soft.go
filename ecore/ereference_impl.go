@@ -185,7 +185,8 @@ func (eReference *EReferenceImpl) ESetFromID(featureID int, newValue any) {
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	case EREFERENCE__EOPPOSITE:
-		eReference.asEReference().SetEOpposite(newValue.(EReference))
+		newValueOrNil, _ := newValue.(EReference)
+		eReference.asEReference().SetEOpposite(newValueOrNil)
 	case EREFERENCE__RESOLVE_PROXIES:
 		eReference.asEReference().SetResolveProxies(newValue.(bool))
 	default:

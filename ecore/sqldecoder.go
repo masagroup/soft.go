@@ -465,6 +465,8 @@ func (d *SQLDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value dri
 		}
 	case sfkObjectReference, sfkObjectReferenceList:
 		switch v := value.(type) {
+		case nil:
+			return nil, nil
 		case string:
 			// no reference
 			if len(v) == 0 {

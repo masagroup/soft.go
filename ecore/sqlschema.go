@@ -96,22 +96,6 @@ func withSqlTableColumns(columns ...*sqlColumn) sqlTableOption {
 	})
 }
 
-func withSqlTableIndexes(tableIndexes [][]string) sqlTableOption {
-	return newFuncSqlTableOption(func(t *sqlTable) {
-		nameToColumn := map[string]*sqlColumn{}
-		for _, column := range t.columns {
-			nameToColumn[column.columnName] = column
-		}
-		for _, indexes := range tableIndexes {
-			indexColumns := []*sqlColumn{}
-			for _, index := range indexes {
-				indexColumns = append(indexColumns, nameToColumn[index])
-			}
-			t.indexes = append(t.indexes, indexColumns)
-		}
-	})
-}
-
 type sqlTable struct {
 	name    string
 	key     *sqlColumn
@@ -235,18 +219,6 @@ func (t *sqlTable) defaultValues() []any {
 		}
 	}
 	return values
-}
-
-func (t *sqlTable) columnNames(first, last int) []string {
-	if last == -1 {
-		last = len(t.columns)
-	}
-	columns := t.columns[first:last]
-	names := make([]string, 0, len(columns))
-	for _, column := range columns {
-		names = append(names, sqlEscapeIdentifier(column.columnName))
-	}
-	return names
 }
 
 func (t *sqlTable) keyName() string {

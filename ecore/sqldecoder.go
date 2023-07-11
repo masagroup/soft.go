@@ -611,7 +611,7 @@ func (d *SQLDecoder) query(q string, cb func(values []driver.Value) error, args 
 	defer con.Close()
 
 	return con.Raw(func(driverConn any) error {
-
+		//lint:ignore SA1019 driver.Queryer has been deprecated since Go 1.8: Drivers should implement QueryerContext instead
 		driverQuery, _ := driverConn.(driver.Queryer)
 		if driverQuery == nil {
 			return errors.New("driver is not a driver.Queryer")

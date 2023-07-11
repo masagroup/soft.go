@@ -1,0 +1,5 @@
+issues:
+  exclude-rules:
+    - linters:
+        - staticcheck
+      text: "SA1019: driver.Queryer has been deprecated since Go 1.8: Drivers should implement QueryerContext instead."

@@ -43,7 +43,7 @@ const (
 	load_error_type  = "error"
 )
 
-type reference struct {
+type xmlReference struct {
 	object  EObject
 	feature EStructuralFeature
 	id      string
@@ -69,7 +69,7 @@ type XMLDecoder struct {
 	xmlVersion             string
 	encoding               string
 	idAttributeName        string
-	references             []reference
+	references             []xmlReference
 	attributes             []xml.Attr
 	sameDocumentProxies    []EObject
 	notFeatures            []xml.Name
@@ -585,7 +585,7 @@ func (l *XMLDecoder) setValueFromId(eObject EObject, eReference EReference, ids 
 	mustAddOrNotOppositeIsMany := false
 	isFirstID := true
 	position := 0
-	references := []reference{}
+	references := []xmlReference{}
 	tokens := strings.Split(ids, " ")
 	qName := ""
 	for _, token := range tokens {
@@ -640,7 +640,7 @@ func (l *XMLDecoder) setValueFromId(eObject EObject, eReference EReference, ids 
 		}
 
 		if mustAdd {
-			references = append(references, reference{object: eObject, feature: eReference, id: id, pos: position})
+			references = append(references, xmlReference{object: eObject, feature: eReference, id: id, pos: position})
 		}
 
 		qName = ""

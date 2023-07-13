@@ -102,7 +102,8 @@ func (eFactory *EFactoryImpl) EGetFromID(featureID int, resolve bool) any {
 func (eFactory *EFactoryImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
-		eFactory.asEFactory().SetEPackage(newValue.(EPackage))
+		newValueOrNil, _ := newValue.(EPackage)
+		eFactory.asEFactory().SetEPackage(newValueOrNil)
 	default:
 		eFactory.EModelElementExt.ESetFromID(featureID, newValue)
 	}

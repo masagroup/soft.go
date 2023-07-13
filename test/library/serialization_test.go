@@ -116,6 +116,25 @@ func TestSerializationLoadSaveComplexXML(t *testing.T) {
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
 
+func TestSerializationSaveComplexSqlite(t *testing.T) {
+	srcURI := ecore.CreateFileURI("testdata/library.complex.xml")
+	destURI := ecore.CreateFileURI("testdata/library.output.sqlite")
+	xmlProcessor := ecore.NewXMLProcessor(ecore.XMLProcessorPackages([]ecore.EPackage{GetPackage()}))
+	resource := xmlProcessor.Load(srcURI)
+	resource.SetURI(destURI)
+	resource.Save()
+	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
+}
+
+func TestSerializationLoadComplexSqlite(t *testing.T) {
+	srcURI := ecore.CreateFileURI("testdata/library.complex.sqlite")
+	xmlProcessor := ecore.NewXMLProcessor(ecore.XMLProcessorPackages([]ecore.EPackage{GetPackage()}))
+	resource := xmlProcessor.Load(srcURI)
+	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
+}
+
 func TestDeepOperations(t *testing.T) {
 	xmlProcessor := ecore.NewXMLProcessor(ecore.XMLProcessorPackages([]ecore.EPackage{GetPackage()}))
 	resource := xmlProcessor.Load(ecore.CreateFileURI("testdata/library.complex.xml"))

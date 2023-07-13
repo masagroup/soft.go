@@ -187,6 +187,8 @@ func TestEReferenceESetFromID(t *testing.T) {
 		v := NewMockEReference(t)
 		o.ESetFromID(EREFERENCE__EOPPOSITE, v)
 		assert.Equal(t, v, o.EGetFromID(EREFERENCE__EOPPOSITE, false))
+
+		o.ESetFromID(EREFERENCE__EOPPOSITE, nil)
 	}
 	{
 		v := bool(true)

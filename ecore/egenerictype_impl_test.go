@@ -291,6 +291,8 @@ func TestEGenericTypeESetFromID(t *testing.T) {
 		v := NewMockEClassifier(t)
 		o.ESetFromID(EGENERIC_TYPE__ECLASSIFIER, v)
 		assert.Equal(t, v, o.EGetFromID(EGENERIC_TYPE__ECLASSIFIER, false))
+
+		o.ESetFromID(EGENERIC_TYPE__ECLASSIFIER, nil)
 	}
 	{
 		mockValue := NewMockEGenericType(t)
@@ -298,6 +300,11 @@ func TestEGenericTypeESetFromID(t *testing.T) {
 		o.ESetFromID(EGENERIC_TYPE__ELOWER_BOUND, mockValue)
 		assert.Equal(t, mockValue, o.EGetFromID(EGENERIC_TYPE__ELOWER_BOUND, false))
 		mock.AssertExpectationsForObjects(t, mockValue)
+
+		mockValue.EXPECT().EInverseRemove(o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, mock.Anything).Return(nil).Once()
+		o.ESetFromID(EGENERIC_TYPE__ELOWER_BOUND, nil)
+		mock.AssertExpectationsForObjects(t, mockValue)
+		assert.Nil(t, o.EGetFromID(EGENERIC_TYPE__ELOWER_BOUND, false))
 	}
 	{
 		// list with a value
@@ -316,6 +323,8 @@ func TestEGenericTypeESetFromID(t *testing.T) {
 		v := NewMockETypeParameter(t)
 		o.ESetFromID(EGENERIC_TYPE__ETYPE_PARAMETER, v)
 		assert.Equal(t, v, o.EGetFromID(EGENERIC_TYPE__ETYPE_PARAMETER, false))
+
+		o.ESetFromID(EGENERIC_TYPE__ETYPE_PARAMETER, nil)
 	}
 	{
 		mockValue := NewMockEGenericType(t)
@@ -323,6 +332,11 @@ func TestEGenericTypeESetFromID(t *testing.T) {
 		o.ESetFromID(EGENERIC_TYPE__EUPPER_BOUND, mockValue)
 		assert.Equal(t, mockValue, o.EGetFromID(EGENERIC_TYPE__EUPPER_BOUND, false))
 		mock.AssertExpectationsForObjects(t, mockValue)
+
+		mockValue.EXPECT().EInverseRemove(o, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, mock.Anything).Return(nil).Once()
+		o.ESetFromID(EGENERIC_TYPE__EUPPER_BOUND, nil)
+		mock.AssertExpectationsForObjects(t, mockValue)
+		assert.Nil(t, o.EGetFromID(EGENERIC_TYPE__EUPPER_BOUND, false))
 	}
 
 }

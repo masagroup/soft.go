@@ -44,9 +44,9 @@ generate:
 	@$(call GENERATE,test/tournament-reflective,tournament.ecore, \
 		-p featureDelegation=Reflective \
 		-p modulePath=github.com/masagroup/soft.go/test/tournament \
-		-p interfacePath=github.com/masagroup/soft.go/test/tournament \
-		-p implementationPath=github.com/masagroup/soft.go/test/tournament/internal/impl \
-		-p mockPath=github.com/masagroup/soft.go/test/tournament/internal/mock)
+		-p interfacePackage=github.com/masagroup/soft.go/test/tournament \
+		-p implementationPackage=github.com/masagroup/soft.go/test/tournament/internal/impl \
+		-p mockPackage=github.com/masagroup/soft.go/test/tournament/internal/mock)
 
 .PHONY: fmt
 fmt:

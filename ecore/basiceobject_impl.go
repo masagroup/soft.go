@@ -86,7 +86,7 @@ func (o *BasicEObjectImpl) EContents() EList {
 	properties := o.getObjectProperties()
 	if properties.contents == nil {
 		eObject := o.AsEObject()
-		properties.contents = newEContentsList(eObject, eObject.EClass().GetEContainmentFeatures(), true)
+		properties.contents = newEContentsList(eObject, eObject.EClass().GetEAllContainments(), true)
 	}
 	return properties.contents
 }

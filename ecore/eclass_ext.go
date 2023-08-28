@@ -337,6 +337,22 @@ func (eClass *EClassExt) initEAllContainments() {
 	eClass.mutex.Unlock()
 }
 
+func (eClass *EClassExt) initEAllCrossReferences() {
+	eClass.initEAllReferences()
+	eClass.mutex.Lock()
+	if eClass.eAllCrossReferences == nil {
+		allCrossReferences := []any{}
+		for itReference := eClass.eAllReferences.Iterator(); itReference.HasNext(); {
+			reference := itReference.Next().(EReference)
+			if !reference.IsContainment() && !reference.IsContainer() {
+				allCrossReferences = append(allCrossReferences, reference)
+			}
+		}
+		eClass.eAllCrossReferences = NewImmutableEList(allCrossReferences)
+	}
+	eClass.mutex.Unlock()
+}
+
 func (eClass *EClassExt) initEAllOperations() {
 	eClass.mutex.Lock()
 	if eClass.eAllOperations == nil {

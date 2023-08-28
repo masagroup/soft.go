@@ -49,6 +49,7 @@ func TestPackageClasses(t *testing.T) {
 	assert.NotNil(t, p.GetEClass_EAllAttributes())
 	assert.NotNil(t, p.GetEClass_EAllReferences())
 	assert.NotNil(t, p.GetEClass_EAllContainments())
+	assert.NotNil(t, p.GetEClass_EAllCrossReferences())
 	assert.NotNil(t, p.GetEClass_EAllOperations())
 	assert.NotNil(t, p.GetEClass_EAllStructuralFeatures())
 	assert.NotNil(t, p.GetEClass_EAllSuperTypes())

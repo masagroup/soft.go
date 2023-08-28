@@ -204,6 +204,42 @@ func (c *MockEClass_GetEAllContainments_Call) Return(eAllContainments EList) *Mo
 	return c
 }
 
+// GetEAllCrossReferences get the value of eAllCrossReferences
+func (eClass *MockEClass_Prototype_Methods) GetEAllCrossReferences() EList {
+	ret := eClass.mock.Called()
+
+	var r EList
+	if rf, ok := ret.Get(0).(func() EList); ok {
+		r = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r = ret.Get(0).(EList)
+		}
+	}
+
+	return r
+}
+
+type MockEClass_GetEAllCrossReferences_Call struct {
+	*mock.Call
+}
+
+func (e *MockEClass_Expecter_Methods) GetEAllCrossReferences() *MockEClass_GetEAllCrossReferences_Call {
+	return &MockEClass_GetEAllCrossReferences_Call{Call: e.mock.On("GetEAllCrossReferences")}
+}
+
+func (c *MockEClass_GetEAllCrossReferences_Call) Run(run func()) *MockEClass_GetEAllCrossReferences_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEClass_GetEAllCrossReferences_Call) Return(eAllCrossReferences EList) *MockEClass_GetEAllCrossReferences_Call {
+	c.Call.Return(eAllCrossReferences)
+	return c
+}
+
 // GetEAllOperations get the value of eAllOperations
 func (eClass *MockEClass_Prototype_Methods) GetEAllOperations() EList {
 	ret := eClass.mock.Called()

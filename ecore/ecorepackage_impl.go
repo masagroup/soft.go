@@ -158,9 +158,14 @@ func (p *EcorePackageImpl) GetEClass_EAllContainments() EReference {
 	return p.eClass.GetEStructuralFeatures().Get(11).(EReference)
 }
 
+// GetEClass_EAllCrossReferences returns the meta object corresponding to
+func (p *EcorePackageImpl) GetEClass_EAllCrossReferences() EReference {
+	return p.eClass.GetEStructuralFeatures().Get(12).(EReference)
+}
+
 // GetEClass_EAllOperations returns the meta object corresponding to
 func (p *EcorePackageImpl) GetEClass_EAllOperations() EReference {
-	return p.eClass.GetEStructuralFeatures().Get(12).(EReference)
+	return p.eClass.GetEStructuralFeatures().Get(13).(EReference)
 }
 
 // GetEClass_EAllReferences returns the meta object corresponding to
@@ -170,12 +175,12 @@ func (p *EcorePackageImpl) GetEClass_EAllReferences() EReference {
 
 // GetEClass_EAllStructuralFeatures returns the meta object corresponding to
 func (p *EcorePackageImpl) GetEClass_EAllStructuralFeatures() EReference {
-	return p.eClass.GetEStructuralFeatures().Get(13).(EReference)
+	return p.eClass.GetEStructuralFeatures().Get(14).(EReference)
 }
 
 // GetEClass_EAllSuperTypes returns the meta object corresponding to
 func (p *EcorePackageImpl) GetEClass_EAllSuperTypes() EReference {
-	return p.eClass.GetEStructuralFeatures().Get(14).(EReference)
+	return p.eClass.GetEStructuralFeatures().Get(15).(EReference)
 }
 
 // GetEClass_EAttributes returns the meta object corresponding to
@@ -195,7 +200,7 @@ func (p *EcorePackageImpl) GetEClass_ECrossReferenceFeatures() EReference {
 
 // GetEClass_EIDAttribute returns the meta object corresponding to
 func (p *EcorePackageImpl) GetEClass_EIDAttribute() EReference {
-	return p.eClass.GetEStructuralFeatures().Get(15).(EReference)
+	return p.eClass.GetEStructuralFeatures().Get(16).(EReference)
 }
 
 // GetEClass_EOperations returns the meta object corresponding to
@@ -964,6 +969,7 @@ func (p *EcorePackageImpl) createPackageContents(ecoreFactory EcoreFactory) {
 	ecoreFactory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_ATTRIBUTES)
 	ecoreFactory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_REFERENCES)
 	ecoreFactory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_CONTAINMENTS)
+	ecoreFactory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_CROSS_REFERENCES)
 	ecoreFactory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_OPERATIONS)
 	ecoreFactory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_STRUCTURAL_FEATURES)
 	ecoreFactory.CreateEReferenceFromContainerAndClassID(p.eClass, ECLASS__EALL_SUPER_TYPES)
@@ -1176,6 +1182,7 @@ func (p *EcorePackageImpl) initializePackageContents(ecoreFactory EcoreFactory) 
 	p.InitEReference(p.GetEClass_EAllAttributes(), p.GetEAttribute(), nil, "eAllAttributes", "", 0, -1, true, false, false, false, true, false, true, true, true)
 	p.InitEReference(p.GetEClass_EAllReferences(), p.GetEReference(), nil, "eAllReferences", "", 0, -1, true, false, false, false, true, false, true, true, true)
 	p.InitEReference(p.GetEClass_EAllContainments(), p.GetEReference(), nil, "eAllContainments", "", 0, -1, true, false, false, false, true, false, true, true, true)
+	p.InitEReference(p.GetEClass_EAllCrossReferences(), p.GetEReference(), nil, "eAllCrossReferences", "", 0, -1, true, false, false, false, true, false, true, true, true)
 	p.InitEReference(p.GetEClass_EAllOperations(), p.GetEOperation(), nil, "eAllOperations", "", 0, -1, true, false, false, false, true, false, true, true, true)
 	p.InitEReference(p.GetEClass_EAllStructuralFeatures(), p.GetEStructuralFeature(), nil, "eAllStructuralFeatures", "", 0, -1, true, false, false, false, true, false, true, true, true)
 	p.InitEReference(p.GetEClass_EAllSuperTypes(), p.GetEClass(), nil, "eAllSuperTypes", "", 0, -1, true, false, false, false, true, false, true, true, true)

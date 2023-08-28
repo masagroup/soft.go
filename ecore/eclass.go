@@ -52,6 +52,8 @@ type EClass interface {
 
 	GetEAllContainments() EList
 
+	GetEAllCrossReferences() EList
+
 	GetEAllOperations() EList
 
 	GetEAllStructuralFeatures() EList

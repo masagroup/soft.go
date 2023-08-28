@@ -366,20 +366,23 @@ const (
 	// ECLASS__EALL_CONTAINMENTS is the feature id for the EClass 'EAllContainments' reference list.
 	ECLASS__EALL_CONTAINMENTS = ECLASSIFIER_FEATURE_COUNT + 11
 
+	// ECLASS__EALL_CROSS_REFERENCES is the feature id for the EClass 'EAllCrossReferences' reference list.
+	ECLASS__EALL_CROSS_REFERENCES = ECLASSIFIER_FEATURE_COUNT + 12
+
 	// ECLASS__EALL_OPERATIONS is the feature id for the EClass 'EAllOperations' reference list.
-	ECLASS__EALL_OPERATIONS = ECLASSIFIER_FEATURE_COUNT + 12
+	ECLASS__EALL_OPERATIONS = ECLASSIFIER_FEATURE_COUNT + 13
 
 	// ECLASS__EALL_STRUCTURAL_FEATURES is the feature id for the EClass 'EAllStructuralFeatures' reference list.
-	ECLASS__EALL_STRUCTURAL_FEATURES = ECLASSIFIER_FEATURE_COUNT + 13
+	ECLASS__EALL_STRUCTURAL_FEATURES = ECLASSIFIER_FEATURE_COUNT + 14
 
 	// ECLASS__EALL_SUPER_TYPES is the feature id for the EClass 'EAllSuperTypes' reference list.
-	ECLASS__EALL_SUPER_TYPES = ECLASSIFIER_FEATURE_COUNT + 14
+	ECLASS__EALL_SUPER_TYPES = ECLASSIFIER_FEATURE_COUNT + 15
 
 	// ECLASS__EID_ATTRIBUTE is the feature id for the EClass 'EIDAttribute' reference.
-	ECLASS__EID_ATTRIBUTE = ECLASSIFIER_FEATURE_COUNT + 15
+	ECLASS__EID_ATTRIBUTE = ECLASSIFIER_FEATURE_COUNT + 16
 
 	// ECLASS_FEATURE_COUNT is the number of structural features of the class EClass.
-	ECLASS_FEATURE_COUNT = ECLASSIFIER_FEATURE_COUNT + 16
+	ECLASS_FEATURE_COUNT = ECLASSIFIER_FEATURE_COUNT + 17
 
 	// ECLASS__GET_EANNOTATION_ESTRING is the operation id for the 'getEAnnotation' operation.
 	ECLASS__GET_EANNOTATION_ESTRING = ECLASSIFIER__GET_EANNOTATION_ESTRING
@@ -989,6 +992,8 @@ type EcorePackage interface {
 	GetEClass_EAllAttributes() EReference
 	// Returns the meta object for the EAllContainments
 	GetEClass_EAllContainments() EReference
+	// Returns the meta object for the EAllCrossReferences
+	GetEClass_EAllCrossReferences() EReference
 	// Returns the meta object for the EAllOperations
 	GetEClass_EAllOperations() EReference
 	// Returns the meta object for the EAllReferences

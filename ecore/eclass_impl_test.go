@@ -50,6 +50,12 @@ func TestEClassEAllContainmentsGet(t *testing.T) {
 	assert.Panics(t, func() { _ = o.GetEAllContainments().Get(0).(EReference) })
 }
 
+func TestEClassEAllCrossReferencesGet(t *testing.T) {
+	o := newEClassImpl()
+	assert.NotNil(t, o.GetEAllCrossReferences())
+	assert.Panics(t, func() { _ = o.GetEAllCrossReferences().Get(0).(EReference) })
+}
+
 func TestEClassEAllOperationsGet(t *testing.T) {
 	o := newEClassImpl()
 	assert.NotNil(t, o.GetEAllOperations())
@@ -212,6 +218,8 @@ func TestEClassEGetFromID(t *testing.T) {
 	assert.Equal(t, o.GetEAllAttributes().(EObjectList).GetUnResolvedList(), o.EGetFromID(ECLASS__EALL_ATTRIBUTES, false))
 	assert.Equal(t, o.GetEAllContainments(), o.EGetFromID(ECLASS__EALL_CONTAINMENTS, true))
 	assert.Equal(t, o.GetEAllContainments().(EObjectList).GetUnResolvedList(), o.EGetFromID(ECLASS__EALL_CONTAINMENTS, false))
+	assert.Equal(t, o.GetEAllCrossReferences(), o.EGetFromID(ECLASS__EALL_CROSS_REFERENCES, true))
+	assert.Equal(t, o.GetEAllCrossReferences().(EObjectList).GetUnResolvedList(), o.EGetFromID(ECLASS__EALL_CROSS_REFERENCES, false))
 	assert.Equal(t, o.GetEAllOperations(), o.EGetFromID(ECLASS__EALL_OPERATIONS, true))
 	assert.Equal(t, o.GetEAllOperations().(EObjectList).GetUnResolvedList(), o.EGetFromID(ECLASS__EALL_OPERATIONS, false))
 	assert.Equal(t, o.GetEAllReferences(), o.EGetFromID(ECLASS__EALL_REFERENCES, true))
@@ -300,6 +308,7 @@ func TestEClassEIsSetFromID(t *testing.T) {
 	assert.False(t, o.EIsSetFromID(ECLASS__ABSTRACT))
 	assert.False(t, o.EIsSetFromID(ECLASS__EALL_ATTRIBUTES))
 	assert.False(t, o.EIsSetFromID(ECLASS__EALL_CONTAINMENTS))
+	assert.False(t, o.EIsSetFromID(ECLASS__EALL_CROSS_REFERENCES))
 	assert.False(t, o.EIsSetFromID(ECLASS__EALL_OPERATIONS))
 	assert.False(t, o.EIsSetFromID(ECLASS__EALL_REFERENCES))
 	assert.False(t, o.EIsSetFromID(ECLASS__EALL_STRUCTURAL_FEATURES))

@@ -16,6 +16,7 @@ type EClassImpl struct {
 	EClassifierExt
 	eAllAttributes          EList
 	eAllContainments        EList
+	eAllCrossReferences     EList
 	eAllOperations          EList
 	eAllReferences          EList
 	eAllStructuralFeatures  EList
@@ -34,6 +35,7 @@ type EClassImpl struct {
 type eClassInitializers interface {
 	initEAllAttributes()
 	initEAllContainments()
+	initEAllCrossReferences()
 	initEAllOperations()
 	initEAllReferences()
 	initEAllStructuralFeatures()
@@ -139,6 +141,12 @@ func (eClass *EClassImpl) GetEAllAttributes() EList {
 func (eClass *EClassImpl) GetEAllContainments() EList {
 	eClass.asInitializers().initEAllContainments()
 	return eClass.eAllContainments
+}
+
+// GetEAllCrossReferences get the value of eAllCrossReferences
+func (eClass *EClassImpl) GetEAllCrossReferences() EList {
+	eClass.asInitializers().initEAllCrossReferences()
+	return eClass.eAllCrossReferences
 }
 
 // GetEAllOperations get the value of eAllOperations
@@ -255,6 +263,10 @@ func (eClass *EClassImpl) initEAllContainments() {
 	eClass.eAllContainments = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EALL_CONTAINMENTS, -1, false, false, false, true, false)
 }
 
+func (eClass *EClassImpl) initEAllCrossReferences() {
+	eClass.eAllCrossReferences = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EALL_CROSS_REFERENCES, -1, false, false, false, true, false)
+}
+
 func (eClass *EClassImpl) initEAllOperations() {
 	eClass.eAllOperations = NewBasicEObjectList(eClass.AsEObjectInternal(), ECLASS__EALL_OPERATIONS, -1, false, false, false, true, false)
 }
@@ -317,6 +329,14 @@ func (eClass *EClassImpl) EGetFromID(featureID int, resolve bool) any {
 		return list
 	case ECLASS__EALL_CONTAINMENTS:
 		list := eClass.asEClass().GetEAllContainments()
+		if !resolve {
+			if objects, _ := list.(EObjectList); objects != nil {
+				return objects.GetUnResolvedList()
+			}
+		}
+		return list
+	case ECLASS__EALL_CROSS_REFERENCES:
+		list := eClass.asEClass().GetEAllCrossReferences()
 		if !resolve {
 			if objects, _ := list.(EObjectList); objects != nil {
 				return objects.GetUnResolvedList()
@@ -456,6 +476,8 @@ func (eClass *EClassImpl) EIsSetFromID(featureID int) bool {
 		return eClass.eAllAttributes != nil && eClass.eAllAttributes.Size() != 0
 	case ECLASS__EALL_CONTAINMENTS:
 		return eClass.eAllContainments != nil && eClass.eAllContainments.Size() != 0
+	case ECLASS__EALL_CROSS_REFERENCES:
+		return eClass.eAllCrossReferences != nil && eClass.eAllCrossReferences.Size() != 0
 	case ECLASS__EALL_OPERATIONS:
 		return eClass.eAllOperations != nil && eClass.eAllOperations.Size() != 0
 	case ECLASS__EALL_REFERENCES:

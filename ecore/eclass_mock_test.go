@@ -63,6 +63,17 @@ func TestMockEClassGetEAllContainments(t *testing.T) {
 	assert.Equal(t, l, o.GetEAllContainments())
 }
 
+// TestMockEClassGetEAllCrossReferences tests method GetEAllCrossReferences
+func TestMockEClassGetEAllCrossReferences(t *testing.T) {
+	o := NewMockEClass(t)
+	l := NewMockEList(t)
+	m := NewMockRun(t)
+	o.EXPECT().GetEAllCrossReferences().Return(l).Run(func() { m.Run() }).Once()
+	o.EXPECT().GetEAllCrossReferences().Call.Return(func() EList { return l }).Once()
+	assert.Equal(t, l, o.GetEAllCrossReferences())
+	assert.Equal(t, l, o.GetEAllCrossReferences())
+}
+
 // TestMockEClassGetEAllOperations tests method GetEAllOperations
 func TestMockEClassGetEAllOperations(t *testing.T) {
 	o := NewMockEClass(t)

@@ -45,8 +45,8 @@ generate:
 		-p featureDelegation=Reflective \
 		-p modulePath=github.com/masagroup/soft.go/test/tournament \
 		-p interfacePackage=github.com/masagroup/soft.go/test/tournament \
-		-p implementationPackage=github.com/masagroup/soft.go/test/tournament/internal/impl \
-		-p mockPackage=github.com/masagroup/soft.go/test/tournament/internal/mock)
+		-p implementationPackage=github.com/masagroup/soft.go/test/tournament/internal/impls \
+		-p mockPackage=github.com/masagroup/soft.go/test/tournament/internal/mocks)
 
 .PHONY: fmt
 fmt:

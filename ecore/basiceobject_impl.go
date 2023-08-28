@@ -96,7 +96,7 @@ func (o *BasicEObjectImpl) ECrossReferences() EList {
 	properties := o.getObjectProperties()
 	if properties.crossReferences == nil {
 		eObject := o.AsEObject()
-		properties.crossReferences = newEContentsList(eObject, eObject.EClass().GetECrossReferenceFeatures(), true)
+		properties.crossReferences = newEContentsList(eObject, eObject.EClass().GetEAllCrossReferences(), true)
 	}
 	return properties.crossReferences
 }

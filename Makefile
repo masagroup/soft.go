@@ -50,7 +50,7 @@ fmt:
 .PHONY: lint
 lint:
 	@echo "[lint]"
-	@docker run --rm -v $(CURDIR):/pwd -w /pwd golangci/golangci-lint:v1.51.1 golangci-lint run
+	@docker run --rm -v $(CURDIR):/pwd -w /pwd golangci/golangci-lint:v1.54.2-alpine golangci-lint run
 
 .PHONY: build
 build:

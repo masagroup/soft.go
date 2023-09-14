@@ -11,9 +11,7 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/mock"
-)
+import "github.com/stretchr/testify/mock"
 
 // MockEClass is an mock type for the EClass type
 type MockEClass struct {

@@ -11,9 +11,7 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/mock"
-)
+import "github.com/stretchr/testify/mock"
 
 // MockEParameter is an mock type for the EParameter type
 type MockEParameter struct {

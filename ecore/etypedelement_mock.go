@@ -11,9 +11,7 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/mock"
-)
+import "github.com/stretchr/testify/mock"
 
 // MockETypedElement is an mock type for the ETypedElement type
 type MockETypedElement struct {

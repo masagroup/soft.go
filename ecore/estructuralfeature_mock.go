@@ -11,10 +11,8 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/mock"
-	"reflect"
-)
+import "github.com/stretchr/testify/mock"
+import "reflect"
 
 // MockEStructuralFeature is an mock type for the EStructuralFeature type
 type MockEStructuralFeature struct {

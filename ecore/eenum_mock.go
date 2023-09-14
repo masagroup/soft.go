@@ -11,9 +11,7 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/mock"
-)
+import "github.com/stretchr/testify/mock"
 
 // MockEEnum is an mock type for the EEnum type
 type MockEEnum struct {

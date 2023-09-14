@@ -11,6 +11,7 @@
 
 package ecore
 
+import "reflect"
 import "strconv"
 import "time"
 
@@ -605,6 +606,7 @@ func (ecoreFactoryImpl *EcoreFactoryImpl) convertEIntegerObjectToString(eDataTyp
 }
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) createEJavaClassFromString(eDataType EDataType, literalValue string) any {
+	_ = reflect.Ptr
 	panic("NotImplementedException")
 }
 

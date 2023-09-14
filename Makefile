@@ -41,10 +41,10 @@ generate:
 	@$(call GENERATE,test,empty.ecore,)
 	@$(call GENERATE,test,library.ecore,)
 	@$(call GENERATE,test,tournament.ecore,)
-	@$(call GENERATE,test/tournament-reflective,tournament.ecore, \
+	@$(call GENERATE,,tournament.ecore, \
 		-p featureDelegation=Reflective \
-		-p module=github.com/masagroup/soft.go/test/tournament \
-		-p packages=github.com/masagroup/soft.go/test/tournament#github.com/masagroup/soft.go/test/tournament/internal/impls#github.com/masagroup/soft.go/test/tournament/internal/mocks)
+		-p module=github.com/masagroup/soft.go \
+		-p packages=github.com/masagroup/soft.go/test/tournament-reflective/tournament#github.com/masagroup/soft.go/test/tournament-reflective/internal/impls/impls#github.com/masagroup/soft.go/test/tournament-reflective/internal/mocks/mocks)
 
 .PHONY: fmt
 fmt:

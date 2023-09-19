@@ -123,7 +123,7 @@ func getBinaryCodecFeatureKind(eFeature EStructuralFeature) binaryFeatureKind {
 				return bfkString
 			case "[]byte", "java.util.ByteArray":
 				return bfkByteArray
-			case "*time.Time", "java.util.Date":
+			case "*time/time.Time", "java.util.Date":
 				return bfkDate
 			}
 

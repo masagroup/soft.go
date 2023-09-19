@@ -130,7 +130,7 @@ func getSQLCodecFeatureKind(eFeature EStructuralFeature) sqlFeatureKind {
 				return sfkString
 			case "[]byte", "java.util.ByteArray":
 				return sfkByteArray
-			case "*time.Time", "java.util.Date":
+			case "*time/time.Time", "java.util.Date":
 				return sfkDate
 			}
 

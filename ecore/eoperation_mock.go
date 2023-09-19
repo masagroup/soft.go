@@ -71,16 +71,16 @@ func (_mde *MockEOperation_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEOperation_Prototype_Methods) GetEContainingClass() EClass {
 	ret := e.mock.Called()
 
-	var r EClass
+	var res EClass
 	if rf, ok := ret.Get(0).(func() EClass); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EClass)
+			res = ret.Get(0).(EClass)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEOperation_GetEContainingClass_Call struct {
@@ -107,16 +107,16 @@ func (c *MockEOperation_GetEContainingClass_Call) Return(eContainingClass EClass
 func (e *MockEOperation_Prototype_Methods) GetEExceptions() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEOperation_GetEExceptions_Call struct {
@@ -168,16 +168,16 @@ func (c *MockEOperation_UnsetEExceptions_Call) Return() *MockEOperation_UnsetEEx
 func (e *MockEOperation_Prototype_Methods) GetEParameters() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEOperation_GetEParameters_Call struct {
@@ -204,16 +204,16 @@ func (c *MockEOperation_GetEParameters_Call) Return(eParameters EList) *MockEOpe
 func (e *MockEOperation_Prototype_Methods) GetOperationID() int {
 	ret := e.mock.Called()
 
-	var r int
+	var res int
 	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
+			res = ret.Get(0).(int)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEOperation_GetOperationID_Call struct {
@@ -267,16 +267,16 @@ func (c *MockEOperation_SetOperationID_Call) Return() *MockEOperation_SetOperati
 func (e *MockEOperation_Prototype_Methods) IsOverrideOf(someOperation EOperation) bool {
 	ret := e.mock.Called(someOperation)
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEOperation_IsOverrideOf_Call struct {

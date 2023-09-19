@@ -71,16 +71,16 @@ func (_mde *MockETypedElement_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockETypedElement_Prototype_Methods) GetEType() EClassifier {
 	ret := e.mock.Called()
 
-	var r EClassifier
+	var res EClassifier
 	if rf, ok := ret.Get(0).(func() EClassifier); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EClassifier)
+			res = ret.Get(0).(EClassifier)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_GetEType_Call struct {
@@ -159,16 +159,16 @@ func (c *MockETypedElement_UnsetEType_Call) Return() *MockETypedElement_UnsetETy
 func (e *MockETypedElement_Prototype_Methods) GetLowerBound() int {
 	ret := e.mock.Called()
 
-	var r int
+	var res int
 	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
+			res = ret.Get(0).(int)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_GetLowerBound_Call struct {
@@ -222,16 +222,16 @@ func (c *MockETypedElement_SetLowerBound_Call) Return() *MockETypedElement_SetLo
 func (e *MockETypedElement_Prototype_Methods) IsMany() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_IsMany_Call struct {
@@ -258,16 +258,16 @@ func (c *MockETypedElement_IsMany_Call) Return(isMany bool) *MockETypedElement_I
 func (e *MockETypedElement_Prototype_Methods) IsOrdered() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_IsOrdered_Call struct {
@@ -321,16 +321,16 @@ func (c *MockETypedElement_SetOrdered_Call) Return() *MockETypedElement_SetOrder
 func (e *MockETypedElement_Prototype_Methods) IsRequired() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_IsRequired_Call struct {
@@ -357,16 +357,16 @@ func (c *MockETypedElement_IsRequired_Call) Return(isRequired bool) *MockETypedE
 func (e *MockETypedElement_Prototype_Methods) IsUnique() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_IsUnique_Call struct {
@@ -420,16 +420,16 @@ func (c *MockETypedElement_SetUnique_Call) Return() *MockETypedElement_SetUnique
 func (e *MockETypedElement_Prototype_Methods) GetUpperBound() int {
 	ret := e.mock.Called()
 
-	var r int
+	var res int
 	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
+			res = ret.Get(0).(int)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_GetUpperBound_Call struct {

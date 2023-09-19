@@ -71,16 +71,16 @@ func (_mde *MockEEnum_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEEnum_Prototype_Methods) GetELiterals() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEEnum_GetELiterals_Call struct {
@@ -107,16 +107,16 @@ func (c *MockEEnum_GetELiterals_Call) Return(eLiterals EList) *MockEEnum_GetELit
 func (e *MockEEnum_Prototype_Methods) GetEEnumLiteralByLiteral(literal string) EEnumLiteral {
 	ret := e.mock.Called(literal)
 
-	var r EEnumLiteral
+	var res EEnumLiteral
 	if rf, ok := ret.Get(0).(func() EEnumLiteral); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EEnumLiteral)
+			res = ret.Get(0).(EEnumLiteral)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEEnum_GetEEnumLiteralByLiteral_Call struct {
@@ -145,16 +145,16 @@ func (c *MockEEnum_GetEEnumLiteralByLiteral_Call) Return(_a0 EEnumLiteral) *Mock
 func (e *MockEEnum_Prototype_Methods) GetEEnumLiteralByName(name string) EEnumLiteral {
 	ret := e.mock.Called(name)
 
-	var r EEnumLiteral
+	var res EEnumLiteral
 	if rf, ok := ret.Get(0).(func() EEnumLiteral); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EEnumLiteral)
+			res = ret.Get(0).(EEnumLiteral)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEEnum_GetEEnumLiteralByName_Call struct {
@@ -183,16 +183,16 @@ func (c *MockEEnum_GetEEnumLiteralByName_Call) Return(_a0 EEnumLiteral) *MockEEn
 func (e *MockEEnum_Prototype_Methods) GetEEnumLiteralByValue(value int) EEnumLiteral {
 	ret := e.mock.Called(value)
 
-	var r EEnumLiteral
+	var res EEnumLiteral
 	if rf, ok := ret.Get(0).(func() EEnumLiteral); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EEnumLiteral)
+			res = ret.Get(0).(EEnumLiteral)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEEnum_GetEEnumLiteralByValue_Call struct {

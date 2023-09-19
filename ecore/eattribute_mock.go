@@ -71,16 +71,16 @@ func (_mde *MockEAttribute_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEAttribute_Prototype_Methods) GetEAttributeType() EDataType {
 	ret := e.mock.Called()
 
-	var r EDataType
+	var res EDataType
 	if rf, ok := ret.Get(0).(func() EDataType); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EDataType)
+			res = ret.Get(0).(EDataType)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEAttribute_GetEAttributeType_Call struct {
@@ -107,16 +107,16 @@ func (c *MockEAttribute_GetEAttributeType_Call) Return(eAttributeType EDataType)
 func (e *MockEAttribute_Prototype_Methods) IsID() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEAttribute_IsID_Call struct {

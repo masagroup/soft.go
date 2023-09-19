@@ -72,16 +72,16 @@ func (_mde *MockEStructuralFeature_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEStructuralFeature_Prototype_Methods) IsChangeable() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStructuralFeature_IsChangeable_Call struct {
@@ -135,16 +135,16 @@ func (c *MockEStructuralFeature_SetChangeable_Call) Return() *MockEStructuralFea
 func (e *MockEStructuralFeature_Prototype_Methods) GetDefaultValue() any {
 	ret := e.mock.Called()
 
-	var r any
+	var res any
 	if rf, ok := ret.Get(0).(func() any); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(any)
+			res = ret.Get(0).(any)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStructuralFeature_GetDefaultValue_Call struct {
@@ -198,16 +198,16 @@ func (c *MockEStructuralFeature_SetDefaultValue_Call) Return() *MockEStructuralF
 func (e *MockEStructuralFeature_Prototype_Methods) GetDefaultValueLiteral() string {
 	ret := e.mock.Called()
 
-	var r string
+	var res string
 	if rf, ok := ret.Get(0).(func() string); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(string)
+			res = ret.Get(0).(string)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStructuralFeature_GetDefaultValueLiteral_Call struct {
@@ -261,16 +261,16 @@ func (c *MockEStructuralFeature_SetDefaultValueLiteral_Call) Return() *MockEStru
 func (e *MockEStructuralFeature_Prototype_Methods) IsDerived() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStructuralFeature_IsDerived_Call struct {
@@ -324,16 +324,16 @@ func (c *MockEStructuralFeature_SetDerived_Call) Return() *MockEStructuralFeatur
 func (e *MockEStructuralFeature_Prototype_Methods) GetEContainingClass() EClass {
 	ret := e.mock.Called()
 
-	var r EClass
+	var res EClass
 	if rf, ok := ret.Get(0).(func() EClass); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EClass)
+			res = ret.Get(0).(EClass)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStructuralFeature_GetEContainingClass_Call struct {
@@ -360,16 +360,16 @@ func (c *MockEStructuralFeature_GetEContainingClass_Call) Return(eContainingClas
 func (e *MockEStructuralFeature_Prototype_Methods) GetFeatureID() int {
 	ret := e.mock.Called()
 
-	var r int
+	var res int
 	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
+			res = ret.Get(0).(int)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStructuralFeature_GetFeatureID_Call struct {
@@ -423,16 +423,16 @@ func (c *MockEStructuralFeature_SetFeatureID_Call) Return() *MockEStructuralFeat
 func (e *MockEStructuralFeature_Prototype_Methods) IsTransient() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStructuralFeature_IsTransient_Call struct {
@@ -486,16 +486,16 @@ func (c *MockEStructuralFeature_SetTransient_Call) Return() *MockEStructuralFeat
 func (e *MockEStructuralFeature_Prototype_Methods) IsUnsettable() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStructuralFeature_IsUnsettable_Call struct {
@@ -549,16 +549,16 @@ func (c *MockEStructuralFeature_SetUnsettable_Call) Return() *MockEStructuralFea
 func (e *MockEStructuralFeature_Prototype_Methods) IsVolatile() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStructuralFeature_IsVolatile_Call struct {
@@ -612,16 +612,16 @@ func (c *MockEStructuralFeature_SetVolatile_Call) Return() *MockEStructuralFeatu
 func (e *MockEStructuralFeature_Prototype_Methods) GetContainerClass() reflect.Type {
 	ret := e.mock.Called()
 
-	var r reflect.Type
+	var res reflect.Type
 	if rf, ok := ret.Get(0).(func() reflect.Type); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(reflect.Type)
+			res = ret.Get(0).(reflect.Type)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStructuralFeature_GetContainerClass_Call struct {

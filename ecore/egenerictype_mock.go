@@ -71,16 +71,16 @@ func (_mde *MockEGenericType_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEGenericType_Prototype_Methods) GetEClassifier() EClassifier {
 	ret := e.mock.Called()
 
-	var r EClassifier
+	var res EClassifier
 	if rf, ok := ret.Get(0).(func() EClassifier); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EClassifier)
+			res = ret.Get(0).(EClassifier)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEGenericType_GetEClassifier_Call struct {
@@ -134,16 +134,16 @@ func (c *MockEGenericType_SetEClassifier_Call) Return() *MockEGenericType_SetECl
 func (e *MockEGenericType_Prototype_Methods) GetELowerBound() EGenericType {
 	ret := e.mock.Called()
 
-	var r EGenericType
+	var res EGenericType
 	if rf, ok := ret.Get(0).(func() EGenericType); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EGenericType)
+			res = ret.Get(0).(EGenericType)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEGenericType_GetELowerBound_Call struct {
@@ -197,16 +197,16 @@ func (c *MockEGenericType_SetELowerBound_Call) Return() *MockEGenericType_SetELo
 func (e *MockEGenericType_Prototype_Methods) GetERawType() EClassifier {
 	ret := e.mock.Called()
 
-	var r EClassifier
+	var res EClassifier
 	if rf, ok := ret.Get(0).(func() EClassifier); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EClassifier)
+			res = ret.Get(0).(EClassifier)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEGenericType_GetERawType_Call struct {
@@ -233,16 +233,16 @@ func (c *MockEGenericType_GetERawType_Call) Return(eRawType EClassifier) *MockEG
 func (e *MockEGenericType_Prototype_Methods) GetETypeArguments() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEGenericType_GetETypeArguments_Call struct {
@@ -269,16 +269,16 @@ func (c *MockEGenericType_GetETypeArguments_Call) Return(eTypeArguments EList) *
 func (e *MockEGenericType_Prototype_Methods) GetETypeParameter() ETypeParameter {
 	ret := e.mock.Called()
 
-	var r ETypeParameter
+	var res ETypeParameter
 	if rf, ok := ret.Get(0).(func() ETypeParameter); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(ETypeParameter)
+			res = ret.Get(0).(ETypeParameter)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEGenericType_GetETypeParameter_Call struct {
@@ -332,16 +332,16 @@ func (c *MockEGenericType_SetETypeParameter_Call) Return() *MockEGenericType_Set
 func (e *MockEGenericType_Prototype_Methods) GetEUpperBound() EGenericType {
 	ret := e.mock.Called()
 
-	var r EGenericType
+	var res EGenericType
 	if rf, ok := ret.Get(0).(func() EGenericType); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EGenericType)
+			res = ret.Get(0).(EGenericType)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEGenericType_GetEUpperBound_Call struct {
@@ -395,16 +395,16 @@ func (c *MockEGenericType_SetEUpperBound_Call) Return() *MockEGenericType_SetEUp
 func (e *MockEGenericType_Prototype_Methods) IsInstance(object any) bool {
 	ret := e.mock.Called(object)
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEGenericType_IsInstance_Call struct {

@@ -71,16 +71,16 @@ func (_mde *MockEReference_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEReference_Prototype_Methods) IsContainer() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEReference_IsContainer_Call struct {
@@ -107,16 +107,16 @@ func (c *MockEReference_IsContainer_Call) Return(isContainer bool) *MockEReferen
 func (e *MockEReference_Prototype_Methods) IsContainment() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEReference_IsContainment_Call struct {
@@ -170,16 +170,16 @@ func (c *MockEReference_SetContainment_Call) Return() *MockEReference_SetContain
 func (e *MockEReference_Prototype_Methods) GetEKeys() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEReference_GetEKeys_Call struct {
@@ -206,16 +206,16 @@ func (c *MockEReference_GetEKeys_Call) Return(eKeys EList) *MockEReference_GetEK
 func (e *MockEReference_Prototype_Methods) GetEOpposite() EReference {
 	ret := e.mock.Called()
 
-	var r EReference
+	var res EReference
 	if rf, ok := ret.Get(0).(func() EReference); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EReference)
+			res = ret.Get(0).(EReference)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEReference_GetEOpposite_Call struct {
@@ -269,16 +269,16 @@ func (c *MockEReference_SetEOpposite_Call) Return() *MockEReference_SetEOpposite
 func (e *MockEReference_Prototype_Methods) GetEReferenceType() EClass {
 	ret := e.mock.Called()
 
-	var r EClass
+	var res EClass
 	if rf, ok := ret.Get(0).(func() EClass); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EClass)
+			res = ret.Get(0).(EClass)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEReference_GetEReferenceType_Call struct {
@@ -305,16 +305,16 @@ func (c *MockEReference_GetEReferenceType_Call) Return(eReferenceType EClass) *M
 func (e *MockEReference_Prototype_Methods) IsResolveProxies() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEReference_IsResolveProxies_Call struct {

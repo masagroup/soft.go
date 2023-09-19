@@ -71,16 +71,16 @@ func (_mde *MockEEnumLiteral_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEEnumLiteral_Prototype_Methods) GetEEnum() EEnum {
 	ret := e.mock.Called()
 
-	var r EEnum
+	var res EEnum
 	if rf, ok := ret.Get(0).(func() EEnum); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EEnum)
+			res = ret.Get(0).(EEnum)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEEnumLiteral_GetEEnum_Call struct {
@@ -107,16 +107,16 @@ func (c *MockEEnumLiteral_GetEEnum_Call) Return(eEnum EEnum) *MockEEnumLiteral_G
 func (e *MockEEnumLiteral_Prototype_Methods) GetInstance() any {
 	ret := e.mock.Called()
 
-	var r any
+	var res any
 	if rf, ok := ret.Get(0).(func() any); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(any)
+			res = ret.Get(0).(any)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEEnumLiteral_GetInstance_Call struct {
@@ -170,16 +170,16 @@ func (c *MockEEnumLiteral_SetInstance_Call) Return() *MockEEnumLiteral_SetInstan
 func (e *MockEEnumLiteral_Prototype_Methods) GetLiteral() string {
 	ret := e.mock.Called()
 
-	var r string
+	var res string
 	if rf, ok := ret.Get(0).(func() string); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(string)
+			res = ret.Get(0).(string)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEEnumLiteral_GetLiteral_Call struct {
@@ -233,16 +233,16 @@ func (c *MockEEnumLiteral_SetLiteral_Call) Return() *MockEEnumLiteral_SetLiteral
 func (e *MockEEnumLiteral_Prototype_Methods) GetValue() int {
 	ret := e.mock.Called()
 
-	var r int
+	var res int
 	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
+			res = ret.Get(0).(int)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEEnumLiteral_GetValue_Call struct {

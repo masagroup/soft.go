@@ -75,16 +75,16 @@ func (_mde *MockEStringToStringMapEntry_Expecter_Methods) SetMock(mock *mock.Moc
 func (e *MockEStringToStringMapEntry_Prototype_Methods) GetTypedKey() string {
 	ret := e.mock.Called()
 
-	var r string
+	var res string
 	if rf, ok := ret.Get(0).(func() string); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(string)
+			res = ret.Get(0).(string)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStringToStringMapEntry_GetTypedKey_Call struct {
@@ -138,16 +138,16 @@ func (c *MockEStringToStringMapEntry_SetTypedKey_Call) Return() *MockEStringToSt
 func (e *MockEStringToStringMapEntry_Prototype_Methods) GetTypedValue() string {
 	ret := e.mock.Called()
 
-	var r string
+	var res string
 	if rf, ok := ret.Get(0).(func() string); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(string)
+			res = ret.Get(0).(string)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStringToStringMapEntry_GetTypedValue_Call struct {

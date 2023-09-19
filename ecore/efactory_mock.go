@@ -71,16 +71,16 @@ func (_mde *MockEFactory_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEFactory_Prototype_Methods) GetEPackage() EPackage {
 	ret := e.mock.Called()
 
-	var r EPackage
+	var res EPackage
 	if rf, ok := ret.Get(0).(func() EPackage); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EPackage)
+			res = ret.Get(0).(EPackage)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEFactory_GetEPackage_Call struct {
@@ -134,16 +134,16 @@ func (c *MockEFactory_SetEPackage_Call) Return() *MockEFactory_SetEPackage_Call 
 func (e *MockEFactory_Prototype_Methods) ConvertToString(eDataType EDataType, instanceValue any) string {
 	ret := e.mock.Called(eDataType, instanceValue)
 
-	var r string
+	var res string
 	if rf, ok := ret.Get(0).(func() string); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(string)
+			res = ret.Get(0).(string)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEFactory_ConvertToString_Call struct {
@@ -173,16 +173,16 @@ func (c *MockEFactory_ConvertToString_Call) Return(_a0 string) *MockEFactory_Con
 func (e *MockEFactory_Prototype_Methods) Create(eClass EClass) EObject {
 	ret := e.mock.Called(eClass)
 
-	var r EObject
+	var res EObject
 	if rf, ok := ret.Get(0).(func() EObject); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EObject)
+			res = ret.Get(0).(EObject)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEFactory_Create_Call struct {
@@ -211,16 +211,16 @@ func (c *MockEFactory_Create_Call) Return(_a0 EObject) *MockEFactory_Create_Call
 func (e *MockEFactory_Prototype_Methods) CreateFromString(eDataType EDataType, literalValue string) any {
 	ret := e.mock.Called(eDataType, literalValue)
 
-	var r any
+	var res any
 	if rf, ok := ret.Get(0).(func() any); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0)
+			res = ret.Get(0)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEFactory_CreateFromString_Call struct {

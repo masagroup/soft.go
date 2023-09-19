@@ -71,16 +71,16 @@ func (_mde *MockEObject_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEObject_Prototype_Methods) EAllContents() EIterator {
 	ret := e.mock.Called()
 
-	var r EIterator
+	var res EIterator
 	if rf, ok := ret.Get(0).(func() EIterator); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EIterator)
+			res = ret.Get(0).(EIterator)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_EAllContents_Call struct {
@@ -108,16 +108,16 @@ func (c *MockEObject_EAllContents_Call) Return(_a0 EIterator) *MockEObject_EAllC
 func (e *MockEObject_Prototype_Methods) EClass() EClass {
 	ret := e.mock.Called()
 
-	var r EClass
+	var res EClass
 	if rf, ok := ret.Get(0).(func() EClass); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EClass)
+			res = ret.Get(0).(EClass)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_EClass_Call struct {
@@ -145,16 +145,16 @@ func (c *MockEObject_EClass_Call) Return(_a0 EClass) *MockEObject_EClass_Call {
 func (e *MockEObject_Prototype_Methods) EContainer() EObject {
 	ret := e.mock.Called()
 
-	var r EObject
+	var res EObject
 	if rf, ok := ret.Get(0).(func() EObject); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EObject)
+			res = ret.Get(0).(EObject)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_EContainer_Call struct {
@@ -182,16 +182,16 @@ func (c *MockEObject_EContainer_Call) Return(_a0 EObject) *MockEObject_EContaine
 func (e *MockEObject_Prototype_Methods) EContainingFeature() EStructuralFeature {
 	ret := e.mock.Called()
 
-	var r EStructuralFeature
+	var res EStructuralFeature
 	if rf, ok := ret.Get(0).(func() EStructuralFeature); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EStructuralFeature)
+			res = ret.Get(0).(EStructuralFeature)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_EContainingFeature_Call struct {
@@ -219,16 +219,16 @@ func (c *MockEObject_EContainingFeature_Call) Return(_a0 EStructuralFeature) *Mo
 func (e *MockEObject_Prototype_Methods) EContainmentFeature() EReference {
 	ret := e.mock.Called()
 
-	var r EReference
+	var res EReference
 	if rf, ok := ret.Get(0).(func() EReference); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EReference)
+			res = ret.Get(0).(EReference)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_EContainmentFeature_Call struct {
@@ -256,16 +256,16 @@ func (c *MockEObject_EContainmentFeature_Call) Return(_a0 EReference) *MockEObje
 func (e *MockEObject_Prototype_Methods) EContents() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_EContents_Call struct {
@@ -293,16 +293,16 @@ func (c *MockEObject_EContents_Call) Return(_a0 EList) *MockEObject_EContents_Ca
 func (e *MockEObject_Prototype_Methods) ECrossReferences() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_ECrossReferences_Call struct {
@@ -330,16 +330,16 @@ func (c *MockEObject_ECrossReferences_Call) Return(_a0 EList) *MockEObject_ECros
 func (e *MockEObject_Prototype_Methods) EGet(feature EStructuralFeature) any {
 	ret := e.mock.Called(feature)
 
-	var r any
+	var res any
 	if rf, ok := ret.Get(0).(func() any); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0)
+			res = ret.Get(0)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_EGet_Call struct {
@@ -368,16 +368,16 @@ func (c *MockEObject_EGet_Call) Return(_a0 any) *MockEObject_EGet_Call {
 func (e *MockEObject_Prototype_Methods) EGetResolve(feature EStructuralFeature, resolve bool) any {
 	ret := e.mock.Called(feature, resolve)
 
-	var r any
+	var res any
 	if rf, ok := ret.Get(0).(func() any); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0)
+			res = ret.Get(0)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_EGetResolve_Call struct {
@@ -407,16 +407,16 @@ func (c *MockEObject_EGetResolve_Call) Return(_a0 any) *MockEObject_EGetResolve_
 func (e *MockEObject_Prototype_Methods) EInvoke(operation EOperation, arguments EList) any {
 	ret := e.mock.Called(operation, arguments)
 
-	var r any
+	var res any
 	if rf, ok := ret.Get(0).(func() any); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0)
+			res = ret.Get(0)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_EInvoke_Call struct {
@@ -446,16 +446,16 @@ func (c *MockEObject_EInvoke_Call) Return(_a0 any) *MockEObject_EInvoke_Call {
 func (e *MockEObject_Prototype_Methods) EIsProxy() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_EIsProxy_Call struct {
@@ -483,16 +483,16 @@ func (c *MockEObject_EIsProxy_Call) Return(_a0 bool) *MockEObject_EIsProxy_Call 
 func (e *MockEObject_Prototype_Methods) EIsSet(feature EStructuralFeature) bool {
 	ret := e.mock.Called(feature)
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_EIsSet_Call struct {
@@ -521,16 +521,16 @@ func (c *MockEObject_EIsSet_Call) Return(_a0 bool) *MockEObject_EIsSet_Call {
 func (e *MockEObject_Prototype_Methods) EResource() EResource {
 	ret := e.mock.Called()
 
-	var r EResource
+	var res EResource
 	if rf, ok := ret.Get(0).(func() EResource); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EResource)
+			res = ret.Get(0).(EResource)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEObject_EResource_Call struct {

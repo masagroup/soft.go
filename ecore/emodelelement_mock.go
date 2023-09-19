@@ -71,16 +71,16 @@ func (_mde *MockEModelElement_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEModelElement_Prototype_Methods) GetEAnnotations() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEModelElement_GetEAnnotations_Call struct {
@@ -107,16 +107,16 @@ func (c *MockEModelElement_GetEAnnotations_Call) Return(eAnnotations EList) *Moc
 func (e *MockEModelElement_Prototype_Methods) GetEAnnotation(source string) EAnnotation {
 	ret := e.mock.Called(source)
 
-	var r EAnnotation
+	var res EAnnotation
 	if rf, ok := ret.Get(0).(func() EAnnotation); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EAnnotation)
+			res = ret.Get(0).(EAnnotation)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEModelElement_GetEAnnotation_Call struct {

@@ -71,16 +71,16 @@ func (_mde *MockEParameter_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEParameter_Prototype_Methods) GetEOperation() EOperation {
 	ret := e.mock.Called()
 
-	var r EOperation
+	var res EOperation
 	if rf, ok := ret.Get(0).(func() EOperation); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EOperation)
+			res = ret.Get(0).(EOperation)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEParameter_GetEOperation_Call struct {

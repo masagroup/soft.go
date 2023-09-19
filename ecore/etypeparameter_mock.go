@@ -71,16 +71,16 @@ func (_mde *MockETypeParameter_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockETypeParameter_Prototype_Methods) GetEBounds() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypeParameter_GetEBounds_Call struct {

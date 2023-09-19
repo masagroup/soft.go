@@ -71,16 +71,16 @@ func (_mde *MockENamedElement_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockENamedElement_Prototype_Methods) GetName() string {
 	ret := e.mock.Called()
 
-	var r string
+	var res string
 	if rf, ok := ret.Get(0).(func() string); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(string)
+			res = ret.Get(0).(string)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockENamedElement_GetName_Call struct {

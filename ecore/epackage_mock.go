@@ -71,16 +71,16 @@ func (_mde *MockEPackage_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEPackage_Prototype_Methods) GetEClassifiers() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEPackage_GetEClassifiers_Call struct {
@@ -107,16 +107,16 @@ func (c *MockEPackage_GetEClassifiers_Call) Return(eClassifiers EList) *MockEPac
 func (e *MockEPackage_Prototype_Methods) GetEFactoryInstance() EFactory {
 	ret := e.mock.Called()
 
-	var r EFactory
+	var res EFactory
 	if rf, ok := ret.Get(0).(func() EFactory); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EFactory)
+			res = ret.Get(0).(EFactory)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEPackage_GetEFactoryInstance_Call struct {
@@ -170,16 +170,16 @@ func (c *MockEPackage_SetEFactoryInstance_Call) Return() *MockEPackage_SetEFacto
 func (e *MockEPackage_Prototype_Methods) GetESubPackages() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEPackage_GetESubPackages_Call struct {
@@ -206,16 +206,16 @@ func (c *MockEPackage_GetESubPackages_Call) Return(eSubPackages EList) *MockEPac
 func (e *MockEPackage_Prototype_Methods) GetESuperPackage() EPackage {
 	ret := e.mock.Called()
 
-	var r EPackage
+	var res EPackage
 	if rf, ok := ret.Get(0).(func() EPackage); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EPackage)
+			res = ret.Get(0).(EPackage)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEPackage_GetESuperPackage_Call struct {
@@ -242,16 +242,16 @@ func (c *MockEPackage_GetESuperPackage_Call) Return(eSuperPackage EPackage) *Moc
 func (e *MockEPackage_Prototype_Methods) GetNsPrefix() string {
 	ret := e.mock.Called()
 
-	var r string
+	var res string
 	if rf, ok := ret.Get(0).(func() string); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(string)
+			res = ret.Get(0).(string)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEPackage_GetNsPrefix_Call struct {
@@ -305,16 +305,16 @@ func (c *MockEPackage_SetNsPrefix_Call) Return() *MockEPackage_SetNsPrefix_Call 
 func (e *MockEPackage_Prototype_Methods) GetNsURI() string {
 	ret := e.mock.Called()
 
-	var r string
+	var res string
 	if rf, ok := ret.Get(0).(func() string); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(string)
+			res = ret.Get(0).(string)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEPackage_GetNsURI_Call struct {
@@ -368,16 +368,16 @@ func (c *MockEPackage_SetNsURI_Call) Return() *MockEPackage_SetNsURI_Call {
 func (e *MockEPackage_Prototype_Methods) GetEClassifier(name string) EClassifier {
 	ret := e.mock.Called(name)
 
-	var r EClassifier
+	var res EClassifier
 	if rf, ok := ret.Get(0).(func() EClassifier); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EClassifier)
+			res = ret.Get(0).(EClassifier)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEPackage_GetEClassifier_Call struct {

@@ -71,16 +71,16 @@ func (_mde *MockEClass_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEClass_Prototype_Methods) IsAbstract() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_IsAbstract_Call struct {
@@ -134,16 +134,16 @@ func (c *MockEClass_SetAbstract_Call) Return() *MockEClass_SetAbstract_Call {
 func (e *MockEClass_Prototype_Methods) GetEAllAttributes() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEAllAttributes_Call struct {
@@ -170,16 +170,16 @@ func (c *MockEClass_GetEAllAttributes_Call) Return(eAllAttributes EList) *MockEC
 func (e *MockEClass_Prototype_Methods) GetEAllContainments() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEAllContainments_Call struct {
@@ -206,16 +206,16 @@ func (c *MockEClass_GetEAllContainments_Call) Return(eAllContainments EList) *Mo
 func (e *MockEClass_Prototype_Methods) GetEAllCrossReferences() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEAllCrossReferences_Call struct {
@@ -242,16 +242,16 @@ func (c *MockEClass_GetEAllCrossReferences_Call) Return(eAllCrossReferences ELis
 func (e *MockEClass_Prototype_Methods) GetEAllOperations() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEAllOperations_Call struct {
@@ -278,16 +278,16 @@ func (c *MockEClass_GetEAllOperations_Call) Return(eAllOperations EList) *MockEC
 func (e *MockEClass_Prototype_Methods) GetEAllReferences() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEAllReferences_Call struct {
@@ -314,16 +314,16 @@ func (c *MockEClass_GetEAllReferences_Call) Return(eAllReferences EList) *MockEC
 func (e *MockEClass_Prototype_Methods) GetEAllStructuralFeatures() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEAllStructuralFeatures_Call struct {
@@ -350,16 +350,16 @@ func (c *MockEClass_GetEAllStructuralFeatures_Call) Return(eAllStructuralFeature
 func (e *MockEClass_Prototype_Methods) GetEAllSuperTypes() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEAllSuperTypes_Call struct {
@@ -386,16 +386,16 @@ func (c *MockEClass_GetEAllSuperTypes_Call) Return(eAllSuperTypes EList) *MockEC
 func (e *MockEClass_Prototype_Methods) GetEAttributes() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEAttributes_Call struct {
@@ -422,16 +422,16 @@ func (c *MockEClass_GetEAttributes_Call) Return(eAttributes EList) *MockEClass_G
 func (e *MockEClass_Prototype_Methods) GetEContainmentFeatures() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEContainmentFeatures_Call struct {
@@ -458,16 +458,16 @@ func (c *MockEClass_GetEContainmentFeatures_Call) Return(eContainmentFeatures EL
 func (e *MockEClass_Prototype_Methods) GetECrossReferenceFeatures() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetECrossReferenceFeatures_Call struct {
@@ -494,16 +494,16 @@ func (c *MockEClass_GetECrossReferenceFeatures_Call) Return(eCrossReferenceFeatu
 func (e *MockEClass_Prototype_Methods) GetEIDAttribute() EAttribute {
 	ret := e.mock.Called()
 
-	var r EAttribute
+	var res EAttribute
 	if rf, ok := ret.Get(0).(func() EAttribute); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EAttribute)
+			res = ret.Get(0).(EAttribute)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEIDAttribute_Call struct {
@@ -530,16 +530,16 @@ func (c *MockEClass_GetEIDAttribute_Call) Return(eIDAttribute EAttribute) *MockE
 func (e *MockEClass_Prototype_Methods) GetEOperations() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEOperations_Call struct {
@@ -566,16 +566,16 @@ func (c *MockEClass_GetEOperations_Call) Return(eOperations EList) *MockEClass_G
 func (e *MockEClass_Prototype_Methods) GetEReferences() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEReferences_Call struct {
@@ -602,16 +602,16 @@ func (c *MockEClass_GetEReferences_Call) Return(eReferences EList) *MockEClass_G
 func (e *MockEClass_Prototype_Methods) GetEStructuralFeatures() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEStructuralFeatures_Call struct {
@@ -638,16 +638,16 @@ func (c *MockEClass_GetEStructuralFeatures_Call) Return(eStructuralFeatures ELis
 func (e *MockEClass_Prototype_Methods) GetESuperTypes() EList {
 	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetESuperTypes_Call struct {
@@ -674,16 +674,16 @@ func (c *MockEClass_GetESuperTypes_Call) Return(eSuperTypes EList) *MockEClass_G
 func (e *MockEClass_Prototype_Methods) IsInterface() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_IsInterface_Call struct {
@@ -737,16 +737,16 @@ func (c *MockEClass_SetInterface_Call) Return() *MockEClass_SetInterface_Call {
 func (e *MockEClass_Prototype_Methods) GetEOperation(operationID int) EOperation {
 	ret := e.mock.Called(operationID)
 
-	var r EOperation
+	var res EOperation
 	if rf, ok := ret.Get(0).(func() EOperation); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EOperation)
+			res = ret.Get(0).(EOperation)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEOperation_Call struct {
@@ -775,16 +775,16 @@ func (c *MockEClass_GetEOperation_Call) Return(_a0 EOperation) *MockEClass_GetEO
 func (e *MockEClass_Prototype_Methods) GetEStructuralFeature(featureID int) EStructuralFeature {
 	ret := e.mock.Called(featureID)
 
-	var r EStructuralFeature
+	var res EStructuralFeature
 	if rf, ok := ret.Get(0).(func() EStructuralFeature); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EStructuralFeature)
+			res = ret.Get(0).(EStructuralFeature)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEStructuralFeature_Call struct {
@@ -813,16 +813,16 @@ func (c *MockEClass_GetEStructuralFeature_Call) Return(_a0 EStructuralFeature) *
 func (e *MockEClass_Prototype_Methods) GetEStructuralFeatureFromName(featureName string) EStructuralFeature {
 	ret := e.mock.Called(featureName)
 
-	var r EStructuralFeature
+	var res EStructuralFeature
 	if rf, ok := ret.Get(0).(func() EStructuralFeature); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EStructuralFeature)
+			res = ret.Get(0).(EStructuralFeature)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetEStructuralFeatureFromName_Call struct {
@@ -851,16 +851,16 @@ func (c *MockEClass_GetEStructuralFeatureFromName_Call) Return(_a0 EStructuralFe
 func (e *MockEClass_Prototype_Methods) GetFeatureCount() int {
 	ret := e.mock.Called()
 
-	var r int
+	var res int
 	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
+			res = ret.Get(0).(int)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetFeatureCount_Call struct {
@@ -888,16 +888,16 @@ func (c *MockEClass_GetFeatureCount_Call) Return(_a0 int) *MockEClass_GetFeature
 func (e *MockEClass_Prototype_Methods) GetFeatureID(feature EStructuralFeature) int {
 	ret := e.mock.Called(feature)
 
-	var r int
+	var res int
 	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
+			res = ret.Get(0).(int)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetFeatureID_Call struct {
@@ -926,16 +926,16 @@ func (c *MockEClass_GetFeatureID_Call) Return(_a0 int) *MockEClass_GetFeatureID_
 func (e *MockEClass_Prototype_Methods) GetFeatureType(feature EStructuralFeature) EClassifier {
 	ret := e.mock.Called(feature)
 
-	var r EClassifier
+	var res EClassifier
 	if rf, ok := ret.Get(0).(func() EClassifier); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EClassifier)
+			res = ret.Get(0).(EClassifier)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetFeatureType_Call struct {
@@ -964,16 +964,16 @@ func (c *MockEClass_GetFeatureType_Call) Return(_a0 EClassifier) *MockEClass_Get
 func (e *MockEClass_Prototype_Methods) GetOperationCount() int {
 	ret := e.mock.Called()
 
-	var r int
+	var res int
 	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
+			res = ret.Get(0).(int)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetOperationCount_Call struct {
@@ -1001,16 +1001,16 @@ func (c *MockEClass_GetOperationCount_Call) Return(_a0 int) *MockEClass_GetOpera
 func (e *MockEClass_Prototype_Methods) GetOperationID(operation EOperation) int {
 	ret := e.mock.Called(operation)
 
-	var r int
+	var res int
 	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
+			res = ret.Get(0).(int)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetOperationID_Call struct {
@@ -1039,16 +1039,16 @@ func (c *MockEClass_GetOperationID_Call) Return(_a0 int) *MockEClass_GetOperatio
 func (e *MockEClass_Prototype_Methods) GetOverride(operation EOperation) EOperation {
 	ret := e.mock.Called(operation)
 
-	var r EOperation
+	var res EOperation
 	if rf, ok := ret.Get(0).(func() EOperation); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EOperation)
+			res = ret.Get(0).(EOperation)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_GetOverride_Call struct {
@@ -1077,16 +1077,16 @@ func (c *MockEClass_GetOverride_Call) Return(_a0 EOperation) *MockEClass_GetOver
 func (e *MockEClass_Prototype_Methods) IsSuperTypeOf(someClass EClass) bool {
 	ret := e.mock.Called(someClass)
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEClass_IsSuperTypeOf_Call struct {

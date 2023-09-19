@@ -71,16 +71,16 @@ func (_mde *MockEDataType_Expecter_Methods) SetMock(mock *mock.Mock) {
 func (e *MockEDataType_Prototype_Methods) IsSerializable() bool {
 	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEDataType_IsSerializable_Call struct {

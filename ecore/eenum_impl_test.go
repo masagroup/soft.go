@@ -19,6 +19,7 @@ func discardEEnum() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEEnum
 }
 
 func TestEEnumAsEEnum(t *testing.T) {

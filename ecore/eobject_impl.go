@@ -18,59 +18,59 @@ type EObjectImpl struct {
 
 // newEObjectImpl is the constructor of a EObjectImpl
 func newEObjectImpl() *EObjectImpl {
-	eObject := new(EObjectImpl)
-	eObject.SetInterfaces(eObject)
-	eObject.Initialize()
-	return eObject
+	e := new(EObjectImpl)
+	e.SetInterfaces(e)
+	e.Initialize()
+	return e
 }
 
-func (eObject *EObjectImpl) asEObject() EObject {
-	return eObject.GetInterfaces().(EObject)
+func (e *EObjectImpl) asEObject() EObject {
+	return e.GetInterfaces().(EObject)
 }
 
-func (eObject *EObjectImpl) EStaticClass() EClass {
+func (e *EObjectImpl) EStaticClass() EClass {
 	return GetPackage().GetEObject()
 }
 
-func (eObject *EObjectImpl) EStaticFeatureCount() int {
+func (e *EObjectImpl) EStaticFeatureCount() int {
 	return EOBJECT_FEATURE_COUNT
 }
 
-func (eObject *EObjectImpl) EInvokeFromID(operationID int, arguments EList) any {
+func (e *EObjectImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EOBJECT__EALL_CONTENTS:
-		return eObject.asEObject().EAllContents()
+		return e.asEObject().EAllContents()
 	case EOBJECT__ECLASS:
-		return eObject.asEObject().EClass()
+		return e.asEObject().EClass()
 	case EOBJECT__ECONTAINER:
-		return eObject.asEObject().EContainer()
+		return e.asEObject().EContainer()
 	case EOBJECT__ECONTAINING_FEATURE:
-		return eObject.asEObject().EContainingFeature()
+		return e.asEObject().EContainingFeature()
 	case EOBJECT__ECONTAINMENT_FEATURE:
-		return eObject.asEObject().EContainmentFeature()
+		return e.asEObject().EContainmentFeature()
 	case EOBJECT__ECONTENTS:
-		return eObject.asEObject().EContents()
+		return e.asEObject().EContents()
 	case EOBJECT__ECROSS_REFERENCES:
-		return eObject.asEObject().ECrossReferences()
+		return e.asEObject().ECrossReferences()
 	case EOBJECT__EGET_ESTRUCTURALFEATURE:
-		return eObject.asEObject().EGet(arguments.Get(0).(EStructuralFeature))
+		return e.asEObject().EGet(arguments.Get(0).(EStructuralFeature))
 	case EOBJECT__EGET_ESTRUCTURALFEATURE_EBOOLEAN:
-		return eObject.asEObject().EGetResolve(arguments.Get(0).(EStructuralFeature), arguments.Get(1).(bool))
+		return e.asEObject().EGetResolve(arguments.Get(0).(EStructuralFeature), arguments.Get(1).(bool))
 	case EOBJECT__EINVOKE_EOPERATION_EELIST:
-		return eObject.asEObject().EInvoke(arguments.Get(0).(EOperation), arguments.Get(1).(EList))
+		return e.asEObject().EInvoke(arguments.Get(0).(EOperation), arguments.Get(1).(EList))
 	case EOBJECT__EIS_PROXY:
-		return eObject.asEObject().EIsProxy()
+		return e.asEObject().EIsProxy()
 	case EOBJECT__EIS_SET_ESTRUCTURALFEATURE:
-		return eObject.asEObject().EIsSet(arguments.Get(0).(EStructuralFeature))
+		return e.asEObject().EIsSet(arguments.Get(0).(EStructuralFeature))
 	case EOBJECT__ERESOURCE:
-		return eObject.asEObject().EResource()
+		return e.asEObject().EResource()
 	case EOBJECT__ESET_ESTRUCTURALFEATURE_EJAVAOBJECT:
-		eObject.asEObject().ESet(arguments.Get(0).(EStructuralFeature), arguments.Get(1))
+		e.asEObject().ESet(arguments.Get(0).(EStructuralFeature), arguments.Get(1))
 		return nil
 	case EOBJECT__EUNSET_ESTRUCTURALFEATURE:
-		eObject.asEObject().EUnset(arguments.Get(0).(EStructuralFeature))
+		e.asEObject().EUnset(arguments.Get(0).(EStructuralFeature))
 		return nil
 	default:
-		return eObject.BasicEObjectImpl.EInvokeFromID(operationID, arguments)
+		return e.BasicEObjectImpl.EInvokeFromID(operationID, arguments)
 	}
 }

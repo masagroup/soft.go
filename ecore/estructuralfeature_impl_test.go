@@ -19,6 +19,7 @@ func discardEStructuralFeature() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEStructuralFeature
 }
 
 func TestEStructuralFeatureAsEStructuralFeature(t *testing.T) {

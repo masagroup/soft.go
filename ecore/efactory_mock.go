@@ -43,9 +43,9 @@ func (_me *MockEFactory_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEFactory_Expecter_Methods.SetMock(mock)
 }
 
-func (eFactory *MockEFactory_Prototype) EXPECT() *MockEFactory_Expecter {
+func (e *MockEFactory_Prototype) EXPECT() *MockEFactory_Expecter {
 	expecter := &MockEFactory_Expecter{}
-	expecter.SetMock(eFactory.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -68,8 +68,8 @@ func (_mde *MockEFactory_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // GetEPackage get the value of ePackage
-func (eFactory *MockEFactory_Prototype_Methods) GetEPackage() EPackage {
-	ret := eFactory.mock.Called()
+func (e *MockEFactory_Prototype_Methods) GetEPackage() EPackage {
+	ret := e.mock.Called()
 
 	var r EPackage
 	if rf, ok := ret.Get(0).(func() EPackage); ok {
@@ -104,8 +104,8 @@ func (c *MockEFactory_GetEPackage_Call) Return(ePackage EPackage) *MockEFactory_
 }
 
 // SetEPackage provides mock implementation for setting the value of ePackage
-func (eFactory *MockEFactory_Prototype_Methods) SetEPackage(ePackage EPackage) {
-	eFactory.mock.Called(ePackage)
+func (e *MockEFactory_Prototype_Methods) SetEPackage(ePackage EPackage) {
+	e.mock.Called(ePackage)
 }
 
 type MockEFactory_SetEPackage_Call struct {
@@ -131,8 +131,8 @@ func (c *MockEFactory_SetEPackage_Call) Return() *MockEFactory_SetEPackage_Call 
 }
 
 // ConvertToString provides mock implementation
-func (eFactory *MockEFactory_Prototype_Methods) ConvertToString(eDataType EDataType, instanceValue any) string {
-	ret := eFactory.mock.Called(eDataType, instanceValue)
+func (e *MockEFactory_Prototype_Methods) ConvertToString(eDataType EDataType, instanceValue any) string {
+	ret := e.mock.Called(eDataType, instanceValue)
 
 	var r string
 	if rf, ok := ret.Get(0).(func() string); ok {
@@ -170,8 +170,8 @@ func (c *MockEFactory_ConvertToString_Call) Return(_a0 string) *MockEFactory_Con
 }
 
 // Create provides mock implementation
-func (eFactory *MockEFactory_Prototype_Methods) Create(eClass EClass) EObject {
-	ret := eFactory.mock.Called(eClass)
+func (e *MockEFactory_Prototype_Methods) Create(eClass EClass) EObject {
+	ret := e.mock.Called(eClass)
 
 	var r EObject
 	if rf, ok := ret.Get(0).(func() EObject); ok {
@@ -208,8 +208,8 @@ func (c *MockEFactory_Create_Call) Return(_a0 EObject) *MockEFactory_Create_Call
 }
 
 // CreateFromString provides mock implementation
-func (eFactory *MockEFactory_Prototype_Methods) CreateFromString(eDataType EDataType, literalValue string) any {
-	ret := eFactory.mock.Called(eDataType, literalValue)
+func (e *MockEFactory_Prototype_Methods) CreateFromString(eDataType EDataType, literalValue string) any {
+	ret := e.mock.Called(eDataType, literalValue)
 
 	var r any
 	if rf, ok := ret.Get(0).(func() any); ok {

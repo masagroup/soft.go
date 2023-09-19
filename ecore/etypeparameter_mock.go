@@ -43,9 +43,9 @@ func (_me *MockETypeParameter_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockETypeParameter_Expecter_Methods.SetMock(mock)
 }
 
-func (eTypeParameter *MockETypeParameter_Prototype) EXPECT() *MockETypeParameter_Expecter {
+func (e *MockETypeParameter_Prototype) EXPECT() *MockETypeParameter_Expecter {
 	expecter := &MockETypeParameter_Expecter{}
-	expecter.SetMock(eTypeParameter.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -68,8 +68,8 @@ func (_mde *MockETypeParameter_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // GetEBounds get the value of eBounds
-func (eTypeParameter *MockETypeParameter_Prototype_Methods) GetEBounds() EList {
-	ret := eTypeParameter.mock.Called()
+func (e *MockETypeParameter_Prototype_Methods) GetEBounds() EList {
+	ret := e.mock.Called()
 
 	var r EList
 	if rf, ok := ret.Get(0).(func() EList); ok {

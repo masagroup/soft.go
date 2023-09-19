@@ -20,6 +20,7 @@ func discardEClassifier() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEClassifier
 }
 
 func TestEClassifierAsEClassifier(t *testing.T) {

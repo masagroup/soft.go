@@ -19,6 +19,7 @@ func discardEEnumLiteral() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEEnumLiteral
 }
 
 func TestEEnumLiteralAsEEnumLiteral(t *testing.T) {

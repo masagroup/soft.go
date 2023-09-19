@@ -19,6 +19,7 @@ func discardEOperation() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEOperation
 }
 
 func TestEOperationAsEOperation(t *testing.T) {

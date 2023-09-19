@@ -19,6 +19,7 @@ func discardEFactory() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEFactory
 }
 
 func TestEFactoryAsEFactory(t *testing.T) {

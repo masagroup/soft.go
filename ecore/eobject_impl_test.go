@@ -19,6 +19,7 @@ func discardEObject() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEObject
 }
 
 func TestEObjectAsEObject(t *testing.T) {

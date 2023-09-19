@@ -43,9 +43,9 @@ func (_me *MockEPackage_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEPackage_Expecter_Methods.SetMock(mock)
 }
 
-func (ePackage *MockEPackage_Prototype) EXPECT() *MockEPackage_Expecter {
+func (e *MockEPackage_Prototype) EXPECT() *MockEPackage_Expecter {
 	expecter := &MockEPackage_Expecter{}
-	expecter.SetMock(ePackage.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -68,8 +68,8 @@ func (_mde *MockEPackage_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // GetEClassifiers get the value of eClassifiers
-func (ePackage *MockEPackage_Prototype_Methods) GetEClassifiers() EList {
-	ret := ePackage.mock.Called()
+func (e *MockEPackage_Prototype_Methods) GetEClassifiers() EList {
+	ret := e.mock.Called()
 
 	var r EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
@@ -104,8 +104,8 @@ func (c *MockEPackage_GetEClassifiers_Call) Return(eClassifiers EList) *MockEPac
 }
 
 // GetEFactoryInstance get the value of eFactoryInstance
-func (ePackage *MockEPackage_Prototype_Methods) GetEFactoryInstance() EFactory {
-	ret := ePackage.mock.Called()
+func (e *MockEPackage_Prototype_Methods) GetEFactoryInstance() EFactory {
+	ret := e.mock.Called()
 
 	var r EFactory
 	if rf, ok := ret.Get(0).(func() EFactory); ok {
@@ -140,8 +140,8 @@ func (c *MockEPackage_GetEFactoryInstance_Call) Return(eFactoryInstance EFactory
 }
 
 // SetEFactoryInstance provides mock implementation for setting the value of eFactoryInstance
-func (ePackage *MockEPackage_Prototype_Methods) SetEFactoryInstance(eFactoryInstance EFactory) {
-	ePackage.mock.Called(eFactoryInstance)
+func (e *MockEPackage_Prototype_Methods) SetEFactoryInstance(eFactoryInstance EFactory) {
+	e.mock.Called(eFactoryInstance)
 }
 
 type MockEPackage_SetEFactoryInstance_Call struct {
@@ -167,8 +167,8 @@ func (c *MockEPackage_SetEFactoryInstance_Call) Return() *MockEPackage_SetEFacto
 }
 
 // GetESubPackages get the value of eSubPackages
-func (ePackage *MockEPackage_Prototype_Methods) GetESubPackages() EList {
-	ret := ePackage.mock.Called()
+func (e *MockEPackage_Prototype_Methods) GetESubPackages() EList {
+	ret := e.mock.Called()
 
 	var r EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
@@ -203,8 +203,8 @@ func (c *MockEPackage_GetESubPackages_Call) Return(eSubPackages EList) *MockEPac
 }
 
 // GetESuperPackage get the value of eSuperPackage
-func (ePackage *MockEPackage_Prototype_Methods) GetESuperPackage() EPackage {
-	ret := ePackage.mock.Called()
+func (e *MockEPackage_Prototype_Methods) GetESuperPackage() EPackage {
+	ret := e.mock.Called()
 
 	var r EPackage
 	if rf, ok := ret.Get(0).(func() EPackage); ok {
@@ -239,8 +239,8 @@ func (c *MockEPackage_GetESuperPackage_Call) Return(eSuperPackage EPackage) *Moc
 }
 
 // GetNsPrefix get the value of nsPrefix
-func (ePackage *MockEPackage_Prototype_Methods) GetNsPrefix() string {
-	ret := ePackage.mock.Called()
+func (e *MockEPackage_Prototype_Methods) GetNsPrefix() string {
+	ret := e.mock.Called()
 
 	var r string
 	if rf, ok := ret.Get(0).(func() string); ok {
@@ -275,8 +275,8 @@ func (c *MockEPackage_GetNsPrefix_Call) Return(nsPrefix string) *MockEPackage_Ge
 }
 
 // SetNsPrefix provides mock implementation for setting the value of nsPrefix
-func (ePackage *MockEPackage_Prototype_Methods) SetNsPrefix(nsPrefix string) {
-	ePackage.mock.Called(nsPrefix)
+func (e *MockEPackage_Prototype_Methods) SetNsPrefix(nsPrefix string) {
+	e.mock.Called(nsPrefix)
 }
 
 type MockEPackage_SetNsPrefix_Call struct {
@@ -302,8 +302,8 @@ func (c *MockEPackage_SetNsPrefix_Call) Return() *MockEPackage_SetNsPrefix_Call 
 }
 
 // GetNsURI get the value of nsURI
-func (ePackage *MockEPackage_Prototype_Methods) GetNsURI() string {
-	ret := ePackage.mock.Called()
+func (e *MockEPackage_Prototype_Methods) GetNsURI() string {
+	ret := e.mock.Called()
 
 	var r string
 	if rf, ok := ret.Get(0).(func() string); ok {
@@ -338,8 +338,8 @@ func (c *MockEPackage_GetNsURI_Call) Return(nsURI string) *MockEPackage_GetNsURI
 }
 
 // SetNsURI provides mock implementation for setting the value of nsURI
-func (ePackage *MockEPackage_Prototype_Methods) SetNsURI(nsURI string) {
-	ePackage.mock.Called(nsURI)
+func (e *MockEPackage_Prototype_Methods) SetNsURI(nsURI string) {
+	e.mock.Called(nsURI)
 }
 
 type MockEPackage_SetNsURI_Call struct {
@@ -365,8 +365,8 @@ func (c *MockEPackage_SetNsURI_Call) Return() *MockEPackage_SetNsURI_Call {
 }
 
 // GetEClassifier provides mock implementation
-func (ePackage *MockEPackage_Prototype_Methods) GetEClassifier(name string) EClassifier {
-	ret := ePackage.mock.Called(name)
+func (e *MockEPackage_Prototype_Methods) GetEClassifier(name string) EClassifier {
+	ret := e.mock.Called(name)
 
 	var r EClassifier
 	if rf, ok := ret.Get(0).(func() EClassifier); ok {

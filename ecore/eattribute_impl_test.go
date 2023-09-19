@@ -19,6 +19,7 @@ func discardEAttribute() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEAttribute
 }
 
 func TestEAttributeAsEAttribute(t *testing.T) {

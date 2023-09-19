@@ -19,6 +19,7 @@ func discardEPackage() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEPackage
 }
 
 func TestEPackageAsEPackage(t *testing.T) {

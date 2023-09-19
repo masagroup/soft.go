@@ -27,216 +27,216 @@ type eTypedElementBasics interface {
 
 // newETypedElementImpl is the constructor of a ETypedElementImpl
 func newETypedElementImpl() *ETypedElementImpl {
-	eTypedElement := new(ETypedElementImpl)
-	eTypedElement.SetInterfaces(eTypedElement)
-	eTypedElement.Initialize()
-	return eTypedElement
+	e := new(ETypedElementImpl)
+	e.SetInterfaces(e)
+	e.Initialize()
+	return e
 }
 
-func (eTypedElement *ETypedElementImpl) Initialize() {
-	eTypedElement.ENamedElementImpl.Initialize()
-	eTypedElement.isOrdered = true
-	eTypedElement.isUnique = true
-	eTypedElement.lowerBound = 0
-	eTypedElement.upperBound = 1
+func (e *ETypedElementImpl) Initialize() {
+	e.ENamedElementImpl.Initialize()
+	e.isOrdered = true
+	e.isUnique = true
+	e.lowerBound = 0
+	e.upperBound = 1
 
 }
 
-func (eTypedElement *ETypedElementImpl) asETypedElement() ETypedElement {
-	return eTypedElement.GetInterfaces().(ETypedElement)
+func (e *ETypedElementImpl) asETypedElement() ETypedElement {
+	return e.GetInterfaces().(ETypedElement)
 }
 
-func (eTypedElement *ETypedElementImpl) asBasics() eTypedElementBasics {
-	return eTypedElement.GetInterfaces().(eTypedElementBasics)
+func (e *ETypedElementImpl) asBasics() eTypedElementBasics {
+	return e.GetInterfaces().(eTypedElementBasics)
 }
 
-func (eTypedElement *ETypedElementImpl) EStaticClass() EClass {
+func (e *ETypedElementImpl) EStaticClass() EClass {
 	return GetPackage().GetETypedElement()
 }
 
-func (eTypedElement *ETypedElementImpl) EStaticFeatureCount() int {
+func (e *ETypedElementImpl) EStaticFeatureCount() int {
 	return ETYPED_ELEMENT_FEATURE_COUNT
 }
 
 // GetEType get the value of eType
-func (eTypedElement *ETypedElementImpl) GetEType() EClassifier {
-	if eTypedElement.eType != nil && eTypedElement.eType.EIsProxy() {
-		oldEType := eTypedElement.eType
-		newEType := eTypedElement.EResolveProxy(oldEType).(EClassifier)
-		eTypedElement.eType = newEType
+func (e *ETypedElementImpl) GetEType() EClassifier {
+	if e.eType != nil && e.eType.EIsProxy() {
+		oldEType := e.eType
+		newEType := e.EResolveProxy(oldEType).(EClassifier)
+		e.eType = newEType
 		if newEType != oldEType {
-			if eTypedElement.ENotificationRequired() {
-				eTypedElement.ENotify(NewNotificationByFeatureID(eTypedElement, RESOLVE, ETYPED_ELEMENT__ETYPE, oldEType, newEType, NO_INDEX))
+			if e.ENotificationRequired() {
+				e.ENotify(NewNotificationByFeatureID(e, RESOLVE, ETYPED_ELEMENT__ETYPE, oldEType, newEType, NO_INDEX))
 			}
 		}
 	}
-	return eTypedElement.eType
+	return e.eType
 }
 
-func (eTypedElement *ETypedElementImpl) basicGetEType() EClassifier {
-	return eTypedElement.eType
+func (e *ETypedElementImpl) basicGetEType() EClassifier {
+	return e.eType
 }
 
 // SetEType set the value of eType
-func (eTypedElement *ETypedElementImpl) SetEType(newEType EClassifier) {
-	oldEType := eTypedElement.eType
-	eTypedElement.eType = newEType
-	if eTypedElement.ENotificationRequired() {
-		eTypedElement.ENotify(NewNotificationByFeatureID(eTypedElement.AsEObject(), SET, ETYPED_ELEMENT__ETYPE, oldEType, newEType, NO_INDEX))
+func (e *ETypedElementImpl) SetEType(newEType EClassifier) {
+	oldEType := e.eType
+	e.eType = newEType
+	if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), SET, ETYPED_ELEMENT__ETYPE, oldEType, newEType, NO_INDEX))
 	}
 }
 
 // UnsetEType unset the value of eType
-func (eTypedElement *ETypedElementImpl) UnsetEType() {
-	oldEType := eTypedElement.eType
-	eTypedElement.eType = nil
-	if eTypedElement.ENotificationRequired() {
-		eTypedElement.ENotify(NewNotificationByFeatureID(eTypedElement.AsEObject(), UNSET, ETYPED_ELEMENT__ETYPE, oldEType, nil, NO_INDEX))
+func (e *ETypedElementImpl) UnsetEType() {
+	oldEType := e.eType
+	e.eType = nil
+	if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), UNSET, ETYPED_ELEMENT__ETYPE, oldEType, nil, NO_INDEX))
 	}
 }
 
 // IsMany get the value of isMany
-func (eTypedElement *ETypedElementImpl) IsMany() bool {
+func (e *ETypedElementImpl) IsMany() bool {
 	panic("IsMany not implemented")
 }
 
 // IsOrdered get the value of isOrdered
-func (eTypedElement *ETypedElementImpl) IsOrdered() bool {
-	return eTypedElement.isOrdered
+func (e *ETypedElementImpl) IsOrdered() bool {
+	return e.isOrdered
 }
 
 // SetOrdered set the value of isOrdered
-func (eTypedElement *ETypedElementImpl) SetOrdered(newIsOrdered bool) {
-	oldIsOrdered := eTypedElement.isOrdered
-	eTypedElement.isOrdered = newIsOrdered
-	if eTypedElement.ENotificationRequired() {
-		eTypedElement.ENotify(NewNotificationByFeatureID(eTypedElement.AsEObject(), SET, ETYPED_ELEMENT__ORDERED, oldIsOrdered, newIsOrdered, NO_INDEX))
+func (e *ETypedElementImpl) SetOrdered(newIsOrdered bool) {
+	oldIsOrdered := e.isOrdered
+	e.isOrdered = newIsOrdered
+	if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), SET, ETYPED_ELEMENT__ORDERED, oldIsOrdered, newIsOrdered, NO_INDEX))
 	}
 }
 
 // IsRequired get the value of isRequired
-func (eTypedElement *ETypedElementImpl) IsRequired() bool {
+func (e *ETypedElementImpl) IsRequired() bool {
 	panic("IsRequired not implemented")
 }
 
 // IsUnique get the value of isUnique
-func (eTypedElement *ETypedElementImpl) IsUnique() bool {
-	return eTypedElement.isUnique
+func (e *ETypedElementImpl) IsUnique() bool {
+	return e.isUnique
 }
 
 // SetUnique set the value of isUnique
-func (eTypedElement *ETypedElementImpl) SetUnique(newIsUnique bool) {
-	oldIsUnique := eTypedElement.isUnique
-	eTypedElement.isUnique = newIsUnique
-	if eTypedElement.ENotificationRequired() {
-		eTypedElement.ENotify(NewNotificationByFeatureID(eTypedElement.AsEObject(), SET, ETYPED_ELEMENT__UNIQUE, oldIsUnique, newIsUnique, NO_INDEX))
+func (e *ETypedElementImpl) SetUnique(newIsUnique bool) {
+	oldIsUnique := e.isUnique
+	e.isUnique = newIsUnique
+	if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), SET, ETYPED_ELEMENT__UNIQUE, oldIsUnique, newIsUnique, NO_INDEX))
 	}
 }
 
 // GetLowerBound get the value of lowerBound
-func (eTypedElement *ETypedElementImpl) GetLowerBound() int {
-	return eTypedElement.lowerBound
+func (e *ETypedElementImpl) GetLowerBound() int {
+	return e.lowerBound
 }
 
 // SetLowerBound set the value of lowerBound
-func (eTypedElement *ETypedElementImpl) SetLowerBound(newLowerBound int) {
-	oldLowerBound := eTypedElement.lowerBound
-	eTypedElement.lowerBound = newLowerBound
-	if eTypedElement.ENotificationRequired() {
-		eTypedElement.ENotify(NewNotificationByFeatureID(eTypedElement.AsEObject(), SET, ETYPED_ELEMENT__LOWER_BOUND, oldLowerBound, newLowerBound, NO_INDEX))
+func (e *ETypedElementImpl) SetLowerBound(newLowerBound int) {
+	oldLowerBound := e.lowerBound
+	e.lowerBound = newLowerBound
+	if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), SET, ETYPED_ELEMENT__LOWER_BOUND, oldLowerBound, newLowerBound, NO_INDEX))
 	}
 }
 
 // GetUpperBound get the value of upperBound
-func (eTypedElement *ETypedElementImpl) GetUpperBound() int {
-	return eTypedElement.upperBound
+func (e *ETypedElementImpl) GetUpperBound() int {
+	return e.upperBound
 }
 
 // SetUpperBound set the value of upperBound
-func (eTypedElement *ETypedElementImpl) SetUpperBound(newUpperBound int) {
-	oldUpperBound := eTypedElement.upperBound
-	eTypedElement.upperBound = newUpperBound
-	if eTypedElement.ENotificationRequired() {
-		eTypedElement.ENotify(NewNotificationByFeatureID(eTypedElement.AsEObject(), SET, ETYPED_ELEMENT__UPPER_BOUND, oldUpperBound, newUpperBound, NO_INDEX))
+func (e *ETypedElementImpl) SetUpperBound(newUpperBound int) {
+	oldUpperBound := e.upperBound
+	e.upperBound = newUpperBound
+	if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), SET, ETYPED_ELEMENT__UPPER_BOUND, oldUpperBound, newUpperBound, NO_INDEX))
 	}
 }
 
-func (eTypedElement *ETypedElementImpl) EGetFromID(featureID int, resolve bool) any {
+func (e *ETypedElementImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
 		if resolve {
-			return eTypedElement.asETypedElement().GetEType()
+			return e.asETypedElement().GetEType()
 		}
-		return eTypedElement.asBasics().basicGetEType()
+		return e.asBasics().basicGetEType()
 	case ETYPED_ELEMENT__LOWER_BOUND:
-		return eTypedElement.asETypedElement().GetLowerBound()
+		return e.asETypedElement().GetLowerBound()
 	case ETYPED_ELEMENT__MANY:
-		return eTypedElement.asETypedElement().IsMany()
+		return e.asETypedElement().IsMany()
 	case ETYPED_ELEMENT__ORDERED:
-		return eTypedElement.asETypedElement().IsOrdered()
+		return e.asETypedElement().IsOrdered()
 	case ETYPED_ELEMENT__REQUIRED:
-		return eTypedElement.asETypedElement().IsRequired()
+		return e.asETypedElement().IsRequired()
 	case ETYPED_ELEMENT__UNIQUE:
-		return eTypedElement.asETypedElement().IsUnique()
+		return e.asETypedElement().IsUnique()
 	case ETYPED_ELEMENT__UPPER_BOUND:
-		return eTypedElement.asETypedElement().GetUpperBound()
+		return e.asETypedElement().GetUpperBound()
 	default:
-		return eTypedElement.ENamedElementImpl.EGetFromID(featureID, resolve)
+		return e.ENamedElementImpl.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eTypedElement *ETypedElementImpl) ESetFromID(featureID int, newValue any) {
+func (e *ETypedElementImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
 		newValueOrNil, _ := newValue.(EClassifier)
-		eTypedElement.asETypedElement().SetEType(newValueOrNil)
+		e.asETypedElement().SetEType(newValueOrNil)
 	case ETYPED_ELEMENT__LOWER_BOUND:
-		eTypedElement.asETypedElement().SetLowerBound(newValue.(int))
+		e.asETypedElement().SetLowerBound(newValue.(int))
 	case ETYPED_ELEMENT__ORDERED:
-		eTypedElement.asETypedElement().SetOrdered(newValue.(bool))
+		e.asETypedElement().SetOrdered(newValue.(bool))
 	case ETYPED_ELEMENT__UNIQUE:
-		eTypedElement.asETypedElement().SetUnique(newValue.(bool))
+		e.asETypedElement().SetUnique(newValue.(bool))
 	case ETYPED_ELEMENT__UPPER_BOUND:
-		eTypedElement.asETypedElement().SetUpperBound(newValue.(int))
+		e.asETypedElement().SetUpperBound(newValue.(int))
 	default:
-		eTypedElement.ENamedElementImpl.ESetFromID(featureID, newValue)
+		e.ENamedElementImpl.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eTypedElement *ETypedElementImpl) EUnsetFromID(featureID int) {
+func (e *ETypedElementImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
-		eTypedElement.asETypedElement().UnsetEType()
+		e.asETypedElement().UnsetEType()
 	case ETYPED_ELEMENT__LOWER_BOUND:
-		eTypedElement.asETypedElement().SetLowerBound(0)
+		e.asETypedElement().SetLowerBound(0)
 	case ETYPED_ELEMENT__ORDERED:
-		eTypedElement.asETypedElement().SetOrdered(true)
+		e.asETypedElement().SetOrdered(true)
 	case ETYPED_ELEMENT__UNIQUE:
-		eTypedElement.asETypedElement().SetUnique(true)
+		e.asETypedElement().SetUnique(true)
 	case ETYPED_ELEMENT__UPPER_BOUND:
-		eTypedElement.asETypedElement().SetUpperBound(1)
+		e.asETypedElement().SetUpperBound(1)
 	default:
-		eTypedElement.ENamedElementImpl.EUnsetFromID(featureID)
+		e.ENamedElementImpl.EUnsetFromID(featureID)
 	}
 }
 
-func (eTypedElement *ETypedElementImpl) EIsSetFromID(featureID int) bool {
+func (e *ETypedElementImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
-		return eTypedElement.eType != nil
+		return e.eType != nil
 	case ETYPED_ELEMENT__LOWER_BOUND:
-		return eTypedElement.lowerBound != 0
+		return e.lowerBound != 0
 	case ETYPED_ELEMENT__MANY:
-		return eTypedElement.asETypedElement().IsMany() != false
+		return e.asETypedElement().IsMany() != false
 	case ETYPED_ELEMENT__ORDERED:
-		return eTypedElement.isOrdered != true
+		return e.isOrdered != true
 	case ETYPED_ELEMENT__REQUIRED:
-		return eTypedElement.asETypedElement().IsRequired() != false
+		return e.asETypedElement().IsRequired() != false
 	case ETYPED_ELEMENT__UNIQUE:
-		return eTypedElement.isUnique != true
+		return e.isUnique != true
 	case ETYPED_ELEMENT__UPPER_BOUND:
-		return eTypedElement.upperBound != 1
+		return e.upperBound != 1
 	default:
-		return eTypedElement.ENamedElementImpl.EIsSetFromID(featureID)
+		return e.ENamedElementImpl.EIsSetFromID(featureID)
 	}
 }

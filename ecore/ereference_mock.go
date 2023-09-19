@@ -43,9 +43,9 @@ func (_me *MockEReference_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEReference_Expecter_Methods.SetMock(mock)
 }
 
-func (eReference *MockEReference_Prototype) EXPECT() *MockEReference_Expecter {
+func (e *MockEReference_Prototype) EXPECT() *MockEReference_Expecter {
 	expecter := &MockEReference_Expecter{}
-	expecter.SetMock(eReference.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -68,8 +68,8 @@ func (_mde *MockEReference_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // IsContainer get the value of isContainer
-func (eReference *MockEReference_Prototype_Methods) IsContainer() bool {
-	ret := eReference.mock.Called()
+func (e *MockEReference_Prototype_Methods) IsContainer() bool {
+	ret := e.mock.Called()
 
 	var r bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
@@ -104,8 +104,8 @@ func (c *MockEReference_IsContainer_Call) Return(isContainer bool) *MockEReferen
 }
 
 // IsContainment get the value of isContainment
-func (eReference *MockEReference_Prototype_Methods) IsContainment() bool {
-	ret := eReference.mock.Called()
+func (e *MockEReference_Prototype_Methods) IsContainment() bool {
+	ret := e.mock.Called()
 
 	var r bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
@@ -140,8 +140,8 @@ func (c *MockEReference_IsContainment_Call) Return(isContainment bool) *MockERef
 }
 
 // SetContainment provides mock implementation for setting the value of isContainment
-func (eReference *MockEReference_Prototype_Methods) SetContainment(isContainment bool) {
-	eReference.mock.Called(isContainment)
+func (e *MockEReference_Prototype_Methods) SetContainment(isContainment bool) {
+	e.mock.Called(isContainment)
 }
 
 type MockEReference_SetContainment_Call struct {
@@ -167,8 +167,8 @@ func (c *MockEReference_SetContainment_Call) Return() *MockEReference_SetContain
 }
 
 // GetEKeys get the value of eKeys
-func (eReference *MockEReference_Prototype_Methods) GetEKeys() EList {
-	ret := eReference.mock.Called()
+func (e *MockEReference_Prototype_Methods) GetEKeys() EList {
+	ret := e.mock.Called()
 
 	var r EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
@@ -203,8 +203,8 @@ func (c *MockEReference_GetEKeys_Call) Return(eKeys EList) *MockEReference_GetEK
 }
 
 // GetEOpposite get the value of eOpposite
-func (eReference *MockEReference_Prototype_Methods) GetEOpposite() EReference {
-	ret := eReference.mock.Called()
+func (e *MockEReference_Prototype_Methods) GetEOpposite() EReference {
+	ret := e.mock.Called()
 
 	var r EReference
 	if rf, ok := ret.Get(0).(func() EReference); ok {
@@ -239,8 +239,8 @@ func (c *MockEReference_GetEOpposite_Call) Return(eOpposite EReference) *MockERe
 }
 
 // SetEOpposite provides mock implementation for setting the value of eOpposite
-func (eReference *MockEReference_Prototype_Methods) SetEOpposite(eOpposite EReference) {
-	eReference.mock.Called(eOpposite)
+func (e *MockEReference_Prototype_Methods) SetEOpposite(eOpposite EReference) {
+	e.mock.Called(eOpposite)
 }
 
 type MockEReference_SetEOpposite_Call struct {
@@ -266,8 +266,8 @@ func (c *MockEReference_SetEOpposite_Call) Return() *MockEReference_SetEOpposite
 }
 
 // GetEReferenceType get the value of eReferenceType
-func (eReference *MockEReference_Prototype_Methods) GetEReferenceType() EClass {
-	ret := eReference.mock.Called()
+func (e *MockEReference_Prototype_Methods) GetEReferenceType() EClass {
+	ret := e.mock.Called()
 
 	var r EClass
 	if rf, ok := ret.Get(0).(func() EClass); ok {
@@ -302,8 +302,8 @@ func (c *MockEReference_GetEReferenceType_Call) Return(eReferenceType EClass) *M
 }
 
 // IsResolveProxies get the value of isResolveProxies
-func (eReference *MockEReference_Prototype_Methods) IsResolveProxies() bool {
-	ret := eReference.mock.Called()
+func (e *MockEReference_Prototype_Methods) IsResolveProxies() bool {
+	ret := e.mock.Called()
 
 	var r bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
@@ -338,8 +338,8 @@ func (c *MockEReference_IsResolveProxies_Call) Return(isResolveProxies bool) *Mo
 }
 
 // SetResolveProxies provides mock implementation for setting the value of isResolveProxies
-func (eReference *MockEReference_Prototype_Methods) SetResolveProxies(isResolveProxies bool) {
-	eReference.mock.Called(isResolveProxies)
+func (e *MockEReference_Prototype_Methods) SetResolveProxies(isResolveProxies bool) {
+	e.mock.Called(isResolveProxies)
 }
 
 type MockEReference_SetResolveProxies_Call struct {

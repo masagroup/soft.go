@@ -19,6 +19,7 @@ func discardEClass() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEClass
 }
 
 func TestEClassAsEClass(t *testing.T) {

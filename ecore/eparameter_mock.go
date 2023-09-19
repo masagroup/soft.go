@@ -43,9 +43,9 @@ func (_me *MockEParameter_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEParameter_Expecter_Methods.SetMock(mock)
 }
 
-func (eParameter *MockEParameter_Prototype) EXPECT() *MockEParameter_Expecter {
+func (e *MockEParameter_Prototype) EXPECT() *MockEParameter_Expecter {
 	expecter := &MockEParameter_Expecter{}
-	expecter.SetMock(eParameter.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -68,8 +68,8 @@ func (_mde *MockEParameter_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // GetEOperation get the value of eOperation
-func (eParameter *MockEParameter_Prototype_Methods) GetEOperation() EOperation {
-	ret := eParameter.mock.Called()
+func (e *MockEParameter_Prototype_Methods) GetEOperation() EOperation {
+	ret := e.mock.Called()
 
 	var r EOperation
 	if rf, ok := ret.Get(0).(func() EOperation); ok {

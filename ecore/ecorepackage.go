@@ -1361,6 +1361,7 @@ type EcorePackage interface {
 
 var packageInstance EcorePackage
 
+// GetFactory returns the factory for the model ecore
 func GetPackage() EcorePackage {
 	if packageInstance == nil {
 		packageInstance = newEcorePackageImpl()

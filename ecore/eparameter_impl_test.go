@@ -19,6 +19,7 @@ func discardEParameter() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEParameter
 }
 
 func TestEParameterAsEParameter(t *testing.T) {

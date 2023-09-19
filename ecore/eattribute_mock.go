@@ -43,9 +43,9 @@ func (_me *MockEAttribute_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEAttribute_Expecter_Methods.SetMock(mock)
 }
 
-func (eAttribute *MockEAttribute_Prototype) EXPECT() *MockEAttribute_Expecter {
+func (e *MockEAttribute_Prototype) EXPECT() *MockEAttribute_Expecter {
 	expecter := &MockEAttribute_Expecter{}
-	expecter.SetMock(eAttribute.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -68,8 +68,8 @@ func (_mde *MockEAttribute_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // GetEAttributeType get the value of eAttributeType
-func (eAttribute *MockEAttribute_Prototype_Methods) GetEAttributeType() EDataType {
-	ret := eAttribute.mock.Called()
+func (e *MockEAttribute_Prototype_Methods) GetEAttributeType() EDataType {
+	ret := e.mock.Called()
 
 	var r EDataType
 	if rf, ok := ret.Get(0).(func() EDataType); ok {
@@ -104,8 +104,8 @@ func (c *MockEAttribute_GetEAttributeType_Call) Return(eAttributeType EDataType)
 }
 
 // IsID get the value of isID
-func (eAttribute *MockEAttribute_Prototype_Methods) IsID() bool {
-	ret := eAttribute.mock.Called()
+func (e *MockEAttribute_Prototype_Methods) IsID() bool {
+	ret := e.mock.Called()
 
 	var r bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
@@ -140,8 +140,8 @@ func (c *MockEAttribute_IsID_Call) Return(isID bool) *MockEAttribute_IsID_Call {
 }
 
 // SetID provides mock implementation for setting the value of isID
-func (eAttribute *MockEAttribute_Prototype_Methods) SetID(isID bool) {
-	eAttribute.mock.Called(isID)
+func (e *MockEAttribute_Prototype_Methods) SetID(isID bool) {
+	e.mock.Called(isID)
 }
 
 type MockEAttribute_SetID_Call struct {

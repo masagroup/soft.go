@@ -43,9 +43,9 @@ func (_me *MockEGenericType_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEGenericType_Expecter_Methods.SetMock(mock)
 }
 
-func (eGenericType *MockEGenericType_Prototype) EXPECT() *MockEGenericType_Expecter {
+func (e *MockEGenericType_Prototype) EXPECT() *MockEGenericType_Expecter {
 	expecter := &MockEGenericType_Expecter{}
-	expecter.SetMock(eGenericType.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -68,8 +68,8 @@ func (_mde *MockEGenericType_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // GetEClassifier get the value of eClassifier
-func (eGenericType *MockEGenericType_Prototype_Methods) GetEClassifier() EClassifier {
-	ret := eGenericType.mock.Called()
+func (e *MockEGenericType_Prototype_Methods) GetEClassifier() EClassifier {
+	ret := e.mock.Called()
 
 	var r EClassifier
 	if rf, ok := ret.Get(0).(func() EClassifier); ok {
@@ -104,8 +104,8 @@ func (c *MockEGenericType_GetEClassifier_Call) Return(eClassifier EClassifier) *
 }
 
 // SetEClassifier provides mock implementation for setting the value of eClassifier
-func (eGenericType *MockEGenericType_Prototype_Methods) SetEClassifier(eClassifier EClassifier) {
-	eGenericType.mock.Called(eClassifier)
+func (e *MockEGenericType_Prototype_Methods) SetEClassifier(eClassifier EClassifier) {
+	e.mock.Called(eClassifier)
 }
 
 type MockEGenericType_SetEClassifier_Call struct {
@@ -131,8 +131,8 @@ func (c *MockEGenericType_SetEClassifier_Call) Return() *MockEGenericType_SetECl
 }
 
 // GetELowerBound get the value of eLowerBound
-func (eGenericType *MockEGenericType_Prototype_Methods) GetELowerBound() EGenericType {
-	ret := eGenericType.mock.Called()
+func (e *MockEGenericType_Prototype_Methods) GetELowerBound() EGenericType {
+	ret := e.mock.Called()
 
 	var r EGenericType
 	if rf, ok := ret.Get(0).(func() EGenericType); ok {
@@ -167,8 +167,8 @@ func (c *MockEGenericType_GetELowerBound_Call) Return(eLowerBound EGenericType) 
 }
 
 // SetELowerBound provides mock implementation for setting the value of eLowerBound
-func (eGenericType *MockEGenericType_Prototype_Methods) SetELowerBound(eLowerBound EGenericType) {
-	eGenericType.mock.Called(eLowerBound)
+func (e *MockEGenericType_Prototype_Methods) SetELowerBound(eLowerBound EGenericType) {
+	e.mock.Called(eLowerBound)
 }
 
 type MockEGenericType_SetELowerBound_Call struct {
@@ -194,8 +194,8 @@ func (c *MockEGenericType_SetELowerBound_Call) Return() *MockEGenericType_SetELo
 }
 
 // GetERawType get the value of eRawType
-func (eGenericType *MockEGenericType_Prototype_Methods) GetERawType() EClassifier {
-	ret := eGenericType.mock.Called()
+func (e *MockEGenericType_Prototype_Methods) GetERawType() EClassifier {
+	ret := e.mock.Called()
 
 	var r EClassifier
 	if rf, ok := ret.Get(0).(func() EClassifier); ok {
@@ -230,8 +230,8 @@ func (c *MockEGenericType_GetERawType_Call) Return(eRawType EClassifier) *MockEG
 }
 
 // GetETypeArguments get the value of eTypeArguments
-func (eGenericType *MockEGenericType_Prototype_Methods) GetETypeArguments() EList {
-	ret := eGenericType.mock.Called()
+func (e *MockEGenericType_Prototype_Methods) GetETypeArguments() EList {
+	ret := e.mock.Called()
 
 	var r EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
@@ -266,8 +266,8 @@ func (c *MockEGenericType_GetETypeArguments_Call) Return(eTypeArguments EList) *
 }
 
 // GetETypeParameter get the value of eTypeParameter
-func (eGenericType *MockEGenericType_Prototype_Methods) GetETypeParameter() ETypeParameter {
-	ret := eGenericType.mock.Called()
+func (e *MockEGenericType_Prototype_Methods) GetETypeParameter() ETypeParameter {
+	ret := e.mock.Called()
 
 	var r ETypeParameter
 	if rf, ok := ret.Get(0).(func() ETypeParameter); ok {
@@ -302,8 +302,8 @@ func (c *MockEGenericType_GetETypeParameter_Call) Return(eTypeParameter ETypePar
 }
 
 // SetETypeParameter provides mock implementation for setting the value of eTypeParameter
-func (eGenericType *MockEGenericType_Prototype_Methods) SetETypeParameter(eTypeParameter ETypeParameter) {
-	eGenericType.mock.Called(eTypeParameter)
+func (e *MockEGenericType_Prototype_Methods) SetETypeParameter(eTypeParameter ETypeParameter) {
+	e.mock.Called(eTypeParameter)
 }
 
 type MockEGenericType_SetETypeParameter_Call struct {
@@ -329,8 +329,8 @@ func (c *MockEGenericType_SetETypeParameter_Call) Return() *MockEGenericType_Set
 }
 
 // GetEUpperBound get the value of eUpperBound
-func (eGenericType *MockEGenericType_Prototype_Methods) GetEUpperBound() EGenericType {
-	ret := eGenericType.mock.Called()
+func (e *MockEGenericType_Prototype_Methods) GetEUpperBound() EGenericType {
+	ret := e.mock.Called()
 
 	var r EGenericType
 	if rf, ok := ret.Get(0).(func() EGenericType); ok {
@@ -365,8 +365,8 @@ func (c *MockEGenericType_GetEUpperBound_Call) Return(eUpperBound EGenericType) 
 }
 
 // SetEUpperBound provides mock implementation for setting the value of eUpperBound
-func (eGenericType *MockEGenericType_Prototype_Methods) SetEUpperBound(eUpperBound EGenericType) {
-	eGenericType.mock.Called(eUpperBound)
+func (e *MockEGenericType_Prototype_Methods) SetEUpperBound(eUpperBound EGenericType) {
+	e.mock.Called(eUpperBound)
 }
 
 type MockEGenericType_SetEUpperBound_Call struct {
@@ -392,8 +392,8 @@ func (c *MockEGenericType_SetEUpperBound_Call) Return() *MockEGenericType_SetEUp
 }
 
 // IsInstance provides mock implementation
-func (eGenericType *MockEGenericType_Prototype_Methods) IsInstance(object any) bool {
-	ret := eGenericType.mock.Called(object)
+func (e *MockEGenericType_Prototype_Methods) IsInstance(object any) bool {
+	ret := e.mock.Called(object)
 
 	var r bool
 	if rf, ok := ret.Get(0).(func() bool); ok {

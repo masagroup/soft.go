@@ -22,89 +22,89 @@ type eTypeParameterInitializers interface {
 
 // newETypeParameterImpl is the constructor of a ETypeParameterImpl
 func newETypeParameterImpl() *ETypeParameterImpl {
-	eTypeParameter := new(ETypeParameterImpl)
-	eTypeParameter.SetInterfaces(eTypeParameter)
-	eTypeParameter.Initialize()
-	return eTypeParameter
+	e := new(ETypeParameterImpl)
+	e.SetInterfaces(e)
+	e.Initialize()
+	return e
 }
 
-func (eTypeParameter *ETypeParameterImpl) Initialize() {
-	eTypeParameter.ENamedElementImpl.Initialize()
+func (e *ETypeParameterImpl) Initialize() {
+	e.ENamedElementImpl.Initialize()
 
 }
 
-func (eTypeParameter *ETypeParameterImpl) asETypeParameter() ETypeParameter {
-	return eTypeParameter.GetInterfaces().(ETypeParameter)
+func (e *ETypeParameterImpl) asETypeParameter() ETypeParameter {
+	return e.GetInterfaces().(ETypeParameter)
 }
 
-func (eTypeParameter *ETypeParameterImpl) asInitializers() eTypeParameterInitializers {
-	return eTypeParameter.GetInterfaces().(eTypeParameterInitializers)
+func (e *ETypeParameterImpl) asInitializers() eTypeParameterInitializers {
+	return e.GetInterfaces().(eTypeParameterInitializers)
 }
 
-func (eTypeParameter *ETypeParameterImpl) EStaticClass() EClass {
+func (e *ETypeParameterImpl) EStaticClass() EClass {
 	return GetPackage().GetETypeParameter()
 }
 
-func (eTypeParameter *ETypeParameterImpl) EStaticFeatureCount() int {
+func (e *ETypeParameterImpl) EStaticFeatureCount() int {
 	return ETYPE_PARAMETER_FEATURE_COUNT
 }
 
 // GetEBounds get the value of eBounds
-func (eTypeParameter *ETypeParameterImpl) GetEBounds() EList {
-	if eTypeParameter.eBounds == nil {
-		eTypeParameter.eBounds = eTypeParameter.asInitializers().initEBounds()
+func (e *ETypeParameterImpl) GetEBounds() EList {
+	if e.eBounds == nil {
+		e.eBounds = e.asInitializers().initEBounds()
 	}
-	return eTypeParameter.eBounds
+	return e.eBounds
 }
 
-func (eTypeParameter *ETypeParameterImpl) initEBounds() EList {
-	return NewBasicEObjectList(eTypeParameter.AsEObjectInternal(), ETYPE_PARAMETER__EBOUNDS, -1, true, true, false, false, false)
+func (e *ETypeParameterImpl) initEBounds() EList {
+	return NewBasicEObjectList(e.AsEObjectInternal(), ETYPE_PARAMETER__EBOUNDS, -1, true, true, false, false, false)
 }
 
-func (eTypeParameter *ETypeParameterImpl) EGetFromID(featureID int, resolve bool) any {
+func (e *ETypeParameterImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case ETYPE_PARAMETER__EBOUNDS:
-		return eTypeParameter.asETypeParameter().GetEBounds()
+		return e.asETypeParameter().GetEBounds()
 	default:
-		return eTypeParameter.ENamedElementImpl.EGetFromID(featureID, resolve)
+		return e.ENamedElementImpl.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eTypeParameter *ETypeParameterImpl) ESetFromID(featureID int, newValue any) {
+func (e *ETypeParameterImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case ETYPE_PARAMETER__EBOUNDS:
-		list := eTypeParameter.asETypeParameter().GetEBounds()
+		list := e.asETypeParameter().GetEBounds()
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	default:
-		eTypeParameter.ENamedElementImpl.ESetFromID(featureID, newValue)
+		e.ENamedElementImpl.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eTypeParameter *ETypeParameterImpl) EUnsetFromID(featureID int) {
+func (e *ETypeParameterImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case ETYPE_PARAMETER__EBOUNDS:
-		eTypeParameter.asETypeParameter().GetEBounds().Clear()
+		e.asETypeParameter().GetEBounds().Clear()
 	default:
-		eTypeParameter.ENamedElementImpl.EUnsetFromID(featureID)
+		e.ENamedElementImpl.EUnsetFromID(featureID)
 	}
 }
 
-func (eTypeParameter *ETypeParameterImpl) EIsSetFromID(featureID int) bool {
+func (e *ETypeParameterImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case ETYPE_PARAMETER__EBOUNDS:
-		return eTypeParameter.eBounds != nil && eTypeParameter.eBounds.Size() != 0
+		return e.eBounds != nil && e.eBounds.Size() != 0
 	default:
-		return eTypeParameter.ENamedElementImpl.EIsSetFromID(featureID)
+		return e.ENamedElementImpl.EIsSetFromID(featureID)
 	}
 }
 
-func (eTypeParameter *ETypeParameterImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (e *ETypeParameterImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case ETYPE_PARAMETER__EBOUNDS:
-		list := eTypeParameter.GetEBounds().(ENotifyingList)
+		list := e.GetEBounds().(ENotifyingList)
 		return list.RemoveWithNotification(otherEnd, notifications)
 	default:
-		return eTypeParameter.ENamedElementImpl.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return e.ENamedElementImpl.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

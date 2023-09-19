@@ -19,6 +19,7 @@ func discardEDataType() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEDataType
 }
 
 func TestEDataTypeAsEDataType(t *testing.T) {

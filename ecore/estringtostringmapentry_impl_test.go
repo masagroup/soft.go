@@ -19,6 +19,7 @@ func discardEStringToStringMapEntry() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEStringToStringMapEntry
 }
 
 func TestEStringToStringMapEntryAsEStringToStringMapEntry(t *testing.T) {

@@ -22,113 +22,113 @@ type eModelElementInitializers interface {
 
 // newEModelElementImpl is the constructor of a EModelElementImpl
 func newEModelElementImpl() *EModelElementImpl {
-	eModelElement := new(EModelElementImpl)
-	eModelElement.SetInterfaces(eModelElement)
-	eModelElement.Initialize()
-	return eModelElement
+	e := new(EModelElementImpl)
+	e.SetInterfaces(e)
+	e.Initialize()
+	return e
 }
 
-func (eModelElement *EModelElementImpl) Initialize() {
-	eModelElement.CompactEObjectContainer.Initialize()
+func (e *EModelElementImpl) Initialize() {
+	e.CompactEObjectContainer.Initialize()
 
 }
 
-func (eModelElement *EModelElementImpl) asEModelElement() EModelElement {
-	return eModelElement.GetInterfaces().(EModelElement)
+func (e *EModelElementImpl) asEModelElement() EModelElement {
+	return e.GetInterfaces().(EModelElement)
 }
 
-func (eModelElement *EModelElementImpl) asInitializers() eModelElementInitializers {
-	return eModelElement.GetInterfaces().(eModelElementInitializers)
+func (e *EModelElementImpl) asInitializers() eModelElementInitializers {
+	return e.GetInterfaces().(eModelElementInitializers)
 }
 
-func (eModelElement *EModelElementImpl) EStaticClass() EClass {
+func (e *EModelElementImpl) EStaticClass() EClass {
 	return GetPackage().GetEModelElement()
 }
 
-func (eModelElement *EModelElementImpl) EStaticFeatureCount() int {
+func (e *EModelElementImpl) EStaticFeatureCount() int {
 	return EMODEL_ELEMENT_FEATURE_COUNT
 }
 
 // GetEAnnotation default implementation
-func (eModelElement *EModelElementImpl) GetEAnnotation(string) EAnnotation {
+func (e *EModelElementImpl) GetEAnnotation(string) EAnnotation {
 	panic("GetEAnnotation not implemented")
 }
 
 // GetEAnnotations get the value of eAnnotations
-func (eModelElement *EModelElementImpl) GetEAnnotations() EList {
-	if eModelElement.eAnnotations == nil {
-		eModelElement.eAnnotations = eModelElement.asInitializers().initEAnnotations()
+func (e *EModelElementImpl) GetEAnnotations() EList {
+	if e.eAnnotations == nil {
+		e.eAnnotations = e.asInitializers().initEAnnotations()
 	}
-	return eModelElement.eAnnotations
+	return e.eAnnotations
 }
 
-func (eModelElement *EModelElementImpl) initEAnnotations() EList {
-	return NewBasicEObjectList(eModelElement.AsEObjectInternal(), EMODEL_ELEMENT__EANNOTATIONS, EANNOTATION__EMODEL_ELEMENT, true, true, true, false, false)
+func (e *EModelElementImpl) initEAnnotations() EList {
+	return NewBasicEObjectList(e.AsEObjectInternal(), EMODEL_ELEMENT__EANNOTATIONS, EANNOTATION__EMODEL_ELEMENT, true, true, true, false, false)
 }
 
-func (eModelElement *EModelElementImpl) EGetFromID(featureID int, resolve bool) any {
+func (e *EModelElementImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
-		return eModelElement.asEModelElement().GetEAnnotations()
+		return e.asEModelElement().GetEAnnotations()
 	default:
-		return eModelElement.CompactEObjectContainer.EGetFromID(featureID, resolve)
+		return e.CompactEObjectContainer.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eModelElement *EModelElementImpl) ESetFromID(featureID int, newValue any) {
+func (e *EModelElementImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
-		list := eModelElement.asEModelElement().GetEAnnotations()
+		list := e.asEModelElement().GetEAnnotations()
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	default:
-		eModelElement.CompactEObjectContainer.ESetFromID(featureID, newValue)
+		e.CompactEObjectContainer.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eModelElement *EModelElementImpl) EUnsetFromID(featureID int) {
+func (e *EModelElementImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
-		eModelElement.asEModelElement().GetEAnnotations().Clear()
+		e.asEModelElement().GetEAnnotations().Clear()
 	default:
-		eModelElement.CompactEObjectContainer.EUnsetFromID(featureID)
+		e.CompactEObjectContainer.EUnsetFromID(featureID)
 	}
 }
 
-func (eModelElement *EModelElementImpl) EIsSetFromID(featureID int) bool {
+func (e *EModelElementImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
-		return eModelElement.eAnnotations != nil && eModelElement.eAnnotations.Size() != 0
+		return e.eAnnotations != nil && e.eAnnotations.Size() != 0
 	default:
-		return eModelElement.CompactEObjectContainer.EIsSetFromID(featureID)
+		return e.CompactEObjectContainer.EIsSetFromID(featureID)
 	}
 }
 
-func (eModelElement *EModelElementImpl) EInvokeFromID(operationID int, arguments EList) any {
+func (e *EModelElementImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EMODEL_ELEMENT__GET_EANNOTATION_ESTRING:
-		return eModelElement.asEModelElement().GetEAnnotation(arguments.Get(0).(string))
+		return e.asEModelElement().GetEAnnotation(arguments.Get(0).(string))
 	default:
-		return eModelElement.CompactEObjectContainer.EInvokeFromID(operationID, arguments)
+		return e.CompactEObjectContainer.EInvokeFromID(operationID, arguments)
 	}
 }
 
-func (eModelElement *EModelElementImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (e *EModelElementImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
-		list := eModelElement.GetEAnnotations().(ENotifyingList)
+		list := e.GetEAnnotations().(ENotifyingList)
 		return list.AddWithNotification(otherEnd, notifications)
 	default:
-		return eModelElement.CompactEObjectContainer.EBasicInverseAdd(otherEnd, featureID, notifications)
+		return e.CompactEObjectContainer.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
 }
 
-func (eModelElement *EModelElementImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (e *EModelElementImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EMODEL_ELEMENT__EANNOTATIONS:
-		list := eModelElement.GetEAnnotations().(ENotifyingList)
+		list := e.GetEAnnotations().(ENotifyingList)
 		return list.RemoveWithNotification(otherEnd, notifications)
 	default:
-		return eModelElement.CompactEObjectContainer.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return e.CompactEObjectContainer.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

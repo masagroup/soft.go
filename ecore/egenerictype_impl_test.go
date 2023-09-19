@@ -19,6 +19,7 @@ func discardEGenericType() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEGenericType
 }
 
 func TestEGenericTypeAsEGenericType(t *testing.T) {

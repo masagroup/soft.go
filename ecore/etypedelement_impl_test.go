@@ -19,6 +19,7 @@ func discardETypedElement() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockETypedElement
 }
 
 func TestETypedElementAsETypedElement(t *testing.T) {

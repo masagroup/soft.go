@@ -19,6 +19,7 @@ func discardEAnnotation() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEAnnotation
 }
 
 func TestEAnnotationAsEAnnotation(t *testing.T) {

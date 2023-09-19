@@ -43,9 +43,9 @@ func (_me *MockEDataType_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEDataType_Expecter_Methods.SetMock(mock)
 }
 
-func (eDataType *MockEDataType_Prototype) EXPECT() *MockEDataType_Expecter {
+func (e *MockEDataType_Prototype) EXPECT() *MockEDataType_Expecter {
 	expecter := &MockEDataType_Expecter{}
-	expecter.SetMock(eDataType.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -68,8 +68,8 @@ func (_mde *MockEDataType_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // IsSerializable get the value of isSerializable
-func (eDataType *MockEDataType_Prototype_Methods) IsSerializable() bool {
-	ret := eDataType.mock.Called()
+func (e *MockEDataType_Prototype_Methods) IsSerializable() bool {
+	ret := e.mock.Called()
 
 	var r bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
@@ -104,8 +104,8 @@ func (c *MockEDataType_IsSerializable_Call) Return(isSerializable bool) *MockEDa
 }
 
 // SetSerializable provides mock implementation for setting the value of isSerializable
-func (eDataType *MockEDataType_Prototype_Methods) SetSerializable(isSerializable bool) {
-	eDataType.mock.Called(isSerializable)
+func (e *MockEDataType_Prototype_Methods) SetSerializable(isSerializable bool) {
+	e.mock.Called(isSerializable)
 }
 
 type MockEDataType_SetSerializable_Call struct {

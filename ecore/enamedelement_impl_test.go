@@ -19,6 +19,7 @@ func discardENamedElement() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockENamedElement
 }
 
 func TestENamedElementAsENamedElement(t *testing.T) {

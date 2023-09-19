@@ -19,6 +19,7 @@ func discardEReference() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEReference
 }
 
 func TestEReferenceAsEReference(t *testing.T) {

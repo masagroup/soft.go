@@ -22,142 +22,142 @@ type eFactoryBasics interface {
 
 // newEFactoryImpl is the constructor of a EFactoryImpl
 func newEFactoryImpl() *EFactoryImpl {
-	eFactory := new(EFactoryImpl)
-	eFactory.SetInterfaces(eFactory)
-	eFactory.Initialize()
-	return eFactory
+	e := new(EFactoryImpl)
+	e.SetInterfaces(e)
+	e.Initialize()
+	return e
 }
 
-func (eFactory *EFactoryImpl) asEFactory() EFactory {
-	return eFactory.GetInterfaces().(EFactory)
+func (e *EFactoryImpl) asEFactory() EFactory {
+	return e.GetInterfaces().(EFactory)
 }
 
-func (eFactory *EFactoryImpl) asBasics() eFactoryBasics {
-	return eFactory.GetInterfaces().(eFactoryBasics)
+func (e *EFactoryImpl) asBasics() eFactoryBasics {
+	return e.GetInterfaces().(eFactoryBasics)
 }
 
-func (eFactory *EFactoryImpl) EStaticClass() EClass {
+func (e *EFactoryImpl) EStaticClass() EClass {
 	return GetPackage().GetEFactory()
 }
 
-func (eFactory *EFactoryImpl) EStaticFeatureCount() int {
+func (e *EFactoryImpl) EStaticFeatureCount() int {
 	return EFACTORY_FEATURE_COUNT
 }
 
 // ConvertToString default implementation
-func (eFactory *EFactoryImpl) ConvertToString(EDataType, any) string {
+func (e *EFactoryImpl) ConvertToString(EDataType, any) string {
 	panic("ConvertToString not implemented")
 }
 
 // Create default implementation
-func (eFactory *EFactoryImpl) Create(EClass) EObject {
+func (e *EFactoryImpl) Create(EClass) EObject {
 	panic("Create not implemented")
 }
 
 // CreateFromString default implementation
-func (eFactory *EFactoryImpl) CreateFromString(EDataType, string) any {
+func (e *EFactoryImpl) CreateFromString(EDataType, string) any {
 	panic("CreateFromString not implemented")
 }
 
 // GetEPackage get the value of ePackage
-func (eFactory *EFactoryImpl) GetEPackage() EPackage {
-	if eFactory.EContainerFeatureID() == EFACTORY__EPACKAGE {
-		return eFactory.EContainer().(EPackage)
+func (e *EFactoryImpl) GetEPackage() EPackage {
+	if e.EContainerFeatureID() == EFACTORY__EPACKAGE {
+		return e.EContainer().(EPackage)
 	}
 	return nil
 }
 
 // SetEPackage set the value of ePackage
-func (eFactory *EFactoryImpl) SetEPackage(newEPackage EPackage) {
-	if newEPackage != eFactory.EInternalContainer() || (newEPackage != nil && eFactory.EContainerFeatureID() != EFACTORY__EPACKAGE) {
+func (e *EFactoryImpl) SetEPackage(newEPackage EPackage) {
+	if newEPackage != e.EInternalContainer() || (newEPackage != nil && e.EContainerFeatureID() != EFACTORY__EPACKAGE) {
 		var notifications ENotificationChain
-		if eFactory.EInternalContainer() != nil {
-			notifications = eFactory.EBasicRemoveFromContainer(notifications)
+		if e.EInternalContainer() != nil {
+			notifications = e.EBasicRemoveFromContainer(notifications)
 		}
 		if newEPackageInternal, _ := newEPackage.(EObjectInternal); newEPackageInternal != nil {
-			notifications = newEPackageInternal.EInverseAdd(eFactory.AsEObject(), EPACKAGE__EFACTORY_INSTANCE, notifications)
+			notifications = newEPackageInternal.EInverseAdd(e.AsEObject(), EPACKAGE__EFACTORY_INSTANCE, notifications)
 		}
-		notifications = eFactory.asBasics().basicSetEPackage(newEPackage, notifications)
+		notifications = e.asBasics().basicSetEPackage(newEPackage, notifications)
 		if notifications != nil {
 			notifications.Dispatch()
 		}
-	} else if eFactory.ENotificationRequired() {
-		eFactory.ENotify(NewNotificationByFeatureID(eFactory, SET, EFACTORY__EPACKAGE, newEPackage, newEPackage, NO_INDEX))
+	} else if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e, SET, EFACTORY__EPACKAGE, newEPackage, newEPackage, NO_INDEX))
 	}
 }
 
-func (eFactory *EFactoryImpl) basicSetEPackage(newEPackage EPackage, msgs ENotificationChain) ENotificationChain {
-	return eFactory.EBasicSetContainer(newEPackage, EFACTORY__EPACKAGE, msgs)
+func (e *EFactoryImpl) basicSetEPackage(newEPackage EPackage, msgs ENotificationChain) ENotificationChain {
+	return e.EBasicSetContainer(newEPackage, EFACTORY__EPACKAGE, msgs)
 }
 
-func (eFactory *EFactoryImpl) EGetFromID(featureID int, resolve bool) any {
+func (e *EFactoryImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
-		return eFactory.asEFactory().GetEPackage()
+		return e.asEFactory().GetEPackage()
 	default:
-		return eFactory.EModelElementExt.EGetFromID(featureID, resolve)
+		return e.EModelElementExt.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eFactory *EFactoryImpl) ESetFromID(featureID int, newValue any) {
+func (e *EFactoryImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		newValueOrNil, _ := newValue.(EPackage)
-		eFactory.asEFactory().SetEPackage(newValueOrNil)
+		e.asEFactory().SetEPackage(newValueOrNil)
 	default:
-		eFactory.EModelElementExt.ESetFromID(featureID, newValue)
+		e.EModelElementExt.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eFactory *EFactoryImpl) EUnsetFromID(featureID int) {
+func (e *EFactoryImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
-		eFactory.asEFactory().SetEPackage(nil)
+		e.asEFactory().SetEPackage(nil)
 	default:
-		eFactory.EModelElementExt.EUnsetFromID(featureID)
+		e.EModelElementExt.EUnsetFromID(featureID)
 	}
 }
 
-func (eFactory *EFactoryImpl) EIsSetFromID(featureID int) bool {
+func (e *EFactoryImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
-		return eFactory.asEFactory().GetEPackage() != nil
+		return e.asEFactory().GetEPackage() != nil
 	default:
-		return eFactory.EModelElementExt.EIsSetFromID(featureID)
+		return e.EModelElementExt.EIsSetFromID(featureID)
 	}
 }
 
-func (eFactory *EFactoryImpl) EInvokeFromID(operationID int, arguments EList) any {
+func (e *EFactoryImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EFACTORY__CONVERT_TO_STRING_EDATATYPE_EJAVAOBJECT:
-		return eFactory.asEFactory().ConvertToString(arguments.Get(0).(EDataType), arguments.Get(1))
+		return e.asEFactory().ConvertToString(arguments.Get(0).(EDataType), arguments.Get(1))
 	case EFACTORY__CREATE_ECLASS:
-		return eFactory.asEFactory().Create(arguments.Get(0).(EClass))
+		return e.asEFactory().Create(arguments.Get(0).(EClass))
 	case EFACTORY__CREATE_FROM_STRING_EDATATYPE_ESTRING:
-		return eFactory.asEFactory().CreateFromString(arguments.Get(0).(EDataType), arguments.Get(1).(string))
+		return e.asEFactory().CreateFromString(arguments.Get(0).(EDataType), arguments.Get(1).(string))
 	default:
-		return eFactory.EModelElementExt.EInvokeFromID(operationID, arguments)
+		return e.EModelElementExt.EInvokeFromID(operationID, arguments)
 	}
 }
 
-func (eFactory *EFactoryImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (e *EFactoryImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
 		msgs := notifications
-		if eFactory.EInternalContainer() != nil {
-			msgs = eFactory.EBasicRemoveFromContainer(msgs)
+		if e.EInternalContainer() != nil {
+			msgs = e.EBasicRemoveFromContainer(msgs)
 		}
-		return eFactory.asBasics().basicSetEPackage(otherEnd.(EPackage), msgs)
+		return e.asBasics().basicSetEPackage(otherEnd.(EPackage), msgs)
 	default:
-		return eFactory.EModelElementExt.EBasicInverseAdd(otherEnd, featureID, notifications)
+		return e.EModelElementExt.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
 }
 
-func (eFactory *EFactoryImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (e *EFactoryImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EFACTORY__EPACKAGE:
-		return eFactory.asBasics().basicSetEPackage(nil, notifications)
+		return e.asBasics().basicSetEPackage(nil, notifications)
 	default:
-		return eFactory.EModelElementExt.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return e.EModelElementExt.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

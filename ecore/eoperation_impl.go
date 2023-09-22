@@ -25,98 +25,98 @@ type eOperationInitializers interface {
 
 // newEOperationImpl is the constructor of a EOperationImpl
 func newEOperationImpl() *EOperationImpl {
-	eOperation := new(EOperationImpl)
-	eOperation.SetInterfaces(eOperation)
-	eOperation.Initialize()
-	return eOperation
+	e := new(EOperationImpl)
+	e.SetInterfaces(e)
+	e.Initialize()
+	return e
 }
 
-func (eOperation *EOperationImpl) Initialize() {
-	eOperation.ETypedElementExt.Initialize()
-	eOperation.operationID = -1
+func (e *EOperationImpl) Initialize() {
+	e.ETypedElementExt.Initialize()
+	e.operationID = -1
 
 }
 
-func (eOperation *EOperationImpl) asEOperation() EOperation {
-	return eOperation.GetInterfaces().(EOperation)
+func (e *EOperationImpl) asEOperation() EOperation {
+	return e.GetInterfaces().(EOperation)
 }
 
-func (eOperation *EOperationImpl) asInitializers() eOperationInitializers {
-	return eOperation.GetInterfaces().(eOperationInitializers)
+func (e *EOperationImpl) asInitializers() eOperationInitializers {
+	return e.GetInterfaces().(eOperationInitializers)
 }
 
-func (eOperation *EOperationImpl) EStaticClass() EClass {
+func (e *EOperationImpl) EStaticClass() EClass {
 	return GetPackage().GetEOperation()
 }
 
-func (eOperation *EOperationImpl) EStaticFeatureCount() int {
+func (e *EOperationImpl) EStaticFeatureCount() int {
 	return EOPERATION_FEATURE_COUNT
 }
 
 // IsOverrideOf default implementation
-func (eOperation *EOperationImpl) IsOverrideOf(EOperation) bool {
+func (e *EOperationImpl) IsOverrideOf(EOperation) bool {
 	panic("IsOverrideOf not implemented")
 }
 
 // GetEContainingClass get the value of eContainingClass
-func (eOperation *EOperationImpl) GetEContainingClass() EClass {
-	if eOperation.EContainerFeatureID() == EOPERATION__ECONTAINING_CLASS {
-		return eOperation.EContainer().(EClass)
+func (e *EOperationImpl) GetEContainingClass() EClass {
+	if e.EContainerFeatureID() == EOPERATION__ECONTAINING_CLASS {
+		return e.EContainer().(EClass)
 	}
 	return nil
 }
 
 // GetEExceptions get the value of eExceptions
-func (eOperation *EOperationImpl) GetEExceptions() EList {
-	if eOperation.eExceptions == nil {
-		eOperation.eExceptions = eOperation.asInitializers().initEExceptions()
+func (e *EOperationImpl) GetEExceptions() EList {
+	if e.eExceptions == nil {
+		e.eExceptions = e.asInitializers().initEExceptions()
 	}
-	return eOperation.eExceptions
+	return e.eExceptions
 }
 
 // UnsetEExceptions unset the value of eExceptions
-func (eOperation *EOperationImpl) UnsetEExceptions() {
-	if eOperation.eExceptions != nil {
-		eOperation.eExceptions.Clear()
+func (e *EOperationImpl) UnsetEExceptions() {
+	if e.eExceptions != nil {
+		e.eExceptions.Clear()
 	}
 }
 
 // GetEParameters get the value of eParameters
-func (eOperation *EOperationImpl) GetEParameters() EList {
-	if eOperation.eParameters == nil {
-		eOperation.eParameters = eOperation.asInitializers().initEParameters()
+func (e *EOperationImpl) GetEParameters() EList {
+	if e.eParameters == nil {
+		e.eParameters = e.asInitializers().initEParameters()
 	}
-	return eOperation.eParameters
+	return e.eParameters
 }
 
 // GetOperationID get the value of operationID
-func (eOperation *EOperationImpl) GetOperationID() int {
-	return eOperation.operationID
+func (e *EOperationImpl) GetOperationID() int {
+	return e.operationID
 }
 
 // SetOperationID set the value of operationID
-func (eOperation *EOperationImpl) SetOperationID(newOperationID int) {
-	oldOperationID := eOperation.operationID
-	eOperation.operationID = newOperationID
-	if eOperation.ENotificationRequired() {
-		eOperation.ENotify(NewNotificationByFeatureID(eOperation.AsEObject(), SET, EOPERATION__OPERATION_ID, oldOperationID, newOperationID, NO_INDEX))
+func (e *EOperationImpl) SetOperationID(newOperationID int) {
+	oldOperationID := e.operationID
+	e.operationID = newOperationID
+	if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), SET, EOPERATION__OPERATION_ID, oldOperationID, newOperationID, NO_INDEX))
 	}
 }
 
-func (eOperation *EOperationImpl) initEExceptions() EList {
-	return NewBasicEObjectList(eOperation.AsEObjectInternal(), EOPERATION__EEXCEPTIONS, -1, false, false, false, true, true)
+func (e *EOperationImpl) initEExceptions() EList {
+	return NewBasicEObjectList(e.AsEObjectInternal(), EOPERATION__EEXCEPTIONS, -1, false, false, false, true, true)
 }
 
-func (eOperation *EOperationImpl) initEParameters() EList {
-	return NewBasicEObjectList(eOperation.AsEObjectInternal(), EOPERATION__EPARAMETERS, EPARAMETER__EOPERATION, true, true, true, false, false)
+func (e *EOperationImpl) initEParameters() EList {
+	return NewBasicEObjectList(e.AsEObjectInternal(), EOPERATION__EPARAMETERS, EPARAMETER__EOPERATION, true, true, true, false, false)
 }
 
-func (eOperation *EOperationImpl) EGetFromID(featureID int, resolve bool) any {
+func (e *EOperationImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EOPERATION__ECONTAINING_CLASS:
-		return eOperation.asEOperation().GetEContainingClass()
+		return e.asEOperation().GetEContainingClass()
 	case EOPERATION__EEXCEPTIONS:
-		list := eOperation.asEOperation().GetEExceptions()
+		list := e.asEOperation().GetEExceptions()
 		if !resolve {
 			if objects, _ := list.(EObjectList); objects != nil {
 				return objects.GetUnResolvedList()
@@ -124,92 +124,92 @@ func (eOperation *EOperationImpl) EGetFromID(featureID int, resolve bool) any {
 		}
 		return list
 	case EOPERATION__EPARAMETERS:
-		return eOperation.asEOperation().GetEParameters()
+		return e.asEOperation().GetEParameters()
 	case EOPERATION__OPERATION_ID:
-		return eOperation.asEOperation().GetOperationID()
+		return e.asEOperation().GetOperationID()
 	default:
-		return eOperation.ETypedElementExt.EGetFromID(featureID, resolve)
+		return e.ETypedElementExt.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eOperation *EOperationImpl) ESetFromID(featureID int, newValue any) {
+func (e *EOperationImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EOPERATION__EEXCEPTIONS:
-		list := eOperation.asEOperation().GetEExceptions()
+		list := e.asEOperation().GetEExceptions()
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	case EOPERATION__EPARAMETERS:
-		list := eOperation.asEOperation().GetEParameters()
+		list := e.asEOperation().GetEParameters()
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	case EOPERATION__OPERATION_ID:
-		eOperation.asEOperation().SetOperationID(newValue.(int))
+		e.asEOperation().SetOperationID(newValue.(int))
 	default:
-		eOperation.ETypedElementExt.ESetFromID(featureID, newValue)
+		e.ETypedElementExt.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eOperation *EOperationImpl) EUnsetFromID(featureID int) {
+func (e *EOperationImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EOPERATION__EEXCEPTIONS:
-		eOperation.asEOperation().UnsetEExceptions()
+		e.asEOperation().UnsetEExceptions()
 	case EOPERATION__EPARAMETERS:
-		eOperation.asEOperation().GetEParameters().Clear()
+		e.asEOperation().GetEParameters().Clear()
 	case EOPERATION__OPERATION_ID:
-		eOperation.asEOperation().SetOperationID(-1)
+		e.asEOperation().SetOperationID(-1)
 	default:
-		eOperation.ETypedElementExt.EUnsetFromID(featureID)
+		e.ETypedElementExt.EUnsetFromID(featureID)
 	}
 }
 
-func (eOperation *EOperationImpl) EIsSetFromID(featureID int) bool {
+func (e *EOperationImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EOPERATION__ECONTAINING_CLASS:
-		return eOperation.asEOperation().GetEContainingClass() != nil
+		return e.asEOperation().GetEContainingClass() != nil
 	case EOPERATION__EEXCEPTIONS:
-		return eOperation.eExceptions != nil && eOperation.eExceptions.Size() != 0
+		return e.eExceptions != nil && e.eExceptions.Size() != 0
 	case EOPERATION__EPARAMETERS:
-		return eOperation.eParameters != nil && eOperation.eParameters.Size() != 0
+		return e.eParameters != nil && e.eParameters.Size() != 0
 	case EOPERATION__OPERATION_ID:
-		return eOperation.operationID != -1
+		return e.operationID != -1
 	default:
-		return eOperation.ETypedElementExt.EIsSetFromID(featureID)
+		return e.ETypedElementExt.EIsSetFromID(featureID)
 	}
 }
 
-func (eOperation *EOperationImpl) EInvokeFromID(operationID int, arguments EList) any {
+func (e *EOperationImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EOPERATION__IS_OVERRIDE_OF_EOPERATION:
-		return eOperation.asEOperation().IsOverrideOf(arguments.Get(0).(EOperation))
+		return e.asEOperation().IsOverrideOf(arguments.Get(0).(EOperation))
 	default:
-		return eOperation.ETypedElementExt.EInvokeFromID(operationID, arguments)
+		return e.ETypedElementExt.EInvokeFromID(operationID, arguments)
 	}
 }
 
-func (eOperation *EOperationImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (e *EOperationImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EOPERATION__ECONTAINING_CLASS:
 		msgs := notifications
-		if eOperation.EInternalContainer() != nil {
-			msgs = eOperation.EBasicRemoveFromContainer(msgs)
+		if e.EInternalContainer() != nil {
+			msgs = e.EBasicRemoveFromContainer(msgs)
 		}
-		return eOperation.EBasicSetContainer(otherEnd, EOPERATION__ECONTAINING_CLASS, msgs)
+		return e.EBasicSetContainer(otherEnd, EOPERATION__ECONTAINING_CLASS, msgs)
 	case EOPERATION__EPARAMETERS:
-		list := eOperation.GetEParameters().(ENotifyingList)
+		list := e.GetEParameters().(ENotifyingList)
 		return list.AddWithNotification(otherEnd, notifications)
 	default:
-		return eOperation.ETypedElementExt.EBasicInverseAdd(otherEnd, featureID, notifications)
+		return e.ETypedElementExt.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
 }
 
-func (eOperation *EOperationImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (e *EOperationImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EOPERATION__ECONTAINING_CLASS:
-		return eOperation.EBasicSetContainer(nil, EOPERATION__ECONTAINING_CLASS, notifications)
+		return e.EBasicSetContainer(nil, EOPERATION__ECONTAINING_CLASS, notifications)
 	case EOPERATION__EPARAMETERS:
-		list := eOperation.GetEParameters().(ENotifyingList)
+		list := e.GetEParameters().(ENotifyingList)
 		return list.RemoveWithNotification(otherEnd, notifications)
 	default:
-		return eOperation.ETypedElementExt.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return e.ETypedElementExt.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

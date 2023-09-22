@@ -34,98 +34,98 @@ type eGenericTypeBasics interface {
 
 // newEGenericTypeImpl is the constructor of a EGenericTypeImpl
 func newEGenericTypeImpl() *EGenericTypeImpl {
-	eGenericType := new(EGenericTypeImpl)
-	eGenericType.SetInterfaces(eGenericType)
-	eGenericType.Initialize()
-	return eGenericType
+	e := new(EGenericTypeImpl)
+	e.SetInterfaces(e)
+	e.Initialize()
+	return e
 }
 
-func (eGenericType *EGenericTypeImpl) Initialize() {
-	eGenericType.CompactEObjectContainer.Initialize()
+func (e *EGenericTypeImpl) Initialize() {
+	e.CompactEObjectContainer.Initialize()
 
 }
 
-func (eGenericType *EGenericTypeImpl) asEGenericType() EGenericType {
-	return eGenericType.GetInterfaces().(EGenericType)
+func (e *EGenericTypeImpl) asEGenericType() EGenericType {
+	return e.GetInterfaces().(EGenericType)
 }
 
-func (eGenericType *EGenericTypeImpl) asInitializers() eGenericTypeInitializers {
-	return eGenericType.GetInterfaces().(eGenericTypeInitializers)
+func (e *EGenericTypeImpl) asInitializers() eGenericTypeInitializers {
+	return e.GetInterfaces().(eGenericTypeInitializers)
 }
 
-func (eGenericType *EGenericTypeImpl) asBasics() eGenericTypeBasics {
-	return eGenericType.GetInterfaces().(eGenericTypeBasics)
+func (e *EGenericTypeImpl) asBasics() eGenericTypeBasics {
+	return e.GetInterfaces().(eGenericTypeBasics)
 }
 
-func (eGenericType *EGenericTypeImpl) EStaticClass() EClass {
+func (e *EGenericTypeImpl) EStaticClass() EClass {
 	return GetPackage().GetEGenericType()
 }
 
-func (eGenericType *EGenericTypeImpl) EStaticFeatureCount() int {
+func (e *EGenericTypeImpl) EStaticFeatureCount() int {
 	return EGENERIC_TYPE_FEATURE_COUNT
 }
 
 // IsInstance default implementation
-func (eGenericType *EGenericTypeImpl) IsInstance(any) bool {
+func (e *EGenericTypeImpl) IsInstance(any) bool {
 	panic("IsInstance not implemented")
 }
 
 // GetEClassifier get the value of eClassifier
-func (eGenericType *EGenericTypeImpl) GetEClassifier() EClassifier {
-	if eGenericType.eClassifier != nil && eGenericType.eClassifier.EIsProxy() {
-		oldEClassifier := eGenericType.eClassifier
-		newEClassifier := eGenericType.EResolveProxy(oldEClassifier).(EClassifier)
-		eGenericType.eClassifier = newEClassifier
+func (e *EGenericTypeImpl) GetEClassifier() EClassifier {
+	if e.eClassifier != nil && e.eClassifier.EIsProxy() {
+		oldEClassifier := e.eClassifier
+		newEClassifier := e.EResolveProxy(oldEClassifier).(EClassifier)
+		e.eClassifier = newEClassifier
 		if newEClassifier != oldEClassifier {
-			if eGenericType.ENotificationRequired() {
-				eGenericType.ENotify(NewNotificationByFeatureID(eGenericType, RESOLVE, EGENERIC_TYPE__ECLASSIFIER, oldEClassifier, newEClassifier, NO_INDEX))
+			if e.ENotificationRequired() {
+				e.ENotify(NewNotificationByFeatureID(e, RESOLVE, EGENERIC_TYPE__ECLASSIFIER, oldEClassifier, newEClassifier, NO_INDEX))
 			}
 		}
 	}
-	return eGenericType.eClassifier
+	return e.eClassifier
 }
 
-func (eGenericType *EGenericTypeImpl) basicGetEClassifier() EClassifier {
-	return eGenericType.eClassifier
+func (e *EGenericTypeImpl) basicGetEClassifier() EClassifier {
+	return e.eClassifier
 }
 
 // SetEClassifier set the value of eClassifier
-func (eGenericType *EGenericTypeImpl) SetEClassifier(newEClassifier EClassifier) {
-	oldEClassifier := eGenericType.eClassifier
-	eGenericType.eClassifier = newEClassifier
-	if eGenericType.ENotificationRequired() {
-		eGenericType.ENotify(NewNotificationByFeatureID(eGenericType.AsEObject(), SET, EGENERIC_TYPE__ECLASSIFIER, oldEClassifier, newEClassifier, NO_INDEX))
+func (e *EGenericTypeImpl) SetEClassifier(newEClassifier EClassifier) {
+	oldEClassifier := e.eClassifier
+	e.eClassifier = newEClassifier
+	if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), SET, EGENERIC_TYPE__ECLASSIFIER, oldEClassifier, newEClassifier, NO_INDEX))
 	}
 }
 
 // GetELowerBound get the value of eLowerBound
-func (eGenericType *EGenericTypeImpl) GetELowerBound() EGenericType {
-	return eGenericType.eLowerBound
+func (e *EGenericTypeImpl) GetELowerBound() EGenericType {
+	return e.eLowerBound
 }
 
 // SetELowerBound set the value of eLowerBound
-func (eGenericType *EGenericTypeImpl) SetELowerBound(newELowerBound EGenericType) {
-	if newELowerBound != eGenericType.eLowerBound {
+func (e *EGenericTypeImpl) SetELowerBound(newELowerBound EGenericType) {
+	if newELowerBound != e.eLowerBound {
 		var notifications ENotificationChain
-		if oldELowerBoundInternal, _ := eGenericType.eLowerBound.(EObjectInternal); oldELowerBoundInternal != nil {
-			notifications = oldELowerBoundInternal.EInverseRemove(eGenericType, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, notifications)
+		if oldELowerBoundInternal, _ := e.eLowerBound.(EObjectInternal); oldELowerBoundInternal != nil {
+			notifications = oldELowerBoundInternal.EInverseRemove(e, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, notifications)
 		}
 		if newELowerBoundInternal, _ := newELowerBound.(EObjectInternal); newELowerBoundInternal != nil {
-			notifications = newELowerBoundInternal.EInverseAdd(eGenericType.AsEObject(), EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, notifications)
+			notifications = newELowerBoundInternal.EInverseAdd(e.AsEObject(), EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__ELOWER_BOUND, notifications)
 		}
-		notifications = eGenericType.asBasics().basicSetELowerBound(newELowerBound, notifications)
+		notifications = e.asBasics().basicSetELowerBound(newELowerBound, notifications)
 		if notifications != nil {
 			notifications.Dispatch()
 		}
 	}
 }
 
-func (eGenericType *EGenericTypeImpl) basicSetELowerBound(newELowerBound EGenericType, msgs ENotificationChain) ENotificationChain {
-	oldELowerBound := eGenericType.eLowerBound
-	eGenericType.eLowerBound = newELowerBound
+func (e *EGenericTypeImpl) basicSetELowerBound(newELowerBound EGenericType, msgs ENotificationChain) ENotificationChain {
+	oldELowerBound := e.eLowerBound
+	e.eLowerBound = newELowerBound
 	notifications := msgs
-	if eGenericType.ENotificationRequired() {
-		notification := NewNotificationByFeatureID(eGenericType.AsEObject(), SET, EGENERIC_TYPE__ELOWER_BOUND, oldELowerBound, newELowerBound, NO_INDEX)
+	if e.ENotificationRequired() {
+		notification := NewNotificationByFeatureID(e.AsEObject(), SET, EGENERIC_TYPE__ELOWER_BOUND, oldELowerBound, newELowerBound, NO_INDEX)
 		if notifications != nil {
 			notifications.Add(notification)
 		} else {
@@ -136,74 +136,74 @@ func (eGenericType *EGenericTypeImpl) basicSetELowerBound(newELowerBound EGeneri
 }
 
 // GetERawType get the value of eRawType
-func (eGenericType *EGenericTypeImpl) GetERawType() EClassifier {
-	if eGenericType.eRawType != nil && eGenericType.eRawType.EIsProxy() {
-		oldERawType := eGenericType.eRawType
-		newERawType := eGenericType.EResolveProxy(oldERawType).(EClassifier)
-		eGenericType.eRawType = newERawType
+func (e *EGenericTypeImpl) GetERawType() EClassifier {
+	if e.eRawType != nil && e.eRawType.EIsProxy() {
+		oldERawType := e.eRawType
+		newERawType := e.EResolveProxy(oldERawType).(EClassifier)
+		e.eRawType = newERawType
 		if newERawType != oldERawType {
-			if eGenericType.ENotificationRequired() {
-				eGenericType.ENotify(NewNotificationByFeatureID(eGenericType, RESOLVE, EGENERIC_TYPE__ERAW_TYPE, oldERawType, newERawType, NO_INDEX))
+			if e.ENotificationRequired() {
+				e.ENotify(NewNotificationByFeatureID(e, RESOLVE, EGENERIC_TYPE__ERAW_TYPE, oldERawType, newERawType, NO_INDEX))
 			}
 		}
 	}
-	return eGenericType.eRawType
+	return e.eRawType
 }
 
-func (eGenericType *EGenericTypeImpl) basicGetERawType() EClassifier {
-	return eGenericType.eRawType
+func (e *EGenericTypeImpl) basicGetERawType() EClassifier {
+	return e.eRawType
 }
 
 // GetETypeArguments get the value of eTypeArguments
-func (eGenericType *EGenericTypeImpl) GetETypeArguments() EList {
-	if eGenericType.eTypeArguments == nil {
-		eGenericType.eTypeArguments = eGenericType.asInitializers().initETypeArguments()
+func (e *EGenericTypeImpl) GetETypeArguments() EList {
+	if e.eTypeArguments == nil {
+		e.eTypeArguments = e.asInitializers().initETypeArguments()
 	}
-	return eGenericType.eTypeArguments
+	return e.eTypeArguments
 }
 
 // GetETypeParameter get the value of eTypeParameter
-func (eGenericType *EGenericTypeImpl) GetETypeParameter() ETypeParameter {
-	return eGenericType.eTypeParameter
+func (e *EGenericTypeImpl) GetETypeParameter() ETypeParameter {
+	return e.eTypeParameter
 }
 
 // SetETypeParameter set the value of eTypeParameter
-func (eGenericType *EGenericTypeImpl) SetETypeParameter(newETypeParameter ETypeParameter) {
-	oldETypeParameter := eGenericType.eTypeParameter
-	eGenericType.eTypeParameter = newETypeParameter
-	if eGenericType.ENotificationRequired() {
-		eGenericType.ENotify(NewNotificationByFeatureID(eGenericType.AsEObject(), SET, EGENERIC_TYPE__ETYPE_PARAMETER, oldETypeParameter, newETypeParameter, NO_INDEX))
+func (e *EGenericTypeImpl) SetETypeParameter(newETypeParameter ETypeParameter) {
+	oldETypeParameter := e.eTypeParameter
+	e.eTypeParameter = newETypeParameter
+	if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), SET, EGENERIC_TYPE__ETYPE_PARAMETER, oldETypeParameter, newETypeParameter, NO_INDEX))
 	}
 }
 
 // GetEUpperBound get the value of eUpperBound
-func (eGenericType *EGenericTypeImpl) GetEUpperBound() EGenericType {
-	return eGenericType.eUpperBound
+func (e *EGenericTypeImpl) GetEUpperBound() EGenericType {
+	return e.eUpperBound
 }
 
 // SetEUpperBound set the value of eUpperBound
-func (eGenericType *EGenericTypeImpl) SetEUpperBound(newEUpperBound EGenericType) {
-	if newEUpperBound != eGenericType.eUpperBound {
+func (e *EGenericTypeImpl) SetEUpperBound(newEUpperBound EGenericType) {
+	if newEUpperBound != e.eUpperBound {
 		var notifications ENotificationChain
-		if oldEUpperBoundInternal, _ := eGenericType.eUpperBound.(EObjectInternal); oldEUpperBoundInternal != nil {
-			notifications = oldEUpperBoundInternal.EInverseRemove(eGenericType, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, notifications)
+		if oldEUpperBoundInternal, _ := e.eUpperBound.(EObjectInternal); oldEUpperBoundInternal != nil {
+			notifications = oldEUpperBoundInternal.EInverseRemove(e, EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, notifications)
 		}
 		if newEUpperBoundInternal, _ := newEUpperBound.(EObjectInternal); newEUpperBoundInternal != nil {
-			notifications = newEUpperBoundInternal.EInverseAdd(eGenericType.AsEObject(), EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, notifications)
+			notifications = newEUpperBoundInternal.EInverseAdd(e.AsEObject(), EOPPOSITE_FEATURE_BASE-EGENERIC_TYPE__EUPPER_BOUND, notifications)
 		}
-		notifications = eGenericType.asBasics().basicSetEUpperBound(newEUpperBound, notifications)
+		notifications = e.asBasics().basicSetEUpperBound(newEUpperBound, notifications)
 		if notifications != nil {
 			notifications.Dispatch()
 		}
 	}
 }
 
-func (eGenericType *EGenericTypeImpl) basicSetEUpperBound(newEUpperBound EGenericType, msgs ENotificationChain) ENotificationChain {
-	oldEUpperBound := eGenericType.eUpperBound
-	eGenericType.eUpperBound = newEUpperBound
+func (e *EGenericTypeImpl) basicSetEUpperBound(newEUpperBound EGenericType, msgs ENotificationChain) ENotificationChain {
+	oldEUpperBound := e.eUpperBound
+	e.eUpperBound = newEUpperBound
 	notifications := msgs
-	if eGenericType.ENotificationRequired() {
-		notification := NewNotificationByFeatureID(eGenericType.AsEObject(), SET, EGENERIC_TYPE__EUPPER_BOUND, oldEUpperBound, newEUpperBound, NO_INDEX)
+	if e.ENotificationRequired() {
+		notification := NewNotificationByFeatureID(e.AsEObject(), SET, EGENERIC_TYPE__EUPPER_BOUND, oldEUpperBound, newEUpperBound, NO_INDEX)
 		if notifications != nil {
 			notifications.Add(notification)
 		} else {
@@ -213,113 +213,113 @@ func (eGenericType *EGenericTypeImpl) basicSetEUpperBound(newEUpperBound EGeneri
 	return notifications
 }
 
-func (eGenericType *EGenericTypeImpl) initETypeArguments() EList {
-	return NewBasicEObjectList(eGenericType.AsEObjectInternal(), EGENERIC_TYPE__ETYPE_ARGUMENTS, -1, true, true, false, false, false)
+func (e *EGenericTypeImpl) initETypeArguments() EList {
+	return NewBasicEObjectList(e.AsEObjectInternal(), EGENERIC_TYPE__ETYPE_ARGUMENTS, -1, true, true, false, false, false)
 }
 
-func (eGenericType *EGenericTypeImpl) EGetFromID(featureID int, resolve bool) any {
+func (e *EGenericTypeImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
 		if resolve {
-			return eGenericType.asEGenericType().GetEClassifier()
+			return e.asEGenericType().GetEClassifier()
 		}
-		return eGenericType.asBasics().basicGetEClassifier()
+		return e.asBasics().basicGetEClassifier()
 	case EGENERIC_TYPE__ELOWER_BOUND:
-		return eGenericType.asEGenericType().GetELowerBound()
+		return e.asEGenericType().GetELowerBound()
 	case EGENERIC_TYPE__ERAW_TYPE:
 		if resolve {
-			return eGenericType.asEGenericType().GetERawType()
+			return e.asEGenericType().GetERawType()
 		}
-		return eGenericType.asBasics().basicGetERawType()
+		return e.asBasics().basicGetERawType()
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
-		return eGenericType.asEGenericType().GetETypeArguments()
+		return e.asEGenericType().GetETypeArguments()
 	case EGENERIC_TYPE__ETYPE_PARAMETER:
-		return eGenericType.asEGenericType().GetETypeParameter()
+		return e.asEGenericType().GetETypeParameter()
 	case EGENERIC_TYPE__EUPPER_BOUND:
-		return eGenericType.asEGenericType().GetEUpperBound()
+		return e.asEGenericType().GetEUpperBound()
 	default:
-		return eGenericType.CompactEObjectContainer.EGetFromID(featureID, resolve)
+		return e.CompactEObjectContainer.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eGenericType *EGenericTypeImpl) ESetFromID(featureID int, newValue any) {
+func (e *EGenericTypeImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
 		newValueOrNil, _ := newValue.(EClassifier)
-		eGenericType.asEGenericType().SetEClassifier(newValueOrNil)
+		e.asEGenericType().SetEClassifier(newValueOrNil)
 	case EGENERIC_TYPE__ELOWER_BOUND:
 		newValueOrNil, _ := newValue.(EGenericType)
-		eGenericType.asEGenericType().SetELowerBound(newValueOrNil)
+		e.asEGenericType().SetELowerBound(newValueOrNil)
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
-		list := eGenericType.asEGenericType().GetETypeArguments()
+		list := e.asEGenericType().GetETypeArguments()
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	case EGENERIC_TYPE__ETYPE_PARAMETER:
 		newValueOrNil, _ := newValue.(ETypeParameter)
-		eGenericType.asEGenericType().SetETypeParameter(newValueOrNil)
+		e.asEGenericType().SetETypeParameter(newValueOrNil)
 	case EGENERIC_TYPE__EUPPER_BOUND:
 		newValueOrNil, _ := newValue.(EGenericType)
-		eGenericType.asEGenericType().SetEUpperBound(newValueOrNil)
+		e.asEGenericType().SetEUpperBound(newValueOrNil)
 	default:
-		eGenericType.CompactEObjectContainer.ESetFromID(featureID, newValue)
+		e.CompactEObjectContainer.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eGenericType *EGenericTypeImpl) EUnsetFromID(featureID int) {
+func (e *EGenericTypeImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
-		eGenericType.asEGenericType().SetEClassifier(nil)
+		e.asEGenericType().SetEClassifier(nil)
 	case EGENERIC_TYPE__ELOWER_BOUND:
-		eGenericType.asEGenericType().SetELowerBound(nil)
+		e.asEGenericType().SetELowerBound(nil)
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
-		eGenericType.asEGenericType().GetETypeArguments().Clear()
+		e.asEGenericType().GetETypeArguments().Clear()
 	case EGENERIC_TYPE__ETYPE_PARAMETER:
-		eGenericType.asEGenericType().SetETypeParameter(nil)
+		e.asEGenericType().SetETypeParameter(nil)
 	case EGENERIC_TYPE__EUPPER_BOUND:
-		eGenericType.asEGenericType().SetEUpperBound(nil)
+		e.asEGenericType().SetEUpperBound(nil)
 	default:
-		eGenericType.CompactEObjectContainer.EUnsetFromID(featureID)
+		e.CompactEObjectContainer.EUnsetFromID(featureID)
 	}
 }
 
-func (eGenericType *EGenericTypeImpl) EIsSetFromID(featureID int) bool {
+func (e *EGenericTypeImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EGENERIC_TYPE__ECLASSIFIER:
-		return eGenericType.eClassifier != nil
+		return e.eClassifier != nil
 	case EGENERIC_TYPE__ELOWER_BOUND:
-		return eGenericType.eLowerBound != nil
+		return e.eLowerBound != nil
 	case EGENERIC_TYPE__ERAW_TYPE:
-		return eGenericType.eRawType != nil
+		return e.eRawType != nil
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
-		return eGenericType.eTypeArguments != nil && eGenericType.eTypeArguments.Size() != 0
+		return e.eTypeArguments != nil && e.eTypeArguments.Size() != 0
 	case EGENERIC_TYPE__ETYPE_PARAMETER:
-		return eGenericType.eTypeParameter != nil
+		return e.eTypeParameter != nil
 	case EGENERIC_TYPE__EUPPER_BOUND:
-		return eGenericType.eUpperBound != nil
+		return e.eUpperBound != nil
 	default:
-		return eGenericType.CompactEObjectContainer.EIsSetFromID(featureID)
+		return e.CompactEObjectContainer.EIsSetFromID(featureID)
 	}
 }
 
-func (eGenericType *EGenericTypeImpl) EInvokeFromID(operationID int, arguments EList) any {
+func (e *EGenericTypeImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EGENERIC_TYPE__IS_INSTANCE_EJAVAOBJECT:
-		return eGenericType.asEGenericType().IsInstance(arguments.Get(0))
+		return e.asEGenericType().IsInstance(arguments.Get(0))
 	default:
-		return eGenericType.CompactEObjectContainer.EInvokeFromID(operationID, arguments)
+		return e.CompactEObjectContainer.EInvokeFromID(operationID, arguments)
 	}
 }
 
-func (eGenericType *EGenericTypeImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (e *EGenericTypeImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EGENERIC_TYPE__ELOWER_BOUND:
-		return eGenericType.asBasics().basicSetELowerBound(nil, notifications)
+		return e.asBasics().basicSetELowerBound(nil, notifications)
 	case EGENERIC_TYPE__ETYPE_ARGUMENTS:
-		list := eGenericType.GetETypeArguments().(ENotifyingList)
+		list := e.GetETypeArguments().(ENotifyingList)
 		return list.RemoveWithNotification(otherEnd, notifications)
 	case EGENERIC_TYPE__EUPPER_BOUND:
-		return eGenericType.asBasics().basicSetEUpperBound(nil, notifications)
+		return e.asBasics().basicSetEUpperBound(nil, notifications)
 	default:
-		return eGenericType.CompactEObjectContainer.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return e.CompactEObjectContainer.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

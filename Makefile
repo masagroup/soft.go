@@ -7,7 +7,7 @@
 #
 # *****************************************************************************
 
-GENERATE = docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/$(2) -o /pwd/$(1) -P /pwd/generator.properties
+GENERATE = docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/$(2) -o /pwd/$(1) -P /pwd/generator.properties $(3)
 
 # os detection
 ifeq (${OS},Windows_NT)
@@ -37,10 +37,14 @@ all: generate fmt lint build test
 .PHONY: generate 
 generate:
 	@echo "[generate]"
-	@$(call GENERATE,,ecore.ecore)
-	@$(call GENERATE,test,library.ecore)
-	@$(call GENERATE,test,tournament.ecore)
-	@$(call GENERATE,test,empty.ecore)
+	@$(call GENERATE,,ecore.ecore,)
+	@$(call GENERATE,test,empty.ecore,)
+	@$(call GENERATE,test,library.ecore,)
+	@$(call GENERATE,test,tournament.ecore,)
+	@$(call GENERATE,,tournament.ecore, \
+		-p featureDelegation=Reflective \
+		-p module=github.com/masagroup/soft.go \
+		-p packages=github.com/masagroup/soft.go/test/tournament-reflective/tournament#github.com/masagroup/soft.go/test/tournament-reflective/internal/impls/impls#github.com/masagroup/soft.go/test/tournament-reflective/internal/mocks/mocks)
 
 .PHONY: fmt
 fmt:

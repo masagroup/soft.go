@@ -11,9 +11,7 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/mock"
-)
+import "github.com/stretchr/testify/mock"
 
 // MockETypedElement is an mock type for the ETypedElement type
 type MockETypedElement struct {
@@ -45,9 +43,9 @@ func (_me *MockETypedElement_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockETypedElement_Expecter_Methods.SetMock(mock)
 }
 
-func (eTypedElement *MockETypedElement_Prototype) EXPECT() *MockETypedElement_Expecter {
+func (e *MockETypedElement_Prototype) EXPECT() *MockETypedElement_Expecter {
 	expecter := &MockETypedElement_Expecter{}
-	expecter.SetMock(eTypedElement.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -70,19 +68,19 @@ func (_mde *MockETypedElement_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // GetEType get the value of eType
-func (eTypedElement *MockETypedElement_Prototype_Methods) GetEType() EClassifier {
-	ret := eTypedElement.mock.Called()
+func (e *MockETypedElement_Prototype_Methods) GetEType() EClassifier {
+	ret := e.mock.Called()
 
-	var r EClassifier
+	var res EClassifier
 	if rf, ok := ret.Get(0).(func() EClassifier); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EClassifier)
+			res = ret.Get(0).(EClassifier)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_GetEType_Call struct {
@@ -106,8 +104,8 @@ func (c *MockETypedElement_GetEType_Call) Return(eType EClassifier) *MockETypedE
 }
 
 // SetEType provides mock implementation for setting the value of eType
-func (eTypedElement *MockETypedElement_Prototype_Methods) SetEType(eType EClassifier) {
-	eTypedElement.mock.Called(eType)
+func (e *MockETypedElement_Prototype_Methods) SetEType(eType EClassifier) {
+	e.mock.Called(eType)
 }
 
 type MockETypedElement_SetEType_Call struct {
@@ -133,8 +131,8 @@ func (c *MockETypedElement_SetEType_Call) Return() *MockETypedElement_SetEType_C
 }
 
 // UnsetEType provides mock implementation for unset the value of eType
-func (eTypedElement *MockETypedElement_Prototype_Methods) UnsetEType() {
-	eTypedElement.mock.Called()
+func (e *MockETypedElement_Prototype_Methods) UnsetEType() {
+	e.mock.Called()
 }
 
 type MockETypedElement_UnsetEType_Call struct {
@@ -158,19 +156,19 @@ func (c *MockETypedElement_UnsetEType_Call) Return() *MockETypedElement_UnsetETy
 }
 
 // GetLowerBound get the value of lowerBound
-func (eTypedElement *MockETypedElement_Prototype_Methods) GetLowerBound() int {
-	ret := eTypedElement.mock.Called()
+func (e *MockETypedElement_Prototype_Methods) GetLowerBound() int {
+	ret := e.mock.Called()
 
-	var r int
+	var res int
 	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
+			res = ret.Get(0).(int)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_GetLowerBound_Call struct {
@@ -194,8 +192,8 @@ func (c *MockETypedElement_GetLowerBound_Call) Return(lowerBound int) *MockEType
 }
 
 // SetLowerBound provides mock implementation for setting the value of lowerBound
-func (eTypedElement *MockETypedElement_Prototype_Methods) SetLowerBound(lowerBound int) {
-	eTypedElement.mock.Called(lowerBound)
+func (e *MockETypedElement_Prototype_Methods) SetLowerBound(lowerBound int) {
+	e.mock.Called(lowerBound)
 }
 
 type MockETypedElement_SetLowerBound_Call struct {
@@ -221,19 +219,19 @@ func (c *MockETypedElement_SetLowerBound_Call) Return() *MockETypedElement_SetLo
 }
 
 // IsMany get the value of isMany
-func (eTypedElement *MockETypedElement_Prototype_Methods) IsMany() bool {
-	ret := eTypedElement.mock.Called()
+func (e *MockETypedElement_Prototype_Methods) IsMany() bool {
+	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_IsMany_Call struct {
@@ -257,19 +255,19 @@ func (c *MockETypedElement_IsMany_Call) Return(isMany bool) *MockETypedElement_I
 }
 
 // IsOrdered get the value of isOrdered
-func (eTypedElement *MockETypedElement_Prototype_Methods) IsOrdered() bool {
-	ret := eTypedElement.mock.Called()
+func (e *MockETypedElement_Prototype_Methods) IsOrdered() bool {
+	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_IsOrdered_Call struct {
@@ -293,8 +291,8 @@ func (c *MockETypedElement_IsOrdered_Call) Return(isOrdered bool) *MockETypedEle
 }
 
 // SetOrdered provides mock implementation for setting the value of isOrdered
-func (eTypedElement *MockETypedElement_Prototype_Methods) SetOrdered(isOrdered bool) {
-	eTypedElement.mock.Called(isOrdered)
+func (e *MockETypedElement_Prototype_Methods) SetOrdered(isOrdered bool) {
+	e.mock.Called(isOrdered)
 }
 
 type MockETypedElement_SetOrdered_Call struct {
@@ -320,19 +318,19 @@ func (c *MockETypedElement_SetOrdered_Call) Return() *MockETypedElement_SetOrder
 }
 
 // IsRequired get the value of isRequired
-func (eTypedElement *MockETypedElement_Prototype_Methods) IsRequired() bool {
-	ret := eTypedElement.mock.Called()
+func (e *MockETypedElement_Prototype_Methods) IsRequired() bool {
+	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_IsRequired_Call struct {
@@ -356,19 +354,19 @@ func (c *MockETypedElement_IsRequired_Call) Return(isRequired bool) *MockETypedE
 }
 
 // IsUnique get the value of isUnique
-func (eTypedElement *MockETypedElement_Prototype_Methods) IsUnique() bool {
-	ret := eTypedElement.mock.Called()
+func (e *MockETypedElement_Prototype_Methods) IsUnique() bool {
+	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_IsUnique_Call struct {
@@ -392,8 +390,8 @@ func (c *MockETypedElement_IsUnique_Call) Return(isUnique bool) *MockETypedEleme
 }
 
 // SetUnique provides mock implementation for setting the value of isUnique
-func (eTypedElement *MockETypedElement_Prototype_Methods) SetUnique(isUnique bool) {
-	eTypedElement.mock.Called(isUnique)
+func (e *MockETypedElement_Prototype_Methods) SetUnique(isUnique bool) {
+	e.mock.Called(isUnique)
 }
 
 type MockETypedElement_SetUnique_Call struct {
@@ -419,19 +417,19 @@ func (c *MockETypedElement_SetUnique_Call) Return() *MockETypedElement_SetUnique
 }
 
 // GetUpperBound get the value of upperBound
-func (eTypedElement *MockETypedElement_Prototype_Methods) GetUpperBound() int {
-	ret := eTypedElement.mock.Called()
+func (e *MockETypedElement_Prototype_Methods) GetUpperBound() int {
+	ret := e.mock.Called()
 
-	var r int
+	var res int
 	if rf, ok := ret.Get(0).(func() int); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(int)
+			res = ret.Get(0).(int)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypedElement_GetUpperBound_Call struct {
@@ -455,8 +453,8 @@ func (c *MockETypedElement_GetUpperBound_Call) Return(upperBound int) *MockEType
 }
 
 // SetUpperBound provides mock implementation for setting the value of upperBound
-func (eTypedElement *MockETypedElement_Prototype_Methods) SetUpperBound(upperBound int) {
-	eTypedElement.mock.Called(upperBound)
+func (e *MockETypedElement_Prototype_Methods) SetUpperBound(upperBound int) {
+	e.mock.Called(upperBound)
 }
 
 type MockETypedElement_SetUpperBound_Call struct {

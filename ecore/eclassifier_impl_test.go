@@ -11,17 +11,16 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"reflect"
-	"testing"
-)
+import "github.com/stretchr/testify/assert"
+import "github.com/stretchr/testify/mock"
+import "reflect"
+import "testing"
 
 func discardEClassifier() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEClassifier
 }
 
 func TestEClassifierAsEClassifier(t *testing.T) {

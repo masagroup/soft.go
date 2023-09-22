@@ -11,9 +11,7 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/mock"
-)
+import "github.com/stretchr/testify/mock"
 
 // MockEModelElement is an mock type for the EModelElement type
 type MockEModelElement struct {
@@ -45,9 +43,9 @@ func (_me *MockEModelElement_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEModelElement_Expecter_Methods.SetMock(mock)
 }
 
-func (eModelElement *MockEModelElement_Prototype) EXPECT() *MockEModelElement_Expecter {
+func (e *MockEModelElement_Prototype) EXPECT() *MockEModelElement_Expecter {
 	expecter := &MockEModelElement_Expecter{}
-	expecter.SetMock(eModelElement.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -70,19 +68,19 @@ func (_mde *MockEModelElement_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // GetEAnnotations get the value of eAnnotations
-func (eModelElement *MockEModelElement_Prototype_Methods) GetEAnnotations() EList {
-	ret := eModelElement.mock.Called()
+func (e *MockEModelElement_Prototype_Methods) GetEAnnotations() EList {
+	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEModelElement_GetEAnnotations_Call struct {
@@ -106,19 +104,19 @@ func (c *MockEModelElement_GetEAnnotations_Call) Return(eAnnotations EList) *Moc
 }
 
 // GetEAnnotation provides mock implementation
-func (eModelElement *MockEModelElement_Prototype_Methods) GetEAnnotation(source string) EAnnotation {
-	ret := eModelElement.mock.Called(source)
+func (e *MockEModelElement_Prototype_Methods) GetEAnnotation(source string) EAnnotation {
+	ret := e.mock.Called(source)
 
-	var r EAnnotation
+	var res EAnnotation
 	if rf, ok := ret.Get(0).(func() EAnnotation); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EAnnotation)
+			res = ret.Get(0).(EAnnotation)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEModelElement_GetEAnnotation_Call struct {

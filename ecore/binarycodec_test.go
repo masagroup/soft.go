@@ -174,7 +174,7 @@ func TestBinaryCodec_GetFeatureKind_Attribute(t *testing.T) {
 
 	mockAttribute.EXPECT().IsMany().Return(false).Once()
 	mockAttribute.EXPECT().GetEAttributeType().Return(mockDataType).Once()
-	mockDataType.EXPECT().GetInstanceTypeName().Return("*time.Time").Once()
+	mockDataType.EXPECT().GetInstanceTypeName().Return("*time/time.Time").Once()
 	assert.Equal(t, bfkDate, getBinaryCodecFeatureKind(mockAttribute))
 	mock.AssertExpectationsForObjects(t, mockAttribute, mockDataType)
 

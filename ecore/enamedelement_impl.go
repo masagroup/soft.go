@@ -19,76 +19,76 @@ type ENamedElementImpl struct {
 
 // newENamedElementImpl is the constructor of a ENamedElementImpl
 func newENamedElementImpl() *ENamedElementImpl {
-	eNamedElement := new(ENamedElementImpl)
-	eNamedElement.SetInterfaces(eNamedElement)
-	eNamedElement.Initialize()
-	return eNamedElement
+	e := new(ENamedElementImpl)
+	e.SetInterfaces(e)
+	e.Initialize()
+	return e
 }
 
-func (eNamedElement *ENamedElementImpl) Initialize() {
-	eNamedElement.EModelElementExt.Initialize()
-	eNamedElement.name = ""
+func (e *ENamedElementImpl) Initialize() {
+	e.EModelElementExt.Initialize()
+	e.name = ""
 
 }
 
-func (eNamedElement *ENamedElementImpl) asENamedElement() ENamedElement {
-	return eNamedElement.GetInterfaces().(ENamedElement)
+func (e *ENamedElementImpl) asENamedElement() ENamedElement {
+	return e.GetInterfaces().(ENamedElement)
 }
 
-func (eNamedElement *ENamedElementImpl) EStaticClass() EClass {
+func (e *ENamedElementImpl) EStaticClass() EClass {
 	return GetPackage().GetENamedElement()
 }
 
-func (eNamedElement *ENamedElementImpl) EStaticFeatureCount() int {
+func (e *ENamedElementImpl) EStaticFeatureCount() int {
 	return ENAMED_ELEMENT_FEATURE_COUNT
 }
 
 // GetName get the value of name
-func (eNamedElement *ENamedElementImpl) GetName() string {
-	return eNamedElement.name
+func (e *ENamedElementImpl) GetName() string {
+	return e.name
 }
 
 // SetName set the value of name
-func (eNamedElement *ENamedElementImpl) SetName(newName string) {
-	oldName := eNamedElement.name
-	eNamedElement.name = newName
-	if eNamedElement.ENotificationRequired() {
-		eNamedElement.ENotify(NewNotificationByFeatureID(eNamedElement.AsEObject(), SET, ENAMED_ELEMENT__NAME, oldName, newName, NO_INDEX))
+func (e *ENamedElementImpl) SetName(newName string) {
+	oldName := e.name
+	e.name = newName
+	if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), SET, ENAMED_ELEMENT__NAME, oldName, newName, NO_INDEX))
 	}
 }
 
-func (eNamedElement *ENamedElementImpl) EGetFromID(featureID int, resolve bool) any {
+func (e *ENamedElementImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case ENAMED_ELEMENT__NAME:
-		return eNamedElement.asENamedElement().GetName()
+		return e.asENamedElement().GetName()
 	default:
-		return eNamedElement.EModelElementExt.EGetFromID(featureID, resolve)
+		return e.EModelElementExt.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eNamedElement *ENamedElementImpl) ESetFromID(featureID int, newValue any) {
+func (e *ENamedElementImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case ENAMED_ELEMENT__NAME:
-		eNamedElement.asENamedElement().SetName(newValue.(string))
+		e.asENamedElement().SetName(newValue.(string))
 	default:
-		eNamedElement.EModelElementExt.ESetFromID(featureID, newValue)
+		e.EModelElementExt.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eNamedElement *ENamedElementImpl) EUnsetFromID(featureID int) {
+func (e *ENamedElementImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case ENAMED_ELEMENT__NAME:
-		eNamedElement.asENamedElement().SetName("")
+		e.asENamedElement().SetName("")
 	default:
-		eNamedElement.EModelElementExt.EUnsetFromID(featureID)
+		e.EModelElementExt.EUnsetFromID(featureID)
 	}
 }
 
-func (eNamedElement *ENamedElementImpl) EIsSetFromID(featureID int) bool {
+func (e *ENamedElementImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case ENAMED_ELEMENT__NAME:
-		return eNamedElement.name != ""
+		return e.name != ""
 	default:
-		return eNamedElement.EModelElementExt.EIsSetFromID(featureID)
+		return e.EModelElementExt.EIsSetFromID(featureID)
 	}
 }

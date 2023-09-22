@@ -22,127 +22,127 @@ type eEnumInitializers interface {
 
 // newEEnumImpl is the constructor of a EEnumImpl
 func newEEnumImpl() *EEnumImpl {
-	eEnum := new(EEnumImpl)
-	eEnum.SetInterfaces(eEnum)
-	eEnum.Initialize()
-	return eEnum
+	e := new(EEnumImpl)
+	e.SetInterfaces(e)
+	e.Initialize()
+	return e
 }
 
-func (eEnum *EEnumImpl) Initialize() {
-	eEnum.EDataTypeExt.Initialize()
+func (e *EEnumImpl) Initialize() {
+	e.EDataTypeExt.Initialize()
 
 }
 
-func (eEnum *EEnumImpl) asEEnum() EEnum {
-	return eEnum.GetInterfaces().(EEnum)
+func (e *EEnumImpl) asEEnum() EEnum {
+	return e.GetInterfaces().(EEnum)
 }
 
-func (eEnum *EEnumImpl) asInitializers() eEnumInitializers {
-	return eEnum.GetInterfaces().(eEnumInitializers)
+func (e *EEnumImpl) asInitializers() eEnumInitializers {
+	return e.GetInterfaces().(eEnumInitializers)
 }
 
-func (eEnum *EEnumImpl) EStaticClass() EClass {
+func (e *EEnumImpl) EStaticClass() EClass {
 	return GetPackage().GetEEnum()
 }
 
-func (eEnum *EEnumImpl) EStaticFeatureCount() int {
+func (e *EEnumImpl) EStaticFeatureCount() int {
 	return EENUM_FEATURE_COUNT
 }
 
 // GetEEnumLiteralByLiteral default implementation
-func (eEnum *EEnumImpl) GetEEnumLiteralByLiteral(string) EEnumLiteral {
+func (e *EEnumImpl) GetEEnumLiteralByLiteral(string) EEnumLiteral {
 	panic("GetEEnumLiteralByLiteral not implemented")
 }
 
 // GetEEnumLiteralByName default implementation
-func (eEnum *EEnumImpl) GetEEnumLiteralByName(string) EEnumLiteral {
+func (e *EEnumImpl) GetEEnumLiteralByName(string) EEnumLiteral {
 	panic("GetEEnumLiteralByName not implemented")
 }
 
 // GetEEnumLiteralByValue default implementation
-func (eEnum *EEnumImpl) GetEEnumLiteralByValue(int) EEnumLiteral {
+func (e *EEnumImpl) GetEEnumLiteralByValue(int) EEnumLiteral {
 	panic("GetEEnumLiteralByValue not implemented")
 }
 
 // GetELiterals get the value of eLiterals
-func (eEnum *EEnumImpl) GetELiterals() EList {
-	if eEnum.eLiterals == nil {
-		eEnum.eLiterals = eEnum.asInitializers().initELiterals()
+func (e *EEnumImpl) GetELiterals() EList {
+	if e.eLiterals == nil {
+		e.eLiterals = e.asInitializers().initELiterals()
 	}
-	return eEnum.eLiterals
+	return e.eLiterals
 }
 
-func (eEnum *EEnumImpl) initELiterals() EList {
-	return NewBasicEObjectList(eEnum.AsEObjectInternal(), EENUM__ELITERALS, EENUM_LITERAL__EENUM, true, true, true, false, false)
+func (e *EEnumImpl) initELiterals() EList {
+	return NewBasicEObjectList(e.AsEObjectInternal(), EENUM__ELITERALS, EENUM_LITERAL__EENUM, true, true, true, false, false)
 }
 
-func (eEnum *EEnumImpl) EGetFromID(featureID int, resolve bool) any {
+func (e *EEnumImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EENUM__ELITERALS:
-		return eEnum.asEEnum().GetELiterals()
+		return e.asEEnum().GetELiterals()
 	default:
-		return eEnum.EDataTypeExt.EGetFromID(featureID, resolve)
+		return e.EDataTypeExt.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eEnum *EEnumImpl) ESetFromID(featureID int, newValue any) {
+func (e *EEnumImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EENUM__ELITERALS:
-		list := eEnum.asEEnum().GetELiterals()
+		list := e.asEEnum().GetELiterals()
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	default:
-		eEnum.EDataTypeExt.ESetFromID(featureID, newValue)
+		e.EDataTypeExt.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eEnum *EEnumImpl) EUnsetFromID(featureID int) {
+func (e *EEnumImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EENUM__ELITERALS:
-		eEnum.asEEnum().GetELiterals().Clear()
+		e.asEEnum().GetELiterals().Clear()
 	default:
-		eEnum.EDataTypeExt.EUnsetFromID(featureID)
+		e.EDataTypeExt.EUnsetFromID(featureID)
 	}
 }
 
-func (eEnum *EEnumImpl) EIsSetFromID(featureID int) bool {
+func (e *EEnumImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EENUM__ELITERALS:
-		return eEnum.eLiterals != nil && eEnum.eLiterals.Size() != 0
+		return e.eLiterals != nil && e.eLiterals.Size() != 0
 	default:
-		return eEnum.EDataTypeExt.EIsSetFromID(featureID)
+		return e.EDataTypeExt.EIsSetFromID(featureID)
 	}
 }
 
-func (eEnum *EEnumImpl) EInvokeFromID(operationID int, arguments EList) any {
+func (e *EEnumImpl) EInvokeFromID(operationID int, arguments EList) any {
 	switch operationID {
 	case EENUM__GET_EENUM_LITERAL_BY_LITERAL_ESTRING:
-		return eEnum.asEEnum().GetEEnumLiteralByLiteral(arguments.Get(0).(string))
+		return e.asEEnum().GetEEnumLiteralByLiteral(arguments.Get(0).(string))
 	case EENUM__GET_EENUM_LITERAL_ESTRING:
-		return eEnum.asEEnum().GetEEnumLiteralByName(arguments.Get(0).(string))
+		return e.asEEnum().GetEEnumLiteralByName(arguments.Get(0).(string))
 	case EENUM__GET_EENUM_LITERAL_EINT:
-		return eEnum.asEEnum().GetEEnumLiteralByValue(arguments.Get(0).(int))
+		return e.asEEnum().GetEEnumLiteralByValue(arguments.Get(0).(int))
 	default:
-		return eEnum.EDataTypeExt.EInvokeFromID(operationID, arguments)
+		return e.EDataTypeExt.EInvokeFromID(operationID, arguments)
 	}
 }
 
-func (eEnum *EEnumImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (e *EEnumImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EENUM__ELITERALS:
-		list := eEnum.GetELiterals().(ENotifyingList)
+		list := e.GetELiterals().(ENotifyingList)
 		return list.AddWithNotification(otherEnd, notifications)
 	default:
-		return eEnum.EDataTypeExt.EBasicInverseAdd(otherEnd, featureID, notifications)
+		return e.EDataTypeExt.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
 }
 
-func (eEnum *EEnumImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (e *EEnumImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EENUM__ELITERALS:
-		list := eEnum.GetELiterals().(ENotifyingList)
+		list := e.GetELiterals().(ENotifyingList)
 		return list.RemoveWithNotification(otherEnd, notifications)
 	default:
-		return eEnum.EDataTypeExt.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return e.EDataTypeExt.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

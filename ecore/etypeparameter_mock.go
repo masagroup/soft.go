@@ -11,9 +11,7 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/mock"
-)
+import "github.com/stretchr/testify/mock"
 
 // MockETypeParameter is an mock type for the ETypeParameter type
 type MockETypeParameter struct {
@@ -45,9 +43,9 @@ func (_me *MockETypeParameter_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockETypeParameter_Expecter_Methods.SetMock(mock)
 }
 
-func (eTypeParameter *MockETypeParameter_Prototype) EXPECT() *MockETypeParameter_Expecter {
+func (e *MockETypeParameter_Prototype) EXPECT() *MockETypeParameter_Expecter {
 	expecter := &MockETypeParameter_Expecter{}
-	expecter.SetMock(eTypeParameter.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -70,19 +68,19 @@ func (_mde *MockETypeParameter_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // GetEBounds get the value of eBounds
-func (eTypeParameter *MockETypeParameter_Prototype_Methods) GetEBounds() EList {
-	ret := eTypeParameter.mock.Called()
+func (e *MockETypeParameter_Prototype_Methods) GetEBounds() EList {
+	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockETypeParameter_GetEBounds_Call struct {

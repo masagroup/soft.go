@@ -11,9 +11,7 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/mock"
-)
+import "github.com/stretchr/testify/mock"
 
 // MockEParameter is an mock type for the EParameter type
 type MockEParameter struct {
@@ -45,9 +43,9 @@ func (_me *MockEParameter_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEParameter_Expecter_Methods.SetMock(mock)
 }
 
-func (eParameter *MockEParameter_Prototype) EXPECT() *MockEParameter_Expecter {
+func (e *MockEParameter_Prototype) EXPECT() *MockEParameter_Expecter {
 	expecter := &MockEParameter_Expecter{}
-	expecter.SetMock(eParameter.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -70,19 +68,19 @@ func (_mde *MockEParameter_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // GetEOperation get the value of eOperation
-func (eParameter *MockEParameter_Prototype_Methods) GetEOperation() EOperation {
-	ret := eParameter.mock.Called()
+func (e *MockEParameter_Prototype_Methods) GetEOperation() EOperation {
+	ret := e.mock.Called()
 
-	var r EOperation
+	var res EOperation
 	if rf, ok := ret.Get(0).(func() EOperation); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EOperation)
+			res = ret.Get(0).(EOperation)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEParameter_GetEOperation_Call struct {

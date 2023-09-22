@@ -11,9 +11,7 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/mock"
-)
+import "github.com/stretchr/testify/mock"
 
 // MockEEnum is an mock type for the EEnum type
 type MockEEnum struct {
@@ -45,9 +43,9 @@ func (_me *MockEEnum_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEEnum_Expecter_Methods.SetMock(mock)
 }
 
-func (eEnum *MockEEnum_Prototype) EXPECT() *MockEEnum_Expecter {
+func (e *MockEEnum_Prototype) EXPECT() *MockEEnum_Expecter {
 	expecter := &MockEEnum_Expecter{}
-	expecter.SetMock(eEnum.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -70,19 +68,19 @@ func (_mde *MockEEnum_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // GetELiterals get the value of eLiterals
-func (eEnum *MockEEnum_Prototype_Methods) GetELiterals() EList {
-	ret := eEnum.mock.Called()
+func (e *MockEEnum_Prototype_Methods) GetELiterals() EList {
+	ret := e.mock.Called()
 
-	var r EList
+	var res EList
 	if rf, ok := ret.Get(0).(func() EList); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EList)
+			res = ret.Get(0).(EList)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEEnum_GetELiterals_Call struct {
@@ -106,19 +104,19 @@ func (c *MockEEnum_GetELiterals_Call) Return(eLiterals EList) *MockEEnum_GetELit
 }
 
 // GetEEnumLiteralByLiteral provides mock implementation
-func (eEnum *MockEEnum_Prototype_Methods) GetEEnumLiteralByLiteral(literal string) EEnumLiteral {
-	ret := eEnum.mock.Called(literal)
+func (e *MockEEnum_Prototype_Methods) GetEEnumLiteralByLiteral(literal string) EEnumLiteral {
+	ret := e.mock.Called(literal)
 
-	var r EEnumLiteral
+	var res EEnumLiteral
 	if rf, ok := ret.Get(0).(func() EEnumLiteral); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EEnumLiteral)
+			res = ret.Get(0).(EEnumLiteral)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEEnum_GetEEnumLiteralByLiteral_Call struct {
@@ -144,19 +142,19 @@ func (c *MockEEnum_GetEEnumLiteralByLiteral_Call) Return(_a0 EEnumLiteral) *Mock
 }
 
 // GetEEnumLiteralByName provides mock implementation
-func (eEnum *MockEEnum_Prototype_Methods) GetEEnumLiteralByName(name string) EEnumLiteral {
-	ret := eEnum.mock.Called(name)
+func (e *MockEEnum_Prototype_Methods) GetEEnumLiteralByName(name string) EEnumLiteral {
+	ret := e.mock.Called(name)
 
-	var r EEnumLiteral
+	var res EEnumLiteral
 	if rf, ok := ret.Get(0).(func() EEnumLiteral); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EEnumLiteral)
+			res = ret.Get(0).(EEnumLiteral)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEEnum_GetEEnumLiteralByName_Call struct {
@@ -182,19 +180,19 @@ func (c *MockEEnum_GetEEnumLiteralByName_Call) Return(_a0 EEnumLiteral) *MockEEn
 }
 
 // GetEEnumLiteralByValue provides mock implementation
-func (eEnum *MockEEnum_Prototype_Methods) GetEEnumLiteralByValue(value int) EEnumLiteral {
-	ret := eEnum.mock.Called(value)
+func (e *MockEEnum_Prototype_Methods) GetEEnumLiteralByValue(value int) EEnumLiteral {
+	ret := e.mock.Called(value)
 
-	var r EEnumLiteral
+	var res EEnumLiteral
 	if rf, ok := ret.Get(0).(func() EEnumLiteral); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EEnumLiteral)
+			res = ret.Get(0).(EEnumLiteral)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEEnum_GetEEnumLiteralByValue_Call struct {

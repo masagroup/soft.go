@@ -11,16 +11,15 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"testing"
-)
+import "github.com/stretchr/testify/assert"
+import "github.com/stretchr/testify/mock"
+import "testing"
 
 func discardETypedElement() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockETypedElement
 }
 
 func TestETypedElementAsETypedElement(t *testing.T) {

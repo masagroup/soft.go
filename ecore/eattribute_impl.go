@@ -23,96 +23,96 @@ type eAttributeBasics interface {
 
 // newEAttributeImpl is the constructor of a EAttributeImpl
 func newEAttributeImpl() *EAttributeImpl {
-	eAttribute := new(EAttributeImpl)
-	eAttribute.SetInterfaces(eAttribute)
-	eAttribute.Initialize()
-	return eAttribute
+	e := new(EAttributeImpl)
+	e.SetInterfaces(e)
+	e.Initialize()
+	return e
 }
 
-func (eAttribute *EAttributeImpl) Initialize() {
-	eAttribute.EStructuralFeatureExt.Initialize()
-	eAttribute.isID = false
+func (e *EAttributeImpl) Initialize() {
+	e.EStructuralFeatureExt.Initialize()
+	e.isID = false
 
 }
 
-func (eAttribute *EAttributeImpl) asEAttribute() EAttribute {
-	return eAttribute.GetInterfaces().(EAttribute)
+func (e *EAttributeImpl) asEAttribute() EAttribute {
+	return e.GetInterfaces().(EAttribute)
 }
 
-func (eAttribute *EAttributeImpl) asBasics() eAttributeBasics {
-	return eAttribute.GetInterfaces().(eAttributeBasics)
+func (e *EAttributeImpl) asBasics() eAttributeBasics {
+	return e.GetInterfaces().(eAttributeBasics)
 }
 
-func (eAttribute *EAttributeImpl) EStaticClass() EClass {
+func (e *EAttributeImpl) EStaticClass() EClass {
 	return GetPackage().GetEAttribute()
 }
 
-func (eAttribute *EAttributeImpl) EStaticFeatureCount() int {
+func (e *EAttributeImpl) EStaticFeatureCount() int {
 	return EATTRIBUTE_FEATURE_COUNT
 }
 
 // GetEAttributeType get the value of eAttributeType
-func (eAttribute *EAttributeImpl) GetEAttributeType() EDataType {
+func (e *EAttributeImpl) GetEAttributeType() EDataType {
 	panic("GetEAttributeType not implemented")
 }
 
-func (eAttribute *EAttributeImpl) basicGetEAttributeType() EDataType {
+func (e *EAttributeImpl) basicGetEAttributeType() EDataType {
 	panic("GetEAttributeType not implemented")
 }
 
 // IsID get the value of isID
-func (eAttribute *EAttributeImpl) IsID() bool {
-	return eAttribute.isID
+func (e *EAttributeImpl) IsID() bool {
+	return e.isID
 }
 
 // SetID set the value of isID
-func (eAttribute *EAttributeImpl) SetID(newIsID bool) {
-	oldIsID := eAttribute.isID
-	eAttribute.isID = newIsID
-	if eAttribute.ENotificationRequired() {
-		eAttribute.ENotify(NewNotificationByFeatureID(eAttribute.AsEObject(), SET, EATTRIBUTE__ID, oldIsID, newIsID, NO_INDEX))
+func (e *EAttributeImpl) SetID(newIsID bool) {
+	oldIsID := e.isID
+	e.isID = newIsID
+	if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), SET, EATTRIBUTE__ID, oldIsID, newIsID, NO_INDEX))
 	}
 }
 
-func (eAttribute *EAttributeImpl) EGetFromID(featureID int, resolve bool) any {
+func (e *EAttributeImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EATTRIBUTE__EATTRIBUTE_TYPE:
 		if resolve {
-			return eAttribute.asEAttribute().GetEAttributeType()
+			return e.asEAttribute().GetEAttributeType()
 		}
-		return eAttribute.asBasics().basicGetEAttributeType()
+		return e.asBasics().basicGetEAttributeType()
 	case EATTRIBUTE__ID:
-		return eAttribute.asEAttribute().IsID()
+		return e.asEAttribute().IsID()
 	default:
-		return eAttribute.EStructuralFeatureExt.EGetFromID(featureID, resolve)
+		return e.EStructuralFeatureExt.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eAttribute *EAttributeImpl) ESetFromID(featureID int, newValue any) {
+func (e *EAttributeImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EATTRIBUTE__ID:
-		eAttribute.asEAttribute().SetID(newValue.(bool))
+		e.asEAttribute().SetID(newValue.(bool))
 	default:
-		eAttribute.EStructuralFeatureExt.ESetFromID(featureID, newValue)
+		e.EStructuralFeatureExt.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eAttribute *EAttributeImpl) EUnsetFromID(featureID int) {
+func (e *EAttributeImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EATTRIBUTE__ID:
-		eAttribute.asEAttribute().SetID(false)
+		e.asEAttribute().SetID(false)
 	default:
-		eAttribute.EStructuralFeatureExt.EUnsetFromID(featureID)
+		e.EStructuralFeatureExt.EUnsetFromID(featureID)
 	}
 }
 
-func (eAttribute *EAttributeImpl) EIsSetFromID(featureID int) bool {
+func (e *EAttributeImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EATTRIBUTE__EATTRIBUTE_TYPE:
-		return eAttribute.asEAttribute().GetEAttributeType() != nil
+		return e.asEAttribute().GetEAttributeType() != nil
 	case EATTRIBUTE__ID:
-		return eAttribute.isID != false
+		return e.isID != false
 	default:
-		return eAttribute.EStructuralFeatureExt.EIsSetFromID(featureID)
+		return e.EStructuralFeatureExt.EIsSetFromID(featureID)
 	}
 }

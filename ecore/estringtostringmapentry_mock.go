@@ -11,9 +11,7 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/mock"
-)
+import "github.com/stretchr/testify/mock"
 
 // MockEStringToStringMapEntry is an mock type for the EStringToStringMapEntry type
 type MockEStringToStringMapEntry struct {
@@ -49,9 +47,9 @@ func (_me *MockEStringToStringMapEntry_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEStringToStringMapEntry_Expecter_Methods.SetMock(mock)
 }
 
-func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype) EXPECT() *MockEStringToStringMapEntry_Expecter {
+func (e *MockEStringToStringMapEntry_Prototype) EXPECT() *MockEStringToStringMapEntry_Expecter {
 	expecter := &MockEStringToStringMapEntry_Expecter{}
-	expecter.SetMock(eStringToStringMapEntry.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -74,19 +72,19 @@ func (_mde *MockEStringToStringMapEntry_Expecter_Methods) SetMock(mock *mock.Moc
 }
 
 // GetTypedKey get the value of key
-func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype_Methods) GetTypedKey() string {
-	ret := eStringToStringMapEntry.mock.Called()
+func (e *MockEStringToStringMapEntry_Prototype_Methods) GetTypedKey() string {
+	ret := e.mock.Called()
 
-	var r string
+	var res string
 	if rf, ok := ret.Get(0).(func() string); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(string)
+			res = ret.Get(0).(string)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStringToStringMapEntry_GetTypedKey_Call struct {
@@ -110,8 +108,8 @@ func (c *MockEStringToStringMapEntry_GetTypedKey_Call) Return(key string) *MockE
 }
 
 // SetTypedKey provides mock implementation for setting the value of key
-func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype_Methods) SetTypedKey(key string) {
-	eStringToStringMapEntry.mock.Called(key)
+func (e *MockEStringToStringMapEntry_Prototype_Methods) SetTypedKey(key string) {
+	e.mock.Called(key)
 }
 
 type MockEStringToStringMapEntry_SetTypedKey_Call struct {
@@ -137,19 +135,19 @@ func (c *MockEStringToStringMapEntry_SetTypedKey_Call) Return() *MockEStringToSt
 }
 
 // GetTypedValue get the value of value
-func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype_Methods) GetTypedValue() string {
-	ret := eStringToStringMapEntry.mock.Called()
+func (e *MockEStringToStringMapEntry_Prototype_Methods) GetTypedValue() string {
+	ret := e.mock.Called()
 
-	var r string
+	var res string
 	if rf, ok := ret.Get(0).(func() string); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(string)
+			res = ret.Get(0).(string)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEStringToStringMapEntry_GetTypedValue_Call struct {
@@ -173,8 +171,8 @@ func (c *MockEStringToStringMapEntry_GetTypedValue_Call) Return(value string) *M
 }
 
 // SetTypedValue provides mock implementation for setting the value of value
-func (eStringToStringMapEntry *MockEStringToStringMapEntry_Prototype_Methods) SetTypedValue(value string) {
-	eStringToStringMapEntry.mock.Called(value)
+func (e *MockEStringToStringMapEntry_Prototype_Methods) SetTypedValue(value string) {
+	e.mock.Called(value)
 }
 
 type MockEStringToStringMapEntry_SetTypedValue_Call struct {

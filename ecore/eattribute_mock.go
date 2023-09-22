@@ -11,9 +11,7 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/mock"
-)
+import "github.com/stretchr/testify/mock"
 
 // MockEAttribute is an mock type for the EAttribute type
 type MockEAttribute struct {
@@ -45,9 +43,9 @@ func (_me *MockEAttribute_Expecter) SetMock(mock *mock.Mock) {
 	_me.MockEAttribute_Expecter_Methods.SetMock(mock)
 }
 
-func (eAttribute *MockEAttribute_Prototype) EXPECT() *MockEAttribute_Expecter {
+func (e *MockEAttribute_Prototype) EXPECT() *MockEAttribute_Expecter {
 	expecter := &MockEAttribute_Expecter{}
-	expecter.SetMock(eAttribute.mock)
+	expecter.SetMock(e.mock)
 	return expecter
 }
 
@@ -70,19 +68,19 @@ func (_mde *MockEAttribute_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // GetEAttributeType get the value of eAttributeType
-func (eAttribute *MockEAttribute_Prototype_Methods) GetEAttributeType() EDataType {
-	ret := eAttribute.mock.Called()
+func (e *MockEAttribute_Prototype_Methods) GetEAttributeType() EDataType {
+	ret := e.mock.Called()
 
-	var r EDataType
+	var res EDataType
 	if rf, ok := ret.Get(0).(func() EDataType); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(EDataType)
+			res = ret.Get(0).(EDataType)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEAttribute_GetEAttributeType_Call struct {
@@ -106,19 +104,19 @@ func (c *MockEAttribute_GetEAttributeType_Call) Return(eAttributeType EDataType)
 }
 
 // IsID get the value of isID
-func (eAttribute *MockEAttribute_Prototype_Methods) IsID() bool {
-	ret := eAttribute.mock.Called()
+func (e *MockEAttribute_Prototype_Methods) IsID() bool {
+	ret := e.mock.Called()
 
-	var r bool
+	var res bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
-		r = rf()
+		res = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r = ret.Get(0).(bool)
+			res = ret.Get(0).(bool)
 		}
 	}
 
-	return r
+	return res
 }
 
 type MockEAttribute_IsID_Call struct {
@@ -142,8 +140,8 @@ func (c *MockEAttribute_IsID_Call) Return(isID bool) *MockEAttribute_IsID_Call {
 }
 
 // SetID provides mock implementation for setting the value of isID
-func (eAttribute *MockEAttribute_Prototype_Methods) SetID(isID bool) {
-	eAttribute.mock.Called(isID)
+func (e *MockEAttribute_Prototype_Methods) SetID(isID bool) {
+	e.mock.Called(isID)
 }
 
 type MockEAttribute_SetID_Call struct {

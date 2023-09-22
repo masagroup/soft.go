@@ -11,16 +11,15 @@
 
 package ecore
 
-import (
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"testing"
-)
+import "github.com/stretchr/testify/assert"
+import "github.com/stretchr/testify/mock"
+import "testing"
 
 func discardEFactory() {
 	_ = assert.Equal
 	_ = mock.Anything
 	_ = testing.Coverage
+	_ = NewMockEFactory
 }
 
 func TestEFactoryAsEFactory(t *testing.T) {

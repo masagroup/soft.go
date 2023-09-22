@@ -31,129 +31,129 @@ type eAnnotationBasics interface {
 
 // newEAnnotationImpl is the constructor of a EAnnotationImpl
 func newEAnnotationImpl() *EAnnotationImpl {
-	eAnnotation := new(EAnnotationImpl)
-	eAnnotation.SetInterfaces(eAnnotation)
-	eAnnotation.Initialize()
-	return eAnnotation
+	e := new(EAnnotationImpl)
+	e.SetInterfaces(e)
+	e.Initialize()
+	return e
 }
 
-func (eAnnotation *EAnnotationImpl) Initialize() {
-	eAnnotation.EModelElementExt.Initialize()
-	eAnnotation.source = ""
+func (e *EAnnotationImpl) Initialize() {
+	e.EModelElementExt.Initialize()
+	e.source = ""
 
 }
 
-func (eAnnotation *EAnnotationImpl) asEAnnotation() EAnnotation {
-	return eAnnotation.GetInterfaces().(EAnnotation)
+func (e *EAnnotationImpl) asEAnnotation() EAnnotation {
+	return e.GetInterfaces().(EAnnotation)
 }
 
-func (eAnnotation *EAnnotationImpl) asInitializers() eAnnotationInitializers {
-	return eAnnotation.GetInterfaces().(eAnnotationInitializers)
+func (e *EAnnotationImpl) asInitializers() eAnnotationInitializers {
+	return e.GetInterfaces().(eAnnotationInitializers)
 }
 
-func (eAnnotation *EAnnotationImpl) asBasics() eAnnotationBasics {
-	return eAnnotation.GetInterfaces().(eAnnotationBasics)
+func (e *EAnnotationImpl) asBasics() eAnnotationBasics {
+	return e.GetInterfaces().(eAnnotationBasics)
 }
 
-func (eAnnotation *EAnnotationImpl) EStaticClass() EClass {
+func (e *EAnnotationImpl) EStaticClass() EClass {
 	return GetPackage().GetEAnnotationClass()
 }
 
-func (eAnnotation *EAnnotationImpl) EStaticFeatureCount() int {
+func (e *EAnnotationImpl) EStaticFeatureCount() int {
 	return EANNOTATION_FEATURE_COUNT
 }
 
 // GetContents get the value of contents
-func (eAnnotation *EAnnotationImpl) GetContents() EList {
-	if eAnnotation.contents == nil {
-		eAnnotation.contents = eAnnotation.asInitializers().initContents()
+func (e *EAnnotationImpl) GetContents() EList {
+	if e.contents == nil {
+		e.contents = e.asInitializers().initContents()
 	}
-	return eAnnotation.contents
+	return e.contents
 }
 
 // GetDetails get the value of details
-func (eAnnotation *EAnnotationImpl) GetDetails() EMap {
-	if eAnnotation.details == nil {
-		eAnnotation.details = eAnnotation.asInitializers().initDetails()
+func (e *EAnnotationImpl) GetDetails() EMap {
+	if e.details == nil {
+		e.details = e.asInitializers().initDetails()
 	}
-	return eAnnotation.details
+	return e.details
 }
 
 // GetEModelElement get the value of eModelElement
-func (eAnnotation *EAnnotationImpl) GetEModelElement() EModelElement {
-	if eAnnotation.EContainerFeatureID() == EANNOTATION__EMODEL_ELEMENT {
-		return eAnnotation.EContainer().(EModelElement)
+func (e *EAnnotationImpl) GetEModelElement() EModelElement {
+	if e.EContainerFeatureID() == EANNOTATION__EMODEL_ELEMENT {
+		return e.EContainer().(EModelElement)
 	}
 	return nil
 }
 
 // SetEModelElement set the value of eModelElement
-func (eAnnotation *EAnnotationImpl) SetEModelElement(newEModelElement EModelElement) {
-	if newEModelElement != eAnnotation.EInternalContainer() || (newEModelElement != nil && eAnnotation.EContainerFeatureID() != EANNOTATION__EMODEL_ELEMENT) {
+func (e *EAnnotationImpl) SetEModelElement(newEModelElement EModelElement) {
+	if newEModelElement != e.EInternalContainer() || (newEModelElement != nil && e.EContainerFeatureID() != EANNOTATION__EMODEL_ELEMENT) {
 		var notifications ENotificationChain
-		if eAnnotation.EInternalContainer() != nil {
-			notifications = eAnnotation.EBasicRemoveFromContainer(notifications)
+		if e.EInternalContainer() != nil {
+			notifications = e.EBasicRemoveFromContainer(notifications)
 		}
 		if newEModelElementInternal, _ := newEModelElement.(EObjectInternal); newEModelElementInternal != nil {
-			notifications = newEModelElementInternal.EInverseAdd(eAnnotation.AsEObject(), EMODEL_ELEMENT__EANNOTATIONS, notifications)
+			notifications = newEModelElementInternal.EInverseAdd(e.AsEObject(), EMODEL_ELEMENT__EANNOTATIONS, notifications)
 		}
-		notifications = eAnnotation.asBasics().basicSetEModelElement(newEModelElement, notifications)
+		notifications = e.asBasics().basicSetEModelElement(newEModelElement, notifications)
 		if notifications != nil {
 			notifications.Dispatch()
 		}
-	} else if eAnnotation.ENotificationRequired() {
-		eAnnotation.ENotify(NewNotificationByFeatureID(eAnnotation, SET, EANNOTATION__EMODEL_ELEMENT, newEModelElement, newEModelElement, NO_INDEX))
+	} else if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e, SET, EANNOTATION__EMODEL_ELEMENT, newEModelElement, newEModelElement, NO_INDEX))
 	}
 }
 
-func (eAnnotation *EAnnotationImpl) basicSetEModelElement(newEModelElement EModelElement, msgs ENotificationChain) ENotificationChain {
-	return eAnnotation.EBasicSetContainer(newEModelElement, EANNOTATION__EMODEL_ELEMENT, msgs)
+func (e *EAnnotationImpl) basicSetEModelElement(newEModelElement EModelElement, msgs ENotificationChain) ENotificationChain {
+	return e.EBasicSetContainer(newEModelElement, EANNOTATION__EMODEL_ELEMENT, msgs)
 }
 
 // GetReferences get the value of references
-func (eAnnotation *EAnnotationImpl) GetReferences() EList {
-	if eAnnotation.references == nil {
-		eAnnotation.references = eAnnotation.asInitializers().initReferences()
+func (e *EAnnotationImpl) GetReferences() EList {
+	if e.references == nil {
+		e.references = e.asInitializers().initReferences()
 	}
-	return eAnnotation.references
+	return e.references
 }
 
 // GetSource get the value of source
-func (eAnnotation *EAnnotationImpl) GetSource() string {
-	return eAnnotation.source
+func (e *EAnnotationImpl) GetSource() string {
+	return e.source
 }
 
 // SetSource set the value of source
-func (eAnnotation *EAnnotationImpl) SetSource(newSource string) {
-	oldSource := eAnnotation.source
-	eAnnotation.source = newSource
-	if eAnnotation.ENotificationRequired() {
-		eAnnotation.ENotify(NewNotificationByFeatureID(eAnnotation.AsEObject(), SET, EANNOTATION__SOURCE, oldSource, newSource, NO_INDEX))
+func (e *EAnnotationImpl) SetSource(newSource string) {
+	oldSource := e.source
+	e.source = newSource
+	if e.ENotificationRequired() {
+		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), SET, EANNOTATION__SOURCE, oldSource, newSource, NO_INDEX))
 	}
 }
 
-func (eAnnotation *EAnnotationImpl) initContents() EList {
-	return NewBasicEObjectList(eAnnotation.AsEObjectInternal(), EANNOTATION__CONTENTS, -1, true, true, false, false, false)
+func (e *EAnnotationImpl) initContents() EList {
+	return NewBasicEObjectList(e.AsEObjectInternal(), EANNOTATION__CONTENTS, -1, true, true, false, false, false)
 }
 
-func (eAnnotation *EAnnotationImpl) initDetails() EMap {
-	return NewBasicEObjectMap(GetPackage().GetEStringToStringMapEntry(), eAnnotation.AsEObjectInternal(), EANNOTATION__DETAILS, -1, false)
+func (e *EAnnotationImpl) initDetails() EMap {
+	return NewBasicEObjectMap(GetPackage().GetEStringToStringMapEntry(), e.AsEObjectInternal(), EANNOTATION__DETAILS, -1, false)
 }
 
-func (eAnnotation *EAnnotationImpl) initReferences() EList {
-	return NewBasicEObjectList(eAnnotation.AsEObjectInternal(), EANNOTATION__REFERENCES, -1, false, false, false, true, false)
+func (e *EAnnotationImpl) initReferences() EList {
+	return NewBasicEObjectList(e.AsEObjectInternal(), EANNOTATION__REFERENCES, -1, false, false, false, true, false)
 }
 
-func (eAnnotation *EAnnotationImpl) EGetFromID(featureID int, resolve bool) any {
+func (e *EAnnotationImpl) EGetFromID(featureID int, resolve bool) any {
 	switch featureID {
 	case EANNOTATION__CONTENTS:
-		return eAnnotation.asEAnnotation().GetContents()
+		return e.asEAnnotation().GetContents()
 	case EANNOTATION__DETAILS:
-		return eAnnotation.asEAnnotation().GetDetails()
+		return e.asEAnnotation().GetDetails()
 	case EANNOTATION__EMODEL_ELEMENT:
-		return eAnnotation.asEAnnotation().GetEModelElement()
+		return e.asEAnnotation().GetEModelElement()
 	case EANNOTATION__REFERENCES:
-		list := eAnnotation.asEAnnotation().GetReferences()
+		list := e.asEAnnotation().GetReferences()
 		if !resolve {
 			if objects, _ := list.(EObjectList); objects != nil {
 				return objects.GetUnResolvedList()
@@ -161,93 +161,93 @@ func (eAnnotation *EAnnotationImpl) EGetFromID(featureID int, resolve bool) any 
 		}
 		return list
 	case EANNOTATION__SOURCE:
-		return eAnnotation.asEAnnotation().GetSource()
+		return e.asEAnnotation().GetSource()
 	default:
-		return eAnnotation.EModelElementExt.EGetFromID(featureID, resolve)
+		return e.EModelElementExt.EGetFromID(featureID, resolve)
 	}
 }
 
-func (eAnnotation *EAnnotationImpl) ESetFromID(featureID int, newValue any) {
+func (e *EAnnotationImpl) ESetFromID(featureID int, newValue any) {
 	switch featureID {
 	case EANNOTATION__CONTENTS:
-		list := eAnnotation.asEAnnotation().GetContents()
+		list := e.asEAnnotation().GetContents()
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	case EANNOTATION__DETAILS:
-		m := eAnnotation.asEAnnotation().GetDetails()
+		m := e.asEAnnotation().GetDetails()
 		m.Clear()
 		m.AddAll(newValue.(EList))
 	case EANNOTATION__EMODEL_ELEMENT:
 		newValueOrNil, _ := newValue.(EModelElement)
-		eAnnotation.asEAnnotation().SetEModelElement(newValueOrNil)
+		e.asEAnnotation().SetEModelElement(newValueOrNil)
 	case EANNOTATION__REFERENCES:
-		list := eAnnotation.asEAnnotation().GetReferences()
+		list := e.asEAnnotation().GetReferences()
 		list.Clear()
 		list.AddAll(newValue.(EList))
 	case EANNOTATION__SOURCE:
-		eAnnotation.asEAnnotation().SetSource(newValue.(string))
+		e.asEAnnotation().SetSource(newValue.(string))
 	default:
-		eAnnotation.EModelElementExt.ESetFromID(featureID, newValue)
+		e.EModelElementExt.ESetFromID(featureID, newValue)
 	}
 }
 
-func (eAnnotation *EAnnotationImpl) EUnsetFromID(featureID int) {
+func (e *EAnnotationImpl) EUnsetFromID(featureID int) {
 	switch featureID {
 	case EANNOTATION__CONTENTS:
-		eAnnotation.asEAnnotation().GetContents().Clear()
+		e.asEAnnotation().GetContents().Clear()
 	case EANNOTATION__DETAILS:
-		eAnnotation.asEAnnotation().GetDetails().Clear()
+		e.asEAnnotation().GetDetails().Clear()
 	case EANNOTATION__EMODEL_ELEMENT:
-		eAnnotation.asEAnnotation().SetEModelElement(nil)
+		e.asEAnnotation().SetEModelElement(nil)
 	case EANNOTATION__REFERENCES:
-		eAnnotation.asEAnnotation().GetReferences().Clear()
+		e.asEAnnotation().GetReferences().Clear()
 	case EANNOTATION__SOURCE:
-		eAnnotation.asEAnnotation().SetSource("")
+		e.asEAnnotation().SetSource("")
 	default:
-		eAnnotation.EModelElementExt.EUnsetFromID(featureID)
+		e.EModelElementExt.EUnsetFromID(featureID)
 	}
 }
 
-func (eAnnotation *EAnnotationImpl) EIsSetFromID(featureID int) bool {
+func (e *EAnnotationImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case EANNOTATION__CONTENTS:
-		return eAnnotation.contents != nil && eAnnotation.contents.Size() != 0
+		return e.contents != nil && e.contents.Size() != 0
 	case EANNOTATION__DETAILS:
-		return eAnnotation.details != nil && eAnnotation.details.Size() != 0
+		return e.details != nil && e.details.Size() != 0
 	case EANNOTATION__EMODEL_ELEMENT:
-		return eAnnotation.asEAnnotation().GetEModelElement() != nil
+		return e.asEAnnotation().GetEModelElement() != nil
 	case EANNOTATION__REFERENCES:
-		return eAnnotation.references != nil && eAnnotation.references.Size() != 0
+		return e.references != nil && e.references.Size() != 0
 	case EANNOTATION__SOURCE:
-		return eAnnotation.source != ""
+		return e.source != ""
 	default:
-		return eAnnotation.EModelElementExt.EIsSetFromID(featureID)
+		return e.EModelElementExt.EIsSetFromID(featureID)
 	}
 }
 
-func (eAnnotation *EAnnotationImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (e *EAnnotationImpl) EBasicInverseAdd(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EANNOTATION__EMODEL_ELEMENT:
 		msgs := notifications
-		if eAnnotation.EInternalContainer() != nil {
-			msgs = eAnnotation.EBasicRemoveFromContainer(msgs)
+		if e.EInternalContainer() != nil {
+			msgs = e.EBasicRemoveFromContainer(msgs)
 		}
-		return eAnnotation.asBasics().basicSetEModelElement(otherEnd.(EModelElement), msgs)
+		return e.asBasics().basicSetEModelElement(otherEnd.(EModelElement), msgs)
 	default:
-		return eAnnotation.EModelElementExt.EBasicInverseAdd(otherEnd, featureID, notifications)
+		return e.EModelElementExt.EBasicInverseAdd(otherEnd, featureID, notifications)
 	}
 }
 
-func (eAnnotation *EAnnotationImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
+func (e *EAnnotationImpl) EBasicInverseRemove(otherEnd EObject, featureID int, notifications ENotificationChain) ENotificationChain {
 	switch featureID {
 	case EANNOTATION__CONTENTS:
-		list := eAnnotation.GetContents().(ENotifyingList)
+		list := e.GetContents().(ENotifyingList)
 		return list.RemoveWithNotification(otherEnd, notifications)
 	case EANNOTATION__DETAILS:
 		return notifications
 	case EANNOTATION__EMODEL_ELEMENT:
-		return eAnnotation.asBasics().basicSetEModelElement(nil, notifications)
+		return e.asBasics().basicSetEModelElement(nil, notifications)
 	default:
-		return eAnnotation.EModelElementExt.EBasicInverseRemove(otherEnd, featureID, notifications)
+		return e.EModelElementExt.EBasicInverseRemove(otherEnd, featureID, notifications)
 	}
 }

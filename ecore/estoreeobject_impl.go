@@ -10,15 +10,15 @@
 package ecore
 
 type EStoreEObjectImpl struct {
-	*ReflectiveEObjectImpl
+	ReflectiveEObjectImpl
 	isCaching bool
 }
 
 func NewEStoreEObjectImpl(isCaching bool) *EStoreEObjectImpl {
 	o := new(EStoreEObjectImpl)
-	o.ReflectiveEObjectImpl = NewReflectiveEObjectImpl()
 	o.isCaching = isCaching
 	o.SetInterfaces(o)
+	o.Initialize()
 	return o
 }
 

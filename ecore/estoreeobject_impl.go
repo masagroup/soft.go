@@ -12,6 +12,7 @@ package ecore
 type EStoreEObjectImpl struct {
 	ReflectiveEObjectImpl
 	isCaching bool
+	store     EStore
 }
 
 func NewEStoreEObjectImpl(isCaching bool) *EStoreEObjectImpl {
@@ -24,6 +25,14 @@ func NewEStoreEObjectImpl(isCaching bool) *EStoreEObjectImpl {
 
 func (o *EStoreEObjectImpl) AsEStoreEObject() EStoreEObject {
 	return o.GetInterfaces().(EStoreEObject)
+}
+
+func (o *EStoreEObjectImpl) SetEStore(store EStore) {
+	o.store = store
+}
+
+func (o *EStoreEObjectImpl) EStore() EStore {
+	return o.store
 }
 
 func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {

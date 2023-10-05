@@ -12,5 +12,7 @@ package ecore
 type EStoreEObject interface {
 	EObject
 
+	SetEStore(store EStore)
+
 	EStore() EStore
 }

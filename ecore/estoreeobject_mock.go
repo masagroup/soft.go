@@ -77,13 +77,46 @@ func (_m *MockEStoreEObject_Prototype_Methods) EStore() EStore {
 	return r0
 }
 
+// SetEStore provides a mock function with given fields: store
+func (_m *MockEStoreEObject_Prototype_Methods) SetEStore(store EStore) {
+	_m.mock.Called(store)
+}
+
+// MockEStoreEObject_SetEStore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetEStore'
+type MockEStoreEObject_SetEStore_Call struct {
+	*mock.Call
+}
+
+// SetEStore is a helper method to define mock.On call
+//   - store EStore
+func (_e *MockEStoreEObject_Expecter) SetEStore(store interface{}) *MockEStoreEObject_SetEStore_Call {
+	return &MockEStoreEObject_SetEStore_Call{Call: _e.mock.On("SetEStore", store)}
+}
+
+func (_c *MockEStoreEObject_SetEStore_Call) Run(run func(store EStore)) *MockEStoreEObject_SetEStore_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(EStore))
+	})
+	return _c
+}
+
+func (_c *MockEStoreEObject_SetEStore_Call) Return() *MockEStoreEObject_SetEStore_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockEStoreEObject_SetEStore_Call) RunAndReturn(run func(EStore)) *MockEStoreEObject_SetEStore_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MockEStoreEObject_EStore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EStore'
 type MockEStoreEObject_EStore_Call struct {
 	*mock.Call
 }
 
 // EStore is a helper method to define mock.On call
-func (_e *MockEStoreEObject_Expecter_Methods) EStore() *MockEStoreEObject_EStore_Call {
+func (_e *MockEStoreEObject_Expecter) EStore() *MockEStoreEObject_EStore_Call {
 	return &MockEStoreEObject_EStore_Call{Call: _e.mock.On("EStore")}
 }
 
@@ -96,6 +129,11 @@ func (_c *MockEStoreEObject_EStore_Call) Run(run func()) *MockEStoreEObject_ESto
 
 func (_c *MockEStoreEObject_EStore_Call) Return(_a0 EStore) *MockEStoreEObject_EStore_Call {
 	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockEStoreEObject_EStore_Call) RunAndReturn(run func() EStore) *MockEStoreEObject_EStore_Call {
+	_c.Call.Return(run)
 	return _c
 }
 

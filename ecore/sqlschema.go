@@ -270,6 +270,15 @@ type sqlClassSchema struct {
 	features []*sqlFeatureSchema
 }
 
+func (s *sqlClassSchema) getFeatureSchema(f EStructuralFeature) *sqlFeatureSchema {
+	for _, fs := range s.features {
+		if fs.feature == f {
+			return fs
+		}
+	}
+	return nil
+}
+
 type sqlFeatureSchema struct {
 	featureKind sqlFeatureKind
 	feature     EStructuralFeature

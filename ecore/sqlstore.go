@@ -60,6 +60,9 @@ func NewSQLStore(driver string, dbPath string, options map[string]any) (*SQLStor
 }
 
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
+	class := feature.GetEContainingClass()
+	classSchema := s.schema.getClassSchema(class)
+	featureSchema := classSchema.getFeatureSchema(feature)
 	return nil
 }
 

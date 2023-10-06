@@ -58,3 +58,54 @@ func NewSQLStore(driver string, dbPath string, options map[string]any) (*SQLStor
 		db:     db,
 	}, nil
 }
+
+func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
+	return nil
+}
+
+func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {
+	return nil
+}
+
+func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
+	return false
+}
+
+func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
+
+}
+
+func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
+	return false
+}
+
+func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
+	return 0
+}
+
+func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value any) bool {
+	return false
+}
+
+func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
+	return 0
+}
+
+func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {
+	return 0
+}
+
+func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, value any) {
+}
+
+func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int) any {
+	return nil
+}
+
+func (s *SQLStore) Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) any {
+	return nil
+}
+
+func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
+
+}

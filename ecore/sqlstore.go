@@ -47,7 +47,7 @@ func NewSQLStore(driver string, dbPath string, options map[string]any) (*SQLStor
 	}
 
 	// schema options
-	schemaOptions := []sqlSchemaOption{}
+	schemaOptions := []sqlSchemaOption{withCreateIfNotExists(true)}
 	idAttributeName, _ := options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string)
 	if len(idAttributeName) > 0 {
 		schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))

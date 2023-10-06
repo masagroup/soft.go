@@ -310,6 +310,12 @@ func withIDAttributeName(idAttributeName string) sqlSchemaOption {
 	})
 }
 
+func withCreateIfNotExists(createIfNotExists bool) sqlSchemaOption {
+	return newFuncSqlSchemaOption(func(s *sqlSchema) {
+		s.createIfNotExists = createIfNotExists
+	})
+}
+
 func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 	// create scheam and apply options
 	s := &sqlSchema{

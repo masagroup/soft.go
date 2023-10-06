@@ -41,7 +41,7 @@ func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQL
 			driver = d.(string)
 		}
 
-		idAttributeName, _ = options[JSON_OPTION_ID_ATTRIBUTE_NAME].(string)
+		idAttributeName, _ = options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string)
 		if resource.GetObjectIDManager() != nil && len(idAttributeName) > 0 {
 			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
 		}

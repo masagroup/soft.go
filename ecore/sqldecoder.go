@@ -343,11 +343,7 @@ func (d *SQLDecoder) decodeFeatures() error {
 }
 
 func (d *SQLDecoder) decodeClassFeatures(eClass EClass) error {
-	classSchema, err := d.schema.getClassSchema(eClass)
-	if err != nil {
-		return err
-	}
-
+	classSchema := d.schema.getClassSchema(eClass)
 	columnFeatures := []*sqlFeatureSchema{}
 	for _, featureData := range classSchema.features {
 		if featureData.column != nil {

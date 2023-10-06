@@ -368,7 +368,7 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 	return s
 }
 
-func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
+func (s *sqlSchema) getClassSchema(eClass EClass) *sqlClassSchema {
 	classSchema := s.classSchemaMap[eClass]
 	if classSchema == nil {
 		// create table descriptor
@@ -422,20 +422,14 @@ func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
 			case sfkObject:
 				// retrieve object reference type
 				eReference := eFeature.(EReference)
-				referenceSchema, err := s.getClassSchema(eReference.GetEReferenceType())
-				if err != nil {
-					return nil, err
-				}
+				referenceSchema := s.getClassSchema(eReference.GetEReferenceType())
 				newFeatureReferenceColumn(featureSchema, eFeature, referenceSchema.table)
 			case sfkObjectReference:
 				newFeatureAttributeColumn(featureSchema, eFeature, "TEXT")
 			case sfkObjectList:
 				// internal reference
 				eReference := eFeature.(EReference)
-				referenceSchema, err := s.getClassSchema(eReference.GetEReferenceType())
-				if err != nil {
-					return nil, err
-				}
+				referenceSchema := s.getClassSchema(eReference.GetEReferenceType())
 				newFeatureTable(featureSchema, eFeature,
 					newSqlReferenceColumn(classTable),
 					newSqlAttributeColumn("idx", "REAL"),
@@ -464,7 +458,7 @@ func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
 			}
 		}
 	}
-	return classSchema, nil
+	return classSchema
 }
 
 func sqlEscapeIdentifier(id string) string {

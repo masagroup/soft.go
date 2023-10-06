@@ -464,10 +464,7 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 		}
 
 		// create class schema
-		classSchema, err := e.schema.getClassSchema(eClass)
-		if err != nil {
-			return nil, err
-		}
+		classSchema := e.schema.getClassSchema(eClass)
 
 		// compute class hierarchy
 		classHierarchy := []EClass{eClass}

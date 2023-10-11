@@ -12,11 +12,6 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-type sqlEncoderObjectData struct {
-	id        int64
-	classData *sqlEncoderClassData
-}
-
 type sqlEncoderFeatureData struct {
 	schema   *sqlFeatureSchema
 	dataType EDataType
@@ -28,16 +23,6 @@ type sqlEncoderClassData struct {
 	schema    *sqlClassSchema
 	hierarchy []EClass
 	features  map[EStructuralFeature]*sqlEncoderFeatureData
-}
-
-type sqlEncoderPackageData struct {
-	id int64
-}
-
-func newSqlEncoderPackageData(id int64) *sqlEncoderPackageData {
-	return &sqlEncoderPackageData{
-		id: id,
-	}
 }
 
 type sqlStmt struct {
@@ -81,17 +66,17 @@ func (s *sqlStmts) exec() error {
 }
 
 type SQLEncoder struct {
-	resource           EResource
-	writer             io.Writer
-	driver             string
-	db                 *sql.DB
-	schema             *sqlSchema
-	insertStmts        map[*sqlTable]*sql.Stmt
-	packageDataMap     map[EPackage]*sqlEncoderPackageData
-	classDataMap       map[EClass]*sqlEncoderClassData
-	objectsDataMap     map[EObject]*sqlEncoderObjectData
-	enumLiteralToIDMap map[string]int64
-	idAttributeName    string
+	resource        EResource
+	writer          io.Writer
+	driver          string
+	idAttributeName string
+	db              *sql.DB
+	schema          *sqlSchema
+	insertStmts     map[*sqlTable]*sql.Stmt
+	classDataMap    map[EClass]*sqlEncoderClassData
+	packageIDs      map[EPackage]int64
+	objectIDs       map[EObject]int64
+	enumLiteralIDs  map[string]int64
 }
 
 func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQLEncoder {
@@ -112,15 +97,15 @@ func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQL
 
 	// encoder structure
 	return &SQLEncoder{
-		resource:           resource,
-		writer:             w,
-		driver:             driver,
-		schema:             newSqlSchema(schemaOptions...),
-		packageDataMap:     map[EPackage]*sqlEncoderPackageData{},
-		classDataMap:       map[EClass]*sqlEncoderClassData{},
-		insertStmts:        map[*sqlTable]*sql.Stmt{},
-		objectsDataMap:     map[EObject]*sqlEncoderObjectData{},
-		enumLiteralToIDMap: map[string]int64{},
+		resource:       resource,
+		writer:         w,
+		driver:         driver,
+		schema:         newSqlSchema(schemaOptions...),
+		packageIDs:     map[EPackage]int64{},
+		classDataMap:   map[EClass]*sqlEncoderClassData{},
+		insertStmts:    map[*sqlTable]*sql.Stmt{},
+		objectIDs:      map[EObject]int64{},
+		enumLiteralIDs: map[string]int64{},
 	}
 }
 
@@ -237,7 +222,7 @@ func (e *SQLEncoder) EncodeObject(object EObject) error {
 }
 
 func (e *SQLEncoder) encodeContent(eObject EObject) error {
-	objectData, err := e.encodeObject(eObject)
+	objectID, err := e.encodeObject(eObject)
 	if err != nil {
 		return err
 	}
@@ -247,28 +232,28 @@ func (e *SQLEncoder) encodeContent(eObject EObject) error {
 		return err
 	}
 
-	if _, err := insertContentStmt.Exec(objectData.id); err != nil {
+	if _, err := insertContentStmt.Exec(objectID); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error) {
-	objectData := e.objectsDataMap[eObject]
-	if objectData == nil {
+func (e *SQLEncoder) encodeObject(eObject EObject) (int64, error) {
+	objectID, isObjectID := e.objectIDs[eObject]
+	if !isObjectID {
 
 		// encode object class
 		eClass := eObject.EClass()
 		classData, err := e.encodeClass(eClass)
 		if err != nil {
-			return nil, fmt.Errorf("getData('%s') error : %w", eClass.GetName(), err)
+			return -1, fmt.Errorf("getData('%s') error : %w", eClass.GetName(), err)
 		}
 
 		// create table
 		insertObjectStmt, err := e.getInsertStmt(e.schema.objectsTable)
 		if err != nil {
-			return nil, err
+			return -1, err
 		}
 
 		// insert object in table
@@ -279,13 +264,13 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 
 		sqlResult, err := insertObjectStmt.Exec(args...)
 		if err != nil {
-			return nil, err
+			return -1, err
 		}
 
 		// retrieve object id
-		objectID, err := sqlResult.LastInsertId()
+		objectID, err = sqlResult.LastInsertId()
 		if err != nil {
-			return nil, err
+			return -1, err
 		}
 
 		// collection of statements
@@ -294,7 +279,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 		for _, eClass := range classData.hierarchy {
 			classData, err := e.getClassData(eClass)
 			if err != nil {
-				return nil, err
+				return -1, err
 			}
 			classTable := classData.schema.table
 
@@ -307,7 +292,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 					featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
 					columnValue, err := e.encodeFeatureValue(featureData, featureValue)
 					if err != nil {
-						return nil, err
+						return -1, err
 					}
 					columnValues[featureColumn.index] = columnValue
 				} else if featureTable := featureData.schema.table; featureTable != nil {
@@ -315,12 +300,12 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 					featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
 					featureList, _ := featureValue.(EList)
 					if featureList == nil {
-						return nil, errors.New("feature value is not a list")
+						return -1, errors.New("feature value is not a list")
 					}
 					// retrieve insert statement
 					insertStmt, err := e.getInsertStmt(featureTable)
 					if err != nil {
-						return nil, err
+						return -1, err
 					}
 					// for each list element, insert its value
 					index := 0.0
@@ -328,7 +313,7 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 						value := itList.Next()
 						converted, err := e.encodeFeatureValue(featureData, value)
 						if err != nil {
-							return nil, err
+							return -1, err
 						}
 						insertStmts.add(insertStmt, objectID, index, converted)
 						index++
@@ -339,35 +324,30 @@ func (e *SQLEncoder) encodeObject(eObject EObject) (*sqlEncoderObjectData, error
 			// insert new row in class column
 			insertStmt, err := e.getInsertStmt(classTable)
 			if err != nil {
-				return nil, fmt.Errorf("insertRow '%s' error : %w", eClass.GetName(), err)
+				return -1, fmt.Errorf("insertRow '%s' error : %w", eClass.GetName(), err)
 			}
 			insertStmts.add(insertStmt, columnValues...)
 		}
 
 		// execute all statements
 		if err := insertStmts.exec(); err != nil {
-			return nil, err
+			return -1, err
 		}
 
-		objectData = &sqlEncoderObjectData{
-			id:        objectID,
-			classData: classData,
-		}
-
-		e.objectsDataMap[eObject] = objectData
+		e.objectIDs[eObject] = objectID
 	}
-	return objectData, nil
+	return objectID, nil
 }
 
 func (e *SQLEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, value any) (any, error) {
 	if value != nil {
 		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:
-			objectData, err := e.encodeObject(value.(EObject))
+			objectID, err := e.encodeObject(value.(EObject))
 			if err != nil {
 				return nil, err
 			}
-			return objectData.id, nil
+			return objectID, nil
 		case sfkObjectReference, sfkObjectReferenceList:
 			ref := GetURI(value.(EObject))
 			uri := e.resource.GetURI().Relativize(ref)
@@ -389,11 +369,11 @@ func (e *SQLEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 }
 
 func (e *SQLEncoder) encodeEnumLiteral(eEnum EEnum, literal string) (any, error) {
-	if enumID, isEnumID := e.enumLiteralToIDMap[literal]; isEnumID {
+	if enumID, isEnumID := e.enumLiteralIDs[literal]; isEnumID {
 		return enumID, nil
 	} else {
 		ePackage := eEnum.GetEPackage()
-		packageData, err := e.encodePackage(ePackage)
+		packageID, err := e.encodePackage(ePackage)
 		if err != nil {
 			return nil, err
 		}
@@ -402,7 +382,7 @@ func (e *SQLEncoder) encodeEnumLiteral(eEnum EEnum, literal string) (any, error)
 		if err != nil {
 			return nil, err
 		}
-		sqlResult, err := insertEnumStmt.Exec(packageData.id, eEnum.GetName(), literal)
+		sqlResult, err := insertEnumStmt.Exec(packageID, eEnum.GetName(), literal)
 		if err != nil {
 			return nil, err
 		}
@@ -412,7 +392,7 @@ func (e *SQLEncoder) encodeEnumLiteral(eEnum EEnum, literal string) (any, error)
 		if err != nil {
 			return nil, err
 		}
-		e.enumLiteralToIDMap[literal] = enumID
+		e.enumLiteralIDs[literal] = enumID
 		return enumID, nil
 	}
 }
@@ -429,7 +409,7 @@ func (e *SQLEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
 
 		// encode package
 		ePackage := eClass.GetEPackage()
-		packageData, err := e.encodePackage(ePackage)
+		packageID, err := e.encodePackage(ePackage)
 		if err != nil {
 			return nil, err
 		}
@@ -439,7 +419,7 @@ func (e *SQLEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
 		if err != nil {
 			return nil, err
 		}
-		sqlResult, err := insertClassStmt.Exec(packageData.id, eClass.GetName())
+		sqlResult, err := insertClassStmt.Exec(packageID, eClass.GetName())
 		if err != nil {
 			return nil, err
 		}
@@ -519,28 +499,26 @@ func (e *SQLEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 	return classData, nil
 }
 
-func (e *SQLEncoder) encodePackage(ePackage EPackage) (*sqlEncoderPackageData, error) {
-	ePackageData := e.packageDataMap[ePackage]
-	if ePackageData == nil {
+func (e *SQLEncoder) encodePackage(ePackage EPackage) (int64, error) {
+	packageID, isPackageID := e.packageIDs[ePackage]
+	if !isPackageID {
 		// insert new package
 		insertPackageStmt, err := e.getInsertStmt(e.schema.packagesTable)
 		if err != nil {
-			return nil, err
+			return -1, err
 		}
 		sqlResult, err := insertPackageStmt.Exec(ePackage.GetNsURI())
 		if err != nil {
-			return nil, err
+			return -1, err
 		}
 		// retrieve package index
-		id, err := sqlResult.LastInsertId()
+		packageID, err = sqlResult.LastInsertId()
 		if err != nil {
-			return nil, err
+			return -1, err
 		}
-		// create data
-		ePackageData = newSqlEncoderPackageData(id)
-		e.packageDataMap[ePackage] = ePackageData
+		e.packageIDs[ePackage] = packageID
 	}
-	return ePackageData, nil
+	return packageID, nil
 }
 
 func (e *SQLEncoder) getInsertStmt(table *sqlTable) (stmt *sql.Stmt, err error) {

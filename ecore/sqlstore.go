@@ -5,9 +5,15 @@ import (
 	"fmt"
 )
 
+type sqlObject interface {
+	SetSqlID(int64)
+	GetSqlID() int64
+}
+
 type SQLStore struct {
 	sqlEncoder
 	errorHandler func(error)
+	updateStmts  map[*sqlColumn]*sql.Stmt
 }
 
 func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, options map[string]any) (*SQLStore, error) {
@@ -80,7 +86,16 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, options ma
 			enumLiteralIDs:  map[string]int64{},
 		},
 		errorHandler: errorHandler,
+		updateStmts:  map[*sqlColumn]*sql.Stmt{},
 	}, nil
+}
+
+func (s *SQLStore) getUpdateStmt(column *sqlColumn) (stmt *sql.Stmt, err error) {
+	stmt = s.updateStmts[column]
+	if stmt == nil {
+		stmt, err = s.db.Prepare(column.updateQuery())
+	}
+	return
 }
 
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
@@ -88,7 +103,10 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 }
 
 func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {
-	classData, err := s.getClassData(feature.GetEContainingClass())
+	sqlObject := object.(sqlObject)
+	sqlID := sqlObject.GetSqlID()
+
+	classData, err := s.getClassData(object.EClass())
 	if err != nil {
 		s.errorHandler(err)
 		return nil
@@ -102,6 +120,23 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 
 	if featureColumn := featureData.schema.column; featureColumn != nil {
 		// feature is encoded as a column
+		v, err := s.encodeFeatureValue(featureData, value)
+		if err != nil {
+			s.errorHandler(err)
+			return nil
+		}
+
+		stmt, err := s.getUpdateStmt(featureColumn)
+		if err != nil {
+			s.errorHandler(err)
+			return nil
+		}
+
+		_, err = stmt.Exec(sqlID, v)
+		if err != nil {
+			s.errorHandler(err)
+			return nil
+		}
 
 	} else if featureTable := featureData.schema.table; featureTable != nil {
 		// feature is encoded in a external table

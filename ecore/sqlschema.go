@@ -6,12 +6,25 @@ import (
 )
 
 type sqlColumn struct {
+	table      *sqlTable
 	index      int
 	columnName string
 	columnType string
 	primary    bool
 	auto       bool
 	reference  *sqlTable
+}
+
+func (c *sqlColumn) updateQuery() string {
+	var query strings.Builder
+	query.WriteString("UPDATE ")
+	query.WriteString(sqlEscapeIdentifier(c.table.name))
+	query.WriteString(" SET ")
+	query.WriteString(sqlEscapeIdentifier(c.columnName))
+	query.WriteString("=? WHERE ")
+	query.WriteString(c.table.keyName())
+	query.WriteString("=?")
+	return query.String()
 }
 
 type sqlColumnOption interface {
@@ -126,6 +139,7 @@ func (t *sqlTable) addColumn(column *sqlColumn) {
 }
 
 func (t *sqlTable) initColumn(column *sqlColumn, index int) {
+	column.table = t
 	column.index = index
 	if column.primary {
 		t.key = column

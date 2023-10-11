@@ -12,6 +12,7 @@ import (
 const (
 	SQL_OPTION_DRIVER            = "DRIVER_NAME"       // value of the sql driver
 	SQL_OPTION_ID_ATTRIBUTE_NAME = "ID_ATTRIBUTE_NAME" // value of the id attribute
+	SQL_OPTION_ERROR_HANDLER     = "ERROR_HANDLER"
 )
 
 type SQLCodec struct {

@@ -373,34 +373,9 @@ func (e *SQLEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 			uri := e.resource.GetURI().Relativize(ref)
 			return uri.String(), nil
 		case sfkEnum:
-			literalStr := featureData.factory.ConvertToString(featureData.dataType, value)
-			if enumID, isEnumID := e.enumLiteralToIDMap[literalStr]; isEnumID {
-				return enumID, nil
-			} else {
-				eEnum := featureData.dataType.(EEnum)
-				ePackage := eEnum.GetEPackage()
-				packageData, err := e.encodePackage(ePackage)
-				if err != nil {
-					return nil, err
-				}
-				// insert enum in sql
-				insertEnumStmt, err := e.getInsertStmt(e.schema.enumsTable)
-				if err != nil {
-					return nil, err
-				}
-				sqlResult, err := insertEnumStmt.Exec(packageData.id, eEnum.GetName(), literalStr)
-				if err != nil {
-					return nil, err
-				}
-
-				// retrieve enum index
-				enumID, err := sqlResult.LastInsertId()
-				if err != nil {
-					return nil, err
-				}
-				e.enumLiteralToIDMap[literalStr] = enumID
-				return enumID, nil
-			}
+			eEnum := featureData.dataType.(EEnum)
+			literal := featureData.factory.ConvertToString(featureData.dataType, value)
+			return e.encodeEnumLiteral(eEnum, literal)
 		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkString, sfkByteArray, sfkFloat32, sfkFloat64:
 			return value, nil
 		case sfkDate:
@@ -411,6 +386,35 @@ func (e *SQLEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 		}
 	}
 	return nil, nil
+}
+
+func (e *SQLEncoder) encodeEnumLiteral(eEnum EEnum, literal string) (any, error) {
+	if enumID, isEnumID := e.enumLiteralToIDMap[literal]; isEnumID {
+		return enumID, nil
+	} else {
+		ePackage := eEnum.GetEPackage()
+		packageData, err := e.encodePackage(ePackage)
+		if err != nil {
+			return nil, err
+		}
+		// insert enum in sql
+		insertEnumStmt, err := e.getInsertStmt(e.schema.enumsTable)
+		if err != nil {
+			return nil, err
+		}
+		sqlResult, err := insertEnumStmt.Exec(packageData.id, eEnum.GetName(), literal)
+		if err != nil {
+			return nil, err
+		}
+
+		// retrieve enum index
+		enumID, err := sqlResult.LastInsertId()
+		if err != nil {
+			return nil, err
+		}
+		e.enumLiteralToIDMap[literal] = enumID
+		return enumID, nil
+	}
 }
 
 func (e *SQLEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {

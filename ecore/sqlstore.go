@@ -5,9 +5,20 @@ import (
 	"fmt"
 )
 
+type sqlStorePackageData struct {
+	id int64
+}
+
+type sqlStoreClassData struct {
+	id int64
+}
+
 type SQLStore struct {
-	schema *sqlSchema
-	db     *sql.DB
+	schema         *sqlSchema
+	db             *sql.DB
+	insertStmts    map[*sqlTable]*sql.Stmt
+	packageDataMap map[EPackage]*sqlStorePackageData
+	classDataMap   map[EClass]*sqlStoreClassData
 }
 
 func NewSQLStore(driver string, dbPath string, options map[string]any) (*SQLStore, error) {
@@ -60,13 +71,14 @@ func NewSQLStore(driver string, dbPath string, options map[string]any) (*SQLStor
 }
 
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
-	class := feature.GetEContainingClass()
-	classSchema := s.schema.getClassSchema(class)
-	featureSchema := classSchema.getFeatureSchema(feature)
 	return nil
 }
 
 func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {
+	class := feature.GetEContainingClass()
+	classSchema := s.schema.getClassSchema(class)
+	featureSchema := classSchema.getFeatureSchema(feature)
+
 	return nil
 }
 
@@ -111,4 +123,68 @@ func (s *SQLStore) Move(object EObject, feature EStructuralFeature, targetIndex 
 
 func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
 
+}
+
+func (s *SQLStore) encodePackage(ePackage EPackage) (*sqlStorePackageData, error) {
+	ePackageData := s.packageDataMap[ePackage]
+	if ePackageData == nil {
+		// insert new package
+		insertPackageStmt, err := s.getInsertStmt(s.schema.packagesTable)
+		if err != nil {
+			return nil, err
+		}
+		sqlResult, err := insertPackageStmt.Exec(ePackage.GetNsURI())
+		if err != nil {
+			return nil, err
+		}
+		// retrieve package index
+		id, err := sqlResult.LastInsertId()
+		if err != nil {
+			return nil, err
+		}
+		// create data
+		ePackageData = &sqlStorePackageData{id: id}
+		s.packageDataMap[ePackage] = ePackageData
+	}
+	return ePackageData, nil
+}
+
+func (s *SQLStore) encodeClass(eClass EClass) (*sqlStoreClassData, error) {
+	eClassData := s.classDataMap[eClass]
+	if eClassData == nil {
+		// encode package
+		ePackage := eClass.GetEPackage()
+		packageData, err := s.encodePackage(ePackage)
+		if err != nil {
+			return nil, err
+		}
+
+		// insert class in sql
+		insertClassStmt, err := s.getInsertStmt(s.schema.classesTable)
+		if err != nil {
+			return nil, err
+		}
+		sqlResult, err := insertClassStmt.Exec(packageData.id, eClass.GetName())
+		if err != nil {
+			return nil, err
+		}
+
+		// retrieve class index
+		id, err := sqlResult.LastInsertId()
+		if err != nil {
+			return nil, err
+		}
+
+		eClassData = &sqlStoreClassData{id: id}
+		s.classDataMap[eClass] = eClassData
+	}
+	return eClassData, nil
+}
+
+func (s *SQLStore) getInsertStmt(table *sqlTable) (stmt *sql.Stmt, err error) {
+	stmt = s.insertStmts[table]
+	if stmt == nil {
+		stmt, err = s.db.Prepare(table.insertQuery())
+	}
+	return
 }

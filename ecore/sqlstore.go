@@ -6,11 +6,6 @@ import (
 	"strings"
 )
 
-type sqlObject interface {
-	SetSqlID(int64)
-	GetSqlID() int64
-}
-
 type SQLStore struct {
 	sqlEncoder
 	errorHandler func(error)
@@ -104,7 +99,7 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 }
 
 func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {
-	sqlObject := object.(sqlObject)
+	sqlObject := object.(SQLObject)
 	sqlID := sqlObject.GetSqlID()
 
 	classData, err := s.getClassData(object.EClass())

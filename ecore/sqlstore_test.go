@@ -7,7 +7,7 @@ import (
 )
 
 func TestSQLStore_Constructor(t *testing.T) {
-	s, err := NewSQLStore("testdata/library.complex.sqlite", NewURI(""), nil, nil)
+	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 }

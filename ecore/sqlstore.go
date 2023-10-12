@@ -3,6 +3,7 @@ package ecore
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 )
 
 type sqlObject interface {
@@ -90,10 +91,10 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, options ma
 	}, nil
 }
 
-func (s *SQLStore) getUpdateStmt(column *sqlColumn) (stmt *sql.Stmt, err error) {
+func (s *SQLStore) getUpdateStmt(column *sqlColumn, query func() string) (stmt *sql.Stmt, err error) {
 	stmt = s.updateStmts[column]
 	if stmt == nil {
-		stmt, err = s.db.Prepare(column.updateQuery())
+		stmt, err = s.db.Prepare(query())
 	}
 	return
 }
@@ -126,20 +127,30 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 			return nil
 		}
 
-		stmt, err := s.getUpdateStmt(featureColumn)
+		stmt, err := s.getUpdateStmt(featureColumn, func() string {
+			var query strings.Builder
+			query.WriteString("UPDATE ")
+			query.WriteString(sqlEscapeIdentifier(featureColumn.table.name))
+			query.WriteString(" SET ")
+			query.WriteString(sqlEscapeIdentifier(featureColumn.columnName))
+			query.WriteString("=? WHERE ")
+			query.WriteString(featureColumn.table.keyName())
+			query.WriteString("=?")
+			return query.String()
+		})
 		if err != nil {
 			s.errorHandler(err)
 			return nil
 		}
 
-		_, err = stmt.Exec(sqlID, v)
+		_, err = stmt.Exec(v, sqlID)
 		if err != nil {
 			s.errorHandler(err)
 			return nil
 		}
 
 	} else if featureTable := featureData.schema.table; featureTable != nil {
-		// feature is encoded in a external table
+
 	}
 	return nil
 }

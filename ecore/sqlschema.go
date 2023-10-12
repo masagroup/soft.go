@@ -15,18 +15,6 @@ type sqlColumn struct {
 	reference  *sqlTable
 }
 
-func (c *sqlColumn) updateQuery() string {
-	var query strings.Builder
-	query.WriteString("UPDATE ")
-	query.WriteString(sqlEscapeIdentifier(c.table.name))
-	query.WriteString(" SET ")
-	query.WriteString(sqlEscapeIdentifier(c.columnName))
-	query.WriteString("=? WHERE ")
-	query.WriteString(c.table.keyName())
-	query.WriteString("=?")
-	return query.String()
-}
-
 type sqlColumnOption interface {
 	apply(col *sqlColumn)
 }
@@ -266,7 +254,7 @@ func (t *sqlTable) selectQuery(columns []string, selection string, orderBy strin
 			selectQuery.WriteString(column)
 		}
 	}
-	selectQuery.WriteString(" from ")
+	selectQuery.WriteString(" FROM ")
 	selectQuery.WriteString(sqlEscapeIdentifier(t.name))
 	if len(selection) > 0 {
 		selectQuery.WriteString(" WHERE ")

@@ -2,10 +2,14 @@
 <lib:Library xmlns:lib="http:///org/eclipse/emf/examples/library/library.simple.ecore/1.0.0" owner="Owner" location="Location">
   <books name="Book 0"/>
   <books name="Book 1"/>
-  <books name="Book 2"/>
-  <books name="Book 4">
-    <contents>c1</contents>
-    <contents>c2</contents>
-    <contents>c3</contents>
+  <books name="Book 2">
+    <contents>c21</contents>
+    <contents>c22</contents>
+    <contents>c23</contents>
+  </books>
+  <books name="Book 3">
+    <contents>c31</contents>
+    <contents>c32</contents>
+    <contents>c33</contents>
   </books>
 </lib:Library>

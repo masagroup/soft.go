@@ -194,7 +194,7 @@ func TestBinaryDecoder_SimpleWithEDataTypeList(t *testing.T) {
 	eContents, _ := eLastBook.EGet(bookContentsFeature).(EList)
 	require.NotNil(t, eContents)
 	assert.Equal(t, 3, eContents.Size())
-	assert.Equal(t, "c1", eContents.Get(0))
+	assert.Equal(t, "c31", eContents.Get(0))
 
 }
 

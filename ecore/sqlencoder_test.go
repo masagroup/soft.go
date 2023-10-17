@@ -28,3 +28,25 @@ func TestSqlEncoder_Complex(t *testing.T) {
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 }
+
+func TestSqlEncoder_DataList(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.datalist.xml"), nil)
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	// w, err := os.Create("testdata/library.datalist.sqlite")
+	// require.NoError(t, err)
+	// defer w.Close()
+	w := &bytes.Buffer{}
+	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
+	sqliteEncoder.EncodeResource()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+}

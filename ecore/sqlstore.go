@@ -86,6 +86,10 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, options ma
 	}, nil
 }
 
+func (s *SQLStore) Close() error {
+	return s.db.Close()
+}
+
 func (s *SQLStore) getUpdateStmt(column *sqlColumn, query func() string) (stmt *sql.Stmt, err error) {
 	stmt = s.updateStmts[column]
 	if stmt == nil {
@@ -114,13 +118,14 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 		return nil
 	}
 
+	// feature is encoded as a column
+	v, err := s.encodeFeatureValue(featureData, value)
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+
 	if featureColumn := featureData.schema.column; featureColumn != nil {
-		// feature is encoded as a column
-		v, err := s.encodeFeatureValue(featureData, value)
-		if err != nil {
-			s.errorHandler(err)
-			return nil
-		}
 
 		stmt, err := s.getUpdateStmt(featureColumn, func() string {
 			var query strings.Builder
@@ -145,6 +150,32 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 		}
 
 	} else if featureTable := featureData.schema.table; featureTable != nil {
+		featureColumn := featureTable.columns[len(featureTable.columns)-1]
+		stmt, err := s.getUpdateStmt(featureColumn, func() string {
+			var query strings.Builder
+			query.WriteString("UPDATE ")
+			query.WriteString(sqlEscapeIdentifier(featureTable.name))
+			query.WriteString(" SET ")
+			query.WriteString(sqlEscapeIdentifier(featureTable.columns[len(featureTable.columns)-1].columnName))
+			query.WriteString("=? WHERE rowid IN (SELECT rowid FROM ")
+			query.WriteString(sqlEscapeIdentifier(featureTable.name))
+			query.WriteString(" WHERE ")
+			query.WriteString(featureTable.keyName())
+			query.WriteString("=?")
+			query.WriteString(" ORDER BY ")
+			query.WriteString(featureTable.keyName())
+			query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?)")
+			return query.String()
+		})
+		if err != nil {
+			s.errorHandler(err)
+			return nil
+		}
+		_, err = stmt.Exec(v, sqlID, index)
+		if err != nil {
+			s.errorHandler(err)
+			return nil
+		}
 
 	}
 	return nil

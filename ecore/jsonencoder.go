@@ -108,6 +108,8 @@ func (e *JSONEncoder) encodeFeatureValue(eObject EObject, eFeature EStructuralFe
 	case jfkData:
 		str, ok := e.getData(value, eFeature)
 		if ok {
+			// don't use e.w.KeyString because json escaping is bugged
+			// in jsonencoder
 			e.w.Key(eFeature.GetName())
 			e.w.Raw([]byte(jsonEscape(str)))
 		}

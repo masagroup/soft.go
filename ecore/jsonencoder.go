@@ -1,6 +1,8 @@
 package ecore
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 
@@ -76,7 +78,17 @@ func (e *JSONEncoder) encodeObjectReference(eObject EObject) {
 	e.w.KeyString("eRef", e.getReference(eObject))
 }
 
-var quote = []byte(`"`)
+func jsonEscape(i string) string {
+	w := &bytes.Buffer{}
+	e := json.NewEncoder(w)
+	e.SetEscapeHTML(false)
+	if err := e.Encode(i); err != nil {
+		panic(err)
+	}
+	// last \n
+	b := w.Bytes()
+	return string(b[:len(b)-1])
+}
 
 func (e *JSONEncoder) encodeFeatureValue(eObject EObject, eFeature EStructuralFeature) {
 	if !e.shouldSaveFeature(eObject, eFeature) {
@@ -97,9 +109,7 @@ func (e *JSONEncoder) encodeFeatureValue(eObject EObject, eFeature EStructuralFe
 		str, ok := e.getData(value, eFeature)
 		if ok {
 			e.w.Key(eFeature.GetName())
-			e.w.Raw(quote)
-			e.w.Raw([]byte(str))
-			e.w.Raw(quote)
+			e.w.Raw([]byte(jsonEscape(str)))
 		}
 	case jfkDataList:
 		l := value.(EList)

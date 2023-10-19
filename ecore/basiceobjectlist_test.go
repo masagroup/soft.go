@@ -10,11 +10,33 @@
 package ecore
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
+
+func TestBasicEObjectListClear(t *testing.T) {
+	mockOwner := NewMockEObjectInternal(t)
+	mockObject1 := NewMockEObject(t)
+	mockObject2 := NewMockEObject(t)
+	list := NewBasicEObjectList(mockOwner, 1, -1, false, true, false, false, false)
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	list.AddAll(NewImmutableEList([]any{mockObject1, mockObject2}))
+
+	mockAdapter := NewMockEAdapter(t)
+	mockOwner.EXPECT().EDeliver().Return(true).Once()
+	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter}))
+	mockOwner.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {
+		return n.GetNotifier() == mockOwner &&
+			n.GetNewValue() == nil &&
+			reflect.DeepEqual(n.GetOldValue(), []any{mockObject1, mockObject2}) &&
+			n.GetEventType() == REMOVE_MANY &&
+			n.GetPosition() == -1
+	}))
+	list.Clear()
+}
 
 func TestBasicEObjectListAccessors(t *testing.T) {
 	{

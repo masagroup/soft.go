@@ -19,11 +19,10 @@ type sqlDecoderClassData struct {
 
 type sqlDecoder struct {
 	*sqlBase
-	idManager EObjectIDManager
-	packages  map[int64]EPackage
-	objects   map[int64]EObject
-	classes   map[int64]*sqlDecoderClassData
-	enums     map[int64]any
+	packages map[int64]EPackage
+	objects  map[int64]EObject
+	classes  map[int64]*sqlDecoderClassData
+	enums    map[int64]any
 }
 
 func (d *sqlDecoder) resolveURI(uri *URI) *URI {
@@ -33,6 +32,38 @@ func (d *sqlDecoder) resolveURI(uri *URI) *URI {
 	return uri
 }
 
+func (d *sqlDecoder) decodePackage(id int64) (EPackage, error) {
+	ePackage, isPackage := d.packages[id]
+	if !isPackage {
+
+	}
+	return ePackage, nil
+}
+
+func (d *sqlDecoder) decodeClass(id int64) (*sqlDecoderClassData, error) {
+	eClass, isClass := d.classes[id]
+	if !isClass {
+
+	}
+	return eClass, nil
+}
+
+func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
+	eObject, isObject := d.objects[id]
+	if !isObject {
+
+	}
+	return eObject, nil
+}
+
+func (d *sqlDecoder) decodeEnum(id int64) (any, error) {
+	eEnum, isEnum := d.enums[id]
+	if !isEnum {
+
+	}
+	return eEnum, nil
+}
+
 func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any) (any, error) {
 	switch featureData.featureKind {
 	case sfkObject, sfkObjectList:
@@ -40,7 +71,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		case nil:
 			return nil, nil
 		case int64:
-			return d.objects[v], nil
+			return d.decodeObject(v)
 		default:
 			return nil, fmt.Errorf("%v is not supported as a object id", v)
 		}
@@ -116,7 +147,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		if !isInt {
 			return nil, fmt.Errorf("%v is not a int64 value", value)
 		}
-		return d.enums[enumID], nil
+		return d.decodeEnum(enumID)
 	case sfkString:
 		switch v := value.(type) {
 		case string:

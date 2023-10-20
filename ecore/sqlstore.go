@@ -141,12 +141,30 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 			s.errorHandler(err)
 			return nil
 		}
-
 		row = stmt.QueryRow(sqlID)
-	}
-	// else if featureTable := featureData.schema.table; featureTable != nil {
 
-	// }
+	} else if featureTable := featureData.schema.table; featureTable != nil {
+		featureColumn := featureTable.columns[len(featureTable.columns)-1]
+		stmt, err := s.getSelectStmt(featureColumn, func() string {
+			var query strings.Builder
+			query.WriteString("SELECT ")
+			query.WriteString(sqlEscapeIdentifier(featureColumn.columnName))
+			query.WriteString(" FROM ")
+			query.WriteString(sqlEscapeIdentifier(featureColumn.table.name))
+			query.WriteString(" WHERE ")
+			query.WriteString(featureColumn.table.keyName())
+			query.WriteString("=? ORDER BY ")
+			query.WriteString(featureTable.keyName())
+			query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?")
+			return query.String()
+		})
+		if err != nil {
+			s.errorHandler(err)
+			return nil
+		}
+		row = stmt.QueryRow(sqlID, index)
+
+	}
 
 	var v any
 	if err := row.Scan(&v); err != nil {

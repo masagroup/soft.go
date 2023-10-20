@@ -11,7 +11,7 @@ import (
 )
 
 func TestSQLStore_Constructor(t *testing.T) {
-	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil)
+	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 }
@@ -70,7 +70,7 @@ func TestSQLStore_SetSingleValue(t *testing.T) {
 	require.Nil(t, err)
 
 	// store
-	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -105,7 +105,7 @@ func TestSQLStore_GetSingleValue(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	// store
-	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil)
+	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -145,7 +145,7 @@ func TestSQLStore_SetListValue(t *testing.T) {
 	require.Nil(t, err)
 
 	// create store
-	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -179,7 +179,7 @@ func TestSQLStore_GetListValue(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	// create store
-	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil)
+	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()

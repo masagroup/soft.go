@@ -19,10 +19,11 @@ type sqlDecoderClassData struct {
 
 type sqlDecoder struct {
 	*sqlBase
-	packages map[int64]EPackage
-	objects  map[int64]EObject
-	classes  map[int64]*sqlDecoderClassData
-	enums    map[int64]any
+	packageRegistry EPackageRegistry
+	packages        map[int64]EPackage
+	objects         map[int64]EObject
+	classes         map[int64]*sqlDecoderClassData
+	enums           map[int64]any
 }
 
 func (d *sqlDecoder) resolveURI(uri *URI) *URI {
@@ -233,6 +234,13 @@ func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQL
 		}
 	}
 
+	// package registry
+	packageRegistry := GetPackageRegistry()
+	resourceSet := resource.GetResourceSet()
+	if resourceSet != nil {
+		packageRegistry = resourceSet.GetPackageRegistry()
+	}
+
 	return &SQLDecoder{
 		sqlDecoder: sqlDecoder{
 			sqlBase: &sqlBase{
@@ -241,10 +249,11 @@ func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQL
 				idAttributeName: idAttributeName,
 				schema:          newSqlSchema(schemaOptions...),
 			},
-			packages: map[int64]EPackage{},
-			objects:  map[int64]EObject{},
-			classes:  map[int64]*sqlDecoderClassData{},
-			enums:    map[int64]any{},
+			packageRegistry: packageRegistry,
+			packages:        map[int64]EPackage{},
+			objects:         map[int64]EObject{},
+			classes:         map[int64]*sqlDecoderClassData{},
+			enums:           map[int64]any{},
 		},
 		resource: resource,
 		reader:   r,
@@ -371,12 +380,7 @@ func (d *SQLDecoder) decodePackages() error {
 			return fmt.Errorf("%v is not a string value", values[1])
 		}
 
-		packageRegistry := GetPackageRegistry()
-		resourceSet := d.resource.GetResourceSet()
-		if resourceSet != nil {
-			packageRegistry = resourceSet.GetPackageRegistry()
-		}
-		ePackage := packageRegistry.GetPackage(packageURI)
+		ePackage := d.packageRegistry.GetPackage(packageURI)
 		if ePackage == nil {
 			return fmt.Errorf("unable to find package '%s'", packageURI)
 		}

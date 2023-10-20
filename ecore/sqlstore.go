@@ -15,7 +15,7 @@ type SQLStore struct {
 	selectStmts  map[*sqlColumn]*sql.Stmt
 }
 
-func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, options map[string]any) (*SQLStore, error) {
+func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, packageRegistry EPackageRegistry, options map[string]any) (*SQLStore, error) {
 	// options
 	schemaOptions := []sqlSchemaOption{withCreateIfNotExists(true)}
 	driver := "sqlite"
@@ -84,11 +84,12 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, options ma
 	return &SQLStore{
 		sqlBase: base,
 		sqlDecoder: sqlDecoder{
-			sqlBase:  base,
-			packages: map[int64]EPackage{},
-			objects:  map[int64]EObject{},
-			classes:  map[int64]*sqlDecoderClassData{},
-			enums:    map[int64]any{},
+			sqlBase:         base,
+			packageRegistry: packageRegistry,
+			packages:        map[int64]EPackage{},
+			objects:         map[int64]EObject{},
+			classes:         map[int64]*sqlDecoderClassData{},
+			enums:           map[int64]any{},
 		},
 		sqlEncoder: sqlEncoder{
 			sqlBase:        base,

@@ -99,6 +99,27 @@ func (s *SQLStore) getUpdateStmt(column *sqlColumn, query func() string) (stmt *
 }
 
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+
+	classData, err := s.getClassData(object.EClass())
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+
+	featureData, isFeatureData := classData.features[feature]
+	if !isFeatureData {
+		s.errorHandler(fmt.Errorf("feature %s is unknown", feature.GetName()))
+		return nil
+	}
+
+	if featureColumn := featureData.schema.column; featureColumn != nil {
+
+	} else if featureTable := featureData.schema.table; featureTable != nil {
+
+	}
+
 	return nil
 }
 

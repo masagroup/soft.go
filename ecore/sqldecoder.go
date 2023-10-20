@@ -19,6 +19,7 @@ type sqlDecoderClassData struct {
 
 type sqlDecoder struct {
 	*sqlBase
+	selectStmts     map[*sqlTable]*sql.Stmt
 	packageRegistry EPackageRegistry
 	packages        map[int64]EPackage
 	objects         map[int64]EObject
@@ -33,10 +34,42 @@ func (d *sqlDecoder) resolveURI(uri *URI) *URI {
 	return uri
 }
 
+func (s *sqlDecoder) getSelectStmt(table *sqlTable, query func() string) (stmt *sql.Stmt, err error) {
+	stmt = s.selectStmts[table]
+	if stmt == nil {
+		stmt, err = s.db.Prepare(query())
+	}
+	return
+}
+
 func (d *sqlDecoder) decodePackage(id int64) (EPackage, error) {
 	ePackage, isPackage := d.packages[id]
 	if !isPackage {
+		// get select stmt
+		table := d.schema.packagesTable
+		stmt, err := d.getSelectStmt(table, func() string {
+			return table.selectQuery(nil, table.keyName()+"=?", "")
+		})
+		if err != nil {
+			return nil, err
+		}
 
+		// query package infos
+		row := stmt.QueryRow(id)
+		var packageID int64
+		var packageURI string
+		if err := row.Scan(&packageID, &packageURI); err != nil {
+			return nil, err
+		}
+
+		// retrieve package
+		ePackage = d.packageRegistry.GetPackage(packageURI)
+		if ePackage == nil {
+			return nil, fmt.Errorf("unable to find package '%s'", packageURI)
+		}
+
+		// register package
+		d.packages[packageID] = ePackage
 	}
 	return ePackage, nil
 }

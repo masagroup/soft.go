@@ -75,11 +75,44 @@ func (d *sqlDecoder) decodePackage(id int64) (EPackage, error) {
 }
 
 func (d *sqlDecoder) decodeClass(id int64) (*sqlDecoderClassData, error) {
-	eClass, isClass := d.classes[id]
-	if !isClass {
+	eClassData, isClassData := d.classes[id]
+	if !isClassData {
+		// get select stmt
+		table := d.schema.classesTable
+		stmt, err := d.getSelectStmt(table, func() string {
+			return table.selectQuery(nil, table.keyName()+"=?", "")
+		})
+		if err != nil {
+			return nil, err
+		}
 
+		// query package infos
+		row := stmt.QueryRow(id)
+		var classID int64
+		var className string
+		var packageID int64
+		if err := row.Scan(&classID, &packageID, &className); err != nil {
+			return nil, err
+		}
+
+		// retrieve package
+		ePackage, err := d.decodePackage(packageID)
+		if err != nil {
+			return nil, err
+		}
+		// retrieve class
+		eClass, _ := ePackage.GetEClassifier(className).(EClass)
+		if eClass == nil {
+			return nil, fmt.Errorf("unable to find class '%s' in package '%s'", className, ePackage.GetNsURI())
+		}
+
+		eClassData = &sqlDecoderClassData{
+			eClass:   eClass,
+			eFactory: ePackage.GetEFactoryInstance(),
+		}
+		d.classes[id] = eClassData
 	}
-	return eClass, nil
+	return eClassData, nil
 }
 
 func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {

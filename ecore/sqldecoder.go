@@ -17,18 +17,173 @@ type sqlDecoderClassData struct {
 	eFactory EFactory
 }
 
+type sqlDecoder struct {
+	*sqlBase
+	idManager EObjectIDManager
+	packages  map[int64]EPackage
+	objects   map[int64]EObject
+	classes   map[int64]*sqlDecoderClassData
+	enums     map[int64]any
+}
+
+func (d *sqlDecoder) resolveURI(uri *URI) *URI {
+	if d.uri != nil {
+		return d.uri.Resolve(uri)
+	}
+	return uri
+}
+
+func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any) (any, error) {
+	switch featureData.featureKind {
+	case sfkObject, sfkObjectList:
+		switch v := value.(type) {
+		case nil:
+			return nil, nil
+		case int64:
+			return d.objects[v], nil
+		default:
+			return nil, fmt.Errorf("%v is not supported as a object id", v)
+		}
+	case sfkObjectReference, sfkObjectReferenceList:
+		switch v := value.(type) {
+		case nil:
+			return nil, nil
+		case string:
+			// no reference
+			if len(v) == 0 {
+				return nil, nil
+			}
+			// resolve uri reference
+			uri := d.resolveURI(NewURI(v))
+
+			// create proxy
+			eFeature := featureData.feature
+			eClass := eFeature.GetEType().(EClass)
+			eFactory := eClass.GetEPackage().GetEFactoryInstance()
+			eObject := eFactory.Create(eClass)
+			eObjectInternal := eObject.(EObjectInternal)
+			eObjectInternal.ESetProxyURI(uri)
+			return eObject, nil
+		default:
+			return nil, fmt.Errorf("%v is not supported as a object reference uri", v)
+		}
+	case sfkBool:
+		switch v := value.(type) {
+		case bool:
+			return v, nil
+		default:
+			var defaultBool bool
+			return defaultBool, fmt.Errorf("%v is not a bool value", v)
+		}
+	case sfkByte:
+		// TODO
+		var defaultByte byte
+		return defaultByte, nil
+	case sfkInt:
+		switch v := value.(type) {
+		case int64:
+			return int(v), nil
+		default:
+			var defaultInt int
+			return defaultInt, fmt.Errorf("%v is not a int value", v)
+		}
+	case sfkInt64:
+		switch v := value.(type) {
+		case int64:
+			return v, nil
+		default:
+			var defaultInt int64
+			return defaultInt, fmt.Errorf("%v is not a int64 value", v)
+		}
+	case sfkInt32:
+		switch v := value.(type) {
+		case int64:
+			return int32(v), nil
+		default:
+			var defaultInt int32
+			return defaultInt, fmt.Errorf("%v is not a int32 value", v)
+		}
+	case sfkInt16:
+		switch v := value.(type) {
+		case int64:
+			return int16(v), nil
+		default:
+			var defaultInt int16
+			return defaultInt, fmt.Errorf("%v is not a int16 value", v)
+		}
+	case sfkEnum:
+		enumID, isInt := value.(int64)
+		if !isInt {
+			return nil, fmt.Errorf("%v is not a int64 value", value)
+		}
+		return d.enums[enumID], nil
+	case sfkString:
+		switch v := value.(type) {
+		case string:
+			return v, nil
+		default:
+			return "", fmt.Errorf("%v is not a string value", v)
+		}
+	case sfkByteArray:
+		switch v := value.(type) {
+		case nil:
+			return nil, nil
+		case []byte:
+			return v, nil
+		default:
+			return "", fmt.Errorf("%v is not a byte array value", v)
+		}
+	case sfkDate:
+		switch v := value.(type) {
+		case nil:
+			return nil, nil
+		case time.Time:
+			return &v, nil
+		case string:
+			t, err := time.Parse(time.RFC3339, v)
+			if err != nil {
+				return nil, err
+			}
+			return &t, nil
+		default:
+			return "", fmt.Errorf("%v is not a time value", v)
+		}
+	case sfkFloat64:
+		switch v := value.(type) {
+		case float64:
+			return v, nil
+		default:
+			var defaultFloat float64
+			return defaultFloat, fmt.Errorf("%v is not a float64 value", value)
+		}
+	case sfkFloat32:
+		switch v := value.(type) {
+		case float64:
+			return float32(v), nil
+		default:
+			var defaultFloat float32
+			return defaultFloat, fmt.Errorf("%v is not a float64 value", value)
+		}
+	case sfkData, sfkDataList:
+		switch v := value.(type) {
+		case string:
+			eFeature := featureData.feature
+			eDataType := eFeature.GetEType().(EDataType)
+			eFactory := eDataType.GetEPackage().GetEFactoryInstance()
+			return eFactory.CreateFromString(eDataType, v), nil
+		default:
+			return "", fmt.Errorf("%v is not a data value", value)
+		}
+	}
+
+	return nil, nil
+}
+
 type SQLDecoder struct {
-	resource        EResource
-	reader          io.Reader
-	driver          string
-	db              *sql.DB
-	schema          *sqlSchema
-	packages        map[int64]EPackage
-	objects         map[int64]EObject
-	classes         map[int64]*sqlDecoderClassData
-	enums           map[int64]any
-	idAttributeName string
-	baseURI         *URI
+	sqlDecoder
+	resource EResource
+	reader   io.Reader
+	driver   string
 }
 
 func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQLDecoder {
@@ -46,22 +201,23 @@ func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQL
 			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
 		}
 	}
-	var baseURI *URI
-	if uri := resource.GetURI(); uri != nil {
-		baseURI = uri
-	}
 
 	return &SQLDecoder{
-		resource:        resource,
-		reader:          r,
-		driver:          driver,
-		schema:          newSqlSchema(schemaOptions...),
-		packages:        map[int64]EPackage{},
-		objects:         map[int64]EObject{},
-		classes:         map[int64]*sqlDecoderClassData{},
-		enums:           map[int64]any{},
-		idAttributeName: idAttributeName,
-		baseURI:         baseURI,
+		sqlDecoder: sqlDecoder{
+			sqlBase: &sqlBase{
+				uri:             resource.GetURI(),
+				idManager:       resource.GetObjectIDManager(),
+				idAttributeName: idAttributeName,
+				schema:          newSqlSchema(schemaOptions...),
+			},
+			packages: map[int64]EPackage{},
+			objects:  map[int64]EObject{},
+			classes:  map[int64]*sqlDecoderClassData{},
+			enums:    map[int64]any{},
+		},
+		resource: resource,
+		reader:   r,
+		driver:   driver,
 	}
 }
 
@@ -94,6 +250,7 @@ func (d *SQLDecoder) DecodeResource() {
 		d.addError(err)
 		return
 	}
+	defer d.db.Close()
 
 	if err := d.decodeVersion(); err != nil {
 		d.addError(err)
@@ -306,8 +463,7 @@ func (d *SQLDecoder) decodeObjects() error {
 			if !isString {
 				return fmt.Errorf("%v is not a string value", values[2])
 			}
-			objectIDManager := d.resource.GetObjectIDManager()
-			if err := objectIDManager.SetID(eObject, uniqueID); err != nil {
+			if err := d.idManager.SetID(eObject, uniqueID); err != nil {
 				return err
 			}
 		}
@@ -446,159 +602,6 @@ func (d *SQLDecoder) decodeFeatureList(objectID int64, feature EStructuralFeatur
 	eList := eObject.EGetResolve(feature, false).(EList)
 	eList.AddAll(NewImmutableEList(values))
 	return nil
-}
-
-func (d *SQLDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value driver.Value) (any, error) {
-	switch featureData.featureKind {
-	case sfkObject, sfkObjectList:
-		switch v := value.(type) {
-		case nil:
-			return nil, nil
-		case int64:
-			return d.objects[v], nil
-		default:
-			return nil, fmt.Errorf("%v is not supported as a object id", v)
-		}
-	case sfkObjectReference, sfkObjectReferenceList:
-		switch v := value.(type) {
-		case nil:
-			return nil, nil
-		case string:
-			// no reference
-			if len(v) == 0 {
-				return nil, nil
-			}
-			// resolve uri reference
-			uri := d.resolveURI(NewURI(v))
-
-			// create proxy
-			eFeature := featureData.feature
-			eClass := eFeature.GetEType().(EClass)
-			eFactory := eClass.GetEPackage().GetEFactoryInstance()
-			eObject := eFactory.Create(eClass)
-			eObjectInternal := eObject.(EObjectInternal)
-			eObjectInternal.ESetProxyURI(uri)
-			return eObject, nil
-		default:
-			return nil, fmt.Errorf("%v is not supported as a object reference uri", v)
-		}
-	case sfkBool:
-		switch v := value.(type) {
-		case bool:
-			return v, nil
-		default:
-			var defaultBool bool
-			return defaultBool, fmt.Errorf("%v is not a bool value", v)
-		}
-	case sfkByte:
-		// TODO
-		var defaultByte byte
-		return defaultByte, nil
-	case sfkInt:
-		switch v := value.(type) {
-		case int64:
-			return int(v), nil
-		default:
-			var defaultInt int
-			return defaultInt, fmt.Errorf("%v is not a int value", v)
-		}
-	case sfkInt64:
-		switch v := value.(type) {
-		case int64:
-			return v, nil
-		default:
-			var defaultInt int64
-			return defaultInt, fmt.Errorf("%v is not a int64 value", v)
-		}
-	case sfkInt32:
-		switch v := value.(type) {
-		case int64:
-			return int32(v), nil
-		default:
-			var defaultInt int32
-			return defaultInt, fmt.Errorf("%v is not a int32 value", v)
-		}
-	case sfkInt16:
-		switch v := value.(type) {
-		case int64:
-			return int16(v), nil
-		default:
-			var defaultInt int16
-			return defaultInt, fmt.Errorf("%v is not a int16 value", v)
-		}
-	case sfkEnum:
-		enumID, isInt := value.(int64)
-		if !isInt {
-			return nil, fmt.Errorf("%v is not a int64 value", value)
-		}
-		return d.enums[enumID], nil
-	case sfkString:
-		switch v := value.(type) {
-		case string:
-			return v, nil
-		default:
-			return "", fmt.Errorf("%v is not a string value", v)
-		}
-	case sfkByteArray:
-		switch v := value.(type) {
-		case nil:
-			return nil, nil
-		case []byte:
-			return v, nil
-		default:
-			return "", fmt.Errorf("%v is not a byte array value", v)
-		}
-	case sfkDate:
-		switch v := value.(type) {
-		case nil:
-			return nil, nil
-		case time.Time:
-			return &v, nil
-		case string:
-			t, err := time.Parse(time.RFC3339, v)
-			if err != nil {
-				return nil, err
-			}
-			return &t, nil
-		default:
-			return "", fmt.Errorf("%v is not a time value", v)
-		}
-	case sfkFloat64:
-		switch v := value.(type) {
-		case float64:
-			return v, nil
-		default:
-			var defaultFloat float64
-			return defaultFloat, fmt.Errorf("%v is not a float64 value", value)
-		}
-	case sfkFloat32:
-		switch v := value.(type) {
-		case float64:
-			return float32(v), nil
-		default:
-			var defaultFloat float32
-			return defaultFloat, fmt.Errorf("%v is not a float64 value", value)
-		}
-	case sfkData, sfkDataList:
-		switch v := value.(type) {
-		case string:
-			eFeature := featureData.feature
-			eDataType := eFeature.GetEType().(EDataType)
-			eFactory := eDataType.GetEPackage().GetEFactoryInstance()
-			return eFactory.CreateFromString(eDataType, v), nil
-		default:
-			return "", fmt.Errorf("%v is not a data value", value)
-		}
-	}
-
-	return nil, nil
-}
-
-func (d *SQLDecoder) resolveURI(uri *URI) *URI {
-	if d.baseURI != nil {
-		return d.baseURI.Resolve(uri)
-	}
-	return uri
 }
 
 func (d *SQLDecoder) query(q string, cb func(values []driver.Value) error, args ...driver.Value) error {

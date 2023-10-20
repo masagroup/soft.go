@@ -7,6 +7,8 @@ import (
 )
 
 type SQLStore struct {
+	*sqlBase
+	sqlDecoder
 	sqlEncoder
 	errorHandler func(error)
 	updateStmts  map[*sqlColumn]*sql.Stmt
@@ -69,18 +71,32 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, options ma
 		}
 	}
 
+	// create sql base
+	base := &sqlBase{
+		db:              db,
+		uri:             uri,
+		idAttributeName: idAttributeName,
+		idManager:       idManager,
+		schema:          newSqlSchema(schemaOptions...),
+	}
+
+	// create sql store
 	return &SQLStore{
+		sqlBase: base,
+		sqlDecoder: sqlDecoder{
+			sqlBase:  base,
+			packages: map[int64]EPackage{},
+			objects:  map[int64]EObject{},
+			classes:  map[int64]*sqlDecoderClassData{},
+			enums:    map[int64]any{},
+		},
 		sqlEncoder: sqlEncoder{
-			db:              db,
-			uri:             uri,
-			idAttributeName: idAttributeName,
-			idManager:       idManager,
-			schema:          newSqlSchema(schemaOptions...),
-			insertStmts:     map[*sqlTable]*sql.Stmt{},
-			classDataMap:    map[EClass]*sqlEncoderClassData{},
-			packageIDs:      map[EPackage]int64{},
-			objectIDs:       map[EObject]int64{},
-			enumLiteralIDs:  map[string]int64{},
+			sqlBase:        base,
+			insertStmts:    map[*sqlTable]*sql.Stmt{},
+			classDataMap:   map[EClass]*sqlEncoderClassData{},
+			packageIDs:     map[EPackage]int64{},
+			objectIDs:      map[EObject]int64{},
+			enumLiteralIDs: map[string]int64{},
 		},
 		errorHandler: errorHandler,
 		updateStmts:  map[*sqlColumn]*sql.Stmt{},
@@ -112,20 +128,18 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 	sqlObject := object.(SQLObject)
 	sqlID := sqlObject.GetSqlID()
 
-	classData, err := s.getClassData(object.EClass())
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
+	// retrieve class schema
+	classSchema := s.sqlDecoder.schema.getClassSchema(object.EClass())
 
-	featureData, isFeatureData := classData.features[feature]
-	if !isFeatureData {
+	// retrieve feature schema
+	featureSchema := classSchema.getFeatureSchema(feature)
+	if featureSchema == nil {
 		s.errorHandler(fmt.Errorf("feature %s is unknown", feature.GetName()))
 		return nil
 	}
 
 	var row *sql.Row
-	if featureColumn := featureData.schema.column; featureColumn != nil {
+	if featureColumn := featureSchema.column; featureColumn != nil {
 		stmt, err := s.getSelectStmt(featureColumn, func() string {
 			var query strings.Builder
 			query.WriteString("SELECT ")
@@ -143,7 +157,7 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 		}
 		row = stmt.QueryRow(sqlID)
 
-	} else if featureTable := featureData.schema.table; featureTable != nil {
+	} else if featureTable := featureSchema.table; featureTable != nil {
 		featureColumn := featureTable.columns[len(featureTable.columns)-1]
 		stmt, err := s.getSelectStmt(featureColumn, func() string {
 			var query strings.Builder
@@ -174,19 +188,26 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 		return nil
 	}
 
-	return nil
+	value, err := s.decodeFeatureValue(featureSchema, v)
+	if err != nil {
+		s.errorHandler(err)
+	}
+
+	return value
 }
 
 func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {
 	sqlObject := object.(SQLObject)
 	sqlID := sqlObject.GetSqlID()
 
+	// retrieve class data
 	classData, err := s.getClassData(object.EClass())
 	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
 
+	// retrieve feature data
 	featureData, isFeatureData := classData.features[feature]
 	if !isFeatureData {
 		s.errorHandler(fmt.Errorf("feature %s is unknown", feature.GetName()))

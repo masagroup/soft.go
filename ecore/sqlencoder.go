@@ -66,16 +66,12 @@ type sqlEncoderClassData struct {
 }
 
 type sqlEncoder struct {
-	db              *sql.DB
-	schema          *sqlSchema
-	uri             *URI
-	idAttributeName string
-	idManager       EObjectIDManager
-	insertStmts     map[*sqlTable]*sql.Stmt
-	classDataMap    map[EClass]*sqlEncoderClassData
-	packageIDs      map[EPackage]int64
-	objectIDs       map[EObject]int64
-	enumLiteralIDs  map[string]int64
+	*sqlBase
+	insertStmts    map[*sqlTable]*sql.Stmt
+	classDataMap   map[EClass]*sqlEncoderClassData
+	packageIDs     map[EPackage]int64
+	objectIDs      map[EObject]int64
+	enumLiteralIDs map[string]int64
 }
 
 func (e *sqlEncoder) encodeContent(eObject EObject) error {
@@ -412,15 +408,17 @@ func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQL
 	// encoder structure
 	return &SQLEncoder{
 		sqlEncoder: sqlEncoder{
-			uri:             resource.GetURI(),
-			idManager:       resource.GetObjectIDManager(),
-			idAttributeName: idAttributeName,
-			schema:          newSqlSchema(schemaOptions...),
-			insertStmts:     map[*sqlTable]*sql.Stmt{},
-			classDataMap:    map[EClass]*sqlEncoderClassData{},
-			packageIDs:      map[EPackage]int64{},
-			objectIDs:       map[EObject]int64{},
-			enumLiteralIDs:  map[string]int64{},
+			sqlBase: &sqlBase{
+				uri:             resource.GetURI(),
+				idManager:       resource.GetObjectIDManager(),
+				idAttributeName: idAttributeName,
+				schema:          newSqlSchema(schemaOptions...),
+			},
+			insertStmts:    map[*sqlTable]*sql.Stmt{},
+			classDataMap:   map[EClass]*sqlEncoderClassData{},
+			packageIDs:     map[EPackage]int64{},
+			objectIDs:      map[EObject]int64{},
+			enumLiteralIDs: map[string]int64{},
 		},
 		resource: resource,
 		writer:   w,

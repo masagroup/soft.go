@@ -73,12 +73,49 @@ func TestSQLStore_SetSingleValue(t *testing.T) {
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
-	s.Close()
+	defer s.Close()
+
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	s.Set(mockObject, eFeature, -1, 5)
 	require.NoError(t, s.Close())
+
+	// load db and retrieve new value
+}
+
+func TestSQLStore_GetSingleValue(t *testing.T) {
+	// package
+	xmiProcessor := NewXMIProcessor()
+	resource := xmiProcessor.Load(NewURI("testdata/library.complex.ecore"))
+	require.NotNil(t, resource)
+	assert.True(t, resource.IsLoaded())
+	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
+
+	contents := resource.GetContents()
+	require.Equal(t, 1, contents.Size())
+
+	ePackage, _ := contents.Get(0).(EPackage)
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Lendable").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("copies")
+	require.NotNil(t, eFeature)
+
+	// store
+	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	v := s.Get(mockObject, eFeature, -1)
+	require.NotNil(t, v)
 
 	// load db and retrieve new value
 }
@@ -112,6 +149,7 @@ func TestSQLStore_SetListValue(t *testing.T) {
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()

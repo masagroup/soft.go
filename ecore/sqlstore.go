@@ -10,6 +10,7 @@ type SQLStore struct {
 	sqlEncoder
 	errorHandler func(error)
 	updateStmts  map[*sqlColumn]*sql.Stmt
+	selectStmts  map[*sqlColumn]*sql.Stmt
 }
 
 func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, options map[string]any) (*SQLStore, error) {
@@ -83,6 +84,7 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, options ma
 		},
 		errorHandler: errorHandler,
 		updateStmts:  map[*sqlColumn]*sql.Stmt{},
+		selectStmts:  map[*sqlColumn]*sql.Stmt{},
 	}, nil
 }
 
@@ -92,6 +94,14 @@ func (s *SQLStore) Close() error {
 
 func (s *SQLStore) getUpdateStmt(column *sqlColumn, query func() string) (stmt *sql.Stmt, err error) {
 	stmt = s.updateStmts[column]
+	if stmt == nil {
+		stmt, err = s.db.Prepare(query())
+	}
+	return
+}
+
+func (s *SQLStore) getSelectStmt(column *sqlColumn, query func() string) (stmt *sql.Stmt, err error) {
+	stmt = s.selectStmts[column]
 	if stmt == nil {
 		stmt, err = s.db.Prepare(query())
 	}
@@ -114,10 +124,36 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 		return nil
 	}
 
+	var row *sql.Row
 	if featureColumn := featureData.schema.column; featureColumn != nil {
+		stmt, err := s.getSelectStmt(featureColumn, func() string {
+			var query strings.Builder
+			query.WriteString("SELECT ")
+			query.WriteString(sqlEscapeIdentifier(featureColumn.columnName))
+			query.WriteString(" FROM ")
+			query.WriteString(sqlEscapeIdentifier(featureColumn.table.name))
+			query.WriteString(" WHERE ")
+			query.WriteString(featureColumn.table.keyName())
+			query.WriteString("=?")
+			return query.String()
+		})
+		if err != nil {
+			s.errorHandler(err)
+			return nil
+		}
 
-	} else if featureTable := featureData.schema.table; featureTable != nil {
+		row = stmt.QueryRow(sqlID)
+	}
+	// else if featureTable := featureData.schema.table; featureTable != nil {
 
+	// }
+
+	var v any
+	if err := row.Scan(&v); err != nil {
+		if err != sql.ErrNoRows {
+			s.errorHandler(err)
+		}
+		return nil
 	}
 
 	return nil

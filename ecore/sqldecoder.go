@@ -171,7 +171,7 @@ func (d *sqlDecoder) decodeEnum(id int64) (any, error) {
 		var packageID int64
 		var enumName string
 		var literalValue string
-		if err := row.Scan(&enumID, &packageID, enumName, literalValue); err != nil {
+		if err := row.Scan(&enumID, &packageID, &enumName, &literalValue); err != nil {
 			return nil, err
 		}
 

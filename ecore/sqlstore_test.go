@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,7 +43,7 @@ func copyFile(src, dest string) (err error) {
 	return
 }
 
-func TestSQLStore_SetSingleValue(t *testing.T) {
+func TestSQLStore_SetSingleValue_Int(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
 
@@ -69,7 +70,7 @@ func TestSQLStore_SetSingleValue(t *testing.T) {
 	s.Set(mockObject, eFeature, -1, 5)
 }
 
-func TestSQLStore_GetSingleValue(t *testing.T) {
+func TestSQLStore_GetSingleValue_Int(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
 
@@ -89,7 +90,39 @@ func TestSQLStore_GetSingleValue(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	v := s.Get(mockObject, eFeature, -1)
-	require.NotNil(t, v)
+	assert.Equal(t, 4, v)
+}
+
+func TestSQLStore_GetSingleValue_Enum(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("category")
+	require.NotNil(t, eFeature)
+
+	// store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, mockPackageRegitry, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	// Mystery == 0
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(4)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	mockPackageRegitry.EXPECT().GetPackage("http:///org/eclipse/emf/examples/library/library.ecore/1.0.0").Return(ePackage).Once()
+	v := s.Get(mockObject, eFeature, -1)
+	assert.Equal(t, 0, v)
+
+	// Biography == 2
+	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	v = s.Get(mockObject, eFeature, -1)
+	assert.Equal(t, 2, v)
 }
 
 func TestSQLStore_SetListValue(t *testing.T) {

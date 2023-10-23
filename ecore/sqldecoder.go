@@ -118,7 +118,38 @@ func (d *sqlDecoder) decodeClass(id int64) (*sqlDecoderClassData, error) {
 func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 	eObject, isObject := d.objects[id]
 	if !isObject {
+		table := d.schema.objectsTable
+		stmt, err := d.getSelectStmt(table, func() string {
+			return table.selectQuery(nil, table.keyName()+"=?", "")
+		})
+		if err != nil {
+			return nil, err
+		}
 
+		// query class infos
+		row := stmt.QueryRow(id)
+		var classID int64
+		var objectID int64
+		if err := row.Scan(&objectID, &classID); err != nil {
+			return nil, err
+		}
+
+		// retrieve class data
+		classData, err := d.decodeClass(classID)
+		if err != nil {
+			return nil, err
+		}
+
+		// create object
+		eObject = classData.eFactory.Create(classData.eClass)
+		sqlObject, isSQlObject := eObject.(SQLObject)
+		if !isSQlObject {
+			panic("EObject is not an SQLObject")
+		}
+		sqlObject.SetSqlID(id)
+
+		// register object
+		d.objects[id] = eObject
 	}
 	return eObject, nil
 }

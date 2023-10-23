@@ -155,11 +155,45 @@ func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 }
 
 func (d *sqlDecoder) decodeEnum(id int64) (any, error) {
-	eEnum, isEnum := d.enums[id]
-	if !isEnum {
+	eEnumValue, isEnumValue := d.enums[id]
+	if !isEnumValue {
+		table := d.schema.enumsTable
+		stmt, err := d.getSelectStmt(table, func() string {
+			return table.selectQuery(nil, table.keyName()+"=?", "")
+		})
+		if err != nil {
+			return nil, err
+		}
 
+		// query enum infos
+		row := stmt.QueryRow(id)
+		var enumID int64
+		var packageID int64
+		var enumName string
+		var literalValue string
+		if err := row.Scan(&enumID, &packageID, enumName, literalValue); err != nil {
+			return nil, err
+		}
+
+		// package
+		ePackage, err := d.decodePackage(packageID)
+		if err != nil {
+			return nil, err
+		}
+
+		// enum
+		eEnum, _ := ePackage.GetEClassifier(enumName).(EEnum)
+		if eEnum == nil {
+			return nil, err
+		}
+
+		// enum value
+		eEnumValue = ePackage.GetEFactoryInstance().CreateFromString(eEnum, literalValue)
+
+		// register enum value
+		d.enums[enumID] = eEnumValue
 	}
-	return eEnum, nil
+	return eEnumValue, nil
 }
 
 func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any) (any, error) {

@@ -232,6 +232,9 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		}
 	case sfkBool:
 		switch v := value.(type) {
+		case nil:
+			var defaultBool bool
+			return defaultBool, nil
 		case bool:
 			return v, nil
 		default:
@@ -244,6 +247,9 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		return defaultByte, nil
 	case sfkInt:
 		switch v := value.(type) {
+		case nil:
+			var defaultInt int
+			return defaultInt, nil
 		case int64:
 			return int(v), nil
 		default:
@@ -252,6 +258,9 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		}
 	case sfkInt64:
 		switch v := value.(type) {
+		case nil:
+			var defaultInt int64
+			return defaultInt, nil
 		case int64:
 			return v, nil
 		default:
@@ -260,6 +269,9 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		}
 	case sfkInt32:
 		switch v := value.(type) {
+		case nil:
+			var defaultInt int32
+			return defaultInt, nil
 		case int64:
 			return int32(v), nil
 		default:
@@ -268,6 +280,9 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		}
 	case sfkInt16:
 		switch v := value.(type) {
+		case nil:
+			var defaultInt int16
+			return defaultInt, nil
 		case int64:
 			return int16(v), nil
 		default:
@@ -282,6 +297,8 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		return d.decodeEnum(enumID)
 	case sfkString:
 		switch v := value.(type) {
+		case nil:
+			return "", nil
 		case string:
 			return v, nil
 		default:
@@ -313,6 +330,9 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		}
 	case sfkFloat64:
 		switch v := value.(type) {
+		case nil:
+			var defaultFloat float64
+			return defaultFloat, nil
 		case float64:
 			return v, nil
 		default:
@@ -321,6 +341,9 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		}
 	case sfkFloat32:
 		switch v := value.(type) {
+		case nil:
+			var defaultFloat float32
+			return defaultFloat, nil
 		case float64:
 			return float32(v), nil
 		default:
@@ -329,6 +352,8 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		}
 	case sfkData, sfkDataList:
 		switch v := value.(type) {
+		case nil:
+			return nil, nil
 		case string:
 			eFeature := featureData.feature
 			eDataType := eFeature.GetEType().(EDataType)

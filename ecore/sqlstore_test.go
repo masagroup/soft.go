@@ -60,6 +60,7 @@ func TestSQLStore_Constructor(t *testing.T) {
 	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	require.Nil(t, s.Close())
 }
 
 func closeFile(f *os.File, reported *error) {
@@ -251,6 +252,32 @@ func TestSQLStore_GetSingleValue_Object(t *testing.T) {
 	require.NotNil(t, v)
 	assert.Equal(t, ePersonClass, v.EClass())
 	assert.Equal(t, int64(2), v.GetSqlID())
+}
+
+func TestSQLStore_GetSingleValue_Reference(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("author")
+	require.NotNil(t, eFeature)
+
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockObject := NewMockSQLObject(t)
+
+	s, err := NewSQLStore("testdata/library.complex.sqlite", NewURI(""), nil, mockPackageRegitry, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	v, _ := s.Get(mockObject, eFeature, -1).(EObject)
+	require.NotNil(t, v)
+	assert.True(t, v.EIsProxy())
+	assert.Equal(t, "#//@library/@writers.0", v.(EObjectInternal).EProxyURI().String())
 }
 
 func TestSQLStore_SetListValue(t *testing.T) {

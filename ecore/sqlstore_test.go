@@ -171,6 +171,29 @@ func TestSQLStore_GetSingleValue_Enum(t *testing.T) {
 	assert.Equal(t, 2, v)
 }
 
+func TestSQLStore_GetSingleValue_String_Null(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("name")
+	require.NotNil(t, eFeature)
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(1)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+
+	s, err := NewSQLStore("testdata/library.owner.sqlite", NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	v := s.Get(mockObject, eFeature, -1)
+	assert.Equal(t, "", v)
+}
+
 func TestSQLStore_GetSingleValue_Object_Nil(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)

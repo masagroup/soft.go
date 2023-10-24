@@ -233,56 +233,52 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkBool:
 		switch v := value.(type) {
 		case nil:
-			var defaultBool bool
-			return defaultBool, nil
+			return false, nil
 		case bool:
 			return v, nil
 		default:
-			var defaultBool bool
-			return defaultBool, fmt.Errorf("%v is not a bool value", v)
+			return false, fmt.Errorf("%v is not a bool value", v)
 		}
 	case sfkByte:
-		// TODO
-		var defaultByte byte
-		return defaultByte, nil
+		switch v := value.(type) {
+		case nil:
+			return byte(0), nil
+		case byte:
+			return v, nil
+		default:
+			return byte(0), fmt.Errorf("%v is not a bool value", v)
+		}
 	case sfkInt:
 		switch v := value.(type) {
 		case nil:
-			var defaultInt int
-			return defaultInt, nil
+			return int(0), nil
 		case int64:
 			return int(v), nil
 		default:
-			var defaultInt int
-			return defaultInt, fmt.Errorf("%v is not a int value", v)
+			return int(0), fmt.Errorf("%v is not a int value", v)
 		}
 	case sfkInt64:
 		switch v := value.(type) {
 		case nil:
-			var defaultInt int64
-			return defaultInt, nil
+			return int64(0), nil
 		case int64:
 			return v, nil
 		default:
-			var defaultInt int64
-			return defaultInt, fmt.Errorf("%v is not a int64 value", v)
+			return int64(0), fmt.Errorf("%v is not a int64 value", v)
 		}
 	case sfkInt32:
 		switch v := value.(type) {
 		case nil:
-			var defaultInt int32
-			return defaultInt, nil
+			return int32(0), nil
 		case int64:
 			return int32(v), nil
 		default:
-			var defaultInt int32
-			return defaultInt, fmt.Errorf("%v is not a int32 value", v)
+			return int32(0), fmt.Errorf("%v is not a int32 value", v)
 		}
 	case sfkInt16:
 		switch v := value.(type) {
 		case nil:
-			var defaultInt int16
-			return defaultInt, nil
+			return int16(0), nil
 		case int64:
 			return int16(v), nil
 		default:
@@ -331,24 +327,20 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkFloat64:
 		switch v := value.(type) {
 		case nil:
-			var defaultFloat float64
-			return defaultFloat, nil
+			return float64(0), nil
 		case float64:
 			return v, nil
 		default:
-			var defaultFloat float64
-			return defaultFloat, fmt.Errorf("%v is not a float64 value", value)
+			return float64(0), fmt.Errorf("%v is not a float64 value", value)
 		}
 	case sfkFloat32:
 		switch v := value.(type) {
 		case nil:
-			var defaultFloat float32
-			return defaultFloat, nil
+			return float32(0), nil
 		case float64:
 			return float32(v), nil
 		default:
-			var defaultFloat float32
-			return defaultFloat, fmt.Errorf("%v is not a float64 value", value)
+			return float32(0), fmt.Errorf("%v is not a float64 value", value)
 		}
 	case sfkData, sfkDataList:
 		switch v := value.(type) {

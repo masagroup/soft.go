@@ -50,3 +50,50 @@ func TestSqlEncoder_DataList(t *testing.T) {
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 }
+
+func TestSqlEncoder_ComplexWithOwner(t *testing.T) {
+	// load package and retrieve library / person features
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eLibraryClass)
+
+	eLibraryOwnerFeature, _ := eLibraryClass.GetEStructuralFeatureFromName("ownerPdg").(EReference)
+	require.NotNil(t, eLibraryOwnerFeature)
+
+	ePersonClass, _ := ePackage.GetEClassifier("Person").(EClass)
+	require.NotNil(t, ePersonClass)
+
+	ePersonAdressAttribute, _ := ePersonClass.GetEStructuralFeatureFromName("address").(EAttribute)
+	require.NotNil(t, ePersonAdressAttribute)
+
+	ePersonFirstNameAttribute, _ := ePersonClass.GetEStructuralFeatureFromName("firstName").(EAttribute)
+	require.NotNil(t, ePersonFirstNameAttribute)
+
+	ePersonLastNameAttribute, _ := ePersonClass.GetEStructuralFeatureFromName("lastName").(EAttribute)
+	require.NotNil(t, ePersonLastNameAttribute)
+
+	// create a library with a owner
+	eFactory := ePackage.GetEFactoryInstance()
+
+	aPerson := eFactory.Create(ePersonClass)
+	aPerson.ESet(ePersonAdressAttribute, "owner adress")
+	aPerson.ESet(ePersonFirstNameAttribute, "owner first name")
+	aPerson.ESet(ePersonLastNameAttribute, "owner last name")
+
+	aLibrary := eFactory.Create(eLibraryClass)
+	aLibrary.ESet(eLibraryOwnerFeature, aPerson)
+
+	eResourceSet := CreateEResourceSet([]EPackage{ePackage})
+	eResource := eResourceSet.CreateResource(NewURI("testdata/library.owner.sqlite"))
+	eResource.GetContents().Add(aLibrary)
+
+	// w, err := os.Create("testdata/library.owner.sqlite")
+	// require.NoError(t, err)
+	// defer w.Close()
+	w := &bytes.Buffer{}
+	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
+	sqliteEncoder.EncodeResource()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+}

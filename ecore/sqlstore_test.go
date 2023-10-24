@@ -10,6 +10,52 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type dynamicSQLEObjectImpl struct {
+	DynamicEObjectImpl
+	sqlID int64
+}
+
+func newDynamicSQLEObjectImpl() *dynamicSQLEObjectImpl {
+	o := new(dynamicSQLEObjectImpl)
+	o.SetInterfaces(o)
+	o.Initialize()
+	return o
+}
+
+func (o *dynamicSQLEObjectImpl) SetSqlID(sqlID int64) {
+	o.sqlID = sqlID
+}
+
+func (o *dynamicSQLEObjectImpl) GetSqlID() int64 {
+	return o.sqlID
+}
+
+type dynamicSQLFactory struct {
+	EFactoryExt
+}
+
+func newDynamicSQLFactory() *dynamicSQLFactory {
+	eFactory := new(dynamicSQLFactory)
+	eFactory.SetInterfaces(eFactory)
+	eFactory.Initialize()
+	return eFactory
+}
+
+func (eFactory *dynamicSQLFactory) Create(eClass EClass) EObject {
+	if eFactory.GetEPackage() != eClass.GetEPackage() || eClass.IsAbstract() {
+		panic("The class '" + eClass.GetName() + "' is not a valid classifier")
+	}
+	if IsMapEntry(eClass) {
+		eEntry := NewDynamicEMapEntryImpl()
+		eEntry.SetEClass(eClass)
+		return eEntry
+	} else {
+		eObject := newDynamicSQLEObjectImpl()
+		eObject.SetEClass(eClass)
+		return eObject
+	}
+}
+
 func TestSQLStore_Constructor(t *testing.T) {
 	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
@@ -123,6 +169,65 @@ func TestSQLStore_GetSingleValue_Enum(t *testing.T) {
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	v = s.Get(mockObject, eFeature, -1)
 	assert.Equal(t, 2, v)
+}
+
+func TestSQLStore_GetSingleValue_Object_Nil(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("ownerPdg")
+	require.NotNil(t, eFeature)
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+
+	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	v := s.Get(mockObject, eFeature, -1)
+	assert.Nil(t, v)
+}
+
+func TestSQLStore_GetSingleValue_Object(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+	ePackage.SetEFactoryInstance(newDynamicSQLFactory())
+
+	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eLibraryClass)
+
+	eLibraryOwnerFeature := eLibraryClass.GetEStructuralFeatureFromName("ownerPdg")
+	require.NotNil(t, eLibraryOwnerFeature)
+
+	ePersonClass, _ := ePackage.GetEClassifier("Person").(EClass)
+	require.NotNil(t, ePersonClass)
+
+	ePersonAdressAttribute, _ := ePersonClass.GetEStructuralFeatureFromName("address").(EAttribute)
+	require.NotNil(t, ePersonAdressAttribute)
+
+	ePersonFirstNameAttribute, _ := ePersonClass.GetEStructuralFeatureFromName("firstName").(EAttribute)
+	require.NotNil(t, ePersonFirstNameAttribute)
+
+	mockObject := NewMockSQLObject(t)
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore("testdata/library.owner.sqlite", NewURI(""), nil, mockPackageRegitry, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject.EXPECT().GetSqlID().Return(int64(1)).Once()
+	mockObject.EXPECT().EClass().Return(eLibraryClass).Once()
+	mockPackageRegitry.EXPECT().GetPackage("http:///org/eclipse/emf/examples/library/library.ecore/1.0.0").Return(ePackage).Once()
+	v, _ := s.Get(mockObject, eLibraryOwnerFeature, -1).(SQLObject)
+	require.NotNil(t, v)
+	assert.Equal(t, ePersonClass, v.EClass())
+	assert.Equal(t, int64(2), v.GetSqlID())
 }
 
 func TestSQLStore_SetListValue(t *testing.T) {

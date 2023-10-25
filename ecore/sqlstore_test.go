@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"database/sql"
 	"io"
 	"os"
 	"path/filepath"
@@ -279,6 +280,17 @@ func TestSQLStore_Set_Int(t *testing.T) {
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	oldValue := s.Set(mockObject, eFeature, -1, 5)
 	assert.Equal(t, 4, oldValue)
+
+	// check store
+	db, err := sql.Open("sqlite", dbPath)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+	defer db.Close()
+	var copies int
+	row := db.QueryRow("SELECT copies FROM Lendable WHERE lendableID=3")
+	err = row.Scan(&copies)
+	assert.NoError(t, err)
+	assert.Equal(t, 5, copies)
 }
 
 func TestSQLStore_Set_Reference_Nil(t *testing.T) {
@@ -302,6 +314,7 @@ func TestSQLStore_Set_Reference_Nil(t *testing.T) {
 	require.NotNil(t, s)
 	defer s.Close()
 
+	// set
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
@@ -309,6 +322,17 @@ func TestSQLStore_Set_Reference_Nil(t *testing.T) {
 	require.NotNil(t, oldValue)
 	assert.True(t, oldValue.EIsProxy())
 	assert.Equal(t, "#//@library/@writers.0", oldValue.(EObjectInternal).EProxyURI().String())
+
+	// check store
+	db, err := sql.Open("sqlite", dbPath)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+	defer db.Close()
+	var author sql.NullString
+	row := db.QueryRow("SELECT author FROM book WHERE bookID=3")
+	err = row.Scan(&author)
+	assert.NoError(t, err)
+	assert.False(t, author.Valid)
 }
 
 func TestSQLStore_Set_List_Primitive(t *testing.T) {
@@ -338,7 +362,16 @@ func TestSQLStore_Set_List_Primitive(t *testing.T) {
 	oldValue := s.Set(mockObject, eFeature, 1, "c4")
 	assert.Equal(t, "c2", oldValue)
 
-	// load db and retrieve new value
+	// check store
+	db, err := sql.Open("sqlite", dbPath)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+	defer db.Close()
+	var contents string
+	row := db.QueryRow("SELECT contents FROM book_contents WHERE bookID=5 AND idx=1.0")
+	err = row.Scan(&contents)
+	assert.NoError(t, err)
+	assert.Equal(t, "c4", contents)
 }
 
 func TestSQLStore_Get_List_String(t *testing.T) {
@@ -388,7 +421,7 @@ func TestSQLStore_IsSet_SingleValue_NotSet(t *testing.T) {
 	assert.False(t, isSet)
 }
 
-func TestSQLStore_IsSet_SingleValue_Set(t *testing.T) {
+func TestSQLStore_IsSet_SingleValue(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
 
@@ -455,4 +488,45 @@ func TestSQLStore_IsSet_ManyValue_Set(t *testing.T) {
 
 	isSet := s.IsSet(mockObject, eFeature)
 	assert.True(t, isSet)
+}
+
+func TestSQLStore_UnSet_Single(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Lendable").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("copies")
+	require.NotNil(t, eFeature)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	s.UnSet(mockObject, eFeature)
+
+	// check store
+	db, err := sql.Open("sqlite", dbPath)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+	defer db.Close()
+	var copies int
+	row := db.QueryRow("SELECT copies FROM Lendable WHERE lendableID=3")
+	err = row.Scan(&copies)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, copies)
+}
+
+func TestSQLStore_UnSet_Many(t *testing.T) {
 }

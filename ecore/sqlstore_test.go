@@ -332,3 +332,95 @@ func TestSQLStore_GetListValue(t *testing.T) {
 
 	// load db and retrieve new value
 }
+
+func TestSQLStore_IsSet_SingleValue_NotSet(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("ownerPdg")
+	require.NotNil(t, eFeature)
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+
+	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	isSet := s.IsSet(mockObject, eFeature)
+	assert.False(t, isSet)
+}
+
+func TestSQLStore_IsSet_SingleValue_Set(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("ownerPdg")
+	require.NotNil(t, eFeature)
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(1)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+
+	s, err := NewSQLStore("testdata/library.owner.sqlite", NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	isSet := s.IsSet(mockObject, eFeature)
+	assert.True(t, isSet)
+}
+
+func TestSQLStore_IsSet_ManyValue_NotSet(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, eFeature)
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(1)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+
+	s, err := NewSQLStore("testdata/library.owner.sqlite", NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	isSet := s.IsSet(mockObject, eFeature)
+	assert.False(t, isSet)
+}
+
+func TestSQLStore_IsSet_ManyValue_Set(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, eFeature)
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+
+	s, err := NewSQLStore("testdata/library.complex.sqlite", NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	isSet := s.IsSet(mockObject, eFeature)
+	assert.True(t, isSet)
+}

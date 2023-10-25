@@ -401,6 +401,7 @@ func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
 			return
 		}
 	} else if featureTable := featureData.schema.table; featureTable != nil {
+		featureColumn := featureTable.columns[len(featureTable.columns)-1]
 		stmt, err := s.getStmt(s.clearStmts, featureColumn, func() string {
 			return s.getClearManyQuery(featureColumn)
 		})

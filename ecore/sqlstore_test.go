@@ -90,34 +90,7 @@ func copyFile(src, dest string) (err error) {
 	return
 }
 
-func TestSQLStore_SetSingleValue_Int(t *testing.T) {
-	ePackage := loadPackage("library.complex.ecore")
-	require.NotNil(t, ePackage)
-
-	eClass, _ := ePackage.GetEClassifier("Lendable").(EClass)
-	require.NotNil(t, eClass)
-
-	eFeature := eClass.GetEStructuralFeatureFromName("copies")
-	require.NotNil(t, eFeature)
-
-	// database
-	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
-	err := copyFile("testdata/library.store.sqlite", dbPath)
-	require.Nil(t, err)
-
-	// store
-	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
-	require.NoError(t, err)
-	require.NotNil(t, s)
-	defer s.Close()
-
-	mockObject := NewMockSQLObject(t)
-	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
-	mockObject.EXPECT().EClass().Return(eClass).Once()
-	s.Set(mockObject, eFeature, -1, 5)
-}
-
-func TestSQLStore_GetSingleValue_Int(t *testing.T) {
+func TestSQLStore_Get_Int(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
 
@@ -140,7 +113,7 @@ func TestSQLStore_GetSingleValue_Int(t *testing.T) {
 	assert.Equal(t, 4, v)
 }
 
-func TestSQLStore_GetSingleValue_Enum(t *testing.T) {
+func TestSQLStore_Get_Enum(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
 
@@ -172,7 +145,7 @@ func TestSQLStore_GetSingleValue_Enum(t *testing.T) {
 	assert.Equal(t, 2, v)
 }
 
-func TestSQLStore_GetSingleValue_String_Null(t *testing.T) {
+func TestSQLStore_Get_String_Null(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
 
@@ -195,7 +168,7 @@ func TestSQLStore_GetSingleValue_String_Null(t *testing.T) {
 	assert.Equal(t, "", v)
 }
 
-func TestSQLStore_GetSingleValue_Object_Nil(t *testing.T) {
+func TestSQLStore_Get_Object_Nil(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
 
@@ -218,7 +191,7 @@ func TestSQLStore_GetSingleValue_Object_Nil(t *testing.T) {
 	assert.Nil(t, v)
 }
 
-func TestSQLStore_GetSingleValue_Object(t *testing.T) {
+func TestSQLStore_Get_Object(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
 	ePackage.SetEFactoryInstance(newDynamicSQLFactory())
@@ -254,7 +227,7 @@ func TestSQLStore_GetSingleValue_Object(t *testing.T) {
 	assert.Equal(t, int64(2), v.GetSqlID())
 }
 
-func TestSQLStore_GetSingleValue_Reference(t *testing.T) {
+func TestSQLStore_Get_Reference(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
 
@@ -280,7 +253,65 @@ func TestSQLStore_GetSingleValue_Reference(t *testing.T) {
 	assert.Equal(t, "#//@library/@writers.0", v.(EObjectInternal).EProxyURI().String())
 }
 
-func TestSQLStore_SetListValue(t *testing.T) {
+func TestSQLStore_Set_Int(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Lendable").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("copies")
+	require.NotNil(t, eFeature)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	oldValue := s.Set(mockObject, eFeature, -1, 5)
+	assert.Equal(t, 4, oldValue)
+}
+
+func TestSQLStore_Set_Reference_Nil(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("author")
+	require.NotNil(t, eFeature)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	oldValue, _ := s.Set(mockObject, eFeature, -1, nil).(EObject)
+	require.NotNil(t, oldValue)
+	assert.True(t, oldValue.EIsProxy())
+	assert.Equal(t, "#//@library/@writers.0", oldValue.(EObjectInternal).EProxyURI().String())
+}
+
+func TestSQLStore_Set_List_Primitive(t *testing.T) {
 	ePackage := loadPackage("library.datalist.ecore")
 	require.NotNil(t, ePackage)
 
@@ -304,12 +335,13 @@ func TestSQLStore_SetListValue(t *testing.T) {
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
-	s.Set(mockObject, eFeature, 1, "c4")
+	oldValue := s.Set(mockObject, eFeature, 1, "c4")
+	assert.Equal(t, "c2", oldValue)
 
 	// load db and retrieve new value
 }
 
-func TestSQLStore_GetListValue(t *testing.T) {
+func TestSQLStore_Get_List_String(t *testing.T) {
 	ePackage := loadPackage("library.datalist.ecore")
 	require.NotNil(t, ePackage)
 

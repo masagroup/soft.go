@@ -403,6 +403,7 @@ func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQL
 			objects:         map[int64]EObject{},
 			classes:         map[int64]*sqlDecoderClassData{},
 			enums:           map[int64]any{},
+			selectStmts:     map[*sqlTable]*sql.Stmt{},
 		},
 		resource: resource,
 		reader:   r,

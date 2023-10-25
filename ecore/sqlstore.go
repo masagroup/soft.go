@@ -91,6 +91,7 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, packageReg
 			objects:         map[int64]EObject{},
 			classes:         map[int64]*sqlDecoderClassData{},
 			enums:           map[int64]any{},
+			selectStmts:     map[*sqlTable]*sql.Stmt{},
 		},
 		sqlEncoder: sqlEncoder{
 			sqlBase:        base,
@@ -146,6 +147,10 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 		return nil
 	}
 
+	return s.getValue(sqlID, featureSchema, index)
+}
+
+func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index int) any {
 	var row *sql.Row
 	if featureColumn := featureSchema.column; featureColumn != nil {
 		stmt, err := s.getSelectStmt(featureColumn, func() string {
@@ -204,29 +209,12 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 	return value
 }
 
-func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {
-	sqlObject := object.(SQLObject)
-	sqlID := sqlObject.GetSqlID()
-
-	// retrieve class data
-	classData, err := s.getClassData(object.EClass())
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-
-	// retrieve feature data
-	featureData, isFeatureData := classData.features[feature]
-	if !isFeatureData {
-		s.errorHandler(fmt.Errorf("feature %s is unknown", feature.GetName()))
-		return nil
-	}
-
+func (s *SQLStore) setValue(sqlID int64, featureData *sqlEncoderFeatureData, index int, value any) {
 	// feature is encoded as a column
 	v, err := s.encodeFeatureValue(featureData, value)
 	if err != nil {
 		s.errorHandler(err)
-		return nil
+		return
 	}
 
 	if featureColumn := featureData.schema.column; featureColumn != nil {
@@ -244,13 +232,13 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 		})
 		if err != nil {
 			s.errorHandler(err)
-			return nil
+			return
 		}
 
 		_, err = stmt.Exec(v, sqlID)
 		if err != nil {
 			s.errorHandler(err)
-			return nil
+			return
 		}
 
 	} else if featureTable := featureData.schema.table; featureTable != nil {
@@ -273,16 +261,39 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 		})
 		if err != nil {
 			s.errorHandler(err)
-			return nil
+			return
 		}
 		_, err = stmt.Exec(v, sqlID, index)
 		if err != nil {
 			s.errorHandler(err)
-			return nil
+			return
 		}
-
 	}
-	return nil
+}
+
+func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+
+	// retrieve class data
+	classData, err := s.getClassData(object.EClass())
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+
+	// retrieve feature data
+	featureData, isFeatureData := classData.features[feature]
+	if !isFeatureData {
+		s.errorHandler(fmt.Errorf("feature %s is unknown", feature.GetName()))
+		return nil
+	}
+
+	// retrieve previous value
+	oldValue := s.getValue(sqlID, featureData.schema, index)
+	// set new value
+	s.setValue(sqlID, featureData, index, value)
+	return oldValue
 }
 
 func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {

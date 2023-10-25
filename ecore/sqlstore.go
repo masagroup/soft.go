@@ -13,6 +13,7 @@ type SQLStore struct {
 	errorHandler func(error)
 	updateStmts  map[*sqlColumn]*sql.Stmt
 	selectStmts  map[*sqlColumn]*sql.Stmt
+	existsStmts  map[*sqlColumn]*sql.Stmt
 }
 
 func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, packageRegistry EPackageRegistry, options map[string]any) (*SQLStore, error) {
@@ -102,6 +103,7 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, packageReg
 		errorHandler: errorHandler,
 		updateStmts:  map[*sqlColumn]*sql.Stmt{},
 		selectStmts:  map[*sqlColumn]*sql.Stmt{},
+		existsStmts:  map[*sqlColumn]*sql.Stmt{},
 	}, nil
 }
 
@@ -109,20 +111,25 @@ func (s *SQLStore) Close() error {
 	return s.db.Close()
 }
 
-func (s *SQLStore) getUpdateStmt(column *sqlColumn, query func() string) (stmt *sql.Stmt, err error) {
-	stmt = s.updateStmts[column]
+func (s *SQLStore) getStmt(m map[*sqlColumn]*sql.Stmt, column *sqlColumn, query func() string) (stmt *sql.Stmt, err error) {
+	stmt = m[column]
 	if stmt == nil {
 		stmt, err = s.db.Prepare(query())
+		m[column] = stmt
 	}
 	return
 }
 
+func (s *SQLStore) getUpdateStmt(column *sqlColumn, query func() string) (stmt *sql.Stmt, err error) {
+	return s.getStmt(s.updateStmts, column, query)
+}
+
 func (s *SQLStore) getSelectStmt(column *sqlColumn, query func() string) (stmt *sql.Stmt, err error) {
-	stmt = s.selectStmts[column]
-	if stmt == nil {
-		stmt, err = s.db.Prepare(query())
-	}
-	return
+	return s.getStmt(s.selectStmts, column, query)
+}
+
+func (s *SQLStore) getExistsStmt(column *sqlColumn, query func() string) (stmt *sql.Stmt, err error) {
+	return s.getStmt(s.existsStmts, column, query)
 }
 
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
@@ -279,6 +286,63 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 }
 
 func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+
+	// retrieve class schema
+	classSchema := s.sqlDecoder.schema.getClassSchema(object.EClass())
+
+	// retrieve feature schema
+	featureSchema := classSchema.getFeatureSchema(feature)
+	if featureSchema == nil {
+		s.errorHandler(fmt.Errorf("feature %s is unknown", feature.GetName()))
+		return false
+	}
+
+	if featureColumn := featureSchema.column; featureColumn != nil {
+		stmt, err := s.getSelectStmt(featureColumn, func() string {
+			var query strings.Builder
+			query.WriteString("SELECT ")
+			query.WriteString(sqlEscapeIdentifier(featureColumn.columnName))
+			query.WriteString(" FROM ")
+			query.WriteString(sqlEscapeIdentifier(featureColumn.table.name))
+			query.WriteString(" WHERE ")
+			query.WriteString(featureColumn.table.keyName())
+			query.WriteString("=?")
+			return query.String()
+		})
+		if err != nil {
+			s.errorHandler(err)
+			return false
+		}
+		row := stmt.QueryRow(sqlID)
+		var v any
+		if err := row.Scan(&v); err != nil {
+			return false
+		}
+		return v != featureSchema.feature.GetDefaultValue()
+
+	} else if featureTable := featureSchema.table; featureTable != nil {
+		featureColumn := featureTable.columns[len(featureTable.columns)-1]
+		stmt, err := s.getExistsStmt(featureColumn, func() string {
+			var query strings.Builder
+			query.WriteString("SELECT 1 FROM")
+			query.WriteString(sqlEscapeIdentifier(featureTable.name))
+			query.WriteString(" WHERE ")
+			query.WriteString(featureTable.keyName())
+			query.WriteString("=?")
+			return query.String()
+		})
+		if err != nil {
+			s.errorHandler(err)
+			return false
+		}
+		var v any
+		row := stmt.QueryRow(sqlID)
+		_ = row.Scan(&v)
+		return v != nil
+	}
+
 	return false
 }
 

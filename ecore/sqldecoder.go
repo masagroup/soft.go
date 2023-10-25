@@ -38,6 +38,7 @@ func (s *sqlDecoder) getSelectStmt(table *sqlTable, query func() string) (stmt *
 	stmt = s.selectStmts[table]
 	if stmt == nil {
 		stmt, err = s.db.Prepare(query())
+		s.selectStmts[table] = stmt
 	}
 	return
 }

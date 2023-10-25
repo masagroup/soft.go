@@ -378,6 +378,7 @@ func (e *sqlEncoder) getInsertStmt(table *sqlTable) (stmt *sql.Stmt, err error) 
 	stmt = e.insertStmts[table]
 	if stmt == nil {
 		stmt, err = e.db.Prepare(table.insertQuery())
+		e.insertStmts[table] = stmt
 	}
 	return
 }

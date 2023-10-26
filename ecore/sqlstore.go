@@ -57,12 +57,13 @@ func (ss *sqlSingleStmts) getSelectStmt() (*sql.Stmt, error) {
 }
 
 type sqlManyStmts struct {
-	db          *sql.DB
-	table       *sqlTable
-	updateStmt  *stmtOrError
-	selectStmt  *stmtOrError
-	existsStmts *stmtOrError
-	clearStmts  *stmtOrError
+	db         *sql.DB
+	table      *sqlTable
+	updateStmt *stmtOrError
+	selectStmt *stmtOrError
+	existsStmt *stmtOrError
+	clearStmt  *stmtOrError
+	countStmt  *stmtOrError
 }
 
 func (ss *sqlManyStmts) getUpdateStmt() (*sql.Stmt, error) {
@@ -110,7 +111,7 @@ func (ss *sqlManyStmts) getSelectStmt() (*sql.Stmt, error) {
 }
 
 func (ss *sqlManyStmts) getExistsStmt() (*sql.Stmt, error) {
-	if ss.existsStmts == nil {
+	if ss.existsStmt == nil {
 		// query
 		var query strings.Builder
 		query.WriteString("SELECT 1 FROM")
@@ -119,14 +120,14 @@ func (ss *sqlManyStmts) getExistsStmt() (*sql.Stmt, error) {
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=?")
 		// stmt
-		ss.existsStmts = &stmtOrError{}
-		ss.existsStmts.stmt, ss.existsStmts.err = ss.db.Prepare(query.String())
+		ss.existsStmt = &stmtOrError{}
+		ss.existsStmt.stmt, ss.existsStmt.err = ss.db.Prepare(query.String())
 	}
-	return ss.existsStmts.stmt, ss.existsStmts.err
+	return ss.existsStmt.stmt, ss.existsStmt.err
 }
 
 func (ss *sqlManyStmts) getClearStmt() (*sql.Stmt, error) {
-	if ss.clearStmts == nil {
+	if ss.clearStmt == nil {
 		// query
 		var query strings.Builder
 		query.WriteString("DELETE FROM")
@@ -135,10 +136,26 @@ func (ss *sqlManyStmts) getClearStmt() (*sql.Stmt, error) {
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=?")
 		// stmt
-		ss.clearStmts = &stmtOrError{}
-		ss.clearStmts.stmt, ss.clearStmts.err = ss.db.Prepare(query.String())
+		ss.clearStmt = &stmtOrError{}
+		ss.clearStmt.stmt, ss.clearStmt.err = ss.db.Prepare(query.String())
 	}
-	return ss.clearStmts.stmt, ss.clearStmts.err
+	return ss.clearStmt.stmt, ss.clearStmt.err
+}
+
+func (ss *sqlManyStmts) getCountStmt() (*sql.Stmt, error) {
+	if ss.countStmt == nil {
+		// query
+		var query strings.Builder
+		query.WriteString("SELECT COUNT(*) FROM")
+		query.WriteString(sqlEscapeIdentifier(ss.table.name))
+		query.WriteString(" WHERE ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString("=?")
+		// stmt
+		ss.countStmt = &stmtOrError{}
+		ss.countStmt.stmt, ss.countStmt.err = ss.db.Prepare(query.String())
+	}
+	return ss.countStmt.stmt, ss.countStmt.err
 }
 
 type SQLStore struct {
@@ -464,26 +481,26 @@ func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
 	}
 }
 
-func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
+func (s *SQLStore) getFeatureTable(object EObject, feature EStructuralFeature) (*sqlTable, error) {
 	if !feature.IsMany() {
 		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
 	}
-
-	sqlObject := object.(SQLObject)
-	sqlID := sqlObject.GetSqlID()
-
-	// retrieve class schema
-	classSchema := s.sqlDecoder.schema.getClassSchema(object.EClass())
-
 	// retrieve feature schema
+	classSchema := s.sqlDecoder.schema.getClassSchema(object.EClass())
 	featureSchema := classSchema.getFeatureSchema(feature)
 	if featureSchema == nil {
-		s.errorHandler(fmt.Errorf("feature %s is unknown", feature.GetName()))
+		return nil, fmt.Errorf("feature %s is unknown", feature.GetName())
+	}
+	return featureSchema.table, nil
+}
+
+func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
+	// retrieve table
+	featureTable, err := s.getFeatureTable(object, feature)
+	if err != nil {
+		s.errorHandler(err)
 		return false
 	}
-
-	// retrieve feature table
-	featureTable := featureSchema.table
 
 	// retrieve statement
 	stmt, err := s.getManyStmts(featureTable).getExistsStmt()
@@ -493,6 +510,8 @@ func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
 	}
 
 	// query statement
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
 	var v any
 	row := stmt.QueryRow(sqlID)
 	_ = row.Scan(&v)
@@ -500,10 +519,29 @@ func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
 }
 
 func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
-	if !feature.IsMany() {
-		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
+	// retrieve table
+	featureTable, err := s.getFeatureTable(object, feature)
+	if err != nil {
+		s.errorHandler(err)
+		return 0
 	}
-	return 0
+
+	// retrieve statement
+	stmt, err := s.getManyStmts(featureTable).getCountStmt()
+	if err != nil {
+		s.errorHandler(err)
+		return 0
+	}
+
+	// query statement
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+	row := stmt.QueryRow(sqlID)
+
+	// retrieve count
+	var count int
+	_ = row.Scan(&count)
+	return count
 }
 
 func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value any) bool {

@@ -627,3 +627,69 @@ func TestSQLStore_IsEmpty_NonExisting(t *testing.T) {
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.True(t, s.IsEmpty(mockObject, eFeature))
 }
+
+func TestSQLStore_Size(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	// create store
+	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	assert.Equal(t, 3, s.Size(mockObject, eFeature))
+}
+
+func TestSQLStore_Size_Empty(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("borrowers")
+	require.NotNil(t, eFeature)
+
+	// create store
+	s, err := NewSQLStore("testdata/library.complex.sqlite", NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	assert.Equal(t, 0, s.Size(mockObject, eFeature))
+}
+
+func TestSQLStore_Size_NonExisting(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("borrowers")
+	require.NotNil(t, eFeature)
+
+	// create store
+	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	assert.Equal(t, 0, s.Size(mockObject, eFeature))
+}

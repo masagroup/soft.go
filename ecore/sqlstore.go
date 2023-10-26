@@ -468,7 +468,35 @@ func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
 	if !feature.IsMany() {
 		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
 	}
-	return false
+
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+
+	// retrieve class schema
+	classSchema := s.sqlDecoder.schema.getClassSchema(object.EClass())
+
+	// retrieve feature schema
+	featureSchema := classSchema.getFeatureSchema(feature)
+	if featureSchema == nil {
+		s.errorHandler(fmt.Errorf("feature %s is unknown", feature.GetName()))
+		return false
+	}
+
+	// retrieve feature table
+	featureTable := featureSchema.table
+
+	// retrieve statement
+	stmt, err := s.getManyStmts(featureTable).getExistsStmt()
+	if err != nil {
+		s.errorHandler(err)
+		return false
+	}
+
+	// query statement
+	var v any
+	row := stmt.QueryRow(sqlID)
+	_ = row.Scan(&v)
+	return v == nil
 }
 
 func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {

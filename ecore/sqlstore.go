@@ -57,13 +57,14 @@ func (ss *sqlSingleStmts) getSelectStmt() (*sql.Stmt, error) {
 }
 
 type sqlManyStmts struct {
-	db         *sql.DB
-	table      *sqlTable
-	updateStmt *stmtOrError
-	selectStmt *stmtOrError
-	existsStmt *stmtOrError
-	clearStmt  *stmtOrError
-	countStmt  *stmtOrError
+	db           *sql.DB
+	table        *sqlTable
+	updateStmt   *stmtOrError
+	selectStmt   *stmtOrError
+	existsStmt   *stmtOrError
+	clearStmt    *stmtOrError
+	countStmt    *stmtOrError
+	containsStmt *stmtOrError
 }
 
 func (ss *sqlManyStmts) getUpdateStmt() (*sql.Stmt, error) {
@@ -156,6 +157,25 @@ func (ss *sqlManyStmts) getCountStmt() (*sql.Stmt, error) {
 		ss.countStmt.stmt, ss.countStmt.err = ss.db.Prepare(query.String())
 	}
 	return ss.countStmt.stmt, ss.countStmt.err
+}
+
+func (ss *sqlManyStmts) getContainsStmt() (*sql.Stmt, error) {
+	if ss.containsStmt == nil {
+		column := ss.table.columns[len(ss.table.columns)-1]
+		// query
+		var query strings.Builder
+		query.WriteString("SELECT rowid FROM")
+		query.WriteString(sqlEscapeIdentifier(ss.table.name))
+		query.WriteString(" WHERE ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString("=? AND ")
+		query.WriteString(sqlEscapeIdentifier(column.columnName))
+		query.WriteString("=?")
+		// stmt
+		ss.containsStmt = &stmtOrError{}
+		ss.containsStmt.stmt, ss.containsStmt.err = ss.db.Prepare(query.String())
+	}
+	return ss.containsStmt.stmt, ss.containsStmt.err
 }
 
 type SQLStore struct {
@@ -485,13 +505,43 @@ func (s *SQLStore) getFeatureTable(object EObject, feature EStructuralFeature) (
 	if !feature.IsMany() {
 		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
 	}
+	// retrieve class schema
+	class := object.EClass()
+	classSchema := s.sqlDecoder.schema.getClassSchema(class)
+	if classSchema == nil {
+		return nil, fmt.Errorf("class %s is unknown", class.GetName())
+	}
 	// retrieve feature schema
-	classSchema := s.sqlDecoder.schema.getClassSchema(object.EClass())
 	featureSchema := classSchema.getFeatureSchema(feature)
 	if featureSchema == nil {
 		return nil, fmt.Errorf("feature %s is unknown", feature.GetName())
 	}
 	return featureSchema.table, nil
+}
+
+func (s *SQLStore) getFeatureData(object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
+	if !feature.IsMany() {
+		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
+	}
+	// retrieve class schema
+	class := object.EClass()
+
+	// retrieve class data
+	classData, err := s.getClassData(class)
+	if err != nil {
+		s.errorHandler(err)
+		return nil, fmt.Errorf("class %s is unknown", class.GetName())
+	}
+
+	// retrieve feature data
+	featureData, isFeatureData := classData.features[feature]
+	if !isFeatureData {
+		err := fmt.Errorf("feature %s is unknown", feature.GetName())
+		s.errorHandler(err)
+		return nil, err
+	}
+
+	return featureData, nil
 }
 
 func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
@@ -545,10 +595,31 @@ func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
 }
 
 func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value any) bool {
-	if !feature.IsMany() {
-		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
+	// retrieve table
+	featureData, err := s.getFeatureData(object, feature)
+	if err != nil {
+		s.errorHandler(err)
+		return false
 	}
-	return false
+	// retrieve statement
+	stmt, err := s.getManyStmts(featureData.schema.table).getContainsStmt()
+	if err != nil {
+		s.errorHandler(err)
+		return false
+	}
+
+	// query statement
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+	v, err := s.encodeFeatureValue(featureData, value)
+	if err != nil {
+		s.errorHandler(err)
+		return false
+	}
+	row := stmt.QueryRow(sqlID, v)
+	var rowid int
+	_ = row.Scan(&rowid)
+	return rowid != 0
 }
 
 func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {

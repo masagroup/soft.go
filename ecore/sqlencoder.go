@@ -192,15 +192,27 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
 	return objectID, nil
 }
 
-func (e *sqlEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, value any) (any, error) {
+func (e *sqlEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
 	if value != nil {
 		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:
-			objectID, err := e.encodeObject(value.(EObject))
-			if err != nil {
-				return nil, err
+			if sqlObject, isSqlObject := value.(SQLObject); isSqlObject {
+				objectID := sqlObject.GetSqlID()
+				if objectID == 0 {
+					objectID, err = e.encodeObject(sqlObject)
+					if err != nil {
+						return nil, err
+					}
+					sqlObject.SetSqlID(objectID)
+				}
+				return objectID, nil
+			} else if eObject, isEObject := value.(EObject); isEObject {
+				objectID, err := e.encodeObject(eObject)
+				if err != nil {
+					return nil, err
+				}
+				return objectID, nil
 			}
-			return objectID, nil
 		case sfkObjectReference, sfkObjectReferenceList:
 			ref := GetURI(value.(EObject))
 			uri := e.uri.Relativize(ref)

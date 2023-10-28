@@ -65,6 +65,7 @@ type sqlManyStmts struct {
 	clearStmt    *stmtOrError
 	countStmt    *stmtOrError
 	containsStmt *stmtOrError
+	indexOfStmt  *stmtOrError
 }
 
 func (ss *sqlManyStmts) getUpdateStmt() (*sql.Stmt, error) {
@@ -160,6 +161,25 @@ func (ss *sqlManyStmts) getCountStmt() (*sql.Stmt, error) {
 }
 
 func (ss *sqlManyStmts) getContainsStmt() (*sql.Stmt, error) {
+	if ss.containsStmt == nil {
+		column := ss.table.columns[len(ss.table.columns)-1]
+		// query
+		var query strings.Builder
+		query.WriteString("SELECT rowid FROM")
+		query.WriteString(sqlEscapeIdentifier(ss.table.name))
+		query.WriteString(" WHERE ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString("=? AND ")
+		query.WriteString(sqlEscapeIdentifier(column.columnName))
+		query.WriteString("=?")
+		// stmt
+		ss.containsStmt = &stmtOrError{}
+		ss.containsStmt.stmt, ss.containsStmt.err = ss.db.Prepare(query.String())
+	}
+	return ss.containsStmt.stmt, ss.containsStmt.err
+}
+
+func (ss *sqlManyStmts) getIndex0fStmt() (*sql.Stmt, error) {
 	if ss.containsStmt == nil {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		// query
@@ -623,10 +643,29 @@ func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value an
 }
 
 func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
-	if !feature.IsMany() {
-		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
+	// retrieve table
+	featureData, err := s.getFeatureData(object, feature)
+	if err != nil {
+		s.errorHandler(err)
+		return -1
 	}
-	return 0
+	// retrieve statement
+	stmt, err := s.getManyStmts(featureData.schema.table).getIndexOfStmt()
+	if err != nil {
+		s.errorHandler(err)
+		return -1
+	}
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+	v, err := s.encodeFeatureValue(featureData, value)
+	if err != nil {
+		s.errorHandler(err)
+		return -1
+	}
+	row := stmt.QueryRow(sqlID, v)
+	var index int
+	_ = row.Scan(&index)
+	return index
 }
 
 func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {

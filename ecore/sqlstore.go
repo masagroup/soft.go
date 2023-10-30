@@ -191,7 +191,7 @@ func (ss *sqlManyStmts) getIndexOfStmt() (*sql.Stmt, error) {
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=? AND ")
 		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		query.WriteString("=?")
+		query.WriteString("=? ORDER BY idx LIMIT 1")
 		ss.indexOfStmt = &stmtOrError{}
 		ss.indexOfStmt.stmt, ss.indexOfStmt.err = ss.db.Prepare(query.String())
 	}

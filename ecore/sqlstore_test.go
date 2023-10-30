@@ -894,3 +894,24 @@ func TestSQLStore_LastIndexOf_Multiple(t *testing.T) {
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.Equal(t, 2, s.LastIndexOf(mockObject, eFeature, "c2"))
 }
+
+func TestSQLStore_Remove(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	assert.Equal(t, 2, s.LastIndexOf(mockObject, eFeature, "c2"))
+}

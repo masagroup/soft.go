@@ -68,6 +68,7 @@ type sqlManyStmts struct {
 	indexOfStmt     *stmtOrError
 	lastIndexOfStmt *stmtOrError
 	listIndex       *stmtOrError
+	removeStmt      *stmtOrError
 }
 
 func (ss *sqlManyStmts) getUpdateStmt() (*sql.Stmt, error) {
@@ -233,6 +234,28 @@ func (ss *sqlManyStmts) getListIndexStmt() (*sql.Stmt, error) {
 	return ss.listIndex.stmt, ss.listIndex.err
 }
 
+func (ss *sqlManyStmts) getRemoveStmt() (*sql.Stmt, error) {
+	if ss.removeStmt == nil {
+		column := ss.table.columns[len(ss.table.columns)-1]
+		var query strings.Builder
+		query.WriteString("DELETE FROM ")
+		query.WriteString(sqlEscapeIdentifier(ss.table.name))
+		query.WriteString(" WHERE rowid IN (SELECT rowid FROM ")
+		query.WriteString(sqlEscapeIdentifier(ss.table.name))
+		query.WriteString(" WHERE ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString("=?")
+		query.WriteString(" ORDER BY ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?) RETURNING ")
+		query.WriteString(sqlEscapeIdentifier(column.columnName))
+		// stmt
+		ss.removeStmt = &stmtOrError{}
+		ss.removeStmt.stmt, ss.removeStmt.err = ss.db.Prepare(query.String())
+	}
+	return ss.removeStmt.stmt, ss.removeStmt.err
+}
+
 type SQLStore struct {
 	*sqlBase
 	sqlDecoder
@@ -361,20 +384,59 @@ func (s *SQLStore) getManyStmts(table *sqlTable) *sqlManyStmts {
 	return stmts
 }
 
-func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
-	sqlObject := object.(SQLObject)
-	sqlID := sqlObject.GetSqlID()
-
+func (s *SQLStore) getFeatureSchema(object EObject, feature EStructuralFeature) (*sqlFeatureSchema, error) {
 	// retrieve class schema
-	classSchema := s.sqlDecoder.schema.getClassSchema(object.EClass())
-
+	class := object.EClass()
+	classSchema := s.sqlDecoder.schema.getClassSchema(class)
+	if classSchema == nil {
+		return nil, fmt.Errorf("class %s is unknown", class.GetName())
+	}
 	// retrieve feature schema
 	featureSchema := classSchema.getFeatureSchema(feature)
 	if featureSchema == nil {
-		s.errorHandler(fmt.Errorf("feature %s is unknown", feature.GetName()))
-		return nil
+		return nil, fmt.Errorf("feature %s is unknown", feature.GetName())
+	}
+	return featureSchema, nil
+}
+
+func (s *SQLStore) getFeatureTable(object EObject, feature EStructuralFeature) (*sqlTable, error) {
+	featureSchema, err := s.getFeatureSchema(object, feature)
+	if err != nil {
+		return nil, err
+	}
+	return featureSchema.table, nil
+}
+
+func (s *SQLStore) getFeatureData(object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
+	// retrieve class schema
+	class := object.EClass()
+
+	// retrieve class data
+	classData, err := s.getClassData(class)
+	if err != nil {
+		s.errorHandler(err)
+		return nil, fmt.Errorf("class %s is unknown", class.GetName())
 	}
 
+	// retrieve feature data
+	featureData, isFeatureData := classData.features[feature]
+	if !isFeatureData {
+		err := fmt.Errorf("feature %s is unknown", feature.GetName())
+		s.errorHandler(err)
+		return nil, err
+	}
+
+	return featureData, nil
+}
+
+func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+	featureSchema, err := s.getFeatureSchema(object, feature)
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
 	return s.getValue(sqlID, featureSchema, index)
 }
 
@@ -417,18 +479,9 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {
 	sqlObject := object.(SQLObject)
 	sqlID := sqlObject.GetSqlID()
-
-	// retrieve class data
-	classData, err := s.getClassData(object.EClass())
+	featureData, err := s.getFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
-		return nil
-	}
-
-	// retrieve feature data
-	featureData, isFeatureData := classData.features[feature]
-	if !isFeatureData {
-		s.errorHandler(fmt.Errorf("feature %s is unknown", feature.GetName()))
 		return nil
 	}
 
@@ -473,17 +526,11 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 	sqlObject := object.(SQLObject)
 	sqlID := sqlObject.GetSqlID()
-
-	// retrieve class schema
-	classSchema := s.sqlDecoder.schema.getClassSchema(object.EClass())
-
-	// retrieve feature schema
-	featureSchema := classSchema.getFeatureSchema(feature)
-	if featureSchema == nil {
-		s.errorHandler(fmt.Errorf("feature %s is unknown", feature.GetName()))
+	featureSchema, err := s.getFeatureSchema(object, feature)
+	if err != nil {
+		s.errorHandler(err)
 		return false
 	}
-
 	if featureColumn := featureSchema.column; featureColumn != nil {
 		stmt, err := s.getSingleStmts(featureColumn).getSelectStmt()
 		if err != nil {
@@ -515,21 +562,11 @@ func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
 	sqlObject := object.(SQLObject)
 	sqlID := sqlObject.GetSqlID()
-
-	// retrieve class data
-	classData, err := s.getClassData(object.EClass())
+	featureData, err := s.getFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return
 	}
-
-	// retrieve feature data
-	featureData, isFeatureData := classData.features[feature]
-	if !isFeatureData {
-		s.errorHandler(fmt.Errorf("feature %s is unknown", feature.GetName()))
-		return
-	}
-
 	if featureColumn := featureData.schema.column; featureColumn != nil {
 		stmt, err := s.getSingleStmts(featureColumn).getUpdateStmt()
 		if err != nil {
@@ -554,49 +591,6 @@ func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
 			return
 		}
 	}
-}
-
-func (s *SQLStore) getFeatureTable(object EObject, feature EStructuralFeature) (*sqlTable, error) {
-	if !feature.IsMany() {
-		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
-	}
-	// retrieve class schema
-	class := object.EClass()
-	classSchema := s.sqlDecoder.schema.getClassSchema(class)
-	if classSchema == nil {
-		return nil, fmt.Errorf("class %s is unknown", class.GetName())
-	}
-	// retrieve feature schema
-	featureSchema := classSchema.getFeatureSchema(feature)
-	if featureSchema == nil {
-		return nil, fmt.Errorf("feature %s is unknown", feature.GetName())
-	}
-	return featureSchema.table, nil
-}
-
-func (s *SQLStore) getFeatureData(object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
-	if !feature.IsMany() {
-		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
-	}
-	// retrieve class schema
-	class := object.EClass()
-
-	// retrieve class data
-	classData, err := s.getClassData(class)
-	if err != nil {
-		s.errorHandler(err)
-		return nil, fmt.Errorf("class %s is unknown", class.GetName())
-	}
-
-	// retrieve feature data
-	featureData, isFeatureData := classData.features[feature]
-	if !isFeatureData {
-		err := fmt.Errorf("feature %s is unknown", feature.GetName())
-		s.errorHandler(err)
-		return nil, err
-	}
-
-	return featureData, nil
 }
 
 func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
@@ -742,10 +736,40 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 }
 
 func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int) any {
-	if !feature.IsMany() {
-		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+	featureData, err := s.getFeatureData(object, feature)
+	if err != nil {
+		s.errorHandler(err)
+		return nil
 	}
-	return nil
+	// remove statement
+	stmt, err := s.getManyStmts(featureData.schema.table).getRemoveStmt()
+	if err != nil {
+		s.errorHandler(err)
+		return false
+	}
+	// query remove statement
+	var v any
+	row := stmt.QueryRow(sqlID, index)
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+	// retrieve previous value
+	if err := row.Scan(&v); err != nil {
+		if err != sql.ErrNoRows {
+			s.errorHandler(err)
+		}
+		return -1
+	}
+	// decode previous value
+	value, err := s.decodeFeatureValue(featureData.schema, v)
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+	return value
 }
 
 func (s *SQLStore) Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) any {

@@ -635,10 +635,10 @@ func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
 	// query statement
 	sqlObject := object.(SQLObject)
 	sqlID := sqlObject.GetSqlID()
-	row := stmt.QueryRow(sqlID)
 
 	// retrieve count
 	var count int
+	row := stmt.QueryRow(sqlID)
 	_ = row.Scan(&count)
 	return count
 }
@@ -665,8 +665,8 @@ func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value an
 		s.errorHandler(err)
 		return false
 	}
-	row := stmt.QueryRow(sqlID, v)
 	var rowid int
+	row := stmt.QueryRow(sqlID, v)
 	_ = row.Scan(&rowid)
 	return rowid != 0
 }
@@ -747,21 +747,16 @@ func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int)
 	stmt, err := s.getManyStmts(featureData.schema.table).getRemoveStmt()
 	if err != nil {
 		s.errorHandler(err)
-		return false
+		return nil
 	}
 	// query remove statement
 	var v any
 	row := stmt.QueryRow(sqlID, index)
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-	// retrieve previous value
 	if err := row.Scan(&v); err != nil {
 		if err != sql.ErrNoRows {
 			s.errorHandler(err)
 		}
-		return -1
+		return nil
 	}
 	// decode previous value
 	value, err := s.decodeFeatureValue(featureData.schema, v)

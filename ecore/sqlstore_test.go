@@ -930,3 +930,33 @@ func TestSQLStore_Remove_Object(t *testing.T) {
 	assert.Equal(t, eBookClass, book.EClass())
 	assert.Equal(t, int64(3), book.GetSqlID())
 }
+
+func TestSQLStore_Remove_NonExisting(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+	ePackage.SetEFactoryInstance(newDynamicSQLFactory())
+
+	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eLibraryClass)
+
+	eBookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eBookClass)
+
+	eBooksFeature := eLibraryClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, eBooksFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
+	// create store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
+	mockObject.EXPECT().EClass().Return(eLibraryClass).Once()
+	previous := s.Remove(mockObject, eBooksFeature, 2)
+	assert.Nil(t, previous)
+}

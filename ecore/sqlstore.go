@@ -57,15 +57,17 @@ func (ss *sqlSingleStmts) getSelectStmt() (*sql.Stmt, error) {
 }
 
 type sqlManyStmts struct {
-	db           *sql.DB
-	table        *sqlTable
-	updateStmt   *stmtOrError
-	selectStmt   *stmtOrError
-	existsStmt   *stmtOrError
-	clearStmt    *stmtOrError
-	countStmt    *stmtOrError
-	containsStmt *stmtOrError
-	indexOfStmt  *stmtOrError
+	db                    *sql.DB
+	table                 *sqlTable
+	updateStmt            *stmtOrError
+	selectStmt            *stmtOrError
+	existsStmt            *stmtOrError
+	clearStmt             *stmtOrError
+	countStmt             *stmtOrError
+	containsStmt          *stmtOrError
+	indexOfStmt           *stmtOrError
+	indexCountSmallerThan *stmtOrError
+	indexCountGreaterThan *stmtOrError
 }
 
 func (ss *sqlManyStmts) getUpdateStmt() (*sql.Stmt, error) {
@@ -184,20 +186,49 @@ func (ss *sqlManyStmts) getIndexOfStmt() (*sql.Stmt, error) {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		// query
 		var query strings.Builder
-		query.WriteString("SELECT COUNT(*) WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=? AND idx < (SELECT idx FROM ")
+		query.WriteString("SELECT idx FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=? AND ")
 		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		query.WriteString("=?)")
-		// stmt
+		query.WriteString("=?")
 		ss.indexOfStmt = &stmtOrError{}
 		ss.indexOfStmt.stmt, ss.indexOfStmt.err = ss.db.Prepare(query.String())
 	}
 	return ss.indexOfStmt.stmt, ss.indexOfStmt.err
+}
+
+func (ss *sqlManyStmts) getIndexCountSmallerThanStmt() (*sql.Stmt, error) {
+	if ss.indexCountSmallerThan == nil {
+		// query
+		var query strings.Builder
+		query.WriteString("SELECT COUNT(*) FROM ")
+		query.WriteString(sqlEscapeIdentifier(ss.table.name))
+		query.WriteString(" WHERE ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString("=? AND idx<?")
+		// stmt
+		ss.indexCountSmallerThan = &stmtOrError{}
+		ss.indexCountSmallerThan.stmt, ss.indexCountSmallerThan.err = ss.db.Prepare(query.String())
+	}
+	return ss.indexCountSmallerThan.stmt, ss.indexCountSmallerThan.err
+}
+
+func (ss *sqlManyStmts) getIndexCountGreaterThanStmt() (*sql.Stmt, error) {
+	if ss.indexCountGreaterThan == nil {
+		// query
+		var query strings.Builder
+		query.WriteString("SELECT COUNT(*) FROM ")
+		query.WriteString(sqlEscapeIdentifier(ss.table.name))
+		query.WriteString(" WHERE ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString("=? AND idx>?")
+		// stmt
+		ss.indexCountGreaterThan = &stmtOrError{}
+		ss.indexCountGreaterThan.stmt, ss.indexCountGreaterThan.err = ss.db.Prepare(query.String())
+	}
+	return ss.indexCountGreaterThan.stmt, ss.indexCountGreaterThan.err
 }
 
 type SQLStore struct {
@@ -651,12 +682,7 @@ func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any
 		s.errorHandler(err)
 		return -1
 	}
-	// retrieve statement
-	stmt, err := s.getManyStmts(featureData.schema.table).getIndexOfStmt()
-	if err != nil {
-		s.errorHandler(err)
-		return -1
-	}
+	// compute parameters
 	sqlObject := object.(SQLObject)
 	sqlID := sqlObject.GetSqlID()
 	v, err := s.encodeFeatureValue(featureData, value)
@@ -664,9 +690,34 @@ func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any
 		s.errorHandler(err)
 		return -1
 	}
+	// retrieve row idx in table
+	stmt, err := s.getManyStmts(featureData.schema.table).getIndexOfStmt()
+	if err != nil {
+		s.errorHandler(err)
+		return -1
+	}
+	var idx float64
 	row := stmt.QueryRow(sqlID, v)
+	if err := row.Scan(&idx); err != nil {
+		if err != sql.ErrNoRows {
+			s.errorHandler(err)
+		}
+		return -1
+	}
+	// convert idx to index - index is the count of rows where idx < expected idx
 	var index int
-	_ = row.Scan(&index)
+	stmt, err = s.getManyStmts(featureData.schema.table).getIndexCountSmallerThanStmt()
+	if err != nil {
+		s.errorHandler(err)
+		return -1
+	}
+	row = stmt.QueryRow(sqlID, idx)
+	if err := row.Scan(&index); err != nil {
+		if err != sql.ErrNoRows {
+			s.errorHandler(err)
+		}
+		return -1
+	}
 	return index
 }
 

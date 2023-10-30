@@ -760,3 +760,49 @@ func TestSQLStore_Contains_NoTable(t *testing.T) {
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.False(t, s.Contains(mockObject, eFeature, nil))
 }
+
+func TestSQLStore_IndexOf_Existing(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, eFeature)
+
+	s, err := NewSQLStore("testdata/library.complex.sqlite", NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	mockRef := NewMockSQLObject(t)
+	mockRef.EXPECT().GetSqlID().Return(int64(4)).Once()
+	assert.Equal(t, 1, s.IndexOf(mockObject, eFeature, mockRef))
+}
+
+func TestSQLStore_IndexOf_NonExisting(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, eFeature)
+
+	s, err := NewSQLStore("testdata/library.complex.sqlite", NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	mockRef := NewMockSQLObject(t)
+	mockRef.EXPECT().GetSqlID().Return(int64(6)).Once()
+	assert.Equal(t, -1, s.IndexOf(mockObject, eFeature, mockRef))
+}

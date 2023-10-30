@@ -775,7 +775,23 @@ func (s *SQLStore) Move(object EObject, feature EStructuralFeature, targetIndex 
 }
 
 func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
-	if !feature.IsMany() {
-		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+	featureTable, err := s.getFeatureTable(object, feature)
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	// clear statement
+	stmt, err := s.getManyStmts(featureTable).getClearStmt()
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	// excecute statement
+	_, err = stmt.Exec(sqlID)
+	if err != nil {
+		s.errorHandler(err)
+		return
 	}
 }

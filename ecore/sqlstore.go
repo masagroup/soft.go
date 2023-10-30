@@ -179,23 +179,25 @@ func (ss *sqlManyStmts) getContainsStmt() (*sql.Stmt, error) {
 	return ss.containsStmt.stmt, ss.containsStmt.err
 }
 
-func (ss *sqlManyStmts) getIndex0fStmt() (*sql.Stmt, error) {
-	if ss.containsStmt == nil {
+func (ss *sqlManyStmts) getIndexOfStmt() (*sql.Stmt, error) {
+	if ss.indexOfStmt == nil {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		// query
 		var query strings.Builder
-		query.WriteString("SELECT rowid FROM")
+		query.WriteString("SELECT COUNT(*) WHERE ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString("=? AND idx < (SELECT idx FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=? AND ")
 		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		query.WriteString("=?")
+		query.WriteString("=?)")
 		// stmt
-		ss.containsStmt = &stmtOrError{}
-		ss.containsStmt.stmt, ss.containsStmt.err = ss.db.Prepare(query.String())
+		ss.indexOfStmt = &stmtOrError{}
+		ss.indexOfStmt.stmt, ss.indexOfStmt.err = ss.db.Prepare(query.String())
 	}
-	return ss.containsStmt.stmt, ss.containsStmt.err
+	return ss.indexOfStmt.stmt, ss.indexOfStmt.err
 }
 
 type SQLStore struct {

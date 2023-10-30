@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const libraryNSURI = "http:///org/eclipse/emf/examples/library/library.ecore/1.0.0"
+
 type dynamicSQLEObjectImpl struct {
 	DynamicEObjectImpl
 	sqlID int64
@@ -135,7 +137,7 @@ func TestSQLStore_Get_Enum(t *testing.T) {
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(4)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
-	mockPackageRegitry.EXPECT().GetPackage("http:///org/eclipse/emf/examples/library/library.ecore/1.0.0").Return(ePackage).Once()
+	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
 	v := s.Get(mockObject, eFeature, -1)
 	assert.Equal(t, 0, v)
 
@@ -221,7 +223,7 @@ func TestSQLStore_Get_Object(t *testing.T) {
 
 	mockObject.EXPECT().GetSqlID().Return(int64(1)).Once()
 	mockObject.EXPECT().EClass().Return(eLibraryClass).Once()
-	mockPackageRegitry.EXPECT().GetPackage("http:///org/eclipse/emf/examples/library/library.ecore/1.0.0").Return(ePackage).Once()
+	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
 	v, _ := s.Get(mockObject, eLibraryOwnerFeature, -1).(SQLObject)
 	require.NotNil(t, v)
 	assert.Equal(t, ePersonClass, v.EClass())
@@ -895,23 +897,36 @@ func TestSQLStore_LastIndexOf_Multiple(t *testing.T) {
 	assert.Equal(t, 2, s.LastIndexOf(mockObject, eFeature, "c2"))
 }
 
-func TestSQLStore_Remove(t *testing.T) {
-	ePackage := loadPackage("library.datalist.ecore")
+func TestSQLStore_Remove_Object(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
+	ePackage.SetEFactoryInstance(newDynamicSQLFactory())
 
-	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
-	require.NotNil(t, eClass)
+	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eLibraryClass)
 
-	eFeature := eClass.GetEStructuralFeatureFromName("contents")
-	require.NotNil(t, eFeature)
+	eBookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eBookClass)
 
-	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil, nil)
-	require.NoError(t, err)
+	eBooksFeature := eLibraryClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, eBooksFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
+	// create store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
+	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
-	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
-	mockObject.EXPECT().EClass().Return(eClass).Once()
-	assert.Equal(t, 2, s.LastIndexOf(mockObject, eFeature, "c2"))
+	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
+	mockObject.EXPECT().EClass().Return(eLibraryClass).Once()
+	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
+	book, _ := s.Remove(mockObject, eBooksFeature, 0).(SQLObject)
+	require.NotNil(t, book)
+	assert.Equal(t, eBookClass, book.EClass())
+	assert.Equal(t, int64(3), book.GetSqlID())
 }

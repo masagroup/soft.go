@@ -64,6 +64,9 @@ func (d *sqlDecoder) decodePackage(id int64) (EPackage, error) {
 		}
 
 		// retrieve package
+		if d.packageRegistry == nil {
+			panic(fmt.Errorf("Package registry not defined in sqlDecoder"))
+		}
 		ePackage = d.packageRegistry.GetPackage(packageURI)
 		if ePackage == nil {
 			return nil, fmt.Errorf("unable to find package '%s'", packageURI)

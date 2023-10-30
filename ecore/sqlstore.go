@@ -67,7 +67,8 @@ type sqlManyStmts struct {
 	containsStmt    *stmtOrError
 	indexOfStmt     *stmtOrError
 	lastIndexOfStmt *stmtOrError
-	listIndex       *stmtOrError
+	idxToListIndex  *stmtOrError
+	listIndexToIdx  *stmtOrError
 	removeStmt      *stmtOrError
 }
 
@@ -218,8 +219,8 @@ func (ss *sqlManyStmts) getLastIndexOfStmt() (*sql.Stmt, error) {
 	return ss.lastIndexOfStmt.stmt, ss.lastIndexOfStmt.err
 }
 
-func (ss *sqlManyStmts) getListIndexStmt() (*sql.Stmt, error) {
-	if ss.listIndex == nil {
+func (ss *sqlManyStmts) getIdxToListIndexStmt() (*sql.Stmt, error) {
+	if ss.idxToListIndex == nil {
 		// query
 		var query strings.Builder
 		query.WriteString("SELECT COUNT(*) FROM ")
@@ -228,10 +229,26 @@ func (ss *sqlManyStmts) getListIndexStmt() (*sql.Stmt, error) {
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=? AND idx<?")
 		// stmt
-		ss.listIndex = &stmtOrError{}
-		ss.listIndex.stmt, ss.listIndex.err = ss.db.Prepare(query.String())
+		ss.idxToListIndex = &stmtOrError{}
+		ss.idxToListIndex.stmt, ss.idxToListIndex.err = ss.db.Prepare(query.String())
 	}
-	return ss.listIndex.stmt, ss.listIndex.err
+	return ss.idxToListIndex.stmt, ss.idxToListIndex.err
+}
+
+func (ss *sqlManyStmts) getListIndexToIdxStmt() (*sql.Stmt, error) {
+	if ss.listIndexToIdx == nil {
+		// query
+		var query strings.Builder
+		query.WriteString("SELECT rowid,idx FROM ")
+		query.WriteString(sqlEscapeIdentifier(ss.table.name))
+		query.WriteString(" WHERE ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString("=? ORDER BY idx ASC LIMIT 1 OFFSET ?")
+		// stmt
+		ss.listIndexToIdx = &stmtOrError{}
+		ss.listIndexToIdx.stmt, ss.listIndexToIdx.err = ss.db.Prepare(query.String())
+	}
+	return ss.listIndexToIdx.stmt, ss.listIndexToIdx.err
 }
 
 func (ss *sqlManyStmts) getRemoveStmt() (*sql.Stmt, error) {
@@ -702,7 +719,7 @@ func (s *SQLStore) indexOf(object EObject, feature EStructuralFeature, value any
 	}
 	// convert idx to list index - index is the count of rows where idx < expected idx
 	var index int
-	stmt, err = s.getManyStmts(featureData.schema.table).getListIndexStmt()
+	stmt, err = s.getManyStmts(featureData.schema.table).getIdxToListIndexStmt()
 	if err != nil {
 		s.errorHandler(err)
 		return -1
@@ -768,9 +785,33 @@ func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int)
 }
 
 func (s *SQLStore) Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) any {
-	if !feature.IsMany() {
-		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+	featureData, err := s.getFeatureData(object, feature)
+	if err != nil {
+		s.errorHandler(err)
+		return nil
 	}
+	stmt, err := s.getManyStmts(featureData.schema.table).getListIndexToIdxStmt()
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+
+	var targetIdx float64
+	targetRow := stmt.QueryRow(sqlID, targetIndex)
+	if err := targetRow.Scan(&targetIdx); err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+
+	var sourceIdx float64
+	sourceRow := stmt.QueryRow(sqlID, sourceIndex)
+	if err := sourceRow.Scan(&sourceIdx); err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+
 	return nil
 }
 

@@ -57,17 +57,16 @@ func (ss *sqlSingleStmts) getSelectStmt() (*sql.Stmt, error) {
 }
 
 type sqlManyStmts struct {
-	db                    *sql.DB
-	table                 *sqlTable
-	updateStmt            *stmtOrError
-	selectStmt            *stmtOrError
-	existsStmt            *stmtOrError
-	clearStmt             *stmtOrError
-	countStmt             *stmtOrError
-	containsStmt          *stmtOrError
-	indexOfStmt           *stmtOrError
-	indexCountSmallerThan *stmtOrError
-	indexCountGreaterThan *stmtOrError
+	db           *sql.DB
+	table        *sqlTable
+	updateStmt   *stmtOrError
+	selectStmt   *stmtOrError
+	existsStmt   *stmtOrError
+	clearStmt    *stmtOrError
+	countStmt    *stmtOrError
+	containsStmt *stmtOrError
+	indexOfStmt  *stmtOrError
+	listIndex    *stmtOrError
 }
 
 func (ss *sqlManyStmts) getUpdateStmt() (*sql.Stmt, error) {
@@ -199,8 +198,8 @@ func (ss *sqlManyStmts) getIndexOfStmt() (*sql.Stmt, error) {
 	return ss.indexOfStmt.stmt, ss.indexOfStmt.err
 }
 
-func (ss *sqlManyStmts) getIndexCountSmallerThanStmt() (*sql.Stmt, error) {
-	if ss.indexCountSmallerThan == nil {
+func (ss *sqlManyStmts) getListIndexStmt() (*sql.Stmt, error) {
+	if ss.listIndex == nil {
 		// query
 		var query strings.Builder
 		query.WriteString("SELECT COUNT(*) FROM ")
@@ -209,26 +208,10 @@ func (ss *sqlManyStmts) getIndexCountSmallerThanStmt() (*sql.Stmt, error) {
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=? AND idx<?")
 		// stmt
-		ss.indexCountSmallerThan = &stmtOrError{}
-		ss.indexCountSmallerThan.stmt, ss.indexCountSmallerThan.err = ss.db.Prepare(query.String())
+		ss.listIndex = &stmtOrError{}
+		ss.listIndex.stmt, ss.listIndex.err = ss.db.Prepare(query.String())
 	}
-	return ss.indexCountSmallerThan.stmt, ss.indexCountSmallerThan.err
-}
-
-func (ss *sqlManyStmts) getIndexCountGreaterThanStmt() (*sql.Stmt, error) {
-	if ss.indexCountGreaterThan == nil {
-		// query
-		var query strings.Builder
-		query.WriteString("SELECT COUNT(*) FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=? AND idx>?")
-		// stmt
-		ss.indexCountGreaterThan = &stmtOrError{}
-		ss.indexCountGreaterThan.stmt, ss.indexCountGreaterThan.err = ss.db.Prepare(query.String())
-	}
-	return ss.indexCountGreaterThan.stmt, ss.indexCountGreaterThan.err
+	return ss.listIndex.stmt, ss.listIndex.err
 }
 
 type SQLStore struct {
@@ -704,9 +687,9 @@ func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any
 		}
 		return -1
 	}
-	// convert idx to index - index is the count of rows where idx < expected idx
+	// convert idx to list index - index is the count of rows where idx < expected idx
 	var index int
-	stmt, err = s.getManyStmts(featureData.schema.table).getIndexCountSmallerThanStmt()
+	stmt, err = s.getManyStmts(featureData.schema.table).getListIndexStmt()
 	if err != nil {
 		s.errorHandler(err)
 		return -1

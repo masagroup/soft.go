@@ -807,6 +807,27 @@ func TestSQLStore_IndexOf_NonExisting(t *testing.T) {
 	assert.Equal(t, -1, s.IndexOf(mockObject, eFeature, mockRef))
 }
 
+func TestSQLStore_IndexOf_Multiple(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	s, err := NewSQLStore("testdata/library.indexof.sqlite", NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	assert.Equal(t, 1, s.IndexOf(mockObject, eFeature, "c2"))
+}
+
 func TestSQLStore_LastIndexOf_Existing(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
@@ -851,4 +872,25 @@ func TestSQLStore_LastIndexOf_NonExisting(t *testing.T) {
 	mockRef := NewMockSQLObject(t)
 	mockRef.EXPECT().GetSqlID().Return(int64(6)).Once()
 	assert.Equal(t, -1, s.LastIndexOf(mockObject, eFeature, mockRef))
+}
+
+func TestSQLStore_LastIndexOf_Multiple(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	s, err := NewSQLStore("testdata/library.indexof.sqlite", NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	assert.Equal(t, 2, s.LastIndexOf(mockObject, eFeature, "c2"))
 }

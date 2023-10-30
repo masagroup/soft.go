@@ -57,16 +57,17 @@ func (ss *sqlSingleStmts) getSelectStmt() (*sql.Stmt, error) {
 }
 
 type sqlManyStmts struct {
-	db           *sql.DB
-	table        *sqlTable
-	updateStmt   *stmtOrError
-	selectStmt   *stmtOrError
-	existsStmt   *stmtOrError
-	clearStmt    *stmtOrError
-	countStmt    *stmtOrError
-	containsStmt *stmtOrError
-	indexOfStmt  *stmtOrError
-	listIndex    *stmtOrError
+	db              *sql.DB
+	table           *sqlTable
+	updateStmt      *stmtOrError
+	selectStmt      *stmtOrError
+	existsStmt      *stmtOrError
+	clearStmt       *stmtOrError
+	countStmt       *stmtOrError
+	containsStmt    *stmtOrError
+	indexOfStmt     *stmtOrError
+	lastIndexOfStmt *stmtOrError
+	listIndex       *stmtOrError
 }
 
 func (ss *sqlManyStmts) getUpdateStmt() (*sql.Stmt, error) {
@@ -191,11 +192,29 @@ func (ss *sqlManyStmts) getIndexOfStmt() (*sql.Stmt, error) {
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=? AND ")
 		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		query.WriteString("=? ORDER BY idx LIMIT 1")
+		query.WriteString("=? ORDER BY idx ASC LIMIT 1")
 		ss.indexOfStmt = &stmtOrError{}
 		ss.indexOfStmt.stmt, ss.indexOfStmt.err = ss.db.Prepare(query.String())
 	}
 	return ss.indexOfStmt.stmt, ss.indexOfStmt.err
+}
+
+func (ss *sqlManyStmts) getLastIndexOfStmt() (*sql.Stmt, error) {
+	if ss.lastIndexOfStmt == nil {
+		column := ss.table.columns[len(ss.table.columns)-1]
+		// query
+		var query strings.Builder
+		query.WriteString("SELECT idx FROM ")
+		query.WriteString(sqlEscapeIdentifier(ss.table.name))
+		query.WriteString(" WHERE ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString("=? AND ")
+		query.WriteString(sqlEscapeIdentifier(column.columnName))
+		query.WriteString("=? ORDER BY idx DESC LIMIT 1")
+		ss.lastIndexOfStmt = &stmtOrError{}
+		ss.lastIndexOfStmt.stmt, ss.lastIndexOfStmt.err = ss.db.Prepare(query.String())
+	}
+	return ss.lastIndexOfStmt.stmt, ss.lastIndexOfStmt.err
 }
 
 func (ss *sqlManyStmts) getListIndexStmt() (*sql.Stmt, error) {
@@ -658,7 +677,7 @@ func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value an
 	return rowid != 0
 }
 
-func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
+func (s *SQLStore) indexOf(object EObject, feature EStructuralFeature, value any, getIndexOfStmt func(*sqlManyStmts) (*sql.Stmt, error)) int {
 	// retrieve table
 	featureData, err := s.getFeatureData(object, feature)
 	if err != nil {
@@ -674,7 +693,7 @@ func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any
 		return -1
 	}
 	// retrieve row idx in table
-	stmt, err := s.getManyStmts(featureData.schema.table).getIndexOfStmt()
+	stmt, err := getIndexOfStmt(s.getManyStmts(featureData.schema.table))
 	if err != nil {
 		s.errorHandler(err)
 		return -1
@@ -704,11 +723,16 @@ func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any
 	return index
 }
 
+func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
+	return s.indexOf(object, feature, value, func(sms *sqlManyStmts) (*sql.Stmt, error) {
+		return sms.getIndexOfStmt()
+	})
+}
+
 func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {
-	if !feature.IsMany() {
-		panic(fmt.Sprintf("%s is not a many feature", feature.GetName()))
-	}
-	return 0
+	return s.indexOf(object, feature, value, func(sms *sqlManyStmts) (*sql.Stmt, error) {
+		return sms.getLastIndexOfStmt()
+	})
 }
 
 func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, value any) {

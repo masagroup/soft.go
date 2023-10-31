@@ -59,7 +59,8 @@ func (ss *sqlSingleStmts) getSelectStmt() (*sql.Stmt, error) {
 type sqlManyStmts struct {
 	db              *sql.DB
 	table           *sqlTable
-	updateStmt      *stmtOrError
+	updateValueStmt *stmtOrError
+	updateIdxStmt   *stmtOrError
 	selectStmt      *stmtOrError
 	existsStmt      *stmtOrError
 	clearStmt       *stmtOrError
@@ -84,8 +85,8 @@ func (ss *sqlManyStmts) getInsertStmt() (*sql.Stmt, error) {
 	return ss.insertStmt.stmt, ss.insertStmt.err
 }
 
-func (ss *sqlManyStmts) getUpdateStmt() (*sql.Stmt, error) {
-	if ss.updateStmt == nil {
+func (ss *sqlManyStmts) getUpdateValueStmt() (*sql.Stmt, error) {
+	if ss.updateValueStmt == nil {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		var query strings.Builder
 		query.WriteString("UPDATE ")
@@ -101,10 +102,33 @@ func (ss *sqlManyStmts) getUpdateStmt() (*sql.Stmt, error) {
 		query.WriteString(ss.table.keyName())
 		query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?)")
 		// stmt
-		ss.updateStmt = &stmtOrError{}
-		ss.updateStmt.stmt, ss.updateStmt.err = ss.db.Prepare(query.String())
+		ss.updateValueStmt = &stmtOrError{}
+		ss.updateValueStmt.stmt, ss.updateValueStmt.err = ss.db.Prepare(query.String())
 	}
-	return ss.updateStmt.stmt, ss.updateStmt.err
+	return ss.updateValueStmt.stmt, ss.updateValueStmt.err
+}
+
+func (ss *sqlManyStmts) getUpdateIdxStmt() (*sql.Stmt, error) {
+	if ss.updateIdxStmt == nil {
+		column := ss.table.columns[len(ss.table.columns)-1]
+		var query strings.Builder
+		query.WriteString("UPDATE ")
+		query.WriteString(sqlEscapeIdentifier(ss.table.name))
+		query.WriteString(" SET idx=? WHERE rowid IN (SELECT rowid FROM ")
+		query.WriteString(sqlEscapeIdentifier(ss.table.name))
+		query.WriteString(" WHERE ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString("=?")
+		query.WriteString(" ORDER BY ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?) RETURNING ")
+		query.WriteString(sqlEscapeIdentifier(column.columnName))
+
+		// stmt
+		ss.updateIdxStmt = &stmtOrError{}
+		ss.updateIdxStmt.stmt, ss.updateIdxStmt.err = ss.db.Prepare(query.String())
+	}
+	return ss.updateIdxStmt.stmt, ss.updateIdxStmt.err
 }
 
 func (ss *sqlManyStmts) getSelectStmt() (*sql.Stmt, error) {
@@ -537,7 +561,7 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 		}
 
 	} else if featureTable := featureData.schema.table; featureTable != nil {
-		stmt, err := s.getManyStmts(featureTable).getUpdateStmt()
+		stmt, err := s.getManyStmts(featureTable).getUpdateValueStmt()
 		if err != nil {
 			s.errorHandler(err)
 			return nil
@@ -766,7 +790,7 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 		s.errorHandler(err)
 		return
 	}
-	idx, err := s.getAddIdx(featureData.schema.table, sqlID, index)
+	idx, err := s.getInsertIdx(featureData.schema.table, sqlID, index)
 	if err != nil {
 		s.errorHandler(err)
 		return
@@ -788,7 +812,7 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 	}
 }
 
-func (s *SQLStore) getAddIdx(table *sqlTable, sqlID int64, index int) (float64, error) {
+func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int) (float64, error) {
 	stmt, err := s.getManyStmts(table).getListIndexToIdxStmt()
 	if err != nil {
 		return 0.0, err
@@ -869,32 +893,44 @@ func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int)
 func (s *SQLStore) Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) any {
 	sqlObject := object.(SQLObject)
 	sqlID := sqlObject.GetSqlID()
-	featureData, err := s.getFeatureData(object, feature)
+	featureSchema, err := s.getFeatureSchema(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
-	stmt, err := s.getManyStmts(featureData.schema.table).getListIndexToIdxStmt()
+	// compute target index
+	if targetIndex > sourceIndex {
+		targetIndex++
+	}
+	idx, err := s.getInsertIdx(featureSchema.table, sqlID, targetIndex)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
 
-	var targetIdx float64
-	targetRow := stmt.QueryRow(sqlID, 1, targetIndex)
-	if err := targetRow.Scan(&targetIdx); err != nil {
+	// update idx of source index row with target idx
+	stmt, err := s.getManyStmts(featureSchema.table).getUpdateIdxStmt()
+	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
 
-	var sourceIdx float64
-	sourceRow := stmt.QueryRow(sqlID, 1, sourceIndex)
-	if err := sourceRow.Scan(&sourceIdx); err != nil {
+	// retrieve value of modified row
+	var v any
+	row := stmt.QueryRow(idx, sqlID, sourceIndex)
+	if err := row.Scan(&v); err != nil {
 		s.errorHandler(err)
 		return nil
 	}
 
-	return nil
+	// decode value
+	value, err := s.decodeFeatureValue(featureSchema, v)
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+
+	return value
 }
 
 func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {

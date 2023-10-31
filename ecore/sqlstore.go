@@ -789,11 +789,11 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 }
 
 func (s *SQLStore) getAddIdx(table *sqlTable, sqlID int64, index int) (float64, error) {
+	stmt, err := s.getManyStmts(table).getListIndexToIdxStmt()
+	if err != nil {
+		return 0.0, err
+	}
 	if index == 0 {
-		stmt, err := s.getManyStmts(table).getListIndexToIdxStmt()
-		if err != nil {
-			return 0.0, err
-		}
 		// first row in the list
 		row := stmt.QueryRow(sqlID, 1, 0)
 		// retrieve idx
@@ -808,9 +808,30 @@ func (s *SQLStore) getAddIdx(table *sqlTable, sqlID int64, index int) (float64, 
 		}
 		return idx / 2, nil
 	} else {
-
+		// two rows in the list starting from previous list index
+		rows, err := stmt.Query(sqlID, 2, index-1)
+		if err != nil {
+			return 0.0, err
+		}
+		count := 0
+		idx := 0.0
+		for rows.Next() {
+			var i float64
+			if err := rows.Scan(&i); err != nil {
+				return 0.0, err
+			}
+			idx += i
+			count += 1
+		}
+		switch count {
+		case 0:
+			panic(fmt.Sprintf("invalid index in table %v for object %v : %v not in list bounds", index, table.name, sqlID))
+		case 1:
+			return idx + 1, nil
+		default:
+			return idx / 2, nil
+		}
 	}
-	return 1.0, nil
 }
 
 func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int) any {

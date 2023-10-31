@@ -1075,3 +1075,98 @@ func TestSQLStore_Add_First_NonEmpty(t *testing.T) {
 	assert.Equal(t, "c0", content)
 
 }
+
+func TestSQLStore_Add_Last(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+	// create store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	s.Add(mockObject, eFeature, 3, "c5")
+
+	db, err := sql.Open("sqlite", dbPath)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+	defer db.Close()
+	var content string
+	row := db.QueryRow("SELECT contents FROM book_contents WHERE bookID=5 ORDER BY idx DESC LIMIT 1")
+	err = row.Scan(&content)
+	assert.NoError(t, err)
+	assert.Equal(t, "c5", content)
+}
+
+func TestSQLStore_Add_Middle(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+	// create store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	s.Add(mockObject, eFeature, 1, "c12")
+
+	db, err := sql.Open("sqlite", dbPath)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+	defer db.Close()
+	var content string
+	row := db.QueryRow("SELECT contents FROM book_contents WHERE bookID=5 ORDER BY idx ASC LIMIT 1 OFFSET 1")
+	err = row.Scan(&content)
+	assert.NoError(t, err)
+	assert.Equal(t, "c12", content)
+}
+
+func TestSQLStore_Add_Invalid(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+	// create store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	assert.Panics(t, func() { s.Add(mockObject, eFeature, 6, "c") })
+}

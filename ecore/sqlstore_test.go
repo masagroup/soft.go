@@ -996,3 +996,82 @@ func TestSQLStore_Clear(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, count)
 }
+
+func TestSQLStore_Add_First_Empty(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.emptylist.sqlite")
+	err := copyFile("testdata/library.emptylist.sqlite", dbPath)
+	require.Nil(t, err)
+	// create store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	s.Add(mockObject, eFeature, 0, "c0")
+
+	// check store
+	db, err := sql.Open("sqlite", dbPath)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+	defer db.Close()
+	var content string
+	row := db.QueryRow("SELECT contents FROM book_contents WHERE bookID=5 ORDER BY idx ASC LIMIT 1")
+	err = row.Scan(&content)
+	assert.NoError(t, err)
+	assert.Equal(t, "c0", content)
+
+	var count int
+	row = db.QueryRow("SELECT COUNT(contents) FROM book_contents WHERE bookID=5")
+	err = row.Scan(&count)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, count)
+}
+
+func TestSQLStore_Add_First_NonEmpty(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+	// create store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	s.Add(mockObject, eFeature, 0, "c0")
+
+	// check store
+	db, err := sql.Open("sqlite", dbPath)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+	defer db.Close()
+	var content string
+	row := db.QueryRow("SELECT contents FROM book_contents WHERE bookID=5 ORDER BY idx ASC LIMIT 1")
+	err = row.Scan(&content)
+	assert.NoError(t, err)
+	assert.Equal(t, "c0", content)
+
+}

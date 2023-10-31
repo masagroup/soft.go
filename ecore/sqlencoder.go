@@ -161,7 +161,7 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
 						return -1, err
 					}
 					// for each list element, insert its value
-					index := 0.0
+					index := 1.0
 					for itList := featureList.Iterator(); itList.HasNext(); {
 						value := itList.Next()
 						converted, err := e.encodeFeatureValue(featureData, value)

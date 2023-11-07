@@ -32,7 +32,7 @@ type EStore interface {
 
 	Remove(object EObject, feature EStructuralFeature, index int) any
 
-	Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) any
+	Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int) any
 
 	Clear(object EObject, feature EStructuralFeature)
 

@@ -890,7 +890,7 @@ func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int)
 	return value
 }
 
-func (s *SQLStore) Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) any {
+func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int) any {
 	sqlObject := object.(SQLObject)
 	sqlID := sqlObject.GetSqlID()
 	featureSchema, err := s.getFeatureSchema(object, feature)

@@ -1171,7 +1171,7 @@ func TestSQLStore_Add_Invalid(t *testing.T) {
 	assert.Panics(t, func() { s.Add(mockObject, eFeature, 6, "c") })
 }
 
-func TestSQLStore_Move(t *testing.T) {
+func TestSQLStore_Move_End(t *testing.T) {
 	ePackage := loadPackage("library.datalist.ecore")
 	require.NotNil(t, ePackage)
 
@@ -1204,4 +1204,39 @@ func TestSQLStore_Move(t *testing.T) {
 	err = row.Scan(&idx)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, idx)
+}
+
+func TestSQLStore_Move_Begin(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+	// create store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	s.Move(mockObject, eFeature, 2, 0)
+
+	db, err := sql.Open("sqlite", dbPath)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+	defer db.Close()
+	var idx float64
+	row := db.QueryRow("SELECT idx FROM book_contents WHERE bookID=5 ORDER BY idx ASC LIMIT 1")
+	err = row.Scan(&idx)
+	assert.NoError(t, err)
+	assert.Equal(t, 0.5, idx)
 }

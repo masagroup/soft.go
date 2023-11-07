@@ -41,7 +41,11 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 		eFeature := o.eDynamicFeature(dynamicFeatureID)
 		if !eFeature.IsTransient() {
 			if eFeature.IsMany() {
-				result = o.createList(eFeature)
+				if IsMapType(eFeature) {
+					result = o.createMap(eFeature)
+				} else {
+					result = o.createList(eFeature)
+				}
 				o.getProperties()[dynamicFeatureID] = result
 			} else {
 				result = o.AsEStoreEObject().EStore().Get(o.AsEObject(), eFeature, NO_INDEX)
@@ -82,4 +86,9 @@ func (o *EStoreEObjectImpl) eDynamicFeature(dynamicFeatureID int) EStructuralFea
 
 func (o *EStoreEObjectImpl) createList(eFeature EStructuralFeature) EList {
 	return NewEStoreList(o.AsEObject(), eFeature, o.AsEStoreEObject().EStore())
+}
+
+func (o *EStoreEObjectImpl) createMap(eFeature EStructuralFeature) EMap {
+	eClass := eFeature.GetEType().(EClass)
+	return NewEStoreMap(eClass, o.AsEObject(), eFeature, o.AsEStoreEObject().EStore())
 }

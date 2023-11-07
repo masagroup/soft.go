@@ -35,7 +35,7 @@ func (ml *eStoreEMapList) DidClear(oldObjects []any) {
 	ml.m.doClear()
 }
 
-func newEStoreEMapList(m *EStoreMap, owner EObjectInternal, feature EStructuralFeature, store EStore) *eStoreEMapList {
+func newEStoreEMapList(m *EStoreMap, owner EObject, feature EStructuralFeature, store EStore) *eStoreEMapList {
 	l := &eStoreEMapList{m: m}
 	l.Initialize(owner, feature, store)
 	l.interfaces = l
@@ -46,7 +46,7 @@ type EStoreMap struct {
 	BasicEObjectMap
 }
 
-func NewEStoreMap(entryClass EClass, owner EObjectInternal, feature EStructuralFeature, store EStore) *EStoreMap {
+func NewEStoreMap(entryClass EClass, owner EObject, feature EStructuralFeature, store EStore) *EStoreMap {
 	m := &EStoreMap{}
 	m.EList = newEStoreEMapList(m, owner, feature, store)
 	m.entryClass = entryClass

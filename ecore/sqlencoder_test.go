@@ -2,6 +2,7 @@ package ecore
 
 import (
 	"bytes"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -95,5 +96,28 @@ func TestSqlEncoder_ComplexWithOwner(t *testing.T) {
 	w := &bytes.Buffer{}
 	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
 	sqliteEncoder.EncodeResource()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+}
+
+func TestSQLEncoder_Maps(t *testing.T) {
+	// load package
+	ePackage := loadPackage("emap.ecore")
+	require.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/emap.xml"), nil)
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	//w := &bytes.Buffer{}
+	w, err := os.Create("testdata/emap.sqlite")
+	require.NoError(t, err)
+	defer w.Close()
+
+	binaryEncoder := NewSQLEncoder(eResource, w, nil)
+	binaryEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 }

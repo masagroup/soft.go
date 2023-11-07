@@ -11,7 +11,7 @@ package ecore
 
 import "strconv"
 
-type BasicEStoreList struct {
+type EStoreList struct {
 	interfaces  any
 	owner       EObject
 	feature     EStructuralFeature
@@ -24,8 +24,8 @@ type BasicEStoreList struct {
 	unset       bool
 }
 
-func NewBasicEStoreList(owner EObject, feature EStructuralFeature, store EStore) *BasicEStoreList {
-	list := new(BasicEStoreList)
+func NewEStoreList(owner EObject, feature EStructuralFeature, store EStore) *EStoreList {
+	list := new(EStoreList)
 	list.interfaces = list
 	list.owner = owner
 	list.feature = feature
@@ -63,29 +63,29 @@ func NewBasicEStoreList(owner EObject, feature EStructuralFeature, store EStore)
 	return list
 }
 
-func (list *BasicEStoreList) GetOwner() EObject {
+func (list *EStoreList) GetOwner() EObject {
 	return list.owner
 }
 
-func (list *BasicEStoreList) GetNotifier() ENotifier {
+func (list *EStoreList) GetNotifier() ENotifier {
 	return list.owner
 }
 
-func (list *BasicEStoreList) GetFeature() EStructuralFeature {
+func (list *EStoreList) GetFeature() EStructuralFeature {
 	return list.feature
 }
 
-func (list *BasicEStoreList) GetFeatureID() int {
+func (list *EStoreList) GetFeatureID() int {
 	return list.owner.EClass().GetFeatureID(list.feature)
 }
 
-func (list *BasicEStoreList) GetStore() EStore {
+func (list *EStoreList) GetStore() EStore {
 	return list.store
 }
 
 type basicEStoreListNotification struct {
 	AbstractNotification
-	list *BasicEStoreList
+	list *EStoreList
 }
 
 func (notif *basicEStoreListNotification) GetNotifier() ENotifier {
@@ -100,19 +100,19 @@ func (notif *basicEStoreListNotification) GetFeatureID() int {
 	return notif.list.interfaces.(ENotifyingList).GetFeatureID()
 }
 
-func (list *BasicEStoreList) createNotification(eventType EventType, oldValue any, newValue any, position int) ENotification {
+func (list *EStoreList) createNotification(eventType EventType, oldValue any, newValue any, position int) ENotification {
 	n := new(basicEStoreListNotification)
 	n.Initialize(n, eventType, oldValue, newValue, position)
 	n.list = list
 	return n
 }
 
-func (list *BasicEStoreList) isNotificationRequired() bool {
+func (list *EStoreList) isNotificationRequired() bool {
 	notifier := list.interfaces.(ENotifyingList).GetNotifier()
 	return notifier != nil && notifier.EDeliver() && !notifier.EAdapters().Empty()
 }
 
-func (list *BasicEStoreList) createAndAddNotification(ns ENotificationChain, eventType EventType, oldValue any, newValue any, position int) ENotificationChain {
+func (list *EStoreList) createAndAddNotification(ns ENotificationChain, eventType EventType, oldValue any, newValue any, position int) ENotificationChain {
 	notifications := ns
 	if list.isNotificationRequired() {
 		notification := list.createNotification(eventType, oldValue, newValue, position)
@@ -125,13 +125,13 @@ func (list *BasicEStoreList) createAndAddNotification(ns ENotificationChain, eve
 	return notifications
 }
 
-func (list *BasicEStoreList) createAndDispatchNotification(notifications ENotificationChain, eventType EventType, oldValue any, newValue any, position int) {
+func (list *EStoreList) createAndDispatchNotification(notifications ENotificationChain, eventType EventType, oldValue any, newValue any, position int) {
 	list.createAndDispatchNotificationFn(notifications, func() ENotification {
 		return list.createNotification(eventType, oldValue, newValue, position)
 	})
 }
 
-func (list *BasicEStoreList) createAndDispatchNotificationFn(notifications ENotificationChain, createNotification func() ENotification) {
+func (list *EStoreList) createAndDispatchNotificationFn(notifications ENotificationChain, createNotification func() ENotification) {
 	if list.isNotificationRequired() {
 		notification := createNotification()
 		if notifications != nil {
@@ -150,21 +150,21 @@ func (list *BasicEStoreList) createAndDispatchNotificationFn(notifications ENoti
 	}
 }
 
-func (list *BasicEStoreList) Add(e any) bool {
+func (list *EStoreList) Add(e any) bool {
 	return list.Insert(list.Size(), e)
 }
 
-func (list *BasicEStoreList) AddWithNotification(object any, notifications ENotificationChain) ENotificationChain {
+func (list *EStoreList) AddWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	index := list.Size()
 	list.store.Add(list.owner, list.feature, index, object)
 	return list.createAndAddNotification(notifications, ADD, nil, object, index)
 }
 
-func (list *BasicEStoreList) AddAll(c EList) bool {
+func (list *EStoreList) AddAll(c EList) bool {
 	return list.InsertAll(list.Size(), c)
 }
 
-func (list *BasicEStoreList) Insert(index int, e any) bool {
+func (list *EStoreList) Insert(index int, e any) bool {
 	if index < 0 || index > list.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
@@ -179,7 +179,7 @@ func (list *BasicEStoreList) Insert(index int, e any) bool {
 	return true
 }
 
-func (list *BasicEStoreList) InsertAll(index int, collection EList) bool {
+func (list *EStoreList) InsertAll(index int, collection EList) bool {
 	if index < 0 || index > list.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
@@ -207,7 +207,7 @@ func (list *BasicEStoreList) InsertAll(index int, collection EList) bool {
 	return true
 }
 
-func (list *BasicEStoreList) MoveObject(newIndex int, elem any) {
+func (list *EStoreList) MoveObject(newIndex int, elem any) {
 	oldIndex := list.IndexOf(elem)
 	if oldIndex == -1 {
 		panic("Object not found")
@@ -215,7 +215,7 @@ func (list *BasicEStoreList) MoveObject(newIndex int, elem any) {
 	list.Move(oldIndex, newIndex)
 }
 
-func (list *BasicEStoreList) Move(oldIndex int, newIndex int) any {
+func (list *EStoreList) Move(oldIndex int, newIndex int) any {
 	if oldIndex < 0 || oldIndex >= list.Size() ||
 		newIndex < 0 || newIndex > list.Size() {
 		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(list.Size()))
@@ -225,11 +225,11 @@ func (list *BasicEStoreList) Move(oldIndex int, newIndex int) any {
 	return oldObject
 }
 
-func (list *BasicEStoreList) Get(index int) any {
+func (list *EStoreList) Get(index int) any {
 	return list.resolve(index, list.store.Get(list.owner, list.feature, index))
 }
 
-func (list *BasicEStoreList) resolve(index int, object any) any {
+func (list *EStoreList) resolve(index int, object any) any {
 	if list.object && list.proxies {
 		resolved := list.resolveProxy(object.(EObject))
 		if resolved != object {
@@ -248,14 +248,14 @@ func (list *BasicEStoreList) resolve(index int, object any) any {
 	return object
 }
 
-func (list *BasicEStoreList) resolveProxy(eObject EObject) EObject {
+func (list *EStoreList) resolveProxy(eObject EObject) EObject {
 	if list.proxies && eObject.EIsProxy() {
 		return list.owner.(EObjectInternal).EResolveProxy(eObject)
 	}
 	return eObject
 }
 
-func (list *BasicEStoreList) Set(index int, newObject any) any {
+func (list *EStoreList) Set(index int, newObject any) any {
 	if index < 0 || index >= list.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
@@ -276,12 +276,12 @@ func (list *BasicEStoreList) Set(index int, newObject any) any {
 }
 
 // SetWithNotification ...
-func (list *BasicEStoreList) SetWithNotification(index int, object any, notifications ENotificationChain) ENotificationChain {
+func (list *EStoreList) SetWithNotification(index int, object any, notifications ENotificationChain) ENotificationChain {
 	oldObject := list.store.Set(list.owner, list.feature, index, object)
 	return list.createAndAddNotification(notifications, SET, oldObject, object, index)
 }
 
-func (list *BasicEStoreList) RemoveAt(index int) any {
+func (list *EStoreList) RemoveAt(index int) any {
 	if index < 0 || index >= list.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
@@ -293,7 +293,7 @@ func (list *BasicEStoreList) RemoveAt(index int) any {
 	return oldObject
 }
 
-func (list *BasicEStoreList) Remove(element any) bool {
+func (list *EStoreList) Remove(element any) bool {
 	index := list.IndexOf(element)
 	if index == -1 {
 		return false
@@ -303,7 +303,7 @@ func (list *BasicEStoreList) Remove(element any) bool {
 }
 
 // RemoveWithNotification ...
-func (list *BasicEStoreList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
+func (list *EStoreList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	index := list.IndexOf(object)
 	if index != -1 {
 		oldObject := list.store.Remove(list.owner, list.feature, index)
@@ -312,7 +312,7 @@ func (list *BasicEStoreList) RemoveWithNotification(object any, notifications EN
 	return notifications
 }
 
-func (list *BasicEStoreList) RemoveAll(collection EList) bool {
+func (list *EStoreList) RemoveAll(collection EList) bool {
 	modified := false
 	for i := list.Size() - 1; i >= 0; i-- {
 		element := list.store.Get(list.owner, list.feature, i)
@@ -324,7 +324,7 @@ func (list *BasicEStoreList) RemoveAll(collection EList) bool {
 	return modified
 }
 
-func (list *BasicEStoreList) RemoveRange(fromIndex, toIndex int) {
+func (list *EStoreList) RemoveRange(fromIndex, toIndex int) {
 	var objects []any
 	var positions []int
 	var notifications ENotificationChain = NewNotificationChain()
@@ -346,11 +346,11 @@ func (list *BasicEStoreList) RemoveRange(fromIndex, toIndex int) {
 	}
 }
 
-func (list *BasicEStoreList) Size() int {
+func (list *EStoreList) Size() int {
 	return list.store.Size(list.owner, list.feature)
 }
 
-func (list *BasicEStoreList) Clear() {
+func (list *EStoreList) Clear() {
 	oldData := list.store.ToArray(list.owner, list.feature)
 	list.store.Clear(list.owner, list.feature)
 	if len(oldData) == 0 {
@@ -372,11 +372,11 @@ func (list *BasicEStoreList) Clear() {
 	}
 }
 
-func (list *BasicEStoreList) Empty() bool {
+func (list *EStoreList) Empty() bool {
 	return list.store.IsEmpty(list.owner, list.feature)
 }
 
-func (list *BasicEStoreList) Contains(element any) bool {
+func (list *EStoreList) Contains(element any) bool {
 	result := list.store.Contains(list.owner, list.feature, element)
 	if !result && list.object && list.proxies {
 		for i := 0; i < list.Size(); i++ {
@@ -390,7 +390,7 @@ func (list *BasicEStoreList) Contains(element any) bool {
 	return result
 }
 
-func (list *BasicEStoreList) IndexOf(element any) int {
+func (list *EStoreList) IndexOf(element any) int {
 	result := list.store.IndexOf(list.owner, list.feature, element)
 	if result >= 0 {
 		return result
@@ -407,15 +407,15 @@ func (list *BasicEStoreList) IndexOf(element any) int {
 	return -1
 }
 
-func (list *BasicEStoreList) Iterator() EIterator {
+func (list *EStoreList) Iterator() EIterator {
 	return &listIterator{list: list}
 }
 
-func (list *BasicEStoreList) ToArray() []any {
+func (list *EStoreList) ToArray() []any {
 	return list.store.ToArray(list.owner, list.feature)
 }
 
-func (list *BasicEStoreList) inverseAdd(object any, notifications ENotificationChain) ENotificationChain {
+func (list *EStoreList) inverseAdd(object any, notifications ENotificationChain) ENotificationChain {
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {
@@ -430,7 +430,7 @@ func (list *BasicEStoreList) inverseAdd(object any, notifications ENotificationC
 	return notifications
 }
 
-func (list *BasicEStoreList) inverseRemove(object any, notifications ENotificationChain) ENotificationChain {
+func (list *EStoreList) inverseRemove(object any, notifications ENotificationChain) ENotificationChain {
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {
@@ -445,8 +445,8 @@ func (list *BasicEStoreList) inverseRemove(object any, notifications ENotificati
 	return notifications
 }
 
-func (list *BasicEStoreList) GetUnResolvedList() EList {
-	l := NewBasicEStoreList(list.owner, list.feature, list.store)
+func (list *EStoreList) GetUnResolvedList() EList {
+	l := NewEStoreList(list.owner, list.feature, list.store)
 	l.proxies = false
 	return l
 }

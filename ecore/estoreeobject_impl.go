@@ -81,5 +81,5 @@ func (o *EStoreEObjectImpl) eDynamicFeature(dynamicFeatureID int) EStructuralFea
 }
 
 func (o *EStoreEObjectImpl) createList(eFeature EStructuralFeature) EList {
-	return NewBasicEStoreList(o.AsEObject(), eFeature, o.AsEStoreEObject().EStore())
+	return NewEStoreList(o.AsEObject(), eFeature, o.AsEStoreEObject().EStore())
 }

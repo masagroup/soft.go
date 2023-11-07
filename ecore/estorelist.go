@@ -25,8 +25,13 @@ type EStoreList struct {
 }
 
 func NewEStoreList(owner EObject, feature EStructuralFeature, store EStore) *EStoreList {
-	list := new(EStoreList)
+	list := &EStoreList{}
+	list.Initialize(owner, feature, store)
 	list.interfaces = list
+	return list
+}
+
+func (list *EStoreList) Initialize(owner EObject, feature EStructuralFeature, store EStore) {
 	list.owner = owner
 	list.feature = feature
 	list.store = store
@@ -60,7 +65,6 @@ func NewEStoreList(owner EObject, feature EStructuralFeature, store EStore) *ESt
 			}
 		}
 	}
-	return list
 }
 
 func (list *EStoreList) GetOwner() EObject {

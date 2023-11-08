@@ -2,6 +2,9 @@ package ecore
 
 import (
 	"bytes"
+	"database/sql"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -111,12 +114,23 @@ func TestSQLEncoder_Maps(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	w := &bytes.Buffer{}
-	// w, err := os.Create("testdata/emap.sqlite")
-	// require.NoError(t, err)
-	// defer w.Close()
+	actualPath := filepath.Join(t.TempDir(), "emap.sqlite")
+	actualWriter, err := os.Create(actualPath)
+	require.NoError(t, err)
+	defer actualWriter.Close()
 
-	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
+	sqliteEncoder := NewSQLEncoder(eResource, actualWriter, nil)
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	actualWriter.Close()
+
+	expectedDB, err := sql.Open("sqlite", "testdata/emap.sqlite")
+	require.NoError(t, err)
+	defer expectedDB.Close()
+
+	actualDB, err := sql.Open("sqlite", actualPath)
+	require.NoError(t, err)
+	defer actualDB.Close()
+
+	assertEqualDB(t, expectedDB, actualDB)
 }

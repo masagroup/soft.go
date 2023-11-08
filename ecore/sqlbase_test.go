@@ -38,7 +38,7 @@ func getDBTables(db *sql.DB) (map[string]struct{}, error) {
 }
 
 func getDBRows(db *sql.DB, table string) ([][]any, error) {
-	rows, err := db.Query("SELECT rowid,* FROM " + table)
+	rows, err := db.Query("SELECT * FROM " + sqlEscapeIdentifier(table))
 	if err != nil {
 		return nil, err
 	}

@@ -502,7 +502,6 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 			return nil
 		}
 		row = stmt.QueryRow(sqlID)
-
 	} else if featureTable := featureSchema.table; featureTable != nil {
 		stmt, err := s.getManyStmts(featureTable).getSelectStmt()
 		if err != nil {
@@ -510,7 +509,6 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 			return nil
 		}
 		row = stmt.QueryRow(sqlID, index)
-
 	}
 
 	var v any
@@ -837,6 +835,8 @@ func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int) (float6
 		if err != nil {
 			return 0.0, err
 		}
+		defer rows.Close()
+
 		count := 0
 		idx := 0.0
 		for rows.Next() {

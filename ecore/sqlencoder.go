@@ -62,7 +62,7 @@ type sqlEncoderClassData struct {
 	id        int64
 	schema    *sqlClassSchema
 	hierarchy []EClass
-	features  map[EStructuralFeature]*sqlEncoderFeatureData
+	features  *linkedHashMap[EStructuralFeature, *sqlEncoderFeatureData]
 }
 
 type sqlEncoder struct {
@@ -139,7 +139,9 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
 			// encode features columnValues in table columns
 			columnValues := classTable.defaultValues()
 			columnValues[classTable.key.index] = objectID
-			for eFeature, featureData := range classData.features {
+			for itFeature := classData.features.Iterator(); itFeature.Next(); {
+				eFeature := itFeature.Key()
+				featureData := itFeature.Value()
 				if featureColumn := featureData.schema.column; featureColumn != nil {
 					// feature is encoded as a column
 					featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
@@ -327,7 +329,7 @@ func (e *sqlEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 		}
 
 		// computes features data
-		classFeatures := map[EStructuralFeature]*sqlEncoderFeatureData{}
+		classFeatures := newLinkedHashMap[EStructuralFeature, *sqlEncoderFeatureData]()
 		for _, featureSchema := range classSchema.features {
 
 			// create feature table if any
@@ -347,8 +349,7 @@ func (e *sqlEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 				featureData.dataType = eDataType
 				featureData.factory = eDataType.GetEPackage().GetEFactoryInstance()
 			}
-
-			classFeatures[eFeature] = featureData
+			classFeatures.put(eFeature, featureData)
 		}
 
 		// create & register class data

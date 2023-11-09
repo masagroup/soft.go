@@ -472,7 +472,7 @@ func (s *SQLStore) getFeatureData(object EObject, feature EStructuralFeature) (*
 	}
 
 	// retrieve feature data
-	featureData, isFeatureData := classData.features[feature]
+	featureData, isFeatureData := classData.features.Get(feature)
 	if !isFeatureData {
 		err := fmt.Errorf("feature %s is unknown", feature.GetName())
 		s.errorHandler(err)

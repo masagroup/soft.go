@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestBasicEStoreList_Constructors(t *testing.T) {
+func TestEStoreList_Constructors(t *testing.T) {
 	{
 		mockOwner := NewMockEObject(t)
 		mockFeature := NewMockEStructuralFeature(t)
@@ -73,7 +73,7 @@ func TestBasicEStoreList_Constructors(t *testing.T) {
 	}
 }
 
-func TestBasicEStoreList_Accessors(t *testing.T) {
+func TestEStoreList_Accessors(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -90,7 +90,7 @@ func TestBasicEStoreList_Accessors(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockClass, mockFeature, mockStore)
 }
 
-func TestBasicEStoreList_Add(t *testing.T) {
+func TestEStoreList_Add(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -124,7 +124,7 @@ func TestBasicEStoreList_Add(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 }
 
-func TestBasicEStoreList_AddReferenceContainmentNoOpposite(t *testing.T) {
+func TestEStoreList_AddReferenceContainmentNoOpposite(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockReference := NewMockEReference(t)
 	mockStore := NewMockEStore(t)
@@ -146,7 +146,7 @@ func TestBasicEStoreList_AddReferenceContainmentNoOpposite(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject)
 }
 
-func TestBasicEStoreList_AddReferenceContainmentOpposite(t *testing.T) {
+func TestEStoreList_AddReferenceContainmentOpposite(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockReference := NewMockEReference(t)
 	mockOpposite := NewMockEReference(t)
@@ -172,7 +172,7 @@ func TestBasicEStoreList_AddReferenceContainmentOpposite(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject, mockClass, mockOpposite)
 }
 
-func TestBasicEStoreList_AddWithNotification(t *testing.T) {
+func TestEStoreList_AddWithNotification(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -195,7 +195,7 @@ func TestBasicEStoreList_AddWithNotification(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockClass, mockFeature, mockStore, mockAdapter, mockNotifications)
 }
 
-func TestBasicEStoreList_Insert(t *testing.T) {
+func TestEStoreList_Insert(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -214,7 +214,7 @@ func TestBasicEStoreList_Insert(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockStore)
 }
 
-func TestBasicEStoreList_AddAll(t *testing.T) {
+func TestEStoreList_AddAll(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -228,7 +228,7 @@ func TestBasicEStoreList_AddAll(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 }
 
-func TestBasicEStoreList_InsertAll(t *testing.T) {
+func TestEStoreList_InsertAll(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -275,7 +275,7 @@ func TestBasicEStoreList_InsertAll(t *testing.T) {
 
 }
 
-func TestBasicEStoreList_MoveObject(t *testing.T) {
+func TestEStoreList_MoveObject(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -291,7 +291,7 @@ func TestBasicEStoreList_MoveObject(t *testing.T) {
 
 	mockStore.EXPECT().IndexOf(mockOwner, mockFeature, 1).Return(0).Once()
 	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Twice()
-	mockStore.EXPECT().Move(mockOwner, mockFeature, 1, 0).Return(mockObject).Once()
+	mockStore.EXPECT().Move(mockOwner, mockFeature, 0, 1).Return(mockObject).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
 	mockOwner.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {
@@ -301,7 +301,7 @@ func TestBasicEStoreList_MoveObject(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
 }
 
-func TestBasicEStoreList_Move(t *testing.T) {
+func TestEStoreList_Move(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -316,7 +316,7 @@ func TestBasicEStoreList_Move(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
 
 	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Twice()
-	mockStore.EXPECT().Move(mockOwner, mockFeature, 1, 0).Return(mockObject).Once()
+	mockStore.EXPECT().Move(mockOwner, mockFeature, 0, 1).Return(mockObject).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
 	mockOwner.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {
@@ -326,7 +326,7 @@ func TestBasicEStoreList_Move(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
 }
 
-func TestBasicEStoreList_Get_NoProxy(t *testing.T) {
+func TestEStoreList_Get_NoProxy(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockReference := NewMockEReference(t)
 	mockOpposite := NewMockEReference(t)
@@ -343,7 +343,7 @@ func TestBasicEStoreList_Get_NoProxy(t *testing.T) {
 	assert.Equal(t, mockObject, list.Get(0))
 }
 
-func TestBasicEStoreList_Get_Proxy(t *testing.T) {
+func TestEStoreList_Get_Proxy(t *testing.T) {
 	mockOwner := NewMockEObjectInternal(t)
 	mockReference := NewMockEReference(t)
 	mockOpposite := NewMockEReference(t)
@@ -384,7 +384,7 @@ func TestBasicEStoreList_Get_Proxy(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject, mockOpposite, mockResolved, mockClass)
 }
 
-func TestBasicEStoreList_Set(t *testing.T) {
+func TestEStoreList_Set(t *testing.T) {
 	mockOwner := NewMockEObjectInternal(t)
 	mockReference := NewMockEReference(t)
 	mockStore := NewMockEStore(t)
@@ -424,7 +424,7 @@ func TestBasicEStoreList_Set(t *testing.T) {
 
 }
 
-func TestBasicEStoreList_SetWithNotification(t *testing.T) {
+func TestEStoreList_SetWithNotification(t *testing.T) {
 	mockOwner := NewMockEObjectInternal(t)
 	mockReference := NewMockEReference(t)
 	mockOpposite := NewMockEReference(t)
@@ -447,7 +447,7 @@ func TestBasicEStoreList_SetWithNotification(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockOpposite, mockNewObject, mockOldObject)
 }
 
-func TestBasicEStoreList_RemoveAt(t *testing.T) {
+func TestEStoreList_RemoveAt(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -465,7 +465,7 @@ func TestBasicEStoreList_RemoveAt(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 }
 
-func TestBasicEStoreList_Remove(t *testing.T) {
+func TestEStoreList_Remove(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -483,7 +483,7 @@ func TestBasicEStoreList_Remove(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 }
 
-func TestBasicEStoreList_RemoveWithNotification(t *testing.T) {
+func TestEStoreList_RemoveWithNotification(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -502,7 +502,7 @@ func TestBasicEStoreList_RemoveWithNotification(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockNotifications)
 }
 
-func TestBasicEStoreList_RemoveAll(t *testing.T) {
+func TestEStoreList_RemoveAll(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -519,7 +519,7 @@ func TestBasicEStoreList_RemoveAll(t *testing.T) {
 
 }
 
-func TestBasicEStoreList_Size(t *testing.T) {
+func TestEStoreList_Size(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -530,7 +530,7 @@ func TestBasicEStoreList_Size(t *testing.T) {
 	assert.Equal(t, 1, list.Size())
 }
 
-func TestBasicEStoreList_Clear(t *testing.T) {
+func TestEStoreList_Clear(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -573,7 +573,7 @@ func TestBasicEStoreList_Clear(t *testing.T) {
 
 }
 
-func TestBasicEStoreList_Empty(t *testing.T) {
+func TestEStoreList_Empty(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -584,7 +584,7 @@ func TestBasicEStoreList_Empty(t *testing.T) {
 	assert.True(t, list.Empty())
 }
 
-func TestBasicEStoreList_Contains(t *testing.T) {
+func TestEStoreList_Contains(t *testing.T) {
 	{
 		mockOwner := NewMockEObject(t)
 		mockFeature := NewMockEStructuralFeature(t)
@@ -621,7 +621,7 @@ func TestBasicEStoreList_Contains(t *testing.T) {
 	}
 }
 
-func TestBasicEStoreList_IndexOf(t *testing.T) {
+func TestEStoreList_IndexOf(t *testing.T) {
 	{
 		mockOwner := NewMockEObject(t)
 		mockFeature := NewMockEStructuralFeature(t)
@@ -658,7 +658,7 @@ func TestBasicEStoreList_IndexOf(t *testing.T) {
 	}
 }
 
-func TestBasicEStoreList_Iterator(t *testing.T) {
+func TestEStoreList_Iterator(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -667,7 +667,7 @@ func TestBasicEStoreList_Iterator(t *testing.T) {
 	assert.NotNil(t, list.Iterator())
 }
 
-func TestBasicEStoreList_ToArray(t *testing.T) {
+func TestEStoreList_ToArray(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -678,7 +678,7 @@ func TestBasicEStoreList_ToArray(t *testing.T) {
 	assert.Equal(t, []any{1, 2}, list.ToArray())
 }
 
-func TestBasicEStoreList_GetUnResolvedList(t *testing.T) {
+func TestEStoreList_GetUnResolvedList(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)
@@ -687,7 +687,7 @@ func TestBasicEStoreList_GetUnResolvedList(t *testing.T) {
 	assert.NotNil(t, list.GetUnResolvedList())
 }
 
-func TestBasicEStoreList_RemoveRange(t *testing.T) {
+func TestEStoreList_RemoveRange(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockStore := NewMockEStore(t)

@@ -131,7 +131,7 @@ func TestEStoreEObjectImpl_SetAttribute(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
 }
 
-func TestEStoreEObjectImpl_GetAttribute_Many(t *testing.T) {
+func TestEStoreEObjectImpl_GetAttribute_Many_List(t *testing.T) {
 	// create mocks
 	mockClass := NewMockEClass(t)
 	mockAttribute := NewMockEAttribute(t)
@@ -144,6 +144,7 @@ func TestEStoreEObjectImpl_GetAttribute_Many(t *testing.T) {
 
 	mockAttribute.EXPECT().IsMany().Return(true).Once()
 	mockAttribute.EXPECT().IsTransient().Return(false).Once()
+	mockAttribute.EXPECT().GetEType().Return(nil).Once()
 	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Twice()
 	list := o.EGetFromID(0, true)
@@ -153,6 +154,34 @@ func TestEStoreEObjectImpl_GetAttribute_Many(t *testing.T) {
 	assert.NotNil(t, eobjectlist)
 	enotifyinglist, _ := list.(ENotifyingList)
 	assert.NotNil(t, enotifyinglist)
+}
+
+func TestEStoreEObjectImpl_GetAttribute_Many_Map(t *testing.T) {
+	// create mocks
+	mockClass := NewMockEClass(t)
+	mockAttribute := NewMockEAttribute(t)
+	mockStore := NewMockEStore(t)
+	mockType := NewMockEClass(t)
+	mockFeature := NewMockEStructuralFeature(t)
+
+	// create object
+	o := NewEStoreEObjectImpl(false)
+	o.SetEClass(mockClass)
+	o.SetEStore(mockStore)
+
+	mockAttribute.EXPECT().IsMany().Return(true).Once()
+	mockAttribute.EXPECT().IsTransient().Return(false).Once()
+	mockAttribute.EXPECT().GetEType().Return(mockType).Twice()
+	mockType.EXPECT().GetInstanceTypeName().Return("java.util.Map.Entry").Once()
+	mockType.EXPECT().GetEStructuralFeatureFromName("key").Return(mockFeature).Once()
+	mockType.EXPECT().GetEStructuralFeatureFromName("value").Return(mockFeature).Once()
+	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
+	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Twice()
+	m := o.EGetFromID(0, true)
+	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore, mockFeature, mockType)
+
+	emap, _ := m.(EMap)
+	assert.NotNil(t, emap)
 }
 
 func TestEStoreEObjectImpl_SetAttribute_Caching(t *testing.T) {

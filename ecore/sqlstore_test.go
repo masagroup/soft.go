@@ -103,8 +103,13 @@ func TestSQLStore_Get_Int(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("copies")
 	require.NotNil(t, eFeature)
 
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
 	// store
-	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -126,9 +131,14 @@ func TestSQLStore_Get_Enum(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("category")
 	require.NotNil(t, eFeature)
 
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
 	// store
 	mockPackageRegitry := NewMockEPackageRegistry(t)
-	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, mockPackageRegitry, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -162,7 +172,12 @@ func TestSQLStore_Get_String_Null(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(1)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
-	s, err := NewSQLStore("testdata/library.owner.sqlite", NewURI(""), nil, nil, nil)
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.owner.sqlite")
+	err := copyFile("testdata/library.owner.sqlite", dbPath)
+	require.Nil(t, err)
+
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -185,7 +200,12 @@ func TestSQLStore_Get_Object_Nil(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
-	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil, nil)
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -214,9 +234,14 @@ func TestSQLStore_Get_Object(t *testing.T) {
 	ePersonFirstNameAttribute, _ := ePersonClass.GetEStructuralFeatureFromName("firstName").(EAttribute)
 	require.NotNil(t, ePersonFirstNameAttribute)
 
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.owner.sqlite")
+	err := copyFile("testdata/library.owner.sqlite", dbPath)
+	require.Nil(t, err)
+
 	mockObject := NewMockSQLObject(t)
 	mockPackageRegitry := NewMockEPackageRegistry(t)
-	s, err := NewSQLStore("testdata/library.owner.sqlite", NewURI(""), nil, mockPackageRegitry, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -243,12 +268,17 @@ func TestSQLStore_Get_Reference(t *testing.T) {
 	mockPackageRegitry := NewMockEPackageRegistry(t)
 	mockObject := NewMockSQLObject(t)
 
-	s, err := NewSQLStore("testdata/library.complex.sqlite", NewURI(""), nil, mockPackageRegitry, nil)
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
+
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
 
-	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
+	mockObject.EXPECT().GetSqlID().Return(int64(6)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	v, _ := s.Get(mockObject, eFeature, -1).(EObject)
 	require.NotNil(t, v)
@@ -318,7 +348,7 @@ func TestSQLStore_Set_Reference_Nil(t *testing.T) {
 
 	// set
 	mockObject := NewMockSQLObject(t)
-	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
+	mockObject.EXPECT().GetSqlID().Return(int64(6)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	oldValue, _ := s.Set(mockObject, eFeature, -1, nil).(EObject)
 	require.NotNil(t, oldValue)
@@ -331,7 +361,7 @@ func TestSQLStore_Set_Reference_Nil(t *testing.T) {
 	require.NotNil(t, db)
 	defer db.Close()
 	var author sql.NullString
-	row := db.QueryRow("SELECT author FROM book WHERE bookID=3")
+	row := db.QueryRow("SELECT author FROM book WHERE bookID=6")
 	err = row.Scan(&author)
 	assert.NoError(t, err)
 	assert.False(t, author.Valid)
@@ -362,7 +392,7 @@ func TestSQLStore_Set_List_Primitive(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	oldValue := s.Set(mockObject, eFeature, 1, "c4")
-	assert.Equal(t, "c2", oldValue)
+	assert.Equal(t, "c32", oldValue)
 
 	// check store
 	db, err := sql.Open("sqlite", dbPath)
@@ -370,7 +400,7 @@ func TestSQLStore_Set_List_Primitive(t *testing.T) {
 	require.NotNil(t, db)
 	defer db.Close()
 	var contents string
-	row := db.QueryRow("SELECT contents FROM book_contents WHERE bookID=5 AND idx=1.0")
+	row := db.QueryRow("SELECT contents FROM book_contents WHERE bookID=5 AND idx=2.0")
 	err = row.Scan(&contents)
 	assert.NoError(t, err)
 	assert.Equal(t, "c4", contents)
@@ -386,8 +416,13 @@ func TestSQLStore_Get_List_String(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("contents")
 	require.NotNil(t, eFeature)
 
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+
 	// create store
-	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -395,7 +430,8 @@ func TestSQLStore_Get_List_String(t *testing.T) {
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
-	s.Get(mockObject, eFeature, 1)
+	v := s.Get(mockObject, eFeature, 1)
+	require.Equal(t, "c32", v)
 }
 
 func TestSQLStore_IsSet_SingleValue_NotSet(t *testing.T) {
@@ -412,7 +448,12 @@ func TestSQLStore_IsSet_SingleValue_NotSet(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
-	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil, nil)
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -435,7 +476,12 @@ func TestSQLStore_IsSet_SingleValue(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(1)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
-	s, err := NewSQLStore("testdata/library.owner.sqlite", NewURI(""), nil, nil, nil)
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.owner.sqlite")
+	err := copyFile("testdata/library.owner.sqlite", dbPath)
+	require.Nil(t, err)
+
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -458,7 +504,12 @@ func TestSQLStore_IsSet_ManyValue_NotSet(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(1)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
-	s, err := NewSQLStore("testdata/library.owner.sqlite", NewURI(""), nil, nil, nil)
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.owner.sqlite")
+	err := copyFile("testdata/library.owner.sqlite", dbPath)
+	require.Nil(t, err)
+
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -481,7 +532,12 @@ func TestSQLStore_IsSet_ManyValue_Set(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
-	s, err := NewSQLStore("testdata/library.complex.sqlite", NewURI(""), nil, nil, nil)
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
+
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -574,8 +630,13 @@ func TestSQLStore_IsEmpty_False(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("contents")
 	require.NotNil(t, eFeature)
 
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+
 	// create store
-	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -596,8 +657,13 @@ func TestSQLStore_IsEmpty_True(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("borrowers")
 	require.NotNil(t, eFeature)
 
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
+
 	// create store
-	s, err := NewSQLStore("testdata/library.complex.sqlite", NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -618,8 +684,13 @@ func TestSQLStore_IsEmpty_NonExisting(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("borrowers")
 	require.NotNil(t, eFeature)
 
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+
 	// create store
-	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -640,8 +711,13 @@ func TestSQLStore_Size(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("contents")
 	require.NotNil(t, eFeature)
 
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+
 	// create store
-	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -662,8 +738,13 @@ func TestSQLStore_Size_Empty(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("borrowers")
 	require.NotNil(t, eFeature)
 
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
+
 	// create store
-	s, err := NewSQLStore("testdata/library.complex.sqlite", NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -684,8 +765,13 @@ func TestSQLStore_Size_NonExisting(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("borrowers")
 	require.NotNil(t, eFeature)
 
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+
 	// create store
-	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -706,8 +792,13 @@ func TestSQLStore_Contains_Primitive(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("contents")
 	require.NotNil(t, eFeature)
 
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+
 	// create store
-	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -715,7 +806,7 @@ func TestSQLStore_Contains_Primitive(t *testing.T) {
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
-	assert.True(t, s.Contains(mockObject, eFeature, "c1"))
+	assert.True(t, s.Contains(mockObject, eFeature, "c31"))
 }
 
 func TestSQLStore_Contains_Reference(t *testing.T) {
@@ -728,7 +819,12 @@ func TestSQLStore_Contains_Reference(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("books")
 	require.NotNil(t, eFeature)
 
-	s, err := NewSQLStore("testdata/library.complex.sqlite", NewURI(""), nil, nil, nil)
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
+
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -737,7 +833,7 @@ func TestSQLStore_Contains_Reference(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	mockRef := NewMockSQLObject(t)
-	mockRef.EXPECT().GetSqlID().Return(int64(4)).Once()
+	mockRef.EXPECT().GetSqlID().Return(int64(6)).Once()
 	assert.True(t, s.Contains(mockObject, eFeature, mockRef))
 }
 
@@ -751,8 +847,13 @@ func TestSQLStore_Contains_NoTable(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("borrowers")
 	require.NotNil(t, eFeature)
 
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+
 	// create store
-	s, err := NewSQLStore("testdata/library.datalist.sqlite", NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
@@ -782,8 +883,8 @@ func TestSQLStore_IndexOf_Existing(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	mockRef := NewMockSQLObject(t)
-	mockRef.EXPECT().GetSqlID().Return(int64(4)).Once()
-	assert.Equal(t, 1, s.IndexOf(mockObject, eFeature, mockRef))
+	mockRef.EXPECT().GetSqlID().Return(int64(6)).Once()
+	assert.Equal(t, 0, s.IndexOf(mockObject, eFeature, mockRef))
 }
 
 func TestSQLStore_IndexOf_NonExisting(t *testing.T) {
@@ -805,7 +906,7 @@ func TestSQLStore_IndexOf_NonExisting(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	mockRef := NewMockSQLObject(t)
-	mockRef.EXPECT().GetSqlID().Return(int64(6)).Once()
+	mockRef.EXPECT().GetSqlID().Return(int64(3)).Once()
 	assert.Equal(t, -1, s.IndexOf(mockObject, eFeature, mockRef))
 }
 
@@ -849,7 +950,7 @@ func TestSQLStore_LastIndexOf_Existing(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	mockRef := NewMockSQLObject(t)
-	mockRef.EXPECT().GetSqlID().Return(int64(4)).Once()
+	mockRef.EXPECT().GetSqlID().Return(int64(7)).Once()
 	assert.Equal(t, 1, s.LastIndexOf(mockObject, eFeature, mockRef))
 }
 
@@ -872,7 +973,7 @@ func TestSQLStore_LastIndexOf_NonExisting(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	mockRef := NewMockSQLObject(t)
-	mockRef.EXPECT().GetSqlID().Return(int64(6)).Once()
+	mockRef.EXPECT().GetSqlID().Return(int64(3)).Once()
 	assert.Equal(t, -1, s.LastIndexOf(mockObject, eFeature, mockRef))
 }
 
@@ -928,7 +1029,7 @@ func TestSQLStore_Remove_Object(t *testing.T) {
 	book, _ := s.Remove(mockObject, eBooksFeature, 0).(SQLObject)
 	require.NotNil(t, book)
 	assert.Equal(t, eBookClass, book.EClass())
-	assert.Equal(t, int64(3), book.GetSqlID())
+	assert.Equal(t, int64(6), book.GetSqlID())
 }
 
 func TestSQLStore_Remove_NonExisting(t *testing.T) {

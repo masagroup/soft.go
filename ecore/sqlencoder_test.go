@@ -2,11 +2,10 @@ package ecore
 
 import (
 	"bytes"
-	"database/sql"
 	"os"
-	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,6 +29,11 @@ func TestSqlEncoder_Complex(t *testing.T) {
 	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	// compare expected and actual bytes
+	bytes, err := os.ReadFile("testdata/library.complex.sqlite")
+	assert.Nil(t, err)
+	assert.Equal(t, bytes, w.Bytes())
 }
 
 func TestSqlEncoder_DataList(t *testing.T) {
@@ -52,6 +56,11 @@ func TestSqlEncoder_DataList(t *testing.T) {
 	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	// compare expected and actual bytes
+	bytes, err := os.ReadFile("testdata/library.datalist.sqlite")
+	assert.Nil(t, err)
+	assert.Equal(t, bytes, w.Bytes())
 }
 
 func TestSqlEncoder_ComplexWithOwner(t *testing.T) {
@@ -99,6 +108,11 @@ func TestSqlEncoder_ComplexWithOwner(t *testing.T) {
 	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	// compare expected and actual bytes
+	bytes, err := os.ReadFile("testdata/library.owner.sqlite")
+	assert.Nil(t, err)
+	assert.Equal(t, bytes, w.Bytes())
 }
 
 func TestSQLEncoder_Maps(t *testing.T) {
@@ -114,23 +128,16 @@ func TestSQLEncoder_Maps(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	actualPath := filepath.Join(t.TempDir(), "emap.sqlite")
-	actualWriter, err := os.Create(actualPath)
-	require.NoError(t, err)
-	defer actualWriter.Close()
-
-	sqliteEncoder := NewSQLEncoder(eResource, actualWriter, nil)
+	// w, err := os.Create("testdata/emap.sqlite")
+	// require.NoError(t, err)
+	// defer w.Close()
+	w := &bytes.Buffer{}
+	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
-	actualWriter.Close()
 
-	expectedDB, err := sql.Open("sqlite", "testdata/emap.sqlite")
-	require.NoError(t, err)
-	defer expectedDB.Close()
-
-	actualDB, err := sql.Open("sqlite", actualPath)
-	require.NoError(t, err)
-	defer actualDB.Close()
-
-	assertEqualDB(t, expectedDB, actualDB)
+	// compare expected and actual bytes
+	bytes, err := os.ReadFile("testdata/emap.sqlite")
+	assert.Nil(t, err)
+	assert.Equal(t, bytes, w.Bytes())
 }

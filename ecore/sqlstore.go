@@ -61,7 +61,8 @@ type sqlManyStmts struct {
 	table           *sqlTable
 	updateValueStmt *stmtOrError
 	updateIdxStmt   *stmtOrError
-	selectStmt      *stmtOrError
+	selectOneStmt   *stmtOrError
+	selectAllStmt   *stmtOrError
 	existsStmt      *stmtOrError
 	clearStmt       *stmtOrError
 	countStmt       *stmtOrError
@@ -131,8 +132,8 @@ func (ss *sqlManyStmts) getUpdateIdxStmt() (*sql.Stmt, error) {
 	return ss.updateIdxStmt.stmt, ss.updateIdxStmt.err
 }
 
-func (ss *sqlManyStmts) getSelectStmt() (*sql.Stmt, error) {
-	if ss.selectStmt == nil {
+func (ss *sqlManyStmts) getSelectOneStmt() (*sql.Stmt, error) {
+	if ss.selectOneStmt == nil {
 		// query
 		column := ss.table.columns[len(ss.table.columns)-1]
 		var query strings.Builder
@@ -146,10 +147,29 @@ func (ss *sqlManyStmts) getSelectStmt() (*sql.Stmt, error) {
 		query.WriteString(ss.table.keyName())
 		query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?")
 		// stmt
-		ss.selectStmt = &stmtOrError{}
-		ss.selectStmt.stmt, ss.selectStmt.err = ss.db.Prepare(query.String())
+		ss.selectOneStmt = &stmtOrError{}
+		ss.selectOneStmt.stmt, ss.selectOneStmt.err = ss.db.Prepare(query.String())
 	}
-	return ss.selectStmt.stmt, ss.selectStmt.err
+	return ss.selectOneStmt.stmt, ss.selectOneStmt.err
+}
+
+func (ss *sqlManyStmts) getSelectAllStmt() (*sql.Stmt, error) {
+	if ss.selectAllStmt == nil {
+		// query
+		column := ss.table.columns[len(ss.table.columns)-1]
+		var query strings.Builder
+		query.WriteString("SELECT ")
+		query.WriteString(sqlEscapeIdentifier(column.columnName))
+		query.WriteString(" FROM ")
+		query.WriteString(sqlEscapeIdentifier(ss.table.name))
+		query.WriteString(" ORDER BY ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString(" ASC, idx ASC")
+		// stmt
+		ss.selectAllStmt = &stmtOrError{}
+		ss.selectAllStmt.stmt, ss.selectAllStmt.err = ss.db.Prepare(query.String())
+	}
+	return ss.selectAllStmt.stmt, ss.selectAllStmt.err
 }
 
 func (ss *sqlManyStmts) getExistsStmt() (*sql.Stmt, error) {
@@ -511,7 +531,7 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 		}
 		row = stmt.QueryRow(sqlID)
 	} else if featureTable := featureSchema.table; featureTable != nil {
-		stmt, err := s.getManyStmts(featureTable).getSelectStmt()
+		stmt, err := s.getManyStmts(featureTable).getSelectOneStmt()
 		if err != nil {
 			s.errorHandler(err)
 			return nil
@@ -964,5 +984,41 @@ func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
 }
 
 func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
-	return nil
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+
+	featureSchema, err := s.getFeatureSchema(object, feature)
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+
+	stmt, err := s.getManyStmts(featureSchema.table).getSelectAllStmt()
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+
+	rows, err := stmt.Query(sqlID)
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+	defer rows.Close()
+
+	values := []any{}
+	for rows.Next() {
+		var v any
+		if err := rows.Scan(&v); err != nil {
+			s.errorHandler(err)
+			return nil
+		}
+		decoded, err := s.decodeFeatureValue(featureSchema, v)
+		if err != nil {
+			s.errorHandler(err)
+			return nil
+		}
+		values = append(values, decoded)
+	}
+	return values
 }

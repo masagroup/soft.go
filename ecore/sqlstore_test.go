@@ -16,6 +16,7 @@ const libraryNSURI = "http:///org/eclipse/emf/examples/library/library.ecore/1.0
 type dynamicSQLEObjectImpl struct {
 	DynamicEObjectImpl
 	sqlID int64
+	store EStore
 }
 
 func newDynamicSQLEObjectImpl() *dynamicSQLEObjectImpl {
@@ -31,6 +32,14 @@ func (o *dynamicSQLEObjectImpl) SetSqlID(sqlID int64) {
 
 func (o *dynamicSQLEObjectImpl) GetSqlID() int64 {
 	return o.sqlID
+}
+
+func (o *dynamicSQLEObjectImpl) SetEStore(store EStore) {
+	o.store = store
+}
+
+func (o *dynamicSQLEObjectImpl) GetEStore() EStore {
+	return o.store
 }
 
 type dynamicSQLFactory struct {
@@ -249,10 +258,17 @@ func TestSQLStore_Get_Object(t *testing.T) {
 	mockObject.EXPECT().GetSqlID().Return(int64(1)).Once()
 	mockObject.EXPECT().EClass().Return(eLibraryClass).Once()
 	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
-	v, _ := s.Get(mockObject, eLibraryOwnerFeature, -1).(SQLObject)
+	v, _ := s.Get(mockObject, eLibraryOwnerFeature, -1).(EObject)
 	require.NotNil(t, v)
 	assert.Equal(t, ePersonClass, v.EClass())
-	assert.Equal(t, int64(2), v.GetSqlID())
+
+	sqlObject, _ := v.(SQLObject)
+	require.NotNil(t, sqlObject)
+	assert.Equal(t, int64(2), sqlObject.GetSqlID())
+
+	storeObject, _ := v.(EStoreEObject)
+	require.NotNil(t, storeObject)
+	assert.Equal(t, s, storeObject.GetEStore())
 }
 
 func TestSQLStore_Get_Reference(t *testing.T) {

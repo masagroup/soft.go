@@ -62,7 +62,7 @@ func (_mde *MockEStoreEObject_Expecter_Methods) SetMock(mock *mock.Mock) {
 }
 
 // EStore provides a mock function with given fields:
-func (_m *MockEStoreEObject_Prototype_Methods) EStore() EStore {
+func (_m *MockEStoreEObject_Prototype_Methods) GetEStore() EStore {
 	ret := _m.mock.Called()
 
 	var r0 EStore
@@ -116,8 +116,8 @@ type MockEStoreEObject_EStore_Call struct {
 }
 
 // EStore is a helper method to define mock.On call
-func (_e *MockEStoreEObject_Expecter) EStore() *MockEStoreEObject_EStore_Call {
-	return &MockEStoreEObject_EStore_Call{Call: _e.mock.On("EStore")}
+func (_e *MockEStoreEObject_Expecter) GetEStore() *MockEStoreEObject_EStore_Call {
+	return &MockEStoreEObject_EStore_Call{Call: _e.mock.On("GetEStore")}
 }
 
 func (_c *MockEStoreEObject_EStore_Call) Run(run func()) *MockEStoreEObject_EStore_Call {

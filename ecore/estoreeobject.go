@@ -14,5 +14,5 @@ type EStoreEObject interface {
 
 	SetEStore(store EStore)
 
-	EStore() EStore
+	GetEStore() EStore
 }

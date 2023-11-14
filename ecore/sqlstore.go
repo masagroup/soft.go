@@ -437,6 +437,14 @@ func (s *SQLStore) getManyStmts(table *sqlTable) *sqlManyStmts {
 	return stmts
 }
 
+func (d *SQLStore) decodeFeatureValue(featureData *sqlFeatureSchema, value any) (any, error) {
+	decoded, err := d.sqlDecoder.decodeFeatureValue(featureData, value)
+	if eObject, _ := decoded.(EStoreEObject); eObject != nil {
+		eObject.SetEStore(d)
+	}
+	return decoded, err
+}
+
 func (s *SQLStore) getFeatureSchema(object EObject, feature EStructuralFeature) (*sqlFeatureSchema, error) {
 	// retrieve class schema
 	class := object.EClass()
@@ -953,4 +961,8 @@ func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
 		s.errorHandler(err)
 		return
 	}
+}
+
+func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
+	return nil
 }

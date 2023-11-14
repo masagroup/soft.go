@@ -65,7 +65,7 @@ func (d *sqlDecoder) decodePackage(id int64) (EPackage, error) {
 
 		// retrieve package
 		if d.packageRegistry == nil {
-			panic(fmt.Errorf("Package registry not defined in sqlDecoder"))
+			panic(fmt.Errorf("package registry not defined in sql decoder"))
 		}
 		ePackage = d.packageRegistry.GetPackage(packageURI)
 		if ePackage == nil {
@@ -146,11 +146,10 @@ func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 
 		// create object
 		eObject = classData.eFactory.Create(classData.eClass)
-		sqlObject, isSQlObject := eObject.(SQLObject)
-		if !isSQlObject {
-			panic("EObject is not an SQLObject")
+		// set sql id if created object is an sql object
+		if sqlObject, _ := eObject.(SQLObject); sqlObject != nil {
+			sqlObject.SetSqlID(id)
 		}
-		sqlObject.SetSqlID(id)
 
 		// register object
 		d.objects[id] = eObject

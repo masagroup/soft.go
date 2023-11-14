@@ -31,7 +31,7 @@ func (o *EStoreEObjectImpl) SetEStore(store EStore) {
 	o.store = store
 }
 
-func (o *EStoreEObjectImpl) EStore() EStore {
+func (o *EStoreEObjectImpl) GetEStore() EStore {
 	return o.store
 }
 
@@ -48,7 +48,7 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 				}
 				o.getProperties()[dynamicFeatureID] = result
 			} else {
-				result = o.AsEStoreEObject().EStore().Get(o.AsEObject(), eFeature, NO_INDEX)
+				result = o.AsEStoreEObject().GetEStore().Get(o.AsEObject(), eFeature, NO_INDEX)
 				if o.isCaching {
 					o.getProperties()[dynamicFeatureID] = result
 				}
@@ -63,7 +63,7 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 	if eFeature.IsTransient() {
 		o.getProperties()[dynamicFeatureID] = value
 	} else {
-		o.AsEStoreEObject().EStore().Set(o.AsEObject(), eFeature, NO_INDEX, value)
+		o.AsEStoreEObject().GetEStore().Set(o.AsEObject(), eFeature, NO_INDEX, value)
 		if o.isCaching {
 			o.getProperties()[dynamicFeatureID] = value
 		}
@@ -75,7 +75,7 @@ func (o *EStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	if eFeature.IsTransient() {
 		o.getProperties()[dynamicFeatureID] = nil
 	} else {
-		o.AsEStoreEObject().EStore().UnSet(o.AsEObject(), eFeature)
+		o.AsEStoreEObject().GetEStore().UnSet(o.AsEObject(), eFeature)
 		o.getProperties()[dynamicFeatureID] = nil
 	}
 }
@@ -85,10 +85,10 @@ func (o *EStoreEObjectImpl) eDynamicFeature(dynamicFeatureID int) EStructuralFea
 }
 
 func (o *EStoreEObjectImpl) createList(eFeature EStructuralFeature) EList {
-	return NewEStoreList(o.AsEObject(), eFeature, o.AsEStoreEObject().EStore())
+	return NewEStoreList(o.AsEObject(), eFeature, o.AsEStoreEObject().GetEStore())
 }
 
 func (o *EStoreEObjectImpl) createMap(eFeature EStructuralFeature) EMap {
 	eClass := eFeature.GetEType().(EClass)
-	return NewEStoreMap(eClass, o.AsEObject(), eFeature, o.AsEStoreEObject().EStore())
+	return NewEStoreMap(eClass, o.AsEObject(), eFeature, o.AsEStoreEObject().GetEStore())
 }

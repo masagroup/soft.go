@@ -140,3 +140,17 @@ func getSQLCodecFeatureKind(eFeature EStructuralFeature) sqlFeatureKind {
 	}
 	return -1
 }
+
+type sqlObjectRegistry interface {
+	registerObject(object EObject, id int64)
+}
+
+type sqlCodecObjectRegistry struct {
+}
+
+func (r *sqlCodecObjectRegistry) registerObject(eObject EObject, id int64) {
+	// set sql id if created object is an sql object
+	if sqlObject, _ := eObject.(SQLObject); sqlObject != nil {
+		sqlObject.SetSqlID(id)
+	}
+}

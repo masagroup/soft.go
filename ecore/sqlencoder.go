@@ -67,6 +67,7 @@ type sqlEncoderClassData struct {
 
 type sqlEncoder struct {
 	*sqlBase
+	objectRegistry sqlObjectRegistry
 	insertStmts    map[*sqlTable]*sql.Stmt
 	classDataMap   map[EClass]*sqlEncoderClassData
 	packageIDs     map[EPackage]int64
@@ -189,6 +190,10 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
 			return -1, err
 		}
 
+		// register object in registry
+		e.objectRegistry.registerObject(eObject, objectID)
+
+		// register object id
 		e.objectIDs[eObject] = objectID
 	}
 	return objectID, nil
@@ -209,11 +214,7 @@ func (e *sqlEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 				}
 				return objectID, nil
 			} else if eObject, isEObject := value.(EObject); isEObject {
-				objectID, err := e.encodeObject(eObject)
-				if err != nil {
-					return nil, err
-				}
-				return objectID, nil
+				return e.encodeObject(eObject)
 			}
 		case sfkObjectReference, sfkObjectReferenceList:
 			ref := GetURI(value.(EObject))
@@ -433,6 +434,7 @@ func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQL
 			packageIDs:     map[EPackage]int64{},
 			objectIDs:      map[EObject]int64{},
 			enumLiteralIDs: map[string]int64{},
+			objectRegistry: &sqlCodecObjectRegistry{},
 		},
 		resource: resource,
 		writer:   w,

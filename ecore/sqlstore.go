@@ -331,6 +331,21 @@ func (ss *sqlManyStmts) getRemoveStmt() (*sql.Stmt, error) {
 	return ss.removeStmt.stmt, ss.removeStmt.err
 }
 
+type sqlStoreObjectRegistry struct {
+	store EStore
+}
+
+func (r *sqlStoreObjectRegistry) registerObject(eObject EObject, id int64) {
+	// set sql id if created object is an sql object
+	if sqlObject, _ := eObject.(SQLObject); sqlObject != nil {
+		sqlObject.SetSqlID(id)
+	}
+	// set store object
+	if storeObject, _ := eObject.(EStoreEObject); storeObject != nil {
+		storeObject.SetEStore(r.store)
+	}
+}
+
 type SQLStore struct {
 	*sqlBase
 	sqlDecoder
@@ -405,8 +420,11 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, packageReg
 		schema:          newSqlSchema(schemaOptions...),
 	}
 
+	// create sql store object registry
+	objectRegistry := &sqlStoreObjectRegistry{}
+
 	// create sql store
-	return &SQLStore{
+	store := &SQLStore{
 		sqlBase: base,
 		sqlDecoder: sqlDecoder{
 			sqlBase:         base,
@@ -416,6 +434,7 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, packageReg
 			classes:         map[int64]*sqlDecoderClassData{},
 			enums:           map[int64]any{},
 			selectStmts:     map[*sqlTable]*sql.Stmt{},
+			objectRegistry:  objectRegistry,
 		},
 		sqlEncoder: sqlEncoder{
 			sqlBase:        base,
@@ -424,11 +443,18 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, packageReg
 			packageIDs:     map[EPackage]int64{},
 			objectIDs:      map[EObject]int64{},
 			enumLiteralIDs: map[string]int64{},
+			objectRegistry: objectRegistry,
 		},
 		errorHandler: errorHandler,
 		singleStmts:  map[*sqlColumn]*sqlSingleStmts{},
 		manyStmts:    map[*sqlTable]*sqlManyStmts{},
-	}, nil
+	}
+
+	// set object registry store
+	objectRegistry.store = store
+
+	//
+	return store, nil
 }
 
 func (s *SQLStore) Close() error {
@@ -465,6 +491,14 @@ func (d *SQLStore) decodeFeatureValue(featureData *sqlFeatureSchema, value any) 
 		eObject.SetEStore(d)
 	}
 	return decoded, err
+}
+
+func (d *SQLStore) encodeFeatureValue(featureData *sqlEncoderFeatureData, value any) (any, error) {
+	endcoded, err := d.sqlEncoder.encodeFeatureValue(featureData, value)
+	if eObject, _ := value.(EStoreEObject); eObject != nil {
+		eObject.SetEStore(d)
+	}
+	return endcoded, err
 }
 
 func (s *SQLStore) getFeatureSchema(object EObject, feature EStructuralFeature) (*sqlFeatureSchema, error) {

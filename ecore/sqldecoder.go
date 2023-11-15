@@ -21,6 +21,7 @@ type sqlDecoder struct {
 	*sqlBase
 	selectStmts     map[*sqlTable]*sql.Stmt
 	packageRegistry EPackageRegistry
+	objectRegistry  sqlObjectRegistry
 	packages        map[int64]EPackage
 	objects         map[int64]EObject
 	classes         map[int64]*sqlDecoderClassData
@@ -146,10 +147,9 @@ func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 
 		// create object
 		eObject = classData.eFactory.Create(classData.eClass)
-		// set sql id if created object is an sql object
-		if sqlObject, _ := eObject.(SQLObject); sqlObject != nil {
-			sqlObject.SetSqlID(id)
-		}
+
+		// register in object registry
+		d.objectRegistry.registerObject(eObject, id)
 
 		// register object
 		d.objects[id] = eObject
@@ -406,6 +406,7 @@ func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQL
 			classes:         map[int64]*sqlDecoderClassData{},
 			enums:           map[int64]any{},
 			selectStmts:     map[*sqlTable]*sql.Stmt{},
+			objectRegistry:  &sqlCodecObjectRegistry{},
 		},
 		resource: resource,
 		reader:   r,

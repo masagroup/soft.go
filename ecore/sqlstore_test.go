@@ -1357,3 +1357,59 @@ func TestSQLStore_Move_Begin(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0.5, idx)
 }
+
+func TestSQLStore_ToArray_Primitive(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	// create store
+	dbPath := "testdata/library.datalist.sqlite"
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	assert.Equal(t, []any{"c31", "c32", "c33"}, s.ToArray(mockObject, eFeature))
+}
+
+func TestSQLStore_ToArray_Objects(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+	ePackage.SetEFactoryInstance(newDynamicSQLFactory())
+
+	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eLibraryClass)
+
+	eBookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eBookClass)
+
+	eBooksFeature := eLibraryClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, eBooksFeature)
+
+	// create store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	dbPath := "testdata/library.complex.sqlite"
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
+	mockObject.EXPECT().EClass().Return(eLibraryClass).Once()
+	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
+	a := s.ToArray(mockObject, eBooksFeature)
+	require.Equal(t, 2, len(a))
+	b, _ := a[0].(EObject)
+	require.NotNil(t, b)
+	require.Equal(t, eBookClass, b.EClass())
+}

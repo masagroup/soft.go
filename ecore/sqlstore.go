@@ -162,7 +162,9 @@ func (ss *sqlManyStmts) getSelectAllStmt() (*sql.Stmt, error) {
 		query.WriteString(sqlEscapeIdentifier(column.columnName))
 		query.WriteString(" FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" ORDER BY ")
+		query.WriteString(" WHERE ")
+		query.WriteString(ss.table.keyName())
+		query.WriteString("=? ORDER BY ")
 		query.WriteString(ss.table.keyName())
 		query.WriteString(" ASC, idx ASC")
 		// stmt

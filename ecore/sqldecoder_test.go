@@ -24,7 +24,7 @@ func TestSqlDecoder_DecodeResource(t *testing.T) {
 	require.NoError(t, err)
 	defer r.Close()
 
-	sqlDecoder := NewSQLDecoder(eResource, r, nil)
+	sqlDecoder := NewSQLReaderDecoder(r, eResource, nil)
 	sqlDecoder.DecodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 }
@@ -47,7 +47,7 @@ func TestSqlDecoder_EMaps(t *testing.T) {
 	require.NoError(t, err)
 	defer sqlReader.Close()
 
-	sqlDecoder := NewSQLDecoder(sqlResource, sqlReader, nil)
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, nil)
 	sqlDecoder.DecodeResource()
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 

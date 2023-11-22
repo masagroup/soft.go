@@ -399,12 +399,69 @@ func (e *sqlEncoder) getInsertStmt(table *sqlTable) (stmt *sql.Stmt, err error) 
 
 type SQLEncoder struct {
 	sqlEncoder
-	resource EResource
-	writer   io.Writer
-	driver   string
+	resource   EResource
+	driver     string
+	dbProvider func(driver string) (*sql.DB, error)
+	dbClose    func(db *sql.DB) error
 }
 
-func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQLEncoder {
+func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any) *SQLEncoder {
+	// create a temp file for the database file
+	fileName := filepath.Base(resource.GetURI().Path())
+	dbPath, err := sqlTmpDB(fileName)
+	if err != nil {
+		return nil
+	}
+	return newSQLEncoder(
+		func(driver string) (*sql.DB, error) {
+			return sql.Open(driver, dbPath)
+		},
+		func(db *sql.DB) error {
+			// close db
+			if err := db.Close(); err != nil {
+				return err
+			}
+
+			// open db file
+			dbFile, err := os.Open(dbPath)
+			if err != nil {
+				return err
+			}
+			defer func() {
+				_ = dbFile.Close()
+			}()
+
+			// copy db file content to writer
+			if _, err := io.Copy(w, dbFile); err != nil {
+				return err
+			}
+
+			// close db file
+			if err := dbFile.Close(); err != nil {
+				return err
+			}
+
+			// remove it from fs
+			if err := os.Remove(dbPath); err != nil {
+				return err
+			}
+
+			return nil
+		},
+		resource,
+		options,
+	)
+}
+
+func NewSQLDBEncoder(db *sql.DB, resource EResource, options map[string]any) *SQLEncoder {
+	return newSQLEncoder(
+		func(driver string) (*sql.DB, error) { return db, nil },
+		func(db *sql.DB) error { return db.Close() },
+		resource,
+		options)
+}
+
+func newSQLEncoder(dbProvider func(driver string) (*sql.DB, error), dbClose func(db *sql.DB) error, resource EResource, options map[string]any) *SQLEncoder {
 	// options
 	schemaOptions := []sqlSchemaOption{}
 	driver := "sqlite"
@@ -436,16 +493,17 @@ func NewSQLEncoder(resource EResource, w io.Writer, options map[string]any) *SQL
 			enumLiteralIDs: map[string]int64{},
 			objectRegistry: &sqlCodecObjectRegistry{},
 		},
-		resource: resource,
-		writer:   w,
-		driver:   driver,
+		resource:   resource,
+		driver:     driver,
+		dbProvider: dbProvider,
+		dbClose:    dbClose,
 	}
 }
 
-func (e *SQLEncoder) createDB(dbPath string) (*sql.DB, error) {
+func (e *SQLEncoder) createDB() (*sql.DB, error) {
 
 	// open db
-	db, err := sql.Open(e.driver, dbPath)
+	db, err := e.dbProvider(e.driver)
 	if err != nil {
 		return nil, err
 	}
@@ -484,16 +542,9 @@ func (e *SQLEncoder) createDB(dbPath string) (*sql.DB, error) {
 }
 
 func (e *SQLEncoder) EncodeResource() {
-	// create a temp file for the database file
-	fileName := filepath.Base(e.resource.GetURI().Path())
-	dbPath, err := sqlTmpDB(fileName)
-	if err != nil {
-		e.addError(err)
-		return
-	}
-
 	// create db
-	e.db, err = e.createDB(dbPath)
+	var err error
+	e.db, err = e.createDB()
 	if err != nil {
 		e.addError(err)
 		return
@@ -512,35 +563,7 @@ func (e *SQLEncoder) EncodeResource() {
 	}
 
 	// close db
-	if err := e.db.Close(); err != nil {
-		e.addError(err)
-		return
-	}
-
-	// open db file
-	dbFile, err := os.Open(dbPath)
-	if err != nil {
-		e.addError(err)
-		return
-	}
-	defer func() {
-		_ = dbFile.Close()
-	}()
-
-	// copy db file content to writer
-	if _, err := io.Copy(e.writer, dbFile); err != nil {
-		e.addError(err)
-		return
-	}
-
-	// close db file
-	if err := dbFile.Close(); err != nil {
-		e.addError(err)
-		return
-	}
-
-	// remove it from fs
-	if err := os.Remove(dbPath); err != nil {
+	if err := e.dbClose(e.db); err != nil {
 		e.addError(err)
 		return
 	}

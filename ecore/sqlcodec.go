@@ -41,10 +41,10 @@ func sqlTmpDB(prefix string) (string, error) {
 }
 
 func (d *SQLCodec) NewEncoder(resource EResource, w io.Writer, options map[string]any) EEncoder {
-	return NewSQLEncoder(resource, w, options)
+	return NewSQLWriterEncoder(w, resource, options)
 }
 func (d *SQLCodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EDecoder {
-	return NewSQLDecoder(resource, r, options)
+	return NewSQLReaderDecoder(r, resource, options)
 }
 
 type sqlFeatureKind int

@@ -364,12 +364,50 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 
 type SQLDecoder struct {
 	sqlDecoder
-	resource EResource
-	reader   io.Reader
-	driver   string
+	resource   EResource
+	dbProvider func(driver string) (*sql.DB, error)
+	driver     string
 }
 
-func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQLDecoder {
+func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any) *SQLDecoder {
+	return newSQLDecoder(
+		func(driver string) (*sql.DB, error) {
+			fileName := filepath.Base(resource.GetURI().Path())
+			dbPath, err := sqlTmpDB(fileName)
+			if err != nil {
+				return nil, err
+			}
+
+			dbFile, err := os.Create(dbPath)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = io.Copy(dbFile, r)
+			if err != nil {
+				dbFile.Close()
+				return nil, err
+			}
+			dbFile.Close()
+
+			return sql.Open(driver, dbPath)
+
+		},
+		resource,
+		options)
+}
+
+func NewSQLDBDecoder(db *sql.DB, resource EResource, options map[string]any) *SQLDecoder {
+	return newSQLDecoder(
+		func(driver string) (*sql.DB, error) {
+			return db, nil
+		},
+		resource,
+		options,
+	)
+}
+
+func newSQLDecoder(dbProvider func(driver string) (*sql.DB, error), resource EResource, options map[string]any) *SQLDecoder {
 	// options
 	schemaOptions := []sqlSchemaOption{}
 	driver := "sqlite"
@@ -408,37 +446,15 @@ func NewSQLDecoder(resource EResource, r io.Reader, options map[string]any) *SQL
 			selectStmts:     map[*sqlTable]*sql.Stmt{},
 			objectRegistry:  &sqlCodecObjectRegistry{},
 		},
-		resource: resource,
-		reader:   r,
-		driver:   driver,
+		resource:   resource,
+		dbProvider: dbProvider,
+		driver:     driver,
 	}
-}
-
-func (d *SQLDecoder) createDB() (*sql.DB, error) {
-	fileName := filepath.Base(d.resource.GetURI().Path())
-	dbPath, err := sqlTmpDB(fileName)
-	if err != nil {
-		return nil, err
-	}
-
-	dbFile, err := os.Create(dbPath)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = io.Copy(dbFile, d.reader)
-	if err != nil {
-		dbFile.Close()
-		return nil, err
-	}
-	dbFile.Close()
-
-	return sql.Open(d.driver, dbPath)
 }
 
 func (d *SQLDecoder) DecodeResource() {
 	var err error
-	d.db, err = d.createDB()
+	d.db, err = d.dbProvider(d.driver)
 	if err != nil {
 		d.addError(err)
 		return

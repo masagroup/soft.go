@@ -26,7 +26,7 @@ func TestSqlEncoder_Complex(t *testing.T) {
 	// require.NoError(t, err)
 	// defer w.Close()
 	w := &bytes.Buffer{}
-	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
+	sqliteEncoder := NewSQLWriterEncoder(w, eResource, nil)
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
@@ -53,7 +53,7 @@ func TestSqlEncoder_DataList(t *testing.T) {
 	// require.NoError(t, err)
 	// defer w.Close()
 	w := &bytes.Buffer{}
-	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
+	sqliteEncoder := NewSQLWriterEncoder(w, eResource, nil)
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
@@ -105,7 +105,7 @@ func TestSqlEncoder_ComplexWithOwner(t *testing.T) {
 	// require.NoError(t, err)
 	// defer w.Close()
 	w := &bytes.Buffer{}
-	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
+	sqliteEncoder := NewSQLWriterEncoder(w, eResource, nil)
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
@@ -132,7 +132,7 @@ func TestSQLEncoder_Maps(t *testing.T) {
 	// require.NoError(t, err)
 	// defer w.Close()
 	w := &bytes.Buffer{}
-	sqliteEncoder := NewSQLEncoder(eResource, w, nil)
+	sqliteEncoder := NewSQLWriterEncoder(w, eResource, nil)
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 

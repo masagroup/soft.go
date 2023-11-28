@@ -741,7 +741,11 @@ func (d *SQLDecoder) decodeColumnFeatures(table *sqlTable, columnFeatures []*sql
 			if err != nil {
 				return err
 			}
-			eObject.ESet(columnData.feature, columnValue)
+			// column value is nil, if column is not set
+			// so use default value
+			if columnValue != nil {
+				eObject.ESet(columnData.feature, columnValue)
+			}
 		}
 
 		return nil

@@ -351,17 +351,23 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		switch v := value.(type) {
 		case nil:
 			return nil, nil
+		case []byte:
+			return d.decodeFeatureData(featureData, string(v)), nil
 		case string:
-			eFeature := featureData.feature
-			eDataType := eFeature.GetEType().(EDataType)
-			eFactory := eDataType.GetEPackage().GetEFactoryInstance()
-			return eFactory.CreateFromString(eDataType, v), nil
+			return d.decodeFeatureData(featureData, v), nil
 		default:
 			return nil, fmt.Errorf("%v is not a data value", value)
 		}
 	}
 
 	return nil, nil
+}
+
+func (d *sqlDecoder) decodeFeatureData(featureSchema *sqlFeatureSchema, v string) any {
+	eFeature := featureSchema.feature
+	eDataType := eFeature.GetEType().(EDataType)
+	eFactory := eDataType.GetEPackage().GetEFactoryInstance()
+	return eFactory.CreateFromString(eDataType, v)
 }
 
 type SQLDecoder struct {

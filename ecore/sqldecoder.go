@@ -236,64 +236,66 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkBool:
 		switch v := value.(type) {
 		case nil:
-			return false, nil
+			return nil, nil
 		case bool:
 			return v, nil
 		default:
-			return false, fmt.Errorf("%v is not a bool value", v)
+			return nil, fmt.Errorf("%v is not a bool value", v)
 		}
 	case sfkByte:
 		switch v := value.(type) {
 		case nil:
-			return byte(0), nil
+			return nil, nil
 		case byte:
 			return v, nil
 		default:
-			return byte(0), fmt.Errorf("%v is not a bool value", v)
+			return nil, fmt.Errorf("%v is not a bool value", v)
 		}
 	case sfkInt:
 		switch v := value.(type) {
 		case nil:
-			return int(0), nil
+			return nil, nil
 		case int64:
 			return int(v), nil
 		default:
-			return int(0), fmt.Errorf("%v is not a int value", v)
+			return nil, fmt.Errorf("%v is not a int value", v)
 		}
 	case sfkInt64:
 		switch v := value.(type) {
 		case nil:
-			return int64(0), nil
+			return nil, nil
 		case int64:
 			return v, nil
 		default:
-			return int64(0), fmt.Errorf("%v is not a int64 value", v)
+			return nil, fmt.Errorf("%v is not a int64 value", v)
 		}
 	case sfkInt32:
 		switch v := value.(type) {
 		case nil:
-			return int32(0), nil
+			return nil, nil
 		case int64:
 			return int32(v), nil
 		default:
-			return int32(0), fmt.Errorf("%v is not a int32 value", v)
+			return nil, fmt.Errorf("%v is not a int32 value", v)
 		}
 	case sfkInt16:
 		switch v := value.(type) {
 		case nil:
-			return int16(0), nil
+			return nil, nil
 		case int64:
 			return int16(v), nil
 		default:
-			var defaultInt int16
-			return defaultInt, fmt.Errorf("%v is not a int16 value", v)
+			return nil, fmt.Errorf("%v is not a int16 value", v)
 		}
 	case sfkEnum:
-		enumID, isInt := value.(int64)
-		if !isInt {
-			return nil, fmt.Errorf("%v is not a int64 value", value)
+		switch v := value.(type) {
+		case nil:
+			return nil, nil
+		case int64:
+			return d.decodeEnum(v)
+		default:
+			return nil, fmt.Errorf("%v is not a enum value", value)
 		}
-		return d.decodeEnum(enumID)
 	case sfkString:
 		switch v := value.(type) {
 		case nil:
@@ -325,25 +327,25 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 			}
 			return &t, nil
 		default:
-			return "", fmt.Errorf("%v is not a time value", v)
+			return nil, fmt.Errorf("%v is not a time value", v)
 		}
 	case sfkFloat64:
 		switch v := value.(type) {
 		case nil:
-			return float64(0), nil
+			return nil, nil
 		case float64:
 			return v, nil
 		default:
-			return float64(0), fmt.Errorf("%v is not a float64 value", value)
+			return nil, fmt.Errorf("%v is not a float64 value", value)
 		}
 	case sfkFloat32:
 		switch v := value.(type) {
 		case nil:
-			return float32(0), nil
+			return nil, nil
 		case float64:
 			return float32(v), nil
 		default:
-			return float32(0), fmt.Errorf("%v is not a float64 value", value)
+			return nil, fmt.Errorf("%v is not a float64 value", value)
 		}
 	case sfkData, sfkDataList:
 		switch v := value.(type) {
@@ -355,7 +357,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 			eFactory := eDataType.GetEPackage().GetEFactoryInstance()
 			return eFactory.CreateFromString(eDataType, v), nil
 		default:
-			return "", fmt.Errorf("%v is not a data value", value)
+			return nil, fmt.Errorf("%v is not a data value", value)
 		}
 	}
 

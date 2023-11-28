@@ -142,37 +142,38 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
 			columnValues[classTable.key.index] = objectID
 			for itFeature := classData.features.Iterator(); itFeature.Next(); {
 				eFeature := itFeature.Key()
-				featureData := itFeature.Value()
-				if featureColumn := featureData.schema.column; featureColumn != nil {
-					// feature is encoded as a column
-					featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
-					columnValue, err := e.encodeFeatureValue(featureData, featureValue)
-					if err != nil {
-						return -1, err
-					}
-					columnValues[featureColumn.index] = columnValue
-				} else if featureTable := featureData.schema.table; featureTable != nil {
-					// feature is encoded in a external table
-					featureValue := eObject.(EObjectInternal).EGetResolve(eFeature, false)
-					featureList, _ := featureValue.(EList)
-					if featureList == nil {
-						return -1, errors.New("feature value is not a list")
-					}
-					// retrieve insert statement
-					insertStmt, err := e.getInsertStmt(featureTable)
-					if err != nil {
-						return -1, err
-					}
-					// for each list element, insert its value
-					index := 1.0
-					for itList := featureList.Iterator(); itList.HasNext(); {
-						value := itList.Next()
-						converted, err := e.encodeFeatureValue(featureData, value)
+				if eObject.EIsSet(eFeature) {
+					featureData := itFeature.Value()
+					if featureColumn := featureData.schema.column; featureColumn != nil {
+						featureValue := eObject.EGetResolve(eFeature, false)
+						columnValue, err := e.encodeFeatureValue(featureData, featureValue)
 						if err != nil {
 							return -1, err
 						}
-						insertStmts.add(insertStmt, objectID, index, converted)
-						index++
+						columnValues[featureColumn.index] = columnValue
+					} else if featureTable := featureData.schema.table; featureTable != nil {
+						// feature is encoded in a external table
+						featureValue := eObject.EGetResolve(eFeature, false)
+						featureList, _ := featureValue.(EList)
+						if featureList == nil {
+							return -1, errors.New("feature value is not a list")
+						}
+						// retrieve insert statement
+						insertStmt, err := e.getInsertStmt(featureTable)
+						if err != nil {
+							return -1, err
+						}
+						// for each list element, insert its value
+						index := 1.0
+						for itList := featureList.Iterator(); itList.HasNext(); {
+							value := itList.Next()
+							converted, err := e.encodeFeatureValue(featureData, value)
+							if err != nil {
+								return -1, err
+							}
+							insertStmts.add(insertStmt, objectID, index, converted)
+							index++
+						}
 					}
 				}
 			}

@@ -457,7 +457,7 @@ func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any
 func NewSQLDBEncoder(db *sql.DB, resource EResource, options map[string]any) *SQLEncoder {
 	return newSQLEncoder(
 		func(driver string) (*sql.DB, error) { return db, nil },
-		func(db *sql.DB) error { return db.Close() },
+		func(db *sql.DB) error { return nil },
 		resource,
 		options)
 }

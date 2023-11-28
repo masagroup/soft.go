@@ -373,8 +373,9 @@ func (d *sqlDecoder) decodeFeatureData(featureSchema *sqlFeatureSchema, v string
 type SQLDecoder struct {
 	sqlDecoder
 	resource   EResource
-	dbProvider func(driver string) (*sql.DB, error)
 	driver     string
+	dbProvider func(driver string) (*sql.DB, error)
+	dbClose    func(db *sql.DB) error
 }
 
 func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any) *SQLDecoder {
@@ -401,6 +402,9 @@ func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any
 			return sql.Open(driver, dbPath)
 
 		},
+		func(db *sql.DB) error {
+			return db.Close()
+		},
 		resource,
 		options)
 }
@@ -410,12 +414,15 @@ func NewSQLDBDecoder(db *sql.DB, resource EResource, options map[string]any) *SQ
 		func(driver string) (*sql.DB, error) {
 			return db, nil
 		},
+		func(db *sql.DB) error {
+			return nil
+		},
 		resource,
 		options,
 	)
 }
 
-func newSQLDecoder(dbProvider func(driver string) (*sql.DB, error), resource EResource, options map[string]any) *SQLDecoder {
+func newSQLDecoder(dbProvider func(driver string) (*sql.DB, error), dbClose func(db *sql.DB) error, resource EResource, options map[string]any) *SQLDecoder {
 	// options
 	schemaOptions := []sqlSchemaOption{}
 	driver := "sqlite"
@@ -456,6 +463,7 @@ func newSQLDecoder(dbProvider func(driver string) (*sql.DB, error), resource ERe
 		},
 		resource:   resource,
 		dbProvider: dbProvider,
+		dbClose:    dbClose,
 		driver:     driver,
 	}
 }
@@ -467,7 +475,7 @@ func (d *SQLDecoder) DecodeResource() {
 		d.addError(err)
 		return
 	}
-	defer d.db.Close()
+	defer d.dbClose(d.db)
 
 	if err := d.decodeVersion(); err != nil {
 		d.addError(err)

@@ -355,17 +355,12 @@ type SQLStore struct {
 	manyStmts    map[*sqlTable]*sqlManyStmts
 }
 
-func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, packageRegistry EPackageRegistry, options map[string]any) (*SQLStore, error) {
+func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegistry EPackageRegistry, options map[string]any) (*SQLStore, error) {
 	// options
 	schemaOptions := []sqlSchemaOption{withCreateIfNotExists(true)}
-	driver := "sqlite"
 	idAttributeName := ""
 	errorHandler := func(error) {}
 	if options != nil {
-		if d, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
-			driver = d.(string)
-		}
-
 		idAttributeName, _ = options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string)
 		if idManager != nil && len(idAttributeName) > 0 {
 			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
@@ -376,18 +371,12 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, packageReg
 		}
 	}
 
-	// Open db
-	db, err := sql.Open(driver, dbPath)
-	if err != nil {
-		return nil, err
-	}
-
 	// properties
 	propertiesQuery := `
 	PRAGMA synchronous = NORMAL;
 	PRAGMA journal_mode = WAL;
 	`
-	_, err = db.Exec(propertiesQuery)
+	_, err := db.Exec(propertiesQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -457,8 +446,8 @@ func NewSQLStore(dbPath string, uri *URI, idManager EObjectIDManager, packageReg
 	return store, nil
 }
 
-func (s *SQLStore) Close() error {
-	return s.db.Close()
+func (s *SQLStore) GetDB() *sql.DB {
+	return s.db
 }
 
 func (s *SQLStore) getSingleStmts(column *sqlColumn) *sqlSingleStmts {

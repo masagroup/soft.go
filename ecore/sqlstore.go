@@ -381,23 +381,18 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 		return nil, err
 	}
 
-	// version
-	if row := db.QueryRow("PRAGMA user_version;"); row == nil {
-		// create version
+	row := db.QueryRow("PRAGMA user_version;")
+	var v int
+	if err := row.Scan(&v); err == sql.ErrNoRows {
 		versionQuery := fmt.Sprintf(`PRAGMA user_version = %v`, sqlCodecVersion)
 		_, err = db.Exec(versionQuery)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		// retrieve version
-		var v int
-		if err := row.Scan(&v); err != nil {
-			return nil, err
-		}
-		if v != sqlCodecVersion {
-			return nil, fmt.Errorf("history version %v is not supported", v)
-		}
+		v = sqlCodecVersion
+	}
+	if v != sqlCodecVersion {
+		return nil, fmt.Errorf("history version %v is not supported", v)
 	}
 
 	// create sql base

@@ -69,6 +69,10 @@ func (o *DynamicEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	o.properties[dynamicFeatureID] = nil
 }
 
+func (o *DynamicEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
+	return o.properties[dynamicFeatureID] != nil
+}
+
 func (o *DynamicEObjectImpl) EFeatureID(feature EStructuralFeature) int {
 	return o.EClass().GetFeatureID(feature)
 }

@@ -21,7 +21,7 @@ func TestMockEObjectProperties_EDynamicGet(t *testing.T) {
 	obj := NewMockEObject(t)
 	m := NewMockRun(t, 1)
 	o.EXPECT().EDynamicGet(1).Return(obj).Run(func(dynamicFeatureID int) { m.Run(dynamicFeatureID) }).Once()
-	o.EXPECT().EDynamicGet(1).Call.Return(func(dynamicFeatureID int) any {
+	o.EXPECT().EDynamicGet(1).RunAndReturn(func(dynamicFeatureID int) any {
 		return obj
 	}).Once()
 	assert.Equal(t, obj, o.EDynamicGet(1))
@@ -42,4 +42,15 @@ func TestMockEObjectProperties_EDynamicUnset(t *testing.T) {
 	o.EXPECT().EDynamicUnset(1).Return().Run(func(dynamicFeatureID int) { m.Run(dynamicFeatureID) }).Once()
 	o.EDynamicUnset(1)
 	mock.AssertExpectationsForObjects(t, o)
+}
+
+func TestMockEObjectProperties_EDynamicIsSet(t *testing.T) {
+	o := NewMockEObjectProperties(t)
+	m := NewMockRun(t, 1)
+	o.EXPECT().EDynamicIsSet(1).Return(true).Run(func(dynamicFeatureID int) { m.Run(dynamicFeatureID) }).Once()
+	o.EXPECT().EDynamicIsSet(1).RunAndReturn(func(dynamicFeatureID int) bool {
+		return true
+	}).Once()
+	assert.True(t, o.EDynamicIsSet(1))
+	assert.True(t, o.EDynamicIsSet(1))
 }

@@ -35,6 +35,14 @@ func (o *EStoreEObjectImpl) GetEStore() EStore {
 	return o.store
 }
 
+func (o *EStoreEObjectImpl) SetCaching(isCaching bool) {
+	o.isCaching = isCaching
+}
+
+func (o *EStoreEObjectImpl) IsCaching() bool {
+	return o.isCaching
+}
+
 func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 	result := o.getProperties()[dynamicFeatureID]
 	if result == nil {

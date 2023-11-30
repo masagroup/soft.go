@@ -10,6 +10,10 @@
 package ecore
 
 type EStore interface {
+	AddRoot(object EObject)
+
+	RemoveRoot(object EObject)
+
 	Get(object EObject, feature EStructuralFeature, index int) any
 
 	Set(object EObject, feature EStructuralFeature, index int, value any) any

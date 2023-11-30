@@ -57,6 +57,35 @@ func (_c *MockEStore_Add_Call) Return() *MockEStore_Add_Call {
 	return _c
 }
 
+// Remove provides a mock function with given fields: object, feature, index
+func (_m *MockEStore) AddRoot(object EObject) {
+	_m.Called(object)
+}
+
+// MockEStore_AddRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddRoot'
+type MockEStore_AddRoot_Call struct {
+	*mock.Call
+}
+
+// Remove is a helper method to define mock.On call
+//   - object EObject
+func (_e *MockEStore_Expecter) AddRoot(object interface{}) *MockEStore_AddRoot_Call {
+	return &MockEStore_AddRoot_Call{Call: _e.mock.On("AddRoot", object)}
+}
+
+func (_c *MockEStore_AddRoot_Call) Run(run func(object EObject)) *MockEStore_AddRoot_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(EObject))
+	})
+	return _c
+}
+
+func (_c *MockEStore_AddRoot_Call) Return(_a0 interface{}) *MockEStore_AddRoot_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+
 // Clear provides a mock function with given fields: object, feature
 func (_m *MockEStore) Clear(object EObject, feature EStructuralFeature) {
 	_m.Called(object, feature)
@@ -519,6 +548,36 @@ func (_c *MockEStore_Remove_Call) Return(_a0 interface{}) *MockEStore_Remove_Cal
 	_c.Call.Return(_a0)
 	return _c
 }
+
+
+// Remove provides a mock function with given fields: object, feature, index
+func (_m *MockEStore) RemoveRoot(object EObject) {
+	_m.Called(object)
+}
+
+// MockEStore_RemoveRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Remove'
+type MockEStore_RemoveRoot_Call struct {
+	*mock.Call
+}
+
+// Remove is a helper method to define mock.On call
+//   - object EObject
+func (_e *MockEStore_Expecter) RemoveRoot(object interface{}) *MockEStore_RemoveRoot_Call {
+	return &MockEStore_RemoveRoot_Call{Call: _e.mock.On("RemoveRoot", object)}
+}
+
+func (_c *MockEStore_RemoveRoot_Call) Run(run func(object EObject)) *MockEStore_RemoveRoot_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(EObject))
+	})
+	return _c
+}
+
+func (_c *MockEStore_RemoveRoot_Call) Return(_a0 interface{}) *MockEStore_RemoveRoot_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
 
 // Set provides a mock function with given fields: object, feature, index, value
 func (_m *MockEStore) Set(object EObject, feature EStructuralFeature, index int, value interface{}) interface{} {

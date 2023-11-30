@@ -16,6 +16,7 @@ type sqlSingleStmts struct {
 	column     *sqlColumn
 	updateStmt *stmtOrError
 	selectStmt *stmtOrError
+	removeStmt *stmtOrError
 }
 
 func (ss *sqlSingleStmts) getUpdateStmt() (*sql.Stmt, error) {
@@ -54,6 +55,23 @@ func (ss *sqlSingleStmts) getSelectStmt() (*sql.Stmt, error) {
 		ss.selectStmt.stmt, ss.selectStmt.err = ss.db.Prepare(query.String())
 	}
 	return ss.selectStmt.stmt, ss.selectStmt.err
+}
+
+func (ss *sqlSingleStmts) getRemoveStmt() (*sql.Stmt, error) {
+	if ss.removeStmt == nil {
+		// query
+		table := ss.column.table
+		var query strings.Builder
+		query.WriteString("DELETE FROM ")
+		query.WriteString(sqlEscapeIdentifier(table.name))
+		query.WriteString(" WHERE ")
+		query.WriteString(sqlEscapeIdentifier(ss.column.columnName))
+		query.WriteString("=?")
+		// stmt
+		ss.removeStmt = &stmtOrError{}
+		ss.removeStmt.stmt, ss.removeStmt.err = ss.db.Prepare(query.String())
+	}
+	return ss.removeStmt.stmt, ss.removeStmt.err
 }
 
 type sqlManyStmts struct {
@@ -381,9 +399,9 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 		return nil, err
 	}
 
-	row := db.QueryRow("PRAGMA user_version;")
 	var v int
-	if err := row.Scan(&v); err == sql.ErrNoRows {
+	row := db.QueryRow("PRAGMA user_version;")
+	if err := row.Scan(&v); err == sql.ErrNoRows || v == 0 {
 		versionQuery := fmt.Sprintf(`PRAGMA user_version = %v`, sqlCodecVersion)
 		_, err = db.Exec(versionQuery)
 		if err != nil {
@@ -826,6 +844,29 @@ func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value
 	return s.indexOf(object, feature, value, func(sms *sqlManyStmts) (*sql.Stmt, error) {
 		return sms.getLastIndexOfStmt()
 	})
+}
+
+// AddRoot implements EStore.
+func (s *SQLStore) AddRoot(object EObject) {
+	if err := s.encodeContent(object); err != nil {
+		s.errorHandler(err)
+	}
+}
+
+// RemoveRoot implements EStore.
+func (s *SQLStore) RemoveRoot(object EObject) {
+	sqlObject := object.(SQLObject)
+	sqlID := sqlObject.GetSqlID()
+	stmt, err := s.getSingleStmts(s.schema.contentsTable.key).getRemoveStmt()
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	_, err = stmt.Exec(sqlID)
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
 }
 
 func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, value any) {

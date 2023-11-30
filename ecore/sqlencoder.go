@@ -516,29 +516,6 @@ func (e *SQLEncoder) createDB() (*sql.DB, error) {
 		return nil, err
 	}
 
-	// properties
-	propertiesQuery := `
-	PRAGMA synchronous = NORMAL;
-	PRAGMA journal_mode = WAL;
-	`
-	_, err = db.Exec(propertiesQuery)
-	if err != nil {
-		return nil, err
-	}
-
-	// tables
-	for _, table := range []*sqlTable{
-		e.schema.packagesTable,
-		e.schema.classesTable,
-		e.schema.objectsTable,
-		e.schema.contentsTable,
-		e.schema.enumsTable,
-	} {
-		if _, err := db.Exec(table.createQuery()); err != nil {
-			return nil, err
-		}
-	}
-
 	return db, nil
 }
 
@@ -553,6 +530,16 @@ func (e *SQLEncoder) EncodeResource() {
 	defer func() {
 		_ = e.db.Close()
 	}()
+
+	if err := e.encodeProperties(); err != nil {
+		e.addError(err)
+		return
+	}
+
+	if err := e.encodeSchema(); err != nil {
+		e.addError(err)
+		return
+	}
 
 	// encode contents into db
 	if contents := e.resource.GetContents(); !contents.Empty() {

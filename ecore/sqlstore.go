@@ -389,16 +389,7 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 		}
 	}
 
-	// properties
-	propertiesQuery := `
-	PRAGMA synchronous = NORMAL;
-	PRAGMA journal_mode = WAL;
-	`
-	_, err := db.Exec(propertiesQuery)
-	if err != nil {
-		return nil, err
-	}
-
+	// encode version
 	var v int
 	row := db.QueryRow("PRAGMA user_version;")
 	if err := row.Scan(&v); err == sql.ErrNoRows || v == 0 {
@@ -420,6 +411,16 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 		idAttributeName: idAttributeName,
 		idManager:       idManager,
 		schema:          newSqlSchema(schemaOptions...),
+	}
+
+	// encode properties
+	if err := base.encodeProperties(); err != nil {
+		return nil, err
+	}
+
+	// encode schema
+	if err := base.encodeSchema(); err != nil {
+		return nil, err
 	}
 
 	// create sql store object registry
@@ -455,7 +456,6 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 	// set object registry store
 	objectRegistry.store = store
 
-	//
 	return store, nil
 }
 

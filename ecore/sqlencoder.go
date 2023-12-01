@@ -127,6 +127,12 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
 			return -1, err
 		}
 
+		// register object in registry
+		e.objectRegistry.registerObject(eObject, objectID)
+
+		// register object id
+		e.objectIDs[eObject] = objectID
+
 		// collection of statements
 		// used to avoid nested transactions
 		insertStmts := newSqlStmts(e.db)
@@ -191,11 +197,6 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
 			return -1, err
 		}
 
-		// register object in registry
-		e.objectRegistry.registerObject(eObject, objectID)
-
-		// register object id
-		e.objectIDs[eObject] = objectID
 	}
 	return objectID, nil
 }

@@ -113,7 +113,7 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
 		// insert object in table
 		args := []any{classData.id}
 		if idManager := e.idManager; idManager != nil && len(e.idAttributeName) > 0 {
-			args = append(args, idManager.GetID(eObject))
+			args = append(args, fmt.Sprintf("%v", idManager.GetID(eObject)))
 		}
 
 		sqlResult, err := insertObjectStmt.Exec(args...)

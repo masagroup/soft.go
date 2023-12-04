@@ -134,9 +134,17 @@ func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 		// query class infos
 		row := stmt.QueryRow(id)
 		var classID int64
-		var objectID int64
-		if err := row.Scan(&objectID, &classID); err != nil {
-			return nil, err
+		var sqlID int64
+		var objectID string
+		isObjectID := len(d.schema.idAttributeName) > 0
+		if isObjectID {
+			if err := row.Scan(&sqlID, &classID, &objectID); err != nil {
+				return nil, err
+			}
+		} else {
+			if err := row.Scan(&sqlID, &classID); err != nil {
+				return nil, err
+			}
 		}
 
 		// retrieve class data
@@ -147,6 +155,11 @@ func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 
 		// create object
 		eObject = classData.eFactory.Create(classData.eClass)
+
+		// register its id
+		if isObjectID && d.idManager != nil {
+			d.idManager.SetID(eObject, objectID)
+		}
 
 		// register in object registry
 		d.objectRegistry.registerObject(eObject, id)

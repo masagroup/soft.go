@@ -548,9 +548,21 @@ func (s *SQLStore) getFeatureData(object EObject, feature EStructuralFeature) (*
 	return featureData, nil
 }
 
-func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
-	sqlObject := object.(SQLObject)
+func (s *SQLStore) getSqlID(eObject EObject) (int64, error) {
+	sqlObject := eObject.(SQLObject)
 	sqlID := sqlObject.GetSqlID()
+	if sqlID == 0 {
+		return s.encodeObject(eObject)
+	}
+	return sqlID, nil
+}
+
+func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
+	sqlID, err := s.getSqlID(object)
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
 	featureSchema, err := s.getFeatureSchema(object, feature)
 	if err != nil {
 		s.errorHandler(err)
@@ -591,15 +603,6 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 	}
 
 	return value
-}
-
-func (s *SQLStore) getSqlID(eObject EObject) (int64, error) {
-	sqlObject := eObject.(SQLObject)
-	sqlID := sqlObject.GetSqlID()
-	if sqlID == 0 {
-		return s.encodeObject(eObject)
-	}
-	return sqlID, nil
 }
 
 func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {

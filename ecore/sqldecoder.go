@@ -19,7 +19,7 @@ type sqlDecoderClassData struct {
 
 type sqlDecoder struct {
 	*sqlBase
-	selectStmts     map[*sqlTable]*sql.Stmt
+	selectStmts     map[*sqlTable]*sqlSafeStmt
 	packageRegistry EPackageRegistry
 	objectRegistry  sqlObjectRegistry
 	packages        map[int64]EPackage
@@ -35,7 +35,7 @@ func (d *sqlDecoder) resolveURI(uri *URI) *URI {
 	return uri
 }
 
-func (s *sqlDecoder) getSelectStmt(table *sqlTable, query func() string) (stmt *sql.Stmt, err error) {
+func (s *sqlDecoder) getSelectStmt(table *sqlTable, query func() string) (stmt *sqlSafeStmt, err error) {
 	stmt = s.selectStmts[table]
 	if stmt == nil {
 		stmt, err = s.db.Prepare(query())
@@ -471,7 +471,7 @@ func newSQLDecoder(dbProvider func(driver string) (*sql.DB, error), dbClose func
 			objects:         map[int64]EObject{},
 			classes:         map[int64]*sqlDecoderClassData{},
 			enums:           map[int64]any{},
-			selectStmts:     map[*sqlTable]*sql.Stmt{},
+			selectStmts:     map[*sqlTable]*sqlSafeStmt{},
 			objectRegistry:  &sqlCodecObjectRegistry{},
 		},
 		resource:   resource,
@@ -482,13 +482,16 @@ func newSQLDecoder(dbProvider func(driver string) (*sql.DB, error), dbClose func
 }
 
 func (d *SQLDecoder) DecodeResource() {
-	var err error
-	d.db, err = d.dbProvider(d.driver)
+	// retrieve db
+	db, err := d.dbProvider(d.driver)
 	if err != nil {
 		d.addError(err)
 		return
 	}
-	defer d.dbClose(d.db)
+	defer d.dbClose(db)
+
+	// create safe db
+	d.db = newSQLSafeDB(db)
 
 	if err := d.decodeVersion(); err != nil {
 		d.addError(err)

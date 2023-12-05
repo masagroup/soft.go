@@ -13,20 +13,20 @@ import (
 )
 
 type sqlStmt struct {
-	stmt *sql.Stmt
+	stmt *sqlSafeStmt
 	args []any
 }
 
 type sqlStmts struct {
-	db    *sql.DB
+	db    *sqlSafeDB
 	stmts []*sqlStmt
 }
 
-func newSqlStmts(db *sql.DB) *sqlStmts {
+func newSqlStmts(db *sqlSafeDB) *sqlStmts {
 	return &sqlStmts{db: db}
 }
 
-func (s *sqlStmts) add(stmt *sql.Stmt, args ...any) {
+func (s *sqlStmts) add(stmt *sqlSafeStmt, args ...any) {
 	s.stmts = append(s.stmts, &sqlStmt{stmt: stmt, args: args})
 }
 
@@ -35,7 +35,7 @@ func (s *sqlStmts) exec() error {
 	if err != nil {
 		return nil
 	}
-	txStmts := map[*sql.Stmt]*sql.Stmt{}
+	txStmts := map[*sqlSafeStmt]*sqlSafeStmt{}
 	for _, t := range s.stmts {
 		stmt := t.stmt
 		txStmt := txStmts[stmt]
@@ -68,7 +68,7 @@ type sqlEncoderClassData struct {
 type sqlEncoder struct {
 	*sqlBase
 	objectRegistry sqlObjectRegistry
-	insertStmts    map[*sqlTable]*sql.Stmt
+	insertStmts    map[*sqlTable]*sqlSafeStmt
 	classDataMap   map[EClass]*sqlEncoderClassData
 	packageIDs     map[EPackage]int64
 	objectIDs      map[EObject]int64
@@ -390,7 +390,7 @@ func (e *sqlEncoder) encodePackage(ePackage EPackage) (int64, error) {
 	return packageID, nil
 }
 
-func (e *sqlEncoder) getInsertStmt(table *sqlTable) (stmt *sql.Stmt, err error) {
+func (e *sqlEncoder) getInsertStmt(table *sqlTable) (stmt *sqlSafeStmt, err error) {
 	stmt = e.insertStmts[table]
 	if stmt == nil {
 		stmt, err = e.db.Prepare(table.insertQuery())
@@ -488,7 +488,7 @@ func newSQLEncoder(dbProvider func(driver string) (*sql.DB, error), dbClose func
 				idAttributeName: idAttributeName,
 				schema:          newSqlSchema(schemaOptions...),
 			},
-			insertStmts:    map[*sqlTable]*sql.Stmt{},
+			insertStmts:    map[*sqlTable]*sqlSafeStmt{},
 			classDataMap:   map[EClass]*sqlEncoderClassData{},
 			packageIDs:     map[EPackage]int64{},
 			objectIDs:      map[EObject]int64{},
@@ -522,15 +522,17 @@ func (e *SQLEncoder) createDB() (*sql.DB, error) {
 
 func (e *SQLEncoder) EncodeResource() {
 	// create db
-	var err error
-	e.db, err = e.createDB()
+	db, err := e.createDB()
 	if err != nil {
 		e.addError(err)
 		return
 	}
 	defer func() {
-		_ = e.db.Close()
+		_ = db.Close()
 	}()
+
+	// create safe db
+	e.db = newSQLSafeDB(db)
 
 	if err := e.encodeProperties(); err != nil {
 		e.addError(err)
@@ -552,7 +554,7 @@ func (e *SQLEncoder) EncodeResource() {
 	}
 
 	// close db
-	if err := e.dbClose(e.db); err != nil {
+	if err := e.dbClose(db); err != nil {
 		e.addError(err)
 		return
 	}

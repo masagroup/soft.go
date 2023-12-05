@@ -7,19 +7,19 @@ import (
 )
 
 type stmtOrError struct {
-	stmt *sql.Stmt
+	stmt *sqlSafeStmt
 	err  error
 }
 
 type sqlSingleStmts struct {
-	db         *sql.DB
+	db         *sqlSafeDB
 	column     *sqlColumn
 	updateStmt *stmtOrError
 	selectStmt *stmtOrError
 	removeStmt *stmtOrError
 }
 
-func (ss *sqlSingleStmts) getUpdateStmt() (*sql.Stmt, error) {
+func (ss *sqlSingleStmts) getUpdateStmt() (*sqlSafeStmt, error) {
 	if ss.updateStmt == nil {
 		// query
 		table := ss.column.table
@@ -38,7 +38,7 @@ func (ss *sqlSingleStmts) getUpdateStmt() (*sql.Stmt, error) {
 	return ss.updateStmt.stmt, ss.updateStmt.err
 }
 
-func (ss *sqlSingleStmts) getSelectStmt() (*sql.Stmt, error) {
+func (ss *sqlSingleStmts) getSelectStmt() (*sqlSafeStmt, error) {
 	if ss.selectStmt == nil {
 		table := ss.column.table
 		// query
@@ -57,7 +57,7 @@ func (ss *sqlSingleStmts) getSelectStmt() (*sql.Stmt, error) {
 	return ss.selectStmt.stmt, ss.selectStmt.err
 }
 
-func (ss *sqlSingleStmts) getRemoveStmt() (*sql.Stmt, error) {
+func (ss *sqlSingleStmts) getRemoveStmt() (*sqlSafeStmt, error) {
 	if ss.removeStmt == nil {
 		// query
 		table := ss.column.table
@@ -75,7 +75,7 @@ func (ss *sqlSingleStmts) getRemoveStmt() (*sql.Stmt, error) {
 }
 
 type sqlManyStmts struct {
-	db              *sql.DB
+	db              *sqlSafeDB
 	table           *sqlTable
 	updateValueStmt *stmtOrError
 	updateIdxStmt   *stmtOrError
@@ -93,7 +93,7 @@ type sqlManyStmts struct {
 	insertStmt      *stmtOrError
 }
 
-func (ss *sqlManyStmts) getInsertStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getInsertStmt() (*sqlSafeStmt, error) {
 	if ss.insertStmt == nil {
 		// query
 		query := ss.table.insertQuery()
@@ -104,7 +104,7 @@ func (ss *sqlManyStmts) getInsertStmt() (*sql.Stmt, error) {
 	return ss.insertStmt.stmt, ss.insertStmt.err
 }
 
-func (ss *sqlManyStmts) getUpdateValueStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getUpdateValueStmt() (*sqlSafeStmt, error) {
 	if ss.updateValueStmt == nil {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		var query strings.Builder
@@ -127,7 +127,7 @@ func (ss *sqlManyStmts) getUpdateValueStmt() (*sql.Stmt, error) {
 	return ss.updateValueStmt.stmt, ss.updateValueStmt.err
 }
 
-func (ss *sqlManyStmts) getUpdateIdxStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getUpdateIdxStmt() (*sqlSafeStmt, error) {
 	if ss.updateIdxStmt == nil {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		var query strings.Builder
@@ -150,7 +150,7 @@ func (ss *sqlManyStmts) getUpdateIdxStmt() (*sql.Stmt, error) {
 	return ss.updateIdxStmt.stmt, ss.updateIdxStmt.err
 }
 
-func (ss *sqlManyStmts) getSelectOneStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getSelectOneStmt() (*sqlSafeStmt, error) {
 	if ss.selectOneStmt == nil {
 		// query
 		column := ss.table.columns[len(ss.table.columns)-1]
@@ -171,7 +171,7 @@ func (ss *sqlManyStmts) getSelectOneStmt() (*sql.Stmt, error) {
 	return ss.selectOneStmt.stmt, ss.selectOneStmt.err
 }
 
-func (ss *sqlManyStmts) getSelectAllStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getSelectAllStmt() (*sqlSafeStmt, error) {
 	if ss.selectAllStmt == nil {
 		// query
 		column := ss.table.columns[len(ss.table.columns)-1]
@@ -192,7 +192,7 @@ func (ss *sqlManyStmts) getSelectAllStmt() (*sql.Stmt, error) {
 	return ss.selectAllStmt.stmt, ss.selectAllStmt.err
 }
 
-func (ss *sqlManyStmts) getExistsStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getExistsStmt() (*sqlSafeStmt, error) {
 	if ss.existsStmt == nil {
 		// query
 		var query strings.Builder
@@ -208,7 +208,7 @@ func (ss *sqlManyStmts) getExistsStmt() (*sql.Stmt, error) {
 	return ss.existsStmt.stmt, ss.existsStmt.err
 }
 
-func (ss *sqlManyStmts) getClearStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getClearStmt() (*sqlSafeStmt, error) {
 	if ss.clearStmt == nil {
 		// query
 		var query strings.Builder
@@ -224,7 +224,7 @@ func (ss *sqlManyStmts) getClearStmt() (*sql.Stmt, error) {
 	return ss.clearStmt.stmt, ss.clearStmt.err
 }
 
-func (ss *sqlManyStmts) getCountStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getCountStmt() (*sqlSafeStmt, error) {
 	if ss.countStmt == nil {
 		// query
 		var query strings.Builder
@@ -240,7 +240,7 @@ func (ss *sqlManyStmts) getCountStmt() (*sql.Stmt, error) {
 	return ss.countStmt.stmt, ss.countStmt.err
 }
 
-func (ss *sqlManyStmts) getContainsStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getContainsStmt() (*sqlSafeStmt, error) {
 	if ss.containsStmt == nil {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		// query
@@ -259,7 +259,7 @@ func (ss *sqlManyStmts) getContainsStmt() (*sql.Stmt, error) {
 	return ss.containsStmt.stmt, ss.containsStmt.err
 }
 
-func (ss *sqlManyStmts) getIndexOfStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getIndexOfStmt() (*sqlSafeStmt, error) {
 	if ss.indexOfStmt == nil {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		// query
@@ -277,7 +277,7 @@ func (ss *sqlManyStmts) getIndexOfStmt() (*sql.Stmt, error) {
 	return ss.indexOfStmt.stmt, ss.indexOfStmt.err
 }
 
-func (ss *sqlManyStmts) getLastIndexOfStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getLastIndexOfStmt() (*sqlSafeStmt, error) {
 	if ss.lastIndexOfStmt == nil {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		// query
@@ -295,7 +295,7 @@ func (ss *sqlManyStmts) getLastIndexOfStmt() (*sql.Stmt, error) {
 	return ss.lastIndexOfStmt.stmt, ss.lastIndexOfStmt.err
 }
 
-func (ss *sqlManyStmts) getIdxToListIndexStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getIdxToListIndexStmt() (*sqlSafeStmt, error) {
 	if ss.idxToListIndex == nil {
 		// query
 		var query strings.Builder
@@ -311,7 +311,7 @@ func (ss *sqlManyStmts) getIdxToListIndexStmt() (*sql.Stmt, error) {
 	return ss.idxToListIndex.stmt, ss.idxToListIndex.err
 }
 
-func (ss *sqlManyStmts) getListIndexToIdxStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getListIndexToIdxStmt() (*sqlSafeStmt, error) {
 	if ss.listIndexToIdx == nil {
 		// query
 		var query strings.Builder
@@ -327,7 +327,7 @@ func (ss *sqlManyStmts) getListIndexToIdxStmt() (*sql.Stmt, error) {
 	return ss.listIndexToIdx.stmt, ss.listIndexToIdx.err
 }
 
-func (ss *sqlManyStmts) getRemoveStmt() (*sql.Stmt, error) {
+func (ss *sqlManyStmts) getRemoveStmt() (*sqlSafeStmt, error) {
 	if ss.removeStmt == nil {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		var query strings.Builder
@@ -406,7 +406,7 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 
 	// create sql base
 	base := &sqlBase{
-		db:              db,
+		db:              newSQLSafeDB(db),
 		uri:             uri,
 		idAttributeName: idAttributeName,
 		idManager:       idManager,
@@ -436,12 +436,12 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 			objects:         map[int64]EObject{},
 			classes:         map[int64]*sqlDecoderClassData{},
 			enums:           map[int64]any{},
-			selectStmts:     map[*sqlTable]*sql.Stmt{},
+			selectStmts:     map[*sqlTable]*sqlSafeStmt{},
 			objectRegistry:  objectRegistry,
 		},
 		sqlEncoder: sqlEncoder{
 			sqlBase:        base,
-			insertStmts:    map[*sqlTable]*sql.Stmt{},
+			insertStmts:    map[*sqlTable]*sqlSafeStmt{},
 			classDataMap:   map[EClass]*sqlEncoderClassData{},
 			packageIDs:     map[EPackage]int64{},
 			objectIDs:      map[EObject]int64{},
@@ -457,10 +457,6 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 	objectRegistry.store = store
 
 	return store, nil
-}
-
-func (s *SQLStore) GetDB() *sql.DB {
-	return s.db
 }
 
 func (s *SQLStore) getSingleStmts(column *sqlColumn) *sqlSingleStmts {
@@ -822,7 +818,7 @@ func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value an
 	return rowid != 0
 }
 
-func (s *SQLStore) indexOf(object EObject, feature EStructuralFeature, value any, getIndexOfStmt func(*sqlManyStmts) (*sql.Stmt, error)) int {
+func (s *SQLStore) indexOf(object EObject, feature EStructuralFeature, value any, getIndexOfStmt func(*sqlManyStmts) (*sqlSafeStmt, error)) int {
 	sqlID, err := s.getSqlID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -873,13 +869,13 @@ func (s *SQLStore) indexOf(object EObject, feature EStructuralFeature, value any
 }
 
 func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
-	return s.indexOf(object, feature, value, func(sms *sqlManyStmts) (*sql.Stmt, error) {
+	return s.indexOf(object, feature, value, func(sms *sqlManyStmts) (*sqlSafeStmt, error) {
 		return sms.getIndexOfStmt()
 	})
 }
 
 func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {
-	return s.indexOf(object, feature, value, func(sms *sqlManyStmts) (*sql.Stmt, error) {
+	return s.indexOf(object, feature, value, func(sms *sqlManyStmts) (*sqlSafeStmt, error) {
 		return sms.getLastIndexOfStmt()
 	})
 }

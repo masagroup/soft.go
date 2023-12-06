@@ -13,7 +13,23 @@ import (
 	"strconv"
 )
 
+type listCallBacks interface {
+	DidAdd(index int, elem any)
+
+	DidSet(index int, newElem any, oldElem any)
+
+	DidRemove(index int, old any)
+
+	DidClear(oldObjects []any)
+
+	DidMove(newIndex int, movedObject any, oldIndex int)
+
+	DidChange()
+}
+
 type abstractEList interface {
+	listCallBacks
+
 	doGet(index int) any
 
 	doSet(index int, elem any) any
@@ -33,18 +49,6 @@ type abstractEList interface {
 	doRemove(index int) any
 
 	doRemoveRange(fromIndex, toIndex int) []any
-
-	DidAdd(index int, elem any)
-
-	DidSet(index int, newElem any, oldElem any)
-
-	DidRemove(index int, old any)
-
-	DidClear(oldObjects []any)
-
-	DidMove(newIndex int, movedObject any, oldIndex int)
-
-	DidChange()
 }
 
 // basicEList is an array of a dynamic size
@@ -142,8 +146,8 @@ func (list *BasicEList) doAddAll(collection EList) bool {
 	// events
 	for i, element := range data {
 		abstractEList.DidAdd(i, element)
-		abstractEList.DidChange()
 	}
+	abstractEList.DidChange()
 	return len(data) != 0
 }
 

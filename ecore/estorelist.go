@@ -67,6 +67,10 @@ func (list *EStoreList) Initialize(owner EObject, feature EStructuralFeature, st
 	}
 }
 
+func (list *EStoreList) asListCallbacks() listCallBacks {
+	return list.interfaces.(listCallBacks)
+}
+
 func (list *EStoreList) GetOwner() EObject {
 	return list.owner
 }
@@ -159,8 +163,16 @@ func (list *EStoreList) Add(e any) bool {
 }
 
 func (list *EStoreList) AddWithNotification(object any, notifications ENotificationChain) ENotificationChain {
+	// add to store
 	index := list.Size()
 	list.store.Add(list.owner, list.feature, index, object)
+
+	// callbacks
+	listCallbacks := list.asListCallbacks()
+	listCallbacks.DidAdd(index, object)
+	listCallbacks.DidChange()
+
+	// notifications
 	return list.createAndAddNotification(notifications, ADD, nil, object, index)
 }
 
@@ -175,10 +187,17 @@ func (list *EStoreList) Insert(index int, e any) bool {
 	if list.Contains(e) {
 		return false
 	}
-	// add to the store && inversAdd
+
+	// store operation
 	list.store.Add(list.owner, list.feature, index, e)
-	notifications := list.interfaces.(eNotifyingListInternal).inverseAdd(e, nil)
+
+	// callbacks
+	listCallbacks := list.asListCallbacks()
+	listCallbacks.DidAdd(index, e)
+	listCallbacks.DidChange()
+
 	// notifications
+	notifications := list.interfaces.(eNotifyingListInternal).inverseAdd(e, nil)
 	list.createAndDispatchNotification(notifications, ADD, nil, e, index)
 	return true
 }
@@ -191,15 +210,28 @@ func (list *EStoreList) InsertAll(index int, collection EList) bool {
 	if collection.Size() == 0 {
 		return false
 	}
+
 	// add to the store && inverseAdd
-	var i int = index
+	listCallbacks := list.asListCallbacks()
+	i := index
 	var notifications ENotificationChain = NewNotificationChain()
 	var notifyingList eNotifyingListInternal = list.interfaces.(eNotifyingListInternal)
 	for it := collection.Iterator(); it.HasNext(); i++ {
 		element := it.Next()
+
+		// store operation
 		list.store.Add(list.owner, list.feature, i, element)
+
+		// callback
+		listCallbacks.DidAdd(i, element)
+
+		// notifications
 		notifications = notifyingList.inverseAdd(element, notifications)
 	}
+
+	// callbacks
+	listCallbacks.DidChange()
+
 	// notifications
 	list.createAndDispatchNotificationFn(notifications, func() ENotification {
 		if collection.Size() == 1 {
@@ -224,7 +256,16 @@ func (list *EStoreList) Move(oldIndex int, newIndex int) any {
 		newIndex < 0 || newIndex > list.Size() {
 		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(list.Size()))
 	}
+
+	// store
 	oldObject := list.store.Move(list.owner, list.feature, oldIndex, newIndex)
+
+	// callbacks
+	listCallbacks := list.asListCallbacks()
+	listCallbacks.DidMove(newIndex, oldObject, oldIndex)
+	listCallbacks.DidChange()
+
+	// notifications
 	list.createAndDispatchNotification(nil, MOVE, oldIndex, oldObject, newIndex)
 	return oldObject
 }
@@ -268,7 +309,15 @@ func (list *EStoreList) Set(index int, newObject any) any {
 		panic("element already in list")
 	}
 
+	// store
 	oldObject := list.store.Set(list.owner, list.feature, index, newObject)
+
+	// callbacks
+	listCallbacks := list.asListCallbacks()
+	listCallbacks.DidSet(index, newObject, oldObject)
+	listCallbacks.DidChange()
+
+	// notifications
 	if newObject != oldObject {
 		var notifications ENotificationChain
 		var notifyingList eNotifyingListInternal = list.interfaces.(eNotifyingListInternal)
@@ -280,16 +329,33 @@ func (list *EStoreList) Set(index int, newObject any) any {
 }
 
 // SetWithNotification ...
-func (list *EStoreList) SetWithNotification(index int, object any, notifications ENotificationChain) ENotificationChain {
-	oldObject := list.store.Set(list.owner, list.feature, index, object)
-	return list.createAndAddNotification(notifications, SET, oldObject, object, index)
+func (list *EStoreList) SetWithNotification(index int, newObject any, notifications ENotificationChain) ENotificationChain {
+	// store
+	oldObject := list.store.Set(list.owner, list.feature, index, newObject)
+
+	// callbacks
+	listCallbacks := list.asListCallbacks()
+	listCallbacks.DidSet(index, newObject, oldObject)
+	listCallbacks.DidChange()
+
+	// notifications
+	return list.createAndAddNotification(notifications, SET, oldObject, newObject, index)
 }
 
 func (list *EStoreList) RemoveAt(index int) any {
 	if index < 0 || index >= list.Size() {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
 	}
+
+	// store
 	oldObject := list.store.Remove(list.owner, list.feature, index)
+
+	// callbacks
+	listCallbacks := list.asListCallbacks()
+	listCallbacks.DidRemove(index, oldObject)
+	listCallbacks.DidChange()
+
+	// notifications
 	var notifications ENotificationChain
 	var notifyingList eNotifyingListInternal = list.interfaces.(eNotifyingListInternal)
 	notifications = notifyingList.inverseRemove(oldObject, notifications)
@@ -310,7 +376,15 @@ func (list *EStoreList) Remove(element any) bool {
 func (list *EStoreList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	index := list.IndexOf(object)
 	if index != -1 {
+		// store
 		oldObject := list.store.Remove(list.owner, list.feature, index)
+
+		// callbacks
+		listCallbacks := list.asListCallbacks()
+		listCallbacks.DidRemove(index, oldObject)
+		listCallbacks.DidChange()
+
+		// notifications
 		return list.createAndAddNotification(notifications, REMOVE, oldObject, nil, index)
 	}
 	return notifications
@@ -332,12 +406,24 @@ func (list *EStoreList) RemoveRange(fromIndex, toIndex int) {
 	var objects []any
 	var positions []int
 	var notifications ENotificationChain = NewNotificationChain()
+	listCallbacks := list.asListCallbacks()
 	for i := fromIndex; i < toIndex; i++ {
-		object := list.store.Remove(list.owner, list.feature, i)
-		notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(object, notifications)
-		objects = append(objects, object)
+		// store
+		oldObject := list.store.Remove(list.owner, list.feature, i)
+
+		// callbacks
+		listCallbacks.DidRemove(i, oldObject)
+
+		// notificatins
+		notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(oldObject, notifications)
+		objects = append(objects, oldObject)
 		positions = append(positions, i)
 	}
+
+	// callbacks
+	listCallbacks.DidChange()
+
+	// notifications
 	if len(objects) > 0 {
 		list.createAndDispatchNotificationFn(notifications,
 			func() ENotification {
@@ -356,7 +442,16 @@ func (list *EStoreList) Size() int {
 
 func (list *EStoreList) Clear() {
 	oldData := list.store.ToArray(list.owner, list.feature)
+
+	// store
 	list.store.Clear(list.owner, list.feature)
+
+	// callbacks
+	listCallbacks := list.asListCallbacks()
+	listCallbacks.DidClear(oldData)
+	listCallbacks.DidChange()
+
+	// notifications
 	if len(oldData) == 0 {
 		list.createAndDispatchNotification(nil, REMOVE_MANY, []any{}, nil, -1)
 	} else {
@@ -453,4 +548,28 @@ func (list *EStoreList) GetUnResolvedList() EList {
 	l := NewEStoreList(list.owner, list.feature, list.store)
 	l.proxies = false
 	return l
+}
+
+func (list *EStoreList) DidAdd(index int, elem any) {
+
+}
+
+func (list *EStoreList) DidSet(index int, newElem any, oldElem any) {
+
+}
+
+func (list *EStoreList) DidRemove(index int, old any) {
+
+}
+
+func (list *EStoreList) DidClear(oldObjects []any) {
+
+}
+
+func (list *EStoreList) DidMove(newIndex int, movedObject any, oldIndex int) {
+
+}
+
+func (list *EStoreList) DidChange() {
+
 }

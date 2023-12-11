@@ -228,11 +228,11 @@ func (e *sqlEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 				sqlID = e.objectIDs[eObject]
 			}
 			if sqlID != 0 {
-				return "sqlID:" + strconv.FormatInt(sqlID, 10), nil
+				return strconv.FormatInt(sqlID, 10), nil
 			} else {
 				ref := GetURI(eObject)
 				uri := e.uri.Relativize(ref)
-				return "refID:" + uri.String(), nil
+				return uri.String(), nil
 			}
 		case sfkEnum:
 			eEnum := featureData.dataType.(EEnum)

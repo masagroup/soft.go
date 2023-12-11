@@ -9,6 +9,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -231,18 +233,25 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 			// no reference
 			if len(v) == 0 {
 				return nil, nil
+			} else if strings.HasPrefix(v, "sqlID:") {
+				sqlID, err := strconv.ParseInt(v[6:], 10, 64)
+				if err != nil {
+					return nil, err
+				}
+				return d.decodeObject(sqlID)
+			} else if strings.HasPrefix(v, "refID:") {
+				// resolve uri reference
+				proxyURI := NewURI(v[6:])
+				resolvedURI := d.resolveURI(proxyURI)
+				// create proxy
+				eFeature := featureData.feature
+				eClass := eFeature.GetEType().(EClass)
+				eFactory := eClass.GetEPackage().GetEFactoryInstance()
+				eObject := eFactory.Create(eClass)
+				eObjectInternal := eObject.(EObjectInternal)
+				eObjectInternal.ESetProxyURI(resolvedURI)
+				return eObject, nil
 			}
-			// resolve uri reference
-			uri := d.resolveURI(NewURI(v))
-
-			// create proxy
-			eFeature := featureData.feature
-			eClass := eFeature.GetEType().(EClass)
-			eFactory := eClass.GetEPackage().GetEFactoryInstance()
-			eObject := eFactory.Create(eClass)
-			eObjectInternal := eObject.(EObjectInternal)
-			eObjectInternal.ESetProxyURI(uri)
-			return eObject, nil
 		default:
 			return nil, fmt.Errorf("%v is not supported as a object reference uri", v)
 		}

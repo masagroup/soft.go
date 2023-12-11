@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -219,9 +220,20 @@ func (e *sqlEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 				return e.encodeObject(eObject)
 			}
 		case sfkObjectReference, sfkObjectReferenceList:
-			ref := GetURI(value.(EObject))
-			uri := e.uri.Relativize(ref)
-			return uri.String(), nil
+			sqlID := int64(0)
+			eObject := value.(EObject)
+			if sqlObject, isSqlObject := value.(SQLObject); isSqlObject {
+				sqlID = sqlObject.GetSqlID()
+			} else {
+				sqlID = e.objectIDs[eObject]
+			}
+			if sqlID != 0 {
+				return "sqlID:" + strconv.FormatInt(sqlID, 10), nil
+			} else {
+				ref := GetURI(eObject)
+				uri := e.uri.Relativize(ref)
+				return "refID:" + uri.String(), nil
+			}
 		case sfkEnum:
 			eEnum := featureData.dataType.(EEnum)
 			literal := featureData.factory.ConvertToString(featureData.dataType, value)

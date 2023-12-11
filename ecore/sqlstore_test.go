@@ -303,8 +303,8 @@ func TestSQLStore_Get_Reference(t *testing.T) {
 	mockObject := NewMockSQLObject(t)
 
 	// database
-	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
-	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	dbPath := filepath.Join(t.TempDir(), "library.ref.sqlite")
+	err := copyFile("testdata/library.ref.sqlite", dbPath)
 	require.Nil(t, err)
 
 	db, err := sql.Open("sqlite", dbPath)
@@ -378,8 +378,8 @@ func TestSQLStore_Set_Reference_Nil(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	// database
-	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
-	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	dbPath := filepath.Join(t.TempDir(), "library.ref.sqlite")
+	err := copyFile("testdata/library.ref.sqlite", dbPath)
 	require.Nil(t, err)
 	{
 		db, err := sql.Open("sqlite", dbPath)

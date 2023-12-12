@@ -704,12 +704,14 @@ func (d *SQLDecoder) decodeObjects() error {
 
 		// set its id
 		if len(values) > 2 {
-			uniqueID, isString := values[2].(string)
-			if !isString {
+			switch v := values[2].(type) {
+			case nil:
+			case string:
+				if err := d.idManager.SetID(eObject, v); err != nil {
+					return err
+				}
+			default:
 				return fmt.Errorf("%v is not a string value", values[2])
-			}
-			if err := d.idManager.SetID(eObject, uniqueID); err != nil {
-				return err
 			}
 		}
 
@@ -871,6 +873,7 @@ func (d *SQLDecoder) query(q string, cb func(values []driver.Value) error, args 
 		if err != nil {
 			return err
 		}
+		defer rows.Close()
 
 		results := make([]driver.Value, len(rows.Columns()))
 		for {

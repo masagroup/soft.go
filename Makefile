@@ -54,7 +54,7 @@ fmt:
 .PHONY: lint
 lint:
 	@echo "[lint]"
-	@docker run --rm -v $(CURDIR):/pwd -w /pwd golangci/golangci-lint:v1.54.2-alpine golangci-lint run
+	@docker run --rm -v $(CURDIR):/pwd -w /pwd golangci/golangci-lint:v1.55.2-alpine golangci-lint run --timeout=5m
 
 .PHONY: build
 build:

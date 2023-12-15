@@ -12,6 +12,7 @@ package ecore
 import (
 	"runtime"
 	"testing"
+	"unsafe"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -58,20 +59,6 @@ func TestURI_IsEmpty(t *testing.T) {
 		u := &URI{scheme: "t"}
 		assert.False(t, u.IsEmpty())
 	}
-}
-
-func TestURI_Copy(t *testing.T) {
-	uri := NewURIBuilder(nil).
-		SetScheme("scheme").
-		SetUsername("username").
-		SetPassword("password").
-		SetHost("host").
-		SetPort("10").
-		SetPath("path").
-		SetQuery("query").
-		SetFragment("fragment").
-		URI()
-	assert.Equal(t, uri, uri.Copy())
 }
 
 func TestURI_Normalize(t *testing.T) {
@@ -151,4 +138,20 @@ func TestURI_Authority(t *testing.T) {
 	assert.Equal(t, "host", NewURI("http://host/file.text").Authority())
 	assert.Equal(t, "host:10", NewURI("http://host:10/file.text").Authority())
 	assert.Equal(t, "userinfo@host:10", NewURI("http://userinfo@host:10/file.text").Authority())
+}
+
+func TestURI_Cache(t *testing.T) {
+	var p1, p2 uintptr
+	{
+		uri1 := NewURI("http://toto")
+		uri2 := NewURI("http://toto")
+		assert.Same(t, uri1, uri2)
+		p1 = uintptr(unsafe.Pointer(uri1))
+	}
+	runtime.GC()
+	{
+		uri1 := NewURI("http://toto")
+		p2 = uintptr(unsafe.Pointer(uri1))
+	}
+	assert.NotEqual(t, p1, p2)
 }

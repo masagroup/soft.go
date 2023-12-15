@@ -85,7 +85,6 @@ func (_c *MockEStore_AddRoot_Call) Return(_a0 interface{}) *MockEStore_AddRoot_C
 	return _c
 }
 
-
 // Clear provides a mock function with given fields: object, feature
 func (_m *MockEStore) Clear(object EObject, feature EStructuralFeature) {
 	_m.Called(object, feature)
@@ -549,7 +548,6 @@ func (_c *MockEStore_Remove_Call) Return(_a0 interface{}) *MockEStore_Remove_Cal
 	return _c
 }
 
-
 // Remove provides a mock function with given fields: object, feature, index
 func (_m *MockEStore) RemoveRoot(object EObject) {
 	_m.Called(object)
@@ -577,7 +575,6 @@ func (_c *MockEStore_RemoveRoot_Call) Return(_a0 interface{}) *MockEStore_Remove
 	_c.Call.Return(_a0)
 	return _c
 }
-
 
 // Set provides a mock function with given fields: object, feature, index, value
 func (_m *MockEStore) Set(object EObject, feature EStructuralFeature, index int, value interface{}) interface{} {

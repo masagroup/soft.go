@@ -159,7 +159,9 @@ func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 
 		// register its id
 		if isObjectID && d.idManager != nil {
-			d.idManager.SetID(eObject, objectID)
+			if err := d.idManager.SetID(eObject, objectID); err != nil {
+				return nil, err
+			}
 		}
 
 		// register in object registry
@@ -497,7 +499,11 @@ func (d *SQLDecoder) DecodeResource() {
 		d.addError(err)
 		return
 	}
-	defer d.dbClose(db)
+	defer func() {
+		if err := d.dbClose(db); err != nil {
+			d.addError(err)
+		}
+	}()
 
 	// create safe db
 	d.db = newSQLSafeDB(db)

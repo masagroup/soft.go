@@ -68,6 +68,7 @@ type sqlEncoderClassData struct {
 
 type sqlEncoder struct {
 	*sqlBase
+	keepDefaults   bool
 	objectRegistry sqlObjectRegistry
 	insertStmts    map[*sqlTable]*sqlSafeStmt
 	classDataMap   map[EClass]*sqlEncoderClassData
@@ -149,7 +150,7 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
 			columnValues[classTable.key.index] = objectID
 			for itFeature := classData.features.Iterator(); itFeature.Next(); {
 				eFeature := itFeature.Key()
-				if eObject.EIsSet(eFeature) {
+				if eObject.EIsSet(eFeature) || (e.keepDefaults && len(eFeature.GetDefaultValueLiteral()) > 0) {
 					featureData := itFeature.Value()
 					if featureColumn := featureData.schema.column; featureColumn != nil {
 						featureValue := eObject.EGetResolve(eFeature, false)
@@ -251,7 +252,8 @@ func (e *sqlEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 }
 
 func (e *sqlEncoder) encodeEnumLiteral(eEnum EEnum, literal string) (any, error) {
-	if enumID, isEnumID := e.enumLiteralIDs[literal]; isEnumID {
+	enumLiteralKey := eEnum.GetEPackage().GetName() + "-" + eEnum.GetName() + "-" + literal
+	if enumID, isEnumID := e.enumLiteralIDs[enumLiteralKey]; isEnumID {
 		return enumID, nil
 	} else {
 		ePackage := eEnum.GetEPackage()
@@ -274,7 +276,7 @@ func (e *sqlEncoder) encodeEnumLiteral(eEnum EEnum, literal string) (any, error)
 		if err != nil {
 			return nil, err
 		}
-		e.enumLiteralIDs[literal] = enumID
+		e.enumLiteralIDs[enumLiteralKey] = enumID
 		return enumID, nil
 	}
 }
@@ -480,15 +482,21 @@ func newSQLEncoder(dbProvider func(driver string) (*sql.DB, error), dbClose func
 	schemaOptions := []sqlSchemaOption{}
 	driver := "sqlite"
 	idAttributeName := ""
+	keepDefaults := false
 	if options != nil {
 		if d, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
 			driver = d.(string)
 		}
 
-		idAttributeName, _ := options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string)
-		if resource.GetObjectIDManager() != nil && len(idAttributeName) > 0 {
+		if id, isID := options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string); isID && len(id) > 0 && resource.GetObjectIDManager() != nil {
 			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
+			idAttributeName = id
 		}
+
+		if b, isBool := options[SQL_OPTION_KEEP_DEFAULTS].(bool); isBool {
+			keepDefaults = b
+		}
+
 	}
 
 	// encoder structure
@@ -500,6 +508,7 @@ func newSQLEncoder(dbProvider func(driver string) (*sql.DB, error), dbClose func
 				idAttributeName: idAttributeName,
 				schema:          newSqlSchema(schemaOptions...),
 			},
+			keepDefaults:   keepDefaults,
 			insertStmts:    map[*sqlTable]*sqlSafeStmt{},
 			classDataMap:   map[EClass]*sqlEncoderClassData{},
 			packageIDs:     map[EPackage]int64{},

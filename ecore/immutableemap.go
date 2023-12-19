@@ -5,16 +5,16 @@ type immutableEMap struct {
 	data map[any]any
 }
 
-func NewImmutableEMap(data map[any]any, factory func(k, v any) EMapEntry) *immutableEMap {
+func NewImmutableEMap(entries []any) *immutableEMap {
 	m := &immutableEMap{
-		data: data,
+		immutableEList: immutableEList{
+			data: entries,
+		},
+		data: map[any]any{},
 	}
-	if factory != nil {
-		entries := []any{}
-		for k, v := range data {
-			entries = append(entries, factory(k, v))
-		}
-		m.immutableEList.data = entries
+	for _, e := range entries {
+		entry := e.(EMapEntry)
+		m.data[entry.GetKey()] = entry.GetValue()
 	}
 	return m
 }

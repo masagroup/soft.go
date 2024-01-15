@@ -69,15 +69,16 @@ func getRelativeURIFragmentPath(ancestor EObject, descendant EObject, resolve bo
 	}
 	eObject := descendant
 	eContainer := eObject.EContainer()
-	visited := make(map[EObject]bool)
+	visited := make(map[EObject]struct{})
 	fragmentPath := []string{}
 	for {
 		if eContainer == nil {
 			break
 		}
-		if _, v := visited[eObject]; v {
+		if _, isVisited := visited[eObject]; isVisited {
 			break
 		}
+		visited[eObject] = struct{}{}
 		fragmentPath = append([]string{eContainer.(EObjectInternal).EURIFragmentSegment(eObject.EContainingFeature(), eObject)}, fragmentPath...)
 		eObject = eContainer
 		if eContainer == ancestor {

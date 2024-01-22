@@ -3,6 +3,7 @@ package ecore
 import (
 	"io"
 	"os"
+	"runtime"
 )
 
 // URIHandler ...
@@ -15,7 +16,7 @@ func (fuh *FileURIHandler) CanHandle(uri *URI) bool {
 
 func (fuh *FileURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {
 	fileName := uri.Path()
-	if fileName[0] == '/' {
+	if runtime.GOOS == "windows" && fileName[0] == '/' {
 		fileName = fileName[1:]
 	}
 	f, err := os.Open(fileName)
@@ -27,7 +28,7 @@ func (fuh *FileURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {
 
 func (fuh *FileURIHandler) CreateWriter(uri *URI) (io.WriteCloser, error) {
 	fileName := uri.Path()
-	if fileName[0] == '/' {
+	if runtime.GOOS == "windows" && fileName[0] == '/' {
 		fileName = fileName[1:]
 	}
 	f, err := os.Create(fileName)

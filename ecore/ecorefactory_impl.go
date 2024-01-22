@@ -11,9 +11,11 @@
 
 package ecore
 
-import "reflect"
-import "strconv"
-import "time"
+import (
+	"reflect"
+	"strconv"
+	"time"
+)
 
 type ecoreFactoryInternal interface {
 	createEBigDecimalFromString(eDataType EDataType, literalValue string) any

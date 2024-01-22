@@ -11,7 +11,9 @@
 
 package ecore
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // EStructuralFeature is the representation of the model object 'EStructuralFeature'
 type EStructuralFeature interface {

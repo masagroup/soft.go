@@ -11,7 +11,9 @@
 
 package ecore
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // EClassifierImpl is the implementation of the model object 'EClassifier'
 type EClassifierImpl struct {

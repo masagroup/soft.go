@@ -11,7 +11,9 @@
 
 package ecore
 
-import "github.com/stretchr/testify/mock"
+import (
+	"github.com/stretchr/testify/mock"
+)
 
 // MockEAnnotation is an mock type for the EAnnotation type
 type MockEAnnotation struct {

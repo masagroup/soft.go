@@ -11,8 +11,10 @@
 
 package ecore
 
-import "github.com/stretchr/testify/assert"
-import "testing"
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
 func discardMockETypedElement() {
 	_ = assert.Equal

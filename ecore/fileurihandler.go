@@ -11,7 +11,7 @@ type FileURIHandler struct {
 }
 
 func (fuh *FileURIHandler) CanHandle(uri *URI) bool {
-	return uri.scheme == "file" || (!uri.IsAbsolute() && len(uri.query) == 0)
+	return uri.scheme == "file" || (len(uri.scheme) == 0 && len(uri.host) == 0 && len(uri.query) == 0)
 }
 
 func (fuh *FileURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {

@@ -29,7 +29,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: masagroup/soft.models
-        ref: 91fcdc5ea4ef966ad2322ba2562fce2dab121431
+        ref: 90286c344159492747920472760ac3904b19e784
         path: models
     - name: Build And Test
       working-directory: go

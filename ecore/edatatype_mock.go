@@ -11,7 +11,9 @@
 
 package ecore
 
-import "github.com/stretchr/testify/mock"
+import (
+	"github.com/stretchr/testify/mock"
+)
 
 // MockEDataType is an mock type for the EDataType type
 type MockEDataType struct {

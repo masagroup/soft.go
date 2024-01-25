@@ -11,7 +11,9 @@
 
 package ecore
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // EClassifier is the representation of the model object 'EClassifier'
 type EClassifier interface {

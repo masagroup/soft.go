@@ -139,13 +139,6 @@ func generateRandomString(s int) (string, error) {
 	return base64.URLEncoding.EncodeToString(b), err
 }
 
-func max(a, b int64) int64 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 type UUIDManager = UniqueIDManager[string]
 
 func NewUUIDManager(size int) *UUIDManager {

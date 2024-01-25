@@ -11,11 +11,13 @@
 
 package ecore
 
-import "github.com/stretchr/testify/assert"
-import "github.com/stretchr/testify/mock"
-import "reflect"
-import "testing"
-import "time"
+import (
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"reflect"
+	"testing"
+	"time"
+)
 
 func TestFactoryAs(t *testing.T) {
 	factory := newEcoreFactoryImpl()

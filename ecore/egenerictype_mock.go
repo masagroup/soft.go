@@ -11,7 +11,9 @@
 
 package ecore
 
-import "github.com/stretchr/testify/mock"
+import (
+	"github.com/stretchr/testify/mock"
+)
 
 // MockEGenericType is an mock type for the EGenericType type
 type MockEGenericType struct {

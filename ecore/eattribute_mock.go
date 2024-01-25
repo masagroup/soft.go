@@ -11,7 +11,9 @@
 
 package ecore
 
-import "github.com/stretchr/testify/mock"
+import (
+	"github.com/stretchr/testify/mock"
+)
 
 // MockEAttribute is an mock type for the EAttribute type
 type MockEAttribute struct {

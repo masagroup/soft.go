@@ -11,7 +11,9 @@
 
 package ecore
 
-import "github.com/stretchr/testify/mock"
+import (
+	"github.com/stretchr/testify/mock"
+)
 
 // MockEReference is an mock type for the EReference type
 type MockEReference struct {

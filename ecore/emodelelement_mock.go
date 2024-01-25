@@ -11,7 +11,9 @@
 
 package ecore
 
-import "github.com/stretchr/testify/mock"
+import (
+	"github.com/stretchr/testify/mock"
+)
 
 // MockEModelElement is an mock type for the EModelElement type
 type MockEModelElement struct {

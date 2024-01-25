@@ -11,7 +11,9 @@
 
 package ecore
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // EStructuralFeatureImpl is the implementation of the model object 'EStructuralFeature'
 type EStructuralFeatureImpl struct {

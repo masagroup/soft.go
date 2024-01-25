@@ -11,8 +11,10 @@
 
 package ecore
 
-import "github.com/stretchr/testify/mock"
-import "reflect"
+import (
+	"github.com/stretchr/testify/mock"
+	"reflect"
+)
 
 // MockEClassifier is an mock type for the EClassifier type
 type MockEClassifier struct {

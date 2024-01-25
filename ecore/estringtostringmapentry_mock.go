@@ -11,7 +11,9 @@
 
 package ecore
 
-import "github.com/stretchr/testify/mock"
+import (
+	"github.com/stretchr/testify/mock"
+)
 
 // MockEStringToStringMapEntry is an mock type for the EStringToStringMapEntry type
 type MockEStringToStringMapEntry struct {

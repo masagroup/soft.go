@@ -1,6 +1,6 @@
 module github.com/masagroup/soft.go
 
-go 1.20
+go 1.21
 
 require (
 	github.com/KarpelesLab/weak v0.1.1

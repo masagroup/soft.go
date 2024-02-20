@@ -11,6 +11,10 @@
 
 package ecore
 
+import (
+	"sync"
+)
+
 const (
 	// NAME is the package name.
 	NAME = "ecore"
@@ -1359,12 +1363,13 @@ type EcorePackage interface {
 	GetETreeIterator() EDataType
 }
 
+var packageOnce sync.Once
 var packageInstance EcorePackage
 
 // GetFactory returns the factory for the model ecore
 func GetPackage() EcorePackage {
-	if packageInstance == nil {
+	packageOnce.Do(func() {
 		packageInstance = newEcorePackageImpl()
-	}
+	})
 	return packageInstance
 }

@@ -11,6 +11,10 @@
 
 package ecore
 
+import (
+	"sync"
+)
+
 type EcoreFactory interface {
 	EFactory
 	CreateEAnnotation() EAnnotation
@@ -47,12 +51,13 @@ type EcoreFactory interface {
 	CreateETypeParameter() ETypeParameter
 }
 
+var factoryOnce sync.Once
 var factoryInstance EcoreFactory
 
 // GetFactory returns the factory for the model ecore
 func GetFactory() EcoreFactory {
-	if factoryInstance == nil {
+	factoryOnce.Do(func() {
 		factoryInstance = newEcoreFactoryImpl()
-	}
+	})
 	return factoryInstance
 }

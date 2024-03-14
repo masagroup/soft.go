@@ -724,7 +724,7 @@ func join(path []rune, segs []int) int {
 	return p
 }
 
-func resolvePath(base string, child string, isAbsolute bool) string {
+func resolvePath(base string, child string, _ bool) string {
 	i := strings.LastIndexByte(base, '/')
 	cn := len(child)
 	var path string

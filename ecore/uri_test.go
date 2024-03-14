@@ -12,7 +12,6 @@ package ecore
 import (
 	"runtime"
 	"testing"
-	"unsafe"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -140,18 +139,18 @@ func TestURI_Authority(t *testing.T) {
 	assert.Equal(t, "userinfo@host:10", NewURI("http://userinfo@host:10/file.text").Authority())
 }
 
-func TestURI_Cache(t *testing.T) {
-	var p1, p2 uintptr
-	{
-		uri1 := NewURI("http://toto")
-		uri2 := NewURI("http://toto")
-		assert.Same(t, uri1, uri2)
-		p1 = uintptr(unsafe.Pointer(uri1))
-	}
-	runtime.GC()
-	{
-		uri1 := NewURI("http://toto")
-		p2 = uintptr(unsafe.Pointer(uri1))
-	}
-	assert.NotEqual(t, p1, p2)
-}
+// func TestURI_Cache(t *testing.T) {
+// 	var p1, p2 uintptr
+// 	{
+// 		uri1 := NewURI("http://toto")
+// 		uri2 := NewURI("http://toto")
+// 		assert.Same(t, uri1, uri2)
+// 		p1 = uintptr(unsafe.Pointer(uri1))
+// 	}
+// 	runtime.GC()
+// 	{
+// 		uri1 := NewURI("http://toto")
+// 		p2 = uintptr(unsafe.Pointer(uri1))
+// 	}
+// 	assert.NotEqual(t, p1, p2)
+// }

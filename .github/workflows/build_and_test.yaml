@@ -18,15 +18,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - name: Install Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
     - name: Checkout Go
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: go
     - name: Checkout Models
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: masagroup/soft.models
         ref: 90286c344159492747920472760ac3904b19e784

@@ -48,20 +48,3 @@ func BenchmarkUniqueIDManager_GetID(b *testing.B) {
 		m.GetID(o)
 	}
 }
-
-func BenchmarkULIDManager_Register(b *testing.B) {
-	m := NewULIDManager()
-	for i := 0; i < b.N; i++ {
-		o := NewMockEObject(b)
-		m.Register(o)
-	}
-}
-
-func BenchmarkULIDManager_GetID(b *testing.B) {
-	m := NewULIDManager()
-	o := NewMockEObject(b)
-	m.Register(o)
-	for i := 0; i < b.N; i++ {
-		m.GetID(o)
-	}
-}

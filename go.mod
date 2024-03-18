@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/KarpelesLab/weak v0.1.1
 	github.com/OneOfOne/go-utils v0.0.0-20180319162427-6019ff89a94e
+	github.com/google/uuid v1.6.0
 	github.com/karlseguin/jsonwriter v1.0.4-0.20170525085137-6f05566bac1c
 	github.com/stretchr/testify v1.9.0
 	github.com/vmihailenco/msgpack/v5 v5.4.1
@@ -15,7 +16,6 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/karlseguin/expect v1.0.8 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

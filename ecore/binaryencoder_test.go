@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -44,7 +45,7 @@ func TestBinaryEncoder_ComplexWithID(t *testing.T) {
 	uri := NewURI("testdata/library.complex.id.xml")
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
-	eResource.SetObjectIDManager(NewUUIDManager(20))
+	eResource.SetObjectIDManager(NewUUIDManager())
 	eResourceSet := NewEResourceSetImpl()
 	eResourceSet.GetResources().Add(eResource)
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
@@ -57,7 +58,7 @@ func TestBinaryEncoder_ComplexWithID(t *testing.T) {
 	// set DocumentRoot uuid, because it is not defined in xml and is always regenerated
 	eDocumentRoot, _ := eResource.GetContents().Get(0).(EObject)
 	require.NotNil(t, eDocumentRoot)
-	require.Nil(t, eResource.GetObjectIDManager().SetID(eDocumentRoot, "h0Rz1FjVeBXUgaW3OzT2frUce90="))
+	require.Nil(t, eResource.GetObjectIDManager().SetID(eDocumentRoot, uuid.MustParse("dc48710b-0e2e-419f-94fb-178c7fc1370b")))
 
 	w := &bytes.Buffer{}
 	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]any{BINARY_OPTION_ID_ATTRIBUTE: true})

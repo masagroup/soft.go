@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -100,7 +101,7 @@ func TestBinaryDecoder_ComplexWithID(t *testing.T) {
 
 	//
 	uri := NewURI("testdata/library.complex.id.bin")
-	idManager := NewUUIDManager(20)
+	idManager := NewUUIDManager()
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResource.SetObjectIDManager(idManager)
@@ -127,8 +128,8 @@ func TestBinaryDecoder_ComplexWithID(t *testing.T) {
 	require.NotNil(t, eDocumentRoot)
 	eLibrary, _ := eDocumentRoot.EGet(eDocumentRootLibraryFeature).(EObject)
 	require.NotNil(t, eLibrary)
-	assert.Equal(t, "h0Rz1FjVeBXUgaW3OzT2frUce90=", idManager.GetID(eDocumentRoot))
-	assert.Equal(t, "d13pf-ypXLeIySkWAX03JcP-TbA=", idManager.GetID(eLibrary))
+	assert.Equal(t, uuid.MustParse("dc48710b-0e2e-419f-94fb-178c7fc1370b"), idManager.GetID(eDocumentRoot))
+	assert.Equal(t, uuid.MustParse("75aa92db-b419-4259-93c4-0e542d33aa35"), idManager.GetID(eLibrary))
 
 }
 
@@ -139,7 +140,7 @@ func TestBinaryDecoder_SimpleWithEDataTypeList(t *testing.T) {
 
 	//
 	uri := NewURI("testdata/library.datalist.bin")
-	idManager := NewUUIDManager(20)
+	idManager := NewUUIDManager()
 	eResource := NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResource.SetObjectIDManager(idManager)

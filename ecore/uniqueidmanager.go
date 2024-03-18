@@ -1,12 +1,12 @@
 package ecore
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"reflect"
 	"strconv"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type UniqueIDManager[ID comparable] struct {
@@ -122,43 +122,29 @@ func (m *UniqueIDManager[ID]) GetDetachedID(eObject EObject) any {
 	return nil
 }
 
-func generateRandomBytes(n int) ([]byte, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	// Note that err == nil only if we read len(b) bytes.
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
-}
+type UUIDManager = UniqueIDManager[uuid.UUID]
 
-func generateRandomString(s int) (string, error) {
-	b, err := generateRandomBytes(s)
-	return base64.URLEncoding.EncodeToString(b), err
-}
-
-type UUIDManager = UniqueIDManager[string]
-
-func NewUUIDManager(size int) *UUIDManager {
+func NewUUIDManager() *UUIDManager {
 	return NewUniqueIDManager(
-		func() string {
-			for {
-				id, error := generateRandomString(size)
-				if error == nil {
-					return id
-				}
+		func() uuid.UUID {
+			return uuid.New()
+		},
+		func(u uuid.UUID) bool {
+			return true
+		},
+		func(a any) (uuid.UUID, error) {
+			switch v := a.(type) {
+			case string:
+				return uuid.Parse(v)
+			case []byte:
+				return uuid.FromBytes(v)
+			case uuid.UUID:
+				return v, nil
+			default:
+				return uuid.UUID{}, fmt.Errorf("id:'%v' not supported by UUIDManager", a)
 			}
 		},
-		func(s string) bool {
-			return len(s) > 0
-		},
-		func(a any) (string, error) {
-			if id, isString := a.(string); isString {
-				return id, nil
-			}
-			return "", fmt.Errorf("id:'%v' not supported by UUIDManager", a)
-		},
-		func(s string) {
+		func(s uuid.UUID) {
 		},
 	)
 }

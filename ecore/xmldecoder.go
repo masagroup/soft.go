@@ -178,7 +178,7 @@ func (l *XMLDecoder) startElement(e xml.StartElement) {
 	l.processElement(e.Name.Space, e.Name.Local)
 }
 
-func (l *XMLDecoder) endElement(e xml.EndElement) {
+func (l *XMLDecoder) endElement(_ xml.EndElement) {
 	if len(l.elements) > 0 {
 		l.elements = l.elements[:len(l.elements)-1]
 	}
@@ -757,7 +757,7 @@ func (l *XMLDecoder) recordSchemaLocations(eObject EObject) {
 	}
 }
 
-func (l *XMLDecoder) getFeature(eObject EObject, space, name string) EStructuralFeature {
+func (l *XMLDecoder) getFeature(eObject EObject, _, name string) EStructuralFeature {
 	eClass := eObject.EClass()
 	eFeature := eClass.GetEStructuralFeatureFromName(name)
 	if eFeature == nil && l.extendedMetaData != nil {

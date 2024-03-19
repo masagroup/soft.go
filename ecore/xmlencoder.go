@@ -390,7 +390,7 @@ func (s *XMLEncoder) saveDataTypeMany(eObject EObject, eFeature EStructuralFeatu
 	}
 }
 
-func (s *XMLEncoder) saveManyEmpty(eObject EObject, eFeature EStructuralFeature) {
+func (s *XMLEncoder) saveManyEmpty(_ EObject, eFeature EStructuralFeature) {
 	s.str.addAttribute(s.getFeatureQName(eFeature), "")
 }
 
@@ -432,7 +432,7 @@ func (s *XMLEncoder) saveEObjectMany(eObject EObject, eFeature EStructuralFeatur
 	}
 }
 
-func (s *XMLEncoder) saveNil(eObject EObject, eFeature EStructuralFeature) {
+func (s *XMLEncoder) saveNil(_ EObject, eFeature EStructuralFeature) {
 	s.str.addNil(s.getFeatureQName(eFeature))
 }
 
@@ -753,7 +753,7 @@ func (s *XMLEncoder) getPackageForSpace(nsURI string) EPackage {
 	return packageRegistry.GetPackage(nsURI)
 }
 
-func (s *XMLEncoder) getDataType(value any, f EStructuralFeature, isAttribute bool) (string, bool) {
+func (s *XMLEncoder) getDataType(value any, f EStructuralFeature, _ bool) (string, bool) {
 	if value == nil {
 		return "", false
 	} else {

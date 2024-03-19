@@ -89,7 +89,7 @@ func TestIncrementalIDManagerClear(t *testing.T) {
 }
 
 func TestUUIDManagerRegister(t *testing.T) {
-	m := NewUUIDManager(20)
+	m := NewUUIDManager()
 	mockObject := NewMockEObject(t)
 	mockOther := NewMockEObject(t)
 	m.Register(mockObject)
@@ -105,7 +105,7 @@ func TestUUIDManagerRegister(t *testing.T) {
 }
 
 func TestUUIDManagerUnRegister(t *testing.T) {
-	m := NewUUIDManager(20)
+	m := NewUUIDManager()
 
 	// register object
 	mockObject := NewMockEObject(t)

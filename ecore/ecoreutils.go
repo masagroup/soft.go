@@ -63,7 +63,7 @@ func GetURI(eObject EObject) *URI {
 	}
 }
 
-func getRelativeURIFragmentPath(ancestor EObject, descendant EObject, resolve bool) string {
+func getRelativeURIFragmentPath(ancestor EObject, descendant EObject, _ bool) string {
 	if ancestor == descendant {
 		return ""
 	}

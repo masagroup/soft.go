@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
 )
 
 type UniqueIDManager[ID comparable] struct {
@@ -145,6 +146,35 @@ func NewUUIDManager() *UUIDManager {
 			}
 		},
 		func(s uuid.UUID) {
+		},
+	)
+}
+
+type ULIDManager = UniqueIDManager[ulid.ULID]
+
+func NewULIDManager() *ULIDManager {
+	return NewUniqueIDManager(
+		func() ulid.ULID {
+			return ulid.Make()
+		},
+		func(u ulid.ULID) bool {
+			return true
+		},
+		func(a any) (ulid.ULID, error) {
+			switch v := a.(type) {
+			case string:
+				return ulid.Parse(v)
+			case []byte:
+				u := ulid.ULID{}
+				err := u.UnmarshalBinary(v)
+				return u, err
+			case ulid.ULID:
+				return v, nil
+			default:
+				return ulid.ULID{}, fmt.Errorf("id:'%v' not supported by UUIDManager", a)
+			}
+		},
+		func(s ulid.ULID) {
 		},
 	)
 }

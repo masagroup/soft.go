@@ -31,7 +31,7 @@ func TestUUID_EncodeMsgPack(t *testing.T) {
 	id, _ := uuid.Parse("b4c6c281-69b6-48e6-9847-850e52cafe2e")
 	w := &bytes.Buffer{}
 	e := msgpack.NewEncoder(w)
-	e.Encode(id)
+	require.NoError(t, e.Encode(id))
 	require.Equal(t, []byte{216, 2, 180, 198, 194, 129, 105, 182, 72, 230, 152, 71, 133, 14, 82, 202, 254, 46}, w.Bytes())
 }
 
@@ -50,7 +50,7 @@ func TestUUID_EncodeDecodeMsgPack(t *testing.T) {
 	// encode
 	w := &bytes.Buffer{}
 	e := msgpack.NewEncoder(w)
-	e.Encode(encoded)
+	require.NoError(t, e.Encode(encoded))
 
 	// decode
 	d := msgpack.NewDecoder(bytes.NewReader(w.Bytes()))

@@ -2,12 +2,52 @@ package ecore
 
 import (
 	"bytes"
+	"database/sql"
+	"io"
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func requireCopyBytes(t require.TestingT, filePath string, buff []byte) {
+	actualFile, err := os.Create(filePath)
+	require.NoError(t, err)
+	defer actualFile.Close()
+
+	_, err = io.Copy(actualFile, bytes.NewBuffer(buff))
+	require.NoError(t, err)
+}
+
+func requireSameDB(t require.TestingT, expectedPath string, actualBytes []byte) {
+	// check buffers
+	expectedBytes, err := os.ReadFile(expectedPath)
+	require.NoError(t, err)
+	if bytes.Equal(expectedBytes, actualBytes) {
+		return
+	}
+
+	// open expected db file
+	expectedDB, err := sql.Open("sqlite", expectedPath)
+	require.NoError(t, err)
+	defer func() {
+		_ = expectedDB.Close()
+	}()
+
+	// open actual db
+	actualPath, err := sqlTmpDB("")
+	require.NoError(t, err)
+	requireCopyBytes(t, actualPath, actualBytes)
+
+	actualDB, err := sql.Open("sqlite", actualPath)
+	require.NoError(t, err)
+	defer func() {
+		_ = actualDB.Close()
+	}()
+
+	// check that db are equal
+	RequireEqualDB(t, expectedDB, actualDB)
+}
 
 func TestSqlEncoder_Complex(t *testing.T) {
 	// load package
@@ -31,9 +71,7 @@ func TestSqlEncoder_Complex(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	// compare expected and actual bytes
-	bytes, err := os.ReadFile("testdata/library.complex.sqlite")
-	assert.Nil(t, err)
-	assert.Equal(t, bytes, w.Bytes())
+	requireSameDB(t, "testdata/library.complex.sqlite", w.Bytes())
 }
 
 func TestSqlEncoder_DataList(t *testing.T) {
@@ -58,9 +96,7 @@ func TestSqlEncoder_DataList(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	// compare expected and actual bytes
-	bytes, err := os.ReadFile("testdata/library.datalist.sqlite")
-	assert.Nil(t, err)
-	assert.Equal(t, bytes, w.Bytes())
+	requireSameDB(t, "testdata/library.datalist.sqlite", w.Bytes())
 }
 
 func TestSqlEncoder_ComplexWithOwner(t *testing.T) {
@@ -110,9 +146,7 @@ func TestSqlEncoder_ComplexWithOwner(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	// compare expected and actual bytes
-	bytes, err := os.ReadFile("testdata/library.owner.sqlite")
-	assert.Nil(t, err)
-	assert.Equal(t, bytes, w.Bytes())
+	requireSameDB(t, "testdata/library.owner.sqlite", w.Bytes())
 }
 
 func TestSQLEncoder_Maps(t *testing.T) {
@@ -137,7 +171,5 @@ func TestSQLEncoder_Maps(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	// compare expected and actual bytes
-	bytes, err := os.ReadFile("testdata/emap.sqlite")
-	assert.Nil(t, err)
-	assert.Equal(t, bytes, w.Bytes())
+	requireSameDB(t, "testdata/emap.sqlite", w.Bytes())
 }

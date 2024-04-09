@@ -3,21 +3,11 @@ package ecore
 import (
 	"bytes"
 	"database/sql"
-	"io"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-func requireCopyBytes(t require.TestingT, filePath string, buff []byte) {
-	actualFile, err := os.Create(filePath)
-	require.NoError(t, err)
-	defer actualFile.Close()
-
-	_, err = io.Copy(actualFile, bytes.NewBuffer(buff))
-	require.NoError(t, err)
-}
 
 func requireSameDB(t require.TestingT, expectedPath string, actualBytes []byte) {
 	// check buffers
@@ -37,7 +27,8 @@ func requireSameDB(t require.TestingT, expectedPath string, actualBytes []byte) 
 	// open actual db
 	actualPath, err := sqlTmpDB("")
 	require.NoError(t, err)
-	requireCopyBytes(t, actualPath, actualBytes)
+	err = os.WriteFile(actualPath, actualBytes, 0644)
+	require.NoError(t, err)
 
 	actualDB, err := sql.Open("sqlite", actualPath)
 	require.NoError(t, err)

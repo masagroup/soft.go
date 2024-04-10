@@ -31,7 +31,7 @@ func TestULID_EncodeMsgPack(t *testing.T) {
 	id, _ := ulid.Parse("01HSB2RH3YTNM4922XGR2R2N51")
 	w := &bytes.Buffer{}
 	e := msgpack.NewEncoder(w)
-	e.Encode(id)
+	require.NoError(t, e.Encode(id))
 	require.Equal(t, []byte{216, 1, 1, 142, 86, 44, 68, 126, 213, 104, 68, 136, 93, 134, 5, 129, 84, 161}, w.Bytes())
 }
 
@@ -50,7 +50,7 @@ func TestULID_EncodeDecodeMsgPack(t *testing.T) {
 	// encode
 	w := &bytes.Buffer{}
 	e := msgpack.NewEncoder(w)
-	e.Encode(encoded)
+	require.NoError(t, e.Encode(encoded))
 
 	// decode
 	d := msgpack.NewDecoder(bytes.NewReader(w.Bytes()))

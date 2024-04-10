@@ -29,8 +29,6 @@ func (bc *BinaryCodec) NewDecoder(resource EResource, r io.Reader, options map[s
 
 type binaryFeatureKind int
 
-var binaryDebug = false
-
 const (
 	bfkObjectContainer binaryFeatureKind = iota
 	bfkObjectContainerProxy

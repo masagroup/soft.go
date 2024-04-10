@@ -67,153 +67,158 @@ func NewBinaryDecoder(resource EResource, r io.Reader, options map[string]any) *
 }
 
 func (d *BinaryDecoder) DecodeResource() {
-	if !binaryDebug {
-		defer func() {
-			if err, _ := recover().(error); err != nil {
-				resourcePath := ""
-				if d.resource.GetURI() != nil {
-					resourcePath = d.resource.GetURI().String()
-				}
-				d.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), resourcePath, 0, 0))
+	var err error
+	defer func() {
+		if err != nil {
+			// add error to resource errors
+			resourcePath := ""
+			if d.resource.GetURI() != nil {
+				resourcePath = d.resource.GetURI().String()
 			}
-		}()
+			d.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), resourcePath, 0, 0))
+		}
+	}()
+	// signature
+	if err = d.decodeSignature(); err != nil {
+		return
 	}
-	d.decodeSignature()
-	d.decodeVersion()
-
+	// version
+	if err = d.decodeVersion(); err != nil {
+		return
+	}
 	// objects
-	size := d.decodeInt()
+	var size int
+	if size, err = d.decodeInt(); err != nil {
+		return
+	}
 	objects := make([]any, size)
 	for i := 0; i < size; i++ {
-		objects[i] = d.decodeObject()
+		if objects[i], err = d.decodeObject(); err != nil {
+			return
+		}
 	}
 
 	// add objects to resource
 	d.resource.GetContents().AddAll(NewImmutableEList(objects))
 }
 
-func (d *BinaryDecoder) DecodeObject() (eObject EObject, err error) {
-	defer func() {
-		if panicErr, _ := recover().(error); panicErr != nil {
-			err = panicErr
-		}
-	}()
-	d.decodeSignature()
-	d.decodeVersion()
-	eObject = d.decodeObject()
-	return
-}
-
-func (e *BinaryDecoder) haltOnError(err error) {
-	if err != nil {
-		panic(err)
+func (d *BinaryDecoder) DecodeObject() (EObject, error) {
+	if err := d.decodeSignature(); err != nil {
+		return nil, err
 	}
+	if err := d.decodeVersion(); err != nil {
+		return nil, err
+	}
+	return d.decodeObject()
 }
 
-func (d *BinaryDecoder) decodeInt() int {
-	i, err := d.decoder.DecodeInt()
-	d.haltOnError(err)
-	return i
+func (d *BinaryDecoder) decodeInt() (int, error) {
+	return d.decoder.DecodeInt()
 }
 
-func (d *BinaryDecoder) decodeInt64() int64 {
-	i, err := d.decoder.DecodeInt64()
-	d.haltOnError(err)
-	return i
+func (d *BinaryDecoder) decodeInt64() (int64, error) {
+	return d.decoder.DecodeInt64()
 }
 
-func (d *BinaryDecoder) decodeInt32() int32 {
-	i, err := d.decoder.DecodeInt32()
-	d.haltOnError(err)
-	return i
+func (d *BinaryDecoder) decodeInt32() (int32, error) {
+	return d.decoder.DecodeInt32()
+
 }
 
-func (d *BinaryDecoder) decodeInt16() int16 {
-	i, err := d.decoder.DecodeInt16()
-	d.haltOnError(err)
-	return i
+func (d *BinaryDecoder) decodeInt16() (int16, error) {
+	return d.decoder.DecodeInt16()
 }
 
-func (d *BinaryDecoder) decodeByte() byte {
-	i, err := d.decoder.DecodeUint8()
-	d.haltOnError(err)
-	return i
+func (d *BinaryDecoder) decodeByte() (byte, error) {
+	return d.decoder.DecodeUint8()
 }
 
-func (d *BinaryDecoder) decodeBool() bool {
-	b, err := d.decoder.DecodeBool()
-	d.haltOnError(err)
-	return b
+func (d *BinaryDecoder) decodeBool() (bool, error) {
+	return d.decoder.DecodeBool()
 }
 
-func (d *BinaryDecoder) decodeString() string {
-	s, err := d.decoder.DecodeString()
-	d.haltOnError(err)
-	return s
+func (d *BinaryDecoder) decodeString() (string, error) {
+	return d.decoder.DecodeString()
 }
 
-func (d *BinaryDecoder) decodeBytes() []byte {
-	bytes, err := d.decoder.DecodeBytes()
-	d.haltOnError(err)
-	return bytes
+func (d *BinaryDecoder) decodeBytes() ([]byte, error) {
+	return d.decoder.DecodeBytes()
 }
 
-func (d *BinaryDecoder) decodeDate() *time.Time {
+func (d *BinaryDecoder) decodeDate() (*time.Time, error) {
 	t, err := d.decoder.DecodeTime()
-	d.haltOnError(err)
+	if err != nil {
+		return nil, err
+	}
 	// msgpack time is decoded as local
 	// got to transform as UTC
 	t = t.UTC()
-	return &t
+	return &t, nil
 }
 
-func (d *BinaryDecoder) decodeFloat64() float64 {
-	f, err := d.decoder.DecodeFloat64()
-	d.haltOnError(err)
-	return f
+func (d *BinaryDecoder) decodeFloat64() (float64, error) {
+	return d.decoder.DecodeFloat64()
 }
 
-func (d *BinaryDecoder) decodeFloat32() float32 {
-	f, err := d.decoder.DecodeFloat32()
-	d.haltOnError(err)
-	return f
+func (d *BinaryDecoder) decodeFloat32() (float32, error) {
+	return d.decoder.DecodeFloat32()
 }
 
-func (d *BinaryDecoder) decodeInterface() any {
-	i, err := d.decoder.DecodeInterface()
-	d.haltOnError(err)
-	return i
+func (d *BinaryDecoder) decodeInterface() (any, error) {
+	return d.decoder.DecodeInterface()
 }
 
-func (d *BinaryDecoder) decodeSignature() {
-	signature := d.decodeBytes()
+func (d *BinaryDecoder) decodeSignature() error {
+	signature, err := d.decodeBytes()
+	if err != nil {
+		return err
+	}
 	if !bytes.Equal(signature, binarySignature) {
-		panic(errors.New("invalid signature for a binary emf serialization"))
+		return errors.New("invalid signature for a binary emf serialization")
 	}
+	return nil
 }
 
-func (d *BinaryDecoder) decodeVersion() {
-	if version := d.decodeInt(); version != binaryVersion {
-		panic(errors.New("invalid version for binary emf serialization"))
+func (d *BinaryDecoder) decodeVersion() error {
+	version, err := d.decodeInt()
+	if err != nil {
+		return err
 	}
+	if version != binaryVersion {
+		return errors.New("invalid version for binary emf serialization")
+	}
+	return nil
 }
 
-func (d *BinaryDecoder) decodeObject() EObject {
-	id := d.decodeInt()
+func (d *BinaryDecoder) decodeObject() (EObject, error) {
+	id, err := d.decodeInt()
+	if err != nil {
+		return nil, err
+	}
 	switch id {
 	case -1:
-		return nil
+		return nil, nil
 	default:
 		if len(d.objects) <= int(id) {
 			var eResult EObject
-			eClassData := d.decodeClass()
+			eClassData, err := d.decodeClass()
+			if err != nil {
+				return nil, err
+			}
 			eObject := eClassData.eFactory.Create(eClassData.eClass).(EObjectInternal)
 			eResult = eObject
-			featureID := d.decodeInt() - 1
+			decodedInt, err := d.decodeInt()
+			if err != nil {
+				return nil, err
+			}
+			featureID := decodedInt - 1
 
 			if featureID == -3 {
 				// proxy object
-				eProxyURI := d.decodeURI()
+				eProxyURI, err := d.decodeURI()
+				if err != nil {
+					return nil, err
+				}
 				eObject.ESetProxyURI(eProxyURI)
 				if d.isResolveProxies {
 					eResult = ResolveInResource(eObject, d.resource)
@@ -221,7 +226,11 @@ func (d *BinaryDecoder) decodeObject() EObject {
 				} else {
 					d.objects = append(d.objects, eObject)
 				}
-				featureID = d.decodeInt() - 1
+				decodedInt, err := d.decodeInt()
+				if err != nil {
+					return nil, err
+				}
+				featureID = decodedInt - 1
 			} else {
 				// standard object
 				d.objects = append(d.objects, eObject)
@@ -229,36 +238,61 @@ func (d *BinaryDecoder) decodeObject() EObject {
 
 			if featureID == -2 {
 				// object id attribute
-				objectID := d.decodeInterface()
+				objectID, err := d.decodeInterface()
+				if err != nil {
+					return nil, err
+				}
 				if objectIDManager := d.resource.GetObjectIDManager(); objectIDManager != nil {
-					err := objectIDManager.SetID(eObject, objectID)
-					if err != nil {
-						panic(err)
+					if err := objectIDManager.SetID(eObject, objectID); err != nil {
+						return nil, err
 					}
 				}
-				featureID = d.decodeInt() - 1
+				decodedInt, err := d.decodeInt()
+				if err != nil {
+					return nil, err
+				}
+				featureID = decodedInt - 1
 			}
 
-			for ; featureID != -1; featureID = d.decodeInt() - 1 {
+			for featureID != -1 {
 				eFeatureData := eClassData.featureData[featureID]
 				if eFeatureData == nil {
-					eFeatureData = d.newFeatureData(eClassData, featureID)
+					eFeatureData, err = d.newFeatureData(eClassData, featureID)
+					if err != nil {
+						return nil, err
+					}
 					eClassData.featureData[featureID] = eFeatureData
 				}
-				d.decodeFeatureValue(eObject, eFeatureData)
+				if err := d.decodeFeatureValue(eObject, eFeatureData); err != nil {
+					return nil, err
+				}
+
+				decodedInt, err := d.decodeInt()
+				if err != nil {
+					return nil, err
+				}
+				featureID = decodedInt - 1
 			}
-			return eResult
+			return eResult, nil
+
 		} else {
-			return d.objects[id]
+			return d.objects[id], nil
 		}
 	}
 }
 
-func (d *BinaryDecoder) decodeObjects(list EList) {
-	size := d.decodeInt()
+func (d *BinaryDecoder) decodeObjects(list EList) error {
+	size, err := d.decodeInt()
+	if err != nil {
+		return err
+	}
 	objects := make([]any, size)
 	for i := 0; i < size; i++ {
-		objects[i] = d.decodeObject()
+		object, err := d.decodeObject()
+		if err != nil {
+			return err
+		}
+		objects[i] = object
 	}
 
 	// If the list is empty, we need to add all the objects,
@@ -302,9 +336,10 @@ func (d *BinaryDecoder) decodeObjects(list EList) {
 			}
 		}
 	}
+	return nil
 }
 
-func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData *binaryDecoderFeatureData) {
+func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData *binaryDecoderFeatureData) error {
 	switch featureData.featureKind {
 	case bfkObjectContainer:
 		fallthrough
@@ -317,7 +352,11 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 	case bfkObjectContainment:
 		fallthrough
 	case bfkObjectContainmentProxy:
-		eObject.ESetFromID(featureData.featureID, d.decodeObject())
+		decoded, err := d.decodeObject()
+		if err != nil {
+			return err
+		}
+		eObject.ESetFromID(featureData.featureID, decoded)
 	case bfkObjectList:
 		fallthrough
 	case bfkObjectListProxy:
@@ -326,26 +365,42 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 		fallthrough
 	case bfkObjectContainmentListProxy:
 		l := eObject.EGetFromID(featureData.featureID, false).(EList)
-		d.decodeObjects(l)
+		return d.decodeObjects(l)
 	case bfkData:
-		valueStr := d.decodeString()
-		value := featureData.eFactory.CreateFromString(featureData.eDataType, valueStr)
+		decoded, err := d.decodeString()
+		if err != nil {
+			return err
+		}
+		value := featureData.eFactory.CreateFromString(featureData.eDataType, decoded)
 		eObject.ESetFromID(featureData.featureID, value)
 	case bfkDataList:
-		size := d.decodeInt()
+		size, err := d.decodeInt()
+		if err != nil {
+			return err
+		}
 		values := []any{}
 		for i := 0; i < size; i++ {
-			valueStr := d.decodeString()
-			value := featureData.eFactory.CreateFromString(featureData.eDataType, valueStr)
+			decoded, err := d.decodeString()
+			if err != nil {
+				return err
+			}
+			value := featureData.eFactory.CreateFromString(featureData.eDataType, decoded)
 			values = append(values, value)
 		}
 		l := eObject.EGetResolve(featureData.eFeature, false).(EList)
 		l.AddAll(NewBasicEList(values))
 	case bfkEnum:
 		var valueStr string
-		id := d.decodeInt()
+		id, err := d.decodeInt()
+		if err != nil {
+			return err
+		}
 		if len(d.enumLiterals) <= id {
-			valueStr = d.decodeString()
+			decoded, err := d.decodeString()
+			if err != nil {
+				return err
+			}
+			valueStr = decoded
 			d.enumLiterals = append(d.enumLiterals, valueStr)
 		} else {
 			valueStr = d.enumLiterals[id]
@@ -353,47 +408,110 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 		value := featureData.eFactory.CreateFromString(featureData.eDataType, valueStr)
 		eObject.ESetFromID(featureData.featureID, value)
 	case bfkDate:
-		eObject.ESetFromID(featureData.featureID, d.decodeDate())
+		decoded, err := d.decodeDate()
+		if err != nil {
+			return err
+		}
+		eObject.ESetFromID(featureData.featureID, decoded)
 	case bfkFloat64:
-		eObject.ESetFromID(featureData.featureID, d.decodeFloat64())
+		decoded, err := d.decodeFloat64()
+		if err != nil {
+			return err
+		}
+		eObject.ESetFromID(featureData.featureID, decoded)
 	case bfkFloat32:
-		eObject.ESetFromID(featureData.featureID, d.decodeFloat32())
+		decoded, err := d.decodeFloat32()
+		if err != nil {
+			return err
+		}
+		eObject.ESetFromID(featureData.featureID, decoded)
 	case bfkInt:
-		eObject.ESetFromID(featureData.featureID, d.decodeInt())
+		decoded, err := d.decodeInt()
+		if err != nil {
+			return err
+		}
+		eObject.ESetFromID(featureData.featureID, decoded)
 	case bfkInt64:
-		eObject.ESetFromID(featureData.featureID, d.decodeInt64())
+		decoded, err := d.decodeInt64()
+		if err != nil {
+			return err
+		}
+		eObject.ESetFromID(featureData.featureID, decoded)
 	case bfkInt32:
-		eObject.ESetFromID(featureData.featureID, d.decodeInt32())
+		decoded, err := d.decodeInt32()
+		if err != nil {
+			return err
+		}
+		eObject.ESetFromID(featureData.featureID, decoded)
 	case bfkInt16:
-		eObject.ESetFromID(featureData.featureID, d.decodeInt16())
+		decoded, err := d.decodeInt16()
+		if err != nil {
+			return err
+		}
+		eObject.ESetFromID(featureData.featureID, decoded)
 	case bfkByte:
-		eObject.ESetFromID(featureData.featureID, d.decodeByte())
+		decoded, err := d.decodeByte()
+		if err != nil {
+			return err
+		}
+		eObject.ESetFromID(featureData.featureID, decoded)
 	case bfkBool:
-		eObject.ESetFromID(featureData.featureID, d.decodeBool())
+		decoded, err := d.decodeBool()
+		if err != nil {
+			return err
+		}
+		eObject.ESetFromID(featureData.featureID, decoded)
 	case bfkString:
-		eObject.ESetFromID(featureData.featureID, d.decodeString())
+		decoded, err := d.decodeString()
+		if err != nil {
+			return err
+		}
+		eObject.ESetFromID(featureData.featureID, decoded)
 	case bfkByteArray:
-		eObject.ESetFromID(featureData.featureID, d.decodeBytes())
+		decoded, err := d.decodeBytes()
+		if err != nil {
+			return err
+		}
+		eObject.ESetFromID(featureData.featureID, decoded)
 	}
+	return nil
 }
 
-func (d *BinaryDecoder) decodeClass() *binaryDecoderClassData {
-	ePackageData := d.decodePackage()
-	id := d.decodeInt()
+func (d *BinaryDecoder) decodeClass() (*binaryDecoderClassData, error) {
+	ePackageData, err := d.decodePackage()
+	if err != nil {
+		return nil, err
+	}
+	id, err := d.decodeInt()
+	if err != nil {
+		return nil, err
+	}
 	eClassData := ePackageData.eClassData[id]
 	if eClassData == nil {
-		eClassData = d.newClassData(ePackageData)
+		eClassData, err = d.newClassData(ePackageData)
+		if err != nil {
+			return nil, err
+		}
 		ePackageData.eClassData[id] = eClassData
 	}
-	return eClassData
+	return eClassData, nil
 }
 
-func (d *BinaryDecoder) decodePackage() *binaryDecoderPackageData {
-	id := d.decodeInt()
+func (d *BinaryDecoder) decodePackage() (*binaryDecoderPackageData, error) {
+	id, err := d.decodeInt()
+	if err != nil {
+		return nil, err
+	}
 	if len(d.packageData) <= id {
 		// decode package parameters
-		nsURI := d.decodeString()
-		uri := d.decodeURI()
+		nsURI, err := d.decodeString()
+		if err != nil {
+			return nil, err
+		}
+		uri, err := d.decodeURI()
+		if err != nil {
+			return nil, err
+		}
 
 		// retrieve package
 		packageRegistry := GetPackageRegistry()
@@ -406,28 +524,34 @@ func (d *BinaryDecoder) decodePackage() *binaryDecoderPackageData {
 			ePackage, _ = resourceSet.GetEObject(uri, true).(EPackage)
 		}
 		if ePackage == nil {
-			panic(fmt.Errorf("unable to find package '%s'", nsURI))
+			return nil, fmt.Errorf("unable to find package '%s'", nsURI)
 		}
 		// create new package data
 		ePackageData := d.newPackageData(ePackage)
 		d.packageData = append(d.packageData, ePackageData)
-		return ePackageData
+		return ePackageData, nil
 
 	} else {
-		return d.packageData[id]
+		return d.packageData[id], nil
 	}
 }
 
-func (d *BinaryDecoder) decodeURI() *URI {
-	id := d.decodeInt()
+func (d *BinaryDecoder) decodeURI() (*URI, error) {
+	id, err := d.decodeInt()
+	if err != nil {
+		return nil, err
+	}
 	switch id {
 	case -1:
-		return nil
+		return nil, nil
 	default:
 		var uri *URI
 		if len(d.uris) <= int(id) {
 			// build uri
-			uriStr := d.decodeString()
+			uriStr, err := d.decodeString()
+			if err != nil {
+				return nil, err
+			}
 			if uriStr == "" {
 				uri = d.baseURI
 			} else {
@@ -438,7 +562,11 @@ func (d *BinaryDecoder) decodeURI() *URI {
 		} else {
 			uri = d.uris[id]
 		}
-		return NewURIBuilder(uri).SetFragment(d.decodeString()).URI()
+		fragment, err := d.decodeString()
+		if err != nil {
+			return nil, err
+		}
+		return NewURIBuilder(uri).SetFragment(fragment).URI(), nil
 	}
 }
 
@@ -456,25 +584,31 @@ func (d *BinaryDecoder) newPackageData(ePackage EPackage) *binaryDecoderPackageD
 	}
 }
 
-func (d *BinaryDecoder) newClassData(ePackageData *binaryDecoderPackageData) *binaryDecoderClassData {
-	className := d.decodeString()
+func (d *BinaryDecoder) newClassData(ePackageData *binaryDecoderPackageData) (*binaryDecoderClassData, error) {
+	className, err := d.decodeString()
+	if err != nil {
+		return nil, err
+	}
 	ePackage := ePackageData.ePackage
 	eClass, _ := ePackage.GetEClassifier(className).(EClass)
 	if eClass == nil {
-		panic(fmt.Errorf("unable to find class '%v' in package '%v'", className, ePackage.GetNsURI()))
+		return nil, fmt.Errorf("unable to find class '%v' in package '%v'", className, ePackage.GetNsURI())
 	}
 	return &binaryDecoderClassData{
 		eClass:      eClass,
 		eFactory:    ePackage.GetEFactoryInstance(),
 		featureData: make([]*binaryDecoderFeatureData, eClass.GetFeatureCount()),
-	}
+	}, nil
 }
 
-func (d *BinaryDecoder) newFeatureData(eClassData *binaryDecoderClassData, featureID int) *binaryDecoderFeatureData {
-	eFeatureName := d.decodeString()
+func (d *BinaryDecoder) newFeatureData(eClassData *binaryDecoderClassData, featureID int) (*binaryDecoderFeatureData, error) {
+	eFeatureName, err := d.decodeString()
+	if err != nil {
+		return nil, err
+	}
 	eFeature := eClassData.eClass.GetEStructuralFeatureFromName(eFeatureName)
 	if eFeature == nil {
-		panic(fmt.Errorf("unable to find feature '%v' in '%v' EClass", eFeatureName, eClassData.eClass.GetName()))
+		return nil, fmt.Errorf("unable to find feature '%v' in '%v' EClass", eFeatureName, eClassData.eClass.GetName())
 	}
 	eFeatureData := &binaryDecoderFeatureData{
 		eFeature:    eFeature,
@@ -485,5 +619,5 @@ func (d *BinaryDecoder) newFeatureData(eClassData *binaryDecoderClassData, featu
 		eFeatureData.eDataType = eAttribute.GetEAttributeType()
 		eFeatureData.eFactory = eFeatureData.eDataType.GetEPackage().GetEFactoryInstance()
 	}
-	return eFeatureData
+	return eFeatureData, nil
 }

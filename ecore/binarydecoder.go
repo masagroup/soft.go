@@ -78,22 +78,22 @@ func (d *BinaryDecoder) DecodeResource() {
 			d.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), resourcePath, 0, 0))
 		}
 	}()
+	// signature
 	if err = d.decodeSignature(); err != nil {
 		return
 	}
+	// version
 	if err = d.decodeVersion(); err != nil {
 		return
 	}
-
 	// objects
-	size, err := d.decodeInt()
-	if err != nil {
+	var size int
+	if size, err = d.decodeInt(); err != nil {
 		return
 	}
 	objects := make([]any, size)
 	for i := 0; i < size; i++ {
-		objects[i], err = d.decodeObject()
-		if err != nil {
+		if objects[i], err = d.decodeObject(); err != nil {
 			return
 		}
 	}
@@ -564,7 +564,7 @@ func (d *BinaryDecoder) decodeURI() (*URI, error) {
 		}
 		fragment, err := d.decodeString()
 		if err != nil {
-			return nil, nil
+			return nil, err
 		}
 		return NewURIBuilder(uri).SetFragment(fragment).URI(), nil
 	}

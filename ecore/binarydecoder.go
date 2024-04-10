@@ -263,7 +263,9 @@ func (d *BinaryDecoder) decodeObject() (EObject, error) {
 					}
 					eClassData.featureData[featureID] = eFeatureData
 				}
-				d.decodeFeatureValue(eObject, eFeatureData)
+				if err := d.decodeFeatureValue(eObject, eFeatureData); err != nil {
+					return nil, err
+				}
 
 				decodedInt, err := d.decodeInt()
 				if err != nil {
@@ -363,7 +365,7 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 		fallthrough
 	case bfkObjectContainmentListProxy:
 		l := eObject.EGetFromID(featureData.featureID, false).(EList)
-		d.decodeObjects(l)
+		return d.decodeObjects(l)
 	case bfkData:
 		decoded, err := d.decodeString()
 		if err != nil {

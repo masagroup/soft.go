@@ -90,148 +90,171 @@ func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[st
 }
 
 func (e *BinaryEncoder) EncodeResource() {
-	if !binaryDebug {
-		defer func() {
-			if err, _ := recover().(error); err != nil {
-				resourcePath := ""
-				if e.resource.GetURI() != nil {
-					resourcePath = e.resource.GetURI().String()
-				}
-				e.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), resourcePath, 0, 0))
-			}
-		}()
-	}
-	e.encodeSignature()
-	e.encodeVersion()
-	e.encodeObjects(e.resource.GetContents(), checkContainer)
-}
-
-func (e *BinaryEncoder) EncodeObject(object EObject) (err error) {
+	var err error
 	defer func() {
-		if panicErr, _ := recover().(error); panicErr != nil {
-			err = panicErr
+		if err != nil {
+			// add error to resource errors
+			resourcePath := ""
+			if e.resource.GetURI() != nil {
+				resourcePath = e.resource.GetURI().String()
+			}
+			e.resource.GetErrors().Add(NewEDiagnosticImpl(err.Error(), resourcePath, 0, 0))
 		}
 	}()
-	e.objectRoot = object
-	e.encodeSignature()
-	e.encodeVersion()
-	e.encodeObject(object, checkContainer)
-	return
-}
 
-func (e *BinaryEncoder) haltOnError(err error) {
-	if err != nil {
-		panic(err)
+	if err = e.encodeSignature(); err != nil {
+		return
 	}
+	if err = e.encodeVersion(); err != nil {
+		return
+	}
+	err = e.encodeObjects(e.resource.GetContents(), checkContainer)
 }
 
-func (e *BinaryEncoder) encodeInt(i int) {
-	e.haltOnError(e.encoder.EncodeInt(int64(i)))
+func (e *BinaryEncoder) EncodeObject(object EObject) error {
+	e.objectRoot = object
+	if err := e.encodeSignature(); err != nil {
+		return err
+	}
+	if err := e.encodeVersion(); err != nil {
+		return err
+	}
+	return e.encodeObject(object, checkContainer)
 }
 
-func (e *BinaryEncoder) encodeString(s string) {
-	e.haltOnError(e.encoder.EncodeString(s))
+func (e *BinaryEncoder) encodeInt(i int) error {
+	return e.encoder.EncodeInt(int64(i))
 }
 
-func (e *BinaryEncoder) encodeBytes(bytes []byte) {
-	e.haltOnError(e.encoder.EncodeBytes(bytes))
+func (e *BinaryEncoder) encodeString(s string) error {
+	return e.encoder.EncodeString(s)
 }
 
-func (e *BinaryEncoder) encodeDate(date *time.Time) {
-	e.haltOnError(e.encoder.EncodeTime(*date))
+func (e *BinaryEncoder) encodeBytes(bytes []byte) error {
+	return e.encoder.EncodeBytes(bytes)
 }
 
-func (e *BinaryEncoder) encodeFloat64(f float64) {
-	e.haltOnError(e.encoder.EncodeFloat64(f))
+func (e *BinaryEncoder) encodeDate(date *time.Time) error {
+	return e.encoder.EncodeTime(*date)
 }
 
-func (e *BinaryEncoder) encodeFloat32(f float32) {
-	e.haltOnError(e.encoder.EncodeFloat32(f))
+func (e *BinaryEncoder) encodeFloat64(f float64) error {
+	return e.encoder.EncodeFloat64(f)
 }
 
-func (e *BinaryEncoder) encodeInt64(i int64) {
-	e.haltOnError(e.encoder.EncodeInt64(i))
+func (e *BinaryEncoder) encodeFloat32(f float32) error {
+	return e.encoder.EncodeFloat32(f)
 }
 
-func (e *BinaryEncoder) encodeInt32(i int32) {
-	e.haltOnError(e.encoder.EncodeInt32(i))
+func (e *BinaryEncoder) encodeInt64(i int64) error {
+	return e.encoder.EncodeInt64(i)
 }
 
-func (e *BinaryEncoder) encodeInt16(i int16) {
-	e.haltOnError(e.encoder.EncodeInt16(i))
+func (e *BinaryEncoder) encodeInt32(i int32) error {
+	return e.encoder.EncodeInt32(i)
 }
 
-func (e *BinaryEncoder) encodeByte(b byte) {
-	e.haltOnError(e.encoder.EncodeUint8(b))
+func (e *BinaryEncoder) encodeInt16(i int16) error {
+	return e.encoder.EncodeInt16(i)
 }
 
-func (e *BinaryEncoder) encode(i any) {
-	e.haltOnError(e.encoder.Encode(i))
+func (e *BinaryEncoder) encodeByte(b byte) error {
+	return e.encoder.EncodeUint8(b)
 }
 
-func (e *BinaryEncoder) encodeBool(b bool) {
-	e.haltOnError(e.encoder.EncodeBool(b))
+func (e *BinaryEncoder) encode(i any) error {
+	return e.encoder.Encode(i)
 }
 
-func (e *BinaryEncoder) encodeSignature() {
+func (e *BinaryEncoder) encodeBool(b bool) error {
+	return e.encoder.EncodeBool(b)
+}
+
+func (e *BinaryEncoder) encodeSignature() error {
 	// Write a signature that will e obviously corrupt
 	// if the binary contents end up eing UTF-8 encoded
 	// or altered by line feed or carriage return changes.
-	e.encodeBytes(binarySignature)
+	return e.encodeBytes(binarySignature)
 }
 
-func (e *BinaryEncoder) encodeVersion() {
-	e.encodeInt(e.version)
+func (e *BinaryEncoder) encodeVersion() error {
+	return e.encodeInt(e.version)
 }
 
-func (e *BinaryEncoder) encodeObjects(objects EList, check checkType) {
-	e.encodeInt(objects.Size())
+func (e *BinaryEncoder) encodeObjects(objects EList, check checkType) error {
+	if err := e.encodeInt(objects.Size()); err != nil {
+		return err
+	}
 	for it := objects.Iterator(); it.HasNext(); {
 		eObject, _ := it.Next().(EObject)
-		e.encodeObject(eObject, check)
+		if err := e.encodeObject(eObject, check); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
+func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) error {
 	if eObject == nil {
-		e.encodeInt(-1)
+		return e.encodeInt(-1)
 	} else if id, isID := e.objectToID[eObject]; isID {
-		e.encodeInt(id)
+		return e.encodeInt(id)
 	} else if eObjectInternal, _ := eObject.(EObjectInternal); eObjectInternal != nil {
 		// object id
 		objectID := len(e.objectToID)
 		e.objectToID[eObject] = objectID
-		e.encodeInt(objectID)
+		if err := e.encodeInt(objectID); err != nil {
+			return err
+		}
 
 		// object class
 		eClass := eObject.EClass()
-		eClassData := e.encodeClass(eClass)
+		eClassData, err := e.encodeClass(eClass)
+		if err != nil {
+			return err
+		}
 
 		// object uri if reference or proxy
 		saveFeatureValues := true
 		switch check {
 		case checkDirectResource:
 			if eObjectInternal.EIsProxy() {
-				e.encodeInt(-2)
-				e.encodeURI(eObjectInternal.EProxyURI())
+				if err := e.encodeInt(-2); err != nil {
+					return err
+				}
+				if err := e.encodeURI(eObjectInternal.EProxyURI()); err != nil {
+					return err
+				}
 				saveFeatureValues = false
 			} else if eResource := eObjectInternal.EInternalResource(); eResource != nil {
-				e.encodeInt(-2)
-				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
+				if err := e.encodeInt(-2); err != nil {
+					return err
+				}
+				if err := e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal)); err != nil {
+					return err
+				}
 				saveFeatureValues = false
 			}
 		case checkResource:
 			if eObjectInternal.EIsProxy() {
-				e.encodeInt(-2)
-				e.encodeURI(eObjectInternal.EProxyURI())
+				if err := e.encodeInt(-2); err != nil {
+					return err
+				}
+				if err := e.encodeURI(eObjectInternal.EProxyURI()); err != nil {
+					return err
+				}
 				saveFeatureValues = false
 			} else if eResource := eObjectInternal.EResource(); eResource != nil &&
 				(eResource != e.resource ||
 					(e.objectRoot != nil && !IsAncestor(e.objectRoot, eObjectInternal))) {
 				// encode object as uri and fragment if object is in a different resource
 				// or if in the same resource and root object is not its ancestor
-				e.encodeInt(-2)
-				e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal))
+				if err := e.encodeInt(-2); err != nil {
+					return err
+				}
+				if err := e.encodeURIWithFragment(eResource.GetURI(), eResource.GetURIFragment(eObjectInternal)); err != nil {
+					return err
+				}
 				saveFeatureValues = false
 			}
 		case checkNothing:
@@ -243,29 +266,39 @@ func (e *BinaryEncoder) encodeObject(eObject EObject, check checkType) {
 			// id attribute
 			if objectIDManager := e.resource.GetObjectIDManager(); e.isIDAttributeEncoded && objectIDManager != nil {
 				if id := objectIDManager.GetID(eObject); id != nil {
-					e.encodeInt(-1)
-					e.encode(id)
+					if err := e.encodeInt(-1); err != nil {
+						return err
+					}
+					if err := e.encode(id); err != nil {
+						return err
+					}
 				}
 			}
 
 			// features
 			for featureID, featureData := range eClassData.featureData {
 				if !featureData.isTransient && (check == checkContainer || featureData.featureKind != bfkObjectContainerProxy) {
-					e.encodeFeatureValue(eObjectInternal, featureID, featureData)
+					if err := e.encodeFeatureValue(eObjectInternal, featureID, featureData); err != nil {
+						return err
+					}
 				}
 			}
 
 		}
-
-		e.encodeInt(0)
+		return e.encodeInt(0)
 	}
+	return nil
 }
 
-func (e *BinaryEncoder) encodeFeatureValue(eObject EObjectInternal, featureID int, featureData *binaryEncoderFeatureData) {
+func (e *BinaryEncoder) encodeFeatureValue(eObject EObjectInternal, featureID int, featureData *binaryEncoderFeatureData) error {
 	if eObject.EIsSetFromID(featureID) {
-		e.encodeInt(featureID + 1)
+		if err := e.encodeInt(featureID + 1); err != nil {
+			return err
+		}
 		if len(featureData.name) > 0 {
-			e.encodeString(featureData.name)
+			if err := e.encodeString(featureData.name); err != nil {
+				return err
+			}
 			featureData.name = ""
 		}
 		value := eObject.EGetFromID(featureID, false)
@@ -273,120 +306,152 @@ func (e *BinaryEncoder) encodeFeatureValue(eObject EObjectInternal, featureID in
 		case bfkObject:
 			fallthrough
 		case bfkObjectContainment:
-			e.encodeObject(value.(EObject), checkNothing)
+			return e.encodeObject(value.(EObject), checkNothing)
 		case bfkObjectContainerProxy:
-			e.encodeObject(value.(EObject), checkResource)
+			return e.encodeObject(value.(EObject), checkResource)
 		case bfkObjectContainmentProxy:
-			e.encodeObject(value.(EObject), checkDirectResource)
+			return e.encodeObject(value.(EObject), checkDirectResource)
 		case bfkObjectProxy:
-			e.encodeObject(value.(EObject), checkResource)
+			return e.encodeObject(value.(EObject), checkResource)
 		case bfkObjectList:
 			fallthrough
 		case bfkObjectContainmentList:
-			e.encodeObjects(value.(EList), checkNothing)
+			return e.encodeObjects(value.(EList), checkNothing)
 		case bfkObjectContainmentListProxy:
-			e.encodeObjects(value.(EList), checkDirectResource)
+			return e.encodeObjects(value.(EList), checkDirectResource)
 		case bfkObjectListProxy:
-			e.encodeObjects(value.(EList), checkResource)
+			return e.encodeObjects(value.(EList), checkResource)
 		case bfkData:
 			valueStr := featureData.factory.ConvertToString(featureData.dataType, value)
-			e.encodeString(valueStr)
+			return e.encodeString(valueStr)
 		case bfkDataList:
 			l := value.(EList)
-			e.encodeInt(l.Size())
+			if err := e.encodeInt(l.Size()); err != nil {
+				return err
+			}
 			for it := l.Iterator(); it.HasNext(); {
 				value := it.Next()
 				valueStr := featureData.factory.ConvertToString(featureData.dataType, value)
-				e.encodeString(valueStr)
+				if err := e.encodeString(valueStr); err != nil {
+					return err
+				}
 			}
 		case bfkEnum:
 			literalStr := featureData.factory.ConvertToString(featureData.dataType, value)
 			if enumID, isID := e.enumLiteralToIDMap[literalStr]; isID {
-				e.encodeInt(enumID)
+				return e.encodeInt(enumID)
 			} else {
 				enumID := len(e.enumLiteralToIDMap)
 				e.enumLiteralToIDMap[literalStr] = enumID
-				e.encodeInt(enumID)
-				e.encodeString(literalStr)
+				if err := e.encodeInt(enumID); err != nil {
+					return err
+				}
+				return e.encodeString(literalStr)
 			}
 		case bfkDate:
-			e.encodeDate(value.(*time.Time))
+			return e.encodeDate(value.(*time.Time))
 		case bfkFloat64:
-			e.encodeFloat64(value.(float64))
+			return e.encodeFloat64(value.(float64))
 		case bfkFloat32:
-			e.encodeFloat32(value.(float32))
+			return e.encodeFloat32(value.(float32))
 		case bfkInt:
-			e.encodeInt(value.(int))
+			return e.encodeInt(value.(int))
 		case bfkInt64:
-			e.encodeInt64(value.(int64))
+			return e.encodeInt64(value.(int64))
 		case bfkInt32:
-			e.encodeInt32(value.(int32))
+			return e.encodeInt32(value.(int32))
 		case bfkInt16:
-			e.encodeInt16(value.(int16))
+			return e.encodeInt16(value.(int16))
 		case bfkByte:
-			e.encodeByte(value.(byte))
+			return e.encodeByte(value.(byte))
 		case bfkBool:
-			e.encodeBool(value.(bool))
+			return e.encodeBool(value.(bool))
 		case bfkString:
-			e.encodeString(value.(string))
+			return e.encodeString(value.(string))
 		case bfkByteArray:
-			e.encodeBytes(value.([]byte))
+			return e.encodeBytes(value.([]byte))
 		default:
-			panic(fmt.Sprintf("feature with feature kind '%v' is not supported", featureData.featureKind))
+			return fmt.Errorf("feature with feature kind '%v' is not supported", featureData.featureKind)
 		}
 	}
+	return nil
 }
 
-func (e *BinaryEncoder) encodeClass(eClass EClass) *binaryEncoderClassData {
-	eClassData := e.classDataMap[eClass]
-	if eClassData != nil {
-		e.encodeInt(eClassData.packageID)
-		e.encodeInt(eClassData.id)
+func (e *BinaryEncoder) encodeClass(eClass EClass) (*binaryEncoderClassData, error) {
+	if eClassData := e.classDataMap[eClass]; eClassData != nil {
+		if err := e.encodeInt(eClassData.packageID); err != nil {
+			return nil, err
+		}
+		if err := e.encodeInt(eClassData.id); err != nil {
+			return nil, err
+		}
+		return eClassData, nil
 	} else {
-		eClassData = e.newClassData(eClass)
-		e.encodeInt(eClassData.id)
-		e.encodeString(eClass.GetName())
+		eClassData, err := e.newClassData(eClass)
+		if err != nil {
+			return nil, err
+		}
+		if err := e.encodeInt(eClassData.id); err != nil {
+			return nil, err
+		}
+		if err := e.encodeString(eClass.GetName()); err != nil {
+			return nil, err
+		}
 		e.classDataMap[eClass] = eClassData
+		return eClassData, nil
 	}
-	return eClassData
 }
 
-func (e *BinaryEncoder) encodePackage(ePackage EPackage) *binaryEncoderPackageData {
+func (e *BinaryEncoder) encodePackage(ePackage EPackage) (*binaryEncoderPackageData, error) {
 	ePackageData := e.packageDataMap[ePackage]
 	if ePackageData != nil {
-		e.encodeInt(ePackageData.id)
+		if err := e.encodeInt(ePackageData.id); err != nil {
+			return nil, err
+		}
 	} else {
 		ePackageData = e.newPackageData(ePackage)
-		e.encodeInt(ePackageData.id)
-		e.encodeString(ePackage.GetNsURI())
-		e.encodeURI(GetURI(ePackage))
+		if err := e.encodeInt(ePackageData.id); err != nil {
+			return nil, err
+		}
+		if err := e.encodeString(ePackage.GetNsURI()); err != nil {
+			return nil, err
+		}
+		if err := e.encodeURI(GetURI(ePackage)); err != nil {
+			return nil, err
+		}
 		e.packageDataMap[ePackage] = ePackageData
 	}
-	return ePackageData
+	return ePackageData, nil
 }
 
-func (e *BinaryEncoder) encodeURI(uri *URI) {
+func (e *BinaryEncoder) encodeURI(uri *URI) error {
 	if uri == nil {
-		e.encodeInt(-1)
+		return e.encodeInt(-1)
 	} else {
-		e.encodeURIWithFragment(uri.TrimFragment(), uri.Fragment())
+		return e.encodeURIWithFragment(uri.TrimFragment(), uri.Fragment())
 	}
 }
 
-func (e *BinaryEncoder) encodeURIWithFragment(uri *URI, fragment string) {
+func (e *BinaryEncoder) encodeURIWithFragment(uri *URI, fragment string) error {
 	if uri == nil {
-		e.encodeInt(-1)
+		return e.encodeInt(-1)
 	} else {
 		uriPath := uri.String()
 		if id, isID := e.uriToIDMap[uriPath]; isID {
-			e.encodeInt(id)
+			if err := e.encodeInt(id); err != nil {
+				return err
+			}
 		} else {
 			id := len(e.uriToIDMap)
 			e.uriToIDMap[uriPath] = id
-			e.encodeInt(id)
-			e.encodeString(e.relativizeURI(uri).String())
+			if err := e.encodeInt(id); err != nil {
+				return err
+			}
+			if err := e.encodeString(e.relativizeURI(uri).String()); err != nil {
+				return err
+			}
 		}
-		e.encodeString(fragment)
+		return e.encodeString(fragment)
 	}
 }
 
@@ -413,9 +478,12 @@ func (e *BinaryEncoder) newClassID(ePackageData *binaryEncoderPackageData) int {
 	return -1
 }
 
-func (e *BinaryEncoder) newClassData(eClass EClass) *binaryEncoderClassData {
+func (e *BinaryEncoder) newClassData(eClass EClass) (*binaryEncoderClassData, error) {
 	eFeatures := eClass.GetEAllStructuralFeatures()
-	ePackageData := e.encodePackage(eClass.GetEPackage())
+	ePackageData, err := e.encodePackage(eClass.GetEPackage())
+	if err != nil {
+		return nil, err
+	}
 	eClassData := &binaryEncoderClassData{
 		packageID:   ePackageData.id,
 		id:          e.newClassID(ePackageData),
@@ -426,7 +494,7 @@ func (e *BinaryEncoder) newClassData(eClass EClass) *binaryEncoderClassData {
 		eFeature := it.Next().(EStructuralFeature)
 		eClassData.featureData = append(eClassData.featureData, e.newFeatureData(eFeature))
 	}
-	return eClassData
+	return eClassData, nil
 }
 
 func (e *BinaryEncoder) newFeatureData(eFeature EStructuralFeature) *binaryEncoderFeatureData {

@@ -585,6 +585,12 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 		row = stmt.QueryRow(sqlID, index)
 	}
 
+	// no row
+	if row == nil {
+		return nil
+	}
+
+	// scan values
 	var v any
 	if err := row.Scan(&v); err != nil {
 		if err != sql.ErrNoRows {

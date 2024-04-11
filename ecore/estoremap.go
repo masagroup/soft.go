@@ -55,6 +55,14 @@ func NewEStoreMap(entryClass EClass, owner EObject, feature EStructuralFeature, 
 	return m
 }
 
+func (m *EStoreMap) GetEStore() EStore {
+	return m.store
+}
+
+func (m *EStoreMap) SetEStore(store EStore) {
+	m.store = store
+}
+
 func (m *EStoreMap) newEntry(key any, value any) EMapEntry {
 	eFactory := m.entryClass.GetEPackage().GetEFactoryInstance()
 	eEntry := eFactory.Create(m.entryClass).(EMapEntry)

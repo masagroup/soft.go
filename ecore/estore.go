@@ -42,3 +42,8 @@ type EStore interface {
 
 	ToArray(object EObject, feature EStructuralFeature) []any
 }
+
+type EStoreProvider interface {
+	SetEStore(store EStore)
+	GetEStore() EStore
+}

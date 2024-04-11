@@ -81,7 +81,7 @@ func TestEStoreList_Accessors(t *testing.T) {
 
 	assert.Equal(t, mockOwner, list.GetOwner())
 	assert.Equal(t, mockFeature, list.GetFeature())
-	assert.Equal(t, mockStore, list.GetStore())
+	assert.Equal(t, mockStore, list.GetEStore())
 
 	mockClass := NewMockEClass(t)
 	mockClass.EXPECT().GetFeatureID(mockFeature).Return(0).Once()

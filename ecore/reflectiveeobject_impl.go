@@ -66,3 +66,7 @@ func (o *ReflectiveEObjectImpl) getProperties() []any {
 	}
 	return o.properties
 }
+
+func (o *ReflectiveEObjectImpl) clearProperties() {
+	o.properties = nil
+}

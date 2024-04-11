@@ -87,8 +87,12 @@ func (list *EStoreList) GetFeatureID() int {
 	return list.owner.EClass().GetFeatureID(list.feature)
 }
 
-func (list *EStoreList) GetStore() EStore {
+func (list *EStoreList) GetEStore() EStore {
 	return list.store
+}
+
+func (list *EStoreList) SetEStore(store EStore) {
+	list.store = store
 }
 
 type basicEStoreListNotification struct {

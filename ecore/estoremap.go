@@ -44,12 +44,22 @@ func newEStoreEMapList(m *EStoreMap, owner EObject, feature EStructuralFeature, 
 
 type EStoreMap struct {
 	BasicEObjectMap
+	store EStore
 }
 
 func NewEStoreMap(entryClass EClass, owner EObject, feature EStructuralFeature, store EStore) *EStoreMap {
-	m := &EStoreMap{}
+	m := &EStoreMap{store: store}
 	m.EList = newEStoreEMapList(m, owner, feature, store)
 	m.entryClass = entryClass
 	m.interfaces = m
 	return m
+}
+
+func (m *EStoreMap) newEntry(key any, value any) EMapEntry {
+	eFactory := m.entryClass.GetEPackage().GetEFactoryInstance()
+	eEntry := eFactory.Create(m.entryClass).(EMapEntry)
+	eEntry.(EStoreEObject).SetEStore(m.store)
+	eEntry.SetKey(key)
+	eEntry.SetValue(value)
+	return eEntry
 }

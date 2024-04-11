@@ -44,21 +44,21 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 		if newStore == nil {
 			// build cache with previous store
 			if !o.isCaching {
-				eClass := o.AsEObject().EClass()
 				properties := o.getProperties()
 				for featureID := 0; featureID < len(properties); featureID++ {
-					eFeature := eClass.GetEStructuralFeature(featureID)
-					properties[featureID] = oldStore.Get(o.AsEObject(), eFeature, NO_INDEX)
+					if eFeature := o.eDynamicFeature(featureID); !eFeature.IsTransient() {
+						properties[featureID] = oldStore.Get(o.AsEObject(), eFeature, NO_INDEX)
+					}
 				}
 			}
 		} else {
 			// initialize store with cache
-			eClass := o.AsEObject().EClass()
 			properties := o.getProperties()
 			for featureID, value := range properties {
 				if o.EDynamicIsSet(featureID) {
-					eFeature := eClass.GetEStructuralFeature(featureID)
-					newStore.Set(o.AsEObject(), eFeature, NO_INDEX, value)
+					if eFeature := o.eDynamicFeature(featureID); !eFeature.IsTransient() {
+						newStore.Set(o.AsEObject(), eFeature, NO_INDEX, value)
+					}
 				}
 			}
 

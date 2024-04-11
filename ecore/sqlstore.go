@@ -882,6 +882,9 @@ func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value
 
 // AddRoot implements EStore.
 func (s *SQLStore) AddRoot(object EObject) {
+	if eObject, _ := object.(EStoreEObject); eObject != nil {
+		eObject.SetEStore(s)
+	}
 	if err := s.encodeContent(object); err != nil {
 		s.errorHandler(err)
 	}

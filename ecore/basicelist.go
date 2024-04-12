@@ -44,7 +44,7 @@ type abstractEList interface {
 
 	doClear() []any
 
-	doMove(oldIndex, newIndew int) any
+	doMove(oldIndex, newIndex int) any
 
 	doRemove(index int) any
 
@@ -272,10 +272,6 @@ func (list *BasicEList) doRemove(index int) any {
 }
 
 func (list *BasicEList) RemoveRange(fromIndex int, toIndex int) {
-	list.asAbstractEList().doRemoveRange(fromIndex, toIndex)
-}
-
-func (list *BasicEList) doRemoveRange(fromIndex int, toIndex int) []any {
 	if fromIndex < 0 || fromIndex >= list.Size() {
 		panic("Index out of bounds: fromIndex=" + strconv.Itoa(fromIndex) + " size=" + strconv.Itoa(list.Size()))
 	}
@@ -285,6 +281,10 @@ func (list *BasicEList) doRemoveRange(fromIndex int, toIndex int) []any {
 	if fromIndex > toIndex {
 		panic("Indexes invalid: fromIndex=" + strconv.Itoa(fromIndex) + "must be less than toIndex=" + strconv.Itoa(toIndex))
 	}
+	list.asAbstractEList().doRemoveRange(fromIndex, toIndex)
+}
+
+func (list *BasicEList) doRemoveRange(fromIndex int, toIndex int) []any {
 	// backup old objects
 	objects := append([]any{}, list.data[fromIndex:toIndex]...)
 	// remove range

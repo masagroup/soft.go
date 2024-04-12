@@ -68,15 +68,12 @@ func (list *basicEObjectList) GetUnResolvedList() EList {
 }
 
 func (list *basicEObjectList) IndexOf(elem any) int {
-	if list.proxies {
-		for i, value := range list.data {
-			if value == elem || list.resolve(i, value) == elem {
-				return i
-			}
+	for i, value := range list.data {
+		if value == elem || (list.proxies && list.resolve(i, value) == elem) {
+			return i
 		}
-		return -1
 	}
-	return list.BasicEList.IndexOf(elem)
+	return -1
 }
 
 func (list *basicEObjectList) RemoveAll(collection EList) bool {
@@ -106,9 +103,9 @@ func (list *basicEObjectList) resolve(index int, object any) any {
 			list.BasicEList.doSet(index, resolved)
 			var notifications ENotificationChain
 			if list.containment {
-				notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(object, notifications)
+				notifications = list.interfaces.(abstractENotifyingList).inverseRemove(object, notifications)
 				if resolvedInternal, _ := resolved.(EObjectInternal); resolvedInternal != nil && resolvedInternal.EInternalContainer() == nil {
-					notifications = list.interfaces.(eNotifyingListInternal).inverseAdd(resolved, notifications)
+					notifications = list.interfaces.(abstractENotifyingList).inverseAdd(resolved, notifications)
 				}
 			}
 			list.createAndDispatchNotification(notifications, RESOLVE, object, resolved, index)

@@ -63,6 +63,13 @@ func (list *basicEObjectList) GetUnResolvedList() EList {
 	return list
 }
 
+func (list *basicEObjectList) RemoveAll(collection EList) bool {
+	return list.doRemoveAll(collection, func(i int, a any) bool {
+		e := list.data[i]
+		return e == a || list.resolve(i, e) == a
+	})
+}
+
 func (list *basicEObjectList) IndexOf(elem any) int {
 	for i, value := range list.data {
 		if value == elem || (list.proxies && list.resolve(i, value) == elem) {
@@ -145,6 +152,25 @@ func newUnResolvedBasicEObjectList(delegate *basicEObjectList) *unResolvedBasicE
 	l.delegate = delegate
 	l.SetInterfaces(l)
 	return l
+}
+
+func (list *unResolvedBasicEObjectList) IndexOf(elem any) int {
+	return list.AbstractEList.IndexOf(elem)
+}
+
+func (list *unResolvedBasicEObjectList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
+	index := list.IndexOf(object)
+	if index != -1 {
+		oldObject := list.delegate.BasicEList.doRemove(index)
+		return list.delegate.createAndAddNotification(notifications, REMOVE, oldObject, nil, index)
+	}
+	return notifications
+}
+
+func (list *unResolvedBasicEObjectList) RemoveAll(c EList) bool {
+	return list.delegate.doRemoveAll(c, func(i int, a any) bool {
+		return list.delegate.data[i] == a
+	})
 }
 
 func (list *unResolvedBasicEObjectList) doGet(index int) any {

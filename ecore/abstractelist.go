@@ -134,10 +134,10 @@ func (list *AbstractEList) RemoveRange(fromIndex int, toIndex int) {
 
 func (list *AbstractEList) RemoveAll(collection EList) bool {
 	modified := false
-	l := list.asEList()
+	l := list.asAbstractEList()
 	for i := l.Size() - 1; i >= 0; i-- {
-		if collection.Contains(l.Get(i)) {
-			list.asEList().RemoveAt(i)
+		if collection.Contains(l.doGet(i)) {
+			l.RemoveAt(i)
 			modified = true
 		}
 	}

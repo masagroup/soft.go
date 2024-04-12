@@ -316,30 +316,6 @@ func (list *EStoreList) Empty() bool {
 	return true
 }
 
-func (list *EStoreList) Contains(element any) bool {
-	if list.data != nil {
-		for i, value := range list.data {
-			if value == element || (list.resolve(i, value) == element) {
-				return true
-			}
-		}
-	}
-	if list.store != nil {
-		result := list.store.Contains(list.owner, list.feature, element)
-		if !result && list.object && list.proxies {
-			for i := 0; i < list.Size(); i++ {
-				eObject, _ := list.store.Get(list.owner, list.feature, i).(EObject)
-				eResolved := list.resolveProxy(eObject)
-				if element == eResolved {
-					return true
-				}
-			}
-		}
-		return result
-	}
-	return false
-}
-
 func (list *EStoreList) IndexOf(element any) int {
 	if list.data != nil {
 		for i, value := range list.data {
@@ -414,7 +390,13 @@ func (list *unResolvedEStoreList) doGet(index int) any {
 }
 
 func (list *unResolvedEStoreList) ToArray() []any {
-	return list.delegate.data
+	if list.delegate.data != nil {
+		return list.delegate.data
+	}
+	if list.delegate.store != nil {
+		return list.delegate.store.ToArray(list.delegate.owner, list.delegate.feature)
+	}
+	return nil
 }
 
 func (l *unResolvedEStoreList) GetUnResolvedList() EList {

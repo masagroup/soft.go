@@ -31,6 +31,7 @@ func NewEStoreList(owner EObject, feature EStructuralFeature, store EStore) *ESt
 }
 
 func (list *EStoreList) Initialize(owner EObject, feature EStructuralFeature, store EStore) {
+	list.isUnique = true
 	list.owner = owner
 	list.feature = feature
 	list.store = store
@@ -374,15 +375,20 @@ func (list *EStoreList) inverseRemove(object any, notifications ENotificationCha
 
 func (list *EStoreList) GetUnResolvedList() EList {
 	if list.object && list.proxies {
-		l := &unResolvedEStoreList{}
-		l.delegate = list
-		return l
+		return newUnResolvedEStoreList(list)
 	}
 	return list
 }
 
 type unResolvedEStoreList struct {
 	AbstractDelegatingENotifyingList[*EStoreList]
+}
+
+func newUnResolvedEStoreList(delegate *EStoreList) *unResolvedEStoreList {
+	l := &unResolvedEStoreList{}
+	l.delegate = delegate
+	l.isUnique = true
+	return l
 }
 
 func (list *unResolvedEStoreList) doGet(index int) any {

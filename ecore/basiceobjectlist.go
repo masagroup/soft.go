@@ -58,9 +58,7 @@ func (list *basicEObjectList) GetFeatureID() int {
 // GetUnResolvedList ...
 func (list *basicEObjectList) GetUnResolvedList() EList {
 	if list.proxies {
-		u := &unResolvedBasicEObjectList{}
-		u.delegate = list
-		return u
+		return newUnResolvedBasicEObjectList(list)
 	}
 	return list
 }
@@ -139,6 +137,14 @@ func (list *basicEObjectList) inverseRemove(object any, notifications ENotificat
 
 type unResolvedBasicEObjectList struct {
 	AbstractDelegatingENotifyingList[*basicEObjectList]
+}
+
+func newUnResolvedBasicEObjectList(delegate *basicEObjectList) *unResolvedBasicEObjectList {
+	l := &unResolvedBasicEObjectList{}
+	l.isUnique = true
+	l.delegate = delegate
+	l.SetInterfaces(l)
+	return l
 }
 
 func (list *unResolvedBasicEObjectList) doGet(index int) any {

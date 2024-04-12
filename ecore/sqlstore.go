@@ -359,7 +359,7 @@ func (r *sqlStoreObjectRegistry) registerObject(eObject EObject, id int64) {
 		sqlObject.SetSqlID(id)
 	}
 	// set store object
-	if storeObject, _ := eObject.(EStoreEObject); storeObject != nil {
+	if storeObject, _ := eObject.(EStoreProvider); storeObject != nil {
 		storeObject.SetEStore(r.store)
 	}
 }
@@ -485,7 +485,7 @@ func (s *SQLStore) getManyStmts(table *sqlTable) *sqlManyStmts {
 
 func (d *SQLStore) decodeFeatureValue(featureData *sqlFeatureSchema, value any) (any, error) {
 	decoded, err := d.sqlDecoder.decodeFeatureValue(featureData, value)
-	if eObject, _ := decoded.(EStoreEObject); eObject != nil {
+	if eObject, _ := decoded.(EStoreProvider); eObject != nil {
 		eObject.SetEStore(d)
 	}
 	return decoded, err
@@ -493,7 +493,7 @@ func (d *SQLStore) decodeFeatureValue(featureData *sqlFeatureSchema, value any) 
 
 func (d *SQLStore) encodeFeatureValue(featureData *sqlEncoderFeatureData, value any) (any, error) {
 	endcoded, err := d.sqlEncoder.encodeFeatureValue(featureData, value)
-	if eObject, _ := value.(EStoreEObject); eObject != nil {
+	if eObject, _ := value.(EStoreProvider); eObject != nil {
 		eObject.SetEStore(d)
 	}
 	return endcoded, err
@@ -888,9 +888,6 @@ func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value
 
 // AddRoot implements EStore.
 func (s *SQLStore) AddRoot(object EObject) {
-	if eObject, _ := object.(EStoreEObject); eObject != nil {
-		eObject.SetEStore(s)
-	}
 	if err := s.encodeContent(object); err != nil {
 		s.errorHandler(err)
 	}

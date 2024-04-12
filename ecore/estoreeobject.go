@@ -12,13 +12,5 @@ package ecore
 type EStoreEObject interface {
 	EObject
 	EStoreProvider
-
-	// Set object as caching its feature values
-	SetCaching(bool)
-
-	// Returns true if object is caching feature values
-	IsCaching() bool
-
-	// Clear object feature values cache
-	ClearCache()
+	EStoreCache
 }

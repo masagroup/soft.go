@@ -2,6 +2,7 @@ package ecore
 
 type abstractENotifyingList interface {
 	ENotifyingList
+	abstractEList
 
 	performAdd(object any)
 

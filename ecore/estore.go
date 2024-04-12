@@ -45,5 +45,6 @@ type EStore interface {
 
 type EStoreProvider interface {
 	SetEStore(store EStore)
+
 	GetEStore() EStore
 }

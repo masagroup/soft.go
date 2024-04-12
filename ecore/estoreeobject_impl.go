@@ -11,13 +11,13 @@ package ecore
 
 type EStoreEObjectImpl struct {
 	ReflectiveEObjectImpl
-	isCaching bool
-	store     EStore
+	cache bool
+	store EStore
 }
 
-func NewEStoreEObjectImpl(isCaching bool) *EStoreEObjectImpl {
+func NewEStoreEObjectImpl(cache bool) *EStoreEObjectImpl {
 	o := new(EStoreEObjectImpl)
-	o.isCaching = isCaching
+	o.cache = cache
 	o.SetInterfaces(o)
 	o.Initialize()
 	return o
@@ -35,35 +35,18 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 	if oldStore := o.store; newStore != oldStore {
 		// set store to object and its children
 		o.store = newStore
-		for _, v := range o.getProperties() {
-			if storeProvider, _ := v.(EStoreProvider); storeProvider != nil {
-				storeProvider.SetEStore(newStore)
-			}
-		}
-
 		if newStore == nil {
 			// build cache with previous store
-			if !o.isCaching {
-				properties := o.getProperties()
-				for featureID := 0; featureID < len(properties); featureID++ {
+			if !o.cache {
+				for featureID := 0; featureID < len(o.properties); featureID++ {
 					if eFeature := o.eDynamicFeature(featureID); !eFeature.IsTransient() {
-						properties[featureID] = oldStore.Get(o.AsEObject(), eFeature, NO_INDEX)
+						o.properties[featureID] = oldStore.Get(o.AsEObject(), eFeature, NO_INDEX)
 					}
 				}
 			}
 		} else {
-			// initialize store with cache
-			properties := o.getProperties()
-			for featureID, value := range properties {
-				if o.EDynamicIsSet(featureID) {
-					if eFeature := o.eDynamicFeature(featureID); !eFeature.IsTransient() {
-						newStore.Set(o.AsEObject(), eFeature, NO_INDEX, value)
-					}
-				}
-			}
-
 			// clear properties because we are not caching
-			if !o.isCaching {
+			if !o.cache {
 				o.clearProperties()
 			}
 		}
@@ -71,12 +54,12 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 	}
 }
 
-func (o *EStoreEObjectImpl) SetCaching(isCaching bool) {
-	o.isCaching = isCaching
+func (o *EStoreEObjectImpl) SetCache(cache bool) {
+	o.cache = cache
 }
 
-func (o *EStoreEObjectImpl) IsCaching() bool {
-	return o.isCaching
+func (o *EStoreEObjectImpl) IsCache() bool {
+	return o.cache
 }
 
 func (o *EStoreEObjectImpl) ClearCache() {
@@ -97,7 +80,7 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 				o.getProperties()[dynamicFeatureID] = result
 			} else if store := o.AsEStoreEObject().GetEStore(); store != nil {
 				result = store.Get(o.AsEObject(), eFeature, NO_INDEX)
-				if o.isCaching {
+				if o.cache {
 					o.getProperties()[dynamicFeatureID] = result
 				}
 			}
@@ -112,7 +95,7 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 		o.getProperties()[dynamicFeatureID] = value
 	} else if store := o.AsEStoreEObject().GetEStore(); store != nil {
 		store.Set(o.AsEObject(), eFeature, NO_INDEX, value)
-		if o.isCaching {
+		if o.cache {
 			o.getProperties()[dynamicFeatureID] = value
 		}
 	} else {
@@ -134,10 +117,10 @@ func (o *EStoreEObjectImpl) eDynamicFeature(dynamicFeatureID int) EStructuralFea
 }
 
 func (o *EStoreEObjectImpl) createList(eFeature EStructuralFeature) EList {
-	return NewEStoreList(o.AsEObject(), eFeature, o.AsEStoreEObject().GetEStore())
+	return NewEStoreList(o, eFeature, o.AsEStoreEObject().GetEStore())
 }
 
 func (o *EStoreEObjectImpl) createMap(eFeature EStructuralFeature) EMap {
 	eClass := eFeature.GetEType().(EClass)
-	return NewEStoreMap(eClass, o.AsEObject(), eFeature, o.AsEStoreEObject().GetEStore())
+	return NewEStoreMap(eClass, o, eFeature, o.AsEStoreEObject().GetEStore())
 }

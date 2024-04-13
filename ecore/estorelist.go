@@ -14,7 +14,6 @@ type EStoreList struct {
 	owner       EObject
 	feature     EStructuralFeature
 	store       EStore
-	cache       bool
 	object      bool
 	containment bool
 	inverse     bool
@@ -93,12 +92,16 @@ func (list *EStoreList) SetEStore(store EStore) {
 
 // Set object with a cache for its feature values
 func (list *EStoreList) SetCache(cache bool) {
-	list.cache = cache
+	if cache {
+		list.data = []any{}
+	} else {
+		list.data = nil
+	}
 }
 
 // Returns true if object is caching feature values
 func (list *EStoreList) IsCache() bool {
-	return list.cache
+	return list.data != nil
 }
 
 // Clear object feature values cache
@@ -107,19 +110,24 @@ func (list *EStoreList) ClearCache() {
 }
 
 func (list *EStoreList) performAdd(object any) {
+	// index computed now before list potentially modified
+	index := list.Size()
+
 	// add to cache
 	if list.data != nil {
 		list.BasicENotifyingList.performAdd(object)
 	}
 
 	// add to store
-	index := list.Size()
 	if list.store != nil {
 		list.store.Add(list.owner, list.feature, index, object)
 	}
 }
 
 func (list *EStoreList) performAddAll(c EList) {
+	// index computed now before list potentially modified
+	index := list.Size()
+
 	// add to cache
 	if list.data != nil {
 		list.BasicENotifyingList.performAddAll(c)
@@ -127,7 +135,6 @@ func (list *EStoreList) performAddAll(c EList) {
 
 	// add to store
 	if list.store != nil {
-		index := list.Size()
 		for it := c.Iterator(); it.HasNext(); index++ {
 			list.store.Add(list.owner, list.feature, index, it.Next())
 		}
@@ -393,6 +400,10 @@ func newUnResolvedEStoreList(delegate *EStoreList) *unResolvedEStoreList {
 
 func (list *unResolvedEStoreList) doGet(index int) any {
 	return list.delegate.get(index)
+}
+
+func (list *unResolvedEStoreList) IndexOf(elem any) int {
+	return list.AbstractEList.IndexOf(elem)
 }
 
 func (list *unResolvedEStoreList) ToArray() []any {

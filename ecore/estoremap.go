@@ -38,7 +38,7 @@ func (ml *eStoreEMapList) DidClear(oldObjects []any) {
 func newEStoreEMapList(m *EStoreMap, owner EObject, feature EStructuralFeature, store EStore) *eStoreEMapList {
 	l := &eStoreEMapList{m: m}
 	l.Initialize(owner, feature, store)
-	l.interfaces = l
+	l.SetInterfaces(l)
 	return l
 }
 
@@ -61,6 +61,26 @@ func (m *EStoreMap) GetEStore() EStore {
 
 func (m *EStoreMap) SetEStore(store EStore) {
 	m.store = store
+	sp := m.EList.(EStoreProvider)
+	sp.SetEStore(store)
+}
+
+// Set object with a cache for its feature values
+func (m *EStoreMap) SetCache(cache bool) {
+	sc := m.EList.(EStoreCache)
+	sc.SetCache(cache)
+}
+
+// Returns true if object is caching feature values
+func (m *EStoreMap) IsCache() bool {
+	sc := m.EList.(EStoreCache)
+	return sc.IsCache()
+}
+
+// Clear object feature values cache
+func (m *EStoreMap) ClearCache() {
+	sc := m.EList.(EStoreCache)
+	sc.ClearCache()
 }
 
 func (m *EStoreMap) newEntry(key any, value any) EMapEntry {

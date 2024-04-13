@@ -45,6 +45,13 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 				}
 			}
 		} else {
+			// set children store
+			for _, v := range o.getProperties() {
+				if sp, _ := v.(EStoreProvider); sp != nil {
+					sp.SetEStore(newStore)
+				}
+			}
+
 			// clear properties because we are not caching
 			if !o.cache {
 				o.clearProperties()

@@ -115,13 +115,12 @@ type sqlBase struct {
 
 func (s *sqlBase) encodeProperties() error {
 	// properties
-	// propertiesQuery := `
-	// PRAGMA synchronous = NORMAL;
-	// PRAGMA journal_mode = WAL;
-	// `
-	// _, err := s.db.Exec(propertiesQuery)
-	// return err
-	return nil
+	propertiesQuery := `
+	PRAGMA synchronous = NORMAL;
+	PRAGMA journal_mode = WAL;
+	`
+	_, err := s.db.Exec(propertiesQuery)
+	return err
 }
 
 func (s *sqlBase) encodeSchema() error {

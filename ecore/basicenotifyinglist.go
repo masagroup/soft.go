@@ -296,17 +296,18 @@ func (list *BasicENotifyingList) RemoveAll(collection EList) bool {
 	return list.doRemoveAll(
 		collection,
 		func(index int, other any) bool {
-			return list.doGet(index) == other
+			return list.asAbstractEList().doGet(index) == other
 		})
 }
 
 func (list *BasicENotifyingList) doRemoveAll(collection EList, getAndCompare func(int, any) bool) bool {
 	var positions []any
 	var removed []any
+	notifyingList := list.asAbstractENotifyingList()
 
 	// compute positions and removed objects
 	if !collection.Empty() {
-		for i := 0; i < list.Size(); i++ {
+		for i := 0; i < notifyingList.Size(); i++ {
 			for j := 0; j < collection.Size(); j++ {
 				object := collection.Get(j)
 				if getAndCompare(i, object) {
@@ -319,7 +320,6 @@ func (list *BasicENotifyingList) doRemoveAll(collection EList, getAndCompare fun
 	}
 
 	// remove
-	notifyingList := list.asAbstractENotifyingList()
 	for i := len(positions) - 1; i >= 0; i-- {
 		notifyingList.performRemove(positions[i].(int))
 	}

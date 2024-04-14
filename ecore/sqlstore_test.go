@@ -284,7 +284,7 @@ func TestSQLStore_Get_Object(t *testing.T) {
 	require.NotNil(t, sqlObject)
 	assert.Equal(t, int64(2), sqlObject.GetSqlID())
 
-	storeObject, _ := v.(EStoreEObject)
+	storeObject, _ := v.(EStoreProvider)
 	require.NotNil(t, storeObject)
 	assert.Equal(t, s, storeObject.GetEStore())
 }

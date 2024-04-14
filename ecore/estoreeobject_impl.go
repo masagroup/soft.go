@@ -46,7 +46,7 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 			}
 		} else {
 			// set children store
-			for _, v := range o.getProperties() {
+			for _, v := range o.properties {
 				if sp, _ := v.(EStoreProvider); sp != nil {
 					sp.SetEStore(newStore)
 				}
@@ -54,7 +54,7 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 
 			// clear properties because we are not caching
 			if !o.cache {
-				o.clearProperties()
+				o.properties = nil
 			}
 		}
 
@@ -62,15 +62,19 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 }
 
 func (o *EStoreEObjectImpl) SetCache(cache bool) {
-	o.cache = cache
+	if o.cache != cache {
+		o.cache = cache
+		for _, v := range o.properties {
+			if sc, _ := v.(ECacheProvider); sc != nil {
+				sc.SetCache(cache)
+			}
+		}
+		o.properties = nil
+	}
 }
 
 func (o *EStoreEObjectImpl) IsCache() bool {
 	return o.cache
-}
-
-func (o *EStoreEObjectImpl) ClearCache() {
-	o.clearProperties()
 }
 
 func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {

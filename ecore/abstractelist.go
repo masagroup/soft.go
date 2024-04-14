@@ -44,16 +44,17 @@ func (list *AbstractEList) asAbstractEList() abstractEList {
 }
 
 func (list *AbstractEList) Add(elem any) bool {
-	if list.isUnique && list.Contains(elem) {
+	l := list.asAbstractEList()
+	if list.isUnique && l.Contains(elem) {
 		return false
 	}
-	list.asAbstractEList().doAdd(elem)
+	l.doAdd(elem)
 	return true
 }
 
 func (list *AbstractEList) AddAll(collection EList) bool {
 	if list.isUnique {
-		collection = getNonDuplicates(collection, list)
+		collection = getNonDuplicates(collection, list.asEList())
 		if collection.Size() == 0 {
 			return false
 		}
@@ -63,73 +64,83 @@ func (list *AbstractEList) AddAll(collection EList) bool {
 }
 
 func (list *AbstractEList) Insert(index int, elem any) bool {
-	if size := list.asEList().Size(); index < 0 || index > size {
+	l := list.asAbstractEList()
+	if size := l.Size(); index < 0 || index > size {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(size))
 	}
-	if list.isUnique && list.Contains(elem) {
+	if list.isUnique && l.Contains(elem) {
 		return false
 	}
-	list.asAbstractEList().doInsert(index, elem)
+	l.doInsert(index, elem)
 	return true
 }
 
 func (list *AbstractEList) InsertAll(index int, collection EList) bool {
-	if size := list.asEList().Size(); index < 0 || index > size {
+	l := list.asAbstractEList()
+	if size := l.Size(); index < 0 || index > size {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(size))
 	}
 	if list.isUnique {
-		collection = getNonDuplicates(collection, list)
+		collection = getNonDuplicates(collection, list.asEList())
 		if collection.Size() == 0 {
 			return false
 		}
 	}
-	list.asAbstractEList().doInsertAll(index, collection)
+	l.doInsertAll(index, collection)
 	return true
 }
 
 func (list *AbstractEList) MoveObject(newIndex int, elem any) {
-	oldIndex := list.asEList().IndexOf(elem)
+	l := list.asAbstractEList()
+	oldIndex := l.IndexOf(elem)
 	if oldIndex == -1 {
 		panic("Object not found")
 	}
-	list.asAbstractEList().doMove(oldIndex, newIndex)
+	l.doMove(oldIndex, newIndex)
 }
 
 // Swap move an element from oldIndex to newIndex
 func (list *AbstractEList) Move(oldIndex, newIndex int) any {
-	if size := list.asEList().Size(); oldIndex < 0 || oldIndex >= size || newIndex < 0 || newIndex > size {
+	l := list.asAbstractEList()
+	if size := l.Size(); oldIndex < 0 || oldIndex >= size || newIndex < 0 || newIndex > size {
 		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(size))
 	}
-	return list.asAbstractEList().doMove(oldIndex, newIndex)
+	return l.doMove(oldIndex, newIndex)
 }
 
 // RemoveAt remove an element at a given position
 func (list *AbstractEList) RemoveAt(index int) any {
-	return list.asAbstractEList().doRemove(index)
+	l := list.asAbstractEList()
+	if size := l.Size(); index < 0 || index >= size {
+		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(size))
+	}
+	return l.doRemove(index)
 }
 
 // Remove an element in an array
 func (list *AbstractEList) Remove(elem any) bool {
-	index := list.asEList().IndexOf(elem)
+	l := list.asAbstractEList()
+	index := l.IndexOf(elem)
 	if index == -1 {
 		return false
 	}
-	list.asAbstractEList().doRemove(index)
+	l.doRemove(index)
 	return true
 }
 
 func (list *AbstractEList) RemoveRange(fromIndex int, toIndex int) {
-	size := list.asEList().Size()
+	l := list.asAbstractEList()
+	size := l.Size()
 	if fromIndex < 0 || fromIndex >= size {
 		panic("Index out of bounds: fromIndex=" + strconv.Itoa(fromIndex) + " size=" + strconv.Itoa(size))
 	}
-	if toIndex < 0 || toIndex > list.asEList().Size() {
+	if toIndex < 0 || toIndex > size {
 		panic("Index out of bounds: toIndex=" + strconv.Itoa(toIndex) + " size=" + strconv.Itoa(size))
 	}
 	if fromIndex > toIndex {
 		panic("Indexes invalid: fromIndex=" + strconv.Itoa(fromIndex) + "must be less than toIndex=" + strconv.Itoa(toIndex))
 	}
-	list.asAbstractEList().doRemoveRange(fromIndex, toIndex)
+	l.doRemoveRange(fromIndex, toIndex)
 }
 
 func (list *AbstractEList) RemoveAll(collection EList) bool {
@@ -146,24 +157,26 @@ func (list *AbstractEList) RemoveAll(collection EList) bool {
 
 // Get an element of the array
 func (list *AbstractEList) Get(index int) any {
-	if size := list.asEList().Size(); index < 0 || index >= size {
+	l := list.asAbstractEList()
+	if size := l.Size(); index < 0 || index >= size {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(size))
 	}
-	return list.asAbstractEList().doGet(index)
+	return l.doGet(index)
 }
 
 // Set an element of the array
 func (list *AbstractEList) Set(index int, elem any) any {
-	if size := list.asEList().Size(); index < 0 || index >= size {
+	l := list.asAbstractEList()
+	if size := l.Size(); index < 0 || index >= size {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(size))
 	}
 	if list.isUnique {
-		currIndex := list.asEList().IndexOf(elem)
+		currIndex := l.IndexOf(elem)
 		if currIndex >= 0 && currIndex != index {
 			panic("element already in list")
 		}
 	}
-	return list.asAbstractEList().doSet(index, elem)
+	return l.doSet(index, elem)
 }
 
 func (list *AbstractEList) Clear() {

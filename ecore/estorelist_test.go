@@ -98,7 +98,6 @@ func TestEStoreList_Add(t *testing.T) {
 	list := NewEStoreList(mockOwner, mockFeature, mockStore)
 
 	// already present
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(0).Twice()
 	mockStore.EXPECT().Contains(mockOwner, mockFeature, 1).Return(true).Once()
 	assert.False(t, list.Add(1))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
@@ -182,7 +181,7 @@ func TestEStoreList_AddWithNotification(t *testing.T) {
 	list := NewEStoreList(mockOwner, mockFeature, mockStore)
 
 	// add 1
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Twice()
 	mockStore.EXPECT().Add(mockOwner, mockFeature, 1, 2).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
@@ -207,7 +206,7 @@ func TestEStoreList_Insert(t *testing.T) {
 	})
 	mock.AssertExpectationsForObjects(t, mockStore)
 
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Twice()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
 	assert.Panics(t, func() {
 		list.Insert(2, 0)
 	})
@@ -220,7 +219,7 @@ func TestEStoreList_AddAll(t *testing.T) {
 	mockStore := NewMockEStore(t)
 	list := NewEStoreList(mockOwner, mockFeature, mockStore)
 
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(0).Twice()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(0).Once()
 	mockStore.EXPECT().Contains(mockOwner, mockFeature, 1).Return(false).Once()
 	mockStore.EXPECT().Add(mockOwner, mockFeature, 0, 1).Once()
 	mockOwner.EXPECT().EDeliver().Return(false).Once()
@@ -290,7 +289,6 @@ func TestEStoreList_MoveObject(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
 
 	mockStore.EXPECT().IndexOf(mockOwner, mockFeature, 1).Return(0).Once()
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Twice()
 	mockStore.EXPECT().Move(mockOwner, mockFeature, 0, 1).Return(mockObject).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
@@ -315,7 +313,7 @@ func TestEStoreList_Move(t *testing.T) {
 	})
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
 
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Twice()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
 	mockStore.EXPECT().Move(mockOwner, mockFeature, 0, 1).Return(mockObject).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
@@ -339,6 +337,7 @@ func TestEStoreList_Get_NoProxy(t *testing.T) {
 	list := NewEStoreList(mockOwner, mockReference, mockStore)
 	assert.NotNil(t, list)
 
+	mockStore.EXPECT().Size(list.owner, list.feature).Return(1).Once()
 	mockStore.EXPECT().Get(list.owner, list.feature, 0).Return(mockObject).Once()
 	assert.Equal(t, mockObject, list.Get(0))
 }
@@ -359,6 +358,7 @@ func TestEStoreList_Get_Proxy(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject, mockOpposite)
 
 	// no proxy object
+	mockStore.EXPECT().Size(list.owner, list.feature).Return(1).Once()
 	mockStore.EXPECT().Get(list.owner, list.feature, 0).Return(mockObject).Once()
 	mockObject.EXPECT().EIsProxy().Return(false).Once()
 	assert.Equal(t, mockObject, list.Get(0))
@@ -366,10 +366,10 @@ func TestEStoreList_Get_Proxy(t *testing.T) {
 
 	// proxy object
 	mockClass := NewMockEClass(t)
+	mockStore.EXPECT().Size(list.owner, list.feature).Return(1).Once()
 	mockStore.EXPECT().Get(list.owner, list.feature, 0).Return(mockObject).Once()
 	mockObject.EXPECT().EIsProxy().Return(true).Once()
 	mockOwner.EXPECT().EResolveProxy(mockObject).Return(mockResolved).Once()
-	mockStore.EXPECT().Set(list.owner, list.feature, 0, mockResolved).Return(mockResolved).Return(mockObject).Once()
 	mockReference.EXPECT().GetEOpposite().Return(mockOpposite).Once()
 	mockClass.EXPECT().GetFeatureID(mockOpposite).Return(0).Once()
 	mockObject.EXPECT().EClass().Return(mockClass).Once()
@@ -457,6 +457,7 @@ func TestEStoreList_RemoveAt(t *testing.T) {
 	assert.Panics(t, func() {
 		list.RemoveAt(-1)
 	})
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
 	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
 	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0).Return(1).Once()
@@ -476,7 +477,6 @@ func TestEStoreList_Remove(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
 	mockStore.EXPECT().IndexOf(mockOwner, mockFeature, 1).Return(0).Once()
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
 	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0).Return(1).Once()
 	mockOwner.EXPECT().EDeliver().Return(false).Once()
 	assert.True(t, list.Remove(1))
@@ -509,9 +509,8 @@ func TestEStoreList_RemoveAll(t *testing.T) {
 	list := NewEStoreList(mockOwner, mockFeature, mockStore)
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Twice()
 	mockStore.EXPECT().Get(mockOwner, mockFeature, 0).Return(1).Once()
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
 	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0).Return(1).Once()
 	mockOwner.EXPECT().EDeliver().Return(false)
 	list.RemoveAll(NewImmutableEList([]any{1}))
@@ -697,6 +696,7 @@ func TestEStoreList_RemoveRange(t *testing.T) {
 	list := NewEStoreList(mockOwner, mockFeature, mockStore)
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(2).Once()
 	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0).Return(mockObject).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
@@ -710,6 +710,7 @@ func TestEStoreList_RemoveRange(t *testing.T) {
 	list.RemoveRange(0, 1)
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockAdapter)
 
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(2).Once()
 	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0).Return(mockObject).Once()
 	mockStore.EXPECT().Remove(mockOwner, mockFeature, 1).Return(mockObject2).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
@@ -718,7 +719,7 @@ func TestEStoreList_RemoveRange(t *testing.T) {
 		return n.GetNotifier() == mockOwner &&
 			n.GetFeature() == mockFeature &&
 			n.GetEventType() == REMOVE_MANY &&
-			reflect.DeepEqual(n.GetNewValue(), []int{0, 1}) &&
+			reflect.DeepEqual(n.GetNewValue(), []any{0, 1}) &&
 			reflect.DeepEqual(n.GetOldValue(), []any{mockObject, mockObject2})
 	}))
 	list.RemoveRange(0, 2)

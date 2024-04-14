@@ -9,10 +9,6 @@
 
 package ecore
 
-import (
-	"strconv"
-)
-
 type listCallBacks interface {
 	DidAdd(index int, elem any)
 
@@ -127,9 +123,6 @@ func (list *BasicEList) doMove(oldIndex, newIndex int) any {
 }
 
 func (list *BasicEList) doRemove(index int) any {
-	if index < 0 || index >= list.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
-	}
 	// retrieve removed object
 	object := list.data[index]
 

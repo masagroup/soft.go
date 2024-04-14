@@ -67,20 +67,17 @@ func (m *EStoreMap) SetEStore(store EStore) {
 
 // Set object with a cache for its feature values
 func (m *EStoreMap) SetCache(cache bool) {
-	sc := m.EList.(EStoreCache)
+	// reset map data
+	m.mapData = nil
+	// set internal list cache
+	sc := m.EList.(ECacheProvider)
 	sc.SetCache(cache)
 }
 
 // Returns true if object is caching feature values
 func (m *EStoreMap) IsCache() bool {
-	sc := m.EList.(EStoreCache)
+	sc := m.EList.(ECacheProvider)
 	return sc.IsCache()
-}
-
-// Clear object feature values cache
-func (m *EStoreMap) ClearCache() {
-	sc := m.EList.(EStoreCache)
-	sc.ClearCache()
 }
 
 func (m *EStoreMap) newEntry(key any, value any) EMapEntry {

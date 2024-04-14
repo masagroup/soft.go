@@ -12,5 +12,5 @@ package ecore
 type EStoreEObject interface {
 	EObject
 	EStoreProvider
-	EStoreCache
+	ECacheProvider
 }

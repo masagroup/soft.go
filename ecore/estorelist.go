@@ -92,21 +92,30 @@ func (list *EStoreList) SetEStore(store EStore) {
 
 // Set object with a cache for its feature values
 func (list *EStoreList) SetCache(cache bool) {
-	if cache {
-		list.data = []any{}
-	} else {
-		list.data = nil
+	if list.IsCache() != cache {
+		var data []any
+		if cache {
+			if list.store != nil {
+				data = list.store.ToArray(list.owner, list.feature)
+			} else {
+				data = []any{}
+			}
+			list.data = data
+		} else {
+			data = list.data
+			list.data = nil
+		}
+		for _, v := range data {
+			if sc, _ := v.(ECacheProvider); sc != nil {
+				sc.SetCache(cache)
+			}
+		}
 	}
 }
 
 // Returns true if object is caching feature values
 func (list *EStoreList) IsCache() bool {
 	return list.data != nil
-}
-
-// Clear object feature values cache
-func (list *EStoreList) ClearCache() {
-	list.data = nil
 }
 
 func (list *EStoreList) performAdd(object any) {
@@ -348,6 +357,26 @@ func (list *EStoreList) IndexOf(element any) int {
 		}
 	}
 	return -1
+}
+
+func (list *EStoreList) Contains(element any) bool {
+	if list.data != nil {
+		return list.BasicENotifyingList.Contains(element)
+	}
+	if list.store != nil {
+		if list.store.Contains(list.owner, list.feature, element) {
+			return true
+		} else if list.object && list.proxies {
+			for i := 0; i < list.Size(); i++ {
+				eObject, _ := list.store.Get(list.owner, list.feature, i).(EObject)
+				eResolved := list.resolveProxy(eObject)
+				if element == eResolved {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 func (list *EStoreList) inverseAdd(object any, notifications ENotificationChain) ENotificationChain {

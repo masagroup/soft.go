@@ -66,15 +66,83 @@ type sqlEncoderClassData struct {
 	features  *linkedHashMap[EStructuralFeature, *sqlEncoderFeatureData]
 }
 
+type sqlEncoderIDManager interface {
+	sqlCodecIDManager
+	getPackageID(EPackage) (int64, bool)
+	getObjectID(EObject) (int64, bool)
+	getClassID(EClass) (int64, bool)
+	getEnumLiteralID(EEnumLiteral) (int64, bool)
+}
+
+type sqlEncoderIDManagerImpl struct {
+	packages     map[EPackage]int64
+	classes      map[EClass]int64
+	objects      map[EObject]int64
+	enumLiterals map[EEnumLiteral]int64
+}
+
+func newSqlEncoderIDManager() *sqlEncoderIDManagerImpl {
+	return &sqlEncoderIDManagerImpl{
+		packages:     map[EPackage]int64{},
+		classes:      map[EClass]int64{},
+		objects:      map[EObject]int64{},
+		enumLiterals: map[EEnumLiteral]int64{},
+	}
+}
+
+func (r *sqlEncoderIDManagerImpl) setPackageID(p EPackage, id int64) {
+	r.packages[p] = id
+}
+
+func (r *sqlEncoderIDManagerImpl) getPackageID(p EPackage) (id int64, b bool) {
+	id, b = r.packages[p]
+	return
+}
+
+func (r *sqlEncoderIDManagerImpl) setObjectID(o EObject, id int64) {
+	// set sql id if created object is an sql object
+	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
+		sqlObject.SetSqlID(id)
+	} else {
+		// otherwise store it in map
+		r.objects[o] = id
+	}
+}
+
+func (r *sqlEncoderIDManagerImpl) getObjectID(o EObject) (id int64, b bool) {
+	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
+		id = sqlObject.GetSqlID()
+		b = id != 0
+	} else {
+		id, b = r.objects[o]
+	}
+	return
+}
+
+func (r *sqlEncoderIDManagerImpl) setClassID(c EClass, id int64) {
+	r.classes[c] = id
+}
+
+func (r *sqlEncoderIDManagerImpl) getClassID(c EClass) (id int64, b bool) {
+	id, b = r.classes[c]
+	return
+}
+
+func (r *sqlEncoderIDManagerImpl) setEnumLiteralID(e EEnumLiteral, id int64) {
+	r.enumLiterals[e] = id
+}
+
+func (r *sqlEncoderIDManagerImpl) getEnumLiteralID(e EEnumLiteral) (id int64, b bool) {
+	id, b = r.enumLiterals[e]
+	return
+}
+
 type sqlEncoder struct {
 	*sqlBase
-	keepDefaults   bool
-	objectRegistry sqlObjectRegistry
-	insertStmts    map[*sqlTable]*sqlSafeStmt
-	classDataMap   map[EClass]*sqlEncoderClassData
-	packageIDs     map[EPackage]int64
-	objectIDs      map[EObject]int64
-	enumLiteralIDs map[string]int64
+	keepDefaults bool
+	insertStmts  map[*sqlTable]*sqlSafeStmt
+	classDataMap map[EClass]*sqlEncoderClassData
+	sqlIDManager sqlEncoderIDManager
 }
 
 func (e *sqlEncoder) encodeContent(eObject EObject) error {
@@ -96,7 +164,7 @@ func (e *sqlEncoder) encodeContent(eObject EObject) error {
 }
 
 func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
-	objectID, isObjectID := e.objectIDs[eObject]
+	objectID, isObjectID := e.sqlIDManager.getObjectID(eObject)
 	if !isObjectID {
 
 		// encode object class
@@ -130,10 +198,7 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
 		}
 
 		// register object in registry
-		e.objectRegistry.registerObject(eObject, objectID)
-
-		// register object id
-		e.objectIDs[eObject] = objectID
+		e.sqlIDManager.setObjectID(eObject, objectID)
 
 		// collection of statements
 		// used to avoid nested transactions
@@ -226,7 +291,7 @@ func (e *sqlEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 			if sqlObject, isSqlObject := value.(SQLObject); isSqlObject {
 				sqlID = sqlObject.GetSqlID()
 			} else {
-				sqlID = e.objectIDs[eObject]
+				sqlID, _ = e.sqlIDManager.getObjectID(eObject)
 			}
 			if sqlID != 0 {
 				return strconv.FormatInt(sqlID, 10), nil
@@ -237,8 +302,12 @@ func (e *sqlEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 			}
 		case sfkEnum:
 			eEnum := featureData.dataType.(EEnum)
-			literal := featureData.factory.ConvertToString(featureData.dataType, value)
-			return e.encodeEnumLiteral(eEnum, literal)
+			literal := featureData.factory.ConvertToString(eEnum, value)
+			eEnumLiteral := eEnum.GetEEnumLiteralByLiteral(literal)
+			if eEnumLiteral == nil {
+				return nil, fmt.Errorf("unable to find enum literal in enmu '%s' with value '%v'", eEnum.GetName(), literal)
+			}
+			return e.encodeEnumLiteral(eEnumLiteral)
 		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkString, sfkByteArray, sfkFloat32, sfkFloat64:
 			return value, nil
 		case sfkDate:
@@ -251,11 +320,12 @@ func (e *sqlEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, valu
 	return nil, nil
 }
 
-func (e *sqlEncoder) encodeEnumLiteral(eEnum EEnum, literal string) (any, error) {
-	enumLiteralKey := eEnum.GetEPackage().GetName() + "-" + eEnum.GetName() + "-" + literal
-	if enumID, isEnumID := e.enumLiteralIDs[enumLiteralKey]; isEnumID {
-		return enumID, nil
+func (e *sqlEncoder) encodeEnumLiteral(eEnumLiteral EEnumLiteral) (any, error) {
+	//enumLiteralKey := eEnum.GetEPackage().GetName() + "-" + eEnum.GetName() + "-" + literal
+	if enumLiteralID, isEnumLiteralID := e.sqlIDManager.getEnumLiteralID(eEnumLiteral); isEnumLiteralID {
+		return enumLiteralID, nil
 	} else {
+		eEnum := eEnumLiteral.GetEEnum()
 		ePackage := eEnum.GetEPackage()
 		packageID, err := e.encodePackage(ePackage)
 		if err != nil {
@@ -266,7 +336,7 @@ func (e *sqlEncoder) encodeEnumLiteral(eEnum EEnum, literal string) (any, error)
 		if err != nil {
 			return nil, err
 		}
-		sqlResult, err := insertEnumStmt.Exec(packageID, eEnum.GetName(), literal)
+		sqlResult, err := insertEnumStmt.Exec(packageID, eEnum.GetName(), eEnumLiteral.GetLiteral())
 		if err != nil {
 			return nil, err
 		}
@@ -276,7 +346,9 @@ func (e *sqlEncoder) encodeEnumLiteral(eEnum EEnum, literal string) (any, error)
 		if err != nil {
 			return nil, err
 		}
-		e.enumLiteralIDs[enumLiteralKey] = enumID
+
+		// register enum literal
+		e.sqlIDManager.setEnumLiteralID(eEnumLiteral, enumID)
 		return enumID, nil
 	}
 }
@@ -288,33 +360,43 @@ func (e *sqlEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
 	}
 	if classData.id == -1 {
 		// class is not encoded
-		// got to register it in the classes table
-		// and retrieve its id
+		// check if class is registered in registry
+		classID, isClassID := e.sqlIDManager.getClassID(eClass)
+		if isClassID {
+			// already registered
+			classData.id = classID
+		} else {
+			// not registered
+			// got to insert in classes table and retirve its id
 
-		// encode package
-		ePackage := eClass.GetEPackage()
-		packageID, err := e.encodePackage(ePackage)
-		if err != nil {
-			return nil, err
-		}
+			// encode package
+			ePackage := eClass.GetEPackage()
+			packageID, err := e.encodePackage(ePackage)
+			if err != nil {
+				return nil, err
+			}
 
-		// insert class in sql
-		insertClassStmt, err := e.getInsertStmt(e.schema.classesTable)
-		if err != nil {
-			return nil, err
-		}
-		sqlResult, err := insertClassStmt.Exec(packageID, eClass.GetName())
-		if err != nil {
-			return nil, err
-		}
+			// insert class in sql
+			insertClassStmt, err := e.getInsertStmt(e.schema.classesTable)
+			if err != nil {
+				return nil, err
+			}
+			sqlResult, err := insertClassStmt.Exec(packageID, eClass.GetName())
+			if err != nil {
+				return nil, err
+			}
 
-		// retrieve class index
-		classID, err := sqlResult.LastInsertId()
-		if err != nil {
-			return nil, err
-		}
+			// retrieve class index
+			classID, err := sqlResult.LastInsertId()
+			if err != nil {
+				return nil, err
+			}
 
-		classData.id = classID
+			classData.id = classID
+
+			// register eClass with its id in registry
+			e.sqlIDManager.setClassID(eClass, classID)
+		}
 	}
 	return classData, nil
 }
@@ -383,7 +465,7 @@ func (e *sqlEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
 }
 
 func (e *sqlEncoder) encodePackage(ePackage EPackage) (int64, error) {
-	packageID, isPackageID := e.packageIDs[ePackage]
+	packageID, isPackageID := e.sqlIDManager.getPackageID(ePackage)
 	if !isPackageID {
 		// insert new package
 		insertPackageStmt, err := e.getInsertStmt(e.schema.packagesTable)
@@ -399,7 +481,7 @@ func (e *sqlEncoder) encodePackage(ePackage EPackage) (int64, error) {
 		if err != nil {
 			return -1, err
 		}
-		e.packageIDs[ePackage] = packageID
+		e.sqlIDManager.setPackageID(ePackage, packageID)
 	}
 	return packageID, nil
 }
@@ -508,13 +590,10 @@ func newSQLEncoder(dbProvider func(driver string) (*sql.DB, error), dbClose func
 				idAttributeName: idAttributeName,
 				schema:          newSqlSchema(schemaOptions...),
 			},
-			keepDefaults:   keepDefaults,
-			insertStmts:    map[*sqlTable]*sqlSafeStmt{},
-			classDataMap:   map[EClass]*sqlEncoderClassData{},
-			packageIDs:     map[EPackage]int64{},
-			objectIDs:      map[EObject]int64{},
-			enumLiteralIDs: map[string]int64{},
-			objectRegistry: &sqlCodecObjectRegistry{},
+			keepDefaults: keepDefaults,
+			insertStmts:  map[*sqlTable]*sqlSafeStmt{},
+			classDataMap: map[EClass]*sqlEncoderClassData{},
+			sqlIDManager: newSqlEncoderIDManager(),
 		},
 		resource:   resource,
 		driver:     driver,

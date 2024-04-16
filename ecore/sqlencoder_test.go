@@ -164,3 +164,58 @@ func TestSQLEncoder_Maps(t *testing.T) {
 	// compare expected and actual bytes
 	requireSameDB(t, "testdata/emap.sqlite", w.Bytes())
 }
+
+func TestSQLEncoder_Simple(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.simple.ecore")
+	require.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
+	resource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.simple.xml"), nil)
+	require.NotNil(t, resource)
+	require.True(t, resource.IsLoaded())
+	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	require.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
+
+	// w, err := os.Create("testdata/library.simple.sqlite")
+	// require.NoError(t, err)
+	// defer w.Close()
+	w := &bytes.Buffer{}
+	sqliteEncoder := NewSQLWriterEncoder(w, resource, nil)
+	sqliteEncoder.EncodeResource()
+	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+
+	// compare expected and actual bytes
+	requireSameDB(t, "testdata/library.simple.sqlite", w.Bytes())
+
+}
+
+func TestSQLEncoder_SimpleWithIDs(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.simple.ecore")
+	require.NotNil(t, ePackage)
+
+	// load resource
+	resourceSet := NewEResourceSetImpl()
+	resourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+	resource := resourceSet.CreateResource(NewURI("testdata/library.simple.xml"))
+	resource.SetObjectIDManager(NewULIDManager())
+	resource.Load()
+	require.NotNil(t, resource)
+	require.True(t, resource.IsLoaded())
+	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	require.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
+
+	// w, err := os.Create("testdata/library.simple.ids.sqlite")
+	// require.NoError(t, err)
+	// defer w.Close()
+	w := &bytes.Buffer{}
+	sqliteEncoder := NewSQLWriterEncoder(w, resource, nil)
+	sqliteEncoder.EncodeResource()
+	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+
+	// compare expected and actual bytes
+	requireSameDB(t, "testdata/library.simple.ids.sqlite", w.Bytes())
+
+}

@@ -816,8 +816,10 @@ func (d *SQLDecoder) decodeObjects() error {
 			switch v := values[2].(type) {
 			case nil:
 			case string:
-				if err := d.idManager.SetID(eObject, v); err != nil {
-					return err
+				if d.idManager != nil {
+					if err := d.idManager.SetID(eObject, v); err != nil {
+						return err
+					}
 				}
 			default:
 				return fmt.Errorf("%v is not a string value", values[2])

@@ -571,7 +571,7 @@ func newSQLEncoder(dbProvider func(driver string) (*sql.DB, error), dbClose func
 		}
 
 		if id, isID := options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string); isID && len(id) > 0 && resource.GetObjectIDManager() != nil {
-			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
+			schemaOptions = append(schemaOptions, withIDAttributeName(id))
 			idAttributeName = id
 		}
 

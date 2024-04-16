@@ -904,11 +904,20 @@ func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value
 	})
 }
 
-// AddRoot implements EStore.
+// AddRoot add object as store root
 func (s *SQLStore) AddRoot(object EObject) {
 	if err := s.encodeContent(object); err != nil {
 		s.errorHandler(err)
 	}
+}
+
+// GetRoot return root objects
+func (s *SQLStore) GetRoots() []EObject {
+	contents, err := s.decodeContents()
+	if err != nil {
+		s.errorHandler(err)
+	}
+	return contents
 }
 
 // RemoveRoot implements EStore.

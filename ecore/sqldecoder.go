@@ -187,6 +187,37 @@ func (d *sqlDecoder) decodeClass(id int64) (*sqlDecoderClassData, error) {
 
 }
 
+func (d *sqlDecoder) decodeContents() ([]EObject, error) {
+	table := d.schema.contentsTable
+	stmt, err := d.getSelectStmt(table, func() string {
+		return table.selectQuery(nil, "", "")
+	})
+	if err != nil {
+		return nil, err
+	}
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, nil
+	}
+	defer rows.Close()
+
+	contents := []EObject{}
+	for rows.Next() {
+		var objectID int64
+		if err := rows.Scan(&objectID); err != nil {
+			return nil, err
+		}
+
+		object, err := d.decodeObject(objectID)
+		if err != nil {
+			return nil, err
+		}
+
+		contents = append(contents, object)
+	}
+	return contents, nil
+}
+
 func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 	eObject, isObject := d.sqlIDManager.getObjectFromID(id)
 	if !isObject {

@@ -1139,7 +1139,7 @@ func (p *EcorePackageImpl) createPackageContents(ecoreFactory EcoreFactory) {
 
 }
 
-func (p *EcorePackageImpl) initializePackageContents(ecoreFactory EcoreFactory) {
+func (p *EcorePackageImpl) initializePackageContents(_ EcoreFactory) {
 
 	p.eAnnotation.GetESuperTypes().Add(p.GetEModelElement())
 	p.eAttribute.GetESuperTypes().Add(p.GetEStructuralFeature())

@@ -149,9 +149,10 @@ func (pack *EPackageExt) InitEEnum(aEnum EEnum, name, instanceTypeName string) {
 	pack.initEClassifier(aEnum, name, instanceTypeName)
 }
 
-func (pack *EPackageExt) AddEEnumLiteral(aEnum EEnum, name, literal string, value int) {
+func (pack *EPackageExt) AddEEnumLiteral(aEnum EEnum, name, literal string, value int, instance any) {
 	enumLiteral := GetFactory().CreateEEnumLiteralFromContainer(aEnum)
 	enumLiteral.SetName(name)
 	enumLiteral.SetLiteral(literal)
 	enumLiteral.SetValue(value)
+	enumLiteral.SetInstance(instance)
 }

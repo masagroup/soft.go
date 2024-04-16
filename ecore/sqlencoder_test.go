@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -192,6 +193,24 @@ func TestSQLEncoder_Simple(t *testing.T) {
 }
 
 func TestSQLEncoder_SimpleWithIDs(t *testing.T) {
+	// object id manager with predefined ulids
+	ids := []ulid.ULID{}
+	for _, u := range []string{
+		"01HVKKK6XFK7E245WTVEMXV1T9",
+		"01HVKKK6XFK7E245WTVG8BGNXB",
+		"01HVKKK6XFK7E245WTVJ5G90X9",
+		"01HVKKK6XFK7E245WTVKH0QADF",
+		"01HVKKK6XFK7E245WTVPZ40C1T"} {
+		ids = append(ids, ulid.MustParse(u))
+	}
+	idManager := NewULIDManager()
+	idManager.newID = func() ulid.ULID {
+		require.True(t, len(ids) > 0)
+		id := ids[0]
+		ids = ids[1:]
+		return id
+	}
+
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)
@@ -200,22 +219,22 @@ func TestSQLEncoder_SimpleWithIDs(t *testing.T) {
 	resourceSet := NewEResourceSetImpl()
 	resourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 	resource := resourceSet.CreateResource(NewURI("testdata/library.simple.xml"))
-	resource.SetObjectIDManager(NewULIDManager())
+	resource.SetObjectIDManager(idManager)
 	resource.Load()
 	require.NotNil(t, resource)
 	require.True(t, resource.IsLoaded())
 	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 	require.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
 
-	w, err := os.Create("testdata/library.simple.ids.sqlite")
-	require.NoError(t, err)
-	defer w.Close()
-	// w := &bytes.Buffer{}
+	// w, err := os.Create("testdata/library.simple.ids.sqlite")
+	// require.NoError(t, err)
+	// defer w.Close()
+	w := &bytes.Buffer{}
 	sqliteEncoder := NewSQLWriterEncoder(w, resource, map[string]any{SQL_OPTION_ID_ATTRIBUTE_NAME: "esyncID"})
 	sqliteEncoder.EncodeResource()
 	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 
 	// compare expected and actual bytes
-	// requireSameDB(t, "testdata/library.simple.ids.sqlite", w.Bytes())
+	requireSameDB(t, "testdata/library.simple.ids.sqlite", w.Bytes())
 
 }

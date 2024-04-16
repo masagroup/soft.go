@@ -431,7 +431,11 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 			if err != nil {
 				return nil, err
 			}
-			return enumLiteral.GetValue(), nil
+			instance := enumLiteral.GetInstance()
+			if instance == nil {
+				instance = d.decodeFeatureData(featureData, enumLiteral.GetLiteral())
+			}
+			return instance, nil
 		default:
 			return nil, fmt.Errorf("%v is not a enum value", value)
 		}

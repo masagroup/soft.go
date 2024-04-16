@@ -56,7 +56,7 @@ func getDBRows(db *sql.DB, table string) ([][]any, error) {
 		// allocate reflect.Value representing a **T value
 		t := columnTypes[i].ScanType()
 		if t == nil {
-			t = reflect.TypeFor[any]()
+			t = reflect.TypeOf((*any)(nil)).Elem()
 		}
 		ptr := reflect.PointerTo(t)
 		rowValues[i] = reflect.New(ptr)

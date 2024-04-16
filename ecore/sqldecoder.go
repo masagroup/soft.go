@@ -229,20 +229,35 @@ func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 			return nil, err
 		}
 
-		// query class infos
-		row := stmt.QueryRow(id)
+		// query object infos
+		rows, err := stmt.Query(id)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		// check if we have object id column
+		columns, err := rows.Columns()
+		if err != nil {
+			return nil, err
+		}
+		isObjectID := len(columns) > 2
+
+		// check if we have a row
+		if !rows.Next() {
+			return nil, sql.ErrNoRows
+		}
+
+		// retrieve all ids
 		var classID int64
 		var sqlID int64
 		var objectID string
-		isObjectID := len(d.schema.idAttributeName) > 0
+		scanArgs := []any{&sqlID, &classID}
 		if isObjectID {
-			if err := row.Scan(&sqlID, &classID, &objectID); err != nil {
-				return nil, err
-			}
-		} else {
-			if err := row.Scan(&sqlID, &classID); err != nil {
-				return nil, err
-			}
+			scanArgs = append(scanArgs, &objectID)
+		}
+		if err := rows.Scan(scanArgs...); err != nil {
+			return nil, err
 		}
 
 		// retrieve class data

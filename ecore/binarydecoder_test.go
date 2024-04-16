@@ -9,8 +9,23 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+func TestBinaryDecoder_Invalid(t *testing.T) {
+	// file
+	f, err := os.Open("testdata/invalid.bin")
+	require.Nil(t, err)
+
+	mockErrors := NewMockEList(t)
+	mockResource := NewMockEResource(t)
+	mockResource.EXPECT().GetURI().Return(NewURI("testdata/invalid.bin"))
+	mockResource.EXPECT().GetErrors().Return(mockErrors).Once()
+	mockErrors.EXPECT().Add(mock.Anything).Return(true).Once()
+	binaryDecoder := NewBinaryDecoder(mockResource, f, nil)
+	binaryDecoder.DecodeResource()
+}
 
 func TestBinaryDecoder_Complex(t *testing.T) {
 	// load package

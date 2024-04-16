@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -95,10 +97,14 @@ func TestUUIDManagerRegister(t *testing.T) {
 	m.Register(mockObject)
 
 	id := m.GetID(mockObject)
+	uuid := id.(uuid.UUID)
+
 	assert.NotNil(t, id)
 	assert.Nil(t, m.GetID(mockOther))
 
 	assert.Equal(t, mockObject, m.GetEObject(id))
+	assert.Equal(t, mockObject, m.GetEObject(uuid))
+	assert.Equal(t, mockObject, m.GetEObject(uuid[:]))
 	assert.Nil(t, m.GetEObject(""))
 	assert.Nil(t, m.GetEObject(3))
 
@@ -123,4 +129,22 @@ func TestUUIDManagerUnRegister(t *testing.T) {
 	// register again and check it was detached
 	m.Register(mockObject)
 	assert.Equal(t, id, m.GetID(mockObject))
+}
+
+func TestULIDManagerRegister(t *testing.T) {
+	m := NewULIDManager()
+	mockObject := NewMockEObject(t)
+	mockOther := NewMockEObject(t)
+	m.Register(mockObject)
+
+	id := m.GetID(mockObject)
+	ulid := id.(ulid.ULID)
+	assert.NotNil(t, id)
+	assert.Nil(t, m.GetID(mockOther))
+
+	assert.Equal(t, mockObject, m.GetEObject(id))
+	assert.Equal(t, mockObject, m.GetEObject(ulid))
+	assert.Equal(t, mockObject, m.GetEObject(ulid[:]))
+	assert.Nil(t, m.GetEObject(""))
+	assert.Nil(t, m.GetEObject(3))
 }

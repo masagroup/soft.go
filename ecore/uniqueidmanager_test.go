@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -123,4 +124,22 @@ func TestUUIDManagerUnRegister(t *testing.T) {
 	// register again and check it was detached
 	m.Register(mockObject)
 	assert.Equal(t, id, m.GetID(mockObject))
+}
+
+func TestULIDManagerRegister(t *testing.T) {
+	m := NewULIDManager()
+	mockObject := NewMockEObject(t)
+	mockOther := NewMockEObject(t)
+	m.Register(mockObject)
+
+	id := m.GetID(mockObject)
+	ulid := id.(ulid.ULID)
+	assert.NotNil(t, id)
+	assert.Nil(t, m.GetID(mockOther))
+
+	assert.Equal(t, mockObject, m.GetEObject(id))
+	assert.Equal(t, mockObject, m.GetEObject(ulid))
+	assert.Equal(t, mockObject, m.GetEObject(ulid[:]))
+	assert.Nil(t, m.GetEObject(""))
+	assert.Nil(t, m.GetEObject(3))
 }

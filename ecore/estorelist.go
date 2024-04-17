@@ -13,6 +13,7 @@ type EStoreList struct {
 	BasicENotifyingList
 	owner       EObject
 	feature     EStructuralFeature
+	size        int
 	store       EStore
 	object      bool
 	containment bool
@@ -34,6 +35,7 @@ func (list *EStoreList) Initialize(owner EObject, feature EStructuralFeature, st
 	list.owner = owner
 	list.feature = feature
 	list.store = store
+	list.size = store.Size(owner, feature)
 	list.object = false
 	list.containment = false
 	list.inverse = false
@@ -64,6 +66,7 @@ func (list *EStoreList) Initialize(owner EObject, feature EStructuralFeature, st
 			}
 		}
 	}
+
 }
 
 func (list *EStoreList) GetOwner() EObject {
@@ -80,14 +83,6 @@ func (list *EStoreList) GetFeature() EStructuralFeature {
 
 func (list *EStoreList) GetFeatureID() int {
 	return list.owner.EClass().GetFeatureID(list.feature)
-}
-
-func (list *EStoreList) GetEStore() EStore {
-	return list.store
-}
-
-func (list *EStoreList) SetEStore(store EStore) {
-	list.store = store
 }
 
 // Set object with a cache for its feature values
@@ -119,24 +114,20 @@ func (list *EStoreList) IsCache() bool {
 }
 
 func (list *EStoreList) performAdd(object any) {
-	// index computed now before list potentially modified
-	index := list.Size()
-
 	// add to cache
 	if list.data != nil {
 		list.BasicENotifyingList.performAdd(object)
 	}
-
 	// add to store
 	if list.store != nil {
-		list.store.Add(list.owner, list.feature, index, object)
+		list.store.Add(list.owner, list.feature, list.size, object)
 	}
+	// size
+	list.size++
 }
 
 func (list *EStoreList) performAddAll(c EList) {
 	// index computed now before list potentially modified
-	index := list.Size()
-
 	// add to cache
 	if list.data != nil {
 		list.BasicENotifyingList.performAddAll(c)
@@ -144,10 +135,13 @@ func (list *EStoreList) performAddAll(c EList) {
 
 	// add to store
 	if list.store != nil {
+		index := list.size
 		for it := c.Iterator(); it.HasNext(); index++ {
 			list.store.Add(list.owner, list.feature, index, it.Next())
 		}
 	}
+	// size
+	list.size += c.Size()
 }
 
 func (list *EStoreList) performInsert(index int, object any) {
@@ -155,11 +149,12 @@ func (list *EStoreList) performInsert(index int, object any) {
 	if list.data != nil {
 		list.BasicENotifyingList.performInsert(index, object)
 	}
-
 	// add to store
 	if list.store != nil {
 		list.store.Add(list.owner, list.feature, index, object)
 	}
+	// size
+	list.size++
 }
 
 func (list *EStoreList) performInsertAll(index int, c EList) bool {
@@ -169,7 +164,6 @@ func (list *EStoreList) performInsertAll(index int, c EList) bool {
 			return false
 		}
 	}
-
 	// add to store
 	if list.store != nil {
 		i := index
@@ -177,7 +171,8 @@ func (list *EStoreList) performInsertAll(index int, c EList) bool {
 			list.store.Add(list.owner, list.feature, i, it.Next())
 		}
 	}
-
+	// size
+	list.size += c.Size()
 	return true
 }
 
@@ -194,6 +189,8 @@ func (list *EStoreList) performClear() []any {
 		}
 		list.store.Clear(list.owner, list.feature)
 	}
+	// size
+	list.size = 0
 	return result
 }
 
@@ -207,6 +204,8 @@ func (list *EStoreList) performRemove(index int) any {
 	if list.store != nil {
 		result = list.store.Remove(list.owner, list.feature, index)
 	}
+	// size
+	list.size--
 	return result
 }
 
@@ -224,6 +223,7 @@ func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
 		}
 		result = objects
 	}
+	list.size -= len(result)
 	return result
 }
 
@@ -314,23 +314,11 @@ func (list *EStoreList) ToArray() []any {
 }
 
 func (list *EStoreList) Size() int {
-	if list.data != nil {
-		return len(list.data)
-	}
-	if list.store != nil {
-		return list.store.Size(list.owner, list.feature)
-	}
-	return 0
+	return list.size
 }
 
 func (list *EStoreList) Empty() bool {
-	if list.data != nil {
-		return len(list.data) == 0
-	}
-	if list.store != nil {
-		return list.store.IsEmpty(list.owner, list.feature)
-	}
-	return true
+	return list.size == 0
 }
 
 func (list *EStoreList) IndexOf(element any) int {

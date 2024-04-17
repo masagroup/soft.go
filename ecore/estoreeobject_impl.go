@@ -130,7 +130,6 @@ func (o *EStoreEObjectImpl) eDynamicFeature(dynamicFeatureID int) EStructuralFea
 func (o *EStoreEObjectImpl) createList(eFeature EStructuralFeature) EList {
 	l := NewEStoreList(o.AsEObject(), eFeature, o.AsEStoreEObject().GetEStore())
 	l.SetCache(o.cache)
-	l.SetEStore(o.store)
 	return l
 }
 
@@ -138,6 +137,5 @@ func (o *EStoreEObjectImpl) createMap(eFeature EStructuralFeature) EMap {
 	eClass := eFeature.GetEType().(EClass)
 	m := NewEStoreMap(eClass, o.AsEObject(), eFeature, o.AsEStoreEObject().GetEStore())
 	m.SetCache(o.cache)
-	m.SetEStore(o.store)
 	return m
 }

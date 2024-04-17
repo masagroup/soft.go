@@ -33,7 +33,7 @@ type sqlDecoderIDManagerImpl struct {
 	enumLiterals map[int64]EEnumLiteral
 }
 
-func newSqlDecoderDIManager() *sqlDecoderIDManagerImpl {
+func newSqlDecoderIDManager() *sqlDecoderIDManagerImpl {
 	return &sqlDecoderIDManagerImpl{
 		packages:     map[int64]EPackage{},
 		objects:      map[int64]EObject{},
@@ -597,7 +597,7 @@ func newSQLDecoder(dbProvider func(driver string) (*sql.DB, error), dbClose func
 				schema:          newSqlSchema(schemaOptions...),
 			},
 			packageRegistry: packageRegistry,
-			sqlIDManager:    newSqlDecoderDIManager(),
+			sqlIDManager:    newSqlDecoderIDManager(),
 			selectStmts:     map[*sqlTable]*sqlSafeStmt{},
 			classDataMap:    map[EClass]*sqlDecoderClassData{},
 		},

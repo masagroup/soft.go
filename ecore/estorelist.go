@@ -35,7 +35,9 @@ func (list *EStoreList) Initialize(owner EObject, feature EStructuralFeature, st
 	list.owner = owner
 	list.feature = feature
 	list.store = store
-	list.size = store.Size(owner, feature)
+	if list.store != nil {
+		list.size = list.store.Size(owner, feature)
+	}
 	list.object = false
 	list.containment = false
 	list.inverse = false
@@ -83,6 +85,14 @@ func (list *EStoreList) GetFeature() EStructuralFeature {
 
 func (list *EStoreList) GetFeatureID() int {
 	return list.owner.EClass().GetFeatureID(list.feature)
+}
+
+func (list *EStoreList) GetEStore() EStore {
+	return list.store
+}
+
+func (list *EStoreList) SetEStore(newStore EStore) {
+	list.store = newStore
 }
 
 // Set object with a cache for its feature values

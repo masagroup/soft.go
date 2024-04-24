@@ -13,6 +13,7 @@ type EStoreList struct {
 	BasicENotifyingList
 	owner       EObject
 	feature     EStructuralFeature
+	cache       bool
 	size        int
 	store       EStore
 	object      bool
@@ -35,8 +36,15 @@ func (list *EStoreList) Initialize(owner EObject, feature EStructuralFeature, st
 	list.owner = owner
 	list.feature = feature
 	list.store = store
+	list.cache = false
 	if list.store != nil {
+		// one store <=> no data
+		list.data = nil
 		list.size = list.store.Size(owner, feature)
+	} else {
+		// no store <=> we need data
+		list.data = []any{}
+		list.size = 0
 	}
 	list.object = false
 	list.containment = false
@@ -92,23 +100,65 @@ func (list *EStoreList) GetEStore() EStore {
 }
 
 func (list *EStoreList) SetEStore(newStore EStore) {
-	list.store = newStore
+	if oldStore := list.store; oldStore != newStore {
+		list.store = newStore
+		if newStore == nil {
+			// unbind previous store
+			if list.data == nil {
+				// got to backup store if data is not existing
+				list.data = oldStore.ToArray(list.owner, list.feature)
+			}
+			for _, v := range list.data {
+				if sp, _ := v.(EStoreProvider); sp != nil {
+					sp.SetEStore(newStore)
+				}
+			}
+		} else if !list.cache {
+			// no cache
+			// we got to initialize store with data
+			for k, v := range list.data {
+				list.store.Add(list.owner, list.feature, k, v)
+
+				if sp, _ := v.(EStoreProvider); sp != nil {
+					sp.SetEStore(newStore)
+				}
+			}
+			// clear data
+			list.data = nil
+		} else {
+			// cache exists
+			for _, v := range list.data {
+				if sp, _ := v.(EStoreProvider); sp != nil {
+					sp.SetEStore(newStore)
+				}
+			}
+		}
+	}
 }
 
 // Set object with a cache for its feature values
 func (list *EStoreList) SetCache(cache bool) {
-	if list.IsCache() != cache {
+	if list.cache != cache {
+		list.cache = cache
 		var data []any
 		if cache {
+			// one cache
 			if list.store != nil {
+				// if there is a store , create data with store values
 				data = list.store.ToArray(list.owner, list.feature)
 			} else {
-				data = []any{}
+				// data is the new cache
+				data = list.data
 			}
 			list.data = data
 		} else {
+			// no cache
 			data = list.data
-			list.data = nil
+			if list.store != nil {
+				// if there is a store, we can remove data
+				// otherwise keep it
+				list.data = nil
+			}
 		}
 		for _, v := range data {
 			if sc, _ := v.(ECacheProvider); sc != nil {
@@ -120,7 +170,7 @@ func (list *EStoreList) SetCache(cache bool) {
 
 // Returns true if object is caching feature values
 func (list *EStoreList) IsCache() bool {
-	return list.data != nil
+	return list.cache
 }
 
 func (list *EStoreList) performAdd(object any) {

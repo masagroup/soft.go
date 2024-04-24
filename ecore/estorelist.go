@@ -102,35 +102,24 @@ func (list *EStoreList) GetEStore() EStore {
 func (list *EStoreList) SetEStore(newStore EStore) {
 	if oldStore := list.store; oldStore != newStore {
 		list.store = newStore
+		var data []any
 		if newStore == nil {
 			// unbind previous store
-			if list.data == nil {
+			if !list.cache {
 				// got to backup store if data is not existing
 				list.data = oldStore.ToArray(list.owner, list.feature)
-			}
-			for _, v := range list.data {
-				if sp, _ := v.(EStoreProvider); sp != nil {
-					sp.SetEStore(newStore)
-				}
+			} else {
+				data = list.data
 			}
 		} else if !list.cache {
-			// no cache
-			// we got to initialize store with data
-			for k, v := range list.data {
-				list.store.Add(list.owner, list.feature, k, v)
-
-				if sp, _ := v.(EStoreProvider); sp != nil {
-					sp.SetEStore(newStore)
-				}
-			}
-			// clear data
+			// don't update store - it is done in sqlstore while encoding or decoding
+			// just update cache
+			data = list.data
 			list.data = nil
-		} else {
-			// cache exists
-			for _, v := range list.data {
-				if sp, _ := v.(EStoreProvider); sp != nil {
-					sp.SetEStore(newStore)
-				}
+		}
+		for _, v := range data {
+			if sp, _ := v.(EStoreProvider); sp != nil {
+				sp.SetEStore(newStore)
 			}
 		}
 	}

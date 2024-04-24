@@ -13,6 +13,10 @@ import (
 	"time"
 )
 
+type sqlObjectManager interface {
+	registerObject(EObject)
+}
+
 type sqlDecoderIDManager interface {
 	sqlCodecIDManager
 	getPackageFromID(int64) (EPackage, bool)
@@ -83,12 +87,23 @@ func (r *sqlDecoderIDManagerImpl) getEnumLiteralFromID(id int64) (e EEnumLiteral
 	return
 }
 
+type sqlDecoderObjectManager struct {
+}
+
+func newSqlDecoderObjectManager() *sqlDecoderObjectManager {
+	return &sqlDecoderObjectManager{}
+}
+
+func (r *sqlDecoderObjectManager) registerObject(EObject) {
+}
+
 type sqlDecoder struct {
 	*sqlBase
-	selectStmts     map[*sqlTable]*sqlSafeStmt
-	classDataMap    map[EClass]*sqlDecoderClassData
-	packageRegistry EPackageRegistry
-	sqlIDManager    sqlDecoderIDManager
+	selectStmts      map[*sqlTable]*sqlSafeStmt
+	classDataMap     map[EClass]*sqlDecoderClassData
+	packageRegistry  EPackageRegistry
+	sqlIDManager     sqlDecoderIDManager
+	sqlObjectManager sqlObjectManager
 }
 
 func (d *sqlDecoder) resolveURI(uri *URI) *URI {
@@ -136,7 +151,7 @@ func (d *sqlDecoder) decodePackage(id int64) (EPackage, error) {
 			return nil, fmt.Errorf("unable to find package '%s'", packageURI)
 		}
 
-		// register package
+		// register package id
 		d.sqlIDManager.setPackageID(ePackage, packageID)
 	}
 	return ePackage, nil
@@ -276,8 +291,11 @@ func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 			}
 		}
 
-		// register in object registry
+		// register in sql id manager
 		d.sqlIDManager.setObjectID(eObject, id)
+
+		// register in sql object maneger
+		d.sqlObjectManager.registerObject(eObject)
 	}
 	return eObject, nil
 }
@@ -596,10 +614,11 @@ func newSQLDecoder(dbProvider func(driver string) (*sql.DB, error), dbClose func
 				idAttributeName: idAttributeName,
 				schema:          newSqlSchema(schemaOptions...),
 			},
-			packageRegistry: packageRegistry,
-			sqlIDManager:    newSqlDecoderIDManager(),
-			selectStmts:     map[*sqlTable]*sqlSafeStmt{},
-			classDataMap:    map[EClass]*sqlDecoderClassData{},
+			packageRegistry:  packageRegistry,
+			sqlIDManager:     newSqlDecoderIDManager(),
+			sqlObjectManager: newSqlDecoderObjectManager(),
+			selectStmts:      map[*sqlTable]*sqlSafeStmt{},
+			classDataMap:     map[EClass]*sqlDecoderClassData{},
 		},
 		resource:   resource,
 		dbProvider: dbProvider,

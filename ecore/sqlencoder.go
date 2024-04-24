@@ -137,12 +137,23 @@ func (r *sqlEncoderIDManagerImpl) getEnumLiteralID(e EEnumLiteral) (id int64, b 
 	return
 }
 
+type sqlEncoderObjectManager struct {
+}
+
+func newSqlEncoderObjectManager() *sqlEncoderObjectManager {
+	return &sqlEncoderObjectManager{}
+}
+
+func (r *sqlEncoderObjectManager) registerObject(EObject) {
+}
+
 type sqlEncoder struct {
 	*sqlBase
-	keepDefaults bool
-	insertStmts  map[*sqlTable]*sqlSafeStmt
-	classDataMap map[EClass]*sqlEncoderClassData
-	sqlIDManager sqlEncoderIDManager
+	keepDefaults     bool
+	insertStmts      map[*sqlTable]*sqlSafeStmt
+	classDataMap     map[EClass]*sqlEncoderClassData
+	sqlIDManager     sqlEncoderIDManager
+	sqlObjectManager sqlObjectManager
 }
 
 func (e *sqlEncoder) encodeContent(eObject EObject) error {
@@ -263,6 +274,10 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
 		if err := insertStmts.exec(); err != nil {
 			return -1, err
 		}
+
+		// register in sql object manager
+		// (must be done at the end otherwise internal data of eObject may disappear if its a EStoreEObject)
+		e.sqlObjectManager.registerObject(eObject)
 
 	}
 	return objectID, nil
@@ -590,10 +605,11 @@ func newSQLEncoder(dbProvider func(driver string) (*sql.DB, error), dbClose func
 				idAttributeName: idAttributeName,
 				schema:          newSqlSchema(schemaOptions...),
 			},
-			keepDefaults: keepDefaults,
-			insertStmts:  map[*sqlTable]*sqlSafeStmt{},
-			classDataMap: map[EClass]*sqlEncoderClassData{},
-			sqlIDManager: newSqlEncoderIDManager(),
+			keepDefaults:     keepDefaults,
+			insertStmts:      map[*sqlTable]*sqlSafeStmt{},
+			classDataMap:     map[EClass]*sqlEncoderClassData{},
+			sqlIDManager:     newSqlEncoderIDManager(),
+			sqlObjectManager: newSqlEncoderObjectManager(),
 		},
 		resource:   resource,
 		driver:     driver,

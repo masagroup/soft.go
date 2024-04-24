@@ -352,10 +352,24 @@ func (ss *sqlManyStmts) getRemoveStmt() (*sqlSafeStmt, error) {
 type sqlStoreIDManager struct {
 	sqlDecoderIDManagerImpl
 	sqlEncoderIDManagerImpl
+}
+
+type sqlStoreObjectManager struct {
 	store EStore
 }
 
-func newSQLStoreRegistry() *sqlStoreIDManager {
+func newSqlStoreObjectManager() *sqlStoreObjectManager {
+	return &sqlStoreObjectManager{}
+}
+
+func (r *sqlStoreObjectManager) registerObject(o EObject) {
+	// set store object
+	if storeObject, _ := o.(EStoreProvider); storeObject != nil {
+		storeObject.SetEStore(r.store)
+	}
+}
+
+func newSQLStoreIDManager() *sqlStoreIDManager {
 	return &sqlStoreIDManager{
 		sqlDecoderIDManagerImpl: sqlDecoderIDManagerImpl{
 			packages:     map[int64]EPackage{},
@@ -391,11 +405,6 @@ func (r *sqlStoreIDManager) setObjectID(o EObject, id int64) {
 	} else {
 		// otherwse initialize map
 		r.sqlEncoderIDManagerImpl.objects[o] = id
-	}
-
-	// set store object
-	if storeObject, _ := o.(EStoreProvider); storeObject != nil {
-		storeObject.SetEStore(r.store)
 	}
 }
 
@@ -464,31 +473,33 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 	}
 
 	// initialize
-	sqlRegistry := newSQLStoreRegistry()
-
+	sqlIDManager := newSQLStoreIDManager()
+	sqlObjectManager := newSqlStoreObjectManager()
 	// create sql store
 	store := &SQLStore{
 		sqlBase: base,
 		sqlDecoder: sqlDecoder{
-			sqlBase:         base,
-			packageRegistry: packageRegistry,
-			sqlIDManager:    sqlRegistry,
-			classDataMap:    map[EClass]*sqlDecoderClassData{},
-			selectStmts:     map[*sqlTable]*sqlSafeStmt{},
+			sqlBase:          base,
+			packageRegistry:  packageRegistry,
+			sqlIDManager:     sqlIDManager,
+			sqlObjectManager: sqlObjectManager,
+			classDataMap:     map[EClass]*sqlDecoderClassData{},
+			selectStmts:      map[*sqlTable]*sqlSafeStmt{},
 		},
 		sqlEncoder: sqlEncoder{
-			sqlBase:      base,
-			insertStmts:  map[*sqlTable]*sqlSafeStmt{},
-			classDataMap: map[EClass]*sqlEncoderClassData{},
-			sqlIDManager: sqlRegistry,
+			sqlBase:          base,
+			insertStmts:      map[*sqlTable]*sqlSafeStmt{},
+			classDataMap:     map[EClass]*sqlEncoderClassData{},
+			sqlIDManager:     sqlIDManager,
+			sqlObjectManager: sqlObjectManager,
 		},
 		errorHandler: errorHandler,
 		singleStmts:  map[*sqlColumn]*sqlSingleStmts{},
 		manyStmts:    map[*sqlTable]*sqlManyStmts{},
 	}
 
-	// set store in sql registry
-	sqlRegistry.store = store
+	// set store in sql object manager
+	sqlObjectManager.store = store
 
 	return store, nil
 }

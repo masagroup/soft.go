@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEStoreEObjectImpl_GetAttribute_Transient(t *testing.T) {
@@ -147,7 +148,9 @@ func TestEStoreEObjectImpl_GetAttribute_Many_List(t *testing.T) {
 	mockAttribute.EXPECT().GetEType().Return(nil).Once()
 	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Twice()
+	mockStore.EXPECT().Size(o, mockAttribute).Return(0).Once()
 	list := o.EGetFromID(0, true)
+	require.NotNil(t, list)
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
 
 	eobjectlist, _ := list.(EObjectList)
@@ -177,7 +180,9 @@ func TestEStoreEObjectImpl_GetAttribute_Many_Map(t *testing.T) {
 	mockType.EXPECT().GetEStructuralFeatureFromName("value").Return(mockFeature).Once()
 	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Twice()
+	mockStore.EXPECT().Size(o, mockAttribute).Return(0).Once()
 	m := o.EGetFromID(0, true)
+	require.NotNil(t, m)
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore, mockFeature, mockType)
 
 	emap, _ := m.(EMap)

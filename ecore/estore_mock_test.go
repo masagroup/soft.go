@@ -163,6 +163,16 @@ func TestMockEStoreAdd(t *testing.T) {
 	mockEStore.Add(mockObject, mockFeature, 0, mockValue)
 }
 
+func TestMockEStoreAddRoot(t *testing.T) {
+	mockEStore := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	m := NewMockRun(t, mockObject)
+	mockEStore.EXPECT().AddRoot(mockObject).Run(func(object EObject) {
+		m.Run(object)
+	}).Once()
+	mockEStore.AddRoot(mockObject)
+}
+
 func TestMockEStoreRemove(t *testing.T) {
 	mockEStore := NewMockEStore(t)
 	mockObject := NewMockEObject(t)
@@ -177,6 +187,16 @@ func TestMockEStoreRemove(t *testing.T) {
 	}).Once()
 	assert.Equal(t, mockOld, mockEStore.Remove(mockObject, mockFeature, 0))
 	assert.Equal(t, mockOld, mockEStore.Remove(mockObject, mockFeature, 0))
+}
+
+func TestMockEStoreRemoveRoot(t *testing.T) {
+	mockEStore := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	m := NewMockRun(t, mockObject)
+	mockEStore.EXPECT().RemoveRoot(mockObject).Run(func(object EObject) {
+		m.Run(object)
+	}).Once()
+	mockEStore.RemoveRoot(mockObject)
 }
 
 func TestMockEStoreMove(t *testing.T) {

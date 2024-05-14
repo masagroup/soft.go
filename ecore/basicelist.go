@@ -9,31 +9,7 @@
 
 package ecore
 
-import (
-	"strconv"
-)
-
-type abstractEList interface {
-	doGet(index int) any
-
-	doSet(index int, elem any) any
-
-	doAdd(elem any)
-
-	doAddAll(list EList) bool
-
-	doInsert(index int, elem any)
-
-	doInsertAll(index int, list EList) bool
-
-	doClear() []any
-
-	doMove(oldIndex, newIndew int) any
-
-	doRemove(index int) any
-
-	doRemoveRange(fromIndex, toIndex int) []any
-
+type listCallBacks interface {
 	DidAdd(index int, elem any)
 
 	DidSet(index int, newElem any, oldElem any)
@@ -49,9 +25,8 @@ type abstractEList interface {
 
 // basicEList is an array of a dynamic size
 type BasicEList struct {
-	interfaces any
-	data       []any
-	isUnique   bool
+	AbstractEList
+	data []any
 }
 
 // NewEmptyBasicEList return a new ArrayEList
@@ -81,36 +56,8 @@ func NewUniqueBasicEList(data []any) *BasicEList {
 	return a
 }
 
-// Remove all elements from list that are not in ref list
-func getNonDuplicates(list EList, ref EList) *BasicEList {
-	newList := NewBasicEList([]any{})
-	for it := list.Iterator(); it.HasNext(); {
-		value := it.Next()
-		if !newList.Contains(value) && !ref.Contains(value) {
-			newList.Add(value)
-		}
-	}
-	return newList
-}
-
-func (list *BasicEList) SetInterfaces(interfaces any) {
-	list.interfaces = interfaces
-}
-
-func (list *BasicEList) asEList() EList {
-	return list.interfaces.(EList)
-}
-
-func (list *BasicEList) asAbstractEList() abstractEList {
-	return list.interfaces.(abstractEList)
-}
-
-func (list *BasicEList) Add(elem any) bool {
-	if list.isUnique && list.Contains(elem) {
-		return false
-	}
-	list.asAbstractEList().doAdd(elem)
-	return true
+func (list *BasicEList) asEListCallbacks() listCallBacks {
+	return list.interfaces.(listCallBacks)
 }
 
 // Add a new element to the array
@@ -118,45 +65,21 @@ func (list *BasicEList) doAdd(e any) {
 	size := len(list.data)
 	list.data = append(list.data, e)
 	// events
-	abstractEList := list.asAbstractEList()
-	abstractEList.DidAdd(size, e)
-	abstractEList.DidChange()
-}
-
-// AddAll elements of an array in the current one
-func (list *BasicEList) AddAll(collection EList) bool {
-	if list.isUnique {
-		collection = getNonDuplicates(collection, list)
-		if collection.Size() == 0 {
-			return false
-		}
-	}
-	list.asAbstractEList().doAddAll(collection)
-	return true
+	listCallbacks := list.asEListCallbacks()
+	listCallbacks.DidAdd(size, e)
+	listCallbacks.DidChange()
 }
 
 func (list *BasicEList) doAddAll(collection EList) bool {
 	data := collection.ToArray()
 	list.data = append(list.data, data...)
-	abstractEList := list.asAbstractEList()
 	// events
+	listCallbacks := list.asEListCallbacks()
 	for i, element := range data {
-		abstractEList.DidAdd(i, element)
-		abstractEList.DidChange()
+		listCallbacks.DidAdd(i, element)
 	}
+	listCallbacks.DidChange()
 	return len(data) != 0
-}
-
-// Insert an element in the array
-func (list *BasicEList) Insert(index int, elem any) bool {
-	if index < 0 || index > list.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
-	}
-	if list.isUnique && list.Contains(elem) {
-		return false
-	}
-	list.asAbstractEList().doInsert(index, elem)
-	return true
 }
 
 func (list *BasicEList) doInsert(index int, e any) {
@@ -164,58 +87,24 @@ func (list *BasicEList) doInsert(index int, e any) {
 	copy(list.data[index+1:], list.data[index:])
 	list.data[index] = e
 	// events
-	abstractEList := list.asAbstractEList()
-	abstractEList.DidAdd(index, e)
-	abstractEList.DidChange()
-}
-
-// InsertAll element of an array at a given position
-func (list *BasicEList) InsertAll(index int, collection EList) bool {
-	if index < 0 || index > list.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
-	}
-	if list.isUnique {
-		collection = getNonDuplicates(collection, list)
-		if collection.Size() == 0 {
-			return false
-		}
-	}
-	list.asAbstractEList().doInsertAll(index, collection)
-	return true
+	listCallbacks := list.asEListCallbacks()
+	listCallbacks.DidAdd(index, e)
+	listCallbacks.DidChange()
 }
 
 func (list *BasicEList) doInsertAll(index int, collection EList) bool {
 	data := collection.ToArray()
 	list.data = append(list.data[:index], append(data, list.data[index:]...)...)
 	// events
-	abstractEList := list.asAbstractEList()
+	listCallbacks := list.asEListCallbacks()
 	for i, element := range data {
-		abstractEList.DidAdd(i+index, element)
-		abstractEList.DidChange()
+		listCallbacks.DidAdd(i+index, element)
+		listCallbacks.DidChange()
 	}
 	return len(data) != 0
 }
 
-// Move an element to the given index
-func (list *BasicEList) MoveObject(newIndex int, elem any) {
-	oldIndex := list.asEList().IndexOf(elem)
-	if oldIndex == -1 {
-		panic("Object not found")
-	}
-	list.asAbstractEList().doMove(oldIndex, newIndex)
-}
-
-// Swap move an element from oldIndex to newIndex
-func (list *BasicEList) Move(oldIndex, newIndex int) any {
-	return list.asAbstractEList().doMove(oldIndex, newIndex)
-}
-
 func (list *BasicEList) doMove(oldIndex, newIndex int) any {
-	if oldIndex < 0 || oldIndex >= list.Size() ||
-		newIndex < 0 || newIndex > list.Size() {
-		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(list.Size()))
-	}
-
 	object := list.data[oldIndex]
 	if oldIndex != newIndex {
 		if newIndex < oldIndex {
@@ -226,32 +115,14 @@ func (list *BasicEList) doMove(oldIndex, newIndex int) any {
 		list.data[newIndex] = object
 
 		// events
-		abstractEList := list.asAbstractEList()
-		abstractEList.DidMove(newIndex, object, oldIndex)
-		abstractEList.DidChange()
+		listCallbacks := list.asEListCallbacks()
+		listCallbacks.DidMove(newIndex, object, oldIndex)
+		listCallbacks.DidChange()
 	}
 	return object
 }
 
-// RemoveAt remove an element at a given position
-func (list *BasicEList) RemoveAt(index int) any {
-	return list.asAbstractEList().doRemove(index)
-}
-
-// Remove an element in an array
-func (list *BasicEList) Remove(elem any) bool {
-	index := list.asEList().IndexOf(elem)
-	if index == -1 {
-		return false
-	}
-	list.asAbstractEList().doRemove(index)
-	return true
-}
-
 func (list *BasicEList) doRemove(index int) any {
-	if index < 0 || index >= list.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
-	}
 	// retrieve removed object
 	object := list.data[index]
 
@@ -261,56 +132,24 @@ func (list *BasicEList) doRemove(index int) any {
 	list.data = list.data[:len(list.data)-1]
 
 	// events
-	abstractEList := list.asAbstractEList()
-	abstractEList.DidRemove(index, object)
-	abstractEList.DidChange()
+	listCallbacks := list.asEListCallbacks()
+	listCallbacks.DidRemove(index, object)
+	listCallbacks.DidChange()
 	return object
 }
 
-func (list *BasicEList) RemoveRange(fromIndex int, toIndex int) {
-	list.asAbstractEList().doRemoveRange(fromIndex, toIndex)
-}
-
 func (list *BasicEList) doRemoveRange(fromIndex int, toIndex int) []any {
-	if fromIndex < 0 || fromIndex >= list.Size() {
-		panic("Index out of bounds: fromIndex=" + strconv.Itoa(fromIndex) + " size=" + strconv.Itoa(list.Size()))
-	}
-	if toIndex < 0 || toIndex > list.Size() {
-		panic("Index out of bounds: toIndex=" + strconv.Itoa(toIndex) + " size=" + strconv.Itoa(list.Size()))
-	}
-	if fromIndex > toIndex {
-		panic("Indexes invalid: fromIndex=" + strconv.Itoa(fromIndex) + "must be less than toIndex=" + strconv.Itoa(toIndex))
-	}
 	// backup old objects
 	objects := append([]any{}, list.data[fromIndex:toIndex]...)
 	// remove range
 	list.data = append(list.data[:fromIndex], list.data[toIndex:]...)
 	// events
-	abstractEList := list.asAbstractEList()
+	listCallbacks := list.asEListCallbacks()
 	for i := toIndex - 1; i >= fromIndex; i-- {
-		abstractEList.DidRemove(i, objects[i-fromIndex])
+		listCallbacks.DidRemove(i, objects[i-fromIndex])
 	}
-	abstractEList.DidChange()
+	listCallbacks.DidChange()
 	return objects
-}
-
-func (list *BasicEList) RemoveAll(collection EList) bool {
-	modified := false
-	for i := list.Size() - 1; i >= 0; i-- {
-		if collection.Contains(list.Get(i)) {
-			list.RemoveAt(i)
-			modified = true
-		}
-	}
-	return modified
-}
-
-// Get an element of the array
-func (list *BasicEList) Get(index int) any {
-	if index < 0 || index >= list.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
-	}
-	return list.asAbstractEList().doGet(index)
 }
 
 func (list *BasicEList) doGet(index int) any {
@@ -321,34 +160,10 @@ func (list *BasicEList) doSet(index int, elem any) any {
 	old := list.data[index]
 	list.data[index] = elem
 	// events
-	abstractEList := list.asAbstractEList()
-	abstractEList.DidSet(index, elem, old)
-	abstractEList.DidChange()
+	listCallbacks := list.asEListCallbacks()
+	listCallbacks.DidSet(index, elem, old)
+	listCallbacks.DidChange()
 	return old
-}
-
-// Set an element of the array
-func (list *BasicEList) Set(index int, elem any) any {
-	if index < 0 || index >= list.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(list.Size()))
-	}
-	if list.isUnique {
-		currIndex := list.IndexOf(elem)
-		if currIndex >= 0 && currIndex != index {
-			panic("element already in list")
-		}
-	}
-	return list.asAbstractEList().doSet(index, elem)
-}
-
-// Size count the number of element in the array
-func (list *BasicEList) Size() int {
-	return len(list.data)
-}
-
-// Clear remove all elements of the array
-func (list *BasicEList) Clear() {
-	list.asAbstractEList().doClear()
 }
 
 func (list *BasicEList) doClear() []any {
@@ -356,34 +171,14 @@ func (list *BasicEList) doClear() []any {
 	list.data = make([]any, 0)
 
 	// events
-	abstractEList := list.asAbstractEList()
-	abstractEList.DidClear(oldData)
+	listCallbacks := list.asEListCallbacks()
+	listCallbacks.DidClear(oldData)
 	return oldData
 }
 
-// Empty return true if the array contains 0 element
-func (list *BasicEList) Empty() bool {
-	return list.Size() == 0
-}
-
-// Contains return if an array contains or not an element
-func (list *BasicEList) Contains(elem any) bool {
-	return list.asEList().IndexOf(elem) != -1
-}
-
-// IndexOf return the index on an element in an array, else return -1
-func (list *BasicEList) IndexOf(elem any) int {
-	for i, value := range list.data {
-		if value == elem {
-			return i
-		}
-	}
-	return -1
-}
-
-// Iterator through the array
-func (list *BasicEList) Iterator() EIterator {
-	return &listIterator{list: list}
+// Size count the number of element in the array
+func (list *BasicEList) Size() int {
+	return len(list.data)
 }
 
 func (list *BasicEList) ToArray() []any {

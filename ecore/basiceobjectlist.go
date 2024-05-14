@@ -9,8 +9,6 @@
 
 package ecore
 
-import "strconv"
-
 type basicEObjectList struct {
 	BasicENotifyingList
 	owner            EObjectInternal
@@ -60,30 +58,29 @@ func (list *basicEObjectList) GetFeatureID() int {
 // GetUnResolvedList ...
 func (list *basicEObjectList) GetUnResolvedList() EList {
 	if list.proxies {
-		u := new(unResolvedBasicEObjectList)
-		u.delegate = list
-		return u
+		return newUnResolvedBasicEObjectList(list)
 	}
 	return list
 }
 
-func (list *basicEObjectList) IndexOf(elem any) int {
-	if list.proxies {
-		for i, value := range list.data {
-			if value == elem || list.resolve(i, value) == elem {
-				return i
-			}
-		}
-		return -1
-	}
-	return list.BasicEList.IndexOf(elem)
+func (list *basicEObjectList) RemoveAll(collection EList) bool {
+	return list.doRemoveAll(collection, func(i int, a any) bool {
+		e := list.data[i]
+		return e == a || list.resolve(i, e) == a
+	})
 }
 
-func (list *basicEObjectList) RemoveAll(collection EList) bool {
-	return list.doRemoveAll(collection, func(i int, other any) bool {
-		object := list.data[i]
-		return object == other || list.resolve(i, object) == other
-	})
+func (list *basicEObjectList) IndexOf(elem any) int {
+	for i, value := range list.data {
+		if value == elem || (list.proxies && list.resolve(i, value) == elem) {
+			return i
+		}
+	}
+	return -1
+}
+
+func (list *basicEObjectList) doGet(index int) any {
+	return list.resolve(index, list.BasicEList.doGet(index))
 }
 
 func (list *basicEObjectList) ToArray() []any {
@@ -95,10 +92,6 @@ func (list *basicEObjectList) ToArray() []any {
 	return list.data
 }
 
-func (list *basicEObjectList) doGet(index int) any {
-	return list.resolve(index, list.BasicEList.doGet(index))
-}
-
 func (list *basicEObjectList) resolve(index int, object any) any {
 	if eObject, _ := object.(EObject); eObject != nil {
 		resolved := list.resolveProxy(eObject)
@@ -106,9 +99,9 @@ func (list *basicEObjectList) resolve(index int, object any) any {
 			list.BasicEList.doSet(index, resolved)
 			var notifications ENotificationChain
 			if list.containment {
-				notifications = list.interfaces.(eNotifyingListInternal).inverseRemove(object, notifications)
+				notifications = list.interfaces.(abstractENotifyingList).inverseRemove(object, notifications)
 				if resolvedInternal, _ := resolved.(EObjectInternal); resolvedInternal != nil && resolvedInternal.EInternalContainer() == nil {
-					notifications = list.interfaces.(eNotifyingListInternal).inverseAdd(resolved, notifications)
+					notifications = list.interfaces.(abstractENotifyingList).inverseAdd(resolved, notifications)
 				}
 			}
 			list.createAndDispatchNotification(notifications, RESOLVE, object, resolved, index)
@@ -150,178 +143,42 @@ func (list *basicEObjectList) inverseRemove(object any, notifications ENotificat
 }
 
 type unResolvedBasicEObjectList struct {
-	delegate *basicEObjectList
+	AbstractDelegatingENotifyingList[*basicEObjectList]
 }
 
-func (l *unResolvedBasicEObjectList) Add(elem any) bool {
-	if l.delegate.isUnique && l.Contains(elem) {
-		return false
-	}
-	l.delegate.asAbstractEList().doAdd(elem)
-	return true
+func newUnResolvedBasicEObjectList(delegate *basicEObjectList) *unResolvedBasicEObjectList {
+	l := &unResolvedBasicEObjectList{}
+	l.isUnique = true
+	l.delegate = delegate
+	l.SetInterfaces(l)
+	return l
 }
 
-// AddAll elements of an list in the current one
-func (l *unResolvedBasicEObjectList) AddAll(list EList) bool {
-	if l.delegate.isUnique {
-		list = getNonDuplicates(list, l)
-		if list.Size() == 0 {
-			return false
-		}
-	}
-	l.delegate.asAbstractEList().doAddAll(list)
-	return true
+func (list *unResolvedBasicEObjectList) IndexOf(elem any) int {
+	return list.AbstractEList.IndexOf(elem)
 }
 
-// Insert an element in the list
-func (l *unResolvedBasicEObjectList) Insert(index int, elem any) bool {
-	if index < 0 || index > l.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(l.Size()))
-	}
-	if l.delegate.isUnique && l.Contains(elem) {
-		return false
-	}
-	l.delegate.asAbstractEList().doInsert(index, elem)
-	return true
-}
-
-// InsertAll element of an list at a given position
-func (l *unResolvedBasicEObjectList) InsertAll(index int, list EList) bool {
-	if index < 0 || index > l.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(l.Size()))
-	}
-	if l.delegate.isUnique {
-		list = getNonDuplicates(list, l)
-		if list.Size() == 0 {
-			return false
-		}
-	}
-	l.delegate.asAbstractEList().doInsertAll(index, list)
-	return true
-}
-
-// Move an element to the given index
-func (l *unResolvedBasicEObjectList) MoveObject(newIndex int, elem any) {
-	oldIndex := l.IndexOf(elem)
-	if oldIndex == -1 {
-		panic("Object not found")
-	}
-	l.delegate.asAbstractEList().doMove(oldIndex, newIndex)
-}
-
-// Swap move an element from oldIndex to newIndex
-func (l *unResolvedBasicEObjectList) Move(oldIndex, newIndex int) any {
-	return l.delegate.asAbstractEList().doMove(oldIndex, newIndex)
-}
-
-// RemoveAt remove an element at a given position
-func (l *unResolvedBasicEObjectList) RemoveAt(index int) any {
-	return l.delegate.asAbstractEList().doRemove(index)
-}
-
-// Remove an element in an list
-func (l *unResolvedBasicEObjectList) Remove(elem any) bool {
-	index := l.IndexOf(elem)
-	if index == -1 {
-		return false
-	}
-	l.delegate.asAbstractEList().doRemove(index)
-	return true
-}
-
-func (l *unResolvedBasicEObjectList) RemoveAll(collection EList) bool {
-	return l.delegate.doRemoveAll(collection, func(index int, other any) bool {
-		return l.delegate.data[index] == other
-	})
-}
-
-func (l *unResolvedBasicEObjectList) RemoveRange(fromIndex, toIndex int) {
-	l.delegate.asAbstractEList().doRemoveRange(fromIndex, toIndex)
-}
-
-// Get an element of the list
-func (l *unResolvedBasicEObjectList) Get(index int) any {
-	if index < 0 || index >= l.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(l.Size()))
-	}
-	return l.delegate.data[index]
-}
-
-// Set an element of the list
-func (l *unResolvedBasicEObjectList) Set(index int, elem any) any {
-	if index < 0 || index >= l.Size() {
-		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(l.Size()))
-	}
-	if l.delegate.isUnique {
-		currIndex := l.IndexOf(elem)
-		if currIndex >= 0 && currIndex != index {
-			panic("element already in list")
-		}
-	}
-	return l.delegate.asAbstractEList().doSet(index, elem)
-}
-
-// Size count the number of element in the list
-func (l *unResolvedBasicEObjectList) Size() int {
-	return l.delegate.Size()
-}
-
-// Clear remove all elements of the list
-func (l *unResolvedBasicEObjectList) Clear() {
-	l.delegate.Clear()
-}
-
-// Empty return true if the list contains 0 element
-func (l *unResolvedBasicEObjectList) Empty() bool {
-	return l.delegate.Empty()
-}
-
-// Contains return if an list contains or not an element
-func (l *unResolvedBasicEObjectList) Contains(elem any) bool {
-	return l.IndexOf(elem) != -1
-}
-
-// IndexOf return the index on an element in an list, else return -1
-func (l *unResolvedBasicEObjectList) IndexOf(elem any) int {
-	return l.delegate.BasicEList.IndexOf(elem)
-}
-
-// Iterator through the list
-func (l *unResolvedBasicEObjectList) Iterator() EIterator {
-	return &listIterator{list: l}
-}
-
-func (l *unResolvedBasicEObjectList) ToArray() []any {
-	return l.delegate.data
-}
-
-func (l *unResolvedBasicEObjectList) GetNotifier() ENotifier {
-	return l.delegate.GetNotifier()
-}
-
-func (l *unResolvedBasicEObjectList) GetFeature() EStructuralFeature {
-	return l.delegate.GetFeature()
-}
-
-func (l *unResolvedBasicEObjectList) GetFeatureID() int {
-	return l.delegate.GetFeatureID()
-}
-
-func (l *unResolvedBasicEObjectList) AddWithNotification(object any, notifications ENotificationChain) ENotificationChain {
-	return l.delegate.AddWithNotification(object, notifications)
-}
-
-func (l *unResolvedBasicEObjectList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
-	index := l.delegate.BasicEList.IndexOf(object)
+func (list *unResolvedBasicEObjectList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
+	index := list.IndexOf(object)
 	if index != -1 {
-		oldObject := l.delegate.BasicEList.doRemove(index)
-		return l.delegate.createAndAddNotification(notifications, REMOVE, oldObject, nil, index)
+		oldObject := list.delegate.BasicEList.doRemove(index)
+		return list.delegate.createAndAddNotification(notifications, REMOVE, oldObject, nil, index)
 	}
 	return notifications
 }
 
-func (l *unResolvedBasicEObjectList) SetWithNotification(index int, object any, notifications ENotificationChain) ENotificationChain {
-	return l.delegate.SetWithNotification(index, object, notifications)
+func (list *unResolvedBasicEObjectList) RemoveAll(c EList) bool {
+	return list.delegate.doRemoveAll(c, func(i int, a any) bool {
+		return list.delegate.data[i] == a
+	})
+}
+
+func (list *unResolvedBasicEObjectList) doGet(index int) any {
+	return list.delegate.data[index]
+}
+
+func (list *unResolvedBasicEObjectList) ToArray() []any {
+	return list.delegate.data
 }
 
 func (l *unResolvedBasicEObjectList) GetUnResolvedList() EList {

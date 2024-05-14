@@ -33,9 +33,63 @@ func TestEDataTypeExtSetDefaultValue(t *testing.T) {
 
 func TestEDataTypeExtGetDefaultValue(t *testing.T) {
 	d := newEDataTypeExt()
-	value := NewMockEDataType(t)
-	d.defaultValue = value
-	assert.Equal(t, value, d.GetDefaultValue())
+	mockValue := NewMockEDataType(t)
+	d.defaultValue = mockValue
+	assert.Equal(t, mockValue, d.GetDefaultValue())
+}
+
+func TestEDataTypeExtGetDefaultValueFloat64(t *testing.T) {
+	d := newEDataTypeExt()
+	d.SetInstanceTypeName("float64")
+	assert.Equal(t, float64(0), d.GetDefaultValue())
+}
+
+func TestEDataTypeExtGetDefaultValueFloat32(t *testing.T) {
+	d := newEDataTypeExt()
+	d.SetInstanceTypeName("float32")
+	assert.Equal(t, float32(0), d.GetDefaultValue())
+}
+
+func TestEDataTypeExtGetDefaultValueInt(t *testing.T) {
+	d := newEDataTypeExt()
+	d.SetInstanceTypeName("int")
+	assert.Equal(t, 0, d.GetDefaultValue())
+}
+
+func TestEDataTypeExtGetDefaultValueInt64(t *testing.T) {
+	d := newEDataTypeExt()
+	d.SetInstanceTypeName("int64")
+	assert.Equal(t, int64(0), d.GetDefaultValue())
+}
+
+func TestEDataTypeExtGetDefaultValueInt32(t *testing.T) {
+	d := newEDataTypeExt()
+	d.SetInstanceTypeName("int32")
+	assert.Equal(t, int32(0), d.GetDefaultValue())
+}
+
+func TestEDataTypeExtGetDefaultValueInt16(t *testing.T) {
+	d := newEDataTypeExt()
+	d.SetInstanceTypeName("int16")
+	assert.Equal(t, int16(0), d.GetDefaultValue())
+}
+
+func TestEDataTypeExtGetDefaultValueInt8(t *testing.T) {
+	d := newEDataTypeExt()
+	d.SetInstanceTypeName("int8")
+	assert.Equal(t, int8(0), d.GetDefaultValue())
+}
+
+func TestEDataTypeExtGetDefaultValueBool(t *testing.T) {
+	d := newEDataTypeExt()
+	d.SetInstanceTypeName("bool")
+	assert.Equal(t, false, d.GetDefaultValue())
+}
+
+func TestEDataTypeExtGetDefaultValueString(t *testing.T) {
+	d := newEDataTypeExt()
+	d.SetInstanceTypeName("string")
+	assert.Equal(t, "", d.GetDefaultValue())
 }
 
 func TestEDataTypeExtGetInstanceTypeName(t *testing.T) {

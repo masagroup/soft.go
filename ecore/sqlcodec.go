@@ -12,6 +12,8 @@ import (
 const (
 	SQL_OPTION_DRIVER            = "DRIVER_NAME"       // value of the sql driver
 	SQL_OPTION_ID_ATTRIBUTE_NAME = "ID_ATTRIBUTE_NAME" // value of the id attribute
+	SQL_OPTION_ERROR_HANDLER     = "ERROR_HANDLER"
+	SQL_OPTION_KEEP_DEFAULTS     = "KEEP_DEFAULTS"
 )
 
 type SQLCodec struct {
@@ -40,10 +42,10 @@ func sqlTmpDB(prefix string) (string, error) {
 }
 
 func (d *SQLCodec) NewEncoder(resource EResource, w io.Writer, options map[string]any) EEncoder {
-	return NewSQLEncoder(resource, w, options)
+	return NewSQLWriterEncoder(w, resource, options)
 }
 func (d *SQLCodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EDecoder {
-	return NewSQLDecoder(resource, r, options)
+	return NewSQLReaderDecoder(r, resource, options)
 }
 
 type sqlFeatureKind int
@@ -138,4 +140,11 @@ func getSQLCodecFeatureKind(eFeature EStructuralFeature) sqlFeatureKind {
 		}
 	}
 	return -1
+}
+
+type sqlCodecIDManager interface {
+	setPackageID(EPackage, int64)
+	setObjectID(EObject, int64)
+	setClassID(EClass, int64)
+	setEnumLiteralID(EEnumLiteral, int64)
 }

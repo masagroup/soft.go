@@ -56,6 +56,10 @@ func (o *ReflectiveEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	o.getProperties()[dynamicFeatureID] = nil
 }
 
+func (o *ReflectiveEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
+	return o.getProperties()[dynamicFeatureID] != nil
+}
+
 func (o *ReflectiveEObjectImpl) getProperties() []any {
 	if o.properties == nil {
 		o.properties = make([]any, o.EClass().GetFeatureCount())

@@ -10,6 +10,10 @@
 package ecore
 
 type EStore interface {
+	AddRoot(object EObject)
+
+	RemoveRoot(object EObject)
+
 	Get(object EObject, feature EStructuralFeature, index int) any
 
 	Set(object EObject, feature EStructuralFeature, index int, value any) any
@@ -32,15 +36,15 @@ type EStore interface {
 
 	Remove(object EObject, feature EStructuralFeature, index int) any
 
-	Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) any
+	Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int) any
 
 	Clear(object EObject, feature EStructuralFeature)
 
 	ToArray(object EObject, feature EStructuralFeature) []any
+}
 
-	GetContainer(object EObject) EObject
+type EStoreProvider interface {
+	SetEStore(store EStore)
 
-	GetContainingFeature(object EObject) EStructuralFeature
-
-	Create(eClass EClass) EObject
+	GetEStore() EStore
 }

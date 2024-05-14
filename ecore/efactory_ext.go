@@ -88,6 +88,8 @@ func (eFactory *EFactoryExt) CreateFromString(eDataType EDataType, literalValue 
 		return value
 	case "string", "java.lang.String":
 		return literalValue
+	case "byte[]", "[]byte":
+		return []byte(literalValue)
 	}
 
 	panic("CreateFromString not implemented")

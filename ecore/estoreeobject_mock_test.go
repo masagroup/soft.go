@@ -15,14 +15,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMockEStoreEObjectEStore(t *testing.T) {
+func TestMockEStoreEObjectGetEStore(t *testing.T) {
 	mockStoreObject := NewMockEStoreEObject(t)
 	mockStore := NewMockEStore(t)
 	m := NewMockRun(t)
-	mockStoreObject.EXPECT().EStore().Return(mockStore).Run(func() { m.Run() }).Once()
-	mockStoreObject.EXPECT().EStore().Call.Return(func() EStore {
+	mockStoreObject.EXPECT().GetEStore().Return(mockStore).Run(func() { m.Run() }).Once()
+	mockStoreObject.EXPECT().GetEStore().RunAndReturn(func() EStore {
 		return mockStore
 	}).Once()
-	assert.Equal(t, mockStore, mockStoreObject.EStore())
-	assert.Equal(t, mockStore, mockStoreObject.EStore())
+	assert.Equal(t, mockStore, mockStoreObject.GetEStore())
+	assert.Equal(t, mockStore, mockStoreObject.GetEStore())
+}
+
+func TestMockEStoreEObjectSetEStore(t *testing.T) {
+	mockStoreObject := NewMockEStoreEObject(t)
+	mockStore := NewMockEStore(t)
+	m := NewMockRun(t, mockStore)
+	mockStoreObject.EXPECT().SetEStore(mockStore).Run(func(mockStore EStore) { m.Run(mockStore) }).Once()
+	mockStoreObject.EXPECT().SetEStore(mockStore).Return().Once()
+	mockStoreObject.EXPECT().SetEStore(mockStore).RunAndReturn(func(mockStore EStore) { m.Run(mockStore) }).Once()
+	mockStoreObject.SetEStore(mockStore)
+	mockStoreObject.SetEStore(mockStore)
+	mockStoreObject.SetEStore(mockStore)
 }

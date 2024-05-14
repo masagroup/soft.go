@@ -6,6 +6,7 @@ import (
 )
 
 type sqlColumn struct {
+	table      *sqlTable
 	index      int
 	columnName string
 	columnType string
@@ -96,11 +97,18 @@ func withSqlTableColumns(columns ...*sqlColumn) sqlTableOption {
 	})
 }
 
+func withSqlTableCreateIfNotExists(createIfNotExists bool) sqlTableOption {
+	return newFuncSqlTableOption(func(t *sqlTable) {
+		t.createIfNotExists = createIfNotExists
+	})
+}
+
 type sqlTable struct {
-	name    string
-	key     *sqlColumn
-	columns []*sqlColumn
-	indexes [][]*sqlColumn
+	name              string
+	key               *sqlColumn
+	columns           []*sqlColumn
+	indexes           [][]*sqlColumn
+	createIfNotExists bool
 }
 
 func newSqlTable(name string, options ...sqlTableOption) *sqlTable {
@@ -119,6 +127,7 @@ func (t *sqlTable) addColumn(column *sqlColumn) {
 }
 
 func (t *sqlTable) initColumn(column *sqlColumn, index int) {
+	column.table = t
 	column.index = index
 	if column.primary {
 		t.key = column
@@ -128,6 +137,9 @@ func (t *sqlTable) initColumn(column *sqlColumn, index int) {
 func (t *sqlTable) createQuery() string {
 	var tableQuery strings.Builder
 	tableQuery.WriteString("CREATE TABLE ")
+	if t.createIfNotExists {
+		tableQuery.WriteString("IF NOT EXISTS ")
+	}
 	tableQuery.WriteString(sqlEscapeIdentifier(t.name))
 	tableQuery.WriteString(" (")
 	// columns
@@ -160,7 +172,11 @@ func (t *sqlTable) createQuery() string {
 	tableQuery.WriteString(");")
 	for _, index := range t.indexes {
 		tableQuery.WriteString("\n")
-		tableQuery.WriteString("CREATE INDEX \"idx_")
+		tableQuery.WriteString("CREATE INDEX ")
+		if t.createIfNotExists {
+			tableQuery.WriteString("IF NOT EXISTS ")
+		}
+		tableQuery.WriteString("\"idx_")
 		tableQuery.WriteString(t.name)
 		for _, c := range index {
 			tableQuery.WriteString("_")
@@ -238,7 +254,7 @@ func (t *sqlTable) selectQuery(columns []string, selection string, orderBy strin
 			selectQuery.WriteString(column)
 		}
 	}
-	selectQuery.WriteString(" from ")
+	selectQuery.WriteString(" FROM ")
 	selectQuery.WriteString(sqlEscapeIdentifier(t.name))
 	if len(selection) > 0 {
 		selectQuery.WriteString(" WHERE ")
@@ -256,6 +272,15 @@ type sqlClassSchema struct {
 	features []*sqlFeatureSchema
 }
 
+func (s *sqlClassSchema) getFeatureSchema(feature EStructuralFeature) *sqlFeatureSchema {
+	for _, f := range s.features {
+		if f.feature == feature {
+			return f
+		}
+	}
+	return nil
+}
+
 type sqlFeatureSchema struct {
 	featureKind sqlFeatureKind
 	feature     EStructuralFeature
@@ -264,12 +289,14 @@ type sqlFeatureSchema struct {
 }
 
 type sqlSchema struct {
-	packagesTable  *sqlTable
-	classesTable   *sqlTable
-	objectsTable   *sqlTable
-	contentsTable  *sqlTable
-	enumsTable     *sqlTable
-	classSchemaMap map[EClass]*sqlClassSchema
+	packagesTable     *sqlTable
+	classesTable      *sqlTable
+	objectsTable      *sqlTable
+	contentsTable     *sqlTable
+	enumsTable        *sqlTable
+	classSchemaMap    map[EClass]*sqlClassSchema
+	createIfNotExists bool
+	idAttributeName   string
 }
 
 type sqlSchemaOption interface {
@@ -290,71 +317,79 @@ func newFuncSqlSchemaOption(f func(s *sqlSchema)) *funcSqlSchemaOption {
 
 func withIDAttributeName(idAttributeName string) sqlSchemaOption {
 	return newFuncSqlSchemaOption(func(s *sqlSchema) {
-		if len(idAttributeName) > 0 {
-			s.objectsTable.addColumn(newSqlAttributeColumn(idAttributeName, "TEXT"))
-		}
+		s.idAttributeName = idAttributeName
+	})
+}
+
+func withCreateIfNotExists(createIfNotExists bool) sqlSchemaOption {
+	return newFuncSqlSchemaOption(func(s *sqlSchema) {
+		s.createIfNotExists = createIfNotExists
 	})
 }
 
 func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
-
-	// common tables definitions
-	packagesTable := newSqlTable(
-		".packages",
-		withSqlTableColumns(
-			newSqlAttributeColumn("packageID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
-			newSqlAttributeColumn("uri", "TEXT"),
-		),
-	)
-	classesTable := newSqlTable(
-		".classes",
-		withSqlTableColumns(
-			newSqlAttributeColumn("classID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
-			newSqlReferenceColumn(packagesTable),
-			newSqlAttributeColumn("name", "TEXT"),
-		),
-	)
-	objectsTable := newSqlTable(
-		".objects",
-		withSqlTableColumns(
-			newSqlAttributeColumn("objectID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
-			newSqlReferenceColumn(classesTable),
-		),
-	)
-	contentsTable := newSqlTable(
-		".contents",
-		withSqlTableColumns(
-			newSqlReferenceColumn(objectsTable),
-		),
-	)
-	enumsTable := newSqlTable(
-		".enums",
-		withSqlTableColumns(
-			newSqlAttributeColumn("enumID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
-			newSqlReferenceColumn(packagesTable),
-			newSqlAttributeColumn("name", "TEXT"),
-			newSqlAttributeColumn("literal", "TEXT"),
-		),
-	)
+	// create scheam and apply options
 	s := &sqlSchema{
-		packagesTable:  packagesTable,
-		classesTable:   classesTable,
-		objectsTable:   objectsTable,
-		contentsTable:  contentsTable,
-		enumsTable:     enumsTable,
 		classSchemaMap: map[EClass]*sqlClassSchema{},
 	}
 	for _, opt := range options {
 		opt.apply(s)
 	}
+
+	// common tables definitions
+	s.packagesTable = newSqlTable(
+		".packages",
+		withSqlTableColumns(
+			newSqlAttributeColumn("packageID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
+			newSqlAttributeColumn("uri", "TEXT"),
+		),
+		withSqlTableCreateIfNotExists(s.createIfNotExists),
+	)
+	s.classesTable = newSqlTable(
+		".classes",
+		withSqlTableColumns(
+			newSqlAttributeColumn("classID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
+			newSqlReferenceColumn(s.packagesTable),
+			newSqlAttributeColumn("name", "TEXT"),
+		),
+		withSqlTableCreateIfNotExists(s.createIfNotExists),
+	)
+	s.objectsTable = newSqlTable(
+		".objects",
+		withSqlTableColumns(
+			newSqlAttributeColumn("objectID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
+			newSqlReferenceColumn(s.classesTable),
+		),
+		withSqlTableCreateIfNotExists(s.createIfNotExists),
+	)
+	if len(s.idAttributeName) > 0 {
+		s.objectsTable.addColumn(newSqlAttributeColumn(s.idAttributeName, "TEXT"))
+	}
+	s.contentsTable = newSqlTable(
+		".contents",
+		withSqlTableColumns(
+			newSqlReferenceColumn(s.objectsTable),
+		),
+		withSqlTableCreateIfNotExists(s.createIfNotExists),
+	)
+	s.enumsTable = newSqlTable(
+		".enums",
+		withSqlTableColumns(
+			newSqlAttributeColumn("enumID", "INTEGER", withSqlColumnPrimary(true), withSqlColumnAuto(true)),
+			newSqlReferenceColumn(s.packagesTable),
+			newSqlAttributeColumn("name", "TEXT"),
+			newSqlAttributeColumn("literal", "TEXT"),
+		),
+		withSqlTableCreateIfNotExists(s.createIfNotExists),
+	)
 	return s
 }
 
-func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
+func (s *sqlSchema) getClassSchema(eClass EClass) *sqlClassSchema {
 	classSchema := s.classSchemaMap[eClass]
 	if classSchema == nil {
 		// create table descriptor
-		classTable := newSqlTable(strings.ToLower(eClass.GetName()))
+		classTable := newSqlTable(strings.ToLower(eClass.GetName()), withSqlTableCreateIfNotExists(s.createIfNotExists))
 		classTable.addColumn(newSqlAttributeColumn(strings.ToLower(eClass.GetName())+"ID", "INTEGER", withSqlColumnPrimary(true)))
 
 		// compute table columns and external tables
@@ -383,6 +418,7 @@ func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
 			table := newSqlTable(
 				classTable.name+"_"+eFeature.GetName(),
 				withSqlTableColumns(columns...),
+				withSqlTableCreateIfNotExists(s.createIfNotExists),
 			)
 			table.key = columns[0]
 			table.indexes = [][]*sqlColumn{{columns[0], columns[1]}}
@@ -403,20 +439,14 @@ func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
 			case sfkObject:
 				// retrieve object reference type
 				eReference := eFeature.(EReference)
-				referenceSchema, err := s.getClassSchema(eReference.GetEReferenceType())
-				if err != nil {
-					return nil, err
-				}
+				referenceSchema := s.getClassSchema(eReference.GetEReferenceType())
 				newFeatureReferenceColumn(featureSchema, eFeature, referenceSchema.table)
 			case sfkObjectReference:
 				newFeatureAttributeColumn(featureSchema, eFeature, "TEXT")
 			case sfkObjectList:
 				// internal reference
 				eReference := eFeature.(EReference)
-				referenceSchema, err := s.getClassSchema(eReference.GetEReferenceType())
-				if err != nil {
-					return nil, err
-				}
+				referenceSchema := s.getClassSchema(eReference.GetEReferenceType())
 				newFeatureTable(featureSchema, eFeature,
 					newSqlReferenceColumn(classTable),
 					newSqlAttributeColumn("idx", "REAL"),
@@ -445,7 +475,7 @@ func (s *sqlSchema) getClassSchema(eClass EClass) (*sqlClassSchema, error) {
 			}
 		}
 	}
-	return classSchema, nil
+	return classSchema
 }
 
 func sqlEscapeIdentifier(id string) string {

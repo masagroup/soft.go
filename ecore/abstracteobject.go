@@ -25,6 +25,7 @@ type EDynamicProperties interface {
 	EDynamicGet(dynamicFeatureID int) any
 	EDynamicSet(dynamicFeatureID int, newValue any)
 	EDynamicUnset(dynamicFeatureID int)
+	EDynamicIsSet(dynamicFeatureID int) bool
 }
 
 // EObjectInternal ...
@@ -531,7 +532,7 @@ func (o *AbstractEObject) eDynamicPropertiesIsSet(properties EDynamicProperties,
 		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
 		return objInternal.EInternalContainerFeatureID() == featureID && objInternal.EInternalContainer() != nil
 	} else {
-		return properties.EDynamicGet(dynamicFeatureID) != nil
+		return properties.EDynamicIsSet(dynamicFeatureID)
 	}
 }
 

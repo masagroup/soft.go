@@ -450,14 +450,15 @@ func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]any) {
 			errors.Add(NewEDiagnosticImpl("Unable to create decoder for '"+r.uri.String()+"'", r.uri.String(), 0, 0))
 		} else {
 			r.isLoading = true
-			n := r.BasicSetLoaded(true, nil)
+			ri := r.AsEResourceInternal()
+			n := ri.BasicSetLoaded(true, nil)
 			if r.errors != nil {
 				r.errors.Clear()
 			}
 			if r.warnings != nil {
 				r.warnings.Clear()
 			}
-			r.GetInterfaces().(EResourceInternal).DoLoad(decoder)
+			ri.DoLoad(decoder)
 			if n != nil {
 				n.Dispatch()
 			}

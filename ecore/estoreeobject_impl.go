@@ -77,6 +77,17 @@ func (o *EStoreEObjectImpl) IsCache() bool {
 	return o.cache
 }
 
+func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
+	if o.getProperties()[dynamicFeatureID] != nil {
+		return true
+	}
+	if store := o.AsEStoreEObject().GetEStore(); store != nil {
+		eFeature := o.eDynamicFeature(dynamicFeatureID)
+		return store.IsSet(o.AsEObject(), eFeature)
+	}
+	return false
+}
+
 func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 	result := o.getProperties()[dynamicFeatureID]
 	if result == nil {

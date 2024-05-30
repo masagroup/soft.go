@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"sync"
 )
 
 type stmtOrError struct {
@@ -418,6 +419,7 @@ type SQLStore struct {
 	sqlDecoder
 	sqlEncoder
 	errorHandler func(error)
+	mutex        sync.Mutex
 	singleStmts  map[*sqlColumn]*sqlSingleStmts
 	manyStmts    map[*sqlTable]*sqlManyStmts
 }
@@ -505,6 +507,7 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 }
 
 func (s *SQLStore) getSingleStmts(column *sqlColumn) *sqlSingleStmts {
+	s.mutex.Lock()
 	stmts := s.singleStmts[column]
 	if stmts == nil {
 		stmts = &sqlSingleStmts{
@@ -513,10 +516,12 @@ func (s *SQLStore) getSingleStmts(column *sqlColumn) *sqlSingleStmts {
 		}
 		s.singleStmts[column] = stmts
 	}
+	s.mutex.Unlock()
 	return stmts
 }
 
 func (s *SQLStore) getManyStmts(table *sqlTable) *sqlManyStmts {
+	s.mutex.Lock()
 	stmts := s.manyStmts[table]
 	if stmts == nil {
 		stmts = &sqlManyStmts{
@@ -525,6 +530,7 @@ func (s *SQLStore) getManyStmts(table *sqlTable) *sqlManyStmts {
 		}
 		s.manyStmts[table] = stmts
 	}
+	s.mutex.Unlock()
 	return stmts
 }
 

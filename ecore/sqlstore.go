@@ -409,6 +409,17 @@ func (r *sqlStoreIDManager) setObjectID(o EObject, id int64) {
 	}
 }
 
+func (r *sqlStoreIDManager) removeObjectAndID(o EObject) {
+	var id int64
+	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
+		id = sqlObject.GetSqlID()
+	} else {
+		id = r.sqlEncoderIDManagerImpl.objects[o]
+		delete(r.sqlEncoderIDManagerImpl.objects, o)
+	}
+	delete(r.sqlDecoderIDManagerImpl.objects, id)
+}
+
 func (r *sqlStoreIDManager) setEnumLiteralID(e EEnumLiteral, id int64) {
 	r.sqlDecoderIDManagerImpl.enumLiterals[id] = e
 	r.sqlEncoderIDManagerImpl.enumLiterals[e] = id
@@ -420,6 +431,7 @@ type SQLStore struct {
 	sqlEncoder
 	errorHandler func(error)
 	mutex        sync.Mutex
+	sqlIDManager *sqlStoreIDManager
 	singleStmts  map[*sqlColumn]*sqlSingleStmts
 	manyStmts    map[*sqlTable]*sqlManyStmts
 }
@@ -495,6 +507,7 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
 		},
+		sqlIDManager: sqlIDManager,
 		errorHandler: errorHandler,
 		singleStmts:  map[*sqlColumn]*sqlSingleStmts{},
 		manyStmts:    map[*sqlTable]*sqlManyStmts{},
@@ -935,6 +948,10 @@ func (s *SQLStore) GetRoots() []EObject {
 		s.errorHandler(err)
 	}
 	return contents
+}
+
+func (s *SQLStore) UnRegister(object EObject) {
+	s.sqlIDManager.removeObjectAndID(object)
 }
 
 // RemoveRoot implements EStore.

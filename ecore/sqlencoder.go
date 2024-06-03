@@ -215,7 +215,7 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (int64, error) {
 		// used to avoid nested transactions
 		insertStmts := newSqlStmts(e.db)
 		for _, eClass := range classData.hierarchy {
-			classData, err := e.getClassData(eClass)
+			classData, err := e.getEncoderClassData(eClass)
 			if err != nil {
 				return -1, err
 			}
@@ -369,7 +369,7 @@ func (e *sqlEncoder) encodeEnumLiteral(eEnumLiteral EEnumLiteral) (any, error) {
 }
 
 func (e *sqlEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
-	classData, err := e.getClassData(eClass)
+	classData, err := e.getEncoderClassData(eClass)
 	if err != nil {
 		return nil, err
 	}
@@ -416,13 +416,13 @@ func (e *sqlEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
 	return classData, nil
 }
 
-func (e *sqlEncoder) getClassData(eClass EClass) (*sqlEncoderClassData, error) {
+func (e *sqlEncoder) getEncoderClassData(eClass EClass) (*sqlEncoderClassData, error) {
 	classData := e.classDataMap[eClass]
 	if classData == nil {
 		// compute class data for super types
 		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 			eClass := itClass.Next().(EClass)
-			_, err := e.getClassData(eClass)
+			_, err := e.getEncoderClassData(eClass)
 			if err != nil {
 				return nil, err
 			}

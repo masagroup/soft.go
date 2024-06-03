@@ -289,7 +289,7 @@ func TestSQLStore_Get_Object(t *testing.T) {
 	assert.Equal(t, s, storeObject.GetEStore())
 }
 
-func TestSQLStore_Get_Reference(t *testing.T) {
+func TestSQLStore_Get_Reference_WithFragment(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
 
@@ -321,6 +321,47 @@ func TestSQLStore_Get_Reference(t *testing.T) {
 	require.NotNil(t, v)
 	assert.True(t, v.EIsProxy())
 	assert.Equal(t, "#//@library/@writers.0", v.(EObjectInternal).EProxyURI().String())
+}
+
+func TestSQLStore_Get_Reference_WithSQLID(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eBookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eBookClass)
+
+	eWriterClass, _ := ePackage.GetEClassifier("Writer").(EClass)
+	require.NotNil(t, eWriterClass)
+
+	eWriterFirstNameAttribute, _ := eWriterClass.GetEStructuralFeatureFromName("firstName").(EAttribute)
+	require.NotNil(t, eWriterFirstNameAttribute)
+
+	eFeature := eBookClass.GetEStructuralFeatureFromName("author")
+	require.NotNil(t, eFeature)
+
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockObject := NewMockSQLObject(t)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.ref.sqlite")
+	err := copyFile("testdata/library.ref.sqlite", dbPath)
+	require.Nil(t, err)
+
+	db, err := sql.Open("sqlite", dbPath)
+	require.NoError(t, err)
+	defer db.Close()
+
+	s, err := NewSQLStore(db, NewURI(""), nil, mockPackageRegitry, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+
+	mockObject.EXPECT().GetSqlID().Return(int64(7)).Once()
+	mockObject.EXPECT().EClass().Return(eBookClass).Once()
+	mockPackageRegitry.EXPECT().GetPackage("http:///org/eclipse/emf/examples/library/library.ecore/1.0.0").Return(ePackage).Once()
+	v, _ := s.Get(mockObject, eFeature, -1).(EObject)
+	require.NotNil(t, v)
+	assert.False(t, v.EIsProxy())
+	require.Equal(t, "", v.EGet(eWriterFirstNameAttribute))
 }
 
 func TestSQLStore_Set_Int(t *testing.T) {

@@ -570,12 +570,12 @@ func (s *SQLStore) getFeatureTable(object EObject, feature EStructuralFeature) (
 	return featureSchema.table, nil
 }
 
-func (s *SQLStore) getFeatureData(object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
+func (s *SQLStore) getEncoderFeatureData(object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
 	// retrieve class schema
 	class := object.EClass()
 
 	// retrieve class data
-	classData, err := s.getClassData(class)
+	classData, err := s.getEncoderClassData(class)
 	if err != nil {
 		s.errorHandler(err)
 		return nil, fmt.Errorf("class %s is unknown", class.GetName())
@@ -662,7 +662,7 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 		return nil
 	}
 
-	featureData, err := s.getFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
@@ -753,7 +753,7 @@ func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
 		return
 	}
 
-	featureData, err := s.getFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return
@@ -848,7 +848,7 @@ func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value an
 	}
 
 	// retrieve table
-	featureData, err := s.getFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return false
@@ -880,7 +880,7 @@ func (s *SQLStore) indexOf(object EObject, feature EStructuralFeature, value any
 	}
 
 	// retrieve table
-	featureData, err := s.getFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return -1
@@ -980,7 +980,7 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 		s.errorHandler(err)
 		return
 	}
-	featureData, err := s.getFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return
@@ -1061,7 +1061,7 @@ func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int)
 		s.errorHandler(err)
 		return nil
 	}
-	featureData, err := s.getFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return nil

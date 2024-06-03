@@ -184,22 +184,27 @@ func (d *sqlDecoder) decodeClass(id int64) (*sqlDecoderClassData, error) {
 			return nil, err
 		}
 		// retrieve class
-		eClass, _ := ePackage.GetEClassifier(className).(EClass)
+		eClass, _ = ePackage.GetEClassifier(className).(EClass)
 		if eClass == nil {
 			return nil, fmt.Errorf("unable to find class '%s' in package '%s'", className, ePackage.GetNsURI())
 		}
-
-		eClassData := &sqlDecoderClassData{
-			eClass:   eClass,
-			eFactory: ePackage.GetEFactoryInstance(),
-		}
-
-		d.classDataMap[eClass] = eClassData
+		// set class id
 		d.sqlIDManager.setClassID(eClass, id)
-		return eClassData, nil
 	}
-	return d.classDataMap[eClass], nil
+	return d.getDecoderClassData(eClass), nil
 
+}
+
+func (d *sqlDecoder) getDecoderClassData(eClass EClass) *sqlDecoderClassData {
+	classData, isClassData := d.classDataMap[eClass]
+	if !isClassData {
+		classData = &sqlDecoderClassData{
+			eClass:   eClass,
+			eFactory: eClass.GetEPackage().GetEFactoryInstance(),
+		}
+		d.classDataMap[eClass] = classData
+	}
+	return classData
 }
 
 func (d *sqlDecoder) decodeContents() ([]EObject, error) {

@@ -184,10 +184,7 @@ func (list *EStoreList) performAddAll(c EList) {
 
 	// add to store
 	if list.store != nil {
-		index := list.size
-		for it := c.Iterator(); it.HasNext(); index++ {
-			list.store.Add(list.owner, list.feature, index, it.Next())
-		}
+		list.store.AddAll(list.owner, list.feature, list.size, c)
 	}
 	// size
 	list.size += c.Size()

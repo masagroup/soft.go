@@ -247,7 +247,7 @@ func TestEStoreList_AddAll(t *testing.T) {
 	assert.Equal(t, 0, list.Size())
 
 	mockStore.EXPECT().Contains(mockOwner, mockFeature, 1).Return(false).Once()
-	mockStore.EXPECT().Add(mockOwner, mockFeature, 0, 1).Once()
+	mockStore.EXPECT().AddAll(mockOwner, mockFeature, 0, mock.Anything).Once()
 	mockOwner.EXPECT().EDeliver().Return(false).Once()
 	assert.True(t, list.AddAll(NewImmutableEList([]any{1})))
 	assert.Equal(t, 1, list.Size())
@@ -277,7 +277,7 @@ func TestEStoreList_InsertAll(t *testing.T) {
 
 	// single element inserted
 	mockStore.EXPECT().Contains(mockOwner, mockFeature, 1).Return(false).Once()
-	mockStore.EXPECT().Add(mockOwner, mockFeature, 0, 1).Once()
+	mockStore.EXPECT().AddAll(mockOwner, mockFeature, 0, mock.Anything).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
 	mockOwner.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {
@@ -289,8 +289,7 @@ func TestEStoreList_InsertAll(t *testing.T) {
 
 	mockStore.EXPECT().Contains(mockOwner, mockFeature, 1).Return(false).Once()
 	mockStore.EXPECT().Contains(mockOwner, mockFeature, 2).Return(false).Once()
-	mockStore.EXPECT().Add(mockOwner, mockFeature, 0, 1).Once()
-	mockStore.EXPECT().Add(mockOwner, mockFeature, 1, 2).Once()
+	mockStore.EXPECT().AddAll(mockOwner, mockFeature, 0, mock.Anything).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
 	mockOwner.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {

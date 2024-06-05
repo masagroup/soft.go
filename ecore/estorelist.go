@@ -32,7 +32,7 @@ func NewEStoreList(owner EObject, feature EStructuralFeature, store EStore) *ESt
 }
 
 func (list *EStoreList) Initialize(owner EObject, feature EStructuralFeature, store EStore) {
-	list.isUnique = true
+	list.isUnique = false
 	list.owner = owner
 	list.feature = feature
 	list.store = store
@@ -212,10 +212,7 @@ func (list *EStoreList) performInsertAll(index int, c EList) bool {
 	}
 	// add to store
 	if list.store != nil {
-		i := index
-		for it := c.Iterator(); it.HasNext(); i++ {
-			list.store.Add(list.owner, list.feature, i, it.Next())
-		}
+		list.store.AddAll(list.owner, list.feature, index, c)
 	}
 	// size
 	list.size += c.Size()

@@ -57,7 +57,48 @@ func (_c *MockEStore_Add_Call) Return() *MockEStore_Add_Call {
 	return _c
 }
 
-// Remove provides a mock function with given fields: object, feature, index
+func (_c *MockEStore_Add_Call) RunAndReturn(run func(EObject, EStructuralFeature, int, interface{})) *MockEStore_Add_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AddAll provides a mock function with given fields: object, feature, index, collection
+func (_m *MockEStore) AddAll(object EObject, feature EStructuralFeature, index int, collection EList) {
+	_m.Called(object, feature, index, collection)
+}
+
+// MockEStore_AddAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddAll'
+type MockEStore_AddAll_Call struct {
+	*mock.Call
+}
+
+// AddAll is a helper method to define mock.On call
+//   - object EObject
+//   - feature EStructuralFeature
+//   - index int
+//   - collection EList
+func (_e *MockEStore_Expecter) AddAll(object interface{}, feature interface{}, index interface{}, collection interface{}) *MockEStore_AddAll_Call {
+	return &MockEStore_AddAll_Call{Call: _e.mock.On("AddAll", object, feature, index, collection)}
+}
+
+func (_c *MockEStore_AddAll_Call) Run(run func(object EObject, feature EStructuralFeature, index int, collection EList)) *MockEStore_AddAll_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(EObject), args[1].(EStructuralFeature), args[2].(int), args[3].(EList))
+	})
+	return _c
+}
+
+func (_c *MockEStore_AddAll_Call) Return() *MockEStore_AddAll_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockEStore_AddAll_Call) RunAndReturn(run func(EObject, EStructuralFeature, int, EList)) *MockEStore_AddAll_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AddRoot provides a mock function with given fields: object
 func (_m *MockEStore) AddRoot(object EObject) {
 	_m.Called(object)
 }
@@ -67,7 +108,7 @@ type MockEStore_AddRoot_Call struct {
 	*mock.Call
 }
 
-// Remove is a helper method to define mock.On call
+// AddRoot is a helper method to define mock.On call
 //   - object EObject
 func (_e *MockEStore_Expecter) AddRoot(object interface{}) *MockEStore_AddRoot_Call {
 	return &MockEStore_AddRoot_Call{Call: _e.mock.On("AddRoot", object)}
@@ -80,8 +121,13 @@ func (_c *MockEStore_AddRoot_Call) Run(run func(object EObject)) *MockEStore_Add
 	return _c
 }
 
-func (_c *MockEStore_AddRoot_Call) Return(_a0 interface{}) *MockEStore_AddRoot_Call {
-	_c.Call.Return(_a0)
+func (_c *MockEStore_AddRoot_Call) Return() *MockEStore_AddRoot_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockEStore_AddRoot_Call) RunAndReturn(run func(EObject)) *MockEStore_AddRoot_Call {
+	_c.Call.Return(run)
 	return _c
 }
 
@@ -114,9 +160,18 @@ func (_c *MockEStore_Clear_Call) Return() *MockEStore_Clear_Call {
 	return _c
 }
 
+func (_c *MockEStore_Clear_Call) RunAndReturn(run func(EObject, EStructuralFeature)) *MockEStore_Clear_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Contains provides a mock function with given fields: object, feature, value
 func (_m *MockEStore) Contains(object EObject, feature EStructuralFeature, value interface{}) bool {
 	ret := _m.Called(object, feature, value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Contains")
+	}
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, interface{}) bool); ok {
@@ -153,48 +208,18 @@ func (_c *MockEStore_Contains_Call) Return(_a0 bool) *MockEStore_Contains_Call {
 	return _c
 }
 
-// Create provides a mock function with given fields: eClass
-func (_m *MockEStore) Create(eClass EClass) EObject {
-	ret := _m.Called(eClass)
-
-	var r0 EObject
-	if rf, ok := ret.Get(0).(func(EClass) EObject); ok {
-		r0 = rf(eClass)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(EObject)
-		}
-	}
-
-	return r0
-}
-
-// MockEStore_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
-type MockEStore_Create_Call struct {
-	*mock.Call
-}
-
-// Create is a helper method to define mock.On call
-//   - eClass EClass
-func (_e *MockEStore_Expecter) Create(eClass interface{}) *MockEStore_Create_Call {
-	return &MockEStore_Create_Call{Call: _e.mock.On("Create", eClass)}
-}
-
-func (_c *MockEStore_Create_Call) Run(run func(eClass EClass)) *MockEStore_Create_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(EClass))
-	})
-	return _c
-}
-
-func (_c *MockEStore_Create_Call) Return(_a0 EObject) *MockEStore_Create_Call {
-	_c.Call.Return(_a0)
+func (_c *MockEStore_Contains_Call) RunAndReturn(run func(EObject, EStructuralFeature, interface{}) bool) *MockEStore_Contains_Call {
+	_c.Call.Return(run)
 	return _c
 }
 
 // Get provides a mock function with given fields: object, feature, index
 func (_m *MockEStore) Get(object EObject, feature EStructuralFeature, index int) interface{} {
 	ret := _m.Called(object, feature, index)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
 
 	var r0 interface{}
 	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int) interface{}); ok {
@@ -233,87 +258,18 @@ func (_c *MockEStore_Get_Call) Return(_a0 interface{}) *MockEStore_Get_Call {
 	return _c
 }
 
-// GetContainer provides a mock function with given fields: object
-func (_m *MockEStore) GetContainer(object EObject) EObject {
-	ret := _m.Called(object)
-
-	var r0 EObject
-	if rf, ok := ret.Get(0).(func(EObject) EObject); ok {
-		r0 = rf(object)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(EObject)
-		}
-	}
-
-	return r0
-}
-
-// MockEStore_GetContainer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetContainer'
-type MockEStore_GetContainer_Call struct {
-	*mock.Call
-}
-
-// GetContainer is a helper method to define mock.On call
-//   - object EObject
-func (_e *MockEStore_Expecter) GetContainer(object interface{}) *MockEStore_GetContainer_Call {
-	return &MockEStore_GetContainer_Call{Call: _e.mock.On("GetContainer", object)}
-}
-
-func (_c *MockEStore_GetContainer_Call) Run(run func(object EObject)) *MockEStore_GetContainer_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(EObject))
-	})
-	return _c
-}
-
-func (_c *MockEStore_GetContainer_Call) Return(_a0 EObject) *MockEStore_GetContainer_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-// GetContainingFeature provides a mock function with given fields: object
-func (_m *MockEStore) GetContainingFeature(object EObject) EStructuralFeature {
-	ret := _m.Called(object)
-
-	var r0 EStructuralFeature
-	if rf, ok := ret.Get(0).(func(EObject) EStructuralFeature); ok {
-		r0 = rf(object)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(EStructuralFeature)
-		}
-	}
-
-	return r0
-}
-
-// MockEStore_GetContainingFeature_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetContainingFeature'
-type MockEStore_GetContainingFeature_Call struct {
-	*mock.Call
-}
-
-// GetContainingFeature is a helper method to define mock.On call
-//   - object EObject
-func (_e *MockEStore_Expecter) GetContainingFeature(object interface{}) *MockEStore_GetContainingFeature_Call {
-	return &MockEStore_GetContainingFeature_Call{Call: _e.mock.On("GetContainingFeature", object)}
-}
-
-func (_c *MockEStore_GetContainingFeature_Call) Run(run func(object EObject)) *MockEStore_GetContainingFeature_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(EObject))
-	})
-	return _c
-}
-
-func (_c *MockEStore_GetContainingFeature_Call) Return(_a0 EStructuralFeature) *MockEStore_GetContainingFeature_Call {
-	_c.Call.Return(_a0)
+func (_c *MockEStore_Get_Call) RunAndReturn(run func(EObject, EStructuralFeature, int) interface{}) *MockEStore_Get_Call {
+	_c.Call.Return(run)
 	return _c
 }
 
 // IndexOf provides a mock function with given fields: object, feature, value
 func (_m *MockEStore) IndexOf(object EObject, feature EStructuralFeature, value interface{}) int {
 	ret := _m.Called(object, feature, value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IndexOf")
+	}
 
 	var r0 int
 	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, interface{}) int); ok {
@@ -350,9 +306,18 @@ func (_c *MockEStore_IndexOf_Call) Return(_a0 int) *MockEStore_IndexOf_Call {
 	return _c
 }
 
+func (_c *MockEStore_IndexOf_Call) RunAndReturn(run func(EObject, EStructuralFeature, interface{}) int) *MockEStore_IndexOf_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // IsEmpty provides a mock function with given fields: object, feature
 func (_m *MockEStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
 	ret := _m.Called(object, feature)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsEmpty")
+	}
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature) bool); ok {
@@ -388,9 +353,18 @@ func (_c *MockEStore_IsEmpty_Call) Return(_a0 bool) *MockEStore_IsEmpty_Call {
 	return _c
 }
 
+func (_c *MockEStore_IsEmpty_Call) RunAndReturn(run func(EObject, EStructuralFeature) bool) *MockEStore_IsEmpty_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // IsSet provides a mock function with given fields: object, feature
 func (_m *MockEStore) IsSet(object EObject, feature EStructuralFeature) bool {
 	ret := _m.Called(object, feature)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsSet")
+	}
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature) bool); ok {
@@ -426,9 +400,18 @@ func (_c *MockEStore_IsSet_Call) Return(_a0 bool) *MockEStore_IsSet_Call {
 	return _c
 }
 
+func (_c *MockEStore_IsSet_Call) RunAndReturn(run func(EObject, EStructuralFeature) bool) *MockEStore_IsSet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // LastIndexOf provides a mock function with given fields: object, feature, value
 func (_m *MockEStore) LastIndexOf(object EObject, feature EStructuralFeature, value interface{}) int {
 	ret := _m.Called(object, feature, value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for LastIndexOf")
+	}
 
 	var r0 int
 	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, interface{}) int); ok {
@@ -465,13 +448,22 @@ func (_c *MockEStore_LastIndexOf_Call) Return(_a0 int) *MockEStore_LastIndexOf_C
 	return _c
 }
 
-// Move provides a mock function with given fields: object, feature, targetIndex, sourceIndex
-func (_m *MockEStore) Move(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int) interface{} {
-	ret := _m.Called(object, feature, targetIndex, sourceIndex)
+func (_c *MockEStore_LastIndexOf_Call) RunAndReturn(run func(EObject, EStructuralFeature, interface{}) int) *MockEStore_LastIndexOf_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Move provides a mock function with given fields: object, feature, sourceIndex, targetIndex
+func (_m *MockEStore) Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int) interface{} {
+	ret := _m.Called(object, feature, sourceIndex, targetIndex)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Move")
+	}
 
 	var r0 interface{}
 	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int, int) interface{}); ok {
-		r0 = rf(object, feature, targetIndex, sourceIndex)
+		r0 = rf(object, feature, sourceIndex, targetIndex)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(interface{})
@@ -489,13 +481,13 @@ type MockEStore_Move_Call struct {
 // Move is a helper method to define mock.On call
 //   - object EObject
 //   - feature EStructuralFeature
-//   - targetIndex int
 //   - sourceIndex int
-func (_e *MockEStore_Expecter) Move(object interface{}, feature interface{}, targetIndex interface{}, sourceIndex interface{}) *MockEStore_Move_Call {
-	return &MockEStore_Move_Call{Call: _e.mock.On("Move", object, feature, targetIndex, sourceIndex)}
+//   - targetIndex int
+func (_e *MockEStore_Expecter) Move(object interface{}, feature interface{}, sourceIndex interface{}, targetIndex interface{}) *MockEStore_Move_Call {
+	return &MockEStore_Move_Call{Call: _e.mock.On("Move", object, feature, sourceIndex, targetIndex)}
 }
 
-func (_c *MockEStore_Move_Call) Run(run func(object EObject, feature EStructuralFeature, targetIndex int, sourceIndex int)) *MockEStore_Move_Call {
+func (_c *MockEStore_Move_Call) Run(run func(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int)) *MockEStore_Move_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(EObject), args[1].(EStructuralFeature), args[2].(int), args[3].(int))
 	})
@@ -507,9 +499,18 @@ func (_c *MockEStore_Move_Call) Return(_a0 interface{}) *MockEStore_Move_Call {
 	return _c
 }
 
+func (_c *MockEStore_Move_Call) RunAndReturn(run func(EObject, EStructuralFeature, int, int) interface{}) *MockEStore_Move_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Remove provides a mock function with given fields: object, feature, index
 func (_m *MockEStore) Remove(object EObject, feature EStructuralFeature, index int) interface{} {
 	ret := _m.Called(object, feature, index)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Remove")
+	}
 
 	var r0 interface{}
 	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int) interface{}); ok {
@@ -548,17 +549,22 @@ func (_c *MockEStore_Remove_Call) Return(_a0 interface{}) *MockEStore_Remove_Cal
 	return _c
 }
 
-// Remove provides a mock function with given fields: object, feature, index
+func (_c *MockEStore_Remove_Call) RunAndReturn(run func(EObject, EStructuralFeature, int) interface{}) *MockEStore_Remove_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RemoveRoot provides a mock function with given fields: object
 func (_m *MockEStore) RemoveRoot(object EObject) {
 	_m.Called(object)
 }
 
-// MockEStore_RemoveRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Remove'
+// MockEStore_RemoveRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveRoot'
 type MockEStore_RemoveRoot_Call struct {
 	*mock.Call
 }
 
-// Remove is a helper method to define mock.On call
+// RemoveRoot is a helper method to define mock.On call
 //   - object EObject
 func (_e *MockEStore_Expecter) RemoveRoot(object interface{}) *MockEStore_RemoveRoot_Call {
 	return &MockEStore_RemoveRoot_Call{Call: _e.mock.On("RemoveRoot", object)}
@@ -571,14 +577,23 @@ func (_c *MockEStore_RemoveRoot_Call) Run(run func(object EObject)) *MockEStore_
 	return _c
 }
 
-func (_c *MockEStore_RemoveRoot_Call) Return(_a0 interface{}) *MockEStore_RemoveRoot_Call {
-	_c.Call.Return(_a0)
+func (_c *MockEStore_RemoveRoot_Call) Return() *MockEStore_RemoveRoot_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockEStore_RemoveRoot_Call) RunAndReturn(run func(EObject)) *MockEStore_RemoveRoot_Call {
+	_c.Call.Return(run)
 	return _c
 }
 
 // Set provides a mock function with given fields: object, feature, index, value
 func (_m *MockEStore) Set(object EObject, feature EStructuralFeature, index int, value interface{}) interface{} {
 	ret := _m.Called(object, feature, index, value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Set")
+	}
 
 	var r0 interface{}
 	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int, interface{}) interface{}); ok {
@@ -618,9 +633,18 @@ func (_c *MockEStore_Set_Call) Return(_a0 interface{}) *MockEStore_Set_Call {
 	return _c
 }
 
+func (_c *MockEStore_Set_Call) RunAndReturn(run func(EObject, EStructuralFeature, int, interface{}) interface{}) *MockEStore_Set_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Size provides a mock function with given fields: object, feature
 func (_m *MockEStore) Size(object EObject, feature EStructuralFeature) int {
 	ret := _m.Called(object, feature)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Size")
+	}
 
 	var r0 int
 	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature) int); ok {
@@ -656,9 +680,18 @@ func (_c *MockEStore_Size_Call) Return(_a0 int) *MockEStore_Size_Call {
 	return _c
 }
 
+func (_c *MockEStore_Size_Call) RunAndReturn(run func(EObject, EStructuralFeature) int) *MockEStore_Size_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ToArray provides a mock function with given fields: object, feature
 func (_m *MockEStore) ToArray(object EObject, feature EStructuralFeature) []interface{} {
 	ret := _m.Called(object, feature)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ToArray")
+	}
 
 	var r0 []interface{}
 	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature) []interface{}); ok {
@@ -696,6 +729,11 @@ func (_c *MockEStore_ToArray_Call) Return(_a0 []interface{}) *MockEStore_ToArray
 	return _c
 }
 
+func (_c *MockEStore_ToArray_Call) RunAndReturn(run func(EObject, EStructuralFeature) []interface{}) *MockEStore_ToArray_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UnSet provides a mock function with given fields: object, feature
 func (_m *MockEStore) UnSet(object EObject, feature EStructuralFeature) {
 	_m.Called(object, feature)
@@ -725,13 +763,17 @@ func (_c *MockEStore_UnSet_Call) Return() *MockEStore_UnSet_Call {
 	return _c
 }
 
-type mockConstructorTestingTNewMockEStore interface {
-	mock.TestingT
-	Cleanup(func())
+func (_c *MockEStore_UnSet_Call) RunAndReturn(run func(EObject, EStructuralFeature)) *MockEStore_UnSet_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewMockEStore creates a new instance of MockEStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
-func NewMockEStore(t mockConstructorTestingTNewMockEStore) *MockEStore {
+// The first argument is typically a *testing.T value.
+func NewMockEStore(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *MockEStore {
 	mock := &MockEStore{}
 	mock.Mock.Test(t)
 

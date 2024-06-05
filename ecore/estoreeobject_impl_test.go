@@ -143,6 +143,7 @@ func TestEStoreEObjectImpl_GetAttribute_Many_List(t *testing.T) {
 	o.SetEClass(mockClass)
 	o.SetEStore(mockStore)
 
+	mockAttribute.EXPECT().IsUnique().Return(true).Once()
 	mockAttribute.EXPECT().IsMany().Return(true).Once()
 	mockAttribute.EXPECT().IsTransient().Return(false).Once()
 	mockAttribute.EXPECT().GetEType().Return(nil).Once()
@@ -172,6 +173,7 @@ func TestEStoreEObjectImpl_GetAttribute_Many_Map(t *testing.T) {
 	o.SetEClass(mockClass)
 	o.SetEStore(mockStore)
 
+	mockAttribute.EXPECT().IsUnique().Return(true).Once()
 	mockAttribute.EXPECT().IsMany().Return(true).Once()
 	mockAttribute.EXPECT().IsTransient().Return(false).Once()
 	mockAttribute.EXPECT().GetEType().Return(mockType).Twice()

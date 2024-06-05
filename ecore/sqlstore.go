@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"sync"
 )
 
 type stmtOrError struct {
@@ -352,6 +353,7 @@ func (ss *sqlManyStmts) getRemoveStmt() (*sqlSafeStmt, error) {
 type sqlStoreIDManager struct {
 	sqlDecoderIDManagerImpl
 	sqlEncoderIDManagerImpl
+	mutex sync.Mutex
 }
 
 type sqlStoreObjectManager struct {
@@ -396,9 +398,21 @@ func (r *sqlStoreIDManager) setClassID(c EClass, id int64) {
 	r.sqlEncoderIDManagerImpl.classes[c] = id
 }
 
-func (r *sqlStoreIDManager) setObjectID(o EObject, id int64) {
-	r.sqlDecoderIDManagerImpl.objects[id] = o
+func (r *sqlStoreIDManager) getObjectFromID(id int64) (o EObject, b bool) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	return r.sqlDecoderIDManagerImpl.getObjectFromID(id)
+}
 
+func (r *sqlStoreIDManager) getObjectID(o EObject) (id int64, b bool) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	return r.sqlEncoderIDManagerImpl.getObjectID(o)
+}
+
+func (r *sqlStoreIDManager) setObjectID(o EObject, id int64) {
+	r.mutex.Lock()
+	r.sqlDecoderIDManagerImpl.objects[id] = o
 	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
 		// set sql id if created object is an sql object
 		sqlObject.SetSqlID(id)
@@ -406,6 +420,20 @@ func (r *sqlStoreIDManager) setObjectID(o EObject, id int64) {
 		// otherwse initialize map
 		r.sqlEncoderIDManagerImpl.objects[o] = id
 	}
+	r.mutex.Unlock()
+}
+
+func (r *sqlStoreIDManager) removeObjectAndID(o EObject) {
+	r.mutex.Lock()
+	var id int64
+	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
+		id = sqlObject.GetSqlID()
+	} else {
+		id = r.sqlEncoderIDManagerImpl.objects[o]
+		delete(r.sqlEncoderIDManagerImpl.objects, o)
+	}
+	delete(r.sqlDecoderIDManagerImpl.objects, id)
+	r.mutex.Unlock()
 }
 
 func (r *sqlStoreIDManager) setEnumLiteralID(e EEnumLiteral, id int64) {
@@ -418,6 +446,8 @@ type SQLStore struct {
 	sqlDecoder
 	sqlEncoder
 	errorHandler func(error)
+	mutex        sync.Mutex
+	sqlIDManager *sqlStoreIDManager
 	singleStmts  map[*sqlColumn]*sqlSingleStmts
 	manyStmts    map[*sqlTable]*sqlManyStmts
 }
@@ -493,6 +523,7 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
 		},
+		sqlIDManager: sqlIDManager,
 		errorHandler: errorHandler,
 		singleStmts:  map[*sqlColumn]*sqlSingleStmts{},
 		manyStmts:    map[*sqlTable]*sqlManyStmts{},
@@ -505,6 +536,7 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 }
 
 func (s *SQLStore) getSingleStmts(column *sqlColumn) *sqlSingleStmts {
+	s.mutex.Lock()
 	stmts := s.singleStmts[column]
 	if stmts == nil {
 		stmts = &sqlSingleStmts{
@@ -513,10 +545,12 @@ func (s *SQLStore) getSingleStmts(column *sqlColumn) *sqlSingleStmts {
 		}
 		s.singleStmts[column] = stmts
 	}
+	s.mutex.Unlock()
 	return stmts
 }
 
 func (s *SQLStore) getManyStmts(table *sqlTable) *sqlManyStmts {
+	s.mutex.Lock()
 	stmts := s.manyStmts[table]
 	if stmts == nil {
 		stmts = &sqlManyStmts{
@@ -525,6 +559,7 @@ func (s *SQLStore) getManyStmts(table *sqlTable) *sqlManyStmts {
 		}
 		s.manyStmts[table] = stmts
 	}
+	s.mutex.Unlock()
 	return stmts
 }
 
@@ -551,12 +586,12 @@ func (s *SQLStore) getFeatureTable(object EObject, feature EStructuralFeature) (
 	return featureSchema.table, nil
 }
 
-func (s *SQLStore) getFeatureData(object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
+func (s *SQLStore) getEncoderFeatureData(object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
 	// retrieve class schema
 	class := object.EClass()
 
 	// retrieve class data
-	classData, err := s.getClassData(class)
+	classData, err := s.getEncoderClassData(class)
 	if err != nil {
 		s.errorHandler(err)
 		return nil, fmt.Errorf("class %s is unknown", class.GetName())
@@ -643,7 +678,7 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 		return nil
 	}
 
-	featureData, err := s.getFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
@@ -734,7 +769,7 @@ func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
 		return
 	}
 
-	featureData, err := s.getFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return
@@ -829,7 +864,7 @@ func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value an
 	}
 
 	// retrieve table
-	featureData, err := s.getFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return false
@@ -861,7 +896,7 @@ func (s *SQLStore) indexOf(object EObject, feature EStructuralFeature, value any
 	}
 
 	// retrieve table
-	featureData, err := s.getFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return -1
@@ -931,6 +966,10 @@ func (s *SQLStore) GetRoots() []EObject {
 	return contents
 }
 
+func (s *SQLStore) UnRegister(object EObject) {
+	s.sqlIDManager.removeObjectAndID(object)
+}
+
 // RemoveRoot implements EStore.
 func (s *SQLStore) RemoveRoot(object EObject) {
 	sqlID, err := s.getSqlID(object)
@@ -957,12 +996,12 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 		s.errorHandler(err)
 		return
 	}
-	featureData, err := s.getFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return
 	}
-	idx, err := s.getInsertIdx(featureData.schema.table, sqlID, index)
+	idx, _, err := s.getInsertIdx(featureData.schema.table, sqlID, index, 1)
 	if err != nil {
 		s.errorHandler(err)
 		return
@@ -984,10 +1023,74 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 	}
 }
 
-func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int) (float64, error) {
+func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int, c EList) {
+	sqlID, err := s.getSqlID(object)
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	featureData, err := s.getEncoderFeatureData(object, feature)
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	idx, inc, err := s.getInsertIdx(featureData.schema.table, sqlID, index, c.Size())
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+
+	// encode each value
+	values := [][]any{}
+	for it := c.Iterator(); it.HasNext(); {
+		value := it.Next()
+		v, err := s.encodeFeatureValue(featureData, value)
+		if err != nil {
+			s.errorHandler(err)
+			return
+		}
+		values = append(values, []any{sqlID, idx, v})
+		idx += inc
+	}
+
+	// begin transaction
+	tx, err := s.db.Begin()
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+
+	// insert statement
+	stmt, err := s.getManyStmts(featureData.schema.table).getInsertStmt()
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+
+	// create statement for this transaction
+	stmt = tx.Stmt(stmt)
+
+	// execute statements
+	for _, args := range values {
+		if _, err := stmt.Exec(args...); err != nil {
+			s.errorHandler(err)
+			return
+		}
+	}
+
+	// end transaction
+	if err := tx.Commit(); err != nil {
+		s.errorHandler(err)
+		return
+	}
+}
+
+// compute insert idx of element in the list whose index is index. nb is the number of elements to be inserted
+// return idx, increment (for each inserted element) and error if any
+func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int, nb int) (float64, float64, error) {
 	stmt, err := s.getManyStmts(table).getListIndexToIdxStmt()
 	if err != nil {
-		return 0.0, err
+		return 0.0, 0.0, err
 	}
 	if index == 0 {
 		// first row in the list
@@ -997,17 +1100,18 @@ func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int) (float6
 		if err := row.Scan(&idx); err != nil {
 			if err == sql.ErrNoRows {
 				// no row == list is empty
-				return 1.0, nil
+				return 1.0, 1.0, nil
 			} else {
-				return 0.0, err
+				return 0.0, 0.0, err
 			}
 		}
-		return idx / 2, nil
+		increment := 1.0 / (float64(nb) + 1)
+		return idx * increment, increment, nil
 	} else {
 		// two rows in the list starting from previous list index
 		rows, err := stmt.Query(sqlID, 2, index-1)
 		if err != nil {
-			return 0.0, err
+			return 0.0, 0.0, err
 		}
 		defer rows.Close()
 
@@ -1016,7 +1120,7 @@ func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int) (float6
 		for rows.Next() {
 			var i float64
 			if err := rows.Scan(&i); err != nil {
-				return 0.0, err
+				return 0.0, 0.0, err
 			}
 			idx += i
 			count += 1
@@ -1025,9 +1129,12 @@ func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int) (float6
 		case 0:
 			panic(fmt.Sprintf("invalid index in table %v for object %v : %v not in list bounds", index, table.name, sqlID))
 		case 1:
-			return idx + 1, nil
+			// at the end
+			return idx + 1, 1, nil
 		default:
-			return idx / 2, nil
+			// before
+			increment := 1.0 / (float64(nb) + 1)
+			return idx * increment, increment, nil
 		}
 	}
 }
@@ -1038,7 +1145,7 @@ func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int)
 		s.errorHandler(err)
 		return nil
 	}
-	featureData, err := s.getFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
@@ -1082,7 +1189,7 @@ func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex 
 	if targetIndex > sourceIndex {
 		targetIndex++
 	}
-	idx, err := s.getInsertIdx(featureSchema.table, sqlID, targetIndex)
+	idx, _, err := s.getInsertIdx(featureSchema.table, sqlID, targetIndex, 1)
 	if err != nil {
 		s.errorHandler(err)
 		return nil

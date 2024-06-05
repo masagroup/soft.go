@@ -163,6 +163,18 @@ func TestMockEStoreAdd(t *testing.T) {
 	mockEStore.Add(mockObject, mockFeature, 0, mockValue)
 }
 
+func TestMockEStoreAddAll(t *testing.T) {
+	mockEStore := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockCollection := NewImmutableEList(nil)
+	mockFeature := NewMockEStructuralFeature(t)
+	m := NewMockRun(t, mockObject, mockFeature, 0, mockCollection)
+	mockEStore.EXPECT().AddAll(mockObject, mockFeature, 0, mockCollection).Return().Run(func(object EObject, feature EStructuralFeature, index int, c EList) {
+		m.Run(object, feature, index, c)
+	}).Once()
+	mockEStore.AddAll(mockObject, mockFeature, 0, mockCollection)
+}
+
 func TestMockEStoreAddRoot(t *testing.T) {
 	mockEStore := NewMockEStore(t)
 	mockObject := NewMockEObject(t)
@@ -241,47 +253,4 @@ func TestMockEStoreToArray(t *testing.T) {
 	}).Once()
 	assert.Equal(t, mockResult, mockEStore.ToArray(mockObject, mockFeature))
 	assert.Equal(t, mockResult, mockEStore.ToArray(mockObject, mockFeature))
-}
-
-func TestMockEStoreGetContainer(t *testing.T) {
-	mockEStore := NewMockEStore(t)
-	mockObject := NewMockEObject(t)
-	mockResult := NewMockEObject(t)
-	m := NewMockRun(t, mockObject)
-	mockEStore.EXPECT().GetContainer(mockObject).Return(mockResult).Run(func(object EObject) {
-		m.Run(object)
-	}).Once()
-	mockEStore.EXPECT().GetContainer(mockObject).Call.Return(func(EObject) EObject {
-		return mockResult
-	}).Once()
-	assert.Equal(t, mockResult, mockEStore.GetContainer(mockObject))
-	assert.Equal(t, mockResult, mockEStore.GetContainer(mockObject))
-}
-
-func TestMockEStoreGetContainingFeature(t *testing.T) {
-	mockEStore := NewMockEStore(t)
-	mockObject := NewMockEObject(t)
-	mockResult := NewMockEStructuralFeature(t)
-	m := NewMockRun(t, mockObject)
-	mockEStore.EXPECT().GetContainingFeature(mockObject).Return(mockResult).Run(func(object EObject) {
-		m.Run(object)
-	}).Once()
-	mockEStore.EXPECT().GetContainingFeature(mockObject).Call.Return(func(EObject) EStructuralFeature {
-		return mockResult
-	}).Once()
-	assert.Equal(t, mockResult, mockEStore.GetContainingFeature(mockObject))
-	assert.Equal(t, mockResult, mockEStore.GetContainingFeature(mockObject))
-}
-
-func TestMockEStoreCreate(t *testing.T) {
-	mockEStore := NewMockEStore(t)
-	mockClass := NewMockEClass(t)
-	mockResult := NewMockEObject(t)
-	m := NewMockRun(t, mockClass)
-	mockEStore.EXPECT().Create(mockClass).Return(mockResult).Run(func(eClass EClass) { m.Run(eClass) }).Once()
-	mockEStore.EXPECT().Create(mockClass).Call.Return(func(EClass) EObject {
-		return mockResult
-	}).Once()
-	assert.Equal(t, mockResult, mockEStore.Create(mockClass))
-	assert.Equal(t, mockResult, mockEStore.Create(mockClass))
 }

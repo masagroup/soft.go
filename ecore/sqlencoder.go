@@ -384,7 +384,7 @@ func (e *sqlEncoder) getEncoderClassData(eClass EClass) (*sqlEncoderClassData, e
 		}
 
 		// create class tables
-		if err := sqlitex.Execute(e.conn, classSchema.table.createQuery(), nil); err != nil {
+		if err := sqlitex.ExecuteScript(e.conn, classSchema.table.createQuery(), nil); err != nil {
 			return nil, err
 		}
 
@@ -394,7 +394,7 @@ func (e *sqlEncoder) getEncoderClassData(eClass EClass) (*sqlEncoderClassData, e
 
 			// create feature table if any
 			if table := featureSchema.table; table != nil {
-				if err := sqlitex.Execute(e.conn, table.createQuery(), nil); err != nil {
+				if err := sqlitex.ExecuteScript(e.conn, table.createQuery(), nil); err != nil {
 					return nil, err
 				}
 			}

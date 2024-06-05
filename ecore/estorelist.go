@@ -32,7 +32,7 @@ func NewEStoreList(owner EObject, feature EStructuralFeature, store EStore) *ESt
 }
 
 func (list *EStoreList) Initialize(owner EObject, feature EStructuralFeature, store EStore) {
-	list.isUnique = false
+	list.isUnique = true
 	list.owner = owner
 	list.feature = feature
 	list.store = store

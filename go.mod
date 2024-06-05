@@ -35,4 +35,5 @@ require (
 	modernc.org/memory v1.8.0 // indirect
 	modernc.org/strutil v1.2.0 // indirect
 	modernc.org/token v1.1.0 // indirect
+	zombiezen.com/go/sqlite v1.3.0 // indirect
 )

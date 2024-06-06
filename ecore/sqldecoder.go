@@ -12,6 +12,25 @@ import (
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
+func decodeAny(stmt *sqlite.Stmt, i int) any {
+	switch stmt.ColumnType(i) {
+	case sqlite.TypeNull:
+		return nil
+	case sqlite.TypeInteger:
+		return stmt.ColumnInt64(i)
+	case sqlite.TypeText:
+		return stmt.ColumnText(i)
+	case sqlite.TypeFloat:
+		return stmt.ColumnFloat(i)
+	case sqlite.TypeBlob:
+		bytes := make([]byte, stmt.ColumnLen(i))
+		stmt.ColumnBytes(i, bytes)
+		return bytes
+	default:
+		panic("sqlite type not supported")
+	}
+}
+
 type sqlObjectManager interface {
 	registerObject(EObject)
 }
@@ -109,25 +128,6 @@ func (d *sqlDecoder) resolveURI(uri *URI) *URI {
 		return d.uri.Resolve(uri)
 	}
 	return uri
-}
-
-func (d *sqlDecoder) decodeAny(stmt *sqlite.Stmt, i int) any {
-	switch stmt.ColumnType(i) {
-	case sqlite.TypeNull:
-		return nil
-	case sqlite.TypeInteger:
-		return stmt.ColumnInt64(i)
-	case sqlite.TypeText:
-		return stmt.ColumnText(i)
-	case sqlite.TypeFloat:
-		return stmt.ColumnFloat(i)
-	case sqlite.TypeBlob:
-		bytes := make([]byte, stmt.ColumnLen(i))
-		stmt.ColumnBytes(i, bytes)
-		return bytes
-	default:
-		panic("sqlite type not supported")
-	}
 }
 
 func (d *sqlDecoder) decodePackage(conn *sqlite.Conn, id int64) (EPackage, error) {
@@ -882,7 +882,7 @@ func (d *SQLDecoder) decodeColumnFeatures(conn *sqlite.Conn, table *sqlTable, co
 
 				// for each column
 				for i, columnData := range columnFeatures {
-					value := d.decodeAny(stmt, i+1)
+					value := decodeAny(stmt, i+1)
 					columnValue, err := d.decodeFeatureValue(conn, columnData, value)
 					if err != nil {
 						return err
@@ -911,7 +911,7 @@ func (d *SQLDecoder) decodeTableFeature(conn *sqlite.Conn, table *sqlTable, tabl
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				// object id
 				objectID := stmt.ColumnInt64(0)
-				value := d.decodeAny(stmt, 1)
+				value := decodeAny(stmt, 1)
 				decoded, err := d.decodeFeatureValue(conn, tableFeature, value)
 				if err != nil {
 					return err

@@ -618,7 +618,7 @@ func (s *SQLStore) getValue(conn *sqlite.Conn, sqlID int64, featureSchema *sqlFe
 		conn, query, &sqlitex.ExecOptions{
 			Args: args,
 			ResultFunc: func(stmt *sqlite.Stmt) error {
-				value = s.decodeAny(stmt, 0)
+				value = decodeAny(stmt, 0)
 				return nil
 			}}); err != nil {
 		s.errorHandler(err)
@@ -710,7 +710,7 @@ func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 			&sqlitex.ExecOptions{
 				Args: []any{sqlID},
 				ResultFunc: func(stmt *sqlite.Stmt) error {
-					value = s.decodeAny(stmt, 0)
+					value = decodeAny(stmt, 0)
 					return nil
 				}}); err != nil {
 			s.errorHandler(err)
@@ -724,7 +724,7 @@ func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 			&sqlitex.ExecOptions{
 				Args: []any{sqlID},
 				ResultFunc: func(stmt *sqlite.Stmt) error {
-					value = s.decodeAny(stmt, 0)
+					value = decodeAny(stmt, 0)
 					return nil
 				}}); err != nil {
 			s.errorHandler(err)
@@ -797,7 +797,7 @@ func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
 		&sqlitex.ExecOptions{
 			Args: []any{sqlID},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
-				value = s.decodeAny(stmt, 0)
+				value = decodeAny(stmt, 0)
 				return nil
 			}}); err != nil {
 		s.errorHandler(err)
@@ -1178,7 +1178,7 @@ func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int)
 		&sqlitex.ExecOptions{
 			Args: []any{sqlID, index},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
-				value = s.decodeAny(stmt, 0)
+				value = decodeAny(stmt, 0)
 				return nil
 			}}); err != nil {
 		s.errorHandler(err)
@@ -1230,7 +1230,7 @@ func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex 
 		&sqlitex.ExecOptions{
 			Args: []any{idx, sqlID, sourceIndex},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
-				value = s.decodeAny(stmt, 0)
+				value = decodeAny(stmt, 0)
 				return nil
 			}}); err != nil {
 		s.errorHandler(err)
@@ -1301,7 +1301,7 @@ func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 		&sqlitex.ExecOptions{
 			Args: []any{sqlID},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
-				value := s.decodeAny(stmt, 0)
+				value := decodeAny(stmt, 0)
 				decoded, err := s.decodeFeatureValue(conn, featureSchema, value)
 				if err != nil {
 					return err

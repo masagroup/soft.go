@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	_ "modernc.org/sqlite"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )

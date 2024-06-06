@@ -1,14 +1,14 @@
 package ecore
 
 import (
-	"database/sql"
 	"fmt"
 	"maps"
-	"reflect"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/testify/require"
+	"zombiezen.com/go/sqlite"
+	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 var spewConfig = spew.ConfigState{
@@ -20,86 +20,40 @@ var spewConfig = spew.ConfigState{
 	MaxDepth:                10,
 }
 
-func getDBTables(db *sql.DB) (map[string]struct{}, error) {
-	rows, err := db.Query("SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%'")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+func getDBTables(conn *sqlite.Conn) (map[string]struct{}, error) {
 	tables := map[string]struct{}{}
-	for rows.Next() {
-		var table string
-		if err := rows.Scan(&table); err != nil {
-			return nil, err
-		}
-		tables[table] = struct{}{}
+	if err := sqlitex.ExecuteTransient(
+		conn,
+		"SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%'",
+		&sqlitex.ExecOptions{
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				tables[stmt.ColumnText(0)] = struct{}{}
+				return nil
+			},
+		}); err != nil {
+		return nil, err
 	}
 	return tables, nil
 }
 
-func getDBRows(db *sql.DB, table string) ([][]any, error) {
-	rows, err := db.Query("SELECT * FROM '" + table + "'")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	// get column type info
-	columnTypes, err := rows.ColumnTypes()
-	if err != nil {
-		return nil, err
-	}
-
-	// used for allocation & dereferencing
-	rowValues := make([]reflect.Value, len(columnTypes))
-	for i := 0; i < len(columnTypes); i++ {
-		// allocate reflect.Value representing a **T value
-		t := columnTypes[i].ScanType()
-		if t == nil {
-			t = reflect.TypeOf((*any)(nil)).Elem()
-		}
-		ptr := reflect.PointerTo(t)
-		rowValues[i] = reflect.New(ptr)
-	}
-
+func getDBRows(conn *sqlite.Conn, table string) ([][]any, error) {
 	resultList := [][]any{}
-	for rows.Next() {
-		// initially will hold pointers for Scan, after scanning the
-		// pointers will be dereferenced so that the slice holds actual values
-		rowResult := make([]any, len(columnTypes))
-		for i := 0; i < len(columnTypes); i++ {
-			// get the **T value from the reflect.Value
-			rowResult[i] = rowValues[i].Interface()
-		}
-
-		// scan each column value into the corresponding **T value
-		if err := rows.Scan(rowResult...); err != nil {
-			return nil, err
-		}
-
-		// dereference pointers
-		for i := 0; i < len(rowValues); i++ {
-			// first pointer deref to get reflect.Value representing a *T value,
-			// if rv.IsNil it means column value was NULL
-			if rv := rowValues[i].Elem(); rv.IsNil() {
-				rowResult[i] = nil
-			} else {
-				// second deref to get reflect.Value representing the T value
-				// and call Interface to get T value from the reflect.Value
-				rowResult[i] = rv.Elem().Interface()
+	if err := sqlitex.ExecuteTransient(conn, "SELECT * FROM '"+table+"'", &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			results := make([]any, stmt.ColumnCount())
+			for i := 0; i < stmt.ColumnCount(); i++ {
+				results[i] = decodeAny(stmt, i)
 			}
-		}
-
-		resultList = append(resultList, rowResult)
-
-	}
-	if err := rows.Err(); err != nil {
+			resultList = append(resultList, results)
+			return nil
+		},
+	}); err != nil {
 		return nil, err
 	}
 	return resultList, nil
 }
 
-func RequireEqualDB(t require.TestingT, expected, actual *sql.DB) {
+func RequireEqualDB(t require.TestingT, expected, actual *sqlite.Conn) {
 	te, err := getDBTables(expected)
 	if err != nil {
 		require.Fail(t, err.Error())

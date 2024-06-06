@@ -171,7 +171,7 @@ func (ss *sqlManyQueries) getSelectAllQuery() string {
 func (ss *sqlManyQueries) getExistsQuery() string {
 	if len(ss.existsQuery) == 0 {
 		var query strings.Builder
-		query.WriteString("SELECT 1 FROM")
+		query.WriteString("SELECT 1 FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
@@ -184,7 +184,7 @@ func (ss *sqlManyQueries) getExistsQuery() string {
 func (ss *sqlManyQueries) getClearQuery() string {
 	if len(ss.clearQuery) == 0 {
 		var query strings.Builder
-		query.WriteString("DELETE FROM")
+		query.WriteString("DELETE FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
@@ -211,7 +211,7 @@ func (ss *sqlManyQueries) getContainsQuery() string {
 	if len(ss.containsQuery) == 0 {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		var query strings.Builder
-		query.WriteString("SELECT rowid FROM")
+		query.WriteString("SELECT rowid FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
@@ -479,6 +479,7 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
 		},
+		pool:          pool,
 		sqlIDManager:  sqlIDManager,
 		errorHandler:  errorHandler,
 		singleQueries: map[*sqlColumn]*sqlSingleQueries{},

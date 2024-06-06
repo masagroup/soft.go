@@ -75,6 +75,7 @@ func TestSQLStore_Constructor(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	require.NoError(t, err)
+	require.NoError(t, s.Close())
 }
 
 func closeFile(f *os.File, reported *error) {
@@ -429,7 +430,7 @@ func TestSQLStore_Set_Reference_Nil(t *testing.T) {
 			return nil
 		}})
 		assert.NoError(t, err)
-		assert.NotEmpty(t, author)
+		assert.Empty(t, author)
 	}
 }
 
@@ -1074,6 +1075,7 @@ func TestSQLStore_LastIndexOf_NonExisting(t *testing.T) {
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
@@ -1170,6 +1172,7 @@ func TestSQLStore_Remove_NonExisting(t *testing.T) {
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
@@ -1239,6 +1242,7 @@ func TestSQLStore_Add_First_Empty(t *testing.T) {
 		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1330,6 +1334,7 @@ func TestSQLStore_Add_Last(t *testing.T) {
 		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1370,6 +1375,7 @@ func TestSQLStore_Add_Middle(t *testing.T) {
 		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1390,7 +1396,7 @@ func TestSQLStore_Add_Middle(t *testing.T) {
 				return nil
 			}})
 		assert.NoError(t, err)
-		assert.Equal(t, "c5", content)
+		assert.Equal(t, "c12", content)
 	}
 }
 
@@ -1412,6 +1418,7 @@ func TestSQLStore_Add_Invalid(t *testing.T) {
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1437,6 +1444,7 @@ func TestSQLStore_Move_End(t *testing.T) {
 		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1479,6 +1487,7 @@ func TestSQLStore_Move_Begin(t *testing.T) {
 		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()

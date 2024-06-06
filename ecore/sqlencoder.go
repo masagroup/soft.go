@@ -459,7 +459,7 @@ func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any
 	}
 	return newSQLEncoder(
 		func() (*sqlite.Conn, error) {
-			return sqlite.OpenConn(dbPath, sqlite.OpenReadWrite|sqlite.OpenWAL)
+			return sqlite.OpenConn(dbPath, sqlite.OpenReadWrite|sqlite.OpenCreate|sqlite.OpenWAL)
 		},
 		func(conn *sqlite.Conn) error {
 			// close db
@@ -574,7 +574,10 @@ func (e *SQLEncoder) EncodeResource() {
 		return
 	}
 	defer func() {
-		_ = conn.Close()
+		err = e.connClose(conn)
+		if err != nil {
+			e.addError(err)
+		}
 	}()
 
 	if err := e.encodeSchema(conn); err != nil {
@@ -589,12 +592,6 @@ func (e *SQLEncoder) EncodeResource() {
 			e.addError(err)
 			return
 		}
-	}
-
-	// close db
-	if err := e.connClose(conn); err != nil {
-		e.addError(err)
-		return
 	}
 }
 

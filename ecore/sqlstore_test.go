@@ -70,14 +70,6 @@ func (eFactory *dynamicSQLFactory) Create(eClass EClass) EObject {
 	}
 }
 
-func TestSQLStore_Constructor(t *testing.T) {
-	s, err := NewSQLStore("testdata/library.store.sqlite", NewURI(""), nil, nil, nil)
-	require.Nil(t, err)
-	require.NotNil(t, s)
-	require.NoError(t, err)
-	require.NoError(t, s.Close())
-}
-
 func closeFile(f *os.File, reported *error) {
 	if err := f.Close(); *reported == nil {
 		*reported = err
@@ -103,6 +95,18 @@ func copyFile(src, dest string) (err error) {
 
 	_, err = io.Copy(d, s)
 	return
+}
+
+func TestSQLStore_Constructor(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	require.NoError(t, err)
+	require.NoError(t, s.Close())
 }
 
 func TestSQLStore_Get_Int(t *testing.T) {
@@ -1523,7 +1527,9 @@ func TestSQLStore_ToArray_Primitive(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	// create store
-	dbPath := "testdata/library.datalist.sqlite"
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
 
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
@@ -1551,8 +1557,11 @@ func TestSQLStore_ToArray_Objects(t *testing.T) {
 	require.NotNil(t, eBooksFeature)
 
 	// create store
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
+
 	mockPackageRegitry := NewMockEPackageRegistry(t)
-	dbPath := "testdata/library.complex.sqlite"
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)

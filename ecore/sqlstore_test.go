@@ -1,7 +1,6 @@
 package ecore
 
 import (
-	"database/sql"
 	"io"
 	"os"
 	"path/filepath"
@@ -1167,10 +1166,6 @@ func TestSQLStore_Remove_NonExisting(t *testing.T) {
 	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
 	err := copyFile("testdata/library.complex.sqlite", dbPath)
 	require.Nil(t, err)
-
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
 
 	// create store
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)

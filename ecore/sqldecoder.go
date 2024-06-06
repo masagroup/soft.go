@@ -525,7 +525,6 @@ func (d *sqlDecoder) decodeFeatureData(featureSchema *sqlFeatureSchema, v string
 type SQLDecoder struct {
 	sqlDecoder
 	resource     EResource
-	driver       string
 	connProvider func() (*sqlite.Conn, error)
 	connClose    func(conn *sqlite.Conn) error
 }
@@ -551,7 +550,7 @@ func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any
 			}
 			dbFile.Close()
 
-			return sqlite.OpenConn(dbPath, sqlite.OpenReadOnly, sqlite.OpenWAL)
+			return sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 
 		},
 		func(conn *sqlite.Conn) error {
@@ -577,13 +576,8 @@ func NewSQLDBDecoder(conn *sqlite.Conn, resource EResource, options map[string]a
 func newSQLDecoder(connProvider func() (*sqlite.Conn, error), connClose func(conn *sqlite.Conn) error, resource EResource, options map[string]any) *SQLDecoder {
 	// options
 	schemaOptions := []sqlSchemaOption{}
-	driver := "sqlite"
 	idAttributeName := ""
 	if options != nil {
-		if d, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
-			driver = d.(string)
-		}
-
 		idAttributeName, _ = options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string)
 		if resource.GetObjectIDManager() != nil && len(idAttributeName) > 0 {
 			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
@@ -613,7 +607,6 @@ func newSQLDecoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 		resource:     resource,
 		connProvider: connProvider,
 		connClose:    connClose,
-		driver:       driver,
 	}
 }
 

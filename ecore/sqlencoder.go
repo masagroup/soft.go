@@ -444,7 +444,6 @@ func (e *sqlEncoder) encodePackage(conn *sqlite.Conn, ePackage EPackage) (int64,
 type SQLEncoder struct {
 	sqlEncoder
 	resource     EResource
-	driver       string
 	connProvider func() (*sqlite.Conn, error)
 	connClose    func(conn *sqlite.Conn) error
 }
@@ -508,14 +507,9 @@ func NewSQLDBEncoder(conn *sqlite.Conn, resource EResource, options map[string]a
 func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(conn *sqlite.Conn) error, resource EResource, options map[string]any) *SQLEncoder {
 	// options
 	schemaOptions := []sqlSchemaOption{}
-	driver := "sqlite"
 	idAttributeName := ""
 	keepDefaults := false
 	if options != nil {
-		if d, isDriver := options[SQL_OPTION_DRIVER]; isDriver {
-			driver = d.(string)
-		}
-
 		if id, isID := options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string); isID && len(id) > 0 && resource.GetObjectIDManager() != nil {
 			schemaOptions = append(schemaOptions, withIDAttributeName(id))
 			idAttributeName = id
@@ -542,7 +536,6 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 			sqlObjectManager: newSqlEncoderObjectManager(),
 		},
 		resource:     resource,
-		driver:       driver,
 		connProvider: connProvider,
 		connClose:    connClose,
 	}

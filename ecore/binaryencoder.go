@@ -497,6 +497,8 @@ func (e *BinaryEncoder) newClassData(eClass EClass) (*binaryEncoderClassData, er
 	return eClassData, nil
 }
 
+const extendedMetaData = "http:///org/eclipse/emf/ecore/util/ExtendedMetaData"
+
 func (e *BinaryEncoder) newFeatureData(eFeature EStructuralFeature) *binaryEncoderFeatureData {
 	eFeatureData := &binaryEncoderFeatureData{
 		name:        eFeature.GetName(),
@@ -509,6 +511,13 @@ func (e *BinaryEncoder) newFeatureData(eFeature EStructuralFeature) *binaryEncod
 		eFeatureData.isTransient = eAttribute.IsTransient()
 		eFeatureData.dataType = eDataType
 		eFeatureData.factory = eDataType.GetEPackage().GetEFactoryInstance()
+	}
+	// if we have a xmlns prefix map or schema loction map, consider it as non transient to ensure
+	// information is kept between binary encoder and xml encoder
+	if eAnnotation := eFeature.GetEAnnotation(extendedMetaData); eAnnotation != nil {
+		if name := eAnnotation.GetDetails().GetValue("name"); name == "xmlns:prefix" || name == "xsi:schemaLocation" {
+			eFeatureData.isTransient = false
+		}
 	}
 	return eFeatureData
 }

@@ -23,7 +23,6 @@ func TestBinaryEncoder_Complex(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	// w, err := os.Create("testdata/library.complex.bin")
 	w := &bytes.Buffer{}
 	binaryEncoder := NewBinaryEncoder(eResource, w, nil)
 	binaryEncoder.EncodeResource()
@@ -61,7 +60,10 @@ func TestBinaryEncoder_ComplexWithID(t *testing.T) {
 	require.Nil(t, eResource.GetObjectIDManager().SetID(eDocumentRoot, uuid.MustParse("dc48710b-0e2e-419f-94fb-178c7fc1370b")))
 
 	w := &bytes.Buffer{}
-	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]any{BINARY_OPTION_ID_ATTRIBUTE: true})
+	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]any{
+		BINARY_OPTION_ID_ATTRIBUTE:        true,
+		BINARY_OPTION_NAMESPACE_ATTRIBUTE: false,
+	})
 	binaryEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 

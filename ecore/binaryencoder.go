@@ -50,18 +50,19 @@ type binaryEncoderFeatureData struct {
 }
 
 type BinaryEncoder struct {
-	w                    io.Writer
-	resource             EResource
-	objectRoot           EObject
-	encoder              *msgpack.Encoder
-	baseURI              *URI
-	objectToID           map[EObject]int
-	classDataMap         map[EClass]*binaryEncoderClassData
-	packageDataMap       map[EPackage]*binaryEncoderPackageData
-	uriToIDMap           map[string]int
-	enumLiteralToIDMap   map[string]int
-	version              int
-	isIDAttributeEncoded bool
+	w                           io.Writer
+	resource                    EResource
+	objectRoot                  EObject
+	encoder                     *msgpack.Encoder
+	baseURI                     *URI
+	objectToID                  map[EObject]int
+	classDataMap                map[EClass]*binaryEncoderClassData
+	packageDataMap              map[EPackage]*binaryEncoderPackageData
+	uriToIDMap                  map[string]int
+	enumLiteralToIDMap          map[string]int
+	version                     int
+	isIDAttributeEncoded        bool
+	isNamespaceAttributeEncoded bool
 }
 
 func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]any) *BinaryEncoder {
@@ -70,21 +71,24 @@ func NewBinaryEncoder(resource EResource, w io.Writer, options map[string]any) *
 
 func NewBinaryEncoderWithVersion(resource EResource, w io.Writer, options map[string]any, version int) *BinaryEncoder {
 	e := &BinaryEncoder{
-		w:                  w,
-		resource:           resource,
-		encoder:            msgpack.NewEncoder(w),
-		version:            version,
-		objectToID:         map[EObject]int{},
-		classDataMap:       map[EClass]*binaryEncoderClassData{},
-		packageDataMap:     map[EPackage]*binaryEncoderPackageData{},
-		uriToIDMap:         map[string]int{},
-		enumLiteralToIDMap: map[string]int{},
+		w:                           w,
+		resource:                    resource,
+		encoder:                     msgpack.NewEncoder(w),
+		version:                     version,
+		objectToID:                  map[EObject]int{},
+		classDataMap:                map[EClass]*binaryEncoderClassData{},
+		packageDataMap:              map[EPackage]*binaryEncoderPackageData{},
+		uriToIDMap:                  map[string]int{},
+		enumLiteralToIDMap:          map[string]int{},
+		isNamespaceAttributeEncoded: true,
 	}
 	if uri := resource.GetURI(); uri != nil {
 		e.baseURI = uri
 	}
 	if options != nil {
 		e.isIDAttributeEncoded = options[BINARY_OPTION_ID_ATTRIBUTE] == true
+		isNamespaceAttributeEncoded, isNamespaceAttibuteDefined := options[BINARY_OPTION_NAMESPACE_ATTRIBUTE]
+		e.isNamespaceAttributeEncoded = (isNamespaceAttibuteDefined && isNamespaceAttributeEncoded == true) || !isNamespaceAttibuteDefined
 	}
 	return e
 }
@@ -514,9 +518,11 @@ func (e *BinaryEncoder) newFeatureData(eFeature EStructuralFeature) *binaryEncod
 	}
 	// if we have a xmlns prefix map or schema loction map, consider it as non transient to ensure
 	// information is kept between binary encoder and xml encoder
-	if eAnnotation := eFeature.GetEAnnotation(extendedMetaData); eAnnotation != nil {
-		if name := eAnnotation.GetDetails().GetValue("name"); name == "xmlns:prefix" || name == "xsi:schemaLocation" {
-			eFeatureData.isTransient = false
+	if e.isNamespaceAttributeEncoded {
+		if eAnnotation := eFeature.GetEAnnotation(extendedMetaData); eAnnotation != nil {
+			if name := eAnnotation.GetDetails().GetValue("name"); name == "xmlns:prefix" || name == "xsi:schemaLocation" {
+				eFeatureData.isTransient = false
+			}
 		}
 	}
 	return eFeatureData

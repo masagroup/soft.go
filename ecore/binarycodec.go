@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	BINARY_OPTION_ID_ATTRIBUTE = "ID_ATTRIBUTE" // if true, save id attribute of the object
+	BINARY_OPTION_ID_ATTRIBUTE        = "ID_ATTRIBUTE"       // if true, save id attribute of the object
+	BINARY_OPTION_NAMESPACE_ATTRIBUTE = "NAMESPACE_ATTIBUTE" // if true, namespaces informations are encoded
 )
 
 type BinaryCodec struct {

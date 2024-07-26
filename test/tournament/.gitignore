@@ -1,2 +1,3 @@
 *.go
 go.sum
+!*tournamentpackage_impl.go

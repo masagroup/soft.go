@@ -91,7 +91,7 @@ func TestBinaryDecoder_Complex(t *testing.T) {
 	// check book date
 	date, _ := eBook.EGet(eBookDateAttribute).(*time.Time)
 	require.NotNil(t, date)
-	assert.Equal(t, time.Date(2015, time.September, 6, 4, 24, 46, 0, time.UTC), *date)
+	assert.Equal(t, time.Date(2015, time.September, 6, 4, 24, 46, 0, time.UTC), date.UTC())
 
 	// check book category
 	category := eBook.EGet(eBookCategoryAttribute)

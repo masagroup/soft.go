@@ -37,6 +37,12 @@ func TestURI_ParseURI(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Nil(t, uri)
 	}
+	{
+		uri, err := ParseURI("file:///path#fragment")
+		assert.Nil(t, err)
+		assert.NotNil(t, uri)
+		assert.Equal(t, "file:///path#fragment", uri.String())
+	}
 }
 
 func TestURI_IsAbsolute(t *testing.T) {

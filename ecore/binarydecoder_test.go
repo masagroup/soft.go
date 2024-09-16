@@ -91,7 +91,7 @@ func TestBinaryDecoder_Complex(t *testing.T) {
 	// check book date
 	date, _ := eBook.EGet(eBookDateAttribute).(*time.Time)
 	require.NotNil(t, date)
-	assert.Equal(t, time.Date(2015, time.September, 6, 4, 24, 46, 0, time.UTC), *date)
+	assert.Equal(t, time.Date(2015, time.September, 6, 4, 24, 46, 0, time.UTC), date.UTC())
 
 	// check book category
 	category := eBook.EGet(eBookCategoryAttribute)
@@ -292,4 +292,12 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 		binaryDecoder.DecodeResource()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}
+}
+
+func TestTimeEncoding(t *testing.T) {
+	d := time.Unix(1726474288, 0)
+	require.Equal(t, d, time.Date(2024, time.September, 16, 10, 11, 28, 0, time.Local))
+	require.Equal(t, d.UTC(), time.Date(2024, time.September, 16, 8, 11, 28, 0, time.UTC))
+	u := d.Unix()
+	require.Equal(t, int64(1726474288), u)
 }

@@ -150,9 +150,6 @@ func (d *BinaryDecoder) decodeDate() (*time.Time, error) {
 	if err != nil {
 		return nil, err
 	}
-	// msgpack time is decoded as local
-	// got to transform as UTC
-	t = t.UTC()
 	return &t, nil
 }
 

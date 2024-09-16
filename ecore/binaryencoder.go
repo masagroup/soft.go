@@ -139,7 +139,7 @@ func (e *BinaryEncoder) encodeBytes(bytes []byte) error {
 }
 
 func (e *BinaryEncoder) encodeDate(date *time.Time) error {
-	return e.encoder.EncodeTime(*date)
+	return e.encoder.EncodeTime(date.UTC())
 }
 
 func (e *BinaryEncoder) encodeFloat64(f float64) error {

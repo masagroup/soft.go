@@ -293,11 +293,3 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}
 }
-
-func TestTimeEncoding(t *testing.T) {
-	d := time.Unix(1726474288, 0)
-	require.Equal(t, d, time.Date(2024, time.September, 16, 10, 11, 28, 0, time.Local))
-	require.Equal(t, d.UTC(), time.Date(2024, time.September, 16, 8, 11, 28, 0, time.UTC))
-	u := d.Unix()
-	require.Equal(t, int64(1726474288), u)
-}

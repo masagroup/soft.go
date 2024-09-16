@@ -150,6 +150,7 @@ func (d *BinaryDecoder) decodeDate() (*time.Time, error) {
 	if err != nil {
 		return nil, err
 	}
+	t = t.UTC()
 	return &t, nil
 }
 

@@ -11,8 +11,8 @@ package ecore
 
 type EStoreEObjectImpl struct {
 	ReflectiveEObjectImpl
-	cache bool
 	store EStore
+	cache bool
 }
 
 func NewEStoreEObjectImpl(cache bool) *EStoreEObjectImpl {

@@ -79,12 +79,3 @@ func (m *EStoreMap) IsCache() bool {
 	sc := m.EList.(ECacheProvider)
 	return sc.IsCache()
 }
-
-func (m *EStoreMap) newEntry(key any, value any) EMapEntry {
-	eFactory := m.entryClass.GetEPackage().GetEFactoryInstance()
-	eEntry := eFactory.Create(m.entryClass).(EMapEntry)
-	eEntry.(EStoreEObject).SetEStore(m.store)
-	eEntry.SetKey(key)
-	eEntry.SetValue(value)
-	return eEntry
-}

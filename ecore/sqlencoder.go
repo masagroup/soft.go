@@ -124,7 +124,7 @@ func (e *sqlEncoder) encodeSchema(conn *sqlite.Conn) error {
 		e.schema.contentsTable,
 		e.schema.enumsTable,
 	} {
-		if err := sqlitex.Execute(conn, table.createQuery(), nil); err != nil {
+		if err := sqlitex.ExecuteScript(conn, table.createQuery(), nil); err != nil {
 			return err
 		}
 	}

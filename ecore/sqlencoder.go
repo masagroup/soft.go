@@ -115,6 +115,26 @@ type sqlEncoder struct {
 	sqlObjectManager sqlObjectManager
 }
 
+func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) error {
+	// version
+	versionQuery := `PRAGMA user_version = %v;`
+	if err := sqlitex.ExecuteTransient(conn, fmt.Sprintf(versionQuery, sqlCodecVersion), nil); err != nil {
+		return err
+	}
+
+	// synchronous mode
+	if err := sqlitex.ExecuteTransient(conn, `PRAGMA synchronous = NORMAL;`, nil); err != nil {
+		return err
+	}
+
+	// journal mode
+	if err := sqlitex.ExecuteTransient(conn, `PRAGMA journal_mode = WAL;`, nil); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (e *sqlEncoder) encodeSchema(conn *sqlite.Conn) error {
 	// tables
 	for _, table := range []*sqlTable{
@@ -457,7 +477,7 @@ func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any
 	}
 	return newSQLEncoder(
 		func() (*sqlite.Conn, error) {
-			return sqlite.OpenConn(dbPath, sqlite.OpenReadWrite|sqlite.OpenCreate|sqlite.OpenWAL)
+			return sqlite.OpenConn(dbPath, sqlite.OpenReadWrite|sqlite.OpenCreate)
 		},
 		func(conn *sqlite.Conn) error {
 			// close db
@@ -541,26 +561,10 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 	}
 }
 
-func (e *SQLEncoder) createConn() (*sqlite.Conn, error) {
-
-	// open conn
-	conn, err := e.connProvider()
-	if err != nil {
-		return nil, err
-	}
-
-	// version
-	versionQuery := fmt.Sprintf(`PRAGMA user_version = %v`, sqlCodecVersion)
-	if err := sqlitex.Execute(conn, versionQuery, nil); err != nil {
-		return nil, err
-	}
-
-	return conn, nil
-}
-
 func (e *SQLEncoder) EncodeResource() {
 	// create conn
-	conn, err := e.createConn()
+	// open conn
+	conn, err := e.connProvider()
 	if err != nil {
 		e.addError(err)
 		return
@@ -571,6 +575,11 @@ func (e *SQLEncoder) EncodeResource() {
 			e.addError(err)
 		}
 	}()
+
+	if err := e.encodeProperties(conn); err != nil {
+		e.addError(err)
+		return
+	}
 
 	if err := e.encodeSchema(conn); err != nil {
 		e.addError(err)

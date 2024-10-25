@@ -421,7 +421,7 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	}
 
 	pool, err := sqlitex.NewPool(databasePath, sqlitex.PoolOptions{
-		Flags: sqlite.OpenReadWrite | sqlite.OpenCreate | sqlite.OpenURI | sqlite.OpenWAL,
+		Flags: sqlite.OpenReadWrite | sqlite.OpenCreate | sqlite.OpenURI,
 	})
 	if err != nil {
 		return nil, err
@@ -488,6 +488,11 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 
 	// set store in sql object manager
 	sqlObjectManager.store = store
+
+	// encode properties
+	if err := store.encodeProperties(conn); err != nil {
+		return nil, err
+	}
 
 	// encode schema
 	if err := store.encodeSchema(conn); err != nil {

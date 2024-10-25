@@ -115,13 +115,11 @@ type sqlEncoder struct {
 	sqlObjectManager sqlObjectManager
 }
 
-func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) error {
-	// version
-	versionQuery := `PRAGMA user_version = %v;`
-	if err := sqlitex.ExecuteTransient(conn, fmt.Sprintf(versionQuery, sqlCodecVersion), nil); err != nil {
-		return err
-	}
+func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
+	return sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v;`, sqlCodecVersion), nil)
+}
 
+func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) error {
 	// synchronous mode
 	if err := sqlitex.ExecuteTransient(conn, `PRAGMA synchronous = NORMAL;`, nil); err != nil {
 		return err
@@ -575,6 +573,11 @@ func (e *SQLEncoder) EncodeResource() {
 			e.addError(err)
 		}
 	}()
+
+	if err := e.encodeVersion(conn); err != nil {
+		e.addError(err)
+		return
+	}
 
 	if err := e.encodeProperties(conn); err != nil {
 		e.addError(err)

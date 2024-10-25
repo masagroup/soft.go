@@ -663,7 +663,7 @@ func (d *SQLDecoder) DecodeObject() (EObject, error) {
 
 func (d *SQLDecoder) decodeVersion(conn *sqlite.Conn) error {
 	var version int64
-	if err := sqlitex.Execute(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
+	if err := sqlitex.ExecuteTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			version = stmt.ColumnInt64(0)
 			return nil
@@ -679,7 +679,7 @@ func (d *SQLDecoder) decodeVersion(conn *sqlite.Conn) error {
 }
 
 func (d *SQLDecoder) decodeContents(conn *sqlite.Conn) error {
-	return sqlitex.Execute(
+	return sqlitex.ExecuteTransient(
 		conn,
 		d.schema.contentsTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
@@ -696,7 +696,7 @@ func (d *SQLDecoder) decodeContents(conn *sqlite.Conn) error {
 }
 
 func (d *SQLDecoder) decodePackages(conn *sqlite.Conn) error {
-	return sqlitex.Execute(
+	return sqlitex.ExecuteTransient(
 		conn,
 		d.schema.packagesTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
@@ -714,7 +714,7 @@ func (d *SQLDecoder) decodePackages(conn *sqlite.Conn) error {
 }
 
 func (d *SQLDecoder) decodeEnums(conn *sqlite.Conn) error {
-	return sqlitex.Execute(
+	return sqlitex.ExecuteTransient(
 		conn,
 		d.schema.enumsTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
@@ -747,7 +747,7 @@ func (d *SQLDecoder) decodeEnums(conn *sqlite.Conn) error {
 }
 
 func (d *SQLDecoder) decodeClasses(conn *sqlite.Conn) error {
-	return sqlitex.Execute(
+	return sqlitex.ExecuteTransient(
 		conn,
 		d.schema.classesTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
@@ -776,7 +776,7 @@ func (d *SQLDecoder) decodeClasses(conn *sqlite.Conn) error {
 }
 
 func (d *SQLDecoder) decodeObjects(conn *sqlite.Conn) error {
-	return sqlitex.Execute(
+	return sqlitex.ExecuteTransient(
 		conn,
 		d.schema.objectsTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{

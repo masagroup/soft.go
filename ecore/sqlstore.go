@@ -445,8 +445,10 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	}
 
 	// encode version
-	if version > 0 && version != sqlCodecVersion {
-		return nil, fmt.Errorf("history version %v is not supported", version)
+	if version > 0 {
+		if version != sqlCodecVersion {
+			return nil, fmt.Errorf("history version %v is not supported", version)
+		}
 	} else {
 		if err := sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v`, sqlCodecVersion), nil); err != nil {
 			return nil, err

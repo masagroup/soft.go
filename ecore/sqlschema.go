@@ -479,5 +479,8 @@ func (s *sqlSchema) getClassSchema(eClass EClass) *sqlClassSchema {
 }
 
 func sqlEscapeIdentifier(id string) string {
-	return "\"" + id + "\""
+	if id[0] == '.' {
+		return "\"" + id + "\""
+	}
+	return id
 }

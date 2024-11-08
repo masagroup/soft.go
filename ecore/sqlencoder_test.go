@@ -2,12 +2,12 @@ package ecore
 
 import (
 	"bytes"
-	"database/sql"
 	"os"
 	"testing"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/require"
+	"zombiezen.com/go/sqlite"
 )
 
 func requireSameDB(t require.TestingT, expectedPath string, actualBytes []byte) {
@@ -19,10 +19,10 @@ func requireSameDB(t require.TestingT, expectedPath string, actualBytes []byte) 
 	}
 
 	// open expected db file
-	expectedDB, err := sql.Open("sqlite", expectedPath)
+	expectedConn, err := sqlite.OpenConn(expectedPath)
 	require.NoError(t, err)
 	defer func() {
-		_ = expectedDB.Close()
+		_ = expectedConn.Close()
 	}()
 
 	// open actual db
@@ -31,14 +31,14 @@ func requireSameDB(t require.TestingT, expectedPath string, actualBytes []byte) 
 	err = os.WriteFile(actualPath, actualBytes, 0644)
 	require.NoError(t, err)
 
-	actualDB, err := sql.Open("sqlite", actualPath)
+	actualConn, err := sqlite.OpenConn(actualPath)
 	require.NoError(t, err)
 	defer func() {
-		_ = actualDB.Close()
+		_ = actualConn.Close()
 	}()
 
 	// check that db are equal
-	RequireEqualDB(t, expectedDB, actualDB)
+	RequireEqualDB(t, expectedConn, actualConn)
 }
 
 func TestSqlEncoder_Complex(t *testing.T) {

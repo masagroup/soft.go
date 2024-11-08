@@ -11,8 +11,8 @@ package ecore
 
 type EStoreEObjectImpl struct {
 	ReflectiveEObjectImpl
-	cache bool
 	store EStore
+	cache bool
 }
 
 func NewEStoreEObjectImpl(cache bool) *EStoreEObjectImpl {
@@ -78,7 +78,7 @@ func (o *EStoreEObjectImpl) IsCache() bool {
 }
 
 func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
-	if o.getProperties()[dynamicFeatureID] != nil {
+	if o.properties != nil && o.properties[dynamicFeatureID] != nil {
 		return true
 	}
 	if store := o.AsEStoreEObject().GetEStore(); store != nil {
@@ -89,48 +89,70 @@ func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 }
 
 func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
-	result := o.getProperties()[dynamicFeatureID]
+	// retrieve value
+	var result any
+	if o.properties != nil {
+		result = o.properties[dynamicFeatureID]
+	}
+	// compute value
 	if result == nil {
-		eFeature := o.eDynamicFeature(dynamicFeatureID)
-		if !eFeature.IsTransient() {
+		var properties []any
+		if eFeature := o.eDynamicFeature(dynamicFeatureID); !eFeature.IsTransient() {
 			if eFeature.IsMany() {
 				if IsMapType(eFeature) {
 					result = o.createMap(eFeature)
 				} else {
 					result = o.createList(eFeature)
 				}
-				o.getProperties()[dynamicFeatureID] = result
+				// feature is a container : create corresponding container type and cache it
+				// in properties to avoid multiple allocation of the same container
+				properties = o.getProperties()
 			} else if store := o.AsEStoreEObject().GetEStore(); store != nil {
+				// feature is not transient and we have a store
 				result = store.Get(o.AsEObject(), eFeature, NO_INDEX)
 				if o.cache {
-					o.getProperties()[dynamicFeatureID] = result
+					properties = o.getProperties()
 				}
+
 			}
+		}
+		// store value in properties
+		if properties != nil {
+			properties[dynamicFeatureID] = result
 		}
 	}
 	return result
 }
 
 func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
+	var properties []any
 	eFeature := o.eDynamicFeature(dynamicFeatureID)
-	if eFeature.IsTransient() {
-		o.getProperties()[dynamicFeatureID] = value
-	} else if store := o.AsEStoreEObject().GetEStore(); store != nil {
+	store := o.AsEStoreEObject().GetEStore()
+	if store != nil && !eFeature.IsTransient() {
+		// store and feature is not transient
 		store.Set(o.AsEObject(), eFeature, NO_INDEX, value)
 		if o.cache {
-			o.getProperties()[dynamicFeatureID] = value
+			properties = o.getProperties()
 		}
 	} else {
-		o.getProperties()[dynamicFeatureID] = value
+		// no store or feature is transient
+		// cache value in properties event if there is no cache
+		properties = o.getProperties()
+	}
+	// store value in properties
+	if properties != nil {
+		properties[dynamicFeatureID] = value
 	}
 }
 
 func (o *EStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
-	o.getProperties()[dynamicFeatureID] = nil
-	if eFeature := o.eDynamicFeature(dynamicFeatureID); !eFeature.IsTransient() {
-		if store := o.AsEStoreEObject().GetEStore(); store != nil {
-			store.UnSet(o.AsEObject(), eFeature)
-		}
+	if o.properties != nil {
+		o.properties[dynamicFeatureID] = nil
+	}
+	eFeature := o.eDynamicFeature(dynamicFeatureID)
+	store := o.AsEStoreEObject().GetEStore()
+	if store != nil && !eFeature.IsTransient() {
+		store.UnSet(o.AsEObject(), eFeature)
 	}
 }
 

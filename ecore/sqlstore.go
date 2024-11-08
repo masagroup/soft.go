@@ -1,27 +1,24 @@
 package ecore
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"strings"
 	"sync"
+
+	"zombiezen.com/go/sqlite"
+	"zombiezen.com/go/sqlite/sqlitex"
 )
 
-type stmtOrError struct {
-	stmt *sqlSafeStmt
-	err  error
+type sqlSingleQueries struct {
+	column      *sqlColumn
+	updateQuery string
+	selectQuery string
+	removeQuery string
 }
 
-type sqlSingleStmts struct {
-	db         *sqlSafeDB
-	column     *sqlColumn
-	updateStmt *stmtOrError
-	selectStmt *stmtOrError
-	removeStmt *stmtOrError
-}
-
-func (ss *sqlSingleStmts) getUpdateStmt() (*sqlSafeStmt, error) {
-	if ss.updateStmt == nil {
+func (ss *sqlSingleQueries) getUpdateQuery() string {
+	if len(ss.updateQuery) == 0 {
 		// query
 		table := ss.column.table
 		var query strings.Builder
@@ -32,15 +29,13 @@ func (ss *sqlSingleStmts) getUpdateStmt() (*sqlSafeStmt, error) {
 		query.WriteString("=? WHERE ")
 		query.WriteString(table.keyName())
 		query.WriteString("=?")
-		// stmt
-		ss.updateStmt = &stmtOrError{}
-		ss.updateStmt.stmt, ss.updateStmt.err = ss.db.Prepare(query.String())
+		ss.updateQuery = query.String()
 	}
-	return ss.updateStmt.stmt, ss.updateStmt.err
+	return ss.updateQuery
 }
 
-func (ss *sqlSingleStmts) getSelectStmt() (*sqlSafeStmt, error) {
-	if ss.selectStmt == nil {
+func (ss *sqlSingleQueries) getSelectQuery() string {
+	if len(ss.selectQuery) == 0 {
 		table := ss.column.table
 		// query
 		var query strings.Builder
@@ -51,15 +46,13 @@ func (ss *sqlSingleStmts) getSelectStmt() (*sqlSafeStmt, error) {
 		query.WriteString(" WHERE ")
 		query.WriteString(table.keyName())
 		query.WriteString("=?")
-		// stmt
-		ss.selectStmt = &stmtOrError{}
-		ss.selectStmt.stmt, ss.selectStmt.err = ss.db.Prepare(query.String())
+		ss.selectQuery = query.String()
 	}
-	return ss.selectStmt.stmt, ss.selectStmt.err
+	return ss.selectQuery
 }
 
-func (ss *sqlSingleStmts) getRemoveStmt() (*sqlSafeStmt, error) {
-	if ss.removeStmt == nil {
+func (ss *sqlSingleQueries) getRemoveQuery() string {
+	if len(ss.removeQuery) == 0 {
 		// query
 		table := ss.column.table
 		var query strings.Builder
@@ -68,45 +61,38 @@ func (ss *sqlSingleStmts) getRemoveStmt() (*sqlSafeStmt, error) {
 		query.WriteString(" WHERE ")
 		query.WriteString(sqlEscapeIdentifier(ss.column.columnName))
 		query.WriteString("=?")
-		// stmt
-		ss.removeStmt = &stmtOrError{}
-		ss.removeStmt.stmt, ss.removeStmt.err = ss.db.Prepare(query.String())
+		ss.removeQuery = query.String()
 	}
-	return ss.removeStmt.stmt, ss.removeStmt.err
+	return ss.removeQuery
 }
 
-type sqlManyStmts struct {
-	db              *sqlSafeDB
-	table           *sqlTable
-	updateValueStmt *stmtOrError
-	updateIdxStmt   *stmtOrError
-	selectOneStmt   *stmtOrError
-	selectAllStmt   *stmtOrError
-	existsStmt      *stmtOrError
-	clearStmt       *stmtOrError
-	countStmt       *stmtOrError
-	containsStmt    *stmtOrError
-	indexOfStmt     *stmtOrError
-	lastIndexOfStmt *stmtOrError
-	idxToListIndex  *stmtOrError
-	listIndexToIdx  *stmtOrError
-	removeStmt      *stmtOrError
-	insertStmt      *stmtOrError
+type sqlManyQueries struct {
+	table            *sqlTable
+	updateValueQuery string
+	updateIdxQuery   string
+	selectOneQuery   string
+	selectAllQuery   string
+	existsQuery      string
+	clearQuery       string
+	countQuery       string
+	containsQuery    string
+	indexOfQuery     string
+	lastIndexOfQuery string
+	idxToListIndex   string
+	listIndexToIdx   string
+	removeQuery      string
+	insertQuery      string
 }
 
-func (ss *sqlManyStmts) getInsertStmt() (*sqlSafeStmt, error) {
-	if ss.insertStmt == nil {
-		// query
-		query := ss.table.insertQuery()
-		// stmt
-		ss.insertStmt = &stmtOrError{}
-		ss.insertStmt.stmt, ss.insertStmt.err = ss.db.Prepare(query)
+func (ss *sqlManyQueries) getInsertQuery() string {
+	if len(ss.insertQuery) == 0 {
+		ss.insertQuery = ss.table.insertQuery()
 	}
-	return ss.insertStmt.stmt, ss.insertStmt.err
+	return ss.insertQuery
 }
 
-func (ss *sqlManyStmts) getUpdateValueStmt() (*sqlSafeStmt, error) {
-	if ss.updateValueStmt == nil {
+func (ss *sqlManyQueries) getUpdateValueQuery() string {
+	if len(ss.updateValueQuery) == 0 {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		var query strings.Builder
 		query.WriteString("UPDATE ")
@@ -121,15 +107,13 @@ func (ss *sqlManyStmts) getUpdateValueStmt() (*sqlSafeStmt, error) {
 		query.WriteString(" ORDER BY ")
 		query.WriteString(ss.table.keyName())
 		query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?)")
-		// stmt
-		ss.updateValueStmt = &stmtOrError{}
-		ss.updateValueStmt.stmt, ss.updateValueStmt.err = ss.db.Prepare(query.String())
+		ss.updateValueQuery = query.String()
 	}
-	return ss.updateValueStmt.stmt, ss.updateValueStmt.err
+	return ss.updateValueQuery
 }
 
-func (ss *sqlManyStmts) getUpdateIdxStmt() (*sqlSafeStmt, error) {
-	if ss.updateIdxStmt == nil {
+func (ss *sqlManyQueries) getUpdateIdxQuery() string {
+	if len(ss.updateIdxQuery) == 0 {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		var query strings.Builder
 		query.WriteString("UPDATE ")
@@ -143,17 +127,13 @@ func (ss *sqlManyStmts) getUpdateIdxStmt() (*sqlSafeStmt, error) {
 		query.WriteString(ss.table.keyName())
 		query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?) RETURNING ")
 		query.WriteString(sqlEscapeIdentifier(column.columnName))
-
-		// stmt
-		ss.updateIdxStmt = &stmtOrError{}
-		ss.updateIdxStmt.stmt, ss.updateIdxStmt.err = ss.db.Prepare(query.String())
+		ss.updateIdxQuery = query.String()
 	}
-	return ss.updateIdxStmt.stmt, ss.updateIdxStmt.err
+	return ss.updateIdxQuery
 }
 
-func (ss *sqlManyStmts) getSelectOneStmt() (*sqlSafeStmt, error) {
-	if ss.selectOneStmt == nil {
-		// query
+func (ss *sqlManyQueries) getSelectOneQuery() string {
+	if len(ss.selectOneQuery) == 0 {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		var query strings.Builder
 		query.WriteString("SELECT ")
@@ -165,16 +145,13 @@ func (ss *sqlManyStmts) getSelectOneStmt() (*sqlSafeStmt, error) {
 		query.WriteString("=? ORDER BY ")
 		query.WriteString(ss.table.keyName())
 		query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?")
-		// stmt
-		ss.selectOneStmt = &stmtOrError{}
-		ss.selectOneStmt.stmt, ss.selectOneStmt.err = ss.db.Prepare(query.String())
+		ss.selectOneQuery = query.String()
 	}
-	return ss.selectOneStmt.stmt, ss.selectOneStmt.err
+	return ss.selectOneQuery
 }
 
-func (ss *sqlManyStmts) getSelectAllStmt() (*sqlSafeStmt, error) {
-	if ss.selectAllStmt == nil {
-		// query
+func (ss *sqlManyQueries) getSelectAllQuery() string {
+	if len(ss.selectAllQuery) == 0 {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		var query strings.Builder
 		query.WriteString("SELECT ")
@@ -186,84 +163,69 @@ func (ss *sqlManyStmts) getSelectAllStmt() (*sqlSafeStmt, error) {
 		query.WriteString("=? ORDER BY ")
 		query.WriteString(ss.table.keyName())
 		query.WriteString(" ASC, idx ASC")
-		// stmt
-		ss.selectAllStmt = &stmtOrError{}
-		ss.selectAllStmt.stmt, ss.selectAllStmt.err = ss.db.Prepare(query.String())
+		ss.selectAllQuery = query.String()
 	}
-	return ss.selectAllStmt.stmt, ss.selectAllStmt.err
+	return ss.selectAllQuery
 }
 
-func (ss *sqlManyStmts) getExistsStmt() (*sqlSafeStmt, error) {
-	if ss.existsStmt == nil {
-		// query
+func (ss *sqlManyQueries) getExistsQuery() string {
+	if len(ss.existsQuery) == 0 {
 		var query strings.Builder
-		query.WriteString("SELECT 1 FROM")
+		query.WriteString("SELECT 1 FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=?")
-		// stmt
-		ss.existsStmt = &stmtOrError{}
-		ss.existsStmt.stmt, ss.existsStmt.err = ss.db.Prepare(query.String())
+		ss.existsQuery = query.String()
 	}
-	return ss.existsStmt.stmt, ss.existsStmt.err
+	return ss.existsQuery
 }
 
-func (ss *sqlManyStmts) getClearStmt() (*sqlSafeStmt, error) {
-	if ss.clearStmt == nil {
-		// query
+func (ss *sqlManyQueries) getClearQuery() string {
+	if len(ss.clearQuery) == 0 {
 		var query strings.Builder
-		query.WriteString("DELETE FROM")
+		query.WriteString("DELETE FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=?")
-		// stmt
-		ss.clearStmt = &stmtOrError{}
-		ss.clearStmt.stmt, ss.clearStmt.err = ss.db.Prepare(query.String())
+		ss.clearQuery = query.String()
 	}
-	return ss.clearStmt.stmt, ss.clearStmt.err
+	return ss.clearQuery
 }
 
-func (ss *sqlManyStmts) getCountStmt() (*sqlSafeStmt, error) {
-	if ss.countStmt == nil {
-		// query
+func (ss *sqlManyQueries) getCountQuery() string {
+	if len(ss.countQuery) == 0 {
 		var query strings.Builder
-		query.WriteString("SELECT COUNT(*) FROM")
+		query.WriteString("SELECT COUNT(*) FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=?")
-		// stmt
-		ss.countStmt = &stmtOrError{}
-		ss.countStmt.stmt, ss.countStmt.err = ss.db.Prepare(query.String())
+		ss.countQuery = query.String()
 	}
-	return ss.countStmt.stmt, ss.countStmt.err
+	return ss.countQuery
 }
 
-func (ss *sqlManyStmts) getContainsStmt() (*sqlSafeStmt, error) {
-	if ss.containsStmt == nil {
+func (ss *sqlManyQueries) getContainsQuery() string {
+	if len(ss.containsQuery) == 0 {
 		column := ss.table.columns[len(ss.table.columns)-1]
-		// query
 		var query strings.Builder
-		query.WriteString("SELECT rowid FROM")
+		query.WriteString("SELECT rowid FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=? AND ")
 		query.WriteString(sqlEscapeIdentifier(column.columnName))
 		query.WriteString("=?")
-		// stmt
-		ss.containsStmt = &stmtOrError{}
-		ss.containsStmt.stmt, ss.containsStmt.err = ss.db.Prepare(query.String())
+		ss.containsQuery = query.String()
 	}
-	return ss.containsStmt.stmt, ss.containsStmt.err
+	return ss.containsQuery
 }
 
-func (ss *sqlManyStmts) getIndexOfStmt() (*sqlSafeStmt, error) {
-	if ss.indexOfStmt == nil {
+func (ss *sqlManyQueries) getIndexOfQuery() string {
+	if len(ss.indexOfQuery) == 0 {
 		column := ss.table.columns[len(ss.table.columns)-1]
-		// query
 		var query strings.Builder
 		query.WriteString("SELECT idx FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
@@ -272,16 +234,14 @@ func (ss *sqlManyStmts) getIndexOfStmt() (*sqlSafeStmt, error) {
 		query.WriteString("=? AND ")
 		query.WriteString(sqlEscapeIdentifier(column.columnName))
 		query.WriteString("=? ORDER BY idx ASC LIMIT 1")
-		ss.indexOfStmt = &stmtOrError{}
-		ss.indexOfStmt.stmt, ss.indexOfStmt.err = ss.db.Prepare(query.String())
+		ss.indexOfQuery = query.String()
 	}
-	return ss.indexOfStmt.stmt, ss.indexOfStmt.err
+	return ss.indexOfQuery
 }
 
-func (ss *sqlManyStmts) getLastIndexOfStmt() (*sqlSafeStmt, error) {
-	if ss.lastIndexOfStmt == nil {
+func (ss *sqlManyQueries) getLastIndexOfQuery() string {
+	if len(ss.lastIndexOfQuery) == 0 {
 		column := ss.table.columns[len(ss.table.columns)-1]
-		// query
 		var query strings.Builder
 		query.WriteString("SELECT idx FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
@@ -290,46 +250,39 @@ func (ss *sqlManyStmts) getLastIndexOfStmt() (*sqlSafeStmt, error) {
 		query.WriteString("=? AND ")
 		query.WriteString(sqlEscapeIdentifier(column.columnName))
 		query.WriteString("=? ORDER BY idx DESC LIMIT 1")
-		ss.lastIndexOfStmt = &stmtOrError{}
-		ss.lastIndexOfStmt.stmt, ss.lastIndexOfStmt.err = ss.db.Prepare(query.String())
+		ss.lastIndexOfQuery = query.String()
 	}
-	return ss.lastIndexOfStmt.stmt, ss.lastIndexOfStmt.err
+	return ss.lastIndexOfQuery
 }
 
-func (ss *sqlManyStmts) getIdxToListIndexStmt() (*sqlSafeStmt, error) {
-	if ss.idxToListIndex == nil {
-		// query
+func (ss *sqlManyQueries) getIdxToListIndexQuery() string {
+	if len(ss.idxToListIndex) == 0 {
 		var query strings.Builder
 		query.WriteString("SELECT COUNT(*) FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=? AND idx<?")
-		// stmt
-		ss.idxToListIndex = &stmtOrError{}
-		ss.idxToListIndex.stmt, ss.idxToListIndex.err = ss.db.Prepare(query.String())
+		ss.idxToListIndex = query.String()
 	}
-	return ss.idxToListIndex.stmt, ss.idxToListIndex.err
+	return ss.idxToListIndex
 }
 
-func (ss *sqlManyStmts) getListIndexToIdxStmt() (*sqlSafeStmt, error) {
-	if ss.listIndexToIdx == nil {
-		// query
+func (ss *sqlManyQueries) getListIndexToIdxQuery() string {
+	if len(ss.listIndexToIdx) == 0 {
 		var query strings.Builder
 		query.WriteString("SELECT idx FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
 		query.WriteString("=? ORDER BY idx ASC LIMIT ? OFFSET ?")
-		// stmt
-		ss.listIndexToIdx = &stmtOrError{}
-		ss.listIndexToIdx.stmt, ss.listIndexToIdx.err = ss.db.Prepare(query.String())
+		ss.listIndexToIdx = query.String()
 	}
-	return ss.listIndexToIdx.stmt, ss.listIndexToIdx.err
+	return ss.listIndexToIdx
 }
 
-func (ss *sqlManyStmts) getRemoveStmt() (*sqlSafeStmt, error) {
-	if ss.removeStmt == nil {
+func (ss *sqlManyQueries) getRemoveQuery() string {
+	if len(ss.removeQuery) == 0 {
 		column := ss.table.columns[len(ss.table.columns)-1]
 		var query strings.Builder
 		query.WriteString("DELETE FROM ")
@@ -343,11 +296,9 @@ func (ss *sqlManyStmts) getRemoveStmt() (*sqlSafeStmt, error) {
 		query.WriteString(ss.table.keyName())
 		query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?) RETURNING ")
 		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		// stmt
-		ss.removeStmt = &stmtOrError{}
-		ss.removeStmt.stmt, ss.removeStmt.err = ss.db.Prepare(query.String())
+		ss.removeQuery = query.String()
 	}
-	return ss.removeStmt.stmt, ss.removeStmt.err
+	return ss.removeQuery
 }
 
 type sqlStoreIDManager struct {
@@ -445,14 +396,15 @@ type SQLStore struct {
 	*sqlBase
 	sqlDecoder
 	sqlEncoder
-	errorHandler func(error)
-	mutex        sync.Mutex
-	sqlIDManager *sqlStoreIDManager
-	singleStmts  map[*sqlColumn]*sqlSingleStmts
-	manyStmts    map[*sqlTable]*sqlManyStmts
+	mutex         sync.Mutex
+	pool          *sqlitex.Pool
+	errorHandler  func(error)
+	sqlIDManager  *sqlStoreIDManager
+	singleQueries map[*sqlColumn]*sqlSingleQueries
+	manyQueries   map[*sqlTable]*sqlManyQueries
 }
 
-func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegistry EPackageRegistry, options map[string]any) (*SQLStore, error) {
+func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManager, packageRegistry EPackageRegistry, options map[string]any) (*SQLStore, error) {
 	// options
 	schemaOptions := []sqlSchemaOption{withCreateIfNotExists(true)}
 	idAttributeName := ""
@@ -468,38 +420,46 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 		}
 	}
 
-	// encode version
-	var v int
-	row := db.QueryRow("PRAGMA user_version;")
-	if err := row.Scan(&v); err == sql.ErrNoRows || v == 0 {
-		versionQuery := fmt.Sprintf(`PRAGMA user_version = %v`, sqlCodecVersion)
-		_, err = db.Exec(versionQuery)
-		if err != nil {
-			return nil, err
-		}
-		v = sqlCodecVersion
-	}
-	if v != sqlCodecVersion {
-		return nil, fmt.Errorf("history version %v is not supported", v)
+	pool, err := sqlitex.NewPool(databasePath, sqlitex.PoolOptions{
+		Flags: sqlite.OpenReadWrite | sqlite.OpenCreate | sqlite.OpenURI,
+	})
+	if err != nil {
+		return nil, err
 	}
 
+	conn, err := pool.Take(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	defer pool.Put(conn)
+
+	// retrieve version
+	var version int64
+	if err := sqlitex.ExecuteTransient(conn, `PRAGMA user_version;`, &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			version = stmt.ColumnInt64(0)
+			return nil
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	// encode version
+	if version > 0 {
+		if version != sqlCodecVersion {
+			return nil, fmt.Errorf("history version %v is not supported", version)
+		}
+	} else {
+		if err := sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v`, sqlCodecVersion), nil); err != nil {
+			return nil, err
+		}
+	}
 	// create sql base
 	base := &sqlBase{
-		db:              newSQLSafeDB(db),
-		uri:             uri,
+		uri:             resourceURI,
 		idAttributeName: idAttributeName,
 		idManager:       idManager,
 		schema:          newSqlSchema(schemaOptions...),
-	}
-
-	// encode properties
-	if err := base.encodeProperties(); err != nil {
-		return nil, err
-	}
-
-	// encode schema
-	if err := base.encodeSchema(); err != nil {
-		return nil, err
 	}
 
 	// initialize
@@ -514,50 +474,61 @@ func NewSQLStore(db *sql.DB, uri *URI, idManager EObjectIDManager, packageRegist
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
 			classDataMap:     map[EClass]*sqlDecoderClassData{},
-			selectStmts:      map[*sqlTable]*sqlSafeStmt{},
 		},
 		sqlEncoder: sqlEncoder{
 			sqlBase:          base,
-			insertStmts:      map[*sqlTable]*sqlSafeStmt{},
 			classDataMap:     map[EClass]*sqlEncoderClassData{},
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
 		},
-		sqlIDManager: sqlIDManager,
-		errorHandler: errorHandler,
-		singleStmts:  map[*sqlColumn]*sqlSingleStmts{},
-		manyStmts:    map[*sqlTable]*sqlManyStmts{},
+		pool:          pool,
+		sqlIDManager:  sqlIDManager,
+		errorHandler:  errorHandler,
+		singleQueries: map[*sqlColumn]*sqlSingleQueries{},
+		manyQueries:   map[*sqlTable]*sqlManyQueries{},
 	}
 
 	// set store in sql object manager
 	sqlObjectManager.store = store
 
+	// encode properties
+	if err := store.encodeProperties(conn); err != nil {
+		return nil, err
+	}
+
+	// encode schema
+	if err := store.encodeSchema(conn); err != nil {
+		return nil, err
+	}
+
 	return store, nil
 }
 
-func (s *SQLStore) getSingleStmts(column *sqlColumn) *sqlSingleStmts {
+func (s *SQLStore) Close() error {
+	return s.pool.Close()
+}
+
+func (s *SQLStore) getSingleQueries(column *sqlColumn) *sqlSingleQueries {
 	s.mutex.Lock()
-	stmts := s.singleStmts[column]
+	stmts := s.singleQueries[column]
 	if stmts == nil {
-		stmts = &sqlSingleStmts{
-			db:     s.db,
+		stmts = &sqlSingleQueries{
 			column: column,
 		}
-		s.singleStmts[column] = stmts
+		s.singleQueries[column] = stmts
 	}
 	s.mutex.Unlock()
 	return stmts
 }
 
-func (s *SQLStore) getManyStmts(table *sqlTable) *sqlManyStmts {
+func (s *SQLStore) getManyQueries(table *sqlTable) *sqlManyQueries {
 	s.mutex.Lock()
-	stmts := s.manyStmts[table]
+	stmts := s.manyQueries[table]
 	if stmts == nil {
-		stmts = &sqlManyStmts{
-			db:    s.db,
+		stmts = &sqlManyQueries{
 			table: table,
 		}
-		s.manyStmts[table] = stmts
+		s.manyQueries[table] = stmts
 	}
 	s.mutex.Unlock()
 	return stmts
@@ -586,12 +557,12 @@ func (s *SQLStore) getFeatureTable(object EObject, feature EStructuralFeature) (
 	return featureSchema.table, nil
 }
 
-func (s *SQLStore) getEncoderFeatureData(object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
+func (s *SQLStore) getEncoderFeatureData(conn *sqlite.Conn, object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
 	// retrieve class schema
 	class := object.EClass()
 
 	// retrieve class data
-	classData, err := s.getEncoderClassData(class)
+	classData, err := s.getEncoderClassData(conn, class)
 	if err != nil {
 		s.errorHandler(err)
 		return nil, fmt.Errorf("class %s is unknown", class.GetName())
@@ -608,17 +579,24 @@ func (s *SQLStore) getEncoderFeatureData(object EObject, feature EStructuralFeat
 	return featureData, nil
 }
 
-func (s *SQLStore) getSqlID(eObject EObject) (int64, error) {
+func (s *SQLStore) getSqlID(conn *sqlite.Conn, eObject EObject) (int64, error) {
 	sqlObject := eObject.(SQLObject)
 	sqlID := sqlObject.GetSqlID()
 	if sqlID == 0 {
-		return s.encodeObject(eObject)
+		return s.encodeObject(conn, eObject)
 	}
 	return sqlID, nil
 }
 
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
@@ -628,102 +606,99 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 		s.errorHandler(err)
 		return nil
 	}
-	return s.getValue(sqlID, featureSchema, index)
+	return s.getValue(conn, sqlID, featureSchema, index)
 }
 
-func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index int) any {
-	var row *sql.Row
+func (s *SQLStore) getValue(conn *sqlite.Conn, sqlID int64, featureSchema *sqlFeatureSchema, index int) any {
+	var query string
+	var args []any
 	if featureColumn := featureSchema.column; featureColumn != nil {
-		stmt, err := s.getSingleStmts(featureColumn).getSelectStmt()
-		if err != nil {
-			s.errorHandler(err)
-			return nil
-		}
-		row = stmt.QueryRow(sqlID)
+		query = s.getSingleQueries(featureColumn).getSelectQuery()
+		args = []any{sqlID}
 	} else if featureTable := featureSchema.table; featureTable != nil {
-		stmt, err := s.getManyStmts(featureTable).getSelectOneStmt()
-		if err != nil {
-			s.errorHandler(err)
-			return nil
-		}
-		row = stmt.QueryRow(sqlID, index)
+		query = s.getManyQueries(featureTable).getSelectOneQuery()
+		args = []any{sqlID, index}
 	}
 
-	// no row
-	if row == nil {
+	var value any
+	if err := sqlitex.Execute(
+		conn, query, &sqlitex.ExecOptions{
+			Args: args,
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				value = decodeAny(stmt, 0)
+				return nil
+			}}); err != nil {
+		s.errorHandler(err)
 		return nil
 	}
 
-	// scan values
-	var v any
-	if err := row.Scan(&v); err != nil {
-		if err != sql.ErrNoRows {
-			s.errorHandler(err)
-		}
-		return nil
-	}
-
-	value, err := s.decodeFeatureValue(featureSchema, v)
+	decoded, err := s.decodeFeatureValue(conn, featureSchema, value)
 	if err != nil {
 		s.errorHandler(err)
 	}
-
-	return value
+	return decoded
 }
 
 func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {
-	sqlID, err := s.getSqlID(object)
+	// connection
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+	defer s.pool.Put(conn)
+
+	// get object sql id
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
 
-	featureData, err := s.getEncoderFeatureData(object, feature)
+	// get encoder feature data
+	featureData, err := s.getEncoderFeatureData(conn, object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
 
 	// retrieve previous value
-	oldValue := s.getValue(sqlID, featureData.schema, index)
+	oldValue := s.getValue(conn, sqlID, featureData.schema, index)
 
 	// encode value
-	v, err := s.encodeFeatureValue(featureData, value)
+	encoded, err := s.encodeFeatureValue(conn, featureData, value)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
 
+	var query string
+	var args []any
 	if featureColumn := featureData.schema.column; featureColumn != nil {
-		stmt, err := s.getSingleStmts(featureColumn).getUpdateStmt()
-		if err != nil {
-			s.errorHandler(err)
-			return nil
-		}
-		_, err = stmt.Exec(v, sqlID)
-		if err != nil {
-			s.errorHandler(err)
-			return nil
-		}
-
+		query = s.getSingleQueries(featureColumn).getUpdateQuery()
+		args = []any{encoded, sqlID}
 	} else if featureTable := featureData.schema.table; featureTable != nil {
-		stmt, err := s.getManyStmts(featureTable).getUpdateValueStmt()
-		if err != nil {
-			s.errorHandler(err)
-			return nil
-		}
-		_, err = stmt.Exec(v, sqlID, index)
-		if err != nil {
-			s.errorHandler(err)
-			return nil
-		}
+		query = s.getManyQueries(featureTable).getUpdateValueQuery()
+		args = []any{encoded, sqlID, index}
+	}
+
+	if err := sqlitex.Execute(conn, query, &sqlitex.ExecOptions{Args: args}); err != nil {
+		s.errorHandler(err)
+		return nil
 	}
 
 	return oldValue
 }
 
 func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return false
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return false
@@ -735,73 +710,80 @@ func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 		return false
 	}
 	if featureColumn := featureSchema.column; featureColumn != nil {
-		stmt, err := s.getSingleStmts(featureColumn).getSelectStmt()
-		if err != nil {
+		var value any
+		if err := sqlitex.Execute(
+			conn,
+			s.getSingleQueries(featureColumn).getSelectQuery(),
+			&sqlitex.ExecOptions{
+				Args: []any{sqlID},
+				ResultFunc: func(stmt *sqlite.Stmt) error {
+					value = decodeAny(stmt, 0)
+					return nil
+				}}); err != nil {
 			s.errorHandler(err)
-			return false
 		}
-		row := stmt.QueryRow(sqlID)
-		var v any
-		if err := row.Scan(&v); err != nil {
-			return false
-		}
-		return v != featureSchema.feature.GetDefaultValue()
-
+		return value != featureSchema.feature.GetDefaultValue()
 	} else if featureTable := featureSchema.table; featureTable != nil {
-		stmt, err := s.getManyStmts(featureTable).getExistsStmt()
-		if err != nil {
+		var value any
+		if err := sqlitex.Execute(
+			conn,
+			s.getManyQueries(featureTable).getExistsQuery(),
+			&sqlitex.ExecOptions{
+				Args: []any{sqlID},
+				ResultFunc: func(stmt *sqlite.Stmt) error {
+					value = decodeAny(stmt, 0)
+					return nil
+				}}); err != nil {
 			s.errorHandler(err)
-			return false
 		}
-		var v any
-		row := stmt.QueryRow(sqlID)
-		_ = row.Scan(&v)
-		return v != nil
+		return value != nil
 	}
-
 	return false
 }
 
 func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return
 	}
 
-	featureData, err := s.getEncoderFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(conn, object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return
 	}
+
+	var query string
+	var args []any
 	if featureColumn := featureData.schema.column; featureColumn != nil {
-		stmt, err := s.getSingleStmts(featureColumn).getUpdateStmt()
-		if err != nil {
-			s.errorHandler(err)
-			return
-		}
-		v := feature.GetDefaultValue()
-		_, err = stmt.Exec(v, sqlID)
-		if err != nil {
-			s.errorHandler(err)
-			return
-		}
+		query = s.getSingleQueries(featureColumn).getUpdateQuery()
+		args = []any{feature.GetDefaultValue(), sqlID}
 	} else if featureTable := featureData.schema.table; featureTable != nil {
-		stmt, err := s.getManyStmts(featureTable).getClearStmt()
-		if err != nil {
-			s.errorHandler(err)
-			return
-		}
-		_, err = stmt.Exec(sqlID)
-		if err != nil {
-			s.errorHandler(err)
-			return
-		}
+		query = s.getManyQueries(featureTable).getClearQuery()
+		args = []any{sqlID}
+	}
+	if err := sqlitex.Execute(conn, query, &sqlitex.ExecOptions{Args: args}); err != nil {
+		s.errorHandler(err)
 	}
 }
 
 func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return false
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return false
@@ -815,21 +797,30 @@ func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
 	}
 
 	// retrieve statement
-	stmt, err := s.getManyStmts(featureTable).getExistsStmt()
-	if err != nil {
+	var value any
+	if err := sqlitex.Execute(
+		conn,
+		s.getManyQueries(featureTable).getExistsQuery(),
+		&sqlitex.ExecOptions{
+			Args: []any{sqlID},
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				value = decodeAny(stmt, 0)
+				return nil
+			}}); err != nil {
 		s.errorHandler(err)
-		return false
 	}
-
-	// query statement
-	var v any
-	row := stmt.QueryRow(sqlID)
-	_ = row.Scan(&v)
-	return v == nil
+	return value == nil
 }
 
 func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return 0
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return 0
@@ -842,124 +833,161 @@ func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
 		return 0
 	}
 
-	// retrieve statement
-	stmt, err := s.getManyStmts(featureTable).getCountStmt()
-	if err != nil {
+	var size int
+	if err := sqlitex.Execute(
+		conn,
+		s.getManyQueries(featureTable).getCountQuery(),
+		&sqlitex.ExecOptions{
+			Args: []any{sqlID},
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				size = stmt.ColumnInt(0)
+				return nil
+			}}); err != nil {
 		s.errorHandler(err)
-		return 0
 	}
-
-	// retrieve count
-	var count int
-	row := stmt.QueryRow(sqlID)
-	_ = row.Scan(&count)
-	return count
+	return size
 }
 
 func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value any) bool {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return false
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return false
 	}
 
 	// retrieve table
-	featureData, err := s.getEncoderFeatureData(object, feature)
-	if err != nil {
-		s.errorHandler(err)
-		return false
-	}
-	// retrieve statement
-	stmt, err := s.getManyStmts(featureData.schema.table).getContainsStmt()
+	featureData, err := s.getEncoderFeatureData(conn, object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return false
 	}
 
 	// query statement
-	v, err := s.encodeFeatureValue(featureData, value)
+	encoded, err := s.encodeFeatureValue(conn, featureData, value)
 	if err != nil {
 		s.errorHandler(err)
 		return false
 	}
-	var rowid int
-	row := stmt.QueryRow(sqlID, v)
-	_ = row.Scan(&rowid)
+
+	var rowid int64
+	if err := sqlitex.Execute(
+		conn,
+		s.getManyQueries(featureData.schema.table).getContainsQuery(),
+		&sqlitex.ExecOptions{
+			Args: []any{sqlID, encoded},
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				rowid = stmt.ColumnInt64(0)
+				return nil
+			}}); err != nil {
+		s.errorHandler(err)
+	}
 	return rowid != 0
 }
 
-func (s *SQLStore) indexOf(object EObject, feature EStructuralFeature, value any, getIndexOfStmt func(*sqlManyStmts) (*sqlSafeStmt, error)) int {
-	sqlID, err := s.getSqlID(object)
+func (s *SQLStore) indexOf(object EObject, feature EStructuralFeature, value any, getIndexOfQuery func(*sqlManyQueries) string) int {
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return -1
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return -1
 	}
 
 	// retrieve table
-	featureData, err := s.getEncoderFeatureData(object, feature)
+	featureData, err := s.getEncoderFeatureData(conn, object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return -1
 	}
 	// compute parameters
-	v, err := s.encodeFeatureValue(featureData, value)
+	encoded, err := s.encodeFeatureValue(conn, featureData, value)
 	if err != nil {
 		s.errorHandler(err)
 		return -1
 	}
 	// retrieve row idx in table
-	stmt, err := getIndexOfStmt(s.getManyStmts(featureData.schema.table))
-	if err != nil {
+	idx := -1.0
+	if err := sqlitex.Execute(
+		conn,
+		getIndexOfQuery(s.getManyQueries(featureData.schema.table)),
+		&sqlitex.ExecOptions{
+			Args: []any{sqlID, encoded},
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				idx = stmt.ColumnFloat(0)
+				return nil
+			}}); err != nil {
 		s.errorHandler(err)
 		return -1
 	}
-	var idx float64
-	row := stmt.QueryRow(sqlID, v)
-	if err := row.Scan(&idx); err != nil {
-		if err != sql.ErrNoRows {
-			s.errorHandler(err)
-		}
+	if idx == -1.0 {
 		return -1
 	}
+
 	// convert idx to list index - index is the count of rows where idx < expected idx
-	var index int
-	stmt, err = s.getManyStmts(featureData.schema.table).getIdxToListIndexStmt()
-	if err != nil {
+	index := -1
+	if err := sqlitex.Execute(
+		conn,
+		s.getManyQueries(featureData.schema.table).getIdxToListIndexQuery(),
+		&sqlitex.ExecOptions{
+			Args: []any{sqlID, idx},
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				index = stmt.ColumnInt(0)
+				return nil
+			}}); err != nil {
 		s.errorHandler(err)
-		return -1
-	}
-	row = stmt.QueryRow(sqlID, idx)
-	if err := row.Scan(&index); err != nil {
-		if err != sql.ErrNoRows {
-			s.errorHandler(err)
-		}
 		return -1
 	}
 	return index
 }
 
 func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
-	return s.indexOf(object, feature, value, func(sms *sqlManyStmts) (*sqlSafeStmt, error) {
-		return sms.getIndexOfStmt()
+	return s.indexOf(object, feature, value, func(sms *sqlManyQueries) string {
+		return sms.getIndexOfQuery()
 	})
 }
 
 func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {
-	return s.indexOf(object, feature, value, func(sms *sqlManyStmts) (*sqlSafeStmt, error) {
-		return sms.getLastIndexOfStmt()
+	return s.indexOf(object, feature, value, func(sms *sqlManyQueries) string {
+		return sms.getLastIndexOfQuery()
 	})
 }
 
 // AddRoot add object as store root
 func (s *SQLStore) AddRoot(object EObject) {
-	if err := s.encodeContent(object); err != nil {
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	defer s.pool.Put(conn)
+
+	if err := s.encodeContent(conn, object); err != nil {
 		s.errorHandler(err)
 	}
 }
 
 // GetRoot return root objects
 func (s *SQLStore) GetRoots() []EObject {
-	contents, err := s.decodeContents()
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+	defer s.pool.Put(conn)
+
+	contents, err := s.decodeContents(conn)
 	if err != nil {
 		s.errorHandler(err)
 	}
@@ -972,158 +1000,150 @@ func (s *SQLStore) UnRegister(object EObject) {
 
 // RemoveRoot implements EStore.
 func (s *SQLStore) RemoveRoot(object EObject) {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return
 	}
 
-	stmt, err := s.getSingleStmts(s.schema.contentsTable.key).getRemoveStmt()
-	if err != nil {
+	if err := sqlitex.Execute(
+		conn,
+		s.getSingleQueries(s.schema.contentsTable.key).getRemoveQuery(),
+		&sqlitex.ExecOptions{Args: []any{sqlID}},
+	); err != nil {
 		s.errorHandler(err)
-		return
-	}
-	_, err = stmt.Exec(sqlID)
-	if err != nil {
-		s.errorHandler(err)
-		return
 	}
 }
 
 func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, value any) {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
 	if err != nil {
 		s.errorHandler(err)
 		return
 	}
-	featureData, err := s.getEncoderFeatureData(object, feature)
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return
 	}
-	idx, _, err := s.getInsertIdx(featureData.schema.table, sqlID, index, 1)
+	featureData, err := s.getEncoderFeatureData(conn, object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return
 	}
-	v, err := s.encodeFeatureValue(featureData, value)
+	idx, _, err := s.getInsertIdx(conn, featureData.schema.table, sqlID, index, 1)
 	if err != nil {
 		s.errorHandler(err)
 		return
 	}
-	stmt, err := s.getManyStmts(featureData.schema.table).getInsertStmt()
+	encoded, err := s.encodeFeatureValue(conn, featureData, value)
 	if err != nil {
 		s.errorHandler(err)
 		return
 	}
-	_, err = stmt.Exec(sqlID, idx, v)
-	if err != nil {
+	if err := sqlitex.Execute(
+		conn,
+		s.getManyQueries(featureData.schema.table).getInsertQuery(),
+		&sqlitex.ExecOptions{Args: []any{sqlID, idx, encoded}},
+	); err != nil {
 		s.errorHandler(err)
-		return
 	}
 }
 
 func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int, c EList) {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
 	if err != nil {
 		s.errorHandler(err)
 		return
 	}
-	featureData, err := s.getEncoderFeatureData(object, feature)
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-	idx, inc, err := s.getInsertIdx(featureData.schema.table, sqlID, index, c.Size())
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
+	defer s.pool.Put(conn)
 
+	sqlID, err := s.getSqlID(conn, object)
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	featureData, err := s.getEncoderFeatureData(conn, object, feature)
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	idx, inc, err := s.getInsertIdx(conn, featureData.schema.table, sqlID, index, c.Size())
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
 	// encode each value
-	values := [][]any{}
+	query := s.getManyQueries(featureData.schema.table).getInsertQuery()
 	for it := c.Iterator(); it.HasNext(); {
 		value := it.Next()
-		v, err := s.encodeFeatureValue(featureData, value)
+		v, err := s.encodeFeatureValue(conn, featureData, value)
 		if err != nil {
 			s.errorHandler(err)
 			return
 		}
-		values = append(values, []any{sqlID, idx, v})
-		idx += inc
-	}
-
-	// begin transaction
-	tx, err := s.db.Begin()
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-
-	// insert statement
-	stmt, err := s.getManyStmts(featureData.schema.table).getInsertStmt()
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-
-	// create statement for this transaction
-	stmt = tx.Stmt(stmt)
-
-	// execute statements
-	for _, args := range values {
-		if _, err := stmt.Exec(args...); err != nil {
+		if err := sqlitex.Execute(
+			conn,
+			query,
+			&sqlitex.ExecOptions{Args: []any{sqlID, idx, v}},
+		); err != nil {
 			s.errorHandler(err)
 			return
 		}
-	}
-
-	// end transaction
-	if err := tx.Commit(); err != nil {
-		s.errorHandler(err)
-		return
+		idx += inc
 	}
 }
 
 // compute insert idx of element in the list whose index is index. nb is the number of elements to be inserted
 // return idx, increment (for each inserted element) and error if any
-func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int, nb int) (float64, float64, error) {
-	stmt, err := s.getManyStmts(table).getListIndexToIdxStmt()
-	if err != nil {
-		return 0.0, 0.0, err
-	}
+func (s *SQLStore) getInsertIdx(conn *sqlite.Conn, table *sqlTable, sqlID int64, index int, nb int) (float64, float64, error) {
 	if index == 0 {
 		// first row in the list
-		row := stmt.QueryRow(sqlID, 1, 0)
-		// retrieve idx
-		var idx float64
-		if err := row.Scan(&idx); err != nil {
-			if err == sql.ErrNoRows {
-				// no row == list is empty
-				return 1.0, 1.0, nil
-			} else {
-				return 0.0, 0.0, err
-			}
-		}
-		increment := 1.0 / (float64(nb) + 1)
-		return idx * increment, increment, nil
-	} else {
-		// two rows in the list starting from previous list index
-		rows, err := stmt.Query(sqlID, 2, index-1)
-		if err != nil {
+		idx := 1.0
+		withElements := false
+		if err := sqlitex.Execute(
+			conn,
+			s.getManyQueries(table).getListIndexToIdxQuery(),
+			&sqlitex.ExecOptions{
+				Args: []any{sqlID, 1, 0},
+				ResultFunc: func(stmt *sqlite.Stmt) error {
+					withElements = true
+					idx = stmt.ColumnFloat(0)
+					return nil
+				}}); err != nil {
+			s.errorHandler(err)
 			return 0.0, 0.0, err
 		}
-		defer rows.Close()
-
+		if withElements {
+			increment := 1.0 / (float64(nb) + 1)
+			return idx * increment, increment, nil
+		} else {
+			return 1.0, 1.0, nil
+		}
+	} else {
 		count := 0
 		idx := 0.0
-		for rows.Next() {
-			var i float64
-			if err := rows.Scan(&i); err != nil {
-				return 0.0, 0.0, err
-			}
-			idx += i
-			count += 1
+		if err := sqlitex.Execute(
+			conn,
+			s.getManyQueries(table).getListIndexToIdxQuery(),
+			&sqlitex.ExecOptions{
+				Args: []any{sqlID, 2, index - 1},
+				ResultFunc: func(stmt *sqlite.Stmt) error {
+					idx += stmt.ColumnFloat(0)
+					count++
+					return nil
+				}}); err != nil {
+			s.errorHandler(err)
+			return 0.0, 0.0, err
 		}
 		switch count {
 		case 0:
@@ -1140,42 +1160,56 @@ func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int, nb int)
 }
 
 func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int) any {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
 	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
-	featureData, err := s.getEncoderFeatureData(object, feature)
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
-	// remove statement
-	stmt, err := s.getManyStmts(featureData.schema.table).getRemoveStmt()
+	featureData, err := s.getEncoderFeatureData(conn, object, feature)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
-	// query remove statement
-	var v any
-	row := stmt.QueryRow(sqlID, index)
-	if err := row.Scan(&v); err != nil {
-		if err != sql.ErrNoRows {
-			s.errorHandler(err)
-		}
+
+	var value any
+	if err := sqlitex.Execute(
+		conn,
+		s.getManyQueries(featureData.schema.table).getRemoveQuery(),
+		&sqlitex.ExecOptions{
+			Args: []any{sqlID, index},
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				value = decodeAny(stmt, 0)
+				return nil
+			}}); err != nil {
+		s.errorHandler(err)
 		return nil
 	}
+
 	// decode previous value
-	value, err := s.decodeFeatureValue(featureData.schema, v)
+	decoded, err := s.decodeFeatureValue(conn, featureData.schema, value)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
-	return value
+	return decoded
 }
 
 func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int) any {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
@@ -1189,39 +1223,46 @@ func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex 
 	if targetIndex > sourceIndex {
 		targetIndex++
 	}
-	idx, _, err := s.getInsertIdx(featureSchema.table, sqlID, targetIndex, 1)
+	idx, _, err := s.getInsertIdx(conn, featureSchema.table, sqlID, targetIndex, 1)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
 
 	// update idx of source index row with target idx
-	stmt, err := s.getManyStmts(featureSchema.table).getUpdateIdxStmt()
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-
-	// retrieve value of modified row
-	var v any
-	row := stmt.QueryRow(idx, sqlID, sourceIndex)
-	if err := row.Scan(&v); err != nil {
+	var value any
+	if err := sqlitex.Execute(
+		conn,
+		s.getManyQueries(featureSchema.table).getUpdateIdxQuery(),
+		&sqlitex.ExecOptions{
+			Args: []any{idx, sqlID, sourceIndex},
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				value = decodeAny(stmt, 0)
+				return nil
+			}}); err != nil {
 		s.errorHandler(err)
 		return nil
 	}
 
 	// decode value
-	value, err := s.decodeFeatureValue(featureSchema, v)
+	decoded, err := s.decodeFeatureValue(conn, featureSchema, value)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
 	}
 
-	return value
+	return decoded
 }
 
 func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return
@@ -1231,22 +1272,25 @@ func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
 		s.errorHandler(err)
 		return
 	}
-	// clear statement
-	stmt, err := s.getManyStmts(featureTable).getClearStmt()
-	if err != nil {
+
+	if err := sqlitex.Execute(
+		conn,
+		s.getManyQueries(featureTable).getClearQuery(),
+		&sqlitex.ExecOptions{Args: []any{sqlID}},
+	); err != nil {
 		s.errorHandler(err)
-		return
-	}
-	// excecute statement
-	_, err = stmt.Exec(sqlID)
-	if err != nil {
-		s.errorHandler(err)
-		return
 	}
 }
 
 func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
-	sqlID, err := s.getSqlID(object)
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return nil
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSqlID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
@@ -1257,32 +1301,23 @@ func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 		return nil
 	}
 
-	stmt, err := s.getManyStmts(featureSchema.table).getSelectAllStmt()
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-
-	rows, err := stmt.Query(sqlID)
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-	defer rows.Close()
-
 	values := []any{}
-	for rows.Next() {
-		var v any
-		if err := rows.Scan(&v); err != nil {
-			s.errorHandler(err)
-			return nil
-		}
-		decoded, err := s.decodeFeatureValue(featureSchema, v)
-		if err != nil {
-			s.errorHandler(err)
-			return nil
-		}
-		values = append(values, decoded)
+	if err := sqlitex.Execute(
+		conn,
+		s.getManyQueries(featureSchema.table).getSelectAllQuery(),
+		&sqlitex.ExecOptions{
+			Args: []any{sqlID},
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				value := decodeAny(stmt, 0)
+				decoded, err := s.decodeFeatureValue(conn, featureSchema, value)
+				if err != nil {
+					return err
+				}
+				values = append(values, decoded)
+				return nil
+			}}); err != nil {
+		s.errorHandler(err)
+		return nil
 	}
 	return values
 }

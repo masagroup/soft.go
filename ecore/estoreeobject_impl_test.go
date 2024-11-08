@@ -33,7 +33,6 @@ func TestEStoreEObjectImpl_GetAttribute_Transient(t *testing.T) {
 	mockAttribute.EXPECT().IsMany().Return(false).Once()
 	mockAttribute.EXPECT().GetDefaultValue().Return(nil).Once()
 	mockAttribute.EXPECT().IsTransient().Return(true).Once()
-	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Twice()
 	assert.Nil(t, o.EGetFromID(0, false))
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
@@ -76,7 +75,6 @@ func TestEStoreEObjectImpl_GetAttribute_NoCaching(t *testing.T) {
 	o.SetEClass(mockClass)
 	o.SetEStore(mockStore)
 
-	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	for i := 0; i < 2; i++ {
 		mockAttribute.EXPECT().IsMany().Return(false).Once()
 		mockAttribute.EXPECT().IsTransient().Return(false).Once()
@@ -119,6 +117,26 @@ func TestEStoreEObjectImpl_SetAttribute(t *testing.T) {
 
 	// create object
 	o := NewEStoreEObjectImpl(false)
+	o.SetEClass(mockClass)
+	o.SetEStore(mockStore)
+
+	mockAttribute.EXPECT().IsMany().Return(false).Once()
+	mockAttribute.EXPECT().IsTransient().Return(false).Twice()
+	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(3)
+	mockStore.EXPECT().Get(o, mockAttribute, NO_INDEX).Return(nil).Once()
+	mockStore.EXPECT().Set(o, mockAttribute, NO_INDEX, 2).Return(nil).Once()
+	o.ESetFromID(0, 2)
+	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
+}
+
+func TestEStoreEObjectImpl_SetAttribute_Caching(t *testing.T) {
+	// create mocks
+	mockClass := NewMockEClass(t)
+	mockAttribute := NewMockEAttribute(t)
+	mockStore := NewMockEStore(t)
+
+	// create object
+	o := NewEStoreEObjectImpl(true)
 	o.SetEClass(mockClass)
 	o.SetEStore(mockStore)
 
@@ -191,27 +209,6 @@ func TestEStoreEObjectImpl_GetAttribute_Many_Map(t *testing.T) {
 	assert.NotNil(t, emap)
 }
 
-func TestEStoreEObjectImpl_SetAttribute_Caching(t *testing.T) {
-	// create mocks
-	mockClass := NewMockEClass(t)
-	mockAttribute := NewMockEAttribute(t)
-	mockStore := NewMockEStore(t)
-
-	// create object
-	o := NewEStoreEObjectImpl(true)
-	o.SetEClass(mockClass)
-	o.SetEStore(mockStore)
-
-	mockAttribute.EXPECT().IsMany().Return(false).Once()
-	mockAttribute.EXPECT().IsTransient().Return(false).Twice()
-	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
-	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(3)
-	mockStore.EXPECT().Get(o, mockAttribute, NO_INDEX).Return(nil).Once()
-	mockStore.EXPECT().Set(o, mockAttribute, NO_INDEX, 2).Return(nil).Once()
-	o.ESetFromID(0, 2)
-	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
-}
-
 func TestEStoreEObjectImpl_UnSetAttribute_Transient(t *testing.T) {
 	// create mocks
 	mockClass := NewMockEClass(t)
@@ -224,7 +221,6 @@ func TestEStoreEObjectImpl_UnSetAttribute_Transient(t *testing.T) {
 	o.SetEStore(mockStore)
 
 	mockAttribute.EXPECT().IsTransient().Return(true).Twice()
-	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(3)
 	o.EUnsetFromID(0)
 
@@ -243,7 +239,6 @@ func TestEStoreEObjectImpl_UnSetAttribute(t *testing.T) {
 
 	mockAttribute.EXPECT().IsMany().Return(false).Once()
 	mockAttribute.EXPECT().IsTransient().Return(false).Twice()
-	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(3)
 	mockStore.EXPECT().Get(o, mockAttribute, NO_INDEX).Return(2).Once()
 	mockStore.EXPECT().UnSet(o, mockAttribute).Once()

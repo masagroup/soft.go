@@ -1,7 +1,6 @@
 package ecore
 
 import (
-	"database/sql"
 	"io"
 	"os"
 	"path/filepath"
@@ -9,6 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"zombiezen.com/go/sqlite"
+	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 const libraryNSURI = "http:///org/eclipse/emf/examples/library/library.ecore/1.0.0"
@@ -68,16 +69,6 @@ func (eFactory *dynamicSQLFactory) Create(eClass EClass) EObject {
 	}
 }
 
-func TestSQLStore_Constructor(t *testing.T) {
-	db, err := sql.Open("sqlite", "testdata/library.store.sqlite")
-	require.NoError(t, err)
-	defer db.Close()
-
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
-	require.Nil(t, err)
-	require.NotNil(t, s)
-}
-
 func closeFile(f *os.File, reported *error) {
 	if err := f.Close(); *reported == nil {
 		*reported = err
@@ -105,6 +96,18 @@ func copyFile(src, dest string) (err error) {
 	return
 }
 
+func TestSQLStore_Constructor(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	require.NoError(t, err)
+	require.NoError(t, s.Close())
+}
+
 func TestSQLStore_Get_Int(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
@@ -120,14 +123,11 @@ func TestSQLStore_Get_Int(t *testing.T) {
 	err := copyFile("testdata/library.store.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// store
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
@@ -151,15 +151,12 @@ func TestSQLStore_Get_Enum(t *testing.T) {
 	err := copyFile("testdata/library.store.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// store
 	mockPackageRegitry := NewMockEPackageRegistry(t)
-	s, err := NewSQLStore(db, NewURI(""), nil, mockPackageRegitry, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	// Mystery == 0
 	mockObject := NewMockSQLObject(t)
@@ -195,13 +192,10 @@ func TestSQLStore_Get_String_Null(t *testing.T) {
 	err := copyFile("testdata/library.owner.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	v := s.Get(mockObject, eFeature, -1)
 	assert.Equal(t, "", v)
@@ -226,13 +220,10 @@ func TestSQLStore_Get_Object_Nil(t *testing.T) {
 	err := copyFile("testdata/library.store.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	v := s.Get(mockObject, eFeature, -1)
 	assert.Nil(t, v)
@@ -263,15 +254,12 @@ func TestSQLStore_Get_Object(t *testing.T) {
 	err := copyFile("testdata/library.owner.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	mockObject := NewMockSQLObject(t)
 	mockPackageRegitry := NewMockEPackageRegistry(t)
-	s, err := NewSQLStore(db, NewURI(""), nil, mockPackageRegitry, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject.EXPECT().GetSqlID().Return(int64(1)).Once()
 	mockObject.EXPECT().EClass().Return(eLibraryClass).Once()
@@ -307,13 +295,10 @@ func TestSQLStore_Get_Reference_WithFragment(t *testing.T) {
 	err := copyFile("testdata/library.ref.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
-	s, err := NewSQLStore(db, NewURI(""), nil, mockPackageRegitry, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject.EXPECT().GetSqlID().Return(int64(6)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
@@ -347,13 +332,10 @@ func TestSQLStore_Get_Reference_WithSQLID(t *testing.T) {
 	err := copyFile("testdata/library.ref.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
-	s, err := NewSQLStore(db, NewURI(""), nil, mockPackageRegitry, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject.EXPECT().GetSqlID().Return(int64(7)).Once()
 	mockObject.EXPECT().EClass().Return(eBookClass).Once()
@@ -379,14 +361,11 @@ func TestSQLStore_Set_Int(t *testing.T) {
 	err := copyFile("testdata/library.store.sqlite", dbPath)
 	require.Nil(t, err)
 	{
-		db, err := sql.Open("sqlite", dbPath)
-		require.NoError(t, err)
-		defer db.Close()
-
 		// store
-		s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
@@ -396,13 +375,16 @@ func TestSQLStore_Set_Int(t *testing.T) {
 	}
 	// check store
 	{
-		db, err := sql.Open("sqlite", dbPath)
+		conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 		require.NoError(t, err)
-		require.NotNil(t, db)
-		defer db.Close()
-		var copies int
-		row := db.QueryRow("SELECT copies FROM Lendable WHERE lendableID=3")
-		err = row.Scan(&copies)
+		require.NotNil(t, conn)
+		defer conn.Close()
+
+		copies := -1
+		err = sqlitex.ExecuteTransient(conn, "SELECT copies FROM Lendable WHERE lendableID=3", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+			copies = stmt.ColumnInt(0)
+			return nil
+		}})
 		assert.NoError(t, err)
 		assert.Equal(t, 5, copies)
 	}
@@ -423,14 +405,11 @@ func TestSQLStore_Set_Reference_Nil(t *testing.T) {
 	err := copyFile("testdata/library.ref.sqlite", dbPath)
 	require.Nil(t, err)
 	{
-		db, err := sql.Open("sqlite", dbPath)
-		require.NoError(t, err)
-		defer db.Close()
-
 		// store
-		s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		// set
 		mockObject := NewMockSQLObject(t)
@@ -443,15 +422,18 @@ func TestSQLStore_Set_Reference_Nil(t *testing.T) {
 	}
 	// check store
 	{
-		db, err := sql.Open("sqlite", dbPath)
+		conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 		require.NoError(t, err)
-		require.NotNil(t, db)
-		defer db.Close()
-		var author sql.NullString
-		row := db.QueryRow("SELECT author FROM book WHERE bookID=6")
-		err = row.Scan(&author)
+		require.NotNil(t, conn)
+		defer conn.Close()
+
+		var author string
+		err = sqlitex.ExecuteTransient(conn, "SELECT author FROM book WHERE bookID=6", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+			author = stmt.ColumnText(0)
+			return nil
+		}})
 		assert.NoError(t, err)
-		assert.False(t, author.Valid)
+		assert.Empty(t, author)
 	}
 }
 
@@ -470,14 +452,11 @@ func TestSQLStore_Set_List_Primitive(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 	{
-		db, err := sql.Open("sqlite", dbPath)
-		require.NoError(t, err)
-		defer db.Close()
-
 		// create store
-		s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -487,13 +466,16 @@ func TestSQLStore_Set_List_Primitive(t *testing.T) {
 	}
 	// check store
 	{
-		db, err := sql.Open("sqlite", dbPath)
+		conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 		require.NoError(t, err)
-		require.NotNil(t, db)
-		defer db.Close()
+		require.NotNil(t, conn)
+		defer conn.Close()
+
 		var contents string
-		row := db.QueryRow("SELECT contents FROM book_contents WHERE bookID=5 AND idx=2.0")
-		err = row.Scan(&contents)
+		err = sqlitex.ExecuteTransient(conn, "SELECT contents FROM book_contents WHERE bookID=5 AND idx=2.0", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+			contents = stmt.ColumnText(0)
+			return nil
+		}})
 		assert.NoError(t, err)
 		assert.Equal(t, "c4", contents)
 	}
@@ -514,14 +496,11 @@ func TestSQLStore_Get_List_String(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// create store
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -549,13 +528,10 @@ func TestSQLStore_IsSet_SingleValue_NotSet(t *testing.T) {
 	err := copyFile("testdata/library.store.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	isSet := s.IsSet(mockObject, eFeature)
 	assert.False(t, isSet)
@@ -580,13 +556,10 @@ func TestSQLStore_IsSet_SingleValue(t *testing.T) {
 	err := copyFile("testdata/library.owner.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	isSet := s.IsSet(mockObject, eFeature)
 	assert.True(t, isSet)
@@ -611,13 +584,10 @@ func TestSQLStore_IsSet_ManyValue_NotSet(t *testing.T) {
 	err := copyFile("testdata/library.owner.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	isSet := s.IsSet(mockObject, eFeature)
 	assert.False(t, isSet)
@@ -642,13 +612,10 @@ func TestSQLStore_IsSet_ManyValue_Set(t *testing.T) {
 	err := copyFile("testdata/library.complex.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	isSet := s.IsSet(mockObject, eFeature)
 	assert.True(t, isSet)
@@ -669,14 +636,11 @@ func TestSQLStore_UnSet_Single(t *testing.T) {
 	err := copyFile("testdata/library.store.sqlite", dbPath)
 	require.Nil(t, err)
 	{
-		db, err := sql.Open("sqlite", dbPath)
-		require.NoError(t, err)
-		defer db.Close()
-
 		// store
-		s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
@@ -685,13 +649,16 @@ func TestSQLStore_UnSet_Single(t *testing.T) {
 	}
 	// check store
 	{
-		db, err := sql.Open("sqlite", dbPath)
+		conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 		require.NoError(t, err)
-		require.NotNil(t, db)
-		defer db.Close()
-		var copies int
-		row := db.QueryRow("SELECT copies FROM Lendable WHERE lendableID=3")
-		err = row.Scan(&copies)
+		require.NotNil(t, conn)
+		defer conn.Close()
+
+		copies := -1
+		err = sqlitex.ExecuteTransient(conn, "SELECT copies FROM Lendable WHERE lendableID=3", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+			copies = stmt.ColumnInt(0)
+			return nil
+		}})
 		assert.NoError(t, err)
 		assert.Equal(t, 0, copies)
 	}
@@ -711,13 +678,11 @@ func TestSQLStore_UnSet_Many(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 	{
-		db, err := sql.Open("sqlite", dbPath)
-		require.NoError(t, err)
-		defer db.Close()
 		// create store
-		s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -726,13 +691,16 @@ func TestSQLStore_UnSet_Many(t *testing.T) {
 	}
 	// check store
 	{
-		db, err := sql.Open("sqlite", dbPath)
+		conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 		require.NoError(t, err)
-		require.NotNil(t, db)
-		defer db.Close()
-		var count int
-		row := db.QueryRow("SELECT COUNT(contents) FROM book_contents WHERE bookID=5")
-		err = row.Scan(&count)
+		require.NotNil(t, conn)
+		defer conn.Close()
+
+		count := -1
+		err = sqlitex.ExecuteTransient(conn, "SELECT COUNT(contents) FROM book_contents WHERE bookID=5", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+			count = stmt.ColumnInt(0)
+			return nil
+		}})
 		assert.NoError(t, err)
 		assert.Equal(t, 0, count)
 	}
@@ -753,14 +721,11 @@ func TestSQLStore_IsEmpty_False(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// create store
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -783,14 +748,11 @@ func TestSQLStore_IsEmpty_True(t *testing.T) {
 	err := copyFile("testdata/library.complex.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// create store
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -813,14 +775,11 @@ func TestSQLStore_IsEmpty_NonExisting(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// create store
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -843,14 +802,11 @@ func TestSQLStore_Size(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// create store
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -873,14 +829,11 @@ func TestSQLStore_Size_Empty(t *testing.T) {
 	err := copyFile("testdata/library.complex.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// create store
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -903,14 +856,11 @@ func TestSQLStore_Size_NonExisting(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// create store
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -933,14 +883,11 @@ func TestSQLStore_Contains_Primitive(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// create store
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -963,13 +910,10 @@ func TestSQLStore_Contains_Reference(t *testing.T) {
 	err := copyFile("testdata/library.complex.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
@@ -994,14 +938,11 @@ func TestSQLStore_Contains_NoTable(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// create store
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(3)).Once()
@@ -1019,13 +960,15 @@ func TestSQLStore_IndexOf_Existing(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("books")
 	require.NotNil(t, eFeature)
 
-	db, err := sql.Open("sqlite", "testdata/library.complex.sqlite")
-	require.NoError(t, err)
-	defer db.Close()
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
 
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
@@ -1045,13 +988,15 @@ func TestSQLStore_IndexOf_NonExisting(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("books")
 	require.NotNil(t, eFeature)
 
-	db, err := sql.Open("sqlite", "testdata/library.complex.sqlite")
-	require.NoError(t, err)
-	defer db.Close()
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
 
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
@@ -1071,13 +1016,15 @@ func TestSQLStore_IndexOf_Multiple(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("contents")
 	require.NotNil(t, eFeature)
 
-	db, err := sql.Open("sqlite", "testdata/library.indexof.sqlite")
-	require.NoError(t, err)
-	defer db.Close()
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.indexof.sqlite")
+	err := copyFile("testdata/library.indexof.sqlite", dbPath)
+	require.Nil(t, err)
 
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1095,13 +1042,15 @@ func TestSQLStore_LastIndexOf_Existing(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("books")
 	require.NotNil(t, eFeature)
 
-	db, err := sql.Open("sqlite", "testdata/library.complex.sqlite")
-	require.NoError(t, err)
-	defer db.Close()
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
 
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
@@ -1121,13 +1070,15 @@ func TestSQLStore_LastIndexOf_NonExisting(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("books")
 	require.NotNil(t, eFeature)
 
-	db, err := sql.Open("sqlite", "testdata/library.complex.sqlite")
-	require.NoError(t, err)
-	defer db.Close()
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
 
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
@@ -1147,13 +1098,15 @@ func TestSQLStore_LastIndexOf_Multiple(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("contents")
 	require.NotNil(t, eFeature)
 
-	db, err := sql.Open("sqlite", "testdata/library.indexof.sqlite")
-	require.NoError(t, err)
-	defer db.Close()
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.indexof.sqlite")
+	err := copyFile("testdata/library.indexof.sqlite", dbPath)
+	require.Nil(t, err)
 
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1179,15 +1132,12 @@ func TestSQLStore_Remove_Object(t *testing.T) {
 	err := copyFile("testdata/library.complex.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// create store
 	mockPackageRegitry := NewMockEPackageRegistry(t)
-	s, err := NewSQLStore(db, NewURI(""), nil, mockPackageRegitry, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
@@ -1217,14 +1167,11 @@ func TestSQLStore_Remove_NonExisting(t *testing.T) {
 	err := copyFile("testdata/library.complex.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// create store
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()
@@ -1247,14 +1194,11 @@ func TestSQLStore_Clear(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 	{
-		db, err := sql.Open("sqlite", dbPath)
-		require.NoError(t, err)
-		defer db.Close()
-
 		// create store
-		s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1263,13 +1207,16 @@ func TestSQLStore_Clear(t *testing.T) {
 	}
 	// check store
 	{
-		db, err := sql.Open("sqlite", dbPath)
+		conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 		require.NoError(t, err)
-		require.NotNil(t, db)
-		defer db.Close()
-		var count int
-		row := db.QueryRow("SELECT COUNT(contents) FROM book_contents WHERE bookID=5")
-		err = row.Scan(&count)
+		require.NotNil(t, conn)
+		defer conn.Close()
+
+		count := -1
+		err = sqlitex.ExecuteTransient(conn, "SELECT COUNT(contents) FROM book_contents WHERE bookID=5", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+			count = stmt.ColumnInt(0)
+			return nil
+		}})
 		assert.NoError(t, err)
 		assert.Equal(t, 0, count)
 	}
@@ -1289,14 +1236,12 @@ func TestSQLStore_Add_First_Empty(t *testing.T) {
 	err := copyFile("testdata/library.emptylist.sqlite", dbPath)
 	require.Nil(t, err)
 	{
-		db, err := sql.Open("sqlite", dbPath)
-		require.NoError(t, err)
-		defer db.Close()
 
 		// create store
-		s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1305,19 +1250,24 @@ func TestSQLStore_Add_First_Empty(t *testing.T) {
 	}
 	// check store
 	{
-		db, err := sql.Open("sqlite", dbPath)
+		conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 		require.NoError(t, err)
-		require.NotNil(t, db)
-		defer db.Close()
-		var content string
-		row := db.QueryRow("SELECT contents FROM book_contents WHERE bookID=5 ORDER BY idx ASC LIMIT 1")
-		err = row.Scan(&content)
+		require.NotNil(t, conn)
+		defer conn.Close()
+
+		content := ""
+		err = sqlitex.ExecuteTransient(conn, "SELECT contents FROM book_contents WHERE bookID=5 ORDER BY idx ASC LIMIT 1", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+			content = stmt.ColumnText(0)
+			return nil
+		}})
 		assert.NoError(t, err)
 		assert.Equal(t, "c0", content)
 
-		var count int
-		row = db.QueryRow("SELECT COUNT(contents) FROM book_contents WHERE bookID=5")
-		err = row.Scan(&count)
+		count := -1
+		err = sqlitex.ExecuteTransient(conn, "SELECT COUNT(contents) FROM book_contents WHERE bookID=5", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+			count = stmt.ColumnInt(0)
+			return nil
+		}})
 		assert.NoError(t, err)
 		assert.Equal(t, 1, count)
 	}
@@ -1337,14 +1287,11 @@ func TestSQLStore_Add_First_NonEmpty(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 	{
-		db, err := sql.Open("sqlite", dbPath)
-		require.NoError(t, err)
-		defer db.Close()
-
 		// create store
-		s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1353,13 +1300,16 @@ func TestSQLStore_Add_First_NonEmpty(t *testing.T) {
 	}
 	// check store
 	{
-		db, err := sql.Open("sqlite", dbPath)
+		conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 		require.NoError(t, err)
-		require.NotNil(t, db)
-		defer db.Close()
-		var content string
-		row := db.QueryRow("SELECT contents FROM book_contents WHERE bookID=5 ORDER BY idx ASC LIMIT 1")
-		err = row.Scan(&content)
+		require.NotNil(t, conn)
+		defer conn.Close()
+
+		content := ""
+		err = sqlitex.ExecuteTransient(conn, "SELECT contents FROM book_contents WHERE bookID=5 ORDER BY idx ASC LIMIT 1", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+			content = stmt.ColumnText(0)
+			return nil
+		}})
 		assert.NoError(t, err)
 		assert.Equal(t, "c0", content)
 	}
@@ -1379,14 +1329,11 @@ func TestSQLStore_Add_Last(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 	{
-		db, err := sql.Open("sqlite", dbPath)
-		require.NoError(t, err)
-		defer db.Close()
-
 		// create store
-		s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1394,13 +1341,16 @@ func TestSQLStore_Add_Last(t *testing.T) {
 		s.Add(mockObject, eFeature, 3, "c5")
 	}
 	{
-		db, err := sql.Open("sqlite", dbPath)
+		conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 		require.NoError(t, err)
-		require.NotNil(t, db)
-		defer db.Close()
-		var content string
-		row := db.QueryRow("SELECT contents FROM book_contents WHERE bookID=5 ORDER BY idx DESC LIMIT 1")
-		err = row.Scan(&content)
+		require.NotNil(t, conn)
+		defer conn.Close()
+
+		content := ""
+		err = sqlitex.ExecuteTransient(conn, "SELECT contents FROM book_contents WHERE bookID=5 ORDER BY idx DESC LIMIT 1", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+			content = stmt.ColumnText(0)
+			return nil
+		}})
 		assert.NoError(t, err)
 		assert.Equal(t, "c5", content)
 	}
@@ -1420,14 +1370,11 @@ func TestSQLStore_Add_Middle(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 	{
-		db, err := sql.Open("sqlite", dbPath)
-		require.NoError(t, err)
-		defer db.Close()
-
 		// create store
-		s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1435,13 +1382,18 @@ func TestSQLStore_Add_Middle(t *testing.T) {
 		s.Add(mockObject, eFeature, 1, "c12")
 	}
 	{
-		db, err := sql.Open("sqlite", dbPath)
+		conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 		require.NoError(t, err)
-		require.NotNil(t, db)
-		defer db.Close()
-		var content string
-		row := db.QueryRow("SELECT contents FROM book_contents WHERE bookID=5 ORDER BY idx ASC LIMIT 1 OFFSET 1")
-		err = row.Scan(&content)
+		require.NotNil(t, conn)
+		defer conn.Close()
+
+		content := ""
+		err = sqlitex.ExecuteTransient(conn,
+			"SELECT contents FROM book_contents WHERE bookID=5 ORDER BY idx ASC LIMIT 1 OFFSET 1",
+			&sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+				content = stmt.ColumnText(0)
+				return nil
+			}})
 		assert.NoError(t, err)
 		assert.Equal(t, "c12", content)
 	}
@@ -1461,14 +1413,11 @@ func TestSQLStore_Add_Invalid(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
-
 	// create store
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1490,14 +1439,11 @@ func TestSQLStore_Move_End(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 	{
-		db, err := sql.Open("sqlite", dbPath)
-		require.NoError(t, err)
-		defer db.Close()
-
 		// create store
-		s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1505,15 +1451,20 @@ func TestSQLStore_Move_End(t *testing.T) {
 		s.Move(mockObject, eFeature, 0, 2)
 	}
 	{
-		db, err := sql.Open("sqlite", dbPath)
+		conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 		require.NoError(t, err)
-		require.NotNil(t, db)
-		defer db.Close()
-		var idx int
-		row := db.QueryRow("SELECT idx FROM book_contents WHERE bookID=5 ORDER BY idx DESC LIMIT 1")
-		err = row.Scan(&idx)
+		require.NotNil(t, conn)
+		defer conn.Close()
+
+		idx := -1.0
+		err = sqlitex.ExecuteTransient(conn,
+			"SELECT idx FROM book_contents WHERE bookID=5 ORDER BY idx DESC LIMIT 1",
+			&sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+				idx = stmt.ColumnFloat(0)
+				return nil
+			}})
 		assert.NoError(t, err)
-		assert.Equal(t, 4, idx)
+		assert.Equal(t, 4.0, idx)
 	}
 }
 
@@ -1531,14 +1482,11 @@ func TestSQLStore_Move_Begin(t *testing.T) {
 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 	{
-		db, err := sql.Open("sqlite", dbPath)
-		require.NoError(t, err)
-		defer db.Close()
-
 		// create store
-		s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+		s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 		require.Nil(t, err)
 		require.NotNil(t, s)
+		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1546,13 +1494,18 @@ func TestSQLStore_Move_Begin(t *testing.T) {
 		s.Move(mockObject, eFeature, 2, 0)
 	}
 	{
-		db, err := sql.Open("sqlite", dbPath)
+		conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
 		require.NoError(t, err)
-		require.NotNil(t, db)
-		defer db.Close()
-		var idx float64
-		row := db.QueryRow("SELECT idx FROM book_contents WHERE bookID=5 ORDER BY idx ASC LIMIT 1")
-		err = row.Scan(&idx)
+		require.NotNil(t, conn)
+		defer conn.Close()
+
+		idx := -1.0
+		err = sqlitex.ExecuteTransient(conn,
+			"SELECT idx FROM book_contents WHERE bookID=5 ORDER BY idx ASC LIMIT 1",
+			&sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+				idx = stmt.ColumnFloat(0)
+				return nil
+			}})
 		assert.NoError(t, err)
 		assert.Equal(t, 0.5, idx)
 	}
@@ -1569,14 +1522,14 @@ func TestSQLStore_ToArray_Primitive(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	// create store
-	dbPath := "testdata/library.datalist.sqlite"
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
 
-	s, err := NewSQLStore(db, NewURI(""), nil, nil, nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(5)).Once()
@@ -1599,15 +1552,15 @@ func TestSQLStore_ToArray_Objects(t *testing.T) {
 	require.NotNil(t, eBooksFeature)
 
 	// create store
-	mockPackageRegitry := NewMockEPackageRegistry(t)
-	dbPath := "testdata/library.complex.sqlite"
-	db, err := sql.Open("sqlite", dbPath)
-	require.NoError(t, err)
-	defer db.Close()
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	err := copyFile("testdata/library.complex.sqlite", dbPath)
+	require.Nil(t, err)
 
-	s, err := NewSQLStore(db, NewURI(""), nil, mockPackageRegitry, nil)
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
+	defer s.Close()
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSqlID().Return(int64(2)).Once()

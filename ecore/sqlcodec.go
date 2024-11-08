@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	SQL_OPTION_DRIVER            = "DRIVER_NAME"       // value of the sql driver
 	SQL_OPTION_ID_ATTRIBUTE_NAME = "ID_ATTRIBUTE_NAME" // value of the id attribute
 	SQL_OPTION_ERROR_HANDLER     = "ERROR_HANDLER"
 	SQL_OPTION_KEEP_DEFAULTS     = "KEEP_DEFAULTS"
@@ -19,7 +18,7 @@ const (
 type SQLCodec struct {
 }
 
-const sqlCodecVersion int = 1
+const sqlCodecVersion int64 = 1
 
 func sqlTmpDB(prefix string) (string, error) {
 	try := 0

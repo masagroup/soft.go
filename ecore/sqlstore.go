@@ -408,6 +408,7 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	// options
 	schemaOptions := []sqlSchemaOption{withCreateIfNotExists(true)}
 	idAttributeName := ""
+	storeVersion := sqlCodecVersion
 	errorHandler := func(error) {}
 	if options != nil {
 		idAttributeName, _ = options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string)
@@ -417,6 +418,10 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 
 		if eh, isErrorHandler := options[SQL_OPTION_ERROR_HANDLER]; isErrorHandler {
 			errorHandler = eh.(func(error))
+		}
+
+		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
+			storeVersion = v
 		}
 	}
 
@@ -446,11 +451,11 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 
 	// encode version
 	if version > 0 {
-		if version != sqlCodecVersion {
+		if version != storeVersion {
 			return nil, fmt.Errorf("history version %v is not supported", version)
 		}
 	} else {
-		if err := sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v`, sqlCodecVersion), nil); err != nil {
+		if err := sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v`, storeVersion), nil); err != nil {
 			return nil, err
 		}
 	}

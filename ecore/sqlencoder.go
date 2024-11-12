@@ -116,7 +116,7 @@ type sqlEncoder struct {
 }
 
 func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
-	return sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v;`, sqlCodecVersion), nil)
+	return sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v;`, e.codecVersion), nil)
 }
 
 func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) error {
@@ -527,6 +527,7 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 	schemaOptions := []sqlSchemaOption{}
 	idAttributeName := ""
 	keepDefaults := false
+	codecVersion := sqlCodecVersion
 	if options != nil {
 		if id, isID := options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string); isID && len(id) > 0 && resource.GetObjectIDManager() != nil {
 			schemaOptions = append(schemaOptions, withIDAttributeName(id))
@@ -537,12 +538,16 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 			keepDefaults = b
 		}
 
+		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
+			codecVersion = v
+		}
 	}
 
 	// encoder structure
 	return &SQLEncoder{
 		sqlEncoder: sqlEncoder{
 			sqlBase: &sqlBase{
+				codecVersion:    codecVersion,
 				uri:             resource.GetURI(),
 				idManager:       resource.GetObjectIDManager(),
 				idAttributeName: idAttributeName,

@@ -577,10 +577,14 @@ func newSQLDecoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 	// options
 	schemaOptions := []sqlSchemaOption{}
 	idAttributeName := ""
+	codecVersion := sqlCodecVersion
 	if options != nil {
 		idAttributeName, _ = options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string)
 		if resource.GetObjectIDManager() != nil && len(idAttributeName) > 0 {
 			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
+		}
+		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
+			codecVersion = v
 		}
 	}
 
@@ -594,6 +598,7 @@ func newSQLDecoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 	return &SQLDecoder{
 		sqlDecoder: sqlDecoder{
 			sqlBase: &sqlBase{
+				codecVersion:    codecVersion,
 				uri:             resource.GetURI(),
 				idManager:       resource.GetObjectIDManager(),
 				idAttributeName: idAttributeName,
@@ -672,8 +677,8 @@ func (d *SQLDecoder) decodeVersion(conn *sqlite.Conn) error {
 		return err
 	}
 
-	if version != sqlCodecVersion {
-		return fmt.Errorf("history version %v is not supported", version)
+	if version != d.codecVersion {
+		return fmt.Errorf("codec version %v is not supported", version)
 	}
 	return nil
 }

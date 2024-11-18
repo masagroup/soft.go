@@ -1,6 +1,9 @@
 package ecore
 
-import "strconv"
+import (
+	"iter"
+	"strconv"
+)
 
 type abstractEList interface {
 	EList
@@ -208,6 +211,17 @@ func (list *AbstractEList) IndexOf(elem any) int {
 
 func (list *AbstractEList) Iterator() EIterator {
 	return &listIterator{list: list.asEList()}
+}
+
+func (list *AbstractEList) All() iter.Seq[any] {
+	return func(yield func(any) bool) {
+		l := list.asEList()
+		for i := 0; i < l.Size(); i++ {
+			if !yield(l.Get(i)) {
+				return
+			}
+		}
+	}
 }
 
 func (list *AbstractEList) ToArray() []any {

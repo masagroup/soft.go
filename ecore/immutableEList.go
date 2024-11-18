@@ -9,7 +9,10 @@
 
 package ecore
 
-import "strconv"
+import (
+	"iter"
+	"strconv"
+)
 
 type emptyImmutableEList struct {
 }
@@ -92,6 +95,10 @@ func (l *emptyImmutableEList) Iterator() EIterator {
 	return &listIterator{list: l}
 }
 
+func (l *emptyImmutableEList) All() iter.Seq[any] {
+	return func(yield func(any) bool) {}
+}
+
 // ToArray convert to array
 func (l *emptyImmutableEList) ToArray() []any {
 	return []any{}
@@ -151,6 +158,16 @@ func (l *immutableEList) IndexOf(elem any) int {
 // Iterator through the array
 func (l *immutableEList) Iterator() EIterator {
 	return &listIterator{list: l}
+}
+
+func (l *immutableEList) All() iter.Seq[any] {
+	return func(yield func(any) bool) {
+		for _, value := range l.data {
+			if !yield(value) {
+				return
+			}
+		}
+	}
 }
 
 // ToArray convert to array

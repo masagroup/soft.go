@@ -200,7 +200,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 			// encode features columnValues in table columns
 			columnValues := classTable.defaultValues()
 			columnValues[classTable.key.index] = objectID
-			for itFeature := classData.features.Iterator(); itFeature.Next(); {
+			for itFeature := classData.features.Iterator(); itFeature.HasNext(); {
 				eFeature := itFeature.Key()
 				if eObject.EIsSet(eFeature) || (e.keepDefaults && len(eFeature.GetDefaultValueLiteral()) > 0) {
 					featureData := itFeature.Value()

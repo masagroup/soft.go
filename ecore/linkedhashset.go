@@ -30,7 +30,8 @@ func (h *linkedHashSet[K]) RemoveAll(collection Collection) {
 			h.m.Delete(it.Next().(K))
 		}
 	} else {
-		for k := range h.m.All() {
+		for it := h.m.Iterator(); it.HasNext(); {
+			k := it.Key()
 			if collection.Contains(k) {
 				h.m.Delete(k)
 			}
@@ -41,8 +42,8 @@ func (h *linkedHashSet[K]) RemoveAll(collection Collection) {
 func (h *linkedHashSet[K]) ToArray() []K {
 	a := make([]K, h.m.Len())
 	i := 0
-	for k := range h.m.All() {
-		a[i] = k
+	for it := h.m.Iterator(); it.HasNext(); {
+		a[i] = it.Key()
 		i++
 	}
 	return a

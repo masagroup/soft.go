@@ -137,7 +137,7 @@ type Iterator[K comparable, V any] struct {
 	initialized, exhausted bool
 }
 
-func (it *Iterator[K, V]) Next() bool {
+func (it *Iterator[K, V]) HasNext() bool {
 	// If the iterator has been exhausted, there is no next value.
 	if it.exhausted {
 		it.key = zero[K]()

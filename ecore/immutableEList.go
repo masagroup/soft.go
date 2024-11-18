@@ -21,7 +21,7 @@ func (l *emptyImmutableEList) Add(elem any) bool {
 	panic("Immutable list can't be modified")
 }
 
-func (l *emptyImmutableEList) AddAll(list EList) bool {
+func (l *emptyImmutableEList) AddAll(list Collection) bool {
 	panic("Immutable list can't be modified")
 }
 
@@ -29,7 +29,7 @@ func (l *emptyImmutableEList) Insert(index int, elem any) bool {
 	panic("Immutable list can't be modified")
 }
 
-func (l *emptyImmutableEList) InsertAll(index int, list EList) bool {
+func (l *emptyImmutableEList) InsertAll(index int, list Collection) bool {
 	panic("Immutable list can't be modified")
 }
 
@@ -58,7 +58,7 @@ func (l *emptyImmutableEList) Remove(elem any) bool {
 	panic("Immutable list can't be modified")
 }
 
-func (l *emptyImmutableEList) RemoveAll(collection EList) bool {
+func (l *emptyImmutableEList) RemoveAll(collection Collection) bool {
 	panic("Immutable list can't be modified")
 }
 

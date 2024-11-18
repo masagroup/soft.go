@@ -19,7 +19,7 @@ type EList interface {
 
 	// Insert inserts collection at specified index
 	// returns true if element was added
-	InsertAll(index int, element EList) bool
+	InsertAll(index int, element Collection) bool
 
 	// MoveObject moves eleemnt to specified index
 	MoveObject(index int, element any)

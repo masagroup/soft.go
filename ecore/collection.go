@@ -10,7 +10,7 @@ type Collection interface {
 
 	// Add adds collection at the end of the list
 	// returns true if collection was added to the list
-	AddAll(collection EList) bool
+	AddAll(collection Collection) bool
 
 	// Remove removes element from the list
 	// returns true if element was effectively removed
@@ -18,7 +18,7 @@ type Collection interface {
 
 	// RemoveAll removes collection from the list
 	// returns true if collection was effectively removed
-	RemoveAll(collection EList) bool
+	RemoveAll(collection Collection) bool
 
 	// Size returns the size of the list
 	Size() int

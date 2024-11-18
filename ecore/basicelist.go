@@ -70,7 +70,7 @@ func (list *BasicEList) doAdd(e any) {
 	listCallbacks.DidChange()
 }
 
-func (list *BasicEList) doAddAll(collection EList) bool {
+func (list *BasicEList) doAddAll(collection Collection) bool {
 	data := collection.ToArray()
 	list.data = append(list.data, data...)
 	// events
@@ -92,7 +92,7 @@ func (list *BasicEList) doInsert(index int, e any) {
 	listCallbacks.DidChange()
 }
 
-func (list *BasicEList) doInsertAll(index int, collection EList) bool {
+func (list *BasicEList) doInsertAll(index int, collection Collection) bool {
 	data := collection.ToArray()
 	list.data = append(list.data[:index], append(data, list.data[index:]...)...)
 	// events

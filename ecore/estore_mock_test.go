@@ -169,7 +169,7 @@ func TestMockEStoreAddAll(t *testing.T) {
 	mockCollection := NewImmutableEList(nil)
 	mockFeature := NewMockEStructuralFeature(t)
 	m := NewMockRun(t, mockObject, mockFeature, 0, mockCollection)
-	mockEStore.EXPECT().AddAll(mockObject, mockFeature, 0, mockCollection).Return().Run(func(object EObject, feature EStructuralFeature, index int, c EList) {
+	mockEStore.EXPECT().AddAll(mockObject, mockFeature, 0, mockCollection).Return().Run(func(object EObject, feature EStructuralFeature, index int, c Collection) {
 		m.Run(object, feature, index, c)
 	}).Once()
 	mockEStore.AddAll(mockObject, mockFeature, 0, mockCollection)

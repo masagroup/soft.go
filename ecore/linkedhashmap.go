@@ -112,10 +112,12 @@ func (lh *linkedHashMap[K, V]) Newest() (K, V, bool) {
 
 func (lh *linkedHashMap[K, V]) All() iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
-		for e := lh.entryList.Front(); e != nil; e = e.Next() {
+		for e := lh.entryList.Front(); e != nil; {
+			next := e.Next()
 			if !yield(e.Value.key, e.Value.value) {
 				return
 			}
+			e = next
 		}
 	}
 }

@@ -14,11 +14,11 @@ type abstractEList interface {
 
 	doAdd(elem any)
 
-	doAddAll(list EList) bool
+	doAddAll(list Collection) bool
 
 	doInsert(index int, elem any)
 
-	doInsertAll(index int, list EList) bool
+	doInsertAll(index int, list Collection) bool
 
 	doClear() []any
 
@@ -46,6 +46,13 @@ func (list *AbstractEList) asAbstractEList() abstractEList {
 	return list.interfaces.(abstractEList)
 }
 
+func (list *AbstractEList) getNonDuplicates(collection Collection) Collection {
+	hashSet := newLinkedHashSet[any]()
+	hashSet.AddAll(collection)
+	hashSet.RemoveAll(list.asEList())
+	return NewImmutableEList(hashSet.ToArray())
+}
+
 func (list *AbstractEList) Add(elem any) bool {
 	l := list.asAbstractEList()
 	if list.isUnique && l.Contains(elem) {
@@ -55,9 +62,9 @@ func (list *AbstractEList) Add(elem any) bool {
 	return true
 }
 
-func (list *AbstractEList) AddAll(collection EList) bool {
+func (list *AbstractEList) AddAll(collection Collection) bool {
 	if list.isUnique {
-		collection = getNonDuplicates(collection, list.asEList())
+		collection = list.getNonDuplicates(collection)
 		if collection.Size() == 0 {
 			return false
 		}
@@ -78,13 +85,13 @@ func (list *AbstractEList) Insert(index int, elem any) bool {
 	return true
 }
 
-func (list *AbstractEList) InsertAll(index int, collection EList) bool {
+func (list *AbstractEList) InsertAll(index int, collection Collection) bool {
 	l := list.asAbstractEList()
 	if size := l.Size(); index < 0 || index > size {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(size))
 	}
 	if list.isUnique {
-		collection = getNonDuplicates(collection, list.asEList())
+		collection = list.getNonDuplicates(collection)
 		if collection.Size() == 0 {
 			return false
 		}
@@ -146,7 +153,7 @@ func (list *AbstractEList) RemoveRange(fromIndex int, toIndex int) {
 	l.doRemoveRange(fromIndex, toIndex)
 }
 
-func (list *AbstractEList) RemoveAll(collection EList) bool {
+func (list *AbstractEList) RemoveAll(collection Collection) bool {
 	modified := false
 	l := list.asAbstractEList()
 	for i := l.Size() - 1; i >= 0; i-- {
@@ -226,15 +233,4 @@ func (list *AbstractEList) All() iter.Seq[any] {
 
 func (list *AbstractEList) ToArray() []any {
 	panic("not implemented")
-}
-
-func getNonDuplicates(list EList, ref EList) *BasicEList {
-	newList := NewBasicEList([]any{})
-	for it := list.Iterator(); it.HasNext(); {
-		value := it.Next()
-		if !newList.Contains(value) && !ref.Contains(value) {
-			newList.Add(value)
-		}
-	}
-	return newList
 }

@@ -175,7 +175,7 @@ func (list *EStoreList) performAdd(object any) {
 	list.size++
 }
 
-func (list *EStoreList) performAddAll(c EList) {
+func (list *EStoreList) performAddAll(c Collection) {
 	// index computed now before list potentially modified
 	// add to cache
 	if list.data != nil {
@@ -203,7 +203,7 @@ func (list *EStoreList) performInsert(index int, object any) {
 	list.size++
 }
 
-func (list *EStoreList) performInsertAll(index int, c EList) bool {
+func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 	// add to cache
 	if list.data != nil {
 		if !list.BasicENotifyingList.performInsertAll(index, c) {

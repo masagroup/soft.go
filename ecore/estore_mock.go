@@ -63,7 +63,7 @@ func (_c *MockEStore_Add_Call) RunAndReturn(run func(EObject, EStructuralFeature
 }
 
 // AddAll provides a mock function with given fields: object, feature, index, collection
-func (_m *MockEStore) AddAll(object EObject, feature EStructuralFeature, index int, collection EList) {
+func (_m *MockEStore) AddAll(object EObject, feature EStructuralFeature, index int, collection Collection) {
 	_m.Called(object, feature, index, collection)
 }
 
@@ -81,9 +81,9 @@ func (_e *MockEStore_Expecter) AddAll(object interface{}, feature interface{}, i
 	return &MockEStore_AddAll_Call{Call: _e.mock.On("AddAll", object, feature, index, collection)}
 }
 
-func (_c *MockEStore_AddAll_Call) Run(run func(object EObject, feature EStructuralFeature, index int, collection EList)) *MockEStore_AddAll_Call {
+func (_c *MockEStore_AddAll_Call) Run(run func(object EObject, feature EStructuralFeature, index int, collection Collection)) *MockEStore_AddAll_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(EObject), args[1].(EStructuralFeature), args[2].(int), args[3].(EList))
+		run(args[0].(EObject), args[1].(EStructuralFeature), args[2].(int), args[3].(Collection))
 	})
 	return _c
 }
@@ -93,7 +93,7 @@ func (_c *MockEStore_AddAll_Call) Return() *MockEStore_AddAll_Call {
 	return _c
 }
 
-func (_c *MockEStore_AddAll_Call) RunAndReturn(run func(EObject, EStructuralFeature, int, EList)) *MockEStore_AddAll_Call {
+func (_c *MockEStore_AddAll_Call) RunAndReturn(run func(EObject, EStructuralFeature, int, Collection)) *MockEStore_AddAll_Call {
 	_c.Call.Return(run)
 	return _c
 }

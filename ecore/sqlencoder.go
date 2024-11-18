@@ -426,7 +426,7 @@ func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sql
 				featureData.dataType = eDataType
 				featureData.factory = eDataType.GetEPackage().GetEFactoryInstance()
 			}
-			classFeatures.put(eFeature, featureData)
+			classFeatures.Put(eFeature, featureData)
 		}
 
 		// create & register class data

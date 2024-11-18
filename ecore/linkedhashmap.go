@@ -1,35 +1,142 @@
 package ecore
 
-import (
-	"container/list"
-	"sync"
-)
+import "iter"
 
 func zero[T any]() T {
 	return *new(T)
 }
 
-// Iterates over the keys and values in a linkedHashMap
-// from oldest to newest elements.
-// Assumes the underlying linkedHashMap is not modified while
-// the mapIteratorImpl is in use, except to delete elements that
-// have already been iterated over.
-type mapIterator[K, V any] interface {
-	Next() bool
-	Key() K
-	Value() V
+type keyValue[K, V any] struct {
+	key   K
+	value V
 }
 
-type linkedHashMapIterator[K comparable, V any] struct {
+// linkedHashMap provides an ordered O(1) mapping from keys to values.
+//
+// Entries are tracked by insertion order.
+type linkedHashMap[K comparable, V any] struct {
+	entryMap  map[K]*linkedListElement[keyValue[K, V]]
+	entryList *linkedList[keyValue[K, V]]
+	freeList  []*linkedListElement[keyValue[K, V]]
+}
+
+func newLinkedHashMap[K comparable, V any]() *linkedHashMap[K, V] {
+	return newLinkedHashMapWithSize[K, V](0)
+}
+
+func newLinkedHashMapWithSize[K comparable, V any](initialSize int) *linkedHashMap[K, V] {
+	lh := &linkedHashMap[K, V]{
+		entryMap:  make(map[K]*linkedListElement[keyValue[K, V]], initialSize),
+		entryList: newLinkedList[keyValue[K, V]](),
+		freeList:  make([]*linkedListElement[keyValue[K, V]], initialSize),
+	}
+	for i := range lh.freeList {
+		lh.freeList[i] = &linkedListElement[keyValue[K, V]]{}
+	}
+	return lh
+}
+
+func (lh *linkedHashMap[K, V]) Put(key K, value V) {
+	if e, ok := lh.entryMap[key]; ok {
+		lh.entryList.MoveToBack(e)
+		e.Value = keyValue[K, V]{
+			key:   key,
+			value: value,
+		}
+		return
+	}
+
+	var e *linkedListElement[keyValue[K, V]]
+	if numFree := len(lh.freeList); numFree > 0 {
+		numFree--
+		e = lh.freeList[numFree]
+		lh.freeList = lh.freeList[:numFree]
+	} else {
+		e = &linkedListElement[keyValue[K, V]]{}
+	}
+
+	e.Value = keyValue[K, V]{
+		key:   key,
+		value: value,
+	}
+	lh.entryMap[key] = e
+	lh.entryList.PushBack(e)
+}
+
+func (lh *linkedHashMap[K, V]) Get(key K) (V, bool) {
+	if e, ok := lh.entryMap[key]; ok {
+		return e.Value.value, true
+	}
+	return zero[V](), false
+}
+
+func (lh *linkedHashMap[K, V]) Delete(key K) bool {
+	e, ok := lh.entryMap[key]
+	if ok {
+		lh.remove(e)
+	}
+	return ok
+}
+
+func (lh *linkedHashMap[K, V]) Clear() {
+	for _, e := range lh.entryMap {
+		lh.remove(e)
+	}
+}
+
+// remove assumes that [e] is currently in the Hashmap.
+func (lh *linkedHashMap[K, V]) remove(e *linkedListElement[keyValue[K, V]]) {
+	delete(lh.entryMap, e.Value.key)
+	lh.entryList.Remove(e)
+	e.Value = keyValue[K, V]{} // Free the key value pair
+	lh.freeList = append(lh.freeList, e)
+}
+
+func (lh *linkedHashMap[K, V]) Len() int {
+	return len(lh.entryMap)
+}
+
+func (lh *linkedHashMap[K, V]) Oldest() (K, V, bool) {
+	if e := lh.entryList.Front(); e != nil {
+		return e.Value.key, e.Value.value, true
+	}
+	return zero[K](), zero[V](), false
+}
+
+func (lh *linkedHashMap[K, V]) Newest() (K, V, bool) {
+	if e := lh.entryList.Back(); e != nil {
+		return e.Value.key, e.Value.value, true
+	}
+	return zero[K](), zero[V](), false
+}
+
+func (lh *linkedHashMap[K, V]) All() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for e := lh.entryList.Front(); e != nil; e = e.Next() {
+			if !yield(e.Value.key, e.Value.value) {
+				return
+			}
+		}
+	}
+}
+
+func (lh *linkedHashMap[K, V]) Iterator() *Iterator[K, V] {
+	return &Iterator[K, V]{lh: lh}
+}
+
+// Iterates over the keys and values in a LinkedHashmap from oldest to newest.
+// Assumes the underlying LinkedHashmap is not modified while the iterator is in
+// use, except to delete elements that have already been iterated over.
+type Iterator[K comparable, V any] struct {
 	lh                     *linkedHashMap[K, V]
 	key                    K
 	value                  V
-	next                   *list.Element
+	next                   *linkedListElement[keyValue[K, V]]
 	initialized, exhausted bool
 }
 
-func (it *linkedHashMapIterator[K, V]) Next() bool {
-	// If the mapIteratorImpl has been exhausted, there is no next value.
+func (it *Iterator[K, V]) Next() bool {
+	// If the iterator has been exhausted, there is no next value.
 	if it.exhausted {
 		it.key = zero[K]()
 		it.value = zero[V]()
@@ -37,10 +144,7 @@ func (it *linkedHashMapIterator[K, V]) Next() bool {
 		return false
 	}
 
-	it.lh.lock.RLock()
-	defer it.lh.lock.RUnlock()
-
-	// If the mapIteratorImpl was not yet initialized, do it now.
+	// If the iterator was not yet initialized, do it now.
 	if !it.initialized {
 		it.initialized = true
 		oldest := it.lh.entryList.Front()
@@ -57,132 +161,17 @@ func (it *linkedHashMapIterator[K, V]) Next() bool {
 	// It's important to ensure that [it.next] is not nil
 	// by not deleting elements that have not yet been iterated
 	// over from [it.lh]
-	kv := it.next.Value.(keyValue[K, V])
-	it.key = kv.key
-	it.value = kv.value
+	it.key = it.next.Value.key
+	it.value = it.next.Value.value
 	it.next = it.next.Next() // Next time, return next element
 	it.exhausted = it.next == nil
 	return true
 }
 
-func (it *linkedHashMapIterator[K, V]) Key() K {
+func (it *Iterator[K, V]) Key() K {
 	return it.key
 }
 
-func (it *linkedHashMapIterator[K, V]) Value() V {
+func (it *Iterator[K, V]) Value() V {
 	return it.value
-}
-
-type keyValue[K, V any] struct {
-	key   K
-	value V
-}
-
-type linkedHashMap[K comparable, V any] struct {
-	lock      sync.RWMutex
-	entryMap  map[K]*list.Element
-	entryList *list.List
-}
-
-func newLinkedHashMap[K comparable, V any]() *linkedHashMap[K, V] {
-	return &linkedHashMap[K, V]{
-		entryMap:  make(map[K]*list.Element),
-		entryList: list.New(),
-	}
-}
-
-func (lh *linkedHashMap[K, V]) Put(key K, val V) {
-	lh.lock.Lock()
-	defer lh.lock.Unlock()
-
-	lh.put(key, val)
-}
-
-func (lh *linkedHashMap[K, V]) Get(key K) (V, bool) {
-	lh.lock.RLock()
-	defer lh.lock.RUnlock()
-
-	return lh.get(key)
-}
-
-func (lh *linkedHashMap[K, V]) Delete(key K) {
-	lh.lock.Lock()
-	defer lh.lock.Unlock()
-
-	lh.delete(key)
-}
-
-func (lh *linkedHashMap[K, V]) Len() int {
-	lh.lock.RLock()
-	defer lh.lock.RUnlock()
-
-	return lh.len()
-}
-
-func (lh *linkedHashMap[K, V]) Oldest() (K, V, bool) {
-	lh.lock.RLock()
-	defer lh.lock.RUnlock()
-
-	return lh.oldest()
-}
-
-func (lh *linkedHashMap[K, V]) Newest() (K, V, bool) {
-	lh.lock.RLock()
-	defer lh.lock.RUnlock()
-
-	return lh.newest()
-}
-
-func (lh *linkedHashMap[K, V]) put(key K, value V) {
-	if e, ok := lh.entryMap[key]; ok {
-		lh.entryList.MoveToBack(e)
-		e.Value = keyValue[K, V]{
-			key:   key,
-			value: value,
-		}
-	} else {
-		lh.entryMap[key] = lh.entryList.PushBack(keyValue[K, V]{
-			key:   key,
-			value: value,
-		})
-	}
-}
-
-func (lh *linkedHashMap[K, V]) get(key K) (V, bool) {
-	if e, ok := lh.entryMap[key]; ok {
-		kv := e.Value.(keyValue[K, V])
-		return kv.value, true
-	}
-	return zero[V](), false
-}
-
-func (lh *linkedHashMap[K, V]) delete(key K) {
-	if e, ok := lh.entryMap[key]; ok {
-		lh.entryList.Remove(e)
-		delete(lh.entryMap, key)
-	}
-}
-
-func (lh *linkedHashMap[K, V]) len() int {
-	return len(lh.entryMap)
-}
-
-func (lh *linkedHashMap[K, V]) oldest() (K, V, bool) {
-	if val := lh.entryList.Front(); val != nil {
-		kv := val.Value.(keyValue[K, V])
-		return kv.key, kv.value, true
-	}
-	return zero[K](), zero[V](), false
-}
-
-func (lh *linkedHashMap[K, V]) newest() (K, V, bool) {
-	if val := lh.entryList.Back(); val != nil {
-		kv := val.Value.(keyValue[K, V])
-		return kv.key, kv.value, true
-	}
-	return zero[K](), zero[V](), false
-}
-
-func (lh *linkedHashMap[K, V]) Iterator() mapIterator[K, V] {
-	return &linkedHashMapIterator[K, V]{lh: lh}
 }

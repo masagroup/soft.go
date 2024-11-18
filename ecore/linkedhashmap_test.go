@@ -94,8 +94,8 @@ func TestLinkedHashMap_Iterator(t *testing.T) {
 		it := lh.Iterator()
 		require.NotNil(t, it)
 		// Should immediately be exhausted
-		require.False(t, it.Next())
-		require.False(t, it.Next())
+		require.False(t, it.HasNext())
+		require.False(t, it.HasNext())
 		// Should be empty
 		require.Zero(t, it.Key())
 		require.Zero(t, it.Value())
@@ -107,25 +107,25 @@ func TestLinkedHashMap_Iterator(t *testing.T) {
 		it := lh.Iterator()
 		require.NotNil(t, it)
 		lh.Put(1, 1)
-		require.True(t, it.Next())
+		require.True(t, it.HasNext())
 		require.Equal(t, 1, it.Key())
 		require.Equal(t, 1, it.Value())
 		// Should be empty
-		require.False(t, it.Next())
+		require.False(t, it.HasNext())
 		// Re-assign 1 --> 10
 		lh.Put(1, 10)
 		it = lh.Iterator() // New iterator
-		require.True(t, it.Next())
+		require.True(t, it.HasNext())
 		require.Equal(t, 1, it.Key())
 		require.Equal(t, 10, it.Value())
 		// Should be empty
-		require.False(t, it.Next())
+		require.False(t, it.HasNext())
 		// Delete 1
 		lh.Delete(1)
 		it = lh.Iterator()
 		require.NotNil(t, it)
 		// Should immediately be exhausted
-		require.False(t, it.Next())
+		require.False(t, it.HasNext())
 	}
 
 	// Case: Multiple elements
@@ -136,17 +136,17 @@ func TestLinkedHashMap_Iterator(t *testing.T) {
 		lh.Put(3, 3)
 		it := lh.Iterator()
 		// Should give back all 3 elements
-		require.True(t, it.Next())
+		require.True(t, it.HasNext())
 		require.Equal(t, 1, it.Key())
 		require.Equal(t, 1, it.Value())
-		require.True(t, it.Next())
+		require.True(t, it.HasNext())
 		require.Equal(t, 2, it.Key())
 		require.Equal(t, 2, it.Value())
-		require.True(t, it.Next())
+		require.True(t, it.HasNext())
 		require.Equal(t, 3, it.Key())
 		require.Equal(t, 3, it.Value())
 		// Should be exhausted
-		require.False(t, it.Next())
+		require.False(t, it.HasNext())
 	}
 
 	// Case: Delete element that has been iterated over
@@ -156,14 +156,14 @@ func TestLinkedHashMap_Iterator(t *testing.T) {
 		lh.Put(2, 2)
 		lh.Put(3, 3)
 		it := lh.Iterator()
-		require.True(t, it.Next())
-		require.True(t, it.Next())
+		require.True(t, it.HasNext())
+		require.True(t, it.HasNext())
 		lh.Delete(1)
 		lh.Delete(2)
-		require.True(t, it.Next())
+		require.True(t, it.HasNext())
 		require.Equal(t, 3, it.Key())
 		require.Equal(t, 3, it.Value())
 		// Should be exhausted
-		require.False(t, it.Next())
+		require.False(t, it.HasNext())
 	}
 }

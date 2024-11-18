@@ -11,13 +11,7 @@ package ecore
 
 // EList is the interface for dynamic containers
 type EList interface {
-	// Add adds element at the end of the list
-	// returns true if element was added
-	Add(element any) bool
-
-	// Add adds collection at the end of the list
-	// returns true if collection was added to the list
-	AddAll(collection EList) bool
+	Collection
 
 	// Insert inserts element at specified index
 	// returns true if element was added
@@ -25,7 +19,7 @@ type EList interface {
 
 	// Insert inserts collection at specified index
 	// returns true if element was added
-	InsertAll(index int, element EList) bool
+	InsertAll(index int, element Collection) bool
 
 	// MoveObject moves eleemnt to specified index
 	MoveObject(index int, element any)
@@ -47,32 +41,6 @@ type EList interface {
 	// RemoveRange removes elements in [fromIndex,toIndex) range
 	RemoveRange(fromIndex int, toIndex int)
 
-	// Remove removes element from the list
-	// returns true if element was effectively removed
-	Remove(element any) bool
-
-	// RemoveAll removes collection from the list
-	// returns true if collection was effectively removed
-	RemoveAll(collection EList) bool
-
-	// Size returns the size of the list
-	Size() int
-
-	// Clear clears the list
-	Clear()
-
-	// Empty returns true if list is empty , false otherwise
-	Empty() bool
-
-	// Contains returns true if list constians element, false otherwise
-	Contains(element any) bool
-
 	// IndexOf returns the index of element in the list if present, -1 otherwise
 	IndexOf(any) int
-
-	// Iterator returns the list iterator
-	Iterator() EIterator
-
-	// ToArray returns the list array
-	ToArray() []any
 }

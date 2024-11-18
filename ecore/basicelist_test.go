@@ -247,9 +247,9 @@ func TestBasicEListIterate(t *testing.T) {
 
 func TestBasicEListAddAllUnique(t *testing.T) {
 	arr := NewUniqueBasicEList([]any{3, 5, 7, 5})
-	arr2 := NewUniqueBasicEList([]any{2})
+	arr2 := NewUniqueBasicEList([]any{2, 7})
 	arr2.AddAll(arr)
-	assert.Equal(t, []any{2, 3, 5, 7}, arr2.ToArray())
+	assert.Equal(t, []any{2, 7, 3, 5}, arr2.ToArray())
 	arr3 := NewBasicEList(nil)
 	assert.False(t, arr2.AddAll(arr3))
 }

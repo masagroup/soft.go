@@ -258,7 +258,6 @@ func TestEStoreList_AddAll(t *testing.T) {
 	require.NotNil(t, list)
 	assert.Equal(t, 0, list.Size())
 
-	mockStore.EXPECT().Contains(mockOwner, mockFeature, 1).Return(false).Once()
 	mockStore.EXPECT().AddAll(mockOwner, mockFeature, 0, mock.Anything).Once()
 	mockOwner.EXPECT().EDeliver().Return(false).Once()
 	assert.True(t, list.AddAll(NewImmutableEList([]any{1})))
@@ -283,13 +282,7 @@ func TestEStoreList_InsertAll(t *testing.T) {
 	})
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
-	// already present element
-	mockStore.EXPECT().Contains(mockOwner, mockFeature, 1).Return(true).Once()
-	assert.False(t, list.InsertAll(0, NewImmutableEList([]any{1})))
-	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
-
 	// single element inserted
-	mockStore.EXPECT().Contains(mockOwner, mockFeature, 1).Return(false).Once()
 	mockStore.EXPECT().AddAll(mockOwner, mockFeature, 0, mock.Anything).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
@@ -300,18 +293,22 @@ func TestEStoreList_InsertAll(t *testing.T) {
 	assert.Equal(t, 1, list.Size())
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
-	mockStore.EXPECT().Contains(mockOwner, mockFeature, 1).Return(false).Once()
-	mockStore.EXPECT().Contains(mockOwner, mockFeature, 2).Return(false).Once()
+	// already present element
+	mockStore.EXPECT().Get(mockOwner, mockFeature, 0).Return(1).Once()
+	assert.False(t, list.InsertAll(0, NewImmutableEList([]any{1})))
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+
+	// already present and new one
+	mockStore.EXPECT().Get(mockOwner, mockFeature, 0).Return(1).Once()
 	mockStore.EXPECT().AddAll(mockOwner, mockFeature, 0, mock.Anything).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
 	mockOwner.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {
-		return n.GetNotifier() == mockOwner && n.GetFeature() == mockFeature && n.GetEventType() == ADD_MANY
+		return n.GetNotifier() == mockOwner && n.GetFeature() == mockFeature && n.GetEventType() == ADD
 	})).Once()
 	assert.True(t, list.InsertAll(0, NewImmutableEList([]any{1, 2})))
-	assert.Equal(t, 3, list.Size())
+	assert.Equal(t, 2, list.Size())
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
-
 }
 
 func TestEStoreList_MoveObject(t *testing.T) {

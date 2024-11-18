@@ -63,7 +63,7 @@ func (list *basicEObjectList) GetUnResolvedList() EList {
 	return list
 }
 
-func (list *basicEObjectList) RemoveAll(collection EList) bool {
+func (list *basicEObjectList) RemoveAll(collection Collection) bool {
 	return list.doRemoveAll(collection, func(i int, a any) bool {
 		e := list.data[i]
 		return e == a || list.resolve(i, e) == a
@@ -167,7 +167,7 @@ func (list *unResolvedBasicEObjectList) RemoveWithNotification(object any, notif
 	return notifications
 }
 
-func (list *unResolvedBasicEObjectList) RemoveAll(c EList) bool {
+func (list *unResolvedBasicEObjectList) RemoveAll(c Collection) bool {
 	return list.delegate.doRemoveAll(c, func(i int, a any) bool {
 		return list.delegate.data[i] == a
 	})

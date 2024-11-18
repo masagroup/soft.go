@@ -10,7 +10,7 @@ func (list *AbstractDelegatingEList[T]) doAdd(e any) {
 	list.delegate.doAdd(e)
 }
 
-func (list *AbstractDelegatingEList[T]) doAddAll(c EList) bool {
+func (list *AbstractDelegatingEList[T]) doAddAll(c Collection) bool {
 	return list.delegate.doAddAll(c)
 }
 
@@ -18,7 +18,7 @@ func (list *AbstractDelegatingEList[T]) doInsert(index int, e any) {
 	list.delegate.doInsert(index, e)
 }
 
-func (list *AbstractDelegatingEList[T]) doInsertAll(index int, collection EList) bool {
+func (list *AbstractDelegatingEList[T]) doInsertAll(index int, collection Collection) bool {
 	return list.delegate.doInsertAll(index, collection)
 }
 

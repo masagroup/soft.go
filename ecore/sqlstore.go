@@ -1064,7 +1064,7 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 	}
 }
 
-func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int, c EList) {
+func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int, c Collection) {
 	conn, err := s.pool.Take(context.Background())
 	if err != nil {
 		s.errorHandler(err)

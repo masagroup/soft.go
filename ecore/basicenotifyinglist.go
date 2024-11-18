@@ -6,11 +6,11 @@ type abstractENotifyingList interface {
 
 	performAdd(object any)
 
-	performAddAll(list EList)
+	performAddAll(list Collection)
 
 	performInsert(index int, object any)
 
-	performInsertAll(index int, list EList) bool
+	performInsertAll(index int, list Collection) bool
 
 	performClear() []any
 
@@ -182,7 +182,7 @@ func (list *BasicENotifyingList) doAdd(object any) {
 	list.createAndDispatchNotification(notifications, ADD, nil, object, index)
 }
 
-func (list *BasicENotifyingList) doAddAll(collection EList) bool {
+func (list *BasicENotifyingList) doAddAll(collection Collection) bool {
 	notifyingList := list.asAbstractENotifyingList()
 	return list.doInsertAll(notifyingList.Size(), collection)
 }
@@ -194,7 +194,7 @@ func (list *BasicENotifyingList) doInsert(index int, object any) {
 	list.createAndDispatchNotification(notifications, ADD, nil, object, index)
 }
 
-func (list *BasicENotifyingList) doInsertAll(index int, l EList) bool {
+func (list *BasicENotifyingList) doInsertAll(index int, l Collection) bool {
 	if l.Empty() {
 		return false
 	}
@@ -206,7 +206,7 @@ func (list *BasicENotifyingList) doInsertAll(index int, l EList) bool {
 	}
 	list.createAndDispatchNotificationFn(notifications, func() ENotification {
 		if l.Size() == 1 {
-			return list.createNotification(ADD, nil, l.Get(0), index)
+			return list.createNotification(ADD, nil, l.Iterator().Next(), index)
 		} else {
 			return list.createNotification(ADD_MANY, nil, l.ToArray(), index)
 		}
@@ -292,7 +292,7 @@ func (list *BasicENotifyingList) doRemoveRange(fromIndex int, toIndex int) []any
 	return objects
 }
 
-func (list *BasicENotifyingList) RemoveAll(collection EList) bool {
+func (list *BasicENotifyingList) RemoveAll(collection Collection) bool {
 	return list.doRemoveAll(
 		collection,
 		func(index int, other any) bool {
@@ -300,7 +300,7 @@ func (list *BasicENotifyingList) RemoveAll(collection EList) bool {
 		})
 }
 
-func (list *BasicENotifyingList) doRemoveAll(collection EList, getAndCompare func(int, any) bool) bool {
+func (list *BasicENotifyingList) doRemoveAll(collection Collection, getAndCompare func(int, any) bool) bool {
 	var positions []any
 	var removed []any
 	notifyingList := list.asAbstractENotifyingList()
@@ -308,8 +308,9 @@ func (list *BasicENotifyingList) doRemoveAll(collection EList, getAndCompare fun
 	// compute positions and removed objects
 	if !collection.Empty() {
 		for i := 0; i < notifyingList.Size(); i++ {
-			for j := 0; j < collection.Size(); j++ {
-				object := collection.Get(j)
+			j := 0
+			for itCollection := collection.Iterator(); itCollection.HasNext(); j++ {
+				object := itCollection.Next()
 				if getAndCompare(i, object) {
 					positions = append(positions, i)
 					removed = append(removed, object)
@@ -351,7 +352,7 @@ func (list *BasicENotifyingList) performAdd(object any) {
 	list.BasicEList.doAdd(object)
 }
 
-func (list *BasicENotifyingList) performAddAll(l EList) {
+func (list *BasicENotifyingList) performAddAll(l Collection) {
 	list.BasicEList.doAddAll(l)
 }
 
@@ -359,7 +360,7 @@ func (list *BasicENotifyingList) performInsert(index int, object any) {
 	list.BasicEList.doInsert(index, object)
 }
 
-func (list *BasicENotifyingList) performInsertAll(index int, l EList) bool {
+func (list *BasicENotifyingList) performInsertAll(index int, l Collection) bool {
 	return list.BasicEList.doInsertAll(index, l)
 }
 

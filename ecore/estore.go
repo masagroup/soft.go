@@ -34,7 +34,7 @@ type EStore interface {
 
 	Add(object EObject, feature EStructuralFeature, index int, value any)
 
-	AddAll(object EObject, feature EStructuralFeature, index int, collection EList)
+	AddAll(object EObject, feature EStructuralFeature, index int, collection Collection)
 
 	Remove(object EObject, feature EStructuralFeature, index int) any
 

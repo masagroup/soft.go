@@ -89,8 +89,8 @@ func TestMockEList_AddAll(t *testing.T) {
 	l := NewMockEList(t)
 	c := NewMockEList(t)
 	m := NewMockRun(t, c)
-	l.EXPECT().AddAll(c).Return(true).Run(func(c EList) { m.Run(c) }).Once()
-	l.EXPECT().AddAll(c).Call.Return(func(EList) bool { return true }).Once()
+	l.EXPECT().AddAll(c).Return(true).Run(func(c Collection) { m.Run(c) }).Once()
+	l.EXPECT().AddAll(c).Call.Return(func(Collection) bool { return true }).Once()
 	assert.True(t, l.AddAll(c))
 	assert.True(t, l.AddAll(c))
 }
@@ -99,8 +99,8 @@ func TestMockEList_InsertAll(t *testing.T) {
 	l := NewMockEList(t)
 	c := NewMockEList(t)
 	m := NewMockRun(t, 0, c)
-	l.EXPECT().InsertAll(0, c).Return(true).Run(func(i int, c EList) { m.Run(i, c) }).Once()
-	l.EXPECT().InsertAll(0, c).Call.Return(func(int, EList) bool { return true }).Once()
+	l.EXPECT().InsertAll(0, c).Return(true).Run(func(i int, c Collection) { m.Run(i, c) }).Once()
+	l.EXPECT().InsertAll(0, c).Call.Return(func(int, Collection) bool { return true }).Once()
 	assert.True(t, l.InsertAll(0, c))
 	assert.True(t, l.InsertAll(0, c))
 }
@@ -109,8 +109,8 @@ func TestMockEList_RemoveAll(t *testing.T) {
 	l := NewMockEList(t)
 	c := NewMockEList(t)
 	m := NewMockRun(t, c)
-	l.EXPECT().RemoveAll(c).Return(true).Run(func(c EList) { m.Run(c) }).Once()
-	l.EXPECT().RemoveAll(c).Call.Return(func(EList) bool {
+	l.EXPECT().RemoveAll(c).Return(true).Run(func(c Collection) { m.Run(c) }).Once()
+	l.EXPECT().RemoveAll(c).Call.Return(func(Collection) bool {
 		return true
 	}).Once()
 	assert.True(t, l.RemoveAll(c))

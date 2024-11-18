@@ -1,5 +1,7 @@
 package ecore
 
+import "iter"
+
 type eContentsList struct {
 	emptyImmutableEList
 	o        EObject
@@ -154,6 +156,17 @@ func (l *eContentsList) IndexOf(elem any) int {
 // Iterator through the array
 func (l *eContentsList) Iterator() EIterator {
 	return &eContentsListIterator{l: l}
+}
+
+// Range iterator
+func (l *eContentsList) All() iter.Seq[any] {
+	return func(yield func(any) bool) {
+		for it := l.Iterator(); it.HasNext(); {
+			if !yield(it.Next()) {
+				return
+			}
+		}
+	}
 }
 
 // ToArray convert to array

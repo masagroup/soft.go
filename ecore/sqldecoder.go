@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -524,14 +525,14 @@ func (d *sqlDecoder) decodeFeatureData(featureSchema *sqlFeatureSchema, v string
 
 type SQLDecoder struct {
 	sqlDecoder
-	resource     EResource
-	connProvider func() (*sqlite.Conn, error)
-	connClose    func(conn *sqlite.Conn) error
+	resource               EResource
+	connectionPoolProvider func() (*sqlitex.Pool, error)
+	connectionPoolClose    func(conn *sqlitex.Pool) error
 }
 
 func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any) *SQLDecoder {
 	return newSQLDecoder(
-		func() (*sqlite.Conn, error) {
+		func() (*sqlitex.Pool, error) {
 			fileName := filepath.Base(resource.GetURI().Path())
 			dbPath, err := sqlTmpDB(fileName)
 			if err != nil {
@@ -550,22 +551,22 @@ func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any
 			}
 			dbFile.Close()
 
-			return sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
+			return sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenReadOnly})
 
 		},
-		func(conn *sqlite.Conn) error {
-			return conn.Close()
+		func(connPool *sqlitex.Pool) error {
+			return connPool.Close()
 		},
 		resource,
 		options)
 }
 
-func NewSQLDBDecoder(conn *sqlite.Conn, resource EResource, options map[string]any) *SQLDecoder {
+func NewSQLDBDecoder(connPool *sqlitex.Pool, resource EResource, options map[string]any) *SQLDecoder {
 	return newSQLDecoder(
-		func() (*sqlite.Conn, error) {
-			return conn, nil
+		func() (*sqlitex.Pool, error) {
+			return connPool, nil
 		},
-		func(db *sqlite.Conn) error {
+		func(pool *sqlitex.Pool) error {
 			return nil
 		},
 		resource,
@@ -573,7 +574,7 @@ func NewSQLDBDecoder(conn *sqlite.Conn, resource EResource, options map[string]a
 	)
 }
 
-func newSQLDecoder(connProvider func() (*sqlite.Conn, error), connClose func(conn *sqlite.Conn) error, resource EResource, options map[string]any) *SQLDecoder {
+func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connectionPoolClose func(conn *sqlitex.Pool) error, resource EResource, options map[string]any) *SQLDecoder {
 	// options
 	schemaOptions := []sqlSchemaOption{}
 	idAttributeName := ""
@@ -609,54 +610,55 @@ func newSQLDecoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 			sqlObjectManager: newSqlDecoderObjectManager(),
 			classDataMap:     map[EClass]*sqlDecoderClassData{},
 		},
-		resource:     resource,
-		connProvider: connProvider,
-		connClose:    connClose,
+		resource:               resource,
+		connectionPoolProvider: connectionPoolProvider,
+		connectionPoolClose:    connectionPoolClose,
 	}
 }
 
 func (d *SQLDecoder) DecodeResource() {
-	conn, err := d.connProvider()
+	connectionPool, err := d.connectionPoolProvider()
 	if err != nil {
 		d.addError(err)
 		return
 	}
 	defer func() {
-		if err := d.connClose(conn); err != nil {
+		if err := d.connectionPoolClose(connectionPool); err != nil {
 			d.addError(err)
 		}
 	}()
-	if err := d.decodeVersion(conn); err != nil {
+
+	if err := d.decodeVersion(connectionPool); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodePackages(conn); err != nil {
+	if err := d.decodePackages(connectionPool); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodeEnums(conn); err != nil {
+	if err := d.decodeEnums(connectionPool); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodeClasses(conn); err != nil {
+	if err := d.decodeClasses(connectionPool); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodeObjects(conn); err != nil {
+	if err := d.decodeObjects(connectionPool); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodeFeatures(conn); err != nil {
+	if err := d.decodeFeatures(connectionPool); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodeContents(conn); err != nil {
+	if err := d.decodeContents(connectionPool); err != nil {
 		d.addError(err)
 		return
 	}
@@ -666,7 +668,13 @@ func (d *SQLDecoder) DecodeObject() (EObject, error) {
 	panic("SQLDecoder doesn't support object decoding")
 }
 
-func (d *SQLDecoder) decodeVersion(conn *sqlite.Conn) error {
+func (d *SQLDecoder) decodeVersion(connectionPool *sqlitex.Pool) error {
+	conn, err := connectionPool.Take(context.Background())
+	if err != nil {
+		return err
+	}
+	defer connectionPool.Put(conn)
+
 	var version int64
 	if err := sqlitex.ExecuteTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
@@ -683,7 +691,13 @@ func (d *SQLDecoder) decodeVersion(conn *sqlite.Conn) error {
 	return nil
 }
 
-func (d *SQLDecoder) decodeContents(conn *sqlite.Conn) error {
+func (d *SQLDecoder) decodeContents(connectionPool *sqlitex.Pool) error {
+	conn, err := connectionPool.Take(context.Background())
+	if err != nil {
+		return err
+	}
+	defer connectionPool.Put(conn)
+
 	return sqlitex.ExecuteTransient(
 		conn,
 		d.schema.contentsTable.selectQuery(nil, "", ""),
@@ -700,7 +714,13 @@ func (d *SQLDecoder) decodeContents(conn *sqlite.Conn) error {
 		})
 }
 
-func (d *SQLDecoder) decodePackages(conn *sqlite.Conn) error {
+func (d *SQLDecoder) decodePackages(connectionPool *sqlitex.Pool) error {
+	conn, err := connectionPool.Take(context.Background())
+	if err != nil {
+		return err
+	}
+	defer connectionPool.Put(conn)
+
 	return sqlitex.ExecuteTransient(
 		conn,
 		d.schema.packagesTable.selectQuery(nil, "", ""),
@@ -718,7 +738,13 @@ func (d *SQLDecoder) decodePackages(conn *sqlite.Conn) error {
 		})
 }
 
-func (d *SQLDecoder) decodeEnums(conn *sqlite.Conn) error {
+func (d *SQLDecoder) decodeEnums(connectionPool *sqlitex.Pool) error {
+	conn, err := connectionPool.Take(context.Background())
+	if err != nil {
+		return err
+	}
+	defer connectionPool.Put(conn)
+
 	return sqlitex.ExecuteTransient(
 		conn,
 		d.schema.enumsTable.selectQuery(nil, "", ""),
@@ -751,7 +777,13 @@ func (d *SQLDecoder) decodeEnums(conn *sqlite.Conn) error {
 		})
 }
 
-func (d *SQLDecoder) decodeClasses(conn *sqlite.Conn) error {
+func (d *SQLDecoder) decodeClasses(connectionPool *sqlitex.Pool) error {
+	conn, err := connectionPool.Take(context.Background())
+	if err != nil {
+		return err
+	}
+	defer connectionPool.Put(conn)
+
 	return sqlitex.ExecuteTransient(
 		conn,
 		d.schema.classesTable.selectQuery(nil, "", ""),
@@ -780,7 +812,13 @@ func (d *SQLDecoder) decodeClasses(conn *sqlite.Conn) error {
 		})
 }
 
-func (d *SQLDecoder) decodeObjects(conn *sqlite.Conn) error {
+func (d *SQLDecoder) decodeObjects(connectionPool *sqlitex.Pool) error {
+	conn, err := connectionPool.Take(context.Background())
+	if err != nil {
+		return err
+	}
+	defer connectionPool.Put(conn)
+
 	return sqlitex.ExecuteTransient(
 		conn,
 		d.schema.objectsTable.selectQuery(nil, "", ""),
@@ -821,7 +859,13 @@ func (d *SQLDecoder) decodeObjects(conn *sqlite.Conn) error {
 		})
 }
 
-func (d *SQLDecoder) decodeFeatures(conn *sqlite.Conn) error {
+func (d *SQLDecoder) decodeFeatures(connectionPool *sqlitex.Pool) error {
+	conn, err := connectionPool.Take(context.Background())
+	if err != nil {
+		return err
+	}
+	defer connectionPool.Put(conn)
+
 	decoded := map[EClass]struct{}{}
 	// for each leaf class
 	for _, classData := range d.classDataMap {

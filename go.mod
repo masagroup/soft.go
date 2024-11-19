@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/KarpelesLab/weak v0.1.1
-	github.com/OneOfOne/go-utils v0.0.0-20180319162427-6019ff89a94e
+	github.com/chebyrash/promise v0.0.0-20230709133807-42ec49ba1459
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/uuid v1.6.0
 	github.com/karlseguin/jsonwriter v1.0.4-0.20170525085137-6f05566bac1c
@@ -21,9 +21,13 @@ require (
 	github.com/karlseguin/expect v1.0.8 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
+	github.com/panjf2000/ants/v2 v2.8.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/text v0.20.0 // indirect

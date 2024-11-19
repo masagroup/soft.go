@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/chebyrash/promise"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
@@ -860,24 +861,31 @@ func (d *SQLDecoder) decodeObjects(connectionPool *sqlitex.Pool) error {
 }
 
 func (d *SQLDecoder) decodeFeatures(connectionPool *sqlitex.Pool) error {
-	conn, err := connectionPool.Take(context.Background())
-	if err != nil {
-		return err
-	}
-	defer connectionPool.Put(conn)
-
 	decoded := map[EClass]struct{}{}
+	decoding := []*promise.Promise[any]{}
 	// for each leaf class
 	for _, classData := range d.classDataMap {
 		eClass := classData.eClass
 		itSuper := eClass.GetEAllSuperTypes().Iterator()
 		for eClass != nil {
 			// decode class features
-			if _, idDecoded := decoded[eClass]; !idDecoded {
-				decoded[eClass] = struct{}{}
-				if err := d.decodeClassFeatures(conn, eClass); err != nil {
-					return err
-				}
+			decodingClass := eClass
+			if _, isDecoded := decoded[decodingClass]; !isDecoded {
+				decoded[decodingClass] = struct{}{}
+				decoding = append(decoding, promise.New(func(resolve func(any), reject func(error)) {
+					conn, err := connectionPool.Take(context.Background())
+					if err != nil {
+						reject(err)
+						return
+					}
+					defer connectionPool.Put(conn)
+
+					if err := d.decodeClassFeatures(conn, decodingClass); err != nil {
+						reject(err)
+					} else {
+						resolve(nil)
+					}
+				}))
 			}
 
 			// next super class
@@ -888,7 +896,8 @@ func (d *SQLDecoder) decodeFeatures(connectionPool *sqlitex.Pool) error {
 			}
 		}
 	}
-	return nil
+	_, err := promise.All(context.Background(), decoding...).Await(context.Background())
+	return err
 }
 
 func (d *SQLDecoder) decodeClassFeatures(conn *sqlite.Conn, eClass EClass) error {

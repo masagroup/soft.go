@@ -3,6 +3,7 @@ package ecore
 import (
 	"database/sql"
 	"strings"
+	"sync"
 )
 
 type sqlColumn struct {
@@ -289,6 +290,7 @@ type sqlFeatureSchema struct {
 }
 
 type sqlSchema struct {
+	mutex             sync.Mutex
 	packagesTable     *sqlTable
 	classesTable      *sqlTable
 	objectsTable      *sqlTable
@@ -386,6 +388,12 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 }
 
 func (s *sqlSchema) getClassSchema(eClass EClass) *sqlClassSchema {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.getOrComputeClassSchema(eClass)
+}
+
+func (s *sqlSchema) getOrComputeClassSchema(eClass EClass) *sqlClassSchema {
 	classSchema := s.classSchemaMap[eClass]
 	if classSchema == nil {
 		// create table descriptor
@@ -439,14 +447,14 @@ func (s *sqlSchema) getClassSchema(eClass EClass) *sqlClassSchema {
 			case sfkObject:
 				// retrieve object reference type
 				eReference := eFeature.(EReference)
-				referenceSchema := s.getClassSchema(eReference.GetEReferenceType())
+				referenceSchema := s.getOrComputeClassSchema(eReference.GetEReferenceType())
 				newFeatureReferenceColumn(featureSchema, eFeature, referenceSchema.table)
 			case sfkObjectReference:
 				newFeatureAttributeColumn(featureSchema, eFeature, "TEXT")
 			case sfkObjectList:
 				// internal reference
 				eReference := eFeature.(EReference)
-				referenceSchema := s.getClassSchema(eReference.GetEReferenceType())
+				referenceSchema := s.getOrComputeClassSchema(eReference.GetEReferenceType())
 				newFeatureTable(featureSchema, eFeature,
 					newSqlReferenceColumn(classTable),
 					newSqlAttributeColumn("idx", "REAL"),

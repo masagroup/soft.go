@@ -37,12 +37,12 @@ type sqlObjectManager interface {
 	registerObject(EObject)
 }
 
-type sqlDecoderIDManager interface {
-	sqlCodecIDManager
-	getPackageFromID(int64) (EPackage, bool)
-	getObjectFromID(int64) (EObject, bool)
-	getClassFromID(int64) (EClass, bool)
-	getEnumLiteralFromID(int64) (EEnumLiteral, bool)
+type SQLDecoderIDManager interface {
+	SQLCodecIDManager
+	GetPackageFromID(int64) (EPackage, bool)
+	GetObjectFromID(int64) (EObject, bool)
+	GetClassFromID(int64) (EClass, bool)
+	GetEnumLiteralFromID(int64) (EEnumLiteral, bool)
 }
 
 type sqlDecoderClassData struct {
@@ -57,7 +57,7 @@ type sqlDecoderIDManagerImpl struct {
 	enumLiterals map[int64]EEnumLiteral
 }
 
-func newSqlDecoderIDManager() *sqlDecoderIDManagerImpl {
+func newSQLDecoderIDManager() SQLDecoderIDManager {
 	return &sqlDecoderIDManagerImpl{
 		packages:     map[int64]EPackage{},
 		objects:      map[int64]EObject{},
@@ -66,16 +66,16 @@ func newSqlDecoderIDManager() *sqlDecoderIDManagerImpl {
 	}
 }
 
-func (r *sqlDecoderIDManagerImpl) setPackageID(p EPackage, id int64) {
+func (r *sqlDecoderIDManagerImpl) SetPackageID(p EPackage, id int64) {
 	r.packages[id] = p
 }
 
-func (r *sqlDecoderIDManagerImpl) getPackageFromID(id int64) (p EPackage, b bool) {
+func (r *sqlDecoderIDManagerImpl) GetPackageFromID(id int64) (p EPackage, b bool) {
 	p, b = r.packages[id]
 	return
 }
 
-func (r *sqlDecoderIDManagerImpl) setObjectID(o EObject, id int64) {
+func (r *sqlDecoderIDManagerImpl) SetObjectID(o EObject, id int64) {
 	r.objects[id] = o
 
 	// set sql id if created object is an sql object
@@ -84,25 +84,25 @@ func (r *sqlDecoderIDManagerImpl) setObjectID(o EObject, id int64) {
 	}
 }
 
-func (r *sqlDecoderIDManagerImpl) getObjectFromID(id int64) (o EObject, b bool) {
+func (r *sqlDecoderIDManagerImpl) GetObjectFromID(id int64) (o EObject, b bool) {
 	o, b = r.objects[id]
 	return
 }
 
-func (r *sqlDecoderIDManagerImpl) setClassID(c EClass, id int64) {
+func (r *sqlDecoderIDManagerImpl) SetClassID(c EClass, id int64) {
 	r.classes[id] = c
 }
 
-func (r *sqlDecoderIDManagerImpl) getClassFromID(id int64) (c EClass, b bool) {
+func (r *sqlDecoderIDManagerImpl) GetClassFromID(id int64) (c EClass, b bool) {
 	c, b = r.classes[id]
 	return
 }
 
-func (r *sqlDecoderIDManagerImpl) setEnumLiteralID(e EEnumLiteral, id int64) {
+func (r *sqlDecoderIDManagerImpl) SetEnumLiteralID(e EEnumLiteral, id int64) {
 	r.enumLiterals[id] = e
 }
 
-func (r *sqlDecoderIDManagerImpl) getEnumLiteralFromID(id int64) (e EEnumLiteral, b bool) {
+func (r *sqlDecoderIDManagerImpl) GetEnumLiteralFromID(id int64) (e EEnumLiteral, b bool) {
 	e, b = r.enumLiterals[id]
 	return
 }
@@ -121,7 +121,7 @@ type sqlDecoder struct {
 	*sqlBase
 	classDataMap     map[EClass]*sqlDecoderClassData
 	packageRegistry  EPackageRegistry
-	sqlIDManager     sqlDecoderIDManager
+	sqlIDManager     SQLDecoderIDManager
 	sqlObjectManager sqlObjectManager
 }
 
@@ -133,7 +133,7 @@ func (d *sqlDecoder) resolveURI(uri *URI) *URI {
 }
 
 func (d *sqlDecoder) decodePackage(conn *sqlite.Conn, id int64) (EPackage, error) {
-	ePackage, isPackage := d.sqlIDManager.getPackageFromID(id)
+	ePackage, isPackage := d.sqlIDManager.GetPackageFromID(id)
 	if !isPackage {
 		table := d.schema.packagesTable
 		var packageID int64
@@ -162,13 +162,13 @@ func (d *sqlDecoder) decodePackage(conn *sqlite.Conn, id int64) (EPackage, error
 		}
 
 		// register package id
-		d.sqlIDManager.setPackageID(ePackage, packageID)
+		d.sqlIDManager.SetPackageID(ePackage, packageID)
 	}
 	return ePackage, nil
 }
 
 func (d *sqlDecoder) decodeClass(conn *sqlite.Conn, id int64) (*sqlDecoderClassData, error) {
-	eClass, isClass := d.sqlIDManager.getClassFromID(id)
+	eClass, isClass := d.sqlIDManager.GetClassFromID(id)
 	if !isClass {
 		table := d.schema.classesTable
 		var className string
@@ -198,7 +198,7 @@ func (d *sqlDecoder) decodeClass(conn *sqlite.Conn, id int64) (*sqlDecoderClassD
 			return nil, fmt.Errorf("unable to find class '%s' in package '%s'", className, ePackage.GetNsURI())
 		}
 		// set class id
-		d.sqlIDManager.setClassID(eClass, id)
+		d.sqlIDManager.SetClassID(eClass, id)
 	}
 	return d.getDecoderClassData(eClass), nil
 
@@ -242,7 +242,7 @@ func (d *sqlDecoder) decodeContents(conn *sqlite.Conn) ([]EObject, error) {
 }
 
 func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) {
-	eObject, isObject := d.sqlIDManager.getObjectFromID(id)
+	eObject, isObject := d.sqlIDManager.GetObjectFromID(id)
 	if !isObject {
 		table := d.schema.objectsTable
 		var classID int64
@@ -282,7 +282,7 @@ func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) 
 		}
 
 		// register in sql id manager
-		d.sqlIDManager.setObjectID(eObject, id)
+		d.sqlIDManager.SetObjectID(eObject, id)
 
 		// register in sql object maneger
 		d.sqlObjectManager.registerObject(eObject)
@@ -291,7 +291,7 @@ func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) 
 }
 
 func (d *sqlDecoder) decodeEnumLiteral(conn *sqlite.Conn, id int64) (EEnumLiteral, error) {
-	eEnumLiteral, isEnumLiteral := d.sqlIDManager.getEnumLiteralFromID(id)
+	eEnumLiteral, isEnumLiteral := d.sqlIDManager.GetEnumLiteralFromID(id)
 	if !isEnumLiteral {
 		table := d.schema.enumsTable
 		var enumID int64
@@ -332,7 +332,7 @@ func (d *sqlDecoder) decodeEnumLiteral(conn *sqlite.Conn, id int64) (EEnumLitera
 		}
 
 		// register enum value
-		d.sqlIDManager.setEnumLiteralID(eEnumLiteral, enumID)
+		d.sqlIDManager.SetEnumLiteralID(eEnumLiteral, enumID)
 	}
 	return eEnumLiteral, nil
 }
@@ -580,6 +580,7 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 	schemaOptions := []sqlSchemaOption{}
 	idAttributeName := ""
 	codecVersion := sqlCodecVersion
+	sqlIDManager := newSQLDecoderIDManager()
 	if options != nil {
 		idAttributeName, _ = options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string)
 		if resource.GetObjectIDManager() != nil && len(idAttributeName) > 0 {
@@ -587,6 +588,9 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 		}
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
+		}
+		if idManager, isSQLIDManager := options[SQL_OPTION_ID_MANAGER].(SQLDecoderIDManager); isSQLIDManager {
+			sqlIDManager = idManager
 		}
 	}
 
@@ -607,7 +611,7 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 				schema:          newSqlSchema(schemaOptions...),
 			},
 			packageRegistry:  packageRegistry,
-			sqlIDManager:     newSqlDecoderIDManager(),
+			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: newSqlDecoderObjectManager(),
 			classDataMap:     map[EClass]*sqlDecoderClassData{},
 		},
@@ -705,7 +709,7 @@ func (d *SQLDecoder) decodeContents(connectionPool *sqlitex.Pool) error {
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				objectID := stmt.ColumnInt64(0)
-				object, _ := d.sqlIDManager.getObjectFromID(objectID)
+				object, _ := d.sqlIDManager.GetObjectFromID(objectID)
 				if object == nil {
 					return fmt.Errorf("unable to find object with id '%v'", objectID)
 				}
@@ -733,7 +737,7 @@ func (d *SQLDecoder) decodePackages(connectionPool *sqlitex.Pool) error {
 				if ePackage == nil {
 					return fmt.Errorf("unable to find package '%s'", packageURI)
 				}
-				d.sqlIDManager.setPackageID(ePackage, packageID)
+				d.sqlIDManager.SetPackageID(ePackage, packageID)
 				return nil
 			},
 		})
@@ -756,7 +760,7 @@ func (d *SQLDecoder) decodeEnums(connectionPool *sqlitex.Pool) error {
 				enumName := stmt.ColumnText(2)
 				literalValue := stmt.ColumnText(3)
 
-				ePackage, _ := d.sqlIDManager.getPackageFromID(packageID)
+				ePackage, _ := d.sqlIDManager.GetPackageFromID(packageID)
 				if ePackage == nil {
 					return fmt.Errorf("unable to find package with id '%d'", packageID)
 				}
@@ -772,7 +776,7 @@ func (d *SQLDecoder) decodeEnums(connectionPool *sqlitex.Pool) error {
 				}
 
 				// create map enum
-				d.sqlIDManager.setEnumLiteralID(eEnumLiteral, enumID)
+				d.sqlIDManager.SetEnumLiteralID(eEnumLiteral, enumID)
 				return nil
 			},
 		})
@@ -793,7 +797,7 @@ func (d *SQLDecoder) decodeClasses(connectionPool *sqlitex.Pool) error {
 				classID := stmt.ColumnInt64(0)
 				packageID := stmt.ColumnInt64(1)
 				className := stmt.ColumnText(2)
-				ePackage, _ := d.sqlIDManager.getPackageFromID(packageID)
+				ePackage, _ := d.sqlIDManager.GetPackageFromID(packageID)
 				if ePackage == nil {
 					return fmt.Errorf("unable to find package with id '%d'", packageID)
 				}
@@ -802,7 +806,7 @@ func (d *SQLDecoder) decodeClasses(connectionPool *sqlitex.Pool) error {
 					return fmt.Errorf("unable to find class '%s' in package '%s'", className, ePackage.GetNsURI())
 				}
 
-				d.sqlIDManager.setClassID(eClass, classID)
+				d.sqlIDManager.SetClassID(eClass, classID)
 
 				d.classDataMap[eClass] = &sqlDecoderClassData{
 					eClass:   eClass,
@@ -827,7 +831,7 @@ func (d *SQLDecoder) decodeObjects(connectionPool *sqlitex.Pool) error {
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				objectID := stmt.ColumnInt64(0)
 				classID := stmt.ColumnInt64(1)
-				eClass, _ := d.sqlIDManager.getClassFromID(classID)
+				eClass, _ := d.sqlIDManager.GetClassFromID(classID)
 				if eClass == nil {
 					return fmt.Errorf("unable to find class with id '%v'", classID)
 				}
@@ -840,7 +844,7 @@ func (d *SQLDecoder) decodeObjects(connectionPool *sqlitex.Pool) error {
 
 				// create & register object
 				eObject := classData.eFactory.Create(classData.eClass)
-				d.sqlIDManager.setObjectID(eObject, objectID)
+				d.sqlIDManager.SetObjectID(eObject, objectID)
 
 				// set its id
 				if stmt.ColumnCount() > 2 {
@@ -926,7 +930,7 @@ func (d *SQLDecoder) decodeColumnFeatures(conn *sqlite.Conn, table *sqlTable, co
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				objectID := stmt.ColumnInt64(0)
-				eObject, _ := d.sqlIDManager.getObjectFromID(objectID)
+				eObject, _ := d.sqlIDManager.GetObjectFromID(objectID)
 				if eObject == nil {
 					return fmt.Errorf("unable to find object with id '%v'", objectID)
 				}
@@ -995,7 +999,7 @@ func (d *SQLDecoder) decodeFeatureList(objectID int64, feature EStructuralFeatur
 	if len(values) == 0 {
 		return nil
 	}
-	eObject, _ := d.sqlIDManager.getObjectFromID(objectID)
+	eObject, _ := d.sqlIDManager.GetObjectFromID(objectID)
 	if eObject == nil {
 		return fmt.Errorf("unable to find object with id '%v'", objectID)
 	}

@@ -301,17 +301,11 @@ func (ss *sqlManyQueries) getRemoveQuery() string {
 	return ss.removeQuery
 }
 
-type sqlStoreIDManager struct {
-	sqlDecoderIDManagerImpl
-	sqlEncoderIDManagerImpl
-	mutex sync.Mutex
-}
-
 type sqlStoreObjectManager struct {
 	store EStore
 }
 
-func newSqlStoreObjectManager() *sqlStoreObjectManager {
+func newSQLStoreObjectManager() *sqlStoreObjectManager {
 	return &sqlStoreObjectManager{}
 }
 
@@ -322,8 +316,20 @@ func (r *sqlStoreObjectManager) registerObject(o EObject) {
 	}
 }
 
-func newSQLStoreIDManager() *sqlStoreIDManager {
-	return &sqlStoreIDManager{
+type SQLStoreIDManager interface {
+	SQLDecoderIDManager
+	SQLEncoderIDManager
+	ClearObjectID(eObject EObject)
+}
+
+type sqlStoreIDManagerImpl struct {
+	sqlDecoderIDManagerImpl
+	sqlEncoderIDManagerImpl
+	mutex sync.Mutex
+}
+
+func newSQLStoreIDManager() SQLStoreIDManager {
+	return &sqlStoreIDManagerImpl{
 		sqlDecoderIDManagerImpl: sqlDecoderIDManagerImpl{
 			packages:     map[int64]EPackage{},
 			objects:      map[int64]EObject{},
@@ -339,29 +345,29 @@ func newSQLStoreIDManager() *sqlStoreIDManager {
 	}
 }
 
-func (r *sqlStoreIDManager) setPackageID(p EPackage, id int64) {
+func (r *sqlStoreIDManagerImpl) SetPackageID(p EPackage, id int64) {
 	r.sqlDecoderIDManagerImpl.packages[id] = p
 	r.sqlEncoderIDManagerImpl.packages[p] = id
 }
 
-func (r *sqlStoreIDManager) setClassID(c EClass, id int64) {
+func (r *sqlStoreIDManagerImpl) SetClassID(c EClass, id int64) {
 	r.sqlDecoderIDManagerImpl.classes[id] = c
 	r.sqlEncoderIDManagerImpl.classes[c] = id
 }
 
-func (r *sqlStoreIDManager) getObjectFromID(id int64) (o EObject, b bool) {
+func (r *sqlStoreIDManagerImpl) GetObjectFromID(id int64) (o EObject, b bool) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	return r.sqlDecoderIDManagerImpl.getObjectFromID(id)
+	return r.sqlDecoderIDManagerImpl.GetObjectFromID(id)
 }
 
-func (r *sqlStoreIDManager) getObjectID(o EObject) (id int64, b bool) {
+func (r *sqlStoreIDManagerImpl) GetObjectID(o EObject) (id int64, b bool) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	return r.sqlEncoderIDManagerImpl.getObjectID(o)
+	return r.sqlEncoderIDManagerImpl.GetObjectID(o)
 }
 
-func (r *sqlStoreIDManager) setObjectID(o EObject, id int64) {
+func (r *sqlStoreIDManagerImpl) SetObjectID(o EObject, id int64) {
 	r.mutex.Lock()
 	r.sqlDecoderIDManagerImpl.objects[id] = o
 	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
@@ -374,7 +380,7 @@ func (r *sqlStoreIDManager) setObjectID(o EObject, id int64) {
 	r.mutex.Unlock()
 }
 
-func (r *sqlStoreIDManager) removeObjectAndID(o EObject) {
+func (r *sqlStoreIDManagerImpl) ClearObjectID(o EObject) {
 	r.mutex.Lock()
 	var id int64
 	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
@@ -387,7 +393,7 @@ func (r *sqlStoreIDManager) removeObjectAndID(o EObject) {
 	r.mutex.Unlock()
 }
 
-func (r *sqlStoreIDManager) setEnumLiteralID(e EEnumLiteral, id int64) {
+func (r *sqlStoreIDManagerImpl) SetEnumLiteralID(e EEnumLiteral, id int64) {
 	r.sqlDecoderIDManagerImpl.enumLiterals[id] = e
 	r.sqlEncoderIDManagerImpl.enumLiterals[e] = id
 }
@@ -399,7 +405,7 @@ type SQLStore struct {
 	mutex         sync.Mutex
 	pool          *sqlitex.Pool
 	errorHandler  func(error)
-	sqlIDManager  *sqlStoreIDManager
+	sqlIDManager  SQLStoreIDManager
 	singleQueries map[*sqlColumn]*sqlSingleQueries
 	manyQueries   map[*sqlTable]*sqlManyQueries
 }
@@ -410,18 +416,21 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	idAttributeName := ""
 	storeVersion := sqlCodecVersion
 	errorHandler := func(error) {}
+	sqlIDManager := newSQLStoreIDManager()
+	sqlObjectManager := newSQLStoreObjectManager()
 	if options != nil {
 		idAttributeName, _ = options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string)
 		if idManager != nil && len(idAttributeName) > 0 {
 			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
 		}
-
 		if eh, isErrorHandler := options[SQL_OPTION_ERROR_HANDLER]; isErrorHandler {
 			errorHandler = eh.(func(error))
 		}
-
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			storeVersion = v
+		}
+		if idManager, isSQLIDManager := options[SQL_OPTION_ID_MANAGER].(SQLStoreIDManager); isSQLIDManager {
+			sqlIDManager = idManager
 		}
 	}
 
@@ -468,8 +477,6 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	}
 
 	// initialize
-	sqlIDManager := newSQLStoreIDManager()
-	sqlObjectManager := newSqlStoreObjectManager()
 	// create sql store
 	store := &SQLStore{
 		sqlBase: base,
@@ -1000,7 +1007,7 @@ func (s *SQLStore) GetRoots() []EObject {
 }
 
 func (s *SQLStore) UnRegister(object EObject) {
-	s.sqlIDManager.removeObjectAndID(object)
+	s.sqlIDManager.ClearObjectID(object)
 }
 
 // RemoveRoot implements EStore.

@@ -28,9 +28,13 @@ type sqlEncoderClassData struct {
 
 type SQLEncoderIDManager interface {
 	SQLCodecIDManager
+	// Returns package id , decoded as true if package is already encoded otherwise false
 	GetPackageID(EPackage) (int64, bool)
+	// Returns object id , decoded as true if package is already encoded otherwise false
 	GetObjectID(EObject) (int64, bool)
+	// Returns class id , decoded as true if package is already encoded otherwise false
 	GetClassID(EClass) (int64, bool)
+	// Returns enum literal id , decoded as true if package is already encoded otherwise false
 	GetEnumLiteralID(EEnumLiteral) (int64, bool)
 }
 

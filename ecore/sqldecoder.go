@@ -39,9 +39,17 @@ type sqlObjectManager interface {
 
 type SQLDecoderIDManager interface {
 	SQLCodecIDManager
+	// Returns package with a specific id
+	// Returns (package with request id otherwise nil, decoded as true if package is decoded otherwise false)
 	GetPackageFromID(int64) (EPackage, bool)
+	// Returns object with a specific id
+	// Returns (object with request id otherwise nil, decoded as true if object is decoded otherwise false)
 	GetObjectFromID(int64) (EObject, bool)
+	// Returns class with a specific id
+	// Returns (class with request id otherwise nil, decoded as true if class is decoded otherwise false)
 	GetClassFromID(int64) (EClass, bool)
+	// Returns enum literal with a specific id
+	// Returns (enum literal with request id otherwise nil, decoded as true if enum literal is decoded otherwise false)
 	GetEnumLiteralFromID(int64) (EEnumLiteral, bool)
 }
 

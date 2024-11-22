@@ -64,21 +64,19 @@ func (r *sqlEncoderIDManagerImpl) GetPackageID(p EPackage) (id int64, b bool) {
 }
 
 func (r *sqlEncoderIDManagerImpl) SetObjectID(o EObject, id int64) {
+	// store it in map
+	r.objects[o] = id
 	// set sql id if created object is an sql object
 	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
 		sqlObject.SetSqlID(id)
-	} else {
-		// otherwise store it in map
-		r.objects[o] = id
 	}
 }
 
 func (r *sqlEncoderIDManagerImpl) GetObjectID(o EObject) (id int64, b bool) {
-	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
-		id = sqlObject.GetSqlID()
-		b = id != 0
-	} else {
-		id, b = r.objects[o]
+	if id, b = r.objects[o]; !b {
+		if sqlObject, _ := o.(SQLObject); sqlObject != nil {
+			id = sqlObject.GetSqlID()
+		}
 	}
 	return
 }

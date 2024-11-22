@@ -161,7 +161,6 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 	defer sqlitex.Save(conn)(&err)
 	objectID, isObjectID := e.sqlIDManager.GetObjectID(eObject)
 	if !isObjectID {
-
 		// encode object class
 		eClass := eObject.EClass()
 		classData, err := e.encodeClass(conn, eClass)
@@ -169,12 +168,19 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 			return -1, fmt.Errorf("getData('%s') error : %w", eClass.GetName(), err)
 		}
 
-		// insert object in table
-		args := []any{classData.id}
+		// args
+		args := []any{}
+		if objectID != 0 {
+			args = append(args, objectID)
+		} else {
+			args = append(args, nil)
+		}
+		args = append(args, classData.id)
 		if idManager := e.idManager; idManager != nil && len(e.idAttributeName) > 0 {
 			args = append(args, fmt.Sprintf("%v", idManager.GetID(eObject)))
 		}
 
+		// query
 		if err := sqlitex.Execute(
 			conn,
 			e.schema.objectsTable.insertQuery(),
@@ -182,8 +188,11 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 			return -1, err
 		}
 
-		// retrieve object id
-		objectID = conn.LastInsertRowID()
+		if objectID == 0 {
+			// if object id not defined, retrieve it
+			// as the last insert row id
+			objectID = conn.LastInsertRowID()
+		}
 
 		// register object in registry
 		e.sqlIDManager.SetObjectID(eObject, objectID)
@@ -321,19 +330,31 @@ func (e *sqlEncoder) encodeEnumLiteral(conn *sqlite.Conn, eEnumLiteral EEnumLite
 			return nil, err
 		}
 
+		// query args
+		args := []any{}
+		if enumLiteralID == 0 {
+			args = append(args, nil)
+		} else {
+			args = append(args, enumLiteralID)
+		}
+		args = append(args, packageID, eEnum.GetName(), eEnumLiteral.GetLiteral())
+
 		// insert enum
 		if err := sqlitex.Execute(conn, e.schema.enumsTable.insertQuery(), &sqlitex.ExecOptions{
-			Args: []any{packageID, eEnum.GetName(), eEnumLiteral.GetLiteral()},
+			Args: args,
 		}); err != nil {
 			return nil, err
 		}
 
-		// retrieve enum index
-		enumID := conn.LastInsertRowID()
+		if enumLiteralID == 0 {
+			// retrieve enum index if not defined
+			enumLiteralID = conn.LastInsertRowID()
+		}
 
 		// register enum literal
-		e.sqlIDManager.SetEnumLiteralID(eEnumLiteral, enumID)
-		return enumID, nil
+		e.sqlIDManager.SetEnumLiteralID(eEnumLiteral, enumLiteralID)
+
+		return enumLiteralID, nil
 	}
 }
 
@@ -360,16 +381,28 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 				return nil, err
 			}
 
+			// args
+			args := []any{}
+			if classID == 0 {
+				args = append(args, nil)
+			} else {
+				args = append(args, classID)
+			}
+			args = append(args, packageID, eClass.GetName())
+
 			// insert new class
 			if err := sqlitex.Execute(conn, e.schema.classesTable.insertQuery(), &sqlitex.ExecOptions{
-				Args: []any{packageID, eClass.GetName()},
+				Args: args,
 			}); err != nil {
 				return nil, err
 			}
 
-			// retrieve class index
-			classID = conn.LastInsertRowID()
+			if classID == 0 {
+				// retrieve class id
+				classID = conn.LastInsertRowID()
+			}
 
+			// set class data id
 			classData.id = classID
 
 			// register eClass with its id in registry
@@ -445,14 +478,27 @@ func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sql
 func (e *sqlEncoder) encodePackage(conn *sqlite.Conn, ePackage EPackage) (int64, error) {
 	packageID, isPackageID := e.sqlIDManager.GetPackageID(ePackage)
 	if !isPackageID {
-		// insert new package
+		// args
+		args := []any{}
+		if packageID == 0 {
+			args = append(args, nil)
+		} else {
+			args = append(args, packageID)
+		}
+		args = append(args, ePackage.GetNsURI())
+
+		// query
 		if err := sqlitex.Execute(conn, e.schema.packagesTable.insertQuery(), &sqlitex.ExecOptions{
-			Args: []any{ePackage.GetNsURI()},
+			Args: args,
 		}); err != nil {
 			return -1, err
 		}
-		// retrieve package index
-		packageID = conn.LastInsertRowID()
+
+		if packageID == 0 {
+			// retrieve package index
+			packageID = conn.LastInsertRowID()
+		}
+
 		// set package id
 		e.sqlIDManager.SetPackageID(ePackage, packageID)
 	}

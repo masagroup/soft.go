@@ -263,7 +263,7 @@ func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) 
 				Args: []any{id},
 				ResultFunc: func(stmt *sqlite.Stmt) error {
 					classID = stmt.ColumnInt64(1)
-					isObjectID = stmt.ColumnCount() > 1
+					isObjectID = stmt.ColumnCount() > 2
 					if isObjectID {
 						objectID = stmt.ColumnText(2)
 					}
@@ -865,11 +865,11 @@ func (d *SQLDecoder) decodeObjects(connectionPool *sqlitex.Pool) error {
 
 				// set its id
 				if d.idManager != nil {
-					if stmt.ColumnCount() > 1 {
+					if stmt.ColumnCount() > 2 {
 						switch stmt.ColumnType(2) {
 						case sqlite.TypeNull:
 						case sqlite.TypeText:
-							objectID := stmt.ColumnText(1)
+							objectID := stmt.ColumnText(2)
 							if err := d.idManager.SetID(eObject, objectID); err != nil {
 								return err
 							}

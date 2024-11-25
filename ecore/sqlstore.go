@@ -592,7 +592,11 @@ func (s *SQLStore) getEncoderFeatureData(conn *sqlite.Conn, object EObject, feat
 }
 
 func (s *SQLStore) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
-	return s.encodeObject(conn, eObject)
+	sqlID, isSQLID := s.sqlIDManager.GetObjectID(eObject)
+	if !isSQLID {
+		return s.encodeObject(conn, eObject)
+	}
+	return sqlID, nil
 }
 
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {

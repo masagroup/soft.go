@@ -328,7 +328,7 @@ type sqlStoreIDManagerImpl struct {
 	mutex sync.Mutex
 }
 
-func newSQLStoreIDManager() SQLStoreIDManager {
+func newSQLStoreIDManager() *sqlStoreIDManagerImpl {
 	return &sqlStoreIDManagerImpl{
 		sqlDecoderIDManagerImpl: sqlDecoderIDManagerImpl{
 			packages:     map[int64]EPackage{},
@@ -413,7 +413,7 @@ type SQLStore struct {
 	mutex         sync.Mutex
 	pool          *sqlitex.Pool
 	errorHandler  func(error)
-	sqlIDManager  SQLStoreIDManager
+	sqlIDManager  *sqlStoreIDManagerImpl
 	singleQueries map[*sqlColumn]*sqlSingleQueries
 	manyQueries   map[*sqlTable]*sqlManyQueries
 }
@@ -436,9 +436,6 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 		}
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			storeVersion = v
-		}
-		if idManager, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLStoreIDManager); isSQLIDManager {
-			sqlIDManager = idManager
 		}
 	}
 
@@ -600,9 +597,31 @@ func (s *SQLStore) getEncoderFeatureData(conn *sqlite.Conn, object EObject, feat
 }
 
 func (s *SQLStore) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
+	// retrieve sql id for eObject
 	sqlID, isSQLID := s.sqlIDManager.GetObjectID(eObject)
 	if !isSQLID {
-		return s.encodeObject(conn, eObject)
+		// object is not decoded - check if it exists in db
+		objectExists := false
+		objectsTable := s.schema.objectsTable
+		if err := sqlitex.Execute(
+			conn,
+			objectsTable.selectQuery(nil, objectsTable.keyName()+"=?", ""),
+			&sqlitex.ExecOptions{
+				Args: []any{sqlID},
+				ResultFunc: func(stmt *sqlite.Stmt) error {
+					objectExists = true
+					return nil
+				},
+			}); err != nil {
+			return 0, err
+		}
+		if objectExists {
+			// object exists - register it as decoded
+			s.sqlIDManager.sqlDecoderIDManagerImpl.objects[sqlID] = eObject
+		} else {
+			// object doesn't exists in db - encode it
+			return s.encodeObject(conn, eObject)
+		}
 	}
 	return sqlID, nil
 }

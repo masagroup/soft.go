@@ -263,6 +263,7 @@ func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) 
 				Args: []any{id},
 				ResultFunc: func(stmt *sqlite.Stmt) error {
 					classID = stmt.ColumnInt64(1)
+					isObject = true
 					isObjectID = stmt.ColumnCount() > 2
 					if isObjectID {
 						objectID = stmt.ColumnText(2)
@@ -271,6 +272,10 @@ func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) 
 				},
 			}); err != nil {
 			return nil, err
+		}
+
+		if !isObject {
+			return nil, fmt.Errorf("object with id '%v' doesn't exists", id)
 		}
 
 		// retrieve class data

@@ -419,7 +419,7 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	sqlIDManager := newSQLStoreIDManager()
 	sqlObjectManager := newSQLStoreObjectManager()
 	if options != nil {
-		idAttributeName, _ = options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string)
+		idAttributeName, _ = options[SQL_OPTION_OBJECT_ID_NAME].(string)
 		if idManager != nil && len(idAttributeName) > 0 {
 			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
 		}
@@ -429,7 +429,7 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			storeVersion = v
 		}
-		if idManager, isSQLIDManager := options[SQL_OPTION_ID_MANAGER].(SQLStoreIDManager); isSQLIDManager {
+		if idManager, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLStoreIDManager); isSQLIDManager {
 			sqlIDManager = idManager
 		}
 	}
@@ -504,7 +504,7 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	sqlObjectManager.store = store
 
 	// encode properties
-	if err := store.encodeProperties(conn); err != nil {
+	if err := store.encodePragmas(conn); err != nil {
 		return nil, err
 	}
 

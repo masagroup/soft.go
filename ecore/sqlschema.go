@@ -348,7 +348,8 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 		),
 		withSqlTableCreateIfNotExists(s.createIfNotExists),
 	)
-	if len(s.idAttributeName) > 0 {
+	// add id attribute column if name is not object table primary key
+	if len(s.idAttributeName) > 0 && s.idAttributeName != s.objectsTable.key.columnName {
 		s.objectsTable.addColumn(newSqlAttributeColumn(s.idAttributeName, "TEXT"))
 	}
 	s.contentsTable = newSqlTable(

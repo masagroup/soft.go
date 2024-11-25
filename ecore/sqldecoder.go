@@ -263,7 +263,7 @@ func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) 
 				Args: []any{id},
 				ResultFunc: func(stmt *sqlite.Stmt) error {
 					classID = stmt.ColumnInt64(1)
-					isObjectID = stmt.ColumnCount() > 2
+					isObjectID = stmt.ColumnCount() > 1
 					if isObjectID {
 						objectID = stmt.ColumnText(2)
 					}
@@ -283,10 +283,19 @@ func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) 
 		eObject = classData.eFactory.Create(classData.eClass)
 
 		// register its id
-		if isObjectID && d.idManager != nil {
-			if err := d.idManager.SetID(eObject, objectID); err != nil {
-				return nil, err
+		if d.idManager != nil {
+			if isObjectID {
+				// object id is column id
+				if err := d.idManager.SetID(eObject, objectID); err != nil {
+					return nil, err
+				}
+			} else if d.idAttributeName == table.key.columnName {
+				// object id is sql id
+				if err := d.idManager.SetID(eObject, id); err != nil {
+					return nil, err
+				}
 			}
+
 		}
 
 		// register in sql id manager
@@ -590,14 +599,14 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 	codecVersion := sqlCodecVersion
 	sqlIDManager := newSQLDecoderIDManager()
 	if options != nil {
-		idAttributeName, _ = options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string)
+		idAttributeName, _ = options[SQL_OPTION_OBJECT_ID_NAME].(string)
 		if resource.GetObjectIDManager() != nil && len(idAttributeName) > 0 {
 			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
 		}
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
 		}
-		if idManager, isSQLIDManager := options[SQL_OPTION_ID_MANAGER].(SQLDecoderIDManager); isSQLIDManager {
+		if idManager, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLDecoderIDManager); isSQLIDManager {
 			sqlIDManager = idManager
 		}
 	}
@@ -837,7 +846,7 @@ func (d *SQLDecoder) decodeObjects(connectionPool *sqlitex.Pool) error {
 		d.schema.objectsTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
-				objectID := stmt.ColumnInt64(0)
+				sqlObjectID := stmt.ColumnInt64(0)
 				classID := stmt.ColumnInt64(1)
 				eClass, _ := d.sqlIDManager.GetClassFromID(classID)
 				if eClass == nil {
@@ -852,21 +861,26 @@ func (d *SQLDecoder) decodeObjects(connectionPool *sqlitex.Pool) error {
 
 				// create & register object
 				eObject := classData.eFactory.Create(classData.eClass)
-				d.sqlIDManager.SetObjectID(eObject, objectID)
+				d.sqlIDManager.SetObjectID(eObject, sqlObjectID)
 
 				// set its id
-				if stmt.ColumnCount() > 2 {
-					switch stmt.ColumnType(2) {
-					case sqlite.TypeNull:
-					case sqlite.TypeText:
-						if d.idManager != nil {
-							id := stmt.ColumnText(2)
-							if err := d.idManager.SetID(eObject, id); err != nil {
+				if d.idManager != nil {
+					if stmt.ColumnCount() > 1 {
+						switch stmt.ColumnType(2) {
+						case sqlite.TypeNull:
+						case sqlite.TypeText:
+							objectID := stmt.ColumnText(1)
+							if err := d.idManager.SetID(eObject, objectID); err != nil {
 								return err
 							}
 						}
+					} else if d.idAttributeName == d.schema.objectsTable.key.columnName {
+						if err := d.idManager.SetID(eObject, sqlObjectID); err != nil {
+							return err
+						}
 					}
 				}
+
 				return nil
 			},
 		})

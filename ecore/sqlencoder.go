@@ -121,7 +121,7 @@ func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
 	return sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v;`, e.codecVersion), nil)
 }
 
-func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) error {
+func (e *sqlEncoder) encodePragmas(conn *sqlite.Conn) error {
 	// synchronous mode
 	if err := sqlitex.ExecuteTransient(conn, `PRAGMA synchronous = NORMAL;`, nil); err != nil {
 		return err
@@ -161,8 +161,8 @@ func (e *sqlEncoder) encodeContent(conn *sqlite.Conn, eObject EObject) error {
 
 func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
 	defer sqlitex.Save(conn)(&err)
-	objectID, isObjectID := e.sqlIDManager.GetObjectID(eObject)
-	if !isObjectID {
+	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
+	if !isSqlObjectID {
 		// encode object class
 		eClass := eObject.EClass()
 		classData, err := e.encodeClass(conn, eClass)
@@ -170,16 +170,20 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 			return -1, fmt.Errorf("getData('%s') error : %w", eClass.GetName(), err)
 		}
 
+		objectTable := e.schema.objectsTable
 		// args
 		args := []any{}
-		if objectID != 0 {
-			args = append(args, objectID)
+		if sqlObjectID != 0 {
+			args = append(args, sqlObjectID)
 		} else {
 			args = append(args, nil)
 		}
 		args = append(args, classData.id)
-		if idManager := e.idManager; idManager != nil && len(e.idAttributeName) > 0 {
-			args = append(args, fmt.Sprintf("%v", idManager.GetID(eObject)))
+
+		// object id is serialized only if we have an id manager and
+		// a corresponding column in objects table
+		if e.idManager != nil && len(objectTable.columns) > 1 {
+			args = append(args, fmt.Sprintf("%v", e.idManager.GetID(eObject)))
 		}
 
 		// query
@@ -190,14 +194,14 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 			return -1, err
 		}
 
-		if objectID == 0 {
+		if sqlObjectID == 0 {
 			// if object id not defined, retrieve it
 			// as the last insert row id
-			objectID = conn.LastInsertRowID()
+			sqlObjectID = conn.LastInsertRowID()
 		}
 
 		// register object in registry
-		e.sqlIDManager.SetObjectID(eObject, objectID)
+		e.sqlIDManager.SetObjectID(eObject, sqlObjectID)
 
 		// collection of statements
 		// used to avoid nested transactions
@@ -210,7 +214,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 
 			// encode features columnValues in table columns
 			columnValues := classTable.defaultValues()
-			columnValues[classTable.key.index] = objectID
+			columnValues[classTable.key.index] = sqlObjectID
 			for itFeature := classData.features.Iterator(); itFeature.HasNext(); {
 				eFeature := itFeature.Key()
 				if eObject.EIsSet(eFeature) || (e.keepDefaults && len(eFeature.GetDefaultValueLiteral()) > 0) {
@@ -240,7 +244,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 							if err := sqlitex.Execute(
 								conn,
 								featureTable.insertQuery(),
-								&sqlitex.ExecOptions{Args: []any{objectID, index, converted}},
+								&sqlitex.ExecOptions{Args: []any{sqlObjectID, index, converted}},
 							); err != nil {
 								return -1, err
 							}
@@ -266,7 +270,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 		e.sqlObjectManager.registerObject(eObject)
 
 	}
-	return objectID, nil
+	return sqlObjectID, nil
 }
 
 func (e *sqlEncoder) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
@@ -578,7 +582,7 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 	codecVersion := sqlCodecVersion
 	sqlIDManager := SQLEncoderIDManager(newSQLEncoderIDManager())
 	if options != nil {
-		if id, isID := options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string); isID && len(id) > 0 && resource.GetObjectIDManager() != nil {
+		if id, isID := options[SQL_OPTION_OBJECT_ID_NAME].(string); isID && len(id) > 0 && resource.GetObjectIDManager() != nil {
 			schemaOptions = append(schemaOptions, withIDAttributeName(id))
 			idAttributeName = id
 		}
@@ -588,7 +592,7 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
 		}
-		if idManager, isSQLIDManager := options[SQL_OPTION_ID_MANAGER].(SQLEncoderIDManager); isSQLIDManager {
+		if idManager, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLEncoderIDManager); isSQLIDManager {
 			sqlIDManager = idManager
 		}
 	}
@@ -634,7 +638,7 @@ func (e *SQLEncoder) EncodeResource() {
 		return
 	}
 
-	if err := e.encodeProperties(conn); err != nil {
+	if err := e.encodePragmas(conn); err != nil {
 		e.addError(err)
 		return
 	}

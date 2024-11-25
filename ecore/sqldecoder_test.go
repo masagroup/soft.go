@@ -117,7 +117,7 @@ func TestSqlDecoder_SimpleWithIDs(t *testing.T) {
 	require.NoError(t, err)
 	defer sqlReader.Close()
 
-	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_ID_ATTRIBUTE_NAME: "esyncID"})
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_OBJECT_ID_NAME: "esyncID"})
 	sqlDecoder.DecodeResource()
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }

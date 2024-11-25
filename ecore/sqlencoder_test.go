@@ -192,7 +192,7 @@ func TestSQLEncoder_Simple(t *testing.T) {
 
 }
 
-func TestSQLEncoder_SimpleWithIDs(t *testing.T) {
+func TestSQLEncoder_SimpleWithULIDs(t *testing.T) {
 	// object id manager with predefined ulids
 	ids := []ulid.ULID{}
 	for _, u := range []string{

@@ -364,7 +364,15 @@ func (r *sqlStoreIDManagerImpl) GetObjectFromID(id int64) (o EObject, b bool) {
 func (r *sqlStoreIDManagerImpl) GetObjectID(o EObject) (id int64, b bool) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	return r.sqlEncoderIDManagerImpl.GetObjectID(o)
+	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
+		// sql object with an id
+		id = sqlObject.GetSqlID()
+		// check if registered
+		_, b = r.sqlDecoderIDManagerImpl.objects[id]
+	} else {
+		id, b = r.sqlEncoderIDManagerImpl.GetObjectID(o)
+	}
+	return
 }
 
 func (r *sqlStoreIDManagerImpl) SetObjectID(o EObject, id int64) {

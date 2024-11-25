@@ -580,7 +580,7 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 	idAttributeName := ""
 	keepDefaults := false
 	codecVersion := sqlCodecVersion
-	sqlIDManager := SQLEncoderIDManager(newSQLEncoderIDManager())
+	sqlIDManager := newSQLEncoderIDManager()
 	if options != nil {
 		if id, isID := options[SQL_OPTION_OBJECT_ID_NAME].(string); isID && len(id) > 0 && resource.GetObjectIDManager() != nil {
 			schemaOptions = append(schemaOptions, withIDAttributeName(id))
@@ -591,9 +591,6 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 		}
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
-		}
-		if idManager, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLEncoderIDManager); isSQLIDManager {
-			sqlIDManager = idManager
 		}
 	}
 

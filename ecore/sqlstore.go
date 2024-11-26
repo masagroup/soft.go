@@ -596,6 +596,20 @@ func (s *SQLStore) getEncoderFeatureData(conn *sqlite.Conn, object EObject, feat
 	return featureData, nil
 }
 
+func (e *SQLStore) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
+	if value != nil {
+		switch featureData.schema.featureKind {
+		case sfkObject, sfkObjectList:
+			eObject := value.(EObject)
+			return e.getSQLID(conn, eObject)
+		default:
+			return e.sqlEncoder.encodeFeatureValue(conn, featureData, value)
+		}
+	}
+	return nil, nil
+}
+
+// get object sql id
 func (s *SQLStore) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
 	// retrieve sql id for eObject
 	sqlID, isSQLID := s.sqlIDManager.GetObjectID(eObject)
@@ -619,8 +633,8 @@ func (s *SQLStore) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
 			// object exists - register it as decoded
 			s.sqlIDManager.sqlDecoderIDManagerImpl.objects[sqlID] = eObject
 		} else {
-			// object doesn't exists in db - encode it
-			return s.encodeObject(conn, eObject)
+			// object doesn't exists in db - encode it with encoder
+			return s.sqlEncoder.encodeObject(conn, eObject)
 		}
 	}
 	return sqlID, nil

@@ -66,7 +66,7 @@ func (_m *MockSQLObject_Prototype_Methods) GetSQLID() int64 {
 	return r0
 }
 
-// MockSQLObject_GetSQLID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSqlID'
+// MockSQLObject_GetSQLID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSQLID'
 type MockSQLObject_GetSQLID_Call struct {
 	*mock.Call
 }
@@ -98,7 +98,7 @@ func (_m *MockSQLObject_Prototype_Methods) SetSQLID(_a0 int64) {
 	_m.mock.Called(_a0)
 }
 
-// MockSQLObject_SetSQLID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetSqlID'
+// MockSQLObject_SetSQLID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetSQLID'
 type MockSQLObject_SetSQLID_Call struct {
 	*mock.Call
 }

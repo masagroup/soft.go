@@ -160,9 +160,10 @@ func (e *sqlEncoder) encodeContent(conn *sqlite.Conn, eObject EObject) error {
 }
 
 func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
-	defer sqlitex.Save(conn)(&err)
 	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
 	if !isSqlObjectID {
+		defer sqlitex.Save(conn)(&err)
+
 		// encode object class
 		eClass := eObject.EClass()
 		classData, err := e.encodeClass(conn, eClass)
@@ -182,7 +183,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 
 		// object id is serialized only if we have an id manager and
 		// a corresponding column in objects table
-		if e.idManager != nil && len(objectTable.columns) > 1 {
+		if e.idManager != nil && len(objectTable.columns) > 2 {
 			args = append(args, fmt.Sprintf("%v", e.idManager.GetID(eObject)))
 		}
 
@@ -203,8 +204,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 		// register object in registry
 		e.sqlIDManager.SetObjectID(eObject, sqlObjectID)
 
-		// collection of statements
-		// used to avoid nested transactions
+		// for all object hierarchy classes
 		for _, eClass := range classData.hierarchy {
 			classData, err := e.getEncoderClassData(conn, eClass)
 			if err != nil {
@@ -277,27 +277,11 @@ func (e *sqlEncoder) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncod
 	if value != nil {
 		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:
-			if sqlObject, isSqlObject := value.(SQLObject); isSqlObject {
-				objectID := sqlObject.GetSQLID()
-				if objectID == 0 {
-					objectID, err = e.encodeObject(conn, sqlObject)
-					if err != nil {
-						return nil, err
-					}
-					sqlObject.SetSQLID(objectID)
-				}
-				return objectID, nil
-			} else if eObject, isEObject := value.(EObject); isEObject {
-				return e.encodeObject(conn, eObject)
-			}
-		case sfkObjectReference, sfkObjectReferenceList:
-			sqlID := int64(0)
 			eObject := value.(EObject)
-			if sqlObject, isSqlObject := value.(SQLObject); isSqlObject {
-				sqlID = sqlObject.GetSQLID()
-			} else {
-				sqlID, _ = e.sqlIDManager.GetObjectID(eObject)
-			}
+			return e.encodeObject(conn, eObject)
+		case sfkObjectReference, sfkObjectReferenceList:
+			eObject := value.(EObject)
+			sqlID, _ := e.sqlIDManager.GetObjectID(eObject)
 			if sqlID != 0 {
 				return strconv.FormatInt(sqlID, 10), nil
 			} else {

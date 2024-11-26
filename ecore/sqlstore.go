@@ -600,7 +600,7 @@ func (s *SQLStore) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
 	// retrieve sql id for eObject
 	sqlID, isSQLID := s.sqlIDManager.GetObjectID(eObject)
 	if !isSQLID {
-		// object is not decoded - check if it exists in db
+		// object is not in store - check if it exists in db
 		objectExists := false
 		objectsTable := s.schema.objectsTable
 		if err := sqlitex.Execute(

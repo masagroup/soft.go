@@ -343,14 +343,16 @@ func TestXMLDecoderMaps(t *testing.T) {
 		assert.Equal(t, eKeyTypeClass, key.EClass())
 		keyName := key.EGet(eKeyTypeNameAttribute).(string)
 		var keyIndex int
-		fmt.Sscanf(keyName, "key %d", &keyIndex)
+		_, err := fmt.Sscanf(keyName, "key %d", &keyIndex)
+		assert.NoError(t, err)
 
 		value, _ := v.(EObject)
 		require.NotNil(t, value)
 		assert.Equal(t, eValueTypeClass, value.EClass())
 		valueName := value.EGet(eValueTypeNameAttribute).(string)
 		var valueIndex int
-		fmt.Sscanf(valueName, "value %d", &valueIndex)
+		_, err = fmt.Sscanf(valueName, "value %d", &valueIndex)
+		assert.NoError(t, err)
 		check += keyIndex + valueIndex + 2
 	}
 	assert.Equal(t, 30, check)

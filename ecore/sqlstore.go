@@ -366,7 +366,7 @@ func (r *sqlStoreIDManagerImpl) GetObjectID(o EObject) (id int64, b bool) {
 	defer r.mutex.Unlock()
 	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
 		// sql object with an id
-		id = sqlObject.GetSqlID()
+		id = sqlObject.GetSQLID()
 		// check if registered
 		_, b = r.sqlDecoderIDManagerImpl.objects[id]
 	} else {
@@ -380,7 +380,7 @@ func (r *sqlStoreIDManagerImpl) SetObjectID(o EObject, id int64) {
 	r.sqlDecoderIDManagerImpl.objects[id] = o
 	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
 		// set sql id if created object is an sql object
-		sqlObject.SetSqlID(id)
+		sqlObject.SetSQLID(id)
 	} else {
 		// otherwse initialize map
 		r.sqlEncoderIDManagerImpl.objects[o] = id
@@ -392,7 +392,7 @@ func (r *sqlStoreIDManagerImpl) ClearObjectID(o EObject) {
 	r.mutex.Lock()
 	var id int64
 	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
-		id = sqlObject.GetSqlID()
+		id = sqlObject.GetSQLID()
 	} else {
 		id = r.sqlEncoderIDManagerImpl.objects[o]
 		delete(r.sqlEncoderIDManagerImpl.objects, o)

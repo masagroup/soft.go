@@ -68,14 +68,14 @@ func (r *sqlEncoderIDManagerImpl) SetObjectID(o EObject, id int64) {
 	r.objects[o] = id
 	// set sql id if created object is an sql object
 	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
-		sqlObject.SetSqlID(id)
+		sqlObject.SetSQLID(id)
 	}
 }
 
 func (r *sqlEncoderIDManagerImpl) GetObjectID(o EObject) (id int64, b bool) {
 	if id, b = r.objects[o]; !b {
 		if sqlObject, _ := o.(SQLObject); sqlObject != nil {
-			id = sqlObject.GetSqlID()
+			id = sqlObject.GetSQLID()
 		}
 	}
 	return
@@ -278,13 +278,13 @@ func (e *sqlEncoder) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncod
 		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:
 			if sqlObject, isSqlObject := value.(SQLObject); isSqlObject {
-				objectID := sqlObject.GetSqlID()
+				objectID := sqlObject.GetSQLID()
 				if objectID == 0 {
 					objectID, err = e.encodeObject(conn, sqlObject)
 					if err != nil {
 						return nil, err
 					}
-					sqlObject.SetSqlID(objectID)
+					sqlObject.SetSQLID(objectID)
 				}
 				return objectID, nil
 			} else if eObject, isEObject := value.(EObject); isEObject {
@@ -294,7 +294,7 @@ func (e *sqlEncoder) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncod
 			sqlID := int64(0)
 			eObject := value.(EObject)
 			if sqlObject, isSqlObject := value.(SQLObject); isSqlObject {
-				sqlID = sqlObject.GetSqlID()
+				sqlID = sqlObject.GetSQLID()
 			} else {
 				sqlID, _ = e.sqlIDManager.GetObjectID(eObject)
 			}

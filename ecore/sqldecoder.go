@@ -88,7 +88,7 @@ func (r *sqlDecoderIDManagerImpl) SetObjectID(o EObject, id int64) {
 
 	// set sql id if created object is an sql object
 	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
-		sqlObject.SetSqlID(id)
+		sqlObject.SetSQLID(id)
 	}
 }
 

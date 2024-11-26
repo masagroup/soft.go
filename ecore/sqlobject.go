@@ -2,6 +2,6 @@ package ecore
 
 type SQLObject interface {
 	EObject
-	SetSqlID(int64)
-	GetSqlID() int64
+	SetSQLID(int64)
+	GetSQLID() int64
 }

@@ -52,8 +52,8 @@ func (_m *MockSQLObject_Prototype) EXPECT() *MockSQLObject_Expecter {
 	return e
 }
 
-// GetSqlID provides a mock function with given fields:
-func (_m *MockSQLObject_Prototype_Methods) GetSqlID() int64 {
+// GetSQLID provides a mock function with given fields:
+func (_m *MockSQLObject_Prototype_Methods) GetSQLID() int64 {
 	ret := _m.mock.Called()
 
 	var r0 int64
@@ -66,62 +66,62 @@ func (_m *MockSQLObject_Prototype_Methods) GetSqlID() int64 {
 	return r0
 }
 
-// MockSQLObject_GetSqlID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSqlID'
-type MockSQLObject_GetSqlID_Call struct {
+// MockSQLObject_GetSQLID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSqlID'
+type MockSQLObject_GetSQLID_Call struct {
 	*mock.Call
 }
 
-// GetSqlID is a helper method to define mock.On call
-func (_e *MockSQLObject_Expecter_Methods) GetSqlID() *MockSQLObject_GetSqlID_Call {
-	return &MockSQLObject_GetSqlID_Call{Call: _e.mock.On("GetSqlID")}
+// GetSQLID is a helper method to define mock.On call
+func (_e *MockSQLObject_Expecter_Methods) GetSQLID() *MockSQLObject_GetSQLID_Call {
+	return &MockSQLObject_GetSQLID_Call{Call: _e.mock.On("GetSQLID")}
 }
 
-func (_c *MockSQLObject_GetSqlID_Call) Run(run func()) *MockSQLObject_GetSqlID_Call {
+func (_c *MockSQLObject_GetSQLID_Call) Run(run func()) *MockSQLObject_GetSQLID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *MockSQLObject_GetSqlID_Call) Return(_a0 int64) *MockSQLObject_GetSqlID_Call {
+func (_c *MockSQLObject_GetSQLID_Call) Return(_a0 int64) *MockSQLObject_GetSQLID_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockSQLObject_GetSqlID_Call) RunAndReturn(run func() int64) *MockSQLObject_GetSqlID_Call {
+func (_c *MockSQLObject_GetSQLID_Call) RunAndReturn(run func() int64) *MockSQLObject_GetSQLID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// SetSqlID provides a mock function with given fields: _a0
-func (_m *MockSQLObject_Prototype_Methods) SetSqlID(_a0 int64) {
+// SetSQLID provides a mock function with given fields: _a0
+func (_m *MockSQLObject_Prototype_Methods) SetSQLID(_a0 int64) {
 	_m.mock.Called(_a0)
 }
 
-// MockSQLObject_SetSqlID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetSqlID'
-type MockSQLObject_SetSqlID_Call struct {
+// MockSQLObject_SetSQLID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetSqlID'
+type MockSQLObject_SetSQLID_Call struct {
 	*mock.Call
 }
 
-// SetSqlID is a helper method to define mock.On call
+// SetSQLID is a helper method to define mock.On call
 //   - _a0 int64
-func (_e *MockSQLObject_Expecter_Methods) SetSqlID(_a0 interface{}) *MockSQLObject_SetSqlID_Call {
-	return &MockSQLObject_SetSqlID_Call{Call: _e.mock.On("SetSqlID", _a0)}
+func (_e *MockSQLObject_Expecter_Methods) SetSQLID(_a0 interface{}) *MockSQLObject_SetSQLID_Call {
+	return &MockSQLObject_SetSQLID_Call{Call: _e.mock.On("SetSQLID", _a0)}
 }
 
-func (_c *MockSQLObject_SetSqlID_Call) Run(run func(_a0 int64)) *MockSQLObject_SetSqlID_Call {
+func (_c *MockSQLObject_SetSQLID_Call) Run(run func(_a0 int64)) *MockSQLObject_SetSQLID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(int64))
 	})
 	return _c
 }
 
-func (_c *MockSQLObject_SetSqlID_Call) Return() *MockSQLObject_SetSqlID_Call {
+func (_c *MockSQLObject_SetSQLID_Call) Return() *MockSQLObject_SetSQLID_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *MockSQLObject_SetSqlID_Call) RunAndReturn(run func(int64)) *MockSQLObject_SetSqlID_Call {
+func (_c *MockSQLObject_SetSQLID_Call) RunAndReturn(run func(int64)) *MockSQLObject_SetSQLID_Call {
 	_c.Call.Return(run)
 	return _c
 }

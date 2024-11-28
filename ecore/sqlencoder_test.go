@@ -192,7 +192,7 @@ func TestSQLEncoder_Simple(t *testing.T) {
 
 }
 
-func TestSQLEncoder_SimpleWithIDs(t *testing.T) {
+func TestSQLEncoder_SimpleWithULIDs(t *testing.T) {
 	// object id manager with predefined ulids
 	ids := []ulid.ULID{}
 	for _, u := range []string{
@@ -230,7 +230,7 @@ func TestSQLEncoder_SimpleWithIDs(t *testing.T) {
 	// require.NoError(t, err)
 	// defer w.Close()
 	w := &bytes.Buffer{}
-	sqliteEncoder := NewSQLWriterEncoder(w, resource, map[string]any{SQL_OPTION_ID_ATTRIBUTE_NAME: "esyncID"})
+	sqliteEncoder := NewSQLWriterEncoder(w, resource, map[string]any{SQL_OPTION_OBJECT_ID_NAME: "esyncID"})
 	sqliteEncoder.EncodeResource()
 	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 

@@ -10,10 +10,11 @@ import (
 )
 
 const (
-	SQL_OPTION_ID_ATTRIBUTE_NAME = "ID_ATTRIBUTE_NAME" // value of the id attribute
-	SQL_OPTION_ERROR_HANDLER     = "ERROR_HANDLER"
-	SQL_OPTION_KEEP_DEFAULTS     = "KEEP_DEFAULTS"
-	SQL_OPTION_CODEC_VERSION     = "CODEC_VERSION"
+	SQL_OPTION_ERROR_HANDLER  = "ERROR_HANDLER"
+	SQL_OPTION_KEEP_DEFAULTS  = "KEEP_DEFAULTS"
+	SQL_OPTION_CODEC_VERSION  = "CODEC_VERSION"
+	SQL_OPTION_OBJECT_ID_NAME = "OBJECT_ID_NAME" // value of the id attribute
+	SQL_OPTION_SQL_ID_MANAGER = "SQL_ID_MANAGER"
 )
 
 type SQLCodec struct {
@@ -142,9 +143,9 @@ func getSQLCodecFeatureKind(eFeature EStructuralFeature) sqlFeatureKind {
 	return -1
 }
 
-type sqlCodecIDManager interface {
-	setPackageID(EPackage, int64)
-	setObjectID(EObject, int64)
-	setClassID(EClass, int64)
-	setEnumLiteralID(EEnumLiteral, int64)
+type SQLCodecIDManager interface {
+	SetPackageID(EPackage, int64)
+	SetObjectID(EObject, int64)
+	SetClassID(EClass, int64)
+	SetEnumLiteralID(EEnumLiteral, int64)
 }

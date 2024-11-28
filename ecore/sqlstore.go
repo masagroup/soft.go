@@ -301,17 +301,11 @@ func (ss *sqlManyQueries) getRemoveQuery() string {
 	return ss.removeQuery
 }
 
-type sqlStoreIDManager struct {
-	sqlDecoderIDManagerImpl
-	sqlEncoderIDManagerImpl
-	mutex sync.Mutex
-}
-
 type sqlStoreObjectManager struct {
 	store EStore
 }
 
-func newSqlStoreObjectManager() *sqlStoreObjectManager {
+func newSQLStoreObjectManager() *sqlStoreObjectManager {
 	return &sqlStoreObjectManager{}
 }
 
@@ -322,8 +316,20 @@ func (r *sqlStoreObjectManager) registerObject(o EObject) {
 	}
 }
 
-func newSQLStoreIDManager() *sqlStoreIDManager {
-	return &sqlStoreIDManager{
+type SQLStoreIDManager interface {
+	SQLDecoderIDManager
+	SQLEncoderIDManager
+	ClearObjectID(eObject EObject)
+}
+
+type sqlStoreIDManagerImpl struct {
+	sqlDecoderIDManagerImpl
+	sqlEncoderIDManagerImpl
+	mutex sync.Mutex
+}
+
+func newSQLStoreIDManager() SQLStoreIDManager {
+	return &sqlStoreIDManagerImpl{
 		sqlDecoderIDManagerImpl: sqlDecoderIDManagerImpl{
 			packages:     map[int64]EPackage{},
 			objects:      map[int64]EObject{},
@@ -339,34 +345,42 @@ func newSQLStoreIDManager() *sqlStoreIDManager {
 	}
 }
 
-func (r *sqlStoreIDManager) setPackageID(p EPackage, id int64) {
+func (r *sqlStoreIDManagerImpl) SetPackageID(p EPackage, id int64) {
 	r.sqlDecoderIDManagerImpl.packages[id] = p
 	r.sqlEncoderIDManagerImpl.packages[p] = id
 }
 
-func (r *sqlStoreIDManager) setClassID(c EClass, id int64) {
+func (r *sqlStoreIDManagerImpl) SetClassID(c EClass, id int64) {
 	r.sqlDecoderIDManagerImpl.classes[id] = c
 	r.sqlEncoderIDManagerImpl.classes[c] = id
 }
 
-func (r *sqlStoreIDManager) getObjectFromID(id int64) (o EObject, b bool) {
+func (r *sqlStoreIDManagerImpl) GetObjectFromID(id int64) (o EObject, b bool) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	return r.sqlDecoderIDManagerImpl.getObjectFromID(id)
+	return r.sqlDecoderIDManagerImpl.GetObjectFromID(id)
 }
 
-func (r *sqlStoreIDManager) getObjectID(o EObject) (id int64, b bool) {
+func (r *sqlStoreIDManagerImpl) GetObjectID(o EObject) (id int64, b bool) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	return r.sqlEncoderIDManagerImpl.getObjectID(o)
+	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
+		// sql object with an id
+		id = sqlObject.GetSQLID()
+		// check if registered
+		_, b = r.sqlDecoderIDManagerImpl.objects[id]
+	} else {
+		id, b = r.sqlEncoderIDManagerImpl.GetObjectID(o)
+	}
+	return
 }
 
-func (r *sqlStoreIDManager) setObjectID(o EObject, id int64) {
+func (r *sqlStoreIDManagerImpl) SetObjectID(o EObject, id int64) {
 	r.mutex.Lock()
 	r.sqlDecoderIDManagerImpl.objects[id] = o
 	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
 		// set sql id if created object is an sql object
-		sqlObject.SetSqlID(id)
+		sqlObject.SetSQLID(id)
 	} else {
 		// otherwse initialize map
 		r.sqlEncoderIDManagerImpl.objects[o] = id
@@ -374,11 +388,11 @@ func (r *sqlStoreIDManager) setObjectID(o EObject, id int64) {
 	r.mutex.Unlock()
 }
 
-func (r *sqlStoreIDManager) removeObjectAndID(o EObject) {
+func (r *sqlStoreIDManagerImpl) ClearObjectID(o EObject) {
 	r.mutex.Lock()
 	var id int64
 	if sqlObject, _ := o.(SQLObject); sqlObject != nil {
-		id = sqlObject.GetSqlID()
+		id = sqlObject.GetSQLID()
 	} else {
 		id = r.sqlEncoderIDManagerImpl.objects[o]
 		delete(r.sqlEncoderIDManagerImpl.objects, o)
@@ -387,7 +401,7 @@ func (r *sqlStoreIDManager) removeObjectAndID(o EObject) {
 	r.mutex.Unlock()
 }
 
-func (r *sqlStoreIDManager) setEnumLiteralID(e EEnumLiteral, id int64) {
+func (r *sqlStoreIDManagerImpl) SetEnumLiteralID(e EEnumLiteral, id int64) {
 	r.sqlDecoderIDManagerImpl.enumLiterals[id] = e
 	r.sqlEncoderIDManagerImpl.enumLiterals[e] = id
 }
@@ -399,7 +413,7 @@ type SQLStore struct {
 	mutex         sync.Mutex
 	pool          *sqlitex.Pool
 	errorHandler  func(error)
-	sqlIDManager  *sqlStoreIDManager
+	sqlIDManager  SQLStoreIDManager
 	singleQueries map[*sqlColumn]*sqlSingleQueries
 	manyQueries   map[*sqlTable]*sqlManyQueries
 }
@@ -410,18 +424,21 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	idAttributeName := ""
 	storeVersion := sqlCodecVersion
 	errorHandler := func(error) {}
+	sqlIDManager := newSQLStoreIDManager()
+	sqlObjectManager := newSQLStoreObjectManager()
 	if options != nil {
-		idAttributeName, _ = options[SQL_OPTION_ID_ATTRIBUTE_NAME].(string)
+		idAttributeName, _ = options[SQL_OPTION_OBJECT_ID_NAME].(string)
 		if idManager != nil && len(idAttributeName) > 0 {
 			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
 		}
-
 		if eh, isErrorHandler := options[SQL_OPTION_ERROR_HANDLER]; isErrorHandler {
 			errorHandler = eh.(func(error))
 		}
-
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			storeVersion = v
+		}
+		if m, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLStoreIDManager); isSQLIDManager {
+			sqlIDManager = m
 		}
 	}
 
@@ -468,8 +485,6 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	}
 
 	// initialize
-	sqlIDManager := newSQLStoreIDManager()
-	sqlObjectManager := newSqlStoreObjectManager()
 	// create sql store
 	store := &SQLStore{
 		sqlBase: base,
@@ -497,7 +512,7 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	sqlObjectManager.store = store
 
 	// encode properties
-	if err := store.encodeProperties(conn); err != nil {
+	if err := store.encodePragmas(conn); err != nil {
 		return nil, err
 	}
 
@@ -584,11 +599,46 @@ func (s *SQLStore) getEncoderFeatureData(conn *sqlite.Conn, object EObject, feat
 	return featureData, nil
 }
 
-func (s *SQLStore) getSqlID(conn *sqlite.Conn, eObject EObject) (int64, error) {
-	sqlObject := eObject.(SQLObject)
-	sqlID := sqlObject.GetSqlID()
-	if sqlID == 0 {
-		return s.encodeObject(conn, eObject)
+func (e *SQLStore) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
+	if value != nil {
+		switch featureData.schema.featureKind {
+		case sfkObject, sfkObjectList:
+			eObject := value.(EObject)
+			return e.getSQLID(conn, eObject)
+		default:
+			return e.sqlEncoder.encodeFeatureValue(conn, featureData, value)
+		}
+	}
+	return nil, nil
+}
+
+// get object sql id
+func (s *SQLStore) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
+	// retrieve sql id for eObject
+	sqlID, isSQLID := s.sqlIDManager.GetObjectID(eObject)
+	if !isSQLID {
+		// object is not in store - check if it exists in db
+		objectExists := false
+		objectsTable := s.schema.objectsTable
+		if err := sqlitex.Execute(
+			conn,
+			objectsTable.selectQuery(nil, objectsTable.keyName()+"=?", ""),
+			&sqlitex.ExecOptions{
+				Args: []any{sqlID},
+				ResultFunc: func(stmt *sqlite.Stmt) error {
+					objectExists = true
+					return nil
+				},
+			}); err != nil {
+			return 0, err
+		}
+		if objectExists {
+			// object exists - register it as decoded
+			s.sqlIDManager.SetObjectID(eObject, sqlID)
+		} else {
+			// object doesn't exists in db - encode it with encoder
+			return s.sqlEncoder.encodeObject(conn, eObject)
+		}
 	}
 	return sqlID, nil
 }
@@ -601,7 +651,7 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
@@ -654,7 +704,7 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 	defer s.pool.Put(conn)
 
 	// get object sql id
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
@@ -703,7 +753,7 @@ func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return false
@@ -754,7 +804,7 @@ func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return
@@ -788,7 +838,7 @@ func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return false
@@ -825,7 +875,7 @@ func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return 0
@@ -861,7 +911,7 @@ func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value an
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return false
@@ -904,7 +954,7 @@ func (s *SQLStore) indexOf(object EObject, feature EStructuralFeature, value any
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return -1
@@ -1000,7 +1050,7 @@ func (s *SQLStore) GetRoots() []EObject {
 }
 
 func (s *SQLStore) UnRegister(object EObject) {
-	s.sqlIDManager.removeObjectAndID(object)
+	s.sqlIDManager.ClearObjectID(object)
 }
 
 // RemoveRoot implements EStore.
@@ -1012,7 +1062,7 @@ func (s *SQLStore) RemoveRoot(object EObject) {
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return
@@ -1035,7 +1085,7 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return
@@ -1072,7 +1122,7 @@ func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int,
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return
@@ -1172,7 +1222,7 @@ func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int)
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
@@ -1214,7 +1264,7 @@ func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex 
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return nil
@@ -1267,7 +1317,7 @@ func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return
@@ -1295,7 +1345,7 @@ func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 	}
 	defer s.pool.Put(conn)
 
-	sqlID, err := s.getSqlID(conn, object)
+	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
 		return nil

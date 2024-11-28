@@ -100,6 +100,39 @@ func TestSqlDecoder_SimpleNoIDs(t *testing.T) {
 }
 
 func TestSqlDecoder_SimpleWithIDs(t *testing.T) {
+
+	// load package
+	ePackage := loadPackage("library.simple.ecore")
+	require.NotNil(t, ePackage)
+
+	// create resource & resourceset
+	objectIDManager := NewIncrementalIDManager()
+	sqlURI := NewURI("testdata/library.simple.sqlite")
+	sqlResource := NewEResourceImpl()
+	sqlResource.SetURI(sqlURI)
+	sqlResource.SetObjectIDManager(objectIDManager)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(sqlResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	sqlReader, err := os.Open(sqlURI.String())
+	require.NoError(t, err)
+	defer sqlReader.Close()
+
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_OBJECT_ID_NAME: "objectID"})
+	sqlDecoder.DecodeResource()
+	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
+
+	// check id of the root
+	require.False(t, sqlResource.GetContents().Empty())
+	eRoot, _ := sqlResource.GetContents().Get(0).(EObject)
+	require.NotNil(t, eRoot)
+	require.Equal(t, int64(1), objectIDManager.GetID(eRoot))
+
+}
+
+func TestSqlDecoder_SimpleWithULIDs(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)
@@ -117,7 +150,7 @@ func TestSqlDecoder_SimpleWithIDs(t *testing.T) {
 	require.NoError(t, err)
 	defer sqlReader.Close()
 
-	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_ID_ATTRIBUTE_NAME: "esyncID"})
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_OBJECT_ID_NAME: "esyncID"})
 	sqlDecoder.DecodeResource()
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }

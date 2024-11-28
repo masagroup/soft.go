@@ -1,7 +1,6 @@
 package ecore
 
 import (
-	"database/sql"
 	"strings"
 	"sync"
 )
@@ -209,33 +208,18 @@ func (t *sqlTable) insertQuery() string {
 		tableQuery.WriteString(sqlEscapeIdentifier(c.columnName))
 	}
 	tableQuery.WriteString(") VALUES (")
-	for i, c := range t.columns {
+	for i := range t.columns {
 		if i != 0 {
 			tableQuery.WriteString(",")
 		}
-		if c.auto {
-			tableQuery.WriteString("NULL")
-		} else {
-			tableQuery.WriteString("?")
-		}
+		tableQuery.WriteString("?")
 	}
 	tableQuery.WriteString(")")
 	return tableQuery.String()
 }
 
 func (t *sqlTable) defaultValues() []any {
-	values := make([]any, len(t.columns))
-	for i, c := range t.columns {
-		if c.auto {
-			switch c.columnType {
-			case "TEXT":
-				values[i] = sql.NullString{}
-			case "INTEGER":
-				values[i] = sql.NullInt64{}
-			}
-		}
-	}
-	return values
+	return make([]any, len(t.columns))
 }
 
 func (t *sqlTable) keyName() string {
@@ -364,7 +348,8 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 		),
 		withSqlTableCreateIfNotExists(s.createIfNotExists),
 	)
-	if len(s.idAttributeName) > 0 {
+	// add id attribute column if name is not object table primary key
+	if len(s.idAttributeName) > 0 && s.idAttributeName != s.objectsTable.key.columnName {
 		s.objectsTable.addColumn(newSqlAttributeColumn(s.idAttributeName, "TEXT"))
 	}
 	s.contentsTable = newSqlTable(

@@ -131,6 +131,7 @@ func TestSQLStore_Get_Int(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(3)).Once()
+	mockObject.EXPECT().SetSQLID(int64(3)).Return().Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	v := s.Get(mockObject, eFeature, -1)
 	assert.Equal(t, 4, v)
@@ -161,6 +162,7 @@ func TestSQLStore_Get_Enum(t *testing.T) {
 	// Mystery == 0
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(4)).Once()
+	mockObject.EXPECT().SetSQLID(int64(4)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
 	v := s.Get(mockObject, eFeature, -1)
@@ -168,6 +170,7 @@ func TestSQLStore_Get_Enum(t *testing.T) {
 
 	// Biography == 2
 	mockObject.EXPECT().GetSQLID().Return(int64(3)).Once()
+	mockObject.EXPECT().SetSQLID(int64(3)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	v = s.Get(mockObject, eFeature, -1)
 	assert.Equal(t, 2, v)
@@ -185,6 +188,7 @@ func TestSQLStore_Get_String_Null(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(1)).Once()
+	mockObject.EXPECT().SetSQLID(int64(1)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
 	// database
@@ -213,6 +217,7 @@ func TestSQLStore_Get_Object_Nil(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(2)).Once()
+	mockObject.EXPECT().SetSQLID(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
 	// database
@@ -262,6 +267,7 @@ func TestSQLStore_Get_Object(t *testing.T) {
 	defer s.Close()
 
 	mockObject.EXPECT().GetSQLID().Return(int64(1)).Once()
+	mockObject.EXPECT().SetSQLID(int64(1)).Once()
 	mockObject.EXPECT().EClass().Return(eLibraryClass).Once()
 	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
 	v, _ := s.Get(mockObject, eLibraryOwnerFeature, -1).(EObject)
@@ -301,6 +307,7 @@ func TestSQLStore_Get_Reference_WithFragment(t *testing.T) {
 	defer s.Close()
 
 	mockObject.EXPECT().GetSQLID().Return(int64(6)).Once()
+	mockObject.EXPECT().SetSQLID(int64(6)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	v, _ := s.Get(mockObject, eFeature, -1).(EObject)
 	require.NotNil(t, v)
@@ -338,6 +345,7 @@ func TestSQLStore_Get_Reference_WithSQLID(t *testing.T) {
 	defer s.Close()
 
 	mockObject.EXPECT().GetSQLID().Return(int64(7)).Once()
+	mockObject.EXPECT().SetSQLID(int64(7)).Once()
 	mockObject.EXPECT().EClass().Return(eBookClass).Once()
 	mockPackageRegitry.EXPECT().GetPackage("http:///org/eclipse/emf/examples/library/library.ecore/1.0.0").Return(ePackage).Once()
 	v, _ := s.Get(mockObject, eFeature, -1).(EObject)
@@ -369,6 +377,7 @@ func TestSQLStore_Set_Int(t *testing.T) {
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSQLID().Return(int64(3)).Once()
+		mockObject.EXPECT().SetSQLID(int64(3)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		oldValue := s.Set(mockObject, eFeature, -1, 5)
 		assert.Equal(t, 4, oldValue)
@@ -414,6 +423,7 @@ func TestSQLStore_Set_Reference_Nil(t *testing.T) {
 		// set
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSQLID().Return(int64(6)).Once()
+		mockObject.EXPECT().SetSQLID(int64(6)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		oldValue, _ := s.Set(mockObject, eFeature, -1, nil).(EObject)
 		require.NotNil(t, oldValue)
@@ -460,6 +470,7 @@ func TestSQLStore_Set_List_Primitive(t *testing.T) {
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+		mockObject.EXPECT().SetSQLID(int64(5)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		oldValue := s.Set(mockObject, eFeature, 1, "c4")
 		assert.Equal(t, "c32", oldValue)
@@ -504,6 +515,7 @@ func TestSQLStore_Get_List_String(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	v := s.Get(mockObject, eFeature, 1)
 	require.Equal(t, "c32", v)
@@ -521,6 +533,7 @@ func TestSQLStore_IsSet_SingleValue_NotSet(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(2)).Once()
+	mockObject.EXPECT().SetSQLID(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
 	// database
@@ -549,6 +562,7 @@ func TestSQLStore_IsSet_SingleValue(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(1)).Once()
+	mockObject.EXPECT().SetSQLID(int64(1)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
 	// database
@@ -577,6 +591,7 @@ func TestSQLStore_IsSet_ManyValue_NotSet(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(1)).Once()
+	mockObject.EXPECT().SetSQLID(int64(1)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
 	// database
@@ -605,6 +620,7 @@ func TestSQLStore_IsSet_ManyValue_Set(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(2)).Once()
+	mockObject.EXPECT().SetSQLID(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
 	// database
@@ -644,6 +660,7 @@ func TestSQLStore_UnSet_Single(t *testing.T) {
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSQLID().Return(int64(3)).Once()
+		mockObject.EXPECT().SetSQLID(int64(3)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		s.UnSet(mockObject, eFeature)
 	}
@@ -686,6 +703,7 @@ func TestSQLStore_UnSet_Many(t *testing.T) {
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+		mockObject.EXPECT().SetSQLID(int64(5)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		s.UnSet(mockObject, eFeature)
 	}
@@ -729,6 +747,7 @@ func TestSQLStore_IsEmpty_False(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.False(t, s.IsEmpty(mockObject, eFeature))
 }
@@ -756,6 +775,7 @@ func TestSQLStore_IsEmpty_True(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.True(t, s.IsEmpty(mockObject, eFeature))
 }
@@ -783,6 +803,7 @@ func TestSQLStore_IsEmpty_NonExisting(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.True(t, s.IsEmpty(mockObject, eFeature))
 }
@@ -810,6 +831,7 @@ func TestSQLStore_Size(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.Equal(t, 3, s.Size(mockObject, eFeature))
 }
@@ -837,6 +859,7 @@ func TestSQLStore_Size_Empty(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.Equal(t, 0, s.Size(mockObject, eFeature))
 }
@@ -864,6 +887,7 @@ func TestSQLStore_Size_NonExisting(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.Equal(t, 0, s.Size(mockObject, eFeature))
 }
@@ -891,6 +915,7 @@ func TestSQLStore_Contains_Primitive(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.True(t, s.Contains(mockObject, eFeature, "c31"))
 }
@@ -917,9 +942,11 @@ func TestSQLStore_Contains_Reference(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(2)).Once()
+	mockObject.EXPECT().SetSQLID(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	mockRef := NewMockSQLObject(t)
 	mockRef.EXPECT().GetSQLID().Return(int64(6)).Once()
+	mockRef.EXPECT().SetSQLID(int64(6)).Once()
 	assert.True(t, s.Contains(mockObject, eFeature, mockRef))
 }
 
@@ -946,6 +973,7 @@ func TestSQLStore_Contains_NoTable(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(3)).Once()
+	mockObject.EXPECT().SetSQLID(int64(3)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.False(t, s.Contains(mockObject, eFeature, nil))
 }
@@ -972,9 +1000,11 @@ func TestSQLStore_IndexOf_Existing(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(2)).Once()
+	mockObject.EXPECT().SetSQLID(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	mockRef := NewMockSQLObject(t)
 	mockRef.EXPECT().GetSQLID().Return(int64(6)).Once()
+	mockRef.EXPECT().SetSQLID(int64(6)).Once()
 	assert.Equal(t, 0, s.IndexOf(mockObject, eFeature, mockRef))
 }
 
@@ -1000,9 +1030,11 @@ func TestSQLStore_IndexOf_NonExisting(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(2)).Once()
+	mockObject.EXPECT().SetSQLID(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	mockRef := NewMockSQLObject(t)
 	mockRef.EXPECT().GetSQLID().Return(int64(3)).Once()
+	mockRef.EXPECT().SetSQLID(int64(3)).Once()
 	assert.Equal(t, -1, s.IndexOf(mockObject, eFeature, mockRef))
 }
 
@@ -1028,6 +1060,7 @@ func TestSQLStore_IndexOf_Multiple(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.Equal(t, 1, s.IndexOf(mockObject, eFeature, "c2"))
 }
@@ -1054,9 +1087,11 @@ func TestSQLStore_LastIndexOf_Existing(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(2)).Once()
+	mockObject.EXPECT().SetSQLID(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	mockRef := NewMockSQLObject(t)
 	mockRef.EXPECT().GetSQLID().Return(int64(7)).Once()
+	mockRef.EXPECT().SetSQLID(int64(7)).Once()
 	assert.Equal(t, 1, s.LastIndexOf(mockObject, eFeature, mockRef))
 }
 
@@ -1082,9 +1117,11 @@ func TestSQLStore_LastIndexOf_NonExisting(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(2)).Once()
+	mockObject.EXPECT().SetSQLID(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	mockRef := NewMockSQLObject(t)
 	mockRef.EXPECT().GetSQLID().Return(int64(3)).Once()
+	mockRef.EXPECT().SetSQLID(int64(3)).Once()
 	assert.Equal(t, -1, s.LastIndexOf(mockObject, eFeature, mockRef))
 }
 
@@ -1110,6 +1147,7 @@ func TestSQLStore_LastIndexOf_Multiple(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.Equal(t, 2, s.LastIndexOf(mockObject, eFeature, "c2"))
 }
@@ -1141,6 +1179,7 @@ func TestSQLStore_Remove_Object(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(2)).Once()
+	mockObject.EXPECT().SetSQLID(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eLibraryClass).Once()
 	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
 	book, _ := s.Remove(mockObject, eBooksFeature, 0).(SQLObject)
@@ -1175,6 +1214,7 @@ func TestSQLStore_Remove_NonExisting(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(2)).Once()
+	mockObject.EXPECT().SetSQLID(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eLibraryClass).Once()
 	previous := s.Remove(mockObject, eBooksFeature, 2)
 	assert.Nil(t, previous)
@@ -1202,6 +1242,7 @@ func TestSQLStore_Clear(t *testing.T) {
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+		mockObject.EXPECT().SetSQLID(int64(5)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		s.Clear(mockObject, eFeature)
 	}
@@ -1245,6 +1286,7 @@ func TestSQLStore_Add_First_Empty(t *testing.T) {
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+		mockObject.EXPECT().SetSQLID(int64(5)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		s.Add(mockObject, eFeature, 0, "c0")
 	}
@@ -1295,6 +1337,7 @@ func TestSQLStore_Add_First_NonEmpty(t *testing.T) {
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+		mockObject.EXPECT().SetSQLID(int64(5)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		s.Add(mockObject, eFeature, 0, "c0")
 	}
@@ -1337,6 +1380,7 @@ func TestSQLStore_Add_Last(t *testing.T) {
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+		mockObject.EXPECT().SetSQLID(int64(5)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		s.Add(mockObject, eFeature, 3, "c5")
 	}
@@ -1378,6 +1422,7 @@ func TestSQLStore_Add_Middle(t *testing.T) {
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+		mockObject.EXPECT().SetSQLID(int64(5)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		s.Add(mockObject, eFeature, 1, "c12")
 	}
@@ -1421,6 +1466,7 @@ func TestSQLStore_Add_Invalid(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.Panics(t, func() { s.Add(mockObject, eFeature, 6, "c") })
 }
@@ -1447,6 +1493,7 @@ func TestSQLStore_Move_End(t *testing.T) {
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+		mockObject.EXPECT().SetSQLID(int64(5)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		s.Move(mockObject, eFeature, 0, 2)
 	}
@@ -1490,6 +1537,7 @@ func TestSQLStore_Move_Begin(t *testing.T) {
 
 		mockObject := NewMockSQLObject(t)
 		mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+		mockObject.EXPECT().SetSQLID(int64(5)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		s.Move(mockObject, eFeature, 2, 0)
 	}
@@ -1533,6 +1581,7 @@ func TestSQLStore_ToArray_Primitive(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	assert.Equal(t, []any{"c31", "c32", "c33"}, s.ToArray(mockObject, eFeature))
 }
@@ -1564,6 +1613,7 @@ func TestSQLStore_ToArray_Objects(t *testing.T) {
 
 	mockObject := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(int64(2)).Once()
+	mockObject.EXPECT().SetSQLID(int64(2)).Once()
 	mockObject.EXPECT().EClass().Return(eLibraryClass).Once()
 	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
 	a := s.ToArray(mockObject, eBooksFeature)

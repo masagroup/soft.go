@@ -328,7 +328,7 @@ type sqlStoreIDManagerImpl struct {
 	mutex sync.Mutex
 }
 
-func newSQLStoreIDManager() *sqlStoreIDManagerImpl {
+func newSQLStoreIDManager() SQLStoreIDManager {
 	return &sqlStoreIDManagerImpl{
 		sqlDecoderIDManagerImpl: sqlDecoderIDManagerImpl{
 			packages:     map[int64]EPackage{},
@@ -413,7 +413,7 @@ type SQLStore struct {
 	mutex         sync.Mutex
 	pool          *sqlitex.Pool
 	errorHandler  func(error)
-	sqlIDManager  *sqlStoreIDManagerImpl
+	sqlIDManager  SQLStoreIDManager
 	singleQueries map[*sqlColumn]*sqlSingleQueries
 	manyQueries   map[*sqlTable]*sqlManyQueries
 }
@@ -436,6 +436,9 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 		}
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			storeVersion = v
+		}
+		if m, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLStoreIDManager); isSQLIDManager {
+			sqlIDManager = m
 		}
 	}
 
@@ -631,7 +634,7 @@ func (s *SQLStore) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
 		}
 		if objectExists {
 			// object exists - register it as decoded
-			s.sqlIDManager.sqlDecoderIDManagerImpl.objects[sqlID] = eObject
+			s.sqlIDManager.SetObjectID(eObject, sqlID)
 		} else {
 			// object doesn't exists in db - encode it with encoder
 			return s.sqlEncoder.encodeObject(conn, eObject)

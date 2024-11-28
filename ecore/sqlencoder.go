@@ -576,6 +576,9 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
 		}
+		if m, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLEncoderIDManager); isSQLIDManager {
+			sqlIDManager = m
+		}
 	}
 
 	// encoder structure

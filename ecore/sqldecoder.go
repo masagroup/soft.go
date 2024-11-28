@@ -611,6 +611,9 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
 		}
+		if m, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLDecoderIDManager); isSQLIDManager {
+			sqlIDManager = m
+		}
 	}
 
 	// package registry

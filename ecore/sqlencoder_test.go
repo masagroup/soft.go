@@ -226,7 +226,7 @@ func TestSQLEncoder_SimpleWithULIDs(t *testing.T) {
 	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 	require.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
 
-	// w, err := os.Create("testdata/library.simple.ids.sqlite")
+	// w, err := os.Create("testdata/library.simple.ulids.sqlite")
 	// require.NoError(t, err)
 	// defer w.Close()
 	w := &bytes.Buffer{}
@@ -235,11 +235,40 @@ func TestSQLEncoder_SimpleWithULIDs(t *testing.T) {
 	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 
 	// compare expected and actual bytes
-	requireSameDB(t, "testdata/library.simple.ids.sqlite", w.Bytes())
+	requireSameDB(t, "testdata/library.simple.ulids.sqlite", w.Bytes())
 
 }
 
-func TestSQLEncoder_WithContainerID(t *testing.T) {
+func TestSQLEncoder_SimpleWithObjectID(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.simple.ecore")
+	require.NotNil(t, ePackage)
+	// id manager
+	idManager := NewIncrementalIDManager()
+	// load resource
+	resourceSet := NewEResourceSetImpl()
+	resourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+	resource := resourceSet.CreateResource(NewURI("testdata/library.simple.xml"))
+	resource.SetObjectIDManager(idManager)
+	resource.Load()
+	require.NotNil(t, resource)
+	require.True(t, resource.IsLoaded())
+	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	require.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
+
+	// w, err := os.Create("testdata/library.simple.ids.sqlite")
+	// require.NoError(t, err)
+	// defer w.Close()
+	w := &bytes.Buffer{}
+	sqliteEncoder := NewSQLWriterEncoder(w, resource, map[string]any{SQL_OPTION_OBJECT_ID: "objectID"})
+	sqliteEncoder.EncodeResource()
+	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+
+	// compare expected and actual bytes
+	requireSameDB(t, "testdata/library.simple.ids.sqlite", w.Bytes())
+}
+
+func TestSQLEncoder_SimpleWithContainerID(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)

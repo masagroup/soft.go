@@ -111,11 +111,10 @@ func (r *sqlEncoderObjectManager) registerObject(EObject) {
 
 type sqlEncoder struct {
 	*sqlBase
-	isKeepDefaults     bool
-	isContainerEncoded bool
-	classDataMap       map[EClass]*sqlEncoderClassData
-	sqlIDManager       SQLEncoderIDManager
-	sqlObjectManager   sqlObjectManager
+	isKeepDefaults   bool
+	classDataMap     map[EClass]*sqlEncoderClassData
+	sqlIDManager     SQLEncoderIDManager
+	sqlObjectManager sqlObjectManager
 }
 
 func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
@@ -161,7 +160,7 @@ func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) error {
 			return err
 		}
 	}
-	if e.isContainerEncoded {
+	if e.isContainerID {
 		if err := sqlitex.ExecuteTransient(conn, e.schema.propertiesTable.insertQuery(), &sqlitex.ExecOptions{
 			Args: []any{"containerID", true},
 		}); err != nil {
@@ -203,7 +202,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 		// class id
 		args = append(args, classData.id)
 		// container and container feature id
-		if e.isContainerEncoded {
+		if e.isContainerID {
 			if container := eObject.EContainer(); container != nil {
 				containerID, err := e.encodeObject(conn, eObject.EContainer())
 				if err != nil {
@@ -596,7 +595,7 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 	// options
 	schemaOptions := []sqlSchemaOption{}
 	objectIDName := ""
-	isContainerEncoded := false
+	isContainerID := false
 	isKeepDefaults := false
 	codecVersion := sqlCodecVersion
 	sqlIDManager := newSQLEncoderIDManager()
@@ -607,7 +606,7 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 		}
 		if b, isBool := options[SQL_OPTION_CONTAINER_ID].(bool); isBool {
 			schemaOptions = append(schemaOptions, withContainerID(b))
-			isContainerEncoded = b
+			isContainerID = b
 		}
 		if b, isBool := options[SQL_OPTION_KEEP_DEFAULTS].(bool); isBool {
 			isKeepDefaults = b
@@ -628,13 +627,13 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 				uri:             resource.GetURI(),
 				objectIDManager: resource.GetObjectIDManager(),
 				objectIDName:    objectIDName,
+				isContainerID:   isContainerID,
 				schema:          newSqlSchema(schemaOptions...),
 			},
-			isKeepDefaults:     isKeepDefaults,
-			isContainerEncoded: isContainerEncoded,
-			classDataMap:       map[EClass]*sqlEncoderClassData{},
-			sqlIDManager:       sqlIDManager,
-			sqlObjectManager:   newSqlEncoderObjectManager(),
+			isKeepDefaults:   isKeepDefaults,
+			classDataMap:     map[EClass]*sqlEncoderClassData{},
+			sqlIDManager:     sqlIDManager,
+			sqlObjectManager: newSqlEncoderObjectManager(),
 		},
 		resource:     resource,
 		connProvider: connProvider,

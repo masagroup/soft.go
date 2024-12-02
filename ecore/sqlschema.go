@@ -339,7 +339,6 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 		),
 		withSqlTableCreateIfNotExists(s.createIfNotExists),
 	)
-
 	s.packagesTable = newSqlTable(
 		".packages",
 		withSqlTableColumns(

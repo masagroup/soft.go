@@ -598,16 +598,9 @@ func NewSQLDBDecoder(connPool *sqlitex.Pool, resource EResource, options map[str
 }
 
 func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connectionPoolClose func(conn *sqlitex.Pool) error, resource EResource, options map[string]any) *SQLDecoder {
-	// options
-	schemaOptions := []sqlSchemaOption{}
-	objectIDName := ""
 	codecVersion := sqlCodecVersion
 	sqlIDManager := newSQLDecoderIDManager()
 	if options != nil {
-		objectIDName, _ = options[SQL_OPTION_OBJECT_ID].(string)
-		if resource.GetObjectIDManager() != nil && len(objectIDName) > 0 {
-			schemaOptions = append(schemaOptions, withObjectIDName(objectIDName))
-		}
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
 		}
@@ -629,8 +622,6 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 				codecVersion:    codecVersion,
 				uri:             resource.GetURI(),
 				objectIDManager: resource.GetObjectIDManager(),
-				objectIDName:    objectIDName,
-				schema:          newSqlSchema(schemaOptions...),
 			},
 			packageRegistry:  packageRegistry,
 			sqlIDManager:     sqlIDManager,
@@ -656,6 +647,11 @@ func (d *SQLDecoder) DecodeResource() {
 	}()
 
 	if err := d.decodeVersion(connectionPool); err != nil {
+		d.addError(err)
+		return
+	}
+
+	if err := d.decodeSchema(connectionPool); err != nil {
 		d.addError(err)
 		return
 	}
@@ -716,6 +712,66 @@ func (d *SQLDecoder) decodeVersion(connectionPool *sqlitex.Pool) error {
 		return fmt.Errorf("codec version %v is not supported", version)
 	}
 	return nil
+}
+
+func (d *SQLDecoder) decodeSchema(connectionPool *sqlitex.Pool) error {
+	schemaOptions := []sqlSchemaOption{}
+	// object id column name
+	propertyValue, err := d.decodeProperty(connectionPool, "objectID")
+	if err != nil {
+		return err
+	}
+	d.objectIDName, _ = propertyValue.(string)
+	if d.objectIDManager != nil && len(d.objectIDName) > 0 {
+		schemaOptions = append(schemaOptions, withObjectIDName(d.objectIDName))
+	}
+	// object container and feature id
+	propertyValue, err = d.decodeProperty(connectionPool, "containerID")
+	if err != nil {
+		return err
+	}
+	d.isContainerID, _ = propertyValue.(bool)
+	if d.isContainerID {
+		schemaOptions = append(schemaOptions, withContainerID(d.isContainerID))
+	}
+	// create schema
+	d.schema = newSqlSchema(schemaOptions...)
+	return nil
+}
+
+func (d *SQLDecoder) decodeProperty(connectionPool *sqlitex.Pool, propertyKey string) (any, error) {
+	conn, err := connectionPool.Take(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	defer connectionPool.Put(conn)
+
+	// check existence of properties table
+	propertiesTableExists := false
+	if err := sqlitex.Execute(conn, `SELECT name FROM sqlite_master WHERE type='table' AND name='.properties';`, &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			propertiesTableExists = true
+			return nil
+		},
+	}); err != nil {
+		return nil, err
+	}
+	if !propertiesTableExists {
+		return nil, nil
+	}
+
+	// retrieve value from properties table for specific key
+	var result any
+	if err := sqlitex.Execute(conn, `SELECT value FROM ".properties" WHERE key=?`, &sqlitex.ExecOptions{
+		Args: []any{propertyKey},
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			result = decodeAny(stmt, 0)
+			return nil
+		},
+	}); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (d *SQLDecoder) decodeContents(connectionPool *sqlitex.Pool) error {

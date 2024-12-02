@@ -162,7 +162,7 @@ func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) error {
 	}
 	if e.isContainerID {
 		if err := sqlitex.ExecuteTransient(conn, e.schema.propertiesTable.insertQuery(), &sqlitex.ExecOptions{
-			Args: []any{"containerID", true},
+			Args: []any{"containerID", "true"},
 		}); err != nil {
 			return err
 		}

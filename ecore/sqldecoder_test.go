@@ -162,3 +162,26 @@ func TestSqlDecoder_SimpleWithULIDs(t *testing.T) {
 	sqlDecoder.DecodeResource()
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
+
+func TestSqlDecoder_SimpleWithContainerIDs(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.simple.ecore")
+	require.NotNil(t, ePackage)
+
+	// create resource & resourceset
+	sqlURI := NewURI("testdata/library.container.sqlite")
+	sqlResource := NewEResourceImpl()
+	sqlResource.SetURI(sqlURI)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(sqlResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	sqlReader, err := os.Open(sqlURI.String())
+	require.NoError(t, err)
+	defer sqlReader.Close()
+
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, nil)
+	sqlDecoder.DecodeResource()
+	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
+}

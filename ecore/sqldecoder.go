@@ -714,64 +714,71 @@ func (d *SQLDecoder) decodeVersion(connectionPool *sqlitex.Pool) error {
 	return nil
 }
 
-func (d *SQLDecoder) decodeSchema(connectionPool *sqlitex.Pool) error {
-	schemaOptions := []sqlSchemaOption{}
-	// object id column name
-	propertyValue, err := d.decodeProperty(connectionPool, "objectID")
-	if err != nil {
-		return err
-	}
-	d.objectIDName, _ = propertyValue.(string)
-	if d.objectIDManager != nil && len(d.objectIDName) > 0 {
-		schemaOptions = append(schemaOptions, withObjectIDName(d.objectIDName))
-	}
-	// object container and feature id
-	propertyValue, err = d.decodeProperty(connectionPool, "containerID")
-	if err != nil {
-		return err
-	}
-	d.isContainerID, _ = propertyValue.(bool)
-	if d.isContainerID {
-		schemaOptions = append(schemaOptions, withContainerID(d.isContainerID))
-	}
-	// create schema
-	d.schema = newSqlSchema(schemaOptions...)
-	return nil
-}
-
-func (d *SQLDecoder) decodeProperty(connectionPool *sqlitex.Pool, propertyKey string) (any, error) {
+func (d *SQLDecoder) decodeProperties(connectionPool *sqlitex.Pool) (map[string]string, error) {
 	conn, err := connectionPool.Take(context.Background())
 	if err != nil {
 		return nil, err
 	}
 	defer connectionPool.Put(conn)
 
-	// check existence of properties table
-	propertiesTableExists := false
+	// result
+	properties := map[string]string{}
+
+	// check if properties table exists
+	tableExists := false
 	if err := sqlitex.Execute(conn, `SELECT name FROM sqlite_master WHERE type='table' AND name='.properties';`, &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
-			propertiesTableExists = true
+			tableExists = true
 			return nil
 		},
 	}); err != nil {
 		return nil, err
 	}
-	if !propertiesTableExists {
-		return nil, nil
+	if !tableExists {
+		return properties, nil
 	}
 
-	// retrieve value from properties table for specific key
-	var result any
-	if err := sqlitex.Execute(conn, `SELECT value FROM ".properties" WHERE key=?`, &sqlitex.ExecOptions{
-		Args: []any{propertyKey},
+	// retrieve properties from table
+	if err := sqlitex.Execute(conn, `SELECT key,value FROM ".properties" `, &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
-			result = decodeAny(stmt, 0)
+			key := stmt.ColumnText(0)
+			value := stmt.ColumnText(1)
+			properties[key] = value
 			return nil
 		},
 	}); err != nil {
 		return nil, err
 	}
-	return result, nil
+	return properties, nil
+}
+
+func (d *SQLDecoder) decodeSchema(connectionPool *sqlitex.Pool) error {
+	// properties
+	properties, err := d.decodeProperties(connectionPool)
+	if err != nil {
+		return nil
+	}
+
+	// schema options
+	schemaOptions := []sqlSchemaOption{}
+
+	// object id column name
+	if propertyObjectID := properties["objectID"]; d.objectIDManager != nil && len(propertyObjectID) > 0 {
+		d.objectIDName = propertyObjectID
+		schemaOptions = append(schemaOptions, withObjectIDName(d.objectIDName))
+	}
+
+	// container id
+	if propertyContainerID, isPropertyContainerID := properties["containerID"]; isPropertyContainerID {
+		d.isContainerID, err = strconv.ParseBool(propertyContainerID)
+		if err != nil {
+			return err
+		}
+		schemaOptions = append(schemaOptions, withContainerID(d.isContainerID))
+	}
+	// create schema
+	d.schema = newSqlSchema(schemaOptions...)
+	return nil
 }
 
 func (d *SQLDecoder) decodeContents(connectionPool *sqlitex.Pool) error {

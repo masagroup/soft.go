@@ -6,5 +6,6 @@ type sqlBase struct {
 	uri             *URI
 	objectIDName    string
 	objectIDManager EObjectIDManager
+	isObjectID      bool
 	isContainerID   bool
 }

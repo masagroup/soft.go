@@ -136,7 +136,7 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 		}
 	} else {
 		// no store or feature is transient
-		// cache value in properties event if there is no cache
+		// cache value in properties even if there is no cache
 		properties = o.getProperties()
 	}
 	// store value in properties

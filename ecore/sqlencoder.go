@@ -190,7 +190,6 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 			return -1, fmt.Errorf("getData('%s') error : %w", eClass.GetName(), err)
 		}
 
-		objectTable := e.schema.objectsTable
 		// args
 		args := []any{}
 		// object id
@@ -216,7 +215,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 		}
 		// object id is serialized only if we have an id manager and
 		// a corresponding column in objects table
-		if e.objectIDManager != nil && len(objectTable.columns) > 2 {
+		if e.isObjectID {
 			args = append(args, fmt.Sprintf("%v", e.objectIDManager.GetID(eObject)))
 		}
 
@@ -596,13 +595,16 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 	schemaOptions := []sqlSchemaOption{}
 	objectIDName := ""
 	isContainerID := false
+	isObjectID := false
 	isKeepDefaults := false
 	codecVersion := sqlCodecVersion
 	sqlIDManager := newSQLEncoderIDManager()
+	objectIDManager := resource.GetObjectIDManager()
 	if options != nil {
-		if id, isID := options[SQL_OPTION_OBJECT_ID].(string); isID && len(id) > 0 && resource.GetObjectIDManager() != nil {
+		if id, isID := options[SQL_OPTION_OBJECT_ID].(string); isID && len(id) > 0 && objectIDManager != nil {
 			schemaOptions = append(schemaOptions, withObjectIDName(id))
 			objectIDName = id
+			isObjectID = objectIDName != "objectID"
 		}
 		if b, isBool := options[SQL_OPTION_CONTAINER_ID].(bool); isBool {
 			schemaOptions = append(schemaOptions, withContainerID(b))
@@ -625,9 +627,10 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 			sqlBase: &sqlBase{
 				codecVersion:    codecVersion,
 				uri:             resource.GetURI(),
-				objectIDManager: resource.GetObjectIDManager(),
+				objectIDManager: objectIDManager,
 				objectIDName:    objectIDName,
 				isContainerID:   isContainerID,
+				isObjectID:      isObjectID,
 				schema:          newSqlSchema(schemaOptions...),
 			},
 			isKeepDefaults:   isKeepDefaults,

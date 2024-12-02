@@ -427,9 +427,9 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	sqlIDManager := newSQLStoreIDManager()
 	sqlObjectManager := newSQLStoreObjectManager()
 	if options != nil {
-		idAttributeName, _ = options[SQL_OPTION_OBJECT_ID_NAME].(string)
+		idAttributeName, _ = options[SQL_OPTION_OBJECT_ID].(string)
 		if idManager != nil && len(idAttributeName) > 0 {
-			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
+			schemaOptions = append(schemaOptions, withObjectIDName(idAttributeName))
 		}
 		if eh, isErrorHandler := options[SQL_OPTION_ERROR_HANDLER]; isErrorHandler {
 			errorHandler = eh.(func(error))
@@ -479,8 +479,8 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	// create sql base
 	base := &sqlBase{
 		uri:             resourceURI,
-		idAttributeName: idAttributeName,
-		idManager:       idManager,
+		objectIDName:    idAttributeName,
+		objectIDManager: idManager,
 		schema:          newSqlSchema(schemaOptions...),
 	}
 

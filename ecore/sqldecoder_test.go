@@ -120,7 +120,7 @@ func TestSqlDecoder_SimpleWithIDs(t *testing.T) {
 	require.NoError(t, err)
 	defer sqlReader.Close()
 
-	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_OBJECT_ID_NAME: "objectID"})
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_OBJECT_ID: "objectID"})
 	sqlDecoder.DecodeResource()
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 
@@ -150,7 +150,7 @@ func TestSqlDecoder_SimpleWithULIDs(t *testing.T) {
 	require.NoError(t, err)
 	defer sqlReader.Close()
 
-	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_OBJECT_ID_NAME: "esyncID"})
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_OBJECT_ID: "esyncID"})
 	sqlDecoder.DecodeResource()
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }

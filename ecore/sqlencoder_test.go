@@ -230,11 +230,36 @@ func TestSQLEncoder_SimpleWithULIDs(t *testing.T) {
 	// require.NoError(t, err)
 	// defer w.Close()
 	w := &bytes.Buffer{}
-	sqliteEncoder := NewSQLWriterEncoder(w, resource, map[string]any{SQL_OPTION_OBJECT_ID_NAME: "esyncID"})
+	sqliteEncoder := NewSQLWriterEncoder(w, resource, map[string]any{SQL_OPTION_OBJECT_ID: "esyncID"})
 	sqliteEncoder.EncodeResource()
 	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 
 	// compare expected and actual bytes
 	requireSameDB(t, "testdata/library.simple.ids.sqlite", w.Bytes())
 
+}
+
+func TestSQLEncoder_WithContainerID(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.simple.ecore")
+	require.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
+	resource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.simple.xml"), nil)
+	require.NotNil(t, resource)
+	require.True(t, resource.IsLoaded())
+	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+	require.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
+
+	// w, err := os.Create("testdata/library.container.sqlite")
+	// require.NoError(t, err)
+	// defer w.Close()
+	w := &bytes.Buffer{}
+	sqliteEncoder := NewSQLWriterEncoder(w, resource, map[string]any{SQL_OPTION_CONTAINER_ID: true})
+	sqliteEncoder.EncodeResource()
+	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+
+	// compare expected and actual bytes
+	requireSameDB(t, "testdata/library.container.sqlite", w.Bytes())
 }

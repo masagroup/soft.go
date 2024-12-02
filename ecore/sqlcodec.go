@@ -10,11 +10,12 @@ import (
 )
 
 const (
-	SQL_OPTION_ERROR_HANDLER  = "ERROR_HANDLER"
-	SQL_OPTION_KEEP_DEFAULTS  = "KEEP_DEFAULTS"
-	SQL_OPTION_CODEC_VERSION  = "CODEC_VERSION"
-	SQL_OPTION_OBJECT_ID_NAME = "OBJECT_ID_NAME" // value of the id attribute
-	SQL_OPTION_SQL_ID_MANAGER = "SQL_ID_MANAGER"
+	SQL_OPTION_ERROR_HANDLER  = "ERROR_HANDLER"  // error handler funtion
+	SQL_OPTION_KEEP_DEFAULTS  = "KEEP_DEFAULTS"  // keep default values
+	SQL_OPTION_CODEC_VERSION  = "CODEC_VERSION"  // codec version ( int64 )
+	SQL_OPTION_OBJECT_ID      = "OBJECT_ID"      // object id column name ( string )
+	SQL_OPTION_CONTAINER_ID   = "CONTAINER_ID"   // container id ( boolean ) if true, encode object's container and container feature id
+	SQL_OPTION_SQL_ID_MANAGER = "SQL_ID_MANAGER" // SQL id manager
 )
 
 type SQLCodec struct {

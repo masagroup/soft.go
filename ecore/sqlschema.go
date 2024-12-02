@@ -275,6 +275,7 @@ type sqlFeatureSchema struct {
 
 type sqlSchema struct {
 	mutex             sync.Mutex
+	propertiesTable   *sqlTable
 	packagesTable     *sqlTable
 	classesTable      *sqlTable
 	objectsTable      *sqlTable
@@ -282,7 +283,8 @@ type sqlSchema struct {
 	enumsTable        *sqlTable
 	classSchemaMap    map[EClass]*sqlClassSchema
 	createIfNotExists bool
-	idAttributeName   string
+	isContainerID     bool
+	objectIDName      string
 }
 
 type sqlSchemaOption interface {
@@ -301,9 +303,15 @@ func newFuncSqlSchemaOption(f func(s *sqlSchema)) *funcSqlSchemaOption {
 	return &funcSqlSchemaOption{f: f}
 }
 
-func withIDAttributeName(idAttributeName string) sqlSchemaOption {
+func withObjectIDName(objectIDName string) sqlSchemaOption {
 	return newFuncSqlSchemaOption(func(s *sqlSchema) {
-		s.idAttributeName = idAttributeName
+		s.objectIDName = objectIDName
+	})
+}
+
+func withContainerID(isContainerID bool) sqlSchemaOption {
+	return newFuncSqlSchemaOption(func(s *sqlSchema) {
+		s.isContainerID = isContainerID
 	})
 }
 
@@ -323,6 +331,15 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 	}
 
 	// common tables definitions
+	s.propertiesTable = newSqlTable(
+		".properties",
+		withSqlTableColumns(
+			newSqlAttributeColumn("key", "TEXT", withSqlColumnPrimary(true)),
+			newSqlAttributeColumn("value", "TEXT"),
+		),
+		withSqlTableCreateIfNotExists(s.createIfNotExists),
+	)
+
 	s.packagesTable = newSqlTable(
 		".packages",
 		withSqlTableColumns(
@@ -348,9 +365,14 @@ func newSqlSchema(options ...sqlSchemaOption) *sqlSchema {
 		),
 		withSqlTableCreateIfNotExists(s.createIfNotExists),
 	)
+	// container and feayure id in objects table
+	if s.isContainerID {
+		s.objectsTable.addColumn(newSqlReferenceColumn(s.objectsTable, withSqlColumnName("containerID")))
+		s.objectsTable.addColumn(newSqlAttributeColumn("containerFeatureID", "INTEGER"))
+	}
 	// add id attribute column if name is not object table primary key
-	if len(s.idAttributeName) > 0 && s.idAttributeName != s.objectsTable.key.columnName {
-		s.objectsTable.addColumn(newSqlAttributeColumn(s.idAttributeName, "TEXT"))
+	if len(s.objectIDName) > 0 && s.objectIDName != s.objectsTable.key.columnName {
+		s.objectsTable.addColumn(newSqlAttributeColumn(s.objectIDName, "TEXT"))
 	}
 	s.contentsTable = newSqlTable(
 		".contents",

@@ -188,7 +188,7 @@ func (d *sqlDecoder) decodeSchema(pool *sqlitex.Pool, schemaOptions []sqlSchemaO
 	// object id column name
 	if propertyObjectID := properties["objectID"]; d.objectIDManager != nil && len(propertyObjectID) > 0 {
 		d.objectIDName = propertyObjectID
-		d.isObjectID = d.objectIDName != "objectID"
+		d.isObjectID = d.objectIDName != "objectID" && d.objectIDManager != nil
 	}
 
 	// container id
@@ -336,6 +336,7 @@ func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) 
 			&sqlitex.ExecOptions{
 				Args: []any{id},
 				ResultFunc: func(stmt *sqlite.Stmt) error {
+					isObject = true
 					classID = stmt.ColumnInt64(0)
 					if d.isObjectID {
 						objectID = stmt.ColumnText(1)

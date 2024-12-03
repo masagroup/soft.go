@@ -1357,6 +1357,62 @@ func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
 	}
 }
 
+func (s *SQLStore) GetContainer(object EObject) (container EObject, feature EStructuralFeature) {
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSQLID(conn, object)
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+
+	containerID := int64(-1)
+	containerFeatureID := int64(-1)
+	if err := sqlitex.Execute(conn, `SELECT containerID,containerFeatureID FROM ".objects" WHERE objectID=?`, &sqlitex.ExecOptions{
+		Args: []any{sqlID},
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			switch stmt.ColumnType(0) {
+			case sqlite.TypeNull:
+				containerID = 0
+			case sqlite.TypeInteger:
+				containerID = stmt.ColumnInt64(0)
+			}
+			switch stmt.ColumnType(0) {
+			case sqlite.TypeNull:
+				containerFeatureID = 0
+			case sqlite.TypeInteger:
+				containerID = stmt.ColumnInt64(0)
+			}
+			return nil
+		},
+	}); err != nil {
+		s.errorHandler(err)
+		return
+	}
+
+	switch containerID {
+	case -1:
+		s.errorHandler(fmt.Errorf("unbale to find container for object '%v'", sqlID))
+	case 0:
+	default:
+		container, err = s.decodeObject(conn, containerID)
+		if err != nil {
+			s.errorHandler(err)
+			return
+		}
+
+		containerInternal := container.(EObjectInternal)
+		containerClass := containerInternal.EClass()
+		feature = containerClass.GetEStructuralFeature(containerInternal.EStaticFeatureCount() + int(containerFeatureID))
+	}
+	return
+}
+
 func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 	conn, err := s.pool.Take(context.Background())
 	if err != nil {

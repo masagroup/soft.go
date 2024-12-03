@@ -218,6 +218,28 @@ func (t *sqlTable) insertQuery() string {
 	return tableQuery.String()
 }
 
+func (t *sqlTable) insertOrReplaceQuery() string {
+	var tableQuery strings.Builder
+	tableQuery.WriteString("INSERT OR REPLACE INTO ")
+	tableQuery.WriteString(sqlEscapeIdentifier(t.name))
+	tableQuery.WriteString(" (")
+	for i, c := range t.columns {
+		if i != 0 {
+			tableQuery.WriteString(",")
+		}
+		tableQuery.WriteString(sqlEscapeIdentifier(c.columnName))
+	}
+	tableQuery.WriteString(") VALUES (")
+	for i := range t.columns {
+		if i != 0 {
+			tableQuery.WriteString(",")
+		}
+		tableQuery.WriteString("?")
+	}
+	tableQuery.WriteString(")")
+	return tableQuery.String()
+}
+
 func (t *sqlTable) defaultValues() []any {
 	return make([]any, len(t.columns))
 }

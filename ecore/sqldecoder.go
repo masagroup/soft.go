@@ -531,7 +531,7 @@ func (d *sqlDecoder) decodeFeatureValue(conn *sqlite.Conn, featureData *sqlFeatu
 	case sfkEnum:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return featureData.feature.GetDefaultValue(), nil
 		case int64:
 			enumLiteral, err := d.decodeEnumLiteral(conn, v)
 			if err != nil {

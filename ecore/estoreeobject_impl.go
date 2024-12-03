@@ -90,6 +90,19 @@ func (o *EStoreEObjectImpl) EInternalContainerFeatureID() int {
 	return o.ReflectiveEObjectImpl.EInternalContainerFeatureID()
 }
 
+func (o *EStoreEObjectImpl) ESetInternalContainer(newContainer EObject, newContainerFeatureID int) {
+	o.ReflectiveEObjectImpl.ESetInternalContainer(newContainer, newContainerFeatureID)
+	if o.store != nil {
+		var containerFeature EStructuralFeature
+		if newContainerFeatureID <= EOPPOSITE_FEATURE_BASE {
+			containerFeature = newContainer.EClass().GetEStructuralFeature(EOPPOSITE_FEATURE_BASE - newContainerFeatureID)
+		} else {
+			containerFeature = o.AsEObject().EClass().GetEStructuralFeature(newContainerFeatureID).(EReference).GetEOpposite()
+		}
+		o.store.SetContainer(o.AsEObject(), newContainer, containerFeature)
+	}
+}
+
 func (o *EStoreEObjectImpl) initializeContainer() {
 	if o.ReflectiveEObjectImpl.EInternalContainer() == unitializedContainer && o.store != nil {
 		container, feature := o.store.GetContainer(o.AsEObject())
@@ -100,7 +113,7 @@ func (o *EStoreEObjectImpl) initializeContainer() {
 					featureID = o.AsEObject().EClass().GetFeatureID(opposite)
 				}
 			}
-			o.ESetInternalContainer(container, featureID)
+			o.ReflectiveEObjectImpl.ESetInternalContainer(container, featureID)
 		}
 	}
 }

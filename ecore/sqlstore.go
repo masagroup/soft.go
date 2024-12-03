@@ -1413,6 +1413,43 @@ func (s *SQLStore) GetContainer(object EObject) (container EObject, feature EStr
 	return
 }
 
+func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStructuralFeature) {
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	defer s.pool.Put(conn)
+
+	sqlObjectID, err := s.getSQLID(conn, object)
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+
+	var sqlContainerID any
+	if container != nil {
+		sqlContainerID, err = s.getSQLID(conn, container)
+		if err != nil {
+			s.errorHandler(err)
+			return
+		}
+	}
+
+	var featureID any
+	if container != nil && feature != nil {
+		featureID = container.EClass().GetFeatureID(feature)
+	}
+
+	if err := sqlitex.Execute(conn, `UPDATE ".objects" SET containerID=?,containerFeatureID=? WHERE objectID=?`, &sqlitex.ExecOptions{
+		Args: []any{sqlContainerID, featureID, sqlObjectID},
+	}); err != nil {
+		s.errorHandler(err)
+		return
+	}
+
+}
+
 func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 	conn, err := s.pool.Take(context.Background())
 	if err != nil {

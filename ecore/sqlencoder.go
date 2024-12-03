@@ -154,14 +154,14 @@ func (e *sqlEncoder) encodeSchema(conn *sqlite.Conn) error {
 
 func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) error {
 	if len(e.objectIDName) > 0 {
-		if err := sqlitex.ExecuteTransient(conn, e.schema.propertiesTable.insertQuery(), &sqlitex.ExecOptions{
+		if err := sqlitex.ExecuteTransient(conn, e.schema.propertiesTable.insertOrReplaceQuery(), &sqlitex.ExecOptions{
 			Args: []any{"objectID", e.objectIDName},
 		}); err != nil {
 			return err
 		}
 	}
 	if e.isContainerID {
-		if err := sqlitex.ExecuteTransient(conn, e.schema.propertiesTable.insertQuery(), &sqlitex.ExecOptions{
+		if err := sqlitex.ExecuteTransient(conn, e.schema.propertiesTable.insertOrReplaceQuery(), &sqlitex.ExecOptions{
 			Args: []any{"containerID", "true"},
 		}); err != nil {
 			return err

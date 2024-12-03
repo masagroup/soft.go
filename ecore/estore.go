@@ -42,6 +42,8 @@ type EStore interface {
 
 	Clear(object EObject, feature EStructuralFeature)
 
+	GetContainer(object EObject) (EObject, EStructuralFeature)
+
 	ToArray(object EObject, feature EStructuralFeature) []any
 }
 

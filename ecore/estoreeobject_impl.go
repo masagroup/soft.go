@@ -9,6 +9,8 @@
 
 package ecore
 
+var unitializedContainer EObject = newEObjectImpl()
+
 type EStoreEObjectImpl struct {
 	ReflectiveEObjectImpl
 	store EStore
@@ -20,6 +22,7 @@ func NewEStoreEObjectImpl(cache bool) *EStoreEObjectImpl {
 	o.cache = cache
 	o.SetInterfaces(o)
 	o.Initialize()
+	o.ESetInternalContainer(unitializedContainer, -1)
 	return o
 }
 
@@ -75,6 +78,31 @@ func (o *EStoreEObjectImpl) SetCache(cache bool) {
 
 func (o *EStoreEObjectImpl) IsCache() bool {
 	return o.cache
+}
+
+func (o *EStoreEObjectImpl) EInternalContainer() EObject {
+	o.initializeContainer()
+	return o.ReflectiveEObjectImpl.EInternalContainer()
+}
+
+func (o *EStoreEObjectImpl) EInternalContainerFeatureID() int {
+	o.initializeContainer()
+	return o.ReflectiveEObjectImpl.EInternalContainerFeatureID()
+}
+
+func (o *EStoreEObjectImpl) initializeContainer() {
+	if o.ReflectiveEObjectImpl.EInternalContainer() == unitializedContainer && o.store != nil {
+		container, feature := o.store.GetContainer(o.AsEObject())
+		if container != nil && feature != nil {
+			featureID := EOPPOSITE_FEATURE_BASE - container.EClass().GetFeatureID(feature)
+			if reference, _ := feature.(EReference); reference != nil {
+				if opposite := reference.GetEOpposite(); opposite != nil {
+					featureID = o.AsEObject().EClass().GetFeatureID(opposite)
+				}
+			}
+			o.ESetInternalContainer(container, featureID)
+		}
+	}
 }
 
 func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {

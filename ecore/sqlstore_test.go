@@ -1624,3 +1624,39 @@ func TestSQLStore_ToArray_Objects(t *testing.T) {
 	require.NotNil(t, b)
 	require.Equal(t, eBookClass, b.EClass())
 }
+
+func TestSQLStore_GetContainer(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+	ePackage.SetEFactoryInstance(newDynamicSQLFactory())
+
+	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eLibraryClass)
+
+	eBookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eBookClass)
+
+	// create store
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	objectID := int64(6)
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(objectID).Once()
+	mockObject.EXPECT().SetSQLID(objectID).Once()
+	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
+
+	container, feature := s.GetContainer(mockObject)
+	require.NotNil(t, container)
+	require.Equal(t, "Library", container.EClass().GetName())
+	require.NotNil(t, feature)
+	require.Equal(t, "books", feature.GetName())
+
+}

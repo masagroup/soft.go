@@ -1382,11 +1382,11 @@ func (s *SQLStore) GetContainer(object EObject) (container EObject, feature EStr
 			case sqlite.TypeInteger:
 				containerID = stmt.ColumnInt64(0)
 			}
-			switch stmt.ColumnType(0) {
+			switch stmt.ColumnType(1) {
 			case sqlite.TypeNull:
 				containerFeatureID = 0
 			case sqlite.TypeInteger:
-				containerID = stmt.ColumnInt64(0)
+				containerFeatureID = stmt.ColumnInt64(1)
 			}
 			return nil
 		},
@@ -1397,7 +1397,7 @@ func (s *SQLStore) GetContainer(object EObject) (container EObject, feature EStr
 
 	switch containerID {
 	case -1:
-		s.errorHandler(fmt.Errorf("unbale to find container for object '%v'", sqlID))
+		s.errorHandler(fmt.Errorf("unable to find container for object '%v'", sqlID))
 	case 0:
 	default:
 		container, err = s.decodeObject(conn, containerID)

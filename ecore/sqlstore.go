@@ -466,6 +466,7 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 		},
 		sqlEncoder: sqlEncoder{
 			sqlBase:          base,
+			isForced:         false,
 			classDataMap:     map[EClass]*sqlEncoderClassData{},
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
@@ -522,30 +523,6 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 
 func (s *SQLStore) Close() error {
 	return s.pool.Close()
-}
-
-func (s *SQLStore) decodeVersion(pool *sqlitex.Pool) error {
-	conn, err := pool.Take(context.Background())
-	if err != nil {
-		return err
-	}
-	defer pool.Put(conn)
-
-	var version int64
-	if err := sqlitex.ExecuteTransient(conn, `PRAGMA user_version;`, &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			version = stmt.ColumnInt64(0)
-			return nil
-		},
-	}); err != nil {
-		return err
-	}
-
-	if version > 0 && version != s.codecVersion {
-		return fmt.Errorf("history version %v is not supported", version)
-	}
-
-	return nil
 }
 
 func (s *SQLStore) getSingleQueries(column *sqlColumn) *sqlSingleQueries {

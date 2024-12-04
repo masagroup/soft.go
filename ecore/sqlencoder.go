@@ -111,6 +111,7 @@ func (r *sqlEncoderObjectManager) registerObject(EObject) {
 
 type sqlEncoder struct {
 	*sqlBase
+	isForced         bool
 	isKeepDefaults   bool
 	classDataMap     map[EClass]*sqlEncoderClassData
 	sqlIDManager     SQLEncoderIDManager
@@ -118,6 +119,22 @@ type sqlEncoder struct {
 }
 
 func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
+	if !e.isForced {
+		var version int64
+		if err := sqlitex.ExecuteTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				version = stmt.ColumnInt64(0)
+				return nil
+			},
+		}); err != nil {
+			return err
+		}
+		// already encoded
+		if version == e.codecVersion {
+			return nil
+		}
+	}
+	// encode
 	return sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v;`, e.codecVersion), nil)
 }
 
@@ -152,19 +169,30 @@ func (e *sqlEncoder) encodeSchema(conn *sqlite.Conn) error {
 	return nil
 }
 
-func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) error {
-	if len(e.objectIDName) > 0 {
-		if err := sqlitex.ExecuteTransient(conn, e.schema.propertiesTable.insertOrReplaceQuery(), &sqlitex.ExecOptions{
-			Args: []any{"objectID", e.objectIDName},
-		}); err != nil {
+func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) (err error) {
+	previous := map[string]string{}
+	if !e.isForced {
+		previous, err = decodeProperties(conn)
+		if err != nil {
 			return err
 		}
 	}
+	properties := map[string]string{}
+	if len(e.objectIDName) > 0 {
+		properties["objectID"] = e.objectIDName
+	}
 	if e.isContainerID {
-		if err := sqlitex.ExecuteTransient(conn, e.schema.propertiesTable.insertOrReplaceQuery(), &sqlitex.ExecOptions{
-			Args: []any{"containerID", "true"},
-		}); err != nil {
-			return err
+		properties["containerID"] = "true"
+	}
+
+	query := e.schema.propertiesTable.insertOrReplaceQuery()
+	for k, v := range properties {
+		if previous[k] != v {
+			if err := sqlitex.Execute(conn, query, &sqlitex.ExecOptions{
+				Args: []any{k, v},
+			}); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -633,6 +661,7 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 				isObjectID:      isObjectID,
 				schema:          newSqlSchema(schemaOptions...),
 			},
+			isForced:         true,
 			isKeepDefaults:   isKeepDefaults,
 			classDataMap:     map[EClass]*sqlEncoderClassData{},
 			sqlIDManager:     sqlIDManager,

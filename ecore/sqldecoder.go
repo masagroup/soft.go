@@ -140,13 +140,7 @@ func (d *sqlDecoder) resolveURI(uri *URI) *URI {
 	return uri
 }
 
-func decodeProperties(pool *sqlitex.Pool) (map[string]string, error) {
-	conn, err := pool.Take(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defer pool.Put(conn)
-
+func decodeProperties(conn *sqlite.Conn) (map[string]string, error) {
 	// result
 	properties := map[string]string{}
 
@@ -178,9 +172,38 @@ func decodeProperties(pool *sqlitex.Pool) (map[string]string, error) {
 	return properties, nil
 }
 
+func (d *sqlDecoder) decodeVersion(pool *sqlitex.Pool) error {
+	conn, err := pool.Take(context.Background())
+	if err != nil {
+		return err
+	}
+	defer pool.Put(conn)
+
+	var version int64
+	if err := sqlitex.ExecuteTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			version = stmt.ColumnInt64(0)
+			return nil
+		},
+	}); err != nil {
+		return err
+	}
+
+	if version > 0 && version != d.codecVersion {
+		return fmt.Errorf("codec version %v is not supported", version)
+	}
+	return nil
+}
+
 func (d *sqlDecoder) decodeSchema(pool *sqlitex.Pool, schemaOptions []sqlSchemaOption) error {
+	conn, err := pool.Take(context.Background())
+	if err != nil {
+		return err
+	}
+	defer pool.Put(conn)
+
 	// properties
-	properties, err := decodeProperties(pool)
+	properties, err := decodeProperties(conn)
 	if err != nil {
 		return nil
 	}
@@ -762,29 +785,6 @@ func (d *SQLDecoder) DecodeResource() {
 
 func (d *SQLDecoder) DecodeObject() (EObject, error) {
 	panic("SQLDecoder doesn't support object decoding")
-}
-
-func (d *SQLDecoder) decodeVersion(pool *sqlitex.Pool) error {
-	conn, err := pool.Take(context.Background())
-	if err != nil {
-		return err
-	}
-	defer pool.Put(conn)
-
-	var version int64
-	if err := sqlitex.ExecuteTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			version = stmt.ColumnInt64(0)
-			return nil
-		},
-	}); err != nil {
-		return err
-	}
-
-	if version != d.codecVersion {
-		return fmt.Errorf("codec version %v is not supported", version)
-	}
-	return nil
 }
 
 func (d *SQLDecoder) decodeContents(pool *sqlitex.Pool) error {

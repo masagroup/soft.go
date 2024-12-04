@@ -245,3 +245,25 @@ func TestEStoreEObjectImpl_UnSetAttribute(t *testing.T) {
 	o.EUnsetFromID(0)
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
 }
+
+func TestEStoreEObjectImpl_GetContainer(t *testing.T) {
+	mockClass := NewMockEClass(t)
+	mockStore := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockObjectClass := NewMockEClass(t)
+	mockReference := NewMockEReference(t)
+	mockOpposite := NewMockEReference(t)
+
+	// create object
+	o := NewEStoreEObjectImpl(false)
+	o.SetEClass(mockClass)
+	o.SetEStore(mockStore)
+
+	mockStore.EXPECT().GetContainer(o.AsEObject()).Return(mockObject, mockReference).Once()
+	mockObject.EXPECT().EClass().Return(mockObjectClass).Once()
+	mockObjectClass.EXPECT().GetFeatureID(mockReference).Return(1).Once()
+	mockReference.EXPECT().GetEOpposite().Return(mockOpposite).Once()
+	mockClass.EXPECT().GetFeatureID(mockOpposite).Return(1).Once()
+	mockObject.EXPECT().EIsProxy().Return(false).Once()
+	require.Equal(t, mockObject, o.EContainer())
+}

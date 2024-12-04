@@ -419,23 +419,18 @@ type SQLStore struct {
 }
 
 func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManager, packageRegistry EPackageRegistry, options map[string]any) (*SQLStore, error) {
-	// options
-	schemaOptions := []sqlSchemaOption{withCreateIfNotExists(true)}
-	idAttributeName := ""
-	storeVersion := sqlCodecVersion
+	objectIDName := ""
+	codecVersion := sqlCodecVersion
 	errorHandler := func(error) {}
 	sqlIDManager := newSQLStoreIDManager()
 	sqlObjectManager := newSQLStoreObjectManager()
 	if options != nil {
-		idAttributeName, _ = options[SQL_OPTION_OBJECT_ID_NAME].(string)
-		if idManager != nil && len(idAttributeName) > 0 {
-			schemaOptions = append(schemaOptions, withIDAttributeName(idAttributeName))
-		}
+		objectIDName, _ = options[SQL_OPTION_OBJECT_ID].(string)
 		if eh, isErrorHandler := options[SQL_OPTION_ERROR_HANDLER]; isErrorHandler {
 			errorHandler = eh.(func(error))
 		}
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
-			storeVersion = v
+			codecVersion = v
 		}
 		if m, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLStoreIDManager); isSQLIDManager {
 			sqlIDManager = m
@@ -449,42 +444,16 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 		return nil, err
 	}
 
-	conn, err := pool.Take(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defer pool.Put(conn)
-
-	// retrieve version
-	var version int64
-	if err := sqlitex.ExecuteTransient(conn, `PRAGMA user_version;`, &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			version = stmt.ColumnInt64(0)
-			return nil
-		},
-	}); err != nil {
-		return nil, err
-	}
-
-	// encode version
-	if version > 0 {
-		if version != storeVersion {
-			return nil, fmt.Errorf("history version %v is not supported", version)
-		}
-	} else {
-		if err := sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v`, storeVersion), nil); err != nil {
-			return nil, err
-		}
-	}
 	// create sql base
 	base := &sqlBase{
+		codecVersion:    codecVersion,
 		uri:             resourceURI,
-		idAttributeName: idAttributeName,
-		idManager:       idManager,
-		schema:          newSqlSchema(schemaOptions...),
+		objectIDName:    objectIDName,
+		objectIDManager: idManager,
+		isContainerID:   true,
+		isObjectID:      len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
 	}
 
-	// initialize
 	// create sql store
 	store := &SQLStore{
 		sqlBase: base,
@@ -497,6 +466,7 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 		},
 		sqlEncoder: sqlEncoder{
 			sqlBase:          base,
+			isForced:         false,
 			classDataMap:     map[EClass]*sqlEncoderClassData{},
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
@@ -511,13 +481,40 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	// set store in sql object manager
 	sqlObjectManager.store = store
 
-	// encode properties
+	// decode version
+	if err := store.decodeVersion(pool); err != nil {
+		return nil, err
+	}
+
+	// decode schema
+	if err := store.decodeSchema(pool, []sqlSchemaOption{withCreateIfNotExists(true)}); err != nil {
+		return nil, err
+	}
+
+	// write connection
+	conn, err := pool.Take(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	defer pool.Put(conn)
+
+	// encode version
+	if err := store.encodeVersion(conn); err != nil {
+		return nil, err
+	}
+
+	// encode pragmas
 	if err := store.encodePragmas(conn); err != nil {
 		return nil, err
 	}
 
 	// encode schema
 	if err := store.encodeSchema(conn); err != nil {
+		return nil, err
+	}
+
+	// encode schema
+	if err := store.encodeProperties(conn); err != nil {
 		return nil, err
 	}
 
@@ -1335,6 +1332,99 @@ func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
 	); err != nil {
 		s.errorHandler(err)
 	}
+}
+
+func (s *SQLStore) GetContainer(object EObject) (container EObject, feature EStructuralFeature) {
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	defer s.pool.Put(conn)
+
+	sqlID, err := s.getSQLID(conn, object)
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+
+	containerID := int64(-1)
+	containerFeatureID := int64(-1)
+	if err := sqlitex.Execute(conn, `SELECT containerID,containerFeatureID FROM ".objects" WHERE objectID=?`, &sqlitex.ExecOptions{
+		Args: []any{sqlID},
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			switch stmt.ColumnType(0) {
+			case sqlite.TypeNull:
+				containerID = 0
+			case sqlite.TypeInteger:
+				containerID = stmt.ColumnInt64(0)
+			}
+			switch stmt.ColumnType(1) {
+			case sqlite.TypeNull:
+				containerFeatureID = 0
+			case sqlite.TypeInteger:
+				containerFeatureID = stmt.ColumnInt64(1)
+			}
+			return nil
+		},
+	}); err != nil {
+		s.errorHandler(err)
+		return
+	}
+
+	switch containerID {
+	case -1:
+		s.errorHandler(fmt.Errorf("unable to find container for object '%v'", sqlID))
+	case 0:
+	default:
+		container, err = s.decodeObject(conn, containerID)
+		if err != nil {
+			s.errorHandler(err)
+			return
+		}
+
+		containerInternal := container.(EObjectInternal)
+		containerClass := containerInternal.EClass()
+		feature = containerClass.GetEStructuralFeature(containerInternal.EStaticFeatureCount() + int(containerFeatureID))
+	}
+	return
+}
+
+func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStructuralFeature) {
+	conn, err := s.pool.Take(context.Background())
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+	defer s.pool.Put(conn)
+
+	sqlObjectID, err := s.getSQLID(conn, object)
+	if err != nil {
+		s.errorHandler(err)
+		return
+	}
+
+	var sqlContainerID any
+	if container != nil {
+		sqlContainerID, err = s.getSQLID(conn, container)
+		if err != nil {
+			s.errorHandler(err)
+			return
+		}
+	}
+
+	var featureID any
+	if container != nil && feature != nil {
+		featureID = container.EClass().GetFeatureID(feature)
+	}
+
+	if err := sqlitex.Execute(conn, `UPDATE ".objects" SET containerID=?,containerFeatureID=? WHERE objectID=?`, &sqlitex.ExecOptions{
+		Args: []any{sqlContainerID, featureID, sqlObjectID},
+	}); err != nil {
+		s.errorHandler(err)
+		return
+	}
+
 }
 
 func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {

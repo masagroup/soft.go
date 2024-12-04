@@ -129,12 +129,13 @@ func TestSQLStore_Get_Int(t *testing.T) {
 	require.NotNil(t, s)
 	defer s.Close()
 
+	objectID := int64(7)
 	mockObject := NewMockSQLObject(t)
-	mockObject.EXPECT().GetSQLID().Return(int64(3)).Once()
-	mockObject.EXPECT().SetSQLID(int64(3)).Return().Once()
+	mockObject.EXPECT().GetSQLID().Return(objectID).Once()
+	mockObject.EXPECT().SetSQLID(objectID).Return().Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	v := s.Get(mockObject, eFeature, -1)
-	assert.Equal(t, 4, v)
+	assert.Equal(t, 3, v)
 }
 
 func TestSQLStore_Get_Enum(t *testing.T) {
@@ -161,16 +162,16 @@ func TestSQLStore_Get_Enum(t *testing.T) {
 
 	// Mystery == 0
 	mockObject := NewMockSQLObject(t)
-	mockObject.EXPECT().GetSQLID().Return(int64(4)).Once()
-	mockObject.EXPECT().SetSQLID(int64(4)).Once()
+	mockObject.EXPECT().GetSQLID().Return(int64(7)).Once()
+	mockObject.EXPECT().SetSQLID(int64(7)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
 	v := s.Get(mockObject, eFeature, -1)
 	assert.Equal(t, 0, v)
 
 	// Biography == 2
-	mockObject.EXPECT().GetSQLID().Return(int64(3)).Once()
-	mockObject.EXPECT().SetSQLID(int64(3)).Once()
+	mockObject.EXPECT().GetSQLID().Return(int64(6)).Once()
+	mockObject.EXPECT().SetSQLID(int64(6)).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
 	v = s.Get(mockObject, eFeature, -1)
 	assert.Equal(t, 2, v)
@@ -375,9 +376,10 @@ func TestSQLStore_Set_Int(t *testing.T) {
 		require.NotNil(t, s)
 		defer s.Close()
 
+		objectID := int64(6)
 		mockObject := NewMockSQLObject(t)
-		mockObject.EXPECT().GetSQLID().Return(int64(3)).Once()
-		mockObject.EXPECT().SetSQLID(int64(3)).Once()
+		mockObject.EXPECT().GetSQLID().Return(objectID).Once()
+		mockObject.EXPECT().SetSQLID(objectID).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		oldValue := s.Set(mockObject, eFeature, -1, 5)
 		assert.Equal(t, 4, oldValue)
@@ -390,7 +392,7 @@ func TestSQLStore_Set_Int(t *testing.T) {
 		defer conn.Close()
 
 		copies := -1
-		err = sqlitex.ExecuteTransient(conn, "SELECT copies FROM Lendable WHERE lendableID=3", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+		err = sqlitex.ExecuteTransient(conn, "SELECT copies FROM Lendable WHERE lendableID=6", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
 			copies = stmt.ColumnInt(0)
 			return nil
 		}})
@@ -659,8 +661,8 @@ func TestSQLStore_UnSet_Single(t *testing.T) {
 		defer s.Close()
 
 		mockObject := NewMockSQLObject(t)
-		mockObject.EXPECT().GetSQLID().Return(int64(3)).Once()
-		mockObject.EXPECT().SetSQLID(int64(3)).Once()
+		mockObject.EXPECT().GetSQLID().Return(int64(6)).Once()
+		mockObject.EXPECT().SetSQLID(int64(6)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
 		s.UnSet(mockObject, eFeature)
 	}
@@ -672,7 +674,7 @@ func TestSQLStore_UnSet_Single(t *testing.T) {
 		defer conn.Close()
 
 		copies := -1
-		err = sqlitex.ExecuteTransient(conn, "SELECT copies FROM Lendable WHERE lendableID=3", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+		err = sqlitex.ExecuteTransient(conn, "SELECT copies FROM Lendable WHERE lendableID=6", &sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
 			copies = stmt.ColumnInt(0)
 			return nil
 		}})
@@ -1621,4 +1623,40 @@ func TestSQLStore_ToArray_Objects(t *testing.T) {
 	b, _ := a[0].(EObject)
 	require.NotNil(t, b)
 	require.Equal(t, eBookClass, b.EClass())
+}
+
+func TestSQLStore_GetContainer(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+	ePackage.SetEFactoryInstance(newDynamicSQLFactory())
+
+	eLibraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, eLibraryClass)
+
+	eBookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eBookClass)
+
+	// create store
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	objectID := int64(6)
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(objectID).Once()
+	mockObject.EXPECT().SetSQLID(objectID).Once()
+	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
+
+	container, feature := s.GetContainer(mockObject)
+	require.NotNil(t, container)
+	require.Equal(t, "Library", container.EClass().GetName())
+	require.NotNil(t, feature)
+	require.Equal(t, "books", feature.GetName())
+
 }

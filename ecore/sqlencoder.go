@@ -111,13 +111,30 @@ func (r *sqlEncoderObjectManager) registerObject(EObject) {
 
 type sqlEncoder struct {
 	*sqlBase
-	keepDefaults     bool
+	isForced         bool
+	isKeepDefaults   bool
 	classDataMap     map[EClass]*sqlEncoderClassData
 	sqlIDManager     SQLEncoderIDManager
 	sqlObjectManager sqlObjectManager
 }
 
 func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
+	if !e.isForced {
+		var version int64
+		if err := sqlitex.ExecuteTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				version = stmt.ColumnInt64(0)
+				return nil
+			},
+		}); err != nil {
+			return err
+		}
+		// already encoded
+		if version == e.codecVersion {
+			return nil
+		}
+	}
+	// encode
 	return sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v;`, e.codecVersion), nil)
 }
 
@@ -138,6 +155,7 @@ func (e *sqlEncoder) encodePragmas(conn *sqlite.Conn) error {
 func (e *sqlEncoder) encodeSchema(conn *sqlite.Conn) error {
 	// tables
 	for _, table := range []*sqlTable{
+		e.schema.propertiesTable,
 		e.schema.packagesTable,
 		e.schema.classesTable,
 		e.schema.objectsTable,
@@ -146,6 +164,35 @@ func (e *sqlEncoder) encodeSchema(conn *sqlite.Conn) error {
 	} {
 		if err := sqlitex.ExecuteScript(conn, table.createQuery(), nil); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) (err error) {
+	previous := map[string]string{}
+	if !e.isForced {
+		previous, err = decodeProperties(conn)
+		if err != nil {
+			return err
+		}
+	}
+	properties := map[string]string{}
+	if len(e.objectIDName) > 0 {
+		properties["objectID"] = e.objectIDName
+	}
+	if e.isContainerID {
+		properties["containerID"] = "true"
+	}
+
+	query := e.schema.propertiesTable.insertOrReplaceQuery()
+	for k, v := range properties {
+		if previous[k] != v {
+			if err := sqlitex.Execute(conn, query, &sqlitex.ExecOptions{
+				Args: []any{k, v},
+			}); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -171,20 +218,33 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 			return -1, fmt.Errorf("getData('%s') error : %w", eClass.GetName(), err)
 		}
 
-		objectTable := e.schema.objectsTable
 		// args
 		args := []any{}
+		// object id
 		if sqlObjectID != 0 {
 			args = append(args, sqlObjectID)
 		} else {
 			args = append(args, nil)
 		}
+		// class id
 		args = append(args, classData.id)
-
+		// container and container feature id
+		if e.isContainerID {
+			if container := eObject.EContainer(); container != nil {
+				containerID, err := e.encodeObject(conn, eObject.EContainer())
+				if err != nil {
+					return -1, err
+				}
+				containerFeatureID := eObject.EContainingFeature().GetFeatureID()
+				args = append(args, containerID, containerFeatureID)
+			} else {
+				args = append(args, nil, nil)
+			}
+		}
 		// object id is serialized only if we have an id manager and
 		// a corresponding column in objects table
-		if e.idManager != nil && len(objectTable.columns) > 2 {
-			args = append(args, fmt.Sprintf("%v", e.idManager.GetID(eObject)))
+		if e.isObjectID {
+			args = append(args, fmt.Sprintf("%v", e.objectIDManager.GetID(eObject)))
 		}
 
 		// query
@@ -217,7 +277,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 			columnValues[classTable.key.index] = sqlObjectID
 			for itFeature := classData.features.Iterator(); itFeature.HasNext(); {
 				eFeature := itFeature.Key()
-				if eObject.EIsSet(eFeature) || (e.keepDefaults && len(eFeature.GetDefaultValueLiteral()) > 0) {
+				if eObject.EIsSet(eFeature) || (e.isKeepDefaults && len(eFeature.GetDefaultValueLiteral()) > 0) {
 					featureData := itFeature.Value()
 					if featureColumn := featureData.schema.column; featureColumn != nil {
 						featureValue := eObject.EGetResolve(eFeature, false)
@@ -561,17 +621,25 @@ func NewSQLDBEncoder(conn *sqlite.Conn, resource EResource, options map[string]a
 func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(conn *sqlite.Conn) error, resource EResource, options map[string]any) *SQLEncoder {
 	// options
 	schemaOptions := []sqlSchemaOption{}
-	idAttributeName := ""
-	keepDefaults := false
+	objectIDName := ""
+	isContainerID := false
+	isObjectID := false
+	isKeepDefaults := false
 	codecVersion := sqlCodecVersion
 	sqlIDManager := newSQLEncoderIDManager()
+	objectIDManager := resource.GetObjectIDManager()
 	if options != nil {
-		if id, isID := options[SQL_OPTION_OBJECT_ID_NAME].(string); isID && len(id) > 0 && resource.GetObjectIDManager() != nil {
-			schemaOptions = append(schemaOptions, withIDAttributeName(id))
-			idAttributeName = id
+		if id, isID := options[SQL_OPTION_OBJECT_ID].(string); isID && len(id) > 0 && objectIDManager != nil {
+			schemaOptions = append(schemaOptions, withObjectIDName(id))
+			objectIDName = id
+			isObjectID = objectIDName != "objectID"
+		}
+		if b, isBool := options[SQL_OPTION_CONTAINER_ID].(bool); isBool {
+			schemaOptions = append(schemaOptions, withContainerID(b))
+			isContainerID = b
 		}
 		if b, isBool := options[SQL_OPTION_KEEP_DEFAULTS].(bool); isBool {
-			keepDefaults = b
+			isKeepDefaults = b
 		}
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
@@ -587,11 +655,14 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 			sqlBase: &sqlBase{
 				codecVersion:    codecVersion,
 				uri:             resource.GetURI(),
-				idManager:       resource.GetObjectIDManager(),
-				idAttributeName: idAttributeName,
+				objectIDManager: objectIDManager,
+				objectIDName:    objectIDName,
+				isContainerID:   isContainerID,
+				isObjectID:      isObjectID,
 				schema:          newSqlSchema(schemaOptions...),
 			},
-			keepDefaults:     keepDefaults,
+			isForced:         true,
+			isKeepDefaults:   isKeepDefaults,
 			classDataMap:     map[EClass]*sqlEncoderClassData{},
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: newSqlEncoderObjectManager(),
@@ -628,6 +699,11 @@ func (e *SQLEncoder) EncodeResource() {
 	}
 
 	if err := e.encodeSchema(conn); err != nil {
+		e.addError(err)
+		return
+	}
+
+	if err := e.encodeProperties(conn); err != nil {
 		e.addError(err)
 		return
 	}

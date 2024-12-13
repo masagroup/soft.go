@@ -619,7 +619,7 @@ func (s *SQLStore) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
 		objectsTable := s.schema.objectsTable
 		if err := sqlitex.Execute(
 			conn,
-			objectsTable.selectQuery(nil, objectsTable.keyName()+"=?", ""),
+			s.getSingleQueries(objectsTable.key).getSelectQuery(),
 			&sqlitex.ExecOptions{
 				Args: []any{sqlID},
 				ResultFunc: func(stmt *sqlite.Stmt) error {

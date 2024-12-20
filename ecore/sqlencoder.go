@@ -139,13 +139,14 @@ func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
 }
 
 func (e *sqlEncoder) encodePragmas(conn *sqlite.Conn) error {
+
 	// synchronous mode
 	if err := sqlitex.ExecuteTransient(conn, `PRAGMA synchronous = NORMAL;`, nil); err != nil {
 		return err
 	}
 
 	// journal mode
-	if err := sqlitex.ExecuteTransient(conn, `PRAGMA journal_mode = WAL;`, nil); err != nil {
+	if err := sqlitex.ExecuteTransient(conn, `PRAGMA journal_mode = DELETE;`, nil); err != nil {
 		return err
 	}
 
@@ -563,51 +564,84 @@ type SQLEncoder struct {
 }
 
 func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any) *SQLEncoder {
-	// create a temp file for the database file
-	fileName := filepath.Base(resource.GetURI().Path())
-	dbPath, err := sqlTmpDB(fileName)
-	if err != nil {
-		return nil
+	inMemoryDatabase := false
+	if options != nil {
+		inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
 	}
-	return newSQLEncoder(
-		func() (*sqlite.Conn, error) {
-			return sqlite.OpenConn(dbPath, sqlite.OpenReadWrite|sqlite.OpenCreate)
-		},
-		func(conn *sqlite.Conn) error {
-			// close db
-			if err := conn.Close(); err != nil {
-				return err
-			}
+	if inMemoryDatabase {
+		return newSQLEncoder(
+			func() (*sqlite.Conn, error) {
+				return sqlite.OpenConn(":memory:", sqlite.OpenReadWrite|sqlite.OpenCreate)
+			},
+			func(conn *sqlite.Conn) error {
+				// save bytes
+				bytes, err := conn.Serialize("")
+				if err != nil {
+					return err
+				}
 
-			// open db file
-			dbFile, err := os.Open(dbPath)
-			if err != nil {
-				return err
-			}
-			defer func() {
-				_ = dbFile.Close()
-			}()
+				// write bytes to writer
+				if _, err := w.Write(bytes); err != nil {
+					return err
+				}
 
-			// copy db file content to writer
-			if _, err := io.Copy(w, dbFile); err != nil {
-				return err
-			}
+				// close db
+				if err := conn.Close(); err != nil {
+					return err
+				}
 
-			// close db file
-			if err := dbFile.Close(); err != nil {
-				return err
-			}
-
-			// remove it from fs
-			if err := os.Remove(dbPath); err != nil {
-				return err
-			}
-
+				return nil
+			},
+			resource,
+			options,
+		)
+	} else {
+		// create a temp file for the database file
+		fileName := filepath.Base(resource.GetURI().Path())
+		dbPath, err := sqlTmpDB(fileName)
+		if err != nil {
 			return nil
-		},
-		resource,
-		options,
-	)
+		}
+		return newSQLEncoder(
+			func() (*sqlite.Conn, error) {
+				return sqlite.OpenConn(dbPath, sqlite.OpenReadWrite|sqlite.OpenCreate)
+			},
+			func(conn *sqlite.Conn) error {
+				// close db
+				if err := conn.Close(); err != nil {
+					return err
+				}
+
+				// open db file
+				dbFile, err := os.Open(dbPath)
+				if err != nil {
+					return err
+				}
+				defer func() {
+					_ = dbFile.Close()
+				}()
+
+				// copy db file content to writer
+				if _, err := io.Copy(w, dbFile); err != nil {
+					return err
+				}
+
+				// close db file
+				if err := dbFile.Close(); err != nil {
+					return err
+				}
+
+				// remove it from fs
+				if err := os.Remove(dbPath); err != nil {
+					return err
+				}
+
+				return nil
+			},
+			resource,
+			options,
+		)
+	}
 }
 
 func NewSQLDBEncoder(conn *sqlite.Conn, resource EResource, options map[string]any) *SQLEncoder {

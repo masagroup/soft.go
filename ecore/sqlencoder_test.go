@@ -26,12 +26,9 @@ func requireSameDB(t require.TestingT, expectedPath string, actualBytes []byte) 
 	}()
 
 	// open actual db
-	actualPath, err := sqlTmpDB("")
+	actualConn, err := sqlite.OpenConn(":memory:")
 	require.NoError(t, err)
-	err = os.WriteFile(actualPath, actualBytes, 0644)
-	require.NoError(t, err)
-
-	actualConn, err := sqlite.OpenConn(actualPath)
+	err = actualConn.Deserialize("", actualBytes)
 	require.NoError(t, err)
 	defer func() {
 		_ = actualConn.Close()
@@ -54,16 +51,83 @@ func TestSqlEncoder_Complex(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	w, err := os.Create("testdata/library.complex.sqlite")
-	require.NoError(t, err)
-	defer w.Close()
-	// w := &bytes.Buffer{}
+	// w, err := os.Create("testdata/library.complex.sqlite")
+	// require.NoError(t, err)
+	// defer w.Close()
+	w := &bytes.Buffer{}
 	sqliteEncoder := NewSQLWriterEncoder(w, eResource, nil)
 	sqliteEncoder.EncodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 
 	// compare expected and actual bytes
-	// requireSameDB(t, "testdata/library.complex.sqlite", w.Bytes())
+	requireSameDB(t, "testdata/library.complex.sqlite", w.Bytes())
+}
+
+func TestSqlEncoder_Complex_Memory(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.complex.xml"), nil)
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	// w, err := os.Create("testdata/library.complex.sqlite")
+	// require.NoError(t, err)
+	// defer w.Close()
+	w := &bytes.Buffer{}
+	sqliteEncoder := NewSQLWriterEncoder(w, eResource, map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: true})
+	sqliteEncoder.EncodeResource()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	// compare expected and actual bytes
+	requireSameDB(t, "testdata/library.complex.sqlite", w.Bytes())
+}
+
+func BenchmarkSQLEncoder_Complex(b *testing.B) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(b, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.complex.xml"), nil)
+	require.NotNil(b, eResource)
+	require.True(b, eResource.IsLoaded())
+	require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	for n := 0; n < b.N; n++ {
+		w := &bytes.Buffer{}
+		sqliteEncoder := NewSQLWriterEncoder(w, eResource, map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: false})
+		sqliteEncoder.EncodeResource()
+		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	}
+}
+
+func BenchmarkSQLEncoder_Complex_Memory(b *testing.B) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(b, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.complex.xml"), nil)
+	require.NotNil(b, eResource)
+	require.True(b, eResource.IsLoaded())
+	require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	for n := 0; n < b.N; n++ {
+		w := &bytes.Buffer{}
+		sqliteEncoder := NewSQLWriterEncoder(w, eResource, map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: true})
+		sqliteEncoder.EncodeResource()
+		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	}
 }
 
 func TestSqlEncoder_DataList(t *testing.T) {

@@ -140,13 +140,13 @@ func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
 
 func (e *sqlEncoder) encodePragmas(conn *sqlite.Conn) error {
 
-	// synchronous mode
-	if err := sqlitex.ExecuteTransient(conn, `PRAGMA synchronous = NORMAL;`, nil); err != nil {
+	// journal mode
+	if err := sqlitex.ExecuteTransient(conn, `PRAGMA journal_mode = off;`, nil); err != nil {
 		return err
 	}
 
-	// journal mode
-	if err := sqlitex.ExecuteTransient(conn, `PRAGMA journal_mode = DELETE;`, nil); err != nil {
+	// synchronous mode
+	if err := sqlitex.ExecuteTransient(conn, `PRAGMA synchronous = normal;`, nil); err != nil {
 		return err
 	}
 

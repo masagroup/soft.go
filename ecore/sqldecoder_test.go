@@ -29,6 +29,28 @@ func TestSqlDecoder_DecodeResource(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 }
 
+func TestSqlDecoder_DecodeResource_Memory(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	// create resource & resourceset
+	uri := NewURI("testdata/library.complex.sqlite")
+	eResource := NewEResourceImpl()
+	eResource.SetURI(uri)
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(eResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	r, err := os.Open(uri.String())
+	require.NoError(t, err)
+	defer r.Close()
+
+	sqlDecoder := NewSQLReaderDecoder(r, eResource, map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: true})
+	sqlDecoder.DecodeResource()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+}
+
 func TestSqlDecoder_EMaps(t *testing.T) {
 	// load package
 	ePackage := loadPackage("emap.ecore")

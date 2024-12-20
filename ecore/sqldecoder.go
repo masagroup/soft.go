@@ -650,34 +650,76 @@ type SQLDecoder struct {
 }
 
 func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any) *SQLDecoder {
-	return newSQLDecoder(
-		func() (*sqlitex.Pool, error) {
-			fileName := filepath.Base(resource.GetURI().Path())
-			dbPath, err := sqlTmpDB(fileName)
-			if err != nil {
-				return nil, err
-			}
+	inMemoryDatabase := false
+	if options != nil {
+		inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
+	}
+	if inMemoryDatabase {
+		var conn *sqlite.Conn
+		return newSQLDecoder(
+			func() (*sqlitex.Pool, error) {
+				// create connection pool
+				fileName := filepath.Base(resource.GetURI().Path())
+				dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
+				connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
+				if err != nil {
+					return nil, err
+				}
 
-			dbFile, err := os.Create(dbPath)
-			if err != nil {
-				return nil, err
-			}
+				// create connection pool
+				conn, err = connPool.Take(context.Background())
+				if err != nil {
+					return nil, err
+				}
 
-			_, err = io.Copy(dbFile, r)
-			if err != nil {
+				// initialize db with reader bytes
+				bytes, err := io.ReadAll(r)
+				if err != nil {
+					return nil, err
+				}
+				if err := conn.Deserialize("main", bytes); err != nil {
+					return nil, err
+				}
+
+				return connPool, nil
+
+			},
+			func(connPool *sqlitex.Pool) error {
+				connPool.Put(conn)
+				return connPool.Close()
+			},
+			resource,
+			options)
+	} else {
+		return newSQLDecoder(
+			func() (*sqlitex.Pool, error) {
+				fileName := filepath.Base(resource.GetURI().Path())
+				dbPath, err := sqlTmpDB(fileName)
+				if err != nil {
+					return nil, err
+				}
+
+				dbFile, err := os.Create(dbPath)
+				if err != nil {
+					return nil, err
+				}
+
+				_, err = io.Copy(dbFile, r)
+				if err != nil {
+					dbFile.Close()
+					return nil, err
+				}
 				dbFile.Close()
-				return nil, err
-			}
-			dbFile.Close()
 
-			return sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenReadOnly})
+				return sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenReadOnly})
 
-		},
-		func(connPool *sqlitex.Pool) error {
-			return connPool.Close()
-		},
-		resource,
-		options)
+			},
+			func(connPool *sqlitex.Pool) error {
+				return connPool.Close()
+			},
+			resource,
+			options)
+	}
 }
 
 func NewSQLDBDecoder(connPool *sqlitex.Pool, resource EResource, options map[string]any) *SQLDecoder {

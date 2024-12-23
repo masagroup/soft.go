@@ -141,7 +141,7 @@ func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
 func (e *sqlEncoder) encodePragmas(conn *sqlite.Conn) error {
 
 	// journal mode
-	if err := sqlitex.ExecuteTransient(conn, `PRAGMA journal_mode = off;`, nil); err != nil {
+	if err := sqlitex.ExecuteTransient(conn, `PRAGMA journal_mode = delete;`, nil); err != nil {
 		return err
 	}
 

@@ -418,7 +418,7 @@ type SQLStore struct {
 	manyQueries   map[*sqlTable]*sqlManyQueries
 }
 
-func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManager, packageRegistry EPackageRegistry, options map[string]any) (*SQLStore, error) {
+func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManager, packageRegistry EPackageRegistry, options map[string]any) (store *SQLStore, err error) {
 	objectIDName := ""
 	codecVersion := sqlCodecVersion
 	errorHandler := func(error) {}
@@ -455,7 +455,7 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	}
 
 	// create sql store
-	store := &SQLStore{
+	store = &SQLStore{
 		sqlBase: base,
 		sqlDecoder: sqlDecoder{
 			sqlBase:          base,
@@ -481,13 +481,20 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	// set store in sql object manager
 	sqlObjectManager.store = store
 
+	// close pool if there is an error
+	defer func() {
+		if err != nil {
+			pool.Close()
+		}
+	}()
+
 	// decode version
-	if err := store.decodeVersion(pool); err != nil {
+	if err = store.decodeVersion(pool); err != nil {
 		return nil, err
 	}
 
 	// decode schema
-	if err := store.decodeSchema(pool, []sqlSchemaOption{withCreateIfNotExists(true)}); err != nil {
+	if err = store.decodeSchema(pool, []sqlSchemaOption{withCreateIfNotExists(true)}); err != nil {
 		return nil, err
 	}
 
@@ -499,22 +506,22 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	defer pool.Put(conn)
 
 	// encode version
-	if err := store.encodeVersion(conn); err != nil {
+	if err = store.encodeVersion(conn); err != nil {
 		return nil, err
 	}
 
 	// encode pragmas
-	if err := store.encodePragmas(conn); err != nil {
+	if err = store.encodePragmas(conn); err != nil {
 		return nil, err
 	}
 
 	// encode schema
-	if err := store.encodeSchema(conn); err != nil {
+	if err = store.encodeSchema(conn); err != nil {
 		return nil, err
 	}
 
 	// encode schema
-	if err := store.encodeProperties(conn); err != nil {
+	if err = store.encodeProperties(conn); err != nil {
 		return nil, err
 	}
 

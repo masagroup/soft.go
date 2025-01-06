@@ -1,10 +1,14 @@
 package ecore
 
 import (
+	"context"
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"zombiezen.com/go/sqlite"
+	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 func TestSqlDecoder_DecodeResource(t *testing.T) {
@@ -206,4 +210,47 @@ func TestSqlDecoder_SimpleWithContainerIDs(t *testing.T) {
 	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, nil)
 	sqlDecoder.DecodeResource()
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
+}
+
+func TestSqlDecodr_SharedMemoryPool(t *testing.T) {
+	fileName := "test.sqlite"
+	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
+	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
+	require.NoError(t, err)
+	defer connPool.Close()
+
+	// create connection pool
+	conn, err := connPool.Take(context.Background())
+	require.NoError(t, err)
+	defer connPool.Put(conn)
+
+	// create a table
+	// Create a table using the first connection
+	err = sqlitex.ExecuteTransient(conn, "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT)", nil)
+	require.NoError(t, err)
+
+	// Insert data using the first connection
+	err = sqlitex.ExecuteTransient(conn, "INSERT INTO users (name) VALUES ('Alice')", nil)
+	require.NoError(t, err)
+
+	conn2, err := connPool.Take(context.Background())
+	require.NoError(t, err)
+	defer connPool.Put(conn2)
+
+	var id int64
+	var name string
+	err = sqlitex.ExecuteTransient(
+		conn,
+		"SELECT id, name FROM users",
+		&sqlitex.ExecOptions{
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				id = stmt.ColumnInt64(0)
+				name = stmt.ColumnText(1)
+				return nil
+			},
+		})
+	require.NoError(t, err)
+	require.True(t, id > 0)
+	require.True(t, name != "")
+
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -272,43 +273,56 @@ func TestSqlDecodr_SharedMemoryPool_DeserializeDB(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
+	err = sqlitex.ExecuteScript(conn, "ATTACH DATABASE 'file::memory:' AS input;", nil)
+	require.NoError(t, err)
+
 	// initialize db with reader bytes
 	bytes, err := io.ReadAll(f)
 	require.NoError(t, err)
 
-	// deserialize db
-	err = conn.Deserialize("main", bytes)
+	// deserialize db in input
+	err = conn.Deserialize("input", bytes)
 	require.NoError(t, err)
 
-	names := []string{}
-	err = sqlitex.ExecuteTransient(
-		conn,
-		"SELECT name FROM sqlite_master WHERE type='table'",
-		&sqlitex.ExecOptions{
-			ResultFunc: func(stmt *sqlite.Stmt) error {
-				names = append(names, stmt.ColumnText(0))
-				return nil
-			},
-		})
+	sqls := []string{}
+	tables := []string{}
+	err = sqlitex.ExecuteTransient(conn, "SELECT sql,name FROM input.sqlite_master WHERE type='table' and name NOT LIKE 'sqlite_%'", &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			sqls = append(sqls, stmt.ColumnText(0))
+			tables = append(tables, stmt.ColumnText(1))
+			return nil
+		},
+	})
 	require.NoError(t, err)
-	require.True(t, len(names) > 0)
 
-	// open another connection
+	err = sqlitex.ExecuteScript(conn, strings.Join(sqls, ";"), nil)
+	require.NoError(t, err)
+
+	for _, name := range tables {
+		var query strings.Builder
+		query.WriteString(`INSERT INTO "`)
+		query.WriteString(name)
+		query.WriteString(`" SELECT * FROM "input"."`)
+		query.WriteString(name)
+		query.WriteString(`"`)
+		err = sqlitex.ExecuteTransient(conn, query.String(), nil)
+		require.NoError(t, err)
+	}
+
+	err = sqlitex.ExecuteScript(conn, "DETACH DATABASE input;", nil)
+	require.NoError(t, err)
+
 	conn2, err := connPool.Take(context.Background())
 	require.NoError(t, err)
 	defer connPool.Put(conn2)
 
-	names2 := []string{}
-	err = sqlitex.ExecuteTransient(
-		conn,
-		"SELECT name FROM sqlite_master WHERE type='table'",
-		&sqlitex.ExecOptions{
-			ResultFunc: func(stmt *sqlite.Stmt) error {
-				names2 = append(names2, stmt.ColumnText(0))
-				return nil
-			},
-		})
-	require.NoError(t, err)
-	require.True(t, len(names2) > 0)
+	count := 0
+	sqlitex.ExecuteTransient(conn2, "SELECT COUNT(*) FROM '.packages'", &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			count = stmt.ColumnInt(0)
+			return nil
+		},
+	})
+	require.True(t, count > 0)
 
 }

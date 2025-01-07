@@ -3,6 +3,7 @@ package ecore
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"testing"
 
@@ -212,7 +213,7 @@ func TestSqlDecoder_SimpleWithContainerIDs(t *testing.T) {
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
 
-func TestSqlDecodr_SharedMemoryPool(t *testing.T) {
+func TestSqlDecodr_SharedMemoryPool_CreateDB(t *testing.T) {
 	fileName := "test.sqlite"
 	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
 	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
@@ -252,5 +253,62 @@ func TestSqlDecodr_SharedMemoryPool(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, id > 0)
 	require.True(t, name != "")
+
+}
+
+func TestSqlDecodr_SharedMemoryPool_DeserializeDB(t *testing.T) {
+	fileName := "test.sqlite"
+	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
+	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
+	require.NoError(t, err)
+	defer connPool.Close()
+
+	// create connection pool
+	conn, err := connPool.Take(context.Background())
+	require.NoError(t, err)
+	defer connPool.Put(conn)
+
+	f, err := os.Open("testdata/library.complex.sqlite")
+	require.NoError(t, err)
+	defer f.Close()
+
+	// initialize db with reader bytes
+	bytes, err := io.ReadAll(f)
+	require.NoError(t, err)
+
+	// deserialize db
+	err = conn.Deserialize("main", bytes)
+	require.NoError(t, err)
+
+	names := []string{}
+	err = sqlitex.ExecuteTransient(
+		conn,
+		"SELECT name FROM sqlite_master WHERE type='table'",
+		&sqlitex.ExecOptions{
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				names = append(names, stmt.ColumnText(0))
+				return nil
+			},
+		})
+	require.NoError(t, err)
+	require.True(t, len(names) > 0)
+
+	// open another connection
+	conn2, err := connPool.Take(context.Background())
+	require.NoError(t, err)
+	defer connPool.Put(conn2)
+
+	names2 := []string{}
+	err = sqlitex.ExecuteTransient(
+		conn,
+		"SELECT name FROM sqlite_master WHERE type='table'",
+		&sqlitex.ExecOptions{
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				names2 = append(names2, stmt.ColumnText(0))
+				return nil
+			},
+		})
+	require.NoError(t, err)
+	require.True(t, len(names2) > 0)
 
 }

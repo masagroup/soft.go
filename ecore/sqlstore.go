@@ -511,9 +511,9 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	}
 
 	// encode pragmas
-	if err = store.encodePragmas(conn); err != nil {
-		return nil, err
-	}
+	// if err = store.encodePragmas(conn); err != nil {
+	// 	return nil, err
+	// }
 
 	// encode schema
 	if err = store.encodeSchema(conn); err != nil {

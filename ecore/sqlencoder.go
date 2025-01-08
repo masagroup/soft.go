@@ -727,10 +727,10 @@ func (e *SQLEncoder) EncodeResource() {
 		return
 	}
 
-	if err := e.encodePragmas(conn); err != nil {
-		e.addError(err)
-		return
-	}
+	// if err := e.encodePragmas(conn); err != nil {
+	// 	e.addError(err)
+	// 	return
+	// }
 
 	if err := e.encodeSchema(conn); err != nil {
 		e.addError(err)

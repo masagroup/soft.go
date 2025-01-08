@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -54,6 +55,64 @@ func TestSqlDecoder_DecodeResource_Memory(t *testing.T) {
 	sqlDecoder := NewSQLReaderDecoder(r, eResource, map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: true})
 	sqlDecoder.DecodeResource()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+}
+
+func BenchmarkSQLDecoder_Complex(b *testing.B) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(b, ePackage)
+
+	// resource
+	uri := NewURI("testdata/library.complex.sqlite")
+	eResource := NewEResourceImpl()
+	eResource.SetURI(uri)
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(eResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	r, err := os.Open(uri.String())
+	require.NoError(b, err)
+	defer r.Close()
+
+	// initialize db with reader bytes
+	array, err := io.ReadAll(r)
+	require.NoError(b, err)
+
+	for n := 0; n < b.N; n++ {
+		r := bytes.NewReader(array)
+		sqlDecoder := NewSQLReaderDecoder(r, eResource, nil)
+		sqlDecoder.DecodeResource()
+		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	}
+}
+
+func BenchmarkSQLDecoder_Complex_Memory(b *testing.B) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(b, ePackage)
+
+	// resource
+	uri := NewURI("testdata/library.complex.sqlite")
+	eResource := NewEResourceImpl()
+	eResource.SetURI(uri)
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(eResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	r, err := os.Open(uri.String())
+	require.NoError(b, err)
+	defer r.Close()
+
+	// initialize db with reader bytes
+	array, err := io.ReadAll(r)
+	require.NoError(b, err)
+
+	for n := 0; n < b.N; n++ {
+		r := bytes.NewReader(array)
+		sqlDecoder := NewSQLReaderDecoder(r, eResource, map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: true})
+		sqlDecoder.DecodeResource()
+		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	}
 }
 
 func TestSqlDecoder_EMaps(t *testing.T) {
@@ -287,9 +346,9 @@ func TestSqlDecodr_SharedMemoryPool_DeserializeDB(t *testing.T) {
 	// back to conn
 	back, err := sqlite.NewBackup(conn, "main", input, "main")
 	require.NoError(t, err)
-	more, err := back.Step(-1)
+	done, err := back.Step(-1)
 	require.NoError(t, err)
-	require.False(t, more)
+	require.False(t, done)
 	err = back.Close()
 	require.NoError(t, err)
 

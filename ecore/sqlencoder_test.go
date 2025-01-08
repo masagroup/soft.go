@@ -19,7 +19,7 @@ func requireSameDB(t require.TestingT, expectedPath string, actualBytes []byte) 
 	}
 
 	// open expected db file
-	expectedConn, err := sqlite.OpenConn(expectedPath)
+	expectedConn, err := sqlite.OpenConn(expectedPath, sqlite.OpenReadOnly)
 	require.NoError(t, err)
 	defer func() {
 		_ = expectedConn.Close()

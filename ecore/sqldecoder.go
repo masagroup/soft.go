@@ -2,6 +2,7 @@ package ecore
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -655,9 +656,24 @@ func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any
 		inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
 	}
 	if inMemoryDatabase {
-		var conn *sqlite.Conn
 		return newSQLDecoder(
 			func() (*sqlitex.Pool, error) {
+				// create a memory connection
+				connSrc, err := sqlite.OpenConn("file::memory:", sqlite.OpenCreate|sqlite.OpenReadWrite|sqlite.OpenURI)
+				if err != nil {
+					return nil, err
+				}
+				defer connSrc.Close()
+
+				// initialize db with reader bytes
+				bytes, err := io.ReadAll(r)
+				if err != nil {
+					return nil, err
+				}
+				if err := connSrc.Deserialize("main", bytes); err != nil {
+					return nil, err
+				}
+
 				// create connection pool
 				fileName := filepath.Base(resource.GetURI().Path())
 				dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
@@ -667,17 +683,23 @@ func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any
 				}
 
 				// create connection pool
-				conn, err = connPool.Take(context.Background())
+				connDst, err := connPool.Take(context.Background())
 				if err != nil {
 					return nil, err
 				}
+				defer connPool.Put(connDst)
 
-				// initialize db with reader bytes
-				bytes, err := io.ReadAll(r)
+				// backup src db to dst db
+				backup, err := sqlite.NewBackup(connDst, "main", connSrc, "main")
 				if err != nil {
 					return nil, err
 				}
-				if err := conn.Deserialize("main", bytes); err != nil {
+				if more, err := backup.Step(-1); err != nil {
+					return nil, err
+				} else if more {
+					return nil, errors.New("full backup step with remaining pages")
+				}
+				if err := backup.Close(); err != nil {
 					return nil, err
 				}
 
@@ -685,7 +707,6 @@ func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any
 
 			},
 			func(connPool *sqlitex.Pool) error {
-				connPool.Put(conn)
 				return connPool.Close()
 			},
 			resource,

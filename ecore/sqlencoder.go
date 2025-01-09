@@ -138,21 +138,6 @@ func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
 	return sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v;`, e.codecVersion), nil)
 }
 
-func (e *sqlEncoder) encodePragmas(conn *sqlite.Conn) error {
-
-	// journal mode
-	if err := sqlitex.ExecuteTransient(conn, `PRAGMA journal_mode = delete;`, nil); err != nil {
-		return err
-	}
-
-	// synchronous mode
-	if err := sqlitex.ExecuteTransient(conn, `PRAGMA synchronous = normal;`, nil); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (e *sqlEncoder) encodeSchema(conn *sqlite.Conn) error {
 	// tables
 	for _, table := range []*sqlTable{
@@ -726,11 +711,6 @@ func (e *SQLEncoder) EncodeResource() {
 		e.addError(err)
 		return
 	}
-
-	// if err := e.encodePragmas(conn); err != nil {
-	// 	e.addError(err)
-	// 	return
-	// }
 
 	if err := e.encodeSchema(conn); err != nil {
 		e.addError(err)

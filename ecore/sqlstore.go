@@ -437,9 +437,7 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 		}
 	}
 
-	pool, err := sqlitex.NewPool(databasePath, sqlitex.PoolOptions{
-		Flags: sqlite.OpenReadWrite | sqlite.OpenCreate | sqlite.OpenURI,
-	})
+	pool, err := sqlitex.NewPool(databasePath, sqlitex.PoolOptions{})
 	if err != nil {
 		return nil, err
 	}

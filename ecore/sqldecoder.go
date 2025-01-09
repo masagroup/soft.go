@@ -670,6 +670,12 @@ func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any
 				if err != nil {
 					return nil, err
 				}
+
+				// set journal mode as rolling back ( WAL not supported)
+				bytes[18] = 0x01
+				bytes[19] = 0x01
+
+				// deserialize bytes into db
 				if err := connSrc.Deserialize("main", bytes); err != nil {
 					return nil, err
 				}

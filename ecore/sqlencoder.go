@@ -565,6 +565,10 @@ func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any
 					return err
 				}
 
+				// set journal mode as WAL
+				bytes[18] = 0x02
+				bytes[19] = 0x02
+
 				// write bytes to writer
 				if _, err := w.Write(bytes); err != nil {
 					return err
@@ -589,7 +593,7 @@ func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any
 		}
 		return newSQLEncoder(
 			func() (*sqlite.Conn, error) {
-				return sqlite.OpenConn(dbPath, sqlite.OpenReadWrite|sqlite.OpenCreate)
+				return sqlite.OpenConn(dbPath, sqlite.OpenReadWrite|sqlite.OpenCreate|sqlite.OpenWAL)
 			},
 			func(conn *sqlite.Conn) error {
 				// close db

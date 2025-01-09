@@ -272,7 +272,7 @@ func TestSqlDecoder_SimpleWithContainerIDs(t *testing.T) {
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
 
-func TestSqlDecodr_SharedMemoryPool_CreateDB(t *testing.T) {
+func TestSqlDecoder_SharedMemoryPool_CreateDB(t *testing.T) {
 	fileName := "test.sqlite"
 	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
 	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
@@ -315,7 +315,7 @@ func TestSqlDecodr_SharedMemoryPool_CreateDB(t *testing.T) {
 
 }
 
-func TestSqlDecodr_SharedMemoryPool_DeserializeDB(t *testing.T) {
+func TestSqlDecoder_SharedMemoryPool_DeserializeDB_NotWorking(t *testing.T) {
 	fileName := "test.sqlite"
 	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
 	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
@@ -334,6 +334,50 @@ func TestSqlDecodr_SharedMemoryPool_DeserializeDB(t *testing.T) {
 	// initialize db with reader bytes
 	bytes, err := io.ReadAll(f)
 	require.NoError(t, err)
+
+	// set journal mode as rolling back
+	bytes[18] = 0x01
+	bytes[19] = 0x01
+
+	// deserialize db in input
+	err = conn.Deserialize("main", bytes)
+	require.NoError(t, err)
+
+	conn2, err := connPool.Take(context.Background())
+	require.NoError(t, err)
+	defer connPool.Put(conn2)
+
+	err = sqlitex.ExecuteTransient(conn2, "SELECT COUNT(*) FROM '.packages'", &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			return nil
+		},
+	})
+	require.Error(t, err)
+}
+
+func TestSqlDecoder_SharedMemoryPool_DeserializeDB(t *testing.T) {
+	fileName := "test.sqlite"
+	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
+	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
+	require.NoError(t, err)
+	defer connPool.Close()
+
+	// create connection pool
+	conn, err := connPool.Take(context.Background())
+	require.NoError(t, err)
+	defer connPool.Put(conn)
+
+	f, err := os.Open("testdata/library.complex.sqlite")
+	require.NoError(t, err)
+	defer f.Close()
+
+	// initialize db with reader bytes
+	bytes, err := io.ReadAll(f)
+	require.NoError(t, err)
+
+	// set journal mode as rolling back
+	bytes[18] = 0x01
+	bytes[19] = 0x01
 
 	input, err := sqlite.OpenConn("file::memory:", sqlite.OpenCreate|sqlite.OpenReadWrite|sqlite.OpenURI)
 	require.NoError(t, err)
@@ -365,5 +409,4 @@ func TestSqlDecodr_SharedMemoryPool_DeserializeDB(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.True(t, count > 0)
-
 }

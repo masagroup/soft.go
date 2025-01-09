@@ -658,6 +658,23 @@ func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any
 	if inMemoryDatabase {
 		return newSQLDecoder(
 			func() (*sqlitex.Pool, error) {
+				// the following natural algorithm is not working
+				// TestSqlDecoder_SharedMemoryPool_DeserializeDB_NotWorking:
+				// - create shared cache memory connection pool
+				// - get conn1 from pool
+				// - deserialize bytes in conn1
+				// - get conn2 from pool
+				// - conn2 is empty
+				// To bypass this issue
+				// TestSqlDecoder_SharedMemoryPool_DeserializeDB:
+				// - create private cache memory connection as conn1
+				// - deserialize bytes in conn1
+				// - create shared cache memory connection pool
+				// - get conn2 from previous pool
+				// - backup conn1 into conn2
+				// - get conn3 from previous pool
+				// - conn3 is now with the content of bytes
+
 				// create a memory connection
 				connSrc, err := sqlite.OpenConn("file::memory:", sqlite.OpenCreate|sqlite.OpenReadWrite|sqlite.OpenURI)
 				if err != nil {

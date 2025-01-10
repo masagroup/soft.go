@@ -2,7 +2,10 @@ package ecore
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -430,10 +433,14 @@ func serializeDB(pool *sqlitex.Pool, databasePath string) error {
 	defer pool.Put(conn)
 
 	// serialize db as byte array
-	buffer, err := conn.Serialize("")
+	bytes, err := conn.Serialize("")
 	if err != nil {
 		return err
 	}
+
+	// set journal mode as WAL
+	bytes[18] = 0x02
+	bytes[19] = 0x02
 
 	// write bytes into database file
 	f, err := os.Create(databasePath)
@@ -442,7 +449,7 @@ func serializeDB(pool *sqlitex.Pool, databasePath string) error {
 	}
 	defer f.Close()
 
-	if _, err := f.Write(buffer); err != nil {
+	if _, err := f.Write(bytes); err != nil {
 		return err
 	}
 
@@ -458,14 +465,32 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 		return newSQLStore(
 			func() (*sqlitex.Pool, error) {
 				// open file reader
-				fileName := filepath.Base(resourceURI.Path())
-				f, err := os.Open(databasePath)
+				var r io.ReadCloser
+				var err error
+				r, err = os.Open(databasePath)
 				if err != nil {
-					return nil, err
+					r = nil
+					if !os.IsNotExist(err) {
+						return nil, err
+					}
 				}
-				defer f.Close()
+				defer func() {
+					if r != nil {
+						r.Close()
+					}
+				}()
+
 				// create database memeory with file content
-				return newMemoryConnectionPool(fileName, f)
+				fileName := filepath.Base(resourceURI.Path())
+				if fileName == "." {
+					randBytes := make([]byte, 16)
+					_, err := rand.Read(randBytes)
+					if err != nil {
+						return nil, err
+					}
+					fileName = "store" + hex.EncodeToString(randBytes) + ".sqlite"
+				}
+				return newMemoryConnectionPool(fileName, r)
 			},
 			func(pool *sqlitex.Pool) error {
 				if err := serializeDB(pool, databasePath); err != nil {

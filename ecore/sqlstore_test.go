@@ -96,12 +96,44 @@ func copyFile(src, dest string) (err error) {
 	return
 }
 
-func TestSQLStore_Constructor(t *testing.T) {
+func TestSQLStore_Constructor_Create(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	require.NoError(t, err)
+	require.NoError(t, s.Close())
+	require.FileExists(t, dbPath)
+}
+
+func TestSQLStore_Constructor_Existing(t *testing.T) {
 	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
 	err := copyFile("testdata/library.store.sqlite", dbPath)
 	require.Nil(t, err)
 
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	require.NoError(t, err)
+	require.NoError(t, s.Close())
+}
+
+func TestSQLStore_Memory_Create(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "library.base.sqlite")
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: true})
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	require.NoError(t, err)
+	require.NoError(t, s.Close())
+	require.FileExists(t, dbPath)
+}
+
+func TestSQLStore_Memory_Existing(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: true})
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	require.NoError(t, err)

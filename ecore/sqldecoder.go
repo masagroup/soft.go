@@ -676,18 +676,20 @@ func newMemoryConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
 	defer connSrc.Close()
 
 	// initialize db with reader bytes
-	bytes, err := io.ReadAll(r)
-	if err != nil {
-		return nil, err
-	}
+	if r != nil {
+		bytes, err := io.ReadAll(r)
+		if err != nil {
+			return nil, err
+		}
 
-	// set journal mode as rolling back ( WAL not supported)
-	bytes[18] = 0x01
-	bytes[19] = 0x01
+		// set journal mode as rolling back ( WAL not supported)
+		bytes[18] = 0x01
+		bytes[19] = 0x01
 
-	// deserialize bytes into db
-	if err := connSrc.Deserialize("main", bytes); err != nil {
-		return nil, err
+		// deserialize bytes into db
+		if err := connSrc.Deserialize("main", bytes); err != nil {
+			return nil, err
+		}
 	}
 
 	// create connection pool

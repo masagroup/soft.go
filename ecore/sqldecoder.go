@@ -650,120 +650,117 @@ type SQLDecoder struct {
 	connectionPoolClose    func(conn *sqlitex.Pool) error
 }
 
+func newMemoryConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
+	// the following natural algorithm is not working
+	// TestSqlDecoder_SharedMemoryPool_DeserializeDB_NotWorking:
+	// - create shared cache memory connection pool
+	// - get conn1 from pool
+	// - deserialize bytes in conn1
+	// - get conn2 from pool
+	// - conn2 is empty
+	// To bypass this issue
+	// TestSqlDecoder_SharedMemoryPool_DeserializeDB:
+	// - create private cache memory connection as conn1
+	// - deserialize bytes in conn1
+	// - create shared cache memory connection pool
+	// - get conn2 from previous pool
+	// - backup conn1 into conn2
+	// - get conn3 from previous pool
+	// - conn3 is now with the content of bytes
+
+	// create a memory connection
+	connSrc, err := sqlite.OpenConn("file::memory:", sqlite.OpenCreate|sqlite.OpenReadWrite|sqlite.OpenURI)
+	if err != nil {
+		return nil, err
+	}
+	defer connSrc.Close()
+
+	// initialize db with reader bytes
+	bytes, err := io.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+
+	// set journal mode as rolling back ( WAL not supported)
+	bytes[18] = 0x01
+	bytes[19] = 0x01
+
+	// deserialize bytes into db
+	if err := connSrc.Deserialize("main", bytes); err != nil {
+		return nil, err
+	}
+
+	// create connection pool
+	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
+	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
+	if err != nil {
+		return nil, err
+	}
+
+	// create connection pool
+	connDst, err := connPool.Take(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	defer connPool.Put(connDst)
+
+	// backup src db to dst db
+	backup, err := sqlite.NewBackup(connDst, "main", connSrc, "main")
+	if err != nil {
+		return nil, err
+	}
+	if more, err := backup.Step(-1); err != nil {
+		return nil, err
+	} else if more {
+		return nil, errors.New("full backup step with remaining pages")
+	}
+	if err := backup.Close(); err != nil {
+		return nil, err
+	}
+
+	return connPool, nil
+}
+
+func newFileConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
+	dbPath, err := sqlTmpDB(name)
+	if err != nil {
+		return nil, err
+	}
+
+	dbFile, err := os.Create(dbPath)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = io.Copy(dbFile, r)
+	if err != nil {
+		dbFile.Close()
+		return nil, err
+	}
+	dbFile.Close()
+
+	return sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenReadOnly})
+}
+
 func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any) *SQLDecoder {
-	inMemoryDatabase := false
-	if options != nil {
-		inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
-	}
-	if inMemoryDatabase {
-		return newSQLDecoder(
-			func() (*sqlitex.Pool, error) {
-				// the following natural algorithm is not working
-				// TestSqlDecoder_SharedMemoryPool_DeserializeDB_NotWorking:
-				// - create shared cache memory connection pool
-				// - get conn1 from pool
-				// - deserialize bytes in conn1
-				// - get conn2 from pool
-				// - conn2 is empty
-				// To bypass this issue
-				// TestSqlDecoder_SharedMemoryPool_DeserializeDB:
-				// - create private cache memory connection as conn1
-				// - deserialize bytes in conn1
-				// - create shared cache memory connection pool
-				// - get conn2 from previous pool
-				// - backup conn1 into conn2
-				// - get conn3 from previous pool
-				// - conn3 is now with the content of bytes
-
-				// create a memory connection
-				connSrc, err := sqlite.OpenConn("file::memory:", sqlite.OpenCreate|sqlite.OpenReadWrite|sqlite.OpenURI)
-				if err != nil {
-					return nil, err
-				}
-				defer connSrc.Close()
-
-				// initialize db with reader bytes
-				bytes, err := io.ReadAll(r)
-				if err != nil {
-					return nil, err
-				}
-
-				// set journal mode as rolling back ( WAL not supported)
-				bytes[18] = 0x01
-				bytes[19] = 0x01
-
-				// deserialize bytes into db
-				if err := connSrc.Deserialize("main", bytes); err != nil {
-					return nil, err
-				}
-
-				// create connection pool
-				fileName := filepath.Base(resource.GetURI().Path())
-				dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
-				connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
-				if err != nil {
-					return nil, err
-				}
-
-				// create connection pool
-				connDst, err := connPool.Take(context.Background())
-				if err != nil {
-					return nil, err
-				}
-				defer connPool.Put(connDst)
-
-				// backup src db to dst db
-				backup, err := sqlite.NewBackup(connDst, "main", connSrc, "main")
-				if err != nil {
-					return nil, err
-				}
-				if more, err := backup.Step(-1); err != nil {
-					return nil, err
-				} else if more {
-					return nil, errors.New("full backup step with remaining pages")
-				}
-				if err := backup.Close(); err != nil {
-					return nil, err
-				}
-
-				return connPool, nil
-
-			},
-			func(connPool *sqlitex.Pool) error {
-				return connPool.Close()
-			},
-			resource,
-			options)
-	} else {
-		return newSQLDecoder(
-			func() (*sqlitex.Pool, error) {
-				fileName := filepath.Base(resource.GetURI().Path())
-				dbPath, err := sqlTmpDB(fileName)
-				if err != nil {
-					return nil, err
-				}
-
-				dbFile, err := os.Create(dbPath)
-				if err != nil {
-					return nil, err
-				}
-
-				_, err = io.Copy(dbFile, r)
-				if err != nil {
-					dbFile.Close()
-					return nil, err
-				}
-				dbFile.Close()
-
-				return sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenReadOnly})
-
-			},
-			func(connPool *sqlitex.Pool) error {
-				return connPool.Close()
-			},
-			resource,
-			options)
-	}
+	return newSQLDecoder(
+		func() (*sqlitex.Pool, error) {
+			fileName := filepath.Base(resource.GetURI().Path())
+			inMemoryDatabase := false
+			if options != nil {
+				inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
+			}
+			if inMemoryDatabase {
+				return newMemoryConnectionPool(fileName, r)
+			} else {
+				return newFileConnectionPool(fileName, r)
+			}
+		},
+		func(connPool *sqlitex.Pool) error {
+			return connPool.Close()
+		},
+		resource,
+		options)
 }
 
 func NewSQLDBDecoder(connPool *sqlitex.Pool, resource EResource, options map[string]any) *SQLDecoder {

@@ -3,6 +3,8 @@ package ecore
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -410,15 +412,89 @@ type SQLStore struct {
 	*sqlBase
 	sqlDecoder
 	sqlEncoder
-	mutex         sync.Mutex
-	pool          *sqlitex.Pool
-	errorHandler  func(error)
-	sqlIDManager  SQLStoreIDManager
-	singleQueries map[*sqlColumn]*sqlSingleQueries
-	manyQueries   map[*sqlTable]*sqlManyQueries
+	mutex               sync.Mutex
+	pool                *sqlitex.Pool
+	errorHandler        func(error)
+	sqlIDManager        SQLStoreIDManager
+	singleQueries       map[*sqlColumn]*sqlSingleQueries
+	manyQueries         map[*sqlTable]*sqlManyQueries
+	connectionPoolClose func(conn *sqlitex.Pool) error
+}
+
+func serializeDB(pool *sqlitex.Pool, databasePath string) error {
+	// get conn
+	conn, err := pool.Take(context.Background())
+	if err != nil {
+		return err
+	}
+	defer pool.Put(conn)
+
+	// serialize db as byte array
+	buffer, err := conn.Serialize("")
+	if err != nil {
+		return err
+	}
+
+	// write bytes into database file
+	f, err := os.Create(databasePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if _, err := f.Write(buffer); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManager, packageRegistry EPackageRegistry, options map[string]any) (store *SQLStore, err error) {
+	inMemoryDatabase := false
+	if options != nil {
+		inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
+	}
+	if inMemoryDatabase {
+		return newSQLStore(
+			func() (*sqlitex.Pool, error) {
+				// open file reader
+				fileName := filepath.Base(resourceURI.Path())
+				f, err := os.Open(databasePath)
+				if err != nil {
+					return nil, err
+				}
+				defer f.Close()
+				// create database memeory with file content
+				return newMemoryConnectionPool(fileName, f)
+			},
+			func(pool *sqlitex.Pool) error {
+				if err := serializeDB(pool, databasePath); err != nil {
+					return err
+				}
+				if err := pool.Close(); err != nil {
+					return err
+				}
+				return nil
+			},
+			resourceURI, idManager, packageRegistry, options,
+		)
+	} else {
+		return newSQLStore(
+			func() (*sqlitex.Pool, error) {
+				return sqlitex.NewPool(databasePath, sqlitex.PoolOptions{})
+			},
+			func(pool *sqlitex.Pool) error {
+				return pool.Close()
+			},
+			resourceURI,
+			idManager,
+			packageRegistry,
+			options,
+		)
+	}
+}
+
+func newSQLStore(connectionPoolProvider func() (*sqlitex.Pool, error), connectionPoolClose func(pool *sqlitex.Pool) error, resourceURI *URI, idManager EObjectIDManager, packageRegistry EPackageRegistry, options map[string]any) (store *SQLStore, err error) {
 	objectIDName := ""
 	codecVersion := sqlCodecVersion
 	errorHandler := func(error) {}
@@ -437,10 +513,18 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 		}
 	}
 
-	pool, err := sqlitex.NewPool(databasePath, sqlitex.PoolOptions{})
+	// retrieve connection pool
+	pool, err := connectionPoolProvider()
 	if err != nil {
 		return nil, err
 	}
+
+	// close pool if there is an error
+	defer func() {
+		if err != nil {
+			_ = connectionPoolClose(pool)
+		}
+	}()
 
 	// create sql base
 	base := &sqlBase{
@@ -469,22 +553,16 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
 		},
-		pool:          pool,
-		sqlIDManager:  sqlIDManager,
-		errorHandler:  errorHandler,
-		singleQueries: map[*sqlColumn]*sqlSingleQueries{},
-		manyQueries:   map[*sqlTable]*sqlManyQueries{},
+		pool:                pool,
+		sqlIDManager:        sqlIDManager,
+		errorHandler:        errorHandler,
+		singleQueries:       map[*sqlColumn]*sqlSingleQueries{},
+		manyQueries:         map[*sqlTable]*sqlManyQueries{},
+		connectionPoolClose: connectionPoolClose,
 	}
 
 	// set store in sql object manager
 	sqlObjectManager.store = store
-
-	// close pool if there is an error
-	defer func() {
-		if err != nil {
-			pool.Close()
-		}
-	}()
 
 	// decode version
 	if err = store.decodeVersion(pool); err != nil {
@@ -522,7 +600,7 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 }
 
 func (s *SQLStore) Close() error {
-	return s.pool.Close()
+	return s.connectionPoolClose(s.pool)
 }
 
 func (s *SQLStore) getSingleQueries(column *sqlColumn) *sqlSingleQueries {

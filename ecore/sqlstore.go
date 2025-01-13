@@ -2,10 +2,8 @@ package ecore
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
+	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -464,33 +462,39 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 	if inMemoryDatabase {
 		return newSQLStore(
 			func() (*sqlitex.Pool, error) {
-				// open file reader
-				var r io.ReadCloser
-				var err error
-				r, err = os.Open(databasePath)
-				if err != nil {
-					r = nil
-					if !os.IsNotExist(err) {
-						return nil, err
-					}
-				}
-				defer func() {
-					if r != nil {
-						r.Close()
-					}
-				}()
+				connSrc, err := sqlite.OpenConn(databasePath)
+				defer connSrc.Close()
 
-				// create database memeory with file content
-				fileName := filepath.Base(resourceURI.Path())
-				if fileName == "." {
-					randBytes := make([]byte, 16)
-					_, err := rand.Read(randBytes)
-					if err != nil {
-						return nil, err
-					}
-					fileName = "store" + hex.EncodeToString(randBytes) + ".sqlite"
+				// create connection pool
+				name := filepath.Base(databasePath)
+				dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
+				connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
+				if err != nil {
+					return nil, err
 				}
-				return newMemoryConnectionPool(fileName, r)
+
+				// create connection pool
+				connDst, err := connPool.Take(context.Background())
+				if err != nil {
+					return nil, err
+				}
+				defer connPool.Put(connDst)
+
+				// backup src db to dst db
+				backup, err := sqlite.NewBackup(connDst, "main", connSrc, "main")
+				if err != nil {
+					return nil, err
+				}
+				if more, err := backup.Step(-1); err != nil {
+					return nil, err
+				} else if more {
+					return nil, errors.New("full backup step with remaining pages")
+				}
+				if err := backup.Close(); err != nil {
+					return nil, err
+				}
+
+				return connPool, nil
 			},
 			func(pool *sqlitex.Pool) error {
 				if err := serializeDB(pool, databasePath); err != nil {

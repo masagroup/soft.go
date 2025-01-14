@@ -345,15 +345,14 @@ func (list *EStoreList) All() iter.Seq[any] {
 		if list.data != nil {
 			for i, v := range list.data {
 				if d := list.resolve(i, v); !yield(d) {
-					return
+					break
 				}
 			}
-		}
-		if list.store != nil {
+		} else if list.store != nil {
 			i := 0
 			for v := range list.store.All(list.owner, list.feature) {
 				if d := list.resolve(i, v); !yield(d) {
-					return
+					break
 				}
 				i++
 			}

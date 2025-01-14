@@ -44,3 +44,29 @@ type EList interface {
 	// IndexOf returns the index of element in the list if present, -1 otherwise
 	IndexOf(any) int
 }
+
+// BinarySearch searches for target in a sorted list and returns the earliest
+// position where target is found, or the position where target would appear
+// in the sort order. The list must be sorted in increasing order, where "increasing"
+// is defined by cmp. cmp should return 0 if the list element matches
+// the target, a negative number if the list element precedes the target,
+// or a positive number if the list element follows the target.
+// cmp must implement the same ordering as the list, such that if
+// cmp(a, t) < 0 and cmp(b, t) >= 0, then a must precede b in the list.
+func BinarySearch(l EList, target any, cmp func(any, any) int) (int, bool) {
+	n := l.Size()
+	// Define cmp(l[-1], target) < 0 and cmp(l[n], target) >= 0 .
+	// Invariant: cmp(l[i - 1], target) < 0, cmp(l[j], target) >= 0.
+	i, j := 0, n
+	for i < j {
+		h := int(uint(i+j) >> 1) // avoid overflow when computing h
+		// i ≤ h < j
+		if cmp(l.Get(h), target) < 0 {
+			i = h + 1 // preserves cmp(l[i - 1], target) < 0
+		} else {
+			j = h // preserves cmp(l[j], target) >= 0
+		}
+	}
+	// i == j, cmp(l[i-1], target) < 0, and cmp(l[j], target) (= cmp(l[i], target)) >= 0  =>  answer is i.
+	return i, i < n && cmp(l.Get(i), target) == 0
+}

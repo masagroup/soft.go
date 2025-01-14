@@ -9,6 +9,11 @@
 
 package ecore
 
+import (
+	"iter"
+	"slices"
+)
+
 type EStoreList struct {
 	BasicENotifyingList
 	owner       EObject
@@ -335,6 +340,27 @@ func (list *EStoreList) resolveProxy(eObject EObject) EObject {
 	return eObject
 }
 
+func (list *EStoreList) All() iter.Seq[any] {
+	return func(yield func(any) bool) {
+		if list.data != nil {
+			for i, v := range list.data {
+				if d := list.resolve(i, v); !yield(d) {
+					return
+				}
+			}
+		}
+		if list.store != nil {
+			i := 0
+			for v := range list.store.All(list.owner, list.feature) {
+				if d := list.resolve(i, v); !yield(d) {
+					return
+				}
+				i++
+			}
+		}
+	}
+}
+
 func (list *EStoreList) ToArray() []any {
 	if list.data != nil {
 		if list.proxies {
@@ -464,6 +490,16 @@ func (list *unResolvedEStoreList) doGet(index int) any {
 
 func (list *unResolvedEStoreList) IndexOf(elem any) int {
 	return list.AbstractEList.IndexOf(elem)
+}
+
+func (list *unResolvedEStoreList) All() iter.Seq[any] {
+	if list.delegate.data != nil {
+		return slices.Values(list.delegate.data)
+	}
+	if list.delegate.store != nil {
+		return list.delegate.store.All(list.delegate.owner, list.delegate.feature)
+	}
+	return nil
 }
 
 func (list *unResolvedEStoreList) ToArray() []any {

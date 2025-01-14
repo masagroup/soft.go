@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"iter"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -1569,42 +1571,49 @@ func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStru
 
 }
 
+func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any] {
+	return func(yield func(any) bool) {
+		interrupted := errors.New("interrupted")
+		conn, err := s.pool.Take(context.Background())
+		if err != nil {
+			s.errorHandler(err)
+			return
+		}
+		defer s.pool.Put(conn)
+
+		sqlID, err := s.getSQLID(conn, object)
+		if err != nil {
+			s.errorHandler(err)
+			return
+		}
+		featureSchema, err := s.getFeatureSchema(object, feature)
+		if err != nil {
+			s.errorHandler(err)
+			return
+		}
+		if err := s.executeQuery(
+			conn,
+			s.getManyQueries(featureSchema.table).getSelectAllQuery(),
+			&sqlitex.ExecOptions{
+				Args: []any{sqlID},
+				ResultFunc: func(stmt *sqlite.Stmt) error {
+					value := decodeAny(stmt, 0)
+					decoded, err := s.decodeFeatureValue(conn, featureSchema, value)
+					if err != nil {
+						return err
+					}
+					if !yield(decoded) {
+						return interrupted
+					}
+					return nil
+				}}); err != nil {
+			if err != interrupted {
+				s.errorHandler(err)
+			}
+		}
+	}
+}
+
 func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-	defer s.pool.Put(conn)
-
-	sqlID, err := s.getSQLID(conn, object)
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-	featureSchema, err := s.getFeatureSchema(object, feature)
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-
-	values := []any{}
-	if err := s.executeQuery(
-		conn,
-		s.getManyQueries(featureSchema.table).getSelectAllQuery(),
-		&sqlitex.ExecOptions{
-			Args: []any{sqlID},
-			ResultFunc: func(stmt *sqlite.Stmt) error {
-				value := decodeAny(stmt, 0)
-				decoded, err := s.decodeFeatureValue(conn, featureSchema, value)
-				if err != nil {
-					return err
-				}
-				values = append(values, decoded)
-				return nil
-			}}); err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-	return values
+	return slices.Collect(s.All(object, feature))
 }

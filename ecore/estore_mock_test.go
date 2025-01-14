@@ -10,6 +10,8 @@
 package ecore
 
 import (
+	"iter"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -237,6 +239,25 @@ func TestMockEStoreClear(t *testing.T) {
 	}).Once()
 	mockEStore.Clear(mockObject, mockFeature)
 	mockEStore.AssertExpectations(t)
+}
+
+func TestMockEStoreAll(t *testing.T) {
+	mockEStore := NewMockEStore(t)
+	mockObject := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockResult := func(yield func(any) bool) {
+		for i := 0; i < 5; i++ {
+			if !yield(i) {
+				return
+			}
+		}
+	}
+	mockEStore.EXPECT().All(mockObject, mockFeature).Return(mockResult).Once()
+	mockEStore.EXPECT().All(mockObject, mockFeature).Call.Return(func(EObject, EStructuralFeature) iter.Seq[any] {
+		return mockResult
+	}).Once()
+	assert.Equal(t, []any{0, 1, 2, 3, 4}, slices.Collect(mockEStore.All(mockObject, mockFeature)))
+	assert.Equal(t, []any{0, 1, 2, 3, 4}, slices.Collect(mockEStore.All(mockObject, mockFeature)))
 }
 
 func TestMockEStoreToArray(t *testing.T) {

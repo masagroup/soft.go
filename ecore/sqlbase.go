@@ -1,5 +1,7 @@
 package ecore
 
+import "go.uber.org/zap"
+
 type sqlBase struct {
 	codecVersion    int64
 	schema          *sqlSchema
@@ -8,4 +10,5 @@ type sqlBase struct {
 	objectIDManager EObjectIDManager
 	isObjectID      bool
 	isContainerID   bool
+	logger          *zap.Logger
 }

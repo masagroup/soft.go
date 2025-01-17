@@ -650,30 +650,11 @@ type SQLDecoder struct {
 	connectionPoolClose    func(conn *sqlitex.Pool) error
 }
 
-func newMemoryConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
-	// the following natural algorithm is not working
-	// TestSqlDecoder_SharedMemoryPool_DeserializeDB_NotWorking:
-	// - create shared cache memory connection pool
-	// - get conn1 from pool
-	// - deserialize bytes in conn1
-	// - get conn2 from pool
-	// - conn2 is empty
-	// To bypass this issue
-	// TestSqlDecoder_SharedMemoryPool_DeserializeDB:
-	// - create private cache memory connection as conn1
-	// - deserialize bytes in conn1
-	// - create shared cache memory connection pool
-	// - get conn2 from previous pool
-	// - backup conn1 into conn2
-	// - get conn3 from previous pool
-	// - conn3 is now with the content of bytes
+const SQLITE_MAX_ALLOCATION_SIZE = 2147483391
 
+func newMemoryConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
 	// create a memory connection
-	connSrc, err := sqlite.OpenConn("file::memory:", sqlite.OpenCreate|sqlite.OpenReadWrite|sqlite.OpenURI)
-	if err != nil {
-		return nil, err
-	}
-	defer connSrc.Close()
+	var connSrc *sqlite.Conn
 
 	// initialize db with reader bytes
 	if r != nil {
@@ -682,13 +663,59 @@ func newMemoryConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
 			return nil, err
 		}
 
-		// set journal mode as rolling back ( WAL not supported)
+		// set journal mode as rolling back ( WAL is not supported )
 		bytes[18] = 0x01
 		bytes[19] = 0x01
 
-		// deserialize bytes into db
-		if err := connSrc.Deserialize("main", bytes); err != nil {
-			return nil, err
+		// sqlite.Conn.Deserialize method has a max allocation size
+		// must use an intermediate file if bytes array is bigger
+		if len(bytes) > SQLITE_MAX_ALLOCATION_SIZE {
+			// use file connection
+
+			// create tmp file
+			dbPath, err := sqlTmpDB(name)
+			if err != nil {
+				return nil, err
+			}
+
+			dbFile, err := os.Create(dbPath)
+			if err != nil {
+				return nil, err
+			}
+
+			// write bytes inside it
+			_, err = dbFile.Write(bytes)
+			if err != nil {
+				dbFile.Close()
+				return nil, err
+			}
+
+			// close tmp file
+			if err = dbFile.Close(); err != nil {
+				return nil, err
+			}
+
+			// open connection to tmp file
+			connSrc, err = sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
+			if err != nil {
+				return nil, err
+			}
+			defer connSrc.Close()
+
+		} else {
+			// use memory connection
+
+			// open connection
+			connSrc, err = sqlite.OpenConn("file::memory:", sqlite.OpenCreate|sqlite.OpenReadWrite|sqlite.OpenURI)
+			if err != nil {
+				return nil, err
+			}
+			defer connSrc.Close()
+
+			// deserialize bytes into db
+			if err := connSrc.Deserialize("main", bytes); err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -706,18 +733,21 @@ func newMemoryConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
 	}
 	defer connPool.Put(connDst)
 
-	// backup src db to dst db
-	backup, err := sqlite.NewBackup(connDst, "main", connSrc, "main")
-	if err != nil {
-		return nil, err
-	}
-	if more, err := backup.Step(-1); err != nil {
-		return nil, err
-	} else if more {
-		return nil, errors.New("full backup step with remaining pages")
-	}
-	if err := backup.Close(); err != nil {
-		return nil, err
+	if connSrc != nil {
+		// backup src db to dst db
+		backup, err := sqlite.NewBackup(connDst, "main", connSrc, "main")
+		if err != nil {
+			return nil, err
+		}
+		if more, err := backup.Step(-1); err != nil {
+			return nil, err
+		} else if more {
+			return nil, errors.New("full backup step with remaining pages")
+		}
+		if err := backup.Close(); err != nil {
+			return nil, err
+		}
+
 	}
 
 	return connPool, nil

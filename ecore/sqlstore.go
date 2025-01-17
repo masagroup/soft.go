@@ -487,10 +487,10 @@ func NewSQLStore(
 
 				return connPool, nil
 			},
-			func(pool *sqlitex.Pool) (err error) {
+			func(connPool *sqlitex.Pool) (err error) {
 				defer func() {
 					// close pool
-					err = pool.Close()
+					err = connPool.Close()
 				}()
 
 				// destination connection is the store db
@@ -501,11 +501,11 @@ func NewSQLStore(
 				defer connDst.Close()
 
 				// source connection is the memory db
-				connSrc, err := pool.Take(context.Background())
+				connSrc, err := connPool.Take(context.Background())
 				if err != nil {
 					return err
 				}
-				defer pool.Put(connSrc)
+				defer connPool.Put(connSrc)
 
 				// backup src db to dst db
 				if err := backupDB(connDst, connSrc); err != nil {

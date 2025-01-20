@@ -11,6 +11,7 @@ package ecore
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -765,6 +766,35 @@ func TestEStoreList_ToArray(t *testing.T) {
 
 	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{1, 2})
 	assert.Equal(t, []any{1, 2}, list.ToArray())
+}
+
+func TestEStoreList_All_Data(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	list := NewEStoreList(mockOwner, mockFeature, nil)
+	require.NotNil(t, list)
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	list.AddAll(NewImmutableEList([]any{1, 2}))
+	assert.Equal(t, []any{1, 2}, slices.Collect(list.All()))
+}
+
+func TestEStoreList_All_Store(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore := NewMockEStore(t)
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(2).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	require.NotNil(t, list)
+	mockStore.EXPECT().All(mockOwner, mockFeature).Return(func(yield func(any) bool) {
+		for _, v := range []int{1, 2} {
+			if !yield(v) {
+				return
+			}
+		}
+	}).Once()
+	assert.Equal(t, []any{1, 2}, slices.Collect(list.All()))
 }
 
 func TestEStoreList_GetUnResolvedList(t *testing.T) {

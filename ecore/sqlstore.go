@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
+	"iter"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -428,39 +429,29 @@ type SQLStore struct {
 	executeQuery        func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error
 }
 
-func serializeDB(pool *sqlitex.Pool, databasePath string) error {
-	// get conn
-	conn, err := pool.Take(context.Background())
+func backupDB(dstConn, srcConn *sqlite.Conn) error {
+	backup, err := sqlite.NewBackup(dstConn, "main", srcConn, "main")
 	if err != nil {
 		return err
 	}
-	defer pool.Put(conn)
-
-	// serialize db as byte array
-	bytes, err := conn.Serialize("")
-	if err != nil {
+	if more, err := backup.Step(-1); err != nil {
+		return err
+	} else if more {
+		return errors.New("full backup step with remaining pages")
+	}
+	if err := backup.Close(); err != nil {
 		return err
 	}
-
-	// set journal mode as WAL
-	bytes[18] = 0x02
-	bytes[19] = 0x02
-
-	// write bytes into database file
-	f, err := os.Create(databasePath)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	if _, err := f.Write(bytes); err != nil {
-		return err
-	}
-
 	return nil
 }
 
-func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManager, packageRegistry EPackageRegistry, options map[string]any) (store *SQLStore, err error) {
+func NewSQLStore(
+	databasePath string,
+	resourceURI *URI,
+	idManager EObjectIDManager,
+	packageRegistry EPackageRegistry,
+	options map[string]any) (store *SQLStore, err error) {
+
 	inMemoryDatabase := false
 	if options != nil {
 		inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
@@ -490,28 +481,37 @@ func NewSQLStore(databasePath string, resourceURI *URI, idManager EObjectIDManag
 				defer connPool.Put(connDst)
 
 				// backup src db to dst db
-				backup, err := sqlite.NewBackup(connDst, "main", connSrc, "main")
-				if err != nil {
-					return nil, err
-				}
-				if more, err := backup.Step(-1); err != nil {
-					return nil, err
-				} else if more {
-					return nil, errors.New("full backup step with remaining pages")
-				}
-				if err := backup.Close(); err != nil {
+				if err := backupDB(connDst, connSrc); err != nil {
 					return nil, err
 				}
 
 				return connPool, nil
 			},
-			func(pool *sqlitex.Pool) error {
-				if err := serializeDB(pool, databasePath); err != nil {
+			func(connPool *sqlitex.Pool) (err error) {
+				defer func() {
+					// close pool
+					err = connPool.Close()
+				}()
+
+				// destination connection is the store db
+				connDst, err := sqlite.OpenConn(databasePath)
+				if err != nil {
 					return err
 				}
-				if err := pool.Close(); err != nil {
+				defer connDst.Close()
+
+				// source connection is the memory db
+				connSrc, err := connPool.Take(context.Background())
+				if err != nil {
 					return err
 				}
+				defer connPool.Put(connSrc)
+
+				// backup src db to dst db
+				if err := backupDB(connDst, connSrc); err != nil {
+					return err
+				}
+
 				return nil
 			},
 			resourceURI, idManager, packageRegistry, options,
@@ -1569,42 +1569,49 @@ func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStru
 
 }
 
+func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any] {
+	return func(yield func(any) bool) {
+		interrupted := errors.New("interrupted")
+		conn, err := s.pool.Take(context.Background())
+		if err != nil {
+			s.errorHandler(err)
+			return
+		}
+		defer s.pool.Put(conn)
+
+		sqlID, err := s.getSQLID(conn, object)
+		if err != nil {
+			s.errorHandler(err)
+			return
+		}
+		featureSchema, err := s.getFeatureSchema(object, feature)
+		if err != nil {
+			s.errorHandler(err)
+			return
+		}
+		if err := s.executeQuery(
+			conn,
+			s.getManyQueries(featureSchema.table).getSelectAllQuery(),
+			&sqlitex.ExecOptions{
+				Args: []any{sqlID},
+				ResultFunc: func(stmt *sqlite.Stmt) error {
+					value := decodeAny(stmt, 0)
+					decoded, err := s.decodeFeatureValue(conn, featureSchema, value)
+					if err != nil {
+						return err
+					}
+					if !yield(decoded) {
+						return interrupted
+					}
+					return nil
+				}}); err != nil {
+			if err != interrupted {
+				s.errorHandler(err)
+			}
+		}
+	}
+}
+
 func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-	defer s.pool.Put(conn)
-
-	sqlID, err := s.getSQLID(conn, object)
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-	featureSchema, err := s.getFeatureSchema(object, feature)
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-
-	values := []any{}
-	if err := s.executeQuery(
-		conn,
-		s.getManyQueries(featureSchema.table).getSelectAllQuery(),
-		&sqlitex.ExecOptions{
-			Args: []any{sqlID},
-			ResultFunc: func(stmt *sqlite.Stmt) error {
-				value := decodeAny(stmt, 0)
-				decoded, err := s.decodeFeatureValue(conn, featureSchema, value)
-				if err != nil {
-					return err
-				}
-				values = append(values, decoded)
-				return nil
-			}}); err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-	return values
+	return slices.Collect(s.All(object, feature))
 }

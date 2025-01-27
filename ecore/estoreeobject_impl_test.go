@@ -124,7 +124,7 @@ func TestEStoreEObjectImpl_SetAttribute(t *testing.T) {
 	mockAttribute.EXPECT().IsTransient().Return(false).Twice()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(3)
 	mockStore.EXPECT().Get(o, mockAttribute, NO_INDEX).Return(nil).Once()
-	mockStore.EXPECT().Set(o, mockAttribute, NO_INDEX, 2).Return(nil).Once()
+	mockStore.EXPECT().Set(o, mockAttribute, NO_INDEX, 2, false).Return(nil).Once()
 	o.ESetFromID(0, 2)
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
 }
@@ -145,7 +145,7 @@ func TestEStoreEObjectImpl_SetAttribute_Caching(t *testing.T) {
 	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(3)
 	mockStore.EXPECT().Get(o, mockAttribute, NO_INDEX).Return(nil).Once()
-	mockStore.EXPECT().Set(o, mockAttribute, NO_INDEX, 2).Return(nil).Once()
+	mockStore.EXPECT().Set(o, mockAttribute, NO_INDEX, 2, false).Return(nil).Once()
 	o.ESetFromID(0, 2)
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
 }

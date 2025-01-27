@@ -37,15 +37,15 @@ func TestMockEStoreSet(t *testing.T) {
 	mockFeature := NewMockEStructuralFeature(t)
 	mockValue := NewMockEObject(t)
 	mockOld := NewMockEObject(t)
-	m := NewMockRun(t, mockObject, mockFeature, 0, mockValue)
-	mockEStore.EXPECT().Set(mockObject, mockFeature, 0, mockValue).Return(mockOld).Run(func(object EObject, feature EStructuralFeature, index int, value any) {
-		m.Run(object, feature, index, value)
+	m := NewMockRun(t, mockObject, mockFeature, 0, mockValue, true)
+	mockEStore.EXPECT().Set(mockObject, mockFeature, 0, mockValue, true).Return(mockOld).Run(func(object EObject, feature EStructuralFeature, index int, value any, isOldValue bool) {
+		m.Run(object, feature, index, value, isOldValue)
 	}).Once()
-	mockEStore.EXPECT().Set(mockObject, mockFeature, 0, mockValue).Call.Return(func(object EObject, feature EStructuralFeature, index int, value any) any {
+	mockEStore.EXPECT().Set(mockObject, mockFeature, 0, mockValue, true).Call.Return(func(object EObject, feature EStructuralFeature, index int, value any, isOldValue bool) any {
 		return mockOld
 	}).Once()
-	assert.Equal(t, mockOld, mockEStore.Set(mockObject, mockFeature, 0, mockValue))
-	assert.Equal(t, mockOld, mockEStore.Set(mockObject, mockFeature, 0, mockValue))
+	assert.Equal(t, mockOld, mockEStore.Set(mockObject, mockFeature, 0, mockValue, true))
+	assert.Equal(t, mockOld, mockEStore.Set(mockObject, mockFeature, 0, mockValue, true))
 }
 
 func TestMockEStoreIsSet(t *testing.T) {

@@ -281,7 +281,7 @@ func (list *EStoreList) performSet(index int, object any) any {
 		result = list.BasicENotifyingList.performSet(index, object)
 	}
 	if list.store != nil {
-		result = list.store.Set(list.owner, list.feature, index, object)
+		result = list.store.Set(list.owner, list.feature, index, object, true)
 	}
 	return result
 }

@@ -413,7 +413,7 @@ func TestSQLStore_Set_Int(t *testing.T) {
 		mockObject.EXPECT().GetSQLID().Return(objectID).Once()
 		mockObject.EXPECT().SetSQLID(objectID).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
-		oldValue := s.Set(mockObject, eFeature, -1, 5)
+		oldValue := s.Set(mockObject, eFeature, -1, 5, true)
 		assert.Equal(t, 4, oldValue)
 	}
 	// check store
@@ -459,7 +459,7 @@ func TestSQLStore_Set_Reference_Nil(t *testing.T) {
 		mockObject.EXPECT().GetSQLID().Return(int64(6)).Once()
 		mockObject.EXPECT().SetSQLID(int64(6)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
-		oldValue, _ := s.Set(mockObject, eFeature, -1, nil).(EObject)
+		oldValue, _ := s.Set(mockObject, eFeature, -1, nil, true).(EObject)
 		require.NotNil(t, oldValue)
 		assert.True(t, oldValue.EIsProxy())
 		assert.Equal(t, "#//@library/@writers.0", oldValue.(EObjectInternal).EProxyURI().String())
@@ -506,7 +506,7 @@ func TestSQLStore_Set_List_Primitive(t *testing.T) {
 		mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
 		mockObject.EXPECT().SetSQLID(int64(5)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
-		oldValue := s.Set(mockObject, eFeature, 1, "c4")
+		oldValue := s.Set(mockObject, eFeature, 1, "c4", true)
 		assert.Equal(t, "c32", oldValue)
 	}
 	// check store
@@ -1724,7 +1724,7 @@ func TestSQLStore_ScheduledQueries(t *testing.T) {
 
 	mockObject.EXPECT().GetSQLID().Return(objectID).Once()
 	mockObject.EXPECT().EClass().Return(eClass).Once()
-	v = s.Set(mockObject, eFeature, -1, 4)
+	v = s.Set(mockObject, eFeature, -1, 4, true)
 	require.Equal(t, 3, v)
 
 	mockObject.EXPECT().GetSQLID().Return(objectID).Once()

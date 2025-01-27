@@ -460,7 +460,7 @@ func TestEStoreList_Set(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockNewObject)
 
 	mockStore.EXPECT().IndexOf(list.owner, list.feature, mockNewObject).Return(-1).Once()
-	mockStore.EXPECT().Set(list.owner, list.feature, 0, mockNewObject).Return(mockOldObject).Once()
+	mockStore.EXPECT().Set(list.owner, list.feature, 0, mockNewObject, true).Return(mockOldObject).Once()
 	mockReference.EXPECT().GetFeatureID().Return(0).Once()
 	mockOldObject.EXPECT().EInverseRemove(mockOwner, EOPPOSITE_FEATURE_BASE-0, nil).Return(nil).Once()
 	mockReference.EXPECT().GetFeatureID().Return(0).Once()
@@ -490,7 +490,7 @@ func TestEStoreList_SetWithNotification(t *testing.T) {
 	assert.Equal(t, 1, list.Size())
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockOpposite)
 
-	mockStore.EXPECT().Set(list.owner, list.feature, 0, mockNewObject).Return(mockOldObject).Once()
+	mockStore.EXPECT().Set(list.owner, list.feature, 0, mockNewObject, true).Return(mockOldObject).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
 	assert.NotNil(t, list.SetWithNotification(0, mockNewObject, nil))

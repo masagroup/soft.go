@@ -941,12 +941,12 @@ func (s *SQLStore) getValue(conn *sqlite.Conn, sqlID int64, featureSchema *sqlFe
 	return decoded
 }
 
-func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {
+func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any, isOldValue bool) (oldValue any) {
 	// connection
 	conn, err := s.pool.Take(context.Background())
 	if err != nil {
 		s.errorHandler(err)
-		return nil
+		return
 	}
 	defer s.pool.Put(conn)
 
@@ -954,24 +954,26 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 	sqlID, err := s.getSQLID(conn, object)
 	if err != nil {
 		s.errorHandler(err)
-		return nil
+		return
 	}
 
 	// get encoder feature data
 	featureData, err := s.getEncoderFeatureData(conn, object, feature)
 	if err != nil {
 		s.errorHandler(err)
-		return nil
+		return
 	}
 
-	// retrieve previous value
-	oldValue := s.getValue(conn, sqlID, featureData.schema, index)
+	if isOldValue {
+		// retrieve previous value
+		oldValue = s.getValue(conn, sqlID, featureData.schema, index)
+	}
 
 	// encode value
 	encoded, err := s.encodeFeatureValue(conn, featureData, value)
 	if err != nil {
 		s.errorHandler(err)
-		return nil
+		return
 	}
 
 	var table *sqlTable
@@ -989,10 +991,10 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 
 	if err := s.executeTableQuery(conn, table, writeQuery, query, &sqlitex.ExecOptions{Args: args}); err != nil {
 		s.errorHandler(err)
-		return nil
+		return
 	}
 
-	return oldValue
+	return
 }
 
 func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {

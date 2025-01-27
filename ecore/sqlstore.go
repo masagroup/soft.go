@@ -839,6 +839,9 @@ func (s *SQLStore) scheduleQuery(conn *sqlite.Conn, table *sqlTable, queryType q
 		queries := s.queries[table]
 		// retrieve query index
 		index := slices.Index(queries, q)
+		if index == -1 {
+			return nil, fmt.Errorf("unable to find query : %s", q.cmd_)
+		}
 		// remove query from collection
 		copy(queries[index:], queries[index+1:])
 		queries[len(queries)-1] = nil

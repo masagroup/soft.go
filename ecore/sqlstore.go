@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chebyrash/promise"
 	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -415,6 +416,19 @@ func (r *sqlStoreIDManagerImpl) SetEnumLiteralID(e EEnumLiteral, id int64) {
 	r.sqlEncoderIDManagerImpl.enumLiterals[e] = id
 }
 
+type queryType uint8
+
+const (
+	readQuery  queryType = 1
+	writeQuery queryType = 2
+)
+
+type query struct {
+	type_    queryType
+	cmd_     string
+	promise_ *promise.Promise[any]
+}
+
 type SQLStore struct {
 	*sqlBase
 	sqlDecoder
@@ -425,7 +439,8 @@ type SQLStore struct {
 	sqlIDManager        SQLStoreIDManager
 	singleQueries       map[*sqlColumn]*sqlSingleQueries
 	manyQueries         map[*sqlTable]*sqlManyQueries
-	tableToMutexes      map[*sqlTable]*sync.RWMutex
+	isScheduledQueries  bool
+	queries             map[*sqlTable][]*query
 	connectionPoolClose func(conn *sqlitex.Pool) error
 	executeQuery        func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error
 }
@@ -547,6 +562,7 @@ func newSQLStore(
 	sqlIDManager := newSQLStoreIDManager()
 	sqlObjectManager := newSQLStoreObjectManager()
 	logger := zap.NewNop()
+	isScheduledQueries := false
 	if options != nil {
 		objectIDName, _ = options[SQL_OPTION_OBJECT_ID].(string)
 		if eh, isErrorHandler := options[SQL_OPTION_ERROR_HANDLER]; isErrorHandler {
@@ -561,6 +577,7 @@ func newSQLStore(
 		if l, isLogger := options[SQL_OPTION_LOGGER]; isLogger {
 			logger = l.(*zap.Logger)
 		}
+		isScheduledQueries, _ = options[SQL_OPTION_SCHEDULED_QUERIES].(bool)
 	}
 
 	// log sqlite queries
@@ -571,7 +588,10 @@ func newSQLStore(
 			if err := sqlitex.Execute(conn, query, opts); err != nil {
 				return err
 			}
-			logger.Debug("execute", zap.String("query", query), zap.Any("args", opts.Args), zap.Duration("duration", time.Since(start)))
+			logger.Debug("execute",
+				zap.String("query", query),
+				zap.Any("args", opts.Args),
+				zap.Duration("duration", time.Since(start)))
 			return nil
 		}
 	}
@@ -622,7 +642,8 @@ func newSQLStore(
 		errorHandler:        errorHandler,
 		singleQueries:       map[*sqlColumn]*sqlSingleQueries{},
 		manyQueries:         map[*sqlTable]*sqlManyQueries{},
-		tableToMutexes:      map[*sqlTable]*sync.RWMutex{},
+		queries:             map[*sqlTable][]*query{},
+		isScheduledQueries:  isScheduledQueries,
 		connectionPoolClose: connectionPoolClose,
 		executeQuery:        executeQuery,
 	}
@@ -753,43 +774,79 @@ func (e *SQLStore) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoder
 	return nil, nil
 }
 
-func (s *SQLStore) getTableMutex(table *sqlTable) *sync.RWMutex {
-	s.mutex.Lock()
-	mutex, isMutex := s.tableToMutexes[table]
-	if !isMutex {
-		mutex = &sync.RWMutex{}
-		s.tableToMutexes[table] = mutex
+func (s *SQLStore) executeTableQuery(conn *sqlite.Conn, table *sqlTable, queryType queryType, queryCmd string, opts *sqlitex.ExecOptions) error {
+	if s.isScheduledQueries {
+		// schedule query
+		p := s.scheduleQuery(conn, table, queryType, queryCmd, opts)
+		// wait for scheduled query if read query
+		if queryType == readQuery {
+			if _, err := p.Await(context.Background()); err != nil {
+				return err
+			}
+		}
+		return nil
+	} else {
+		return s.executeQuery(conn, queryCmd, opts)
 	}
-	s.mutex.Unlock()
-	return mutex
 }
 
-type queryType uint8
+func (s *SQLStore) scheduleQuery(conn *sqlite.Conn, table *sqlTable, queryType queryType, queryCmd string, opts *sqlitex.ExecOptions) *promise.Promise[any] {
+	s.mutex.Lock()
+	queries := s.queries[table]
 
-const (
-	readQuery  queryType = 1
-	writeQuery queryType = 2
-)
-
-func (s *SQLStore) executeTableQuery(conn *sqlite.Conn, table *sqlTable, queryType queryType, query string, opts *sqlitex.ExecOptions) error {
-	mutex := s.getTableMutex(table)
-	switch queryType {
-	case writeQuery:
-		mutex.Lock()
-		go func() {
-			if err := s.executeQuery(conn, query, opts); err != nil {
-				s.errorHandler(err)
-			}
-			mutex.Unlock()
-		}()
-		return nil
-	case readQuery:
-		mutex.RLock()
-		defer mutex.RUnlock()
-		return s.executeQuery(conn, query, opts)
-	default:
-		return fmt.Errorf("invalid query type : %v", queryType)
+	// compute previous queries to wait for
+	previous := []*promise.Promise[any]{}
+	for i := len(queries) - 1; i >= 0; i-- {
+		query := queries[i]
+		previous = append(previous, query.promise_)
+		if query.type_ == writeQuery {
+			break
+		}
 	}
+
+	// create query
+	q := &query{
+		type_: queryType,
+		cmd_:  queryCmd,
+		promise_: promise.New(func(resolve func(any), reject func(error)) {
+			// wait for all previous promises
+			if len(previous) > 0 {
+				allPrevious := promise.All(context.Background(), previous...)
+				if _, err := allPrevious.Await(context.Background()); err != nil {
+					reject(err)
+					return
+				}
+			}
+
+			// execute query command
+			if err := s.executeQuery(conn, queryCmd, opts); err != nil {
+				reject(err)
+				return
+			}
+
+			// successful
+			resolve(nil)
+		}),
+	}
+
+	// add query to table queries
+	s.queries[table] = append(queries, q)
+	s.mutex.Unlock()
+
+	// remove query from table queries when finished
+	return promise.Then(q.promise_, context.Background(), func(a any) (any, error) {
+		s.mutex.Lock()
+		queries := s.queries[table]
+		// retrieve query index
+		index := slices.Index(queries, q)
+		// remove query from collection
+		copy(queries[index:], queries[index+1:])
+		queries[len(queries)-1] = nil
+		s.queries[table] = queries[:len(queries)-1]
+		s.mutex.Unlock()
+		return nil, nil
+	})
+
 }
 
 // get object sql id

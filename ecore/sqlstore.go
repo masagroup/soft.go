@@ -687,6 +687,21 @@ func newSQLStore(
 }
 
 func (s *SQLStore) Close() error {
+	if s.isScheduledQueries {
+		s.mutex.Lock()
+		queryPromises := []*promise.Promise[any]{}
+		for _, queries := range s.queries {
+			for _, query := range queries {
+				queryPromises = append(queryPromises, query.promise_)
+			}
+		}
+		s.mutex.Unlock()
+		if len(queryPromises) > 0 {
+			if _, err := promise.All(context.Background(), queryPromises...).Await(context.Background()); err != nil {
+				return err
+			}
+		}
+	}
 	return s.connectionPoolClose(s.pool)
 }
 

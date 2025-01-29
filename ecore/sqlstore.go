@@ -5,11 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"maps"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/sync/semaphore"
 
 	"github.com/chebyrash/promise"
 	"go.uber.org/zap"
@@ -425,7 +429,7 @@ const (
 
 type query struct {
 	type_    queryType
-	cmd_     string
+	desc_    string
 	promise_ *promise.Promise[any]
 }
 
@@ -791,8 +795,10 @@ func (e *SQLStore) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoder
 
 func (s *SQLStore) executeTableQuery(conn *sqlite.Conn, table *sqlTable, queryType queryType, queryCmd string, opts *sqlitex.ExecOptions) error {
 	if s.isScheduledQueries {
-		// schedule query
-		p := s.scheduleQuery(conn, table, queryType, queryCmd, opts)
+		// schedule execute query
+		p := s.scheduleTableQuery(table, queryType, queryCmd, func() error {
+			return s.executeQuery(conn, queryCmd, opts)
+		})
 		// wait for scheduled query if read query
 		if queryType == readQuery {
 			if _, err := p.Await(context.Background()); err != nil {
@@ -805,7 +811,7 @@ func (s *SQLStore) executeTableQuery(conn *sqlite.Conn, table *sqlTable, queryTy
 	}
 }
 
-func (s *SQLStore) scheduleQuery(conn *sqlite.Conn, table *sqlTable, queryType queryType, queryCmd string, opts *sqlitex.ExecOptions) *promise.Promise[any] {
+func (s *SQLStore) scheduleTableQuery(table *sqlTable, queryType queryType, queryDesc string, queryOp func() error) *promise.Promise[any] {
 	s.mutex.Lock()
 	queries := s.queries[table]
 
@@ -822,7 +828,7 @@ func (s *SQLStore) scheduleQuery(conn *sqlite.Conn, table *sqlTable, queryType q
 	// create query
 	q := &query{
 		type_: queryType,
-		cmd_:  queryCmd,
+		desc_: queryDesc,
 		promise_: promise.New(func(resolve func(any), reject func(error)) {
 			// wait for all previous promises
 			if len(previous) > 0 {
@@ -834,7 +840,7 @@ func (s *SQLStore) scheduleQuery(conn *sqlite.Conn, table *sqlTable, queryType q
 			}
 
 			// execute query command
-			if err := s.executeQuery(conn, queryCmd, opts); err != nil {
+			if err := queryOp(); err != nil {
 				reject(err)
 				return
 			}
@@ -855,7 +861,7 @@ func (s *SQLStore) scheduleQuery(conn *sqlite.Conn, table *sqlTable, queryType q
 		// retrieve query index
 		index := slices.Index(queries, q)
 		if index == -1 {
-			return nil, fmt.Errorf("unable to find query : %s", q.cmd_)
+			return nil, fmt.Errorf("unable to find query : %s", q.desc_)
 		}
 		// remove query from collection
 		copy(queries[index:], queries[index+1:])
@@ -865,6 +871,39 @@ func (s *SQLStore) scheduleQuery(conn *sqlite.Conn, table *sqlTable, queryType q
 		return nil, nil
 	})
 
+}
+
+func (s *SQLStore) runExclusive(ctx context.Context, queryType queryType, op func() error) error {
+	s.mutex.Lock()
+	tables := slices.Collect(maps.Keys(s.queries))
+	size := int64(len(tables))
+	s.mutex.Unlock()
+
+	run := make(chan struct{})
+	locked := semaphore.NewWeighted(size)
+	if err := locked.Acquire(ctx, size); err != nil {
+		return err
+	}
+	for _, table := range tables {
+		s.scheduleTableQuery(table, queryType, "lock-"+table.name, func() error {
+			// the table is locked
+			locked.Release(1)
+
+			// wait for the op to be run
+			<-run
+
+			return nil
+		})
+	}
+	// wait for all tables to be locked
+	if err := locked.Acquire(ctx, size); err != nil {
+		return err
+	}
+
+	// indicate all queries that operation is run
+	defer close(run)
+
+	return op()
 }
 
 // get object sql id
@@ -1784,4 +1823,64 @@ func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any]
 
 func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 	return slices.Collect(s.All(object, feature))
+}
+
+func (s *SQLStore) Serialize(ctx context.Context) (bytes []byte, err error) {
+	// connection
+	conn, err := s.pool.Take(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer s.pool.Put(conn)
+
+	// retrive database size
+	var dbSize int64
+	if err := sqlitex.ExecuteTransient(conn, "SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size();", &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			dbSize = stmt.ColumnInt64(0)
+			return nil
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	// supports big databases
+	var serialize func() error
+	if dbSize > SQLITE_MAX_ALLOCATION_SIZE {
+		serialize = func() error {
+			dbPath, err := sqlTmpDB("store-serialize")
+			if err != nil {
+				return err
+			}
+
+			dstConn, err := sqlite.OpenConn(dbPath)
+			if err != nil {
+				return nil
+			}
+
+			if err := backupDB(dstConn, conn); err != nil {
+				dstConn.Close()
+				return err
+			}
+
+			if err := dstConn.Close(); err != nil {
+				return err
+			}
+
+			bytes, err = os.ReadFile(dbPath)
+			return err
+		}
+
+	} else {
+		serialize = func() (err error) {
+			bytes, err = conn.Serialize("main")
+			return
+		}
+	}
+	if s.isScheduledQueries {
+		err = s.runExclusive(ctx, readQuery, serialize)
+	} else {
+		err = serialize()
+	}
+	return
 }

@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -413,7 +414,7 @@ func TestSQLStore_Set_Int(t *testing.T) {
 		mockObject.EXPECT().GetSQLID().Return(objectID).Once()
 		mockObject.EXPECT().SetSQLID(objectID).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
-		oldValue := s.Set(mockObject, eFeature, -1, 5)
+		oldValue := s.Set(mockObject, eFeature, -1, 5, true)
 		assert.Equal(t, 4, oldValue)
 	}
 	// check store
@@ -459,7 +460,7 @@ func TestSQLStore_Set_Reference_Nil(t *testing.T) {
 		mockObject.EXPECT().GetSQLID().Return(int64(6)).Once()
 		mockObject.EXPECT().SetSQLID(int64(6)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
-		oldValue, _ := s.Set(mockObject, eFeature, -1, nil).(EObject)
+		oldValue, _ := s.Set(mockObject, eFeature, -1, nil, true).(EObject)
 		require.NotNil(t, oldValue)
 		assert.True(t, oldValue.EIsProxy())
 		assert.Equal(t, "#//@library/@writers.0", oldValue.(EObjectInternal).EProxyURI().String())
@@ -506,7 +507,7 @@ func TestSQLStore_Set_List_Primitive(t *testing.T) {
 		mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
 		mockObject.EXPECT().SetSQLID(int64(5)).Once()
 		mockObject.EXPECT().EClass().Return(eClass).Once()
-		oldValue := s.Set(mockObject, eFeature, 1, "c4")
+		oldValue := s.Set(mockObject, eFeature, 1, "c4", true)
 		assert.Equal(t, "c32", oldValue)
 	}
 	// check store
@@ -1691,4 +1692,125 @@ func TestSQLStore_GetContainer(t *testing.T) {
 	require.NotNil(t, feature)
 	require.Equal(t, "books", feature.GetName())
 
+}
+
+func TestSQLStore_ScheduledQueries(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Lendable").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("copies")
+	require.NotNil(t, eFeature)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, map[string]any{SQL_OPTION_SCHEDULED_QUERIES: true})
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	objectID := int64(7)
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(objectID).Once()
+	mockObject.EXPECT().SetSQLID(objectID).Return().Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	v := s.Get(mockObject, eFeature, -1)
+	require.Equal(t, 3, v)
+
+	mockObject.EXPECT().GetSQLID().Return(objectID).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	v = s.Set(mockObject, eFeature, -1, 4, true)
+	require.Equal(t, 3, v)
+
+	mockObject.EXPECT().GetSQLID().Return(objectID).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	v = s.Get(mockObject, eFeature, -1)
+	require.Equal(t, 4, v)
+}
+
+func TestSQLStore_Serialize(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	//
+	bytes, err := s.Serialize(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, bytes)
+	requireSameDB(t, "testdata/library.store.sqlite", bytes)
+}
+
+func TestSQLStore_Serialize_ScheduleQueries(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, map[string]any{SQL_OPTION_SCHEDULED_QUERIES: true})
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	//
+	bytes, err := s.Serialize(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, bytes)
+	requireSameDB(t, "testdata/library.store.sqlite", bytes)
+}
+
+func TestSQLStore_Serialize_ScheduleQueries_WithTables(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Lendable").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("copies")
+	require.NotNil(t, eFeature)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, map[string]any{SQL_OPTION_SCHEDULED_QUERIES: true})
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	// get an object feature value to add a table
+	objectID := int64(7)
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(objectID).Once()
+	mockObject.EXPECT().SetSQLID(objectID).Return().Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+	v := s.Get(mockObject, eFeature, -1)
+	require.Equal(t, 3, v)
+
+	//
+	bytes, err := s.Serialize(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, bytes)
+	requireSameDB(t, "testdata/library.store.sqlite", bytes)
 }

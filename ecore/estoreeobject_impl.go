@@ -171,7 +171,7 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 	store := o.AsEStoreEObject().GetEStore()
 	if store != nil && !eFeature.IsTransient() {
 		// store and feature is not transient
-		store.Set(o.AsEObject(), eFeature, NO_INDEX, value)
+		store.Set(o.AsEObject(), eFeature, NO_INDEX, value, false)
 		if o.cache {
 			properties = o.getProperties()
 		}

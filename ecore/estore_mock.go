@@ -691,17 +691,17 @@ func (_c *MockEStore_RemoveRoot_Call) RunAndReturn(run func(EObject)) *MockEStor
 	return _c
 }
 
-// Set provides a mock function with given fields: object, feature, index, value
-func (_m *MockEStore) Set(object EObject, feature EStructuralFeature, index int, value any) any {
-	ret := _m.Called(object, feature, index, value)
+// Set provides a mock function with given fields: object, feature, index, value, oldValue
+func (_m *MockEStore) Set(object EObject, feature EStructuralFeature, index int, value any, oldValue bool) any {
+	ret := _m.Called(object, feature, index, value, oldValue)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Set")
 	}
 
 	var r0 any
-	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int, any) any); ok {
-		r0 = rf(object, feature, index, value)
+	if rf, ok := ret.Get(0).(func(EObject, EStructuralFeature, int, any, bool) any); ok {
+		r0 = rf(object, feature, index, value, oldValue)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(any)
@@ -721,13 +721,14 @@ type MockEStore_Set_Call struct {
 //   - feature EStructuralFeature
 //   - index int
 //   - value any
-func (_e *MockEStore_Expecter) Set(object interface{}, feature interface{}, index interface{}, value interface{}) *MockEStore_Set_Call {
-	return &MockEStore_Set_Call{Call: _e.mock.On("Set", object, feature, index, value)}
+//   - oldValue bool
+func (_e *MockEStore_Expecter) Set(object interface{}, feature interface{}, index interface{}, value interface{}, oldValue interface{}) *MockEStore_Set_Call {
+	return &MockEStore_Set_Call{Call: _e.mock.On("Set", object, feature, index, value, oldValue)}
 }
 
-func (_c *MockEStore_Set_Call) Run(run func(object EObject, feature EStructuralFeature, index int, value any)) *MockEStore_Set_Call {
+func (_c *MockEStore_Set_Call) Run(run func(object EObject, feature EStructuralFeature, index int, value any, oldValue bool)) *MockEStore_Set_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(EObject), args[1].(EStructuralFeature), args[2].(int), args[3].(any))
+		run(args[0].(EObject), args[1].(EStructuralFeature), args[2].(int), args[3].(any), args[4].(bool))
 	})
 	return _c
 }
@@ -737,7 +738,7 @@ func (_c *MockEStore_Set_Call) Return(_a0 any) *MockEStore_Set_Call {
 	return _c
 }
 
-func (_c *MockEStore_Set_Call) RunAndReturn(run func(EObject, EStructuralFeature, int, any) any) *MockEStore_Set_Call {
+func (_c *MockEStore_Set_Call) RunAndReturn(run func(EObject, EStructuralFeature, int, any, bool) any) *MockEStore_Set_Call {
 	_c.Call.Return(run)
 	return _c
 }

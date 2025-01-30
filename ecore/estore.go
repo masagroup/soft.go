@@ -18,7 +18,7 @@ type EStore interface {
 
 	Get(object EObject, feature EStructuralFeature, index int) any
 
-	Set(object EObject, feature EStructuralFeature, index int, value any) any
+	Set(object EObject, feature EStructuralFeature, index int, value any, oldValue bool) any
 
 	IsSet(object EObject, feature EStructuralFeature) bool
 

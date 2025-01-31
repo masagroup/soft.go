@@ -145,6 +145,10 @@ func (list *EStoreList) SetCache(cache bool) {
 				data = list.data
 			}
 			list.data = data
+			// if no data, set list.data as empty data
+			if list.data == nil {
+				list.data = []any{}
+			}
 		} else {
 			// no cache
 			data = list.data

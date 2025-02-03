@@ -308,8 +308,7 @@ func (list *EStoreList) doGet(index int) any {
 func (list *EStoreList) get(index int) any {
 	if list.data != nil {
 		return list.data[index]
-	}
-	if list.store != nil {
+	} else if list.store != nil {
 		return list.store.Get(list.owner, list.feature, index)
 	}
 	return nil
@@ -372,8 +371,7 @@ func (list *EStoreList) ToArray() []any {
 			}
 		}
 		return list.data
-	}
-	if list.store != nil {
+	} else if list.store != nil {
 		data := list.store.ToArray(list.owner, list.feature)
 		if list.proxies {
 			for i := len(list.data) - 1; i >= 0; i-- {
@@ -400,8 +398,7 @@ func (list *EStoreList) IndexOf(element any) int {
 				return i
 			}
 		}
-	}
-	if list.store != nil {
+	} else if list.store != nil {
 		result := list.store.IndexOf(list.owner, list.feature, element)
 		if result >= 0 {
 			return result
@@ -422,8 +419,7 @@ func (list *EStoreList) IndexOf(element any) int {
 func (list *EStoreList) Contains(element any) bool {
 	if list.data != nil {
 		return list.BasicENotifyingList.Contains(element)
-	}
-	if list.store != nil {
+	} else if list.store != nil {
 		if list.store.Contains(list.owner, list.feature, element) {
 			return true
 		} else if list.object && list.proxies {

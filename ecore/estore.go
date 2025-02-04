@@ -11,6 +11,8 @@ package ecore
 
 import (
 	"iter"
+
+	"github.com/chebyrash/promise"
 )
 
 type EStore interface {
@@ -55,12 +57,19 @@ type EStore interface {
 	ToArray(object EObject, feature EStructuralFeature) []any
 }
 
+type OperationType uint8
+
+const (
+	ReadOperation  = 1 << 0
+	WriteOperation = 1 << 1
+)
+
 type EStoreAsync interface {
 	EStore
 
 	WaitOperations(object any)
 
-	AsyncOperation(object any, operation func())
+	AsyncOperation(object any, operationType OperationType, operation func() any) *promise.Promise[any]
 
 	Close()
 }

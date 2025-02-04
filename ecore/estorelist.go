@@ -158,6 +158,8 @@ func (list *EStoreList) SetCache(cache bool) {
 				list.data = nil
 			}
 		}
+
+		// set cache for all list elements
 		for _, v := range data {
 			if sc, _ := v.(ECacheProvider); sc != nil {
 				sc.SetCache(cache)
@@ -171,11 +173,10 @@ func (list *EStoreList) IsCache() bool {
 	return list.cache
 }
 
-func (list *EStoreList) executeAsync(async bool, operation func()) {
+func (list *EStoreList) executeOperation(async bool, operation func()) {
 	if asyncStore, _ := list.store.(EStoreAsync); asyncStore != nil && async {
-		asyncStore.AsyncOperation(func() (any, error) {
+		asyncStore.AsyncOperation(list, func() {
 			operation()
-			return nil, nil
 		})
 	} else {
 		operation()
@@ -189,7 +190,7 @@ func (list *EStoreList) performAdd(object any) {
 	}
 	// add to store
 	if list.store != nil {
-		list.executeAsync(list.data != nil, func() {
+		list.executeOperation(list.data != nil, func() {
 			list.store.Add(list.owner, list.feature, list.size, object)
 		})
 	}
@@ -206,7 +207,7 @@ func (list *EStoreList) performAddAll(c Collection) {
 
 	// add to store
 	if list.store != nil {
-		list.executeAsync(list.data != nil, func() {
+		list.executeOperation(list.data != nil, func() {
 			list.store.AddAll(list.owner, list.feature, list.size, c)
 		})
 	}
@@ -221,7 +222,7 @@ func (list *EStoreList) performInsert(index int, object any) {
 	}
 	// add to store
 	if list.store != nil {
-		list.executeAsync(list.data != nil, func() {
+		list.executeOperation(list.data != nil, func() {
 			list.store.Add(list.owner, list.feature, index, object)
 		})
 	}
@@ -238,7 +239,7 @@ func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 	}
 	// add to store
 	if list.store != nil {
-		list.executeAsync(list.data != nil, func() {
+		list.executeOperation(list.data != nil, func() {
 			list.store.AddAll(list.owner, list.feature, index, c)
 		})
 	}
@@ -256,7 +257,7 @@ func (list *EStoreList) performClear() []any {
 	// store
 	if list.store != nil {
 		if list.data != nil {
-			list.executeAsync(true, func() {
+			list.executeOperation(true, func() {
 				list.store.Clear(list.owner, list.feature)
 			})
 		} else {
@@ -278,7 +279,7 @@ func (list *EStoreList) performRemove(index int) any {
 	//store
 	if list.store != nil {
 		if list.data != nil {
-			list.executeAsync(true, func() {
+			list.executeOperation(true, func() {
 				_ = list.store.Remove(list.owner, list.feature, index)
 			})
 		} else {
@@ -297,7 +298,7 @@ func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
 	}
 	if list.store != nil {
 		if list.data != nil {
-			list.executeAsync(true, func() {
+			list.executeOperation(true, func() {
 				for i := fromIndex; i < toIndex; i++ {
 					_ = list.store.Remove(list.owner, list.feature, i)
 				}
@@ -323,7 +324,7 @@ func (list *EStoreList) performSet(index int, object any) any {
 	}
 	if list.store != nil {
 		if list.data != nil {
-			list.executeAsync(true, func() {
+			list.executeOperation(true, func() {
 				_ = list.store.Set(list.owner, list.feature, index, object, false)
 			})
 		} else {
@@ -340,7 +341,7 @@ func (list *EStoreList) performMove(oldIndex, newIndex int) any {
 	}
 	if list.store != nil {
 		if list.data != nil {
-			list.executeAsync(true, func() {
+			list.executeOperation(true, func() {
 				_ = list.store.Move(list.owner, list.feature, oldIndex, newIndex)
 			})
 		} else {

@@ -60,13 +60,14 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 				o.properties = nil
 			}
 		}
-
 	}
 }
 
 func (o *EStoreEObjectImpl) SetCache(cache bool) {
 	if o.cache != cache {
 		o.cache = cache
+
+		// set cache for all properties
 		for _, v := range o.properties {
 			if sc, _ := v.(ECacheProvider); sc != nil {
 				sc.SetCache(cache)
@@ -171,9 +172,16 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 	store := o.AsEStoreEObject().GetEStore()
 	if store != nil && !eFeature.IsTransient() {
 		// store and feature is not transient
-		store.Set(o.AsEObject(), eFeature, NO_INDEX, value, false)
 		if o.cache {
 			properties = o.getProperties()
+		}
+		// we can execute an async operation if we have a cache and an async store
+		if asyncStore, _ := store.(EStoreAsync); asyncStore != nil && o.cache {
+			asyncStore.AsyncOperation(o, func() {
+				store.Set(o.AsEObject(), eFeature, NO_INDEX, value, false)
+			})
+		} else {
+			store.Set(o.AsEObject(), eFeature, NO_INDEX, value, false)
 		}
 	} else {
 		// no store or feature is transient
@@ -193,7 +201,13 @@ func (o *EStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	eFeature := o.eDynamicFeature(dynamicFeatureID)
 	store := o.AsEStoreEObject().GetEStore()
 	if store != nil && !eFeature.IsTransient() {
-		store.UnSet(o.AsEObject(), eFeature)
+		if asyncStore, _ := store.(EStoreAsync); asyncStore != nil && o.cache {
+			asyncStore.AsyncOperation(o, func() {
+				store.UnSet(o.AsEObject(), eFeature)
+			})
+		} else {
+			store.UnSet(o.AsEObject(), eFeature)
+		}
 	}
 }
 

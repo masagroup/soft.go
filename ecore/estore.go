@@ -11,8 +11,6 @@ package ecore
 
 import (
 	"iter"
-
-	"github.com/chebyrash/promise"
 )
 
 type EStore interface {
@@ -60,7 +58,9 @@ type EStore interface {
 type EStoreAsync interface {
 	EStore
 
-	AsyncOperation(operation func() (any, error)) *promise.Promise[any]
+	WaitOperations(object any)
+
+	AsyncOperation(object any, operation func())
 
 	Close()
 }

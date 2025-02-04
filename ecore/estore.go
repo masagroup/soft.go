@@ -9,7 +9,11 @@
 
 package ecore
 
-import "iter"
+import (
+	"iter"
+
+	"github.com/chebyrash/promise"
+)
 
 type EStore interface {
 	AddRoot(object EObject)
@@ -51,6 +55,14 @@ type EStore interface {
 	All(object EObject, feature EStructuralFeature) iter.Seq[any]
 
 	ToArray(object EObject, feature EStructuralFeature) []any
+}
+
+type EStoreAsync interface {
+	EStore
+
+	AsyncOperation(operation func() (any, error)) *promise.Promise[any]
+
+	Close()
 }
 
 type EStoreProvider interface {

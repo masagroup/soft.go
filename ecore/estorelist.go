@@ -171,6 +171,17 @@ func (list *EStoreList) IsCache() bool {
 	return list.cache
 }
 
+func (list *EStoreList) executeAsync(async bool, operation func()) {
+	if asyncStore, _ := list.store.(EStoreAsync); asyncStore != nil && async {
+		asyncStore.AsyncOperation(func() (any, error) {
+			operation()
+			return nil, nil
+		})
+	} else {
+		operation()
+	}
+}
+
 func (list *EStoreList) performAdd(object any) {
 	// add to cache
 	if list.data != nil {
@@ -178,7 +189,9 @@ func (list *EStoreList) performAdd(object any) {
 	}
 	// add to store
 	if list.store != nil {
-		list.store.Add(list.owner, list.feature, list.size, object)
+		list.executeAsync(list.data != nil, func() {
+			list.store.Add(list.owner, list.feature, list.size, object)
+		})
 	}
 	// size
 	list.size++
@@ -193,7 +206,9 @@ func (list *EStoreList) performAddAll(c Collection) {
 
 	// add to store
 	if list.store != nil {
-		list.store.AddAll(list.owner, list.feature, list.size, c)
+		list.executeAsync(list.data != nil, func() {
+			list.store.AddAll(list.owner, list.feature, list.size, c)
+		})
 	}
 	// size
 	list.size += c.Size()
@@ -206,7 +221,9 @@ func (list *EStoreList) performInsert(index int, object any) {
 	}
 	// add to store
 	if list.store != nil {
-		list.store.Add(list.owner, list.feature, index, object)
+		list.executeAsync(list.data != nil, func() {
+			list.store.Add(list.owner, list.feature, index, object)
+		})
 	}
 	// size
 	list.size++
@@ -221,7 +238,9 @@ func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 	}
 	// add to store
 	if list.store != nil {
-		list.store.AddAll(list.owner, list.feature, index, c)
+		list.executeAsync(list.data != nil, func() {
+			list.store.AddAll(list.owner, list.feature, index, c)
+		})
 	}
 	// size
 	list.size += c.Size()
@@ -236,10 +255,14 @@ func (list *EStoreList) performClear() []any {
 	}
 	// store
 	if list.store != nil {
-		if result == nil {
+		if list.data != nil {
+			list.executeAsync(true, func() {
+				list.store.Clear(list.owner, list.feature)
+			})
+		} else {
 			result = list.store.ToArray(list.owner, list.feature)
+			list.store.Clear(list.owner, list.feature)
 		}
-		list.store.Clear(list.owner, list.feature)
 	}
 	// size
 	list.size = 0
@@ -254,7 +277,13 @@ func (list *EStoreList) performRemove(index int) any {
 	}
 	//store
 	if list.store != nil {
-		result = list.store.Remove(list.owner, list.feature, index)
+		if list.data != nil {
+			list.executeAsync(true, func() {
+				_ = list.store.Remove(list.owner, list.feature, index)
+			})
+		} else {
+			result = list.store.Remove(list.owner, list.feature, index)
+		}
 	}
 	// size
 	list.size--
@@ -267,13 +296,21 @@ func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
 		result = list.BasicENotifyingList.performRemoveRange(fromIndex, toIndex)
 	}
 	if list.store != nil {
-		var objects []any
-		for i := fromIndex; i < toIndex; i++ {
-			// store
-			object := list.store.Remove(list.owner, list.feature, i)
-			objects = append(objects, object)
+		if list.data != nil {
+			list.executeAsync(true, func() {
+				for i := fromIndex; i < toIndex; i++ {
+					_ = list.store.Remove(list.owner, list.feature, i)
+				}
+			})
+		} else {
+			var objects []any
+			for i := fromIndex; i < toIndex; i++ {
+				// store
+				object := list.store.Remove(list.owner, list.feature, i)
+				objects = append(objects, object)
+			}
+			result = objects
 		}
-		result = objects
 	}
 	list.size -= len(result)
 	return result
@@ -285,7 +322,13 @@ func (list *EStoreList) performSet(index int, object any) any {
 		result = list.BasicENotifyingList.performSet(index, object)
 	}
 	if list.store != nil {
-		result = list.store.Set(list.owner, list.feature, index, object, true)
+		if list.data != nil {
+			list.executeAsync(true, func() {
+				_ = list.store.Set(list.owner, list.feature, index, object, false)
+			})
+		} else {
+			result = list.store.Set(list.owner, list.feature, index, object, true)
+		}
 	}
 	return result
 }
@@ -296,7 +339,13 @@ func (list *EStoreList) performMove(oldIndex, newIndex int) any {
 		result = list.BasicENotifyingList.performMove(oldIndex, newIndex)
 	}
 	if list.store != nil {
-		result = list.store.Move(list.owner, list.feature, oldIndex, newIndex)
+		if list.data != nil {
+			list.executeAsync(true, func() {
+				_ = list.store.Move(list.owner, list.feature, oldIndex, newIndex)
+			})
+		} else {
+			result = list.store.Move(list.owner, list.feature, oldIndex, newIndex)
+		}
 	}
 	return result
 }

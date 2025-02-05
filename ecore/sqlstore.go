@@ -1725,7 +1725,7 @@ func (s *SQLStore) WaitOperations(context context.Context, object any) error {
 	return nil
 }
 
-func (s *SQLStore) ScheduleOperation(object any, operationType OperationType, op func() any) *promise.Promise[any] {
+func (s *SQLStore) ScheduleOperation(object any, operationType OperationType, op func() (any, error)) *promise.Promise[any] {
 	if object == nil {
 		return s.scheduleOperationAll(operationType, op)
 	} else {
@@ -1733,7 +1733,7 @@ func (s *SQLStore) ScheduleOperation(object any, operationType OperationType, op
 	}
 }
 
-func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() any) *promise.Promise[any] {
+func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (any, error)) *promise.Promise[any] {
 	return promise.New(func(resolve func(any), reject func(error)) {
 		s.mutexOperations.Lock()
 		objects := slices.Collect(maps.Keys(s.operations))
@@ -1747,14 +1747,14 @@ func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() a
 			return
 		}
 		for _, object := range objects {
-			s.scheduleOperationObject(object, operationType, func() any {
+			s.scheduleOperationObject(object, operationType, func() (any, error) {
 				// the object is locked
 				locked.Release(1)
 
 				// wait for the op to be run
 				<-run
 
-				return nil
+				return nil, nil
 			})
 		}
 		// wait for all tables to be locked
@@ -1766,11 +1766,15 @@ func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() a
 		// indicate all queries that operation is run
 		defer close(run)
 
-		resolve(op())
+		if result, err := op(); err != nil {
+			reject(err)
+		} else {
+			resolve(result)
+		}
 	})
 }
 
-func (s *SQLStore) scheduleOperationObject(object any, operationType OperationType, op func() any) *promise.Promise[any] {
+func (s *SQLStore) scheduleOperationObject(object any, operationType OperationType, op func() (any, error)) *promise.Promise[any] {
 	s.mutexOperations.Lock()
 	// compute previous operations
 	previous := []*promise.Promise[any]{}
@@ -1805,7 +1809,12 @@ func (s *SQLStore) scheduleOperationObject(object any, operationType OperationTy
 					return
 				}
 			}
-			resolve(op())
+			result, err := op()
+			if err != nil {
+				reject(err)
+			} else {
+				resolve(result)
+			}
 		}),
 	}
 	// add operation

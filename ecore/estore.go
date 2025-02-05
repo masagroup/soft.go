@@ -68,7 +68,7 @@ const (
 type EStoreAsync interface {
 	EStore
 
-	ScheduleOperation(object any, operationType OperationType, operation func() any) *promise.Promise[any]
+	ScheduleOperation(object any, operationType OperationType, operation func() (any, error)) *promise.Promise[any]
 
 	WaitOperations(context context.Context, object any) error
 

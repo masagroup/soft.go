@@ -426,15 +426,16 @@ type SQLStore struct {
 	*sqlBase
 	sqlDecoder
 	sqlEncoder
-	mutex               sync.Mutex
 	pool                *sqlitex.Pool
 	errorHandler        func(error)
 	sqlIDManager        SQLStoreIDManager
 	singleQueries       map[*sqlColumn]*sqlSingleQueries
 	manyQueries         map[*sqlTable]*sqlManyQueries
+	mutexQueries        sync.Mutex
 	connectionPoolClose func(conn *sqlitex.Pool) error
 	executeQuery        func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error
 	operations          map[any][]*operation
+	mutexOperations     sync.Mutex
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -676,7 +677,7 @@ func newSQLStore(
 }
 
 func (s *SQLStore) getSingleQueries(column *sqlColumn) *sqlSingleQueries {
-	s.mutex.Lock()
+	s.mutexQueries.Lock()
 	stmts := s.singleQueries[column]
 	if stmts == nil {
 		stmts = &sqlSingleQueries{
@@ -684,12 +685,12 @@ func (s *SQLStore) getSingleQueries(column *sqlColumn) *sqlSingleQueries {
 		}
 		s.singleQueries[column] = stmts
 	}
-	s.mutex.Unlock()
+	s.mutexQueries.Unlock()
 	return stmts
 }
 
 func (s *SQLStore) getManyQueries(table *sqlTable) *sqlManyQueries {
-	s.mutex.Lock()
+	s.mutexQueries.Lock()
 	stmts := s.manyQueries[table]
 	if stmts == nil {
 		stmts = &sqlManyQueries{
@@ -697,7 +698,7 @@ func (s *SQLStore) getManyQueries(table *sqlTable) *sqlManyQueries {
 		}
 		s.manyQueries[table] = stmts
 	}
-	s.mutex.Unlock()
+	s.mutexQueries.Unlock()
 	return stmts
 }
 
@@ -1695,7 +1696,7 @@ func (s *SQLStore) Close() error {
 
 func (s *SQLStore) WaitOperations(context context.Context, object any) error {
 	var promises []*promise.Promise[any]
-	s.mutex.Lock()
+	s.mutexOperations.Lock()
 	if object == nil {
 		promises = make([]*promise.Promise[any], 0)
 		for _, operations := range s.operations {
@@ -1710,15 +1711,18 @@ func (s *SQLStore) WaitOperations(context context.Context, object any) error {
 			promises = append(promises, operation.promise_)
 		}
 	}
-	s.mutex.Unlock()
+	s.mutexOperations.Unlock()
 
-	allOperations := promise.All(context, promises...)
-	_, err := allOperations.Await(context)
-	return err
+	if len(promises) > 0 {
+		allOperations := promise.All(context, promises...)
+		_, err := allOperations.Await(context)
+		return err
+	}
+	return nil
 }
 
 func (s *SQLStore) AsyncOperation(object any, operationType OperationType, op func() any) *promise.Promise[any] {
-	s.mutex.Lock()
+	s.mutexOperations.Lock()
 	// compute previous operations
 	previous := []*promise.Promise[any]{}
 	operations := s.operations[object]
@@ -1759,17 +1763,17 @@ func (s *SQLStore) AsyncOperation(object any, operationType OperationType, op fu
 	index := len(operations)
 	// add operation
 	s.operations[object] = append(operations, operation)
-	s.mutex.Unlock()
+	s.mutexOperations.Unlock()
 	// remove operation when finished with result or error
 	return promise.New(func(resolve func(any), reject func(error)) {
 		r, err := operation.promise_.Await(context.Background())
-		s.mutex.Lock()
+		s.mutexOperations.Lock()
 		operations = s.operations[object]
 		// remove operation from collection
 		copy(operations[index:], operations[index+1:])
 		operations[len(operations)-1] = nil
 		s.operations[object] = operations[:len(operations)-1]
-		s.mutex.Unlock()
+		s.mutexOperations.Unlock()
 		if err != nil {
 			reject(err)
 		} else {

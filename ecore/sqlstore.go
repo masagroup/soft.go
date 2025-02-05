@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/chebyrash/promise"
 	"go.uber.org/zap"
+	"golang.org/x/sync/semaphore"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
@@ -1723,7 +1725,52 @@ func (s *SQLStore) WaitOperations(context context.Context, object any) error {
 	return nil
 }
 
-func (s *SQLStore) AsyncOperation(object any, operationType OperationType, op func() any) *promise.Promise[any] {
+func (s *SQLStore) ScheduleOperation(object any, operationType OperationType, op func() any) *promise.Promise[any] {
+	if object == nil {
+		return s.scheduleOperationAll(operationType, op)
+	} else {
+		return s.scheduleOperationObject(object, operationType, op)
+	}
+}
+
+func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() any) *promise.Promise[any] {
+	return promise.New(func(resolve func(any), reject func(error)) {
+		s.mutexOperations.Lock()
+		objects := slices.Collect(maps.Keys(s.operations))
+		size := int64(len(objects))
+		s.mutexOperations.Unlock()
+
+		run := make(chan struct{})
+		locked := semaphore.NewWeighted(size)
+		if err := locked.Acquire(context.Background(), size); err != nil {
+			reject(err)
+			return
+		}
+		for _, object := range objects {
+			s.scheduleOperationObject(object, operationType, func() any {
+				// the object is locked
+				locked.Release(1)
+
+				// wait for the op to be run
+				<-run
+
+				return nil
+			})
+		}
+		// wait for all tables to be locked
+		if err := locked.Acquire(context.Background(), size); err != nil {
+			reject(err)
+			return
+		}
+
+		// indicate all queries that operation is run
+		defer close(run)
+
+		resolve(op())
+	})
+}
+
+func (s *SQLStore) scheduleOperationObject(object any, operationType OperationType, op func() any) *promise.Promise[any] {
 	s.mutexOperations.Lock()
 	// compute previous operations
 	previous := []*promise.Promise[any]{}

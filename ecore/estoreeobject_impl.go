@@ -83,9 +83,9 @@ func (o *EStoreEObjectImpl) IsCache() bool {
 	return o.cache
 }
 
-func (o *EStoreEObjectImpl) executeOperation(operationType OperationType, operation func() any) *promise.Promise[any] {
+func (o *EStoreEObjectImpl) scheduleOperation(operationType OperationType, operation func() any) *promise.Promise[any] {
 	if asyncStore, _ := o.store.(EStoreAsync); asyncStore != nil {
-		return asyncStore.AsyncOperation(o.asEObject(), operationType, func() any {
+		return asyncStore.ScheduleOperation(o.asEObject(), operationType, func() any {
 			return operation()
 		})
 	} else {
@@ -139,7 +139,7 @@ func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 	}
 	if store := o.AsEStoreEObject().GetEStore(); store != nil {
 		eFeature := o.eDynamicFeature(dynamicFeatureID)
-		return awaitPromise[bool](o.executeOperation(ReadOperation, func() any {
+		return awaitPromise[bool](o.scheduleOperation(ReadOperation, func() any {
 			return store.IsSet(o.AsEObject(), eFeature)
 		}))
 	}
@@ -167,7 +167,7 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 				properties = o.getProperties()
 			} else if store := o.AsEStoreEObject().GetEStore(); store != nil {
 				// feature is not transient and we have a store
-				result = awaitPromise[any](o.executeOperation(ReadOperation, func() any {
+				result = awaitPromise[any](o.scheduleOperation(ReadOperation, func() any {
 					return store.Get(o.AsEObject(), eFeature, NO_INDEX)
 				}))
 				if o.cache {
@@ -190,7 +190,7 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 	store := o.AsEStoreEObject().GetEStore()
 	if store != nil && !eFeature.IsTransient() {
 		// store and feature is not transient
-		o.executeOperation(WriteOperation, func() any {
+		o.scheduleOperation(WriteOperation, func() any {
 			return store.Set(o.AsEObject(), eFeature, NO_INDEX, value, false)
 		})
 		if o.cache {
@@ -214,7 +214,7 @@ func (o *EStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	eFeature := o.eDynamicFeature(dynamicFeatureID)
 	store := o.AsEStoreEObject().GetEStore()
 	if store != nil && !eFeature.IsTransient() {
-		o.executeOperation(WriteOperation, func() any {
+		o.scheduleOperation(WriteOperation, func() any {
 			store.UnSet(o.AsEObject(), eFeature)
 			return nil
 		})

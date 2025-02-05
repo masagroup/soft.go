@@ -196,9 +196,9 @@ func awaitPromise[T any](p *promise.Promise[any]) T {
 	}
 }
 
-func (list *EStoreList) executeOperation(operationType OperationType, operation func() any) *promise.Promise[any] {
+func (list *EStoreList) scheduleOperation(operationType OperationType, operation func() any) *promise.Promise[any] {
 	if asyncStore, _ := list.store.(EStoreAsync); asyncStore != nil {
-		return asyncStore.AsyncOperation(list.asEList(), operationType, func() any {
+		return asyncStore.ScheduleOperation(list.asEList(), operationType, func() any {
 			return operation()
 		})
 	} else {
@@ -216,7 +216,7 @@ func (list *EStoreList) performAdd(object any) {
 	// add to store
 	if list.store != nil {
 		index := list.size
-		operation := list.executeOperation(WriteOperation, func() any {
+		operation := list.scheduleOperation(WriteOperation, func() any {
 			list.store.Add(list.owner, list.feature, index, object)
 			return nil
 		})
@@ -238,7 +238,7 @@ func (list *EStoreList) performAddAll(c Collection) {
 	// add to store
 	if list.store != nil {
 		index := list.size
-		operation := list.executeOperation(WriteOperation, func() any {
+		operation := list.scheduleOperation(WriteOperation, func() any {
 			list.store.AddAll(list.owner, list.feature, index, c)
 			return nil
 		})
@@ -257,7 +257,7 @@ func (list *EStoreList) performInsert(index int, object any) {
 	}
 	// add to store
 	if list.store != nil {
-		operation := list.executeOperation(WriteOperation, func() any {
+		operation := list.scheduleOperation(WriteOperation, func() any {
 			list.store.Add(list.owner, list.feature, index, object)
 			return nil
 		})
@@ -278,7 +278,7 @@ func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 	}
 	// add to store
 	if list.store != nil {
-		operation := list.executeOperation(WriteOperation, func() any {
+		operation := list.scheduleOperation(WriteOperation, func() any {
 			list.store.AddAll(list.owner, list.feature, index, c)
 			return true
 		})
@@ -301,7 +301,7 @@ func (list *EStoreList) performClear() []any {
 	}
 	// store
 	if list.store != nil {
-		operation := list.executeOperation(WriteOperation, func() any {
+		operation := list.scheduleOperation(WriteOperation, func() any {
 			var result []any
 			if needResult {
 				result = list.store.ToArray(list.owner, list.feature)
@@ -326,7 +326,7 @@ func (list *EStoreList) performRemove(index int) any {
 	}
 	//store
 	if list.store != nil {
-		operation := list.executeOperation(WriteOperation, func() any {
+		operation := list.scheduleOperation(WriteOperation, func() any {
 			return list.store.Remove(list.owner, list.feature, index)
 		})
 		if list.data == nil {
@@ -344,7 +344,7 @@ func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
 		result = list.BasicENotifyingList.performRemoveRange(fromIndex, toIndex)
 	}
 	if list.store != nil {
-		operation := list.executeOperation(WriteOperation, func() any {
+		operation := list.scheduleOperation(WriteOperation, func() any {
 			var objects []any
 			for i := fromIndex; i < toIndex; i++ {
 				object := list.store.Remove(list.owner, list.feature, i)
@@ -367,7 +367,7 @@ func (list *EStoreList) performSet(index int, object any) any {
 	}
 	if list.store != nil {
 		oldValue := list.data == nil
-		operation := list.executeOperation(WriteOperation, func() any {
+		operation := list.scheduleOperation(WriteOperation, func() any {
 			return list.store.Set(list.owner, list.feature, index, object, oldValue)
 		})
 		if oldValue {
@@ -383,7 +383,7 @@ func (list *EStoreList) performMove(oldIndex, newIndex int) any {
 		result = list.BasicENotifyingList.performMove(oldIndex, newIndex)
 	}
 	if list.store != nil {
-		operation := list.executeOperation(WriteOperation, func() any {
+		operation := list.scheduleOperation(WriteOperation, func() any {
 			return list.store.Move(list.owner, list.feature, oldIndex, newIndex)
 		})
 		if list.data == nil {
@@ -401,7 +401,7 @@ func (list *EStoreList) get(index int) any {
 	if list.data != nil {
 		return list.data[index]
 	} else if list.store != nil {
-		operation := list.executeOperation(ReadOperation, func() any {
+		operation := list.scheduleOperation(ReadOperation, func() any {
 			return list.store.Get(list.owner, list.feature, index)
 		})
 		return awaitPromise[any](operation)

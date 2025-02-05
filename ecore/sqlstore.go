@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chebyrash/promise"
 	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -665,10 +666,6 @@ func newSQLStore(
 	}
 
 	return store, nil
-}
-
-func (s *SQLStore) Close() error {
-	return s.connectionPoolClose(s.pool)
 }
 
 func (s *SQLStore) getSingleQueries(column *sqlColumn) *sqlSingleQueries {
@@ -1679,4 +1676,16 @@ func (s *SQLStore) Serialize(ctx context.Context) ([]byte, error) {
 		return conn.Serialize("main")
 
 	}
+}
+
+func (s *SQLStore) Close() error {
+	return s.connectionPoolClose(s.pool)
+}
+
+func (s *SQLStore) WaitOperations(object any) {
+
+}
+
+func (s *SQLStore) AsyncOperation(object any, operationType OperationType, operation func() any) *promise.Promise[any] {
+	return nil
 }

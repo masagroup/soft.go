@@ -1686,6 +1686,10 @@ func (s *SQLStore) Serialize(ctx context.Context) ([]byte, error) {
 }
 
 func (s *SQLStore) Close() error {
+	if err := s.WaitOperations(context.Background(), nil); err != nil {
+		return err
+	}
+
 	return s.connectionPoolClose(s.pool)
 }
 

@@ -1778,7 +1778,14 @@ func (s *SQLStore) AsyncOperation(object any, operationType OperationType, op fu
 		// remove operation from collection
 		copy(operations[index:], operations[index+1:])
 		operations[len(operations)-1] = nil
-		s.operations[object] = operations[:len(operations)-1]
+		operations = operations[:len(operations)-1]
+		if len(operations) == 0 {
+			// no more operations - remove object from map
+			delete(s.operations, object)
+		} else {
+			// set remaining operations
+			s.operations[object] = operations
+		}
 		s.mutexOperations.Unlock()
 		if err != nil {
 			reject(err)

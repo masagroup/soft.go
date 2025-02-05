@@ -10,6 +10,7 @@
 package ecore
 
 import (
+	"context"
 	"iter"
 
 	"github.com/chebyrash/promise"
@@ -67,7 +68,7 @@ const (
 type EStoreAsync interface {
 	EStore
 
-	WaitOperations(object any)
+	WaitOperations(context context.Context, object any) error
 
 	AsyncOperation(object any, operationType OperationType, operation func() any) *promise.Promise[any]
 

@@ -417,6 +417,11 @@ func (r *sqlStoreIDManagerImpl) SetEnumLiteralID(e EEnumLiteral, id int64) {
 	r.sqlEncoderIDManagerImpl.enumLiterals[e] = id
 }
 
+type operation struct {
+	type_    OperationType
+	promise_ *promise.Promise[any]
+}
+
 type SQLStore struct {
 	*sqlBase
 	sqlDecoder
@@ -429,6 +434,7 @@ type SQLStore struct {
 	manyQueries         map[*sqlTable]*sqlManyQueries
 	connectionPoolClose func(conn *sqlitex.Pool) error
 	executeQuery        func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error
+	operations          map[any][]*operation
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -628,6 +634,7 @@ func newSQLStore(
 		manyQueries:         map[*sqlTable]*sqlManyQueries{},
 		connectionPoolClose: connectionPoolClose,
 		executeQuery:        executeQuery,
+		operations:          map[any][]*operation{},
 	}
 
 	// set store in sql object manager
@@ -1682,10 +1689,87 @@ func (s *SQLStore) Close() error {
 	return s.connectionPoolClose(s.pool)
 }
 
-func (s *SQLStore) WaitOperations(object any) {
+func (s *SQLStore) WaitOperations(context context.Context, object any) error {
+	var promises []*promise.Promise[any]
+	s.mutex.Lock()
+	if object == nil {
+		promises = make([]*promise.Promise[any], 0)
+		for _, operations := range s.operations {
+			for _, operation := range operations {
+				promises = append(promises, operation.promise_)
+			}
+		}
+	} else {
+		operations := s.operations[object]
+		promises = make([]*promise.Promise[any], 0, len(operations))
+		for _, operation := range operations {
+			promises = append(promises, operation.promise_)
+		}
+	}
+	s.mutex.Unlock()
 
+	allOperations := promise.All(context, promises...)
+	_, err := allOperations.Await(context)
+	return err
 }
 
-func (s *SQLStore) AsyncOperation(object any, operationType OperationType, operation func() any) *promise.Promise[any] {
-	return nil
+func (s *SQLStore) AsyncOperation(object any, operationType OperationType, op func() any) *promise.Promise[any] {
+	s.mutex.Lock()
+	// compute previous operations
+	previous := []*promise.Promise[any]{}
+	operations := s.operations[object]
+	switch operationType {
+	case ReadOperation:
+		for i := len(operations) - 1; i >= 0; i-- {
+			operation := operations[i]
+			if operation.type_ == WriteOperation {
+				previous = append(previous, operation.promise_)
+				break
+			}
+		}
+	case WriteOperation:
+		for i := len(operations) - 1; i >= 0; i-- {
+			operation := operations[i]
+			previous = append(previous, operation.promise_)
+			if operation.type_ == WriteOperation {
+				break
+			}
+		}
+	}
+	// create operation
+	operation := &operation{
+		type_: operationType,
+		promise_: promise.New(func(resolve func(any), reject func(error)) {
+			// wait for all previous promises
+			if len(previous) > 0 {
+				allPrevious := promise.All(context.Background(), previous...)
+				if _, err := allPrevious.Await(context.Background()); err != nil {
+					reject(err)
+					return
+				}
+			}
+			resolve(op())
+		}),
+	}
+	// insertion index
+	index := len(operations)
+	// add operation
+	s.operations[object] = append(operations, operation)
+	s.mutex.Unlock()
+	// remove operation when finished with result or error
+	return promise.New(func(resolve func(any), reject func(error)) {
+		r, err := operation.promise_.Await(context.Background())
+		s.mutex.Lock()
+		operations = s.operations[object]
+		// remove operation from collection
+		copy(operations[index:], operations[index+1:])
+		operations[len(operations)-1] = nil
+		s.operations[object] = operations[:len(operations)-1]
+		s.mutex.Unlock()
+		if err != nil {
+			reject(err)
+		} else {
+			resolve(r)
+		}
+	})
 }

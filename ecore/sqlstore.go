@@ -1716,7 +1716,9 @@ func (s *SQLStore) WaitOperations(context context.Context, object any) error {
 	if len(promises) > 0 {
 		allOperations := promise.All(context, promises...)
 		_, err := allOperations.Await(context)
-		return err
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1750,8 +1752,8 @@ func (s *SQLStore) AsyncOperation(object any, operationType OperationType, op fu
 		promise_: promise.New(func(resolve func(any), reject func(error)) {
 			// wait for all previous promises
 			if len(previous) > 0 {
-				allPrevious := promise.All(context.Background(), previous...)
-				if _, err := allPrevious.Await(context.Background()); err != nil {
+				_, err := promise.All(context.Background(), previous...).Await(context.Background())
+				if err != nil {
 					reject(err)
 					return
 				}
@@ -1759,8 +1761,6 @@ func (s *SQLStore) AsyncOperation(object any, operationType OperationType, op fu
 			resolve(op())
 		}),
 	}
-	// insertion index
-	index := len(operations)
 	// add operation
 	s.operations[object] = append(operations, operation)
 	s.mutexOperations.Unlock()
@@ -1768,7 +1768,13 @@ func (s *SQLStore) AsyncOperation(object any, operationType OperationType, op fu
 	return promise.New(func(resolve func(any), reject func(error)) {
 		r, err := operation.promise_.Await(context.Background())
 		s.mutexOperations.Lock()
-		operations = s.operations[object]
+		operations := s.operations[object]
+		// retrieve operation index
+		index := slices.Index(operations, operation)
+		if index == -1 {
+			reject(errors.New("unable to find operation index"))
+			return
+		}
 		// remove operation from collection
 		copy(operations[index:], operations[index+1:])
 		operations[len(operations)-1] = nil
@@ -1777,7 +1783,7 @@ func (s *SQLStore) AsyncOperation(object any, operationType OperationType, op fu
 		if err != nil {
 			reject(err)
 		} else {
-			resolve(r)
+			resolve(*r)
 		}
 	})
 }

@@ -72,7 +72,7 @@ type EStoreAsync interface {
 
 	AsyncOperation(object any, operationType OperationType, operation func() any) *promise.Promise[any]
 
-	Close()
+	Close() error
 }
 
 type EStoreProvider interface {

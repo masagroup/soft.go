@@ -215,8 +215,9 @@ func (list *EStoreList) performAdd(object any) {
 	}
 	// add to store
 	if list.store != nil {
+		index := list.size
 		operation := list.executeOperation(WriteOperation, func() any {
-			list.store.Add(list.owner, list.feature, list.size, object)
+			list.store.Add(list.owner, list.feature, index, object)
 			return nil
 		})
 		if list.data == nil {
@@ -236,8 +237,9 @@ func (list *EStoreList) performAddAll(c Collection) {
 
 	// add to store
 	if list.store != nil {
+		index := list.size
 		operation := list.executeOperation(WriteOperation, func() any {
-			list.store.AddAll(list.owner, list.feature, list.size, c)
+			list.store.AddAll(list.owner, list.feature, index, c)
 			return nil
 		})
 		if list.data == nil {
@@ -364,10 +366,11 @@ func (list *EStoreList) performSet(index int, object any) any {
 		result = list.BasicENotifyingList.performSet(index, object)
 	}
 	if list.store != nil {
+		oldValue := list.data == nil
 		operation := list.executeOperation(WriteOperation, func() any {
-			return list.store.Set(list.owner, list.feature, index, object, list.data == nil)
+			return list.store.Set(list.owner, list.feature, index, object, oldValue)
 		})
-		if list.data == nil {
+		if oldValue {
 			result = awaitPromise[any](operation)
 		}
 	}

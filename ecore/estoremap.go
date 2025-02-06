@@ -79,3 +79,10 @@ func (m *EStoreMap) IsCache() bool {
 	sc := m.EList.(ECacheProvider)
 	return sc.IsCache()
 }
+
+func (m *EStoreMap) newEntry(key any, value any) EMapEntry {
+	newEntry := m.BasicEObjectMap.newEntry(key, value)
+	sc := newEntry.(ECacheProvider)
+	sc.SetCache(m.IsCache())
+	return newEntry
+}

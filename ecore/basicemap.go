@@ -69,10 +69,10 @@ func (m *BasicEMap) asEMapEntryFactory() eMapEntryFactory {
 }
 
 func (m *BasicEMap) getEntryForKey(key any) EMapEntry {
-	for it := m.Iterator(); it.HasNext(); {
-		e := it.Next().(EMapEntry)
-		if e.GetKey() == key {
-			return e
+	for anyEntry := range m.All() {
+		entry := anyEntry.(EMapEntry)
+		if entry.GetKey() == key {
+			return entry
 		}
 	}
 	return nil

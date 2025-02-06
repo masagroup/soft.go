@@ -10,8 +10,11 @@
 package ecore
 
 import (
+	"context"
 	"iter"
 	"slices"
+
+	"github.com/chebyrash/promise"
 )
 
 type EStoreList struct {
@@ -145,6 +148,10 @@ func (list *EStoreList) SetCache(cache bool) {
 				data = list.data
 			}
 			list.data = data
+			// if no data, set list.data as empty data
+			if list.data == nil {
+				list.data = []any{}
+			}
 		} else {
 			// no cache
 			data = list.data
@@ -154,6 +161,8 @@ func (list *EStoreList) SetCache(cache bool) {
 				list.data = nil
 			}
 		}
+
+		// set cache for all list elements
 		for _, v := range data {
 			if sc, _ := v.(ECacheProvider); sc != nil {
 				sc.SetCache(cache)
@@ -167,6 +176,42 @@ func (list *EStoreList) IsCache() bool {
 	return list.cache
 }
 
+type noPool struct {
+}
+
+func (p *noPool) Go(f func()) {
+	f()
+}
+
+var promiseNoPool promise.Pool = &noPool{}
+
+func awaitPromise[T any](p *promise.Promise[any]) T {
+	var def T
+	if r, err := p.Await(context.Background()); err != nil {
+		return def
+	} else if result, isResult := (*r).(T); isResult {
+		return result
+	} else {
+		return def
+	}
+}
+
+func (list *EStoreList) scheduleOperation(operationType OperationType, operation func() (any, error)) *promise.Promise[any] {
+	if asyncStore, _ := list.store.(EStoreAsync); asyncStore != nil {
+		return asyncStore.ScheduleOperation(list.asEList(), operationType, func() (any, error) {
+			return operation()
+		})
+	} else {
+		return promise.NewWithPool(func(resolve func(any), reject func(error)) {
+			if result, err := operation(); err != nil {
+				reject(err)
+			} else {
+				resolve(result)
+			}
+		}, promiseNoPool)
+	}
+}
+
 func (list *EStoreList) performAdd(object any) {
 	// add to cache
 	if list.data != nil {
@@ -174,7 +219,14 @@ func (list *EStoreList) performAdd(object any) {
 	}
 	// add to store
 	if list.store != nil {
-		list.store.Add(list.owner, list.feature, list.size, object)
+		index := list.size
+		operation := list.scheduleOperation(WriteOperation, func() (any, error) {
+			list.store.Add(list.owner, list.feature, index, object)
+			return nil, nil
+		})
+		if list.data == nil {
+			_ = awaitPromise[any](operation)
+		}
 	}
 	// size
 	list.size++
@@ -189,7 +241,14 @@ func (list *EStoreList) performAddAll(c Collection) {
 
 	// add to store
 	if list.store != nil {
-		list.store.AddAll(list.owner, list.feature, list.size, c)
+		index := list.size
+		operation := list.scheduleOperation(WriteOperation, func() (any, error) {
+			list.store.AddAll(list.owner, list.feature, index, c)
+			return nil, nil
+		})
+		if list.data == nil {
+			_ = awaitPromise[any](operation)
+		}
 	}
 	// size
 	list.size += c.Size()
@@ -202,7 +261,13 @@ func (list *EStoreList) performInsert(index int, object any) {
 	}
 	// add to store
 	if list.store != nil {
-		list.store.Add(list.owner, list.feature, index, object)
+		operation := list.scheduleOperation(WriteOperation, func() (any, error) {
+			list.store.Add(list.owner, list.feature, index, object)
+			return nil, nil
+		})
+		if list.data == nil {
+			_ = awaitPromise[any](operation)
+		}
 	}
 	// size
 	list.size++
@@ -217,7 +282,13 @@ func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 	}
 	// add to store
 	if list.store != nil {
-		list.store.AddAll(list.owner, list.feature, index, c)
+		operation := list.scheduleOperation(WriteOperation, func() (any, error) {
+			list.store.AddAll(list.owner, list.feature, index, c)
+			return true, nil
+		})
+		if list.data == nil {
+			_ = awaitPromise[any](operation)
+		}
 	}
 	// size
 	list.size += c.Size()
@@ -226,16 +297,25 @@ func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 
 func (list *EStoreList) performClear() []any {
 	var result []any
+	needResult := true
 	//cache
 	if list.data != nil {
 		result = list.BasicENotifyingList.performClear()
+		needResult = true
 	}
 	// store
 	if list.store != nil {
-		if result == nil {
-			result = list.store.ToArray(list.owner, list.feature)
+		operation := list.scheduleOperation(WriteOperation, func() (any, error) {
+			var result []any
+			if needResult {
+				result = list.store.ToArray(list.owner, list.feature)
+			}
+			list.store.Clear(list.owner, list.feature)
+			return result, nil
+		})
+		if needResult {
+			result = awaitPromise[[]any](operation)
 		}
-		list.store.Clear(list.owner, list.feature)
 	}
 	// size
 	list.size = 0
@@ -250,7 +330,12 @@ func (list *EStoreList) performRemove(index int) any {
 	}
 	//store
 	if list.store != nil {
-		result = list.store.Remove(list.owner, list.feature, index)
+		operation := list.scheduleOperation(WriteOperation, func() (any, error) {
+			return list.store.Remove(list.owner, list.feature, index), nil
+		})
+		if list.data == nil {
+			result = awaitPromise[any](operation)
+		}
 	}
 	// size
 	list.size--
@@ -263,13 +348,17 @@ func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
 		result = list.BasicENotifyingList.performRemoveRange(fromIndex, toIndex)
 	}
 	if list.store != nil {
-		var objects []any
-		for i := fromIndex; i < toIndex; i++ {
-			// store
-			object := list.store.Remove(list.owner, list.feature, i)
-			objects = append(objects, object)
+		operation := list.scheduleOperation(WriteOperation, func() (any, error) {
+			var objects []any
+			for i := fromIndex; i < toIndex; i++ {
+				object := list.store.Remove(list.owner, list.feature, i)
+				objects = append(objects, object)
+			}
+			return objects, nil
+		})
+		if list.data == nil {
+			result = awaitPromise[[]any](operation)
 		}
-		result = objects
 	}
 	list.size -= len(result)
 	return result
@@ -281,7 +370,13 @@ func (list *EStoreList) performSet(index int, object any) any {
 		result = list.BasicENotifyingList.performSet(index, object)
 	}
 	if list.store != nil {
-		result = list.store.Set(list.owner, list.feature, index, object, true)
+		oldValue := list.data == nil
+		operation := list.scheduleOperation(WriteOperation, func() (any, error) {
+			return list.store.Set(list.owner, list.feature, index, object, oldValue), nil
+		})
+		if oldValue {
+			result = awaitPromise[any](operation)
+		}
 	}
 	return result
 }
@@ -292,7 +387,12 @@ func (list *EStoreList) performMove(oldIndex, newIndex int) any {
 		result = list.BasicENotifyingList.performMove(oldIndex, newIndex)
 	}
 	if list.store != nil {
-		result = list.store.Move(list.owner, list.feature, oldIndex, newIndex)
+		operation := list.scheduleOperation(WriteOperation, func() (any, error) {
+			return list.store.Move(list.owner, list.feature, oldIndex, newIndex), nil
+		})
+		if list.data == nil {
+			result = awaitPromise[any](operation)
+		}
 	}
 	return result
 }
@@ -304,9 +404,11 @@ func (list *EStoreList) doGet(index int) any {
 func (list *EStoreList) get(index int) any {
 	if list.data != nil {
 		return list.data[index]
-	}
-	if list.store != nil {
-		return list.store.Get(list.owner, list.feature, index)
+	} else if list.store != nil {
+		operation := list.scheduleOperation(ReadOperation, func() (any, error) {
+			return list.store.Get(list.owner, list.feature, index), nil
+		})
+		return awaitPromise[any](operation)
 	}
 	return nil
 }
@@ -368,8 +470,7 @@ func (list *EStoreList) ToArray() []any {
 			}
 		}
 		return list.data
-	}
-	if list.store != nil {
+	} else if list.store != nil {
 		data := list.store.ToArray(list.owner, list.feature)
 		if list.proxies {
 			for i := len(list.data) - 1; i >= 0; i-- {
@@ -396,8 +497,7 @@ func (list *EStoreList) IndexOf(element any) int {
 				return i
 			}
 		}
-	}
-	if list.store != nil {
+	} else if list.store != nil {
 		result := list.store.IndexOf(list.owner, list.feature, element)
 		if result >= 0 {
 			return result
@@ -418,8 +518,7 @@ func (list *EStoreList) IndexOf(element any) int {
 func (list *EStoreList) Contains(element any) bool {
 	if list.data != nil {
 		return list.BasicENotifyingList.Contains(element)
-	}
-	if list.store != nil {
+	} else if list.store != nil {
 		if list.store.Contains(list.owner, list.feature, element) {
 			return true
 		} else if list.object && list.proxies {

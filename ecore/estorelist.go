@@ -176,14 +176,14 @@ func (list *EStoreList) IsCache() bool {
 	return list.cache
 }
 
-type promiseReadyPool struct {
+type noPool struct {
 }
 
-func (p *promiseReadyPool) Go(f func()) {
+func (p *noPool) Go(f func()) {
 	f()
 }
 
-var storeListPool promise.Pool = &promiseReadyPool{}
+var promiseNoPool promise.Pool = &noPool{}
 
 func awaitPromise[T any](p *promise.Promise[any]) T {
 	var def T
@@ -208,7 +208,7 @@ func (list *EStoreList) scheduleOperation(operationType OperationType, operation
 			} else {
 				resolve(result)
 			}
-		}, storeListPool)
+		}, promiseNoPool)
 	}
 }
 

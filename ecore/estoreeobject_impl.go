@@ -95,7 +95,7 @@ func (o *EStoreEObjectImpl) scheduleOperation(operationType OperationType, opera
 			} else {
 				resolve(result)
 			}
-		}, promise.Pool(storeListPool))
+		}, promiseNoPool)
 	}
 }
 

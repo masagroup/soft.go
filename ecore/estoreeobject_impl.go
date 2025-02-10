@@ -85,7 +85,7 @@ func (o *EStoreEObjectImpl) IsCache() bool {
 
 func (o *EStoreEObjectImpl) scheduleOperation(operationType OperationType, operation func() (any, error)) *promise.Promise[any] {
 	if asyncStore, _ := o.store.(EStoreAsync); asyncStore != nil {
-		return asyncStore.ScheduleOperation(o.asEObject(), operationType, func() (any, error) {
+		return asyncStore.ScheduleOperation([]any{o.asEObject()}, operationType, func() (any, error) {
 			return operation()
 		})
 	} else {

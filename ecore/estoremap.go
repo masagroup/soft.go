@@ -70,19 +70,22 @@ func (m *EStoreMap) SetCache(cache bool) {
 	// reset map data
 	m.mapData = nil
 	// set internal list cache
-	sc := m.EList.(ECacheProvider)
-	sc.SetCache(cache)
+	cacheProvider := m.EList.(ECacheProvider)
+	cacheProvider.SetCache(cache)
 }
 
 // Returns true if object is caching feature values
 func (m *EStoreMap) IsCache() bool {
-	sc := m.EList.(ECacheProvider)
-	return sc.IsCache()
+	cacheProvider := m.EList.(ECacheProvider)
+	return cacheProvider.IsCache()
 }
 
 func (m *EStoreMap) newEntry(key any, value any) EMapEntry {
-	newEntry := m.BasicEObjectMap.newEntry(key, value)
-	sc := newEntry.(ECacheProvider)
-	sc.SetCache(m.IsCache())
+	eFactory := m.entryClass.GetEPackage().GetEFactoryInstance()
+	newEntry := eFactory.Create(m.entryClass).(EMapEntry)
+	newCacheProvider := newEntry.(ECacheProvider)
+	newCacheProvider.SetCache(m.IsCache())
+	newEntry.SetKey(key)
+	newEntry.SetValue(value)
 	return newEntry
 }

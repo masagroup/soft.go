@@ -1762,15 +1762,19 @@ func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (
 			reject(err)
 			return
 		}
-		s.scheduleOperationObject(objects, operationType, func() (any, error) {
-			// the object is locked
-			locked.Release(1)
 
-			// wait for the op to be run
-			<-run
+		for _, object := range objects {
+			s.scheduleOperationObject([]any{object}, operationType, func() (any, error) {
+				// the object is locked
+				locked.Release(1)
 
-			return nil, nil
-		})
+				// wait for the op to be run
+				<-run
+
+				return nil, nil
+			})
+		}
+
 		// wait for all tables to be locked
 		if err := locked.Acquire(context.Background(), size); err != nil {
 			reject(err)

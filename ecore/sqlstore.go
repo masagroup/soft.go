@@ -21,7 +21,7 @@ import (
 )
 
 // log queries
-var logQuery bool = false
+var logQuery bool = true
 
 type sqlSingleQueries struct {
 	column      *sqlColumn
@@ -1741,11 +1741,11 @@ func (s *SQLStore) WaitOperations(context context.Context, object any) error {
 	return nil
 }
 
-func (s *SQLStore) ScheduleOperation(object any, operationType OperationType, op func() (any, error)) *promise.Promise[any] {
-	if object == nil {
+func (s *SQLStore) ScheduleOperation(objects []any, operationType OperationType, op func() (any, error)) *promise.Promise[any] {
+	if objects == nil {
 		return s.scheduleOperationAll(operationType, op)
 	} else {
-		return s.scheduleOperationObject(object, operationType, op)
+		return s.scheduleOperationObject(objects, operationType, op)
 	}
 }
 
@@ -1762,17 +1762,15 @@ func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (
 			reject(err)
 			return
 		}
-		for _, object := range objects {
-			s.scheduleOperationObject(object, operationType, func() (any, error) {
-				// the object is locked
-				locked.Release(1)
+		s.scheduleOperationObject(objects, operationType, func() (any, error) {
+			// the object is locked
+			locked.Release(1)
 
-				// wait for the op to be run
-				<-run
+			// wait for the op to be run
+			<-run
 
-				return nil, nil
-			})
-		}
+			return nil, nil
+		})
 		// wait for all tables to be locked
 		if err := locked.Acquire(context.Background(), size); err != nil {
 			reject(err)
@@ -1790,29 +1788,50 @@ func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (
 	})
 }
 
-func (s *SQLStore) scheduleOperationObject(object any, operationType OperationType, op func() (any, error)) *promise.Promise[any] {
+func filter[T any](ss []T, test func(T) bool) (ret []T) {
+	for _, s := range ss {
+		if test(s) {
+			ret = append(ret, s)
+		}
+	}
+	return
+}
+
+func (s *SQLStore) scheduleOperationObject(objects []any, operationType OperationType, op func() (any, error)) *promise.Promise[any] {
+	// only keep
+	objects = filter(objects, func(a any) bool {
+		switch a.(type) {
+		case EObject, EList, EMap:
+			return true
+		default:
+			return false
+		}
+	})
 	s.mutexOperations.Lock()
 	// compute previous operations
 	previous := []*promise.Promise[any]{}
-	operations := s.operations[object]
-	switch operationType {
-	case ReadOperation:
-		for i := len(operations) - 1; i >= 0; i-- {
-			operation := operations[i]
-			if operation.type_ == WriteOperation {
-				previous = append(previous, operation.promise_)
-				break
+	for _, object := range objects {
+		operations := s.operations[object]
+		switch operationType {
+		case ReadOperation:
+			for i := len(operations) - 1; i >= 0; i-- {
+				operation := operations[i]
+				if operation.type_ == WriteOperation {
+					previous = append(previous, operation.promise_)
+					break
+				}
 			}
-		}
-	case WriteOperation:
-		for i := len(operations) - 1; i >= 0; i-- {
-			operation := operations[i]
-			previous = append(previous, operation.promise_)
-			if operation.type_ == WriteOperation {
-				break
+		case WriteOperation:
+			for i := len(operations) - 1; i >= 0; i-- {
+				operation := operations[i]
+				previous = append(previous, operation.promise_)
+				if operation.type_ == WriteOperation {
+					break
+				}
 			}
 		}
 	}
+
 	// create operation
 	operation := &operation{
 		type_: operationType,
@@ -1834,29 +1853,33 @@ func (s *SQLStore) scheduleOperationObject(object any, operationType OperationTy
 		}),
 	}
 	// add operation
-	s.operations[object] = append(operations, operation)
+	for _, object := range objects {
+		s.operations[object] = append(s.operations[object], operation)
+	}
 	s.mutexOperations.Unlock()
 	// remove operation when finished with result or error
 	return promise.New(func(resolve func(any), reject func(error)) {
 		r, err := operation.promise_.Await(context.Background())
 		s.mutexOperations.Lock()
-		operations := s.operations[object]
-		// retrieve operation index
-		index := slices.Index(operations, operation)
-		if index == -1 {
-			reject(errors.New("unable to find operation index"))
-			return
-		}
-		// remove operation from collection
-		copy(operations[index:], operations[index+1:])
-		operations[len(operations)-1] = nil
-		operations = operations[:len(operations)-1]
-		if len(operations) == 0 {
-			// no more operations - remove object from map
-			delete(s.operations, object)
-		} else {
-			// set remaining operations
-			s.operations[object] = operations
+		for _, object := range objects {
+			operations := s.operations[object]
+			// retrieve operation index
+			index := slices.Index(operations, operation)
+			if index == -1 {
+				reject(errors.New("unable to find operation index"))
+				return
+			}
+			// remove operation from collection
+			copy(operations[index:], operations[index+1:])
+			operations[len(operations)-1] = nil
+			operations = operations[:len(operations)-1]
+			if len(operations) == 0 {
+				// no more operations - remove object from map
+				delete(s.operations, object)
+			} else {
+				// set remaining operations
+				s.operations[object] = operations
+			}
 		}
 		s.mutexOperations.Unlock()
 		if err != nil {

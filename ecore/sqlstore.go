@@ -728,10 +728,6 @@ func (s *SQLStore) getFeatureTable(object EObject, feature EStructuralFeature) (
 	return featureSchema.table, nil
 }
 
-// func (s *SQLStore) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
-// 	return s.sqlEncoder.getEncoderClassData(conn, eClass)
-// }
-
 func (s *SQLStore) getEncoderFeatureData(conn *sqlite.Conn, object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
 	// retrieve class schema
 	class := object.EClass()
@@ -753,22 +749,6 @@ func (s *SQLStore) getEncoderFeatureData(conn *sqlite.Conn, object EObject, feat
 
 	return featureData, nil
 }
-
-// func (e *SQLStore) decodeFeatureValue(conn *sqlite.Conn, featureData *sqlFeatureSchema, value any) (any, error) {
-// 	return e.sqlDecoder.decodeFeatureValue(conn, featureData, value)
-// }
-
-// func (e *SQLStore) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) {
-// 	return e.sqlDecoder.decodeObject(conn, id)
-// }
-
-// func (e *SQLStore) encodeContent(conn *sqlite.Conn, eObject EObject) error {
-// 	return e.sqlEncoder.encodeContent(conn, eObject)
-// }
-
-// func (e *SQLStore) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
-// 	return e.sqlEncoder.encodeObject(conn, eObject)
-// }
 
 func (e *SQLStore) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
 	if value != nil {

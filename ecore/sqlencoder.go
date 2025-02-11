@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
@@ -453,6 +454,9 @@ func (e *sqlEncoder) encodeEnumLiteral(conn *sqlite.Conn, eEnumLiteral EEnumLite
 }
 
 func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
+	logger := e.logger.Named("encodeClass").With(zap.String("class", eClass.GetName()))
+	logger.Debug("encode")
+
 	// retrieve class data
 	classData, err := e.getEncoderClassData(conn, eClass)
 	if err != nil {
@@ -465,13 +469,17 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 
 	// encode class
 	if classData.id == -1 {
+		logger.Debug("register")
+
 		// class is not encoded
 		// check if class is registered in registry
 		classID, isClassID := e.sqlIDManager.GetClassID(eClass)
 		if isClassID {
+			logger.Debug("already registered", zap.Int64("id", classID))
 			// already registered
 			classData.id = classID
 		} else {
+			logger.Debug("not registered", zap.Int64("id", classID))
 			// not registered
 			// got to insert in classes table and retirve its id
 
@@ -510,16 +518,21 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 			e.sqlIDManager.SetClassID(eClass, classID)
 		}
 	}
+	logger.Debug("encoded", zap.Int64("id", classData.id))
 	return classData, nil
 }
 
 func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
+	logger := e.logger.Named("getEncoderClassData").With(zap.String("class", eClass.GetName()))
+
 	// lock class
 	e.sqlLockManager.lock(eClass)
 	defer e.sqlLockManager.unlock(eClass)
 
 	classData := e.classDataMap[eClass]
 	if classData == nil {
+		logger.Debug("create")
+
 		// compute class data for super types
 		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 			eClass := itClass.Next().(EClass)
@@ -542,6 +555,8 @@ func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sql
 		if err := sqlitex.ExecuteScript(conn, classSchema.table.createQuery(), nil); err != nil {
 			return nil, err
 		}
+
+		logger.Debug("created", zap.String("table", classSchema.table.name))
 
 		// computes features data
 		classFeatures := newLinkedHashMap[EStructuralFeature, *sqlEncoderFeatureData]()

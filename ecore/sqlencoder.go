@@ -237,11 +237,18 @@ func (e *sqlEncoder) encodeContent(conn *sqlite.Conn, eObject EObject) error {
 }
 
 func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
-	e.sqlLockManager.lock(eObject)
-	defer e.sqlLockManager.unlock(eObject)
-
 	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
 	if !isSqlObjectID {
+		e.sqlLockManager.lock(eObject)
+		defer e.sqlLockManager.unlock(eObject)
+
+		// object may be encoded in another goroutine
+		sqlObjectID, isSqlObjectID = e.sqlIDManager.GetObjectID(eObject)
+		if isSqlObjectID {
+			return sqlObjectID, nil
+		}
+
+		// encode object
 		defer sqlitex.Save(conn)(&err)
 
 		// encode object class
@@ -403,6 +410,10 @@ func (e *sqlEncoder) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncod
 }
 
 func (e *sqlEncoder) encodeEnumLiteral(conn *sqlite.Conn, eEnumLiteral EEnumLiteral) (any, error) {
+	// lock class data
+	e.sqlLockManager.lock(eEnumLiteral)
+	defer e.sqlLockManager.unlock(eEnumLiteral)
+
 	if enumLiteralID, isEnumLiteralID := e.sqlIDManager.GetEnumLiteralID(eEnumLiteral); isEnumLiteralID {
 		return enumLiteralID, nil
 	} else {
@@ -442,14 +453,17 @@ func (e *sqlEncoder) encodeEnumLiteral(conn *sqlite.Conn, eEnumLiteral EEnumLite
 }
 
 func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
+	// retrieve class data
 	classData, err := e.getEncoderClassData(conn, eClass)
 	if err != nil {
 		return nil, err
 	}
 
+	// lock class data
 	e.sqlLockManager.lock(classData)
 	defer e.sqlLockManager.unlock(classData)
 
+	// encode class
 	if classData.id == -1 {
 		// class is not encoded
 		// check if class is registered in registry
@@ -500,6 +514,7 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 }
 
 func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
+	// lock class
 	e.sqlLockManager.lock(eClass)
 	defer e.sqlLockManager.unlock(eClass)
 

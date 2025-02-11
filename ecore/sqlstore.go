@@ -438,7 +438,6 @@ type SQLStore struct {
 	executeQuery        func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error
 	operations          map[any][]*operation
 	mutexOperations     sync.Mutex
-	lockManager         *sqlEncoderLockManager
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -640,7 +639,6 @@ func newSQLStore(
 		connectionPoolClose: connectionPoolClose,
 		executeQuery:        executeQuery,
 		operations:          map[any][]*operation{},
-		lockManager:         newSqlEncoderLockManager(),
 	}
 
 	// set store in sql object manager
@@ -787,10 +785,6 @@ func (e *SQLStore) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoder
 
 // get object sql id
 func (s *SQLStore) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
-	// lock object to avoid concurrent requests
-	s.lockManager.lock(eObject)
-	defer s.lockManager.unlock(eObject)
-
 	// retrieve sql id for eObject
 	sqlID, isSQLID := s.sqlIDManager.GetObjectID(eObject)
 	if !isSQLID {

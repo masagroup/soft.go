@@ -438,8 +438,7 @@ type SQLStore struct {
 	executeQuery        func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error
 	operations          map[any][]*operation
 	mutexOperations     sync.Mutex
-	mutexEncoder        sync.Mutex
-	mutexDecoder        sync.Mutex
+	lockManager         *sqlEncoderLockManager
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -631,6 +630,7 @@ func newSQLStore(
 			classDataMap:     map[EClass]*sqlEncoderClassData{},
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
+			sqlLockManager:   newSqlEncoderLockManager(),
 		},
 		pool:                pool,
 		sqlIDManager:        sqlIDManager,
@@ -640,6 +640,7 @@ func newSQLStore(
 		connectionPoolClose: connectionPoolClose,
 		executeQuery:        executeQuery,
 		operations:          map[any][]*operation{},
+		lockManager:         newSqlEncoderLockManager(),
 	}
 
 	// set store in sql object manager
@@ -729,11 +730,9 @@ func (s *SQLStore) getFeatureTable(object EObject, feature EStructuralFeature) (
 	return featureSchema.table, nil
 }
 
-func (s *SQLStore) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
-	s.mutexEncoder.Lock()
-	defer s.mutexEncoder.Unlock()
-	return s.sqlEncoder.getEncoderClassData(conn, eClass)
-}
+// func (s *SQLStore) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
+// 	return s.sqlEncoder.getEncoderClassData(conn, eClass)
+// }
 
 func (s *SQLStore) getEncoderFeatureData(conn *sqlite.Conn, object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
 	// retrieve class schema
@@ -757,29 +756,21 @@ func (s *SQLStore) getEncoderFeatureData(conn *sqlite.Conn, object EObject, feat
 	return featureData, nil
 }
 
-func (e *SQLStore) decodeFeatureValue(conn *sqlite.Conn, featureData *sqlFeatureSchema, value any) (any, error) {
-	e.mutexDecoder.Lock()
-	defer e.mutexDecoder.Unlock()
-	return e.sqlDecoder.decodeFeatureValue(conn, featureData, value)
-}
+// func (e *SQLStore) decodeFeatureValue(conn *sqlite.Conn, featureData *sqlFeatureSchema, value any) (any, error) {
+// 	return e.sqlDecoder.decodeFeatureValue(conn, featureData, value)
+// }
 
-func (e *SQLStore) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) {
-	e.mutexDecoder.Lock()
-	defer e.mutexDecoder.Unlock()
-	return e.sqlDecoder.decodeObject(conn, id)
-}
+// func (e *SQLStore) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) {
+// 	return e.sqlDecoder.decodeObject(conn, id)
+// }
 
-func (e *SQLStore) encodeContent(conn *sqlite.Conn, eObject EObject) error {
-	e.mutexEncoder.Lock()
-	defer e.mutexEncoder.Unlock()
-	return e.sqlEncoder.encodeContent(conn, eObject)
-}
+// func (e *SQLStore) encodeContent(conn *sqlite.Conn, eObject EObject) error {
+// 	return e.sqlEncoder.encodeContent(conn, eObject)
+// }
 
-func (e *SQLStore) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
-	e.mutexEncoder.Lock()
-	defer e.mutexEncoder.Unlock()
-	return e.sqlEncoder.encodeObject(conn, eObject)
-}
+// func (e *SQLStore) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
+// 	return e.sqlEncoder.encodeObject(conn, eObject)
+// }
 
 func (e *SQLStore) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
 	if value != nil {
@@ -788,8 +779,6 @@ func (e *SQLStore) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoder
 			eObject := value.(EObject)
 			return e.getSQLID(conn, eObject)
 		default:
-			e.mutexEncoder.Lock()
-			defer e.mutexEncoder.Unlock()
 			return e.sqlEncoder.encodeFeatureValue(conn, featureData, value)
 		}
 	}
@@ -798,6 +787,10 @@ func (e *SQLStore) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoder
 
 // get object sql id
 func (s *SQLStore) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
+	// lock object to avoid concurrent requests
+	s.lockManager.lock(eObject)
+	defer s.lockManager.unlock(eObject)
+
 	// retrieve sql id for eObject
 	sqlID, isSQLID := s.sqlIDManager.GetObjectID(eObject)
 	if !isSQLID {

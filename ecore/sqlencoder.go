@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"zombiezen.com/go/sqlite"
@@ -109,6 +111,47 @@ func newSqlEncoderObjectManager() *sqlEncoderObjectManager {
 func (r *sqlEncoderObjectManager) registerObject(EObject) {
 }
 
+type sqlEncoderLock struct {
+	mutex    sync.Mutex
+	refCount atomic.Int64
+}
+
+type sqlEncoderLockManager struct {
+	mutex sync.Mutex
+	locks map[any]*sqlEncoderLock
+}
+
+func newSqlEncoderLockManager() *sqlEncoderLockManager {
+	return &sqlEncoderLockManager{
+		locks: map[any]*sqlEncoderLock{},
+	}
+}
+
+func (l *sqlEncoderLockManager) lock(object any) {
+	l.mutex.Lock()
+	lock := l.locks[object]
+	if lock == nil {
+		lock = &sqlEncoderLock{}
+		l.locks[object] = lock
+	}
+	l.mutex.Unlock()
+	lock.refCount.Add(1)
+	lock.mutex.Lock()
+
+}
+
+func (l *sqlEncoderLockManager) unlock(object any) {
+	l.mutex.Lock()
+	lock := l.locks[object]
+	if lock != nil {
+		if lock.refCount.Add(-1) == 0 {
+			delete(l.locks, object)
+		}
+		lock.mutex.Unlock()
+	}
+	l.mutex.Unlock()
+}
+
 type sqlEncoder struct {
 	*sqlBase
 	isForced         bool
@@ -116,6 +159,7 @@ type sqlEncoder struct {
 	classDataMap     map[EClass]*sqlEncoderClassData
 	sqlIDManager     SQLEncoderIDManager
 	sqlObjectManager sqlObjectManager
+	sqlLockManager   *sqlEncoderLockManager
 }
 
 func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
@@ -193,6 +237,9 @@ func (e *sqlEncoder) encodeContent(conn *sqlite.Conn, eObject EObject) error {
 }
 
 func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
+	e.sqlLockManager.lock(eObject)
+	defer e.sqlLockManager.unlock(eObject)
+
 	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
 	if !isSqlObjectID {
 		defer sqlitex.Save(conn)(&err)
@@ -217,7 +264,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 		// container and container feature id
 		if e.isContainerID {
 			if container := eObject.EContainer(); container != nil {
-				containerID, err := e.encodeObject(conn, eObject.EContainer())
+				containerID, err := e.encodeObject(conn, container)
 				if err != nil {
 					return -1, err
 				}
@@ -399,6 +446,10 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 	if err != nil {
 		return nil, err
 	}
+
+	e.sqlLockManager.lock(classData)
+	defer e.sqlLockManager.unlock(classData)
+
 	if classData.id == -1 {
 		// class is not encoded
 		// check if class is registered in registry
@@ -449,6 +500,9 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 }
 
 func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
+	e.sqlLockManager.lock(eClass)
+	defer e.sqlLockManager.unlock(eClass)
+
 	classData := e.classDataMap[eClass]
 	if classData == nil {
 		// compute class data for super types
@@ -512,6 +566,9 @@ func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sql
 }
 
 func (e *sqlEncoder) encodePackage(conn *sqlite.Conn, ePackage EPackage) (int64, error) {
+	e.sqlLockManager.lock(ePackage)
+	defer e.sqlLockManager.unlock(ePackage)
+
 	packageID, isPackageID := e.sqlIDManager.GetPackageID(ePackage)
 	if !isPackageID {
 		// args
@@ -689,6 +746,7 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 			classDataMap:     map[EClass]*sqlEncoderClassData{},
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: newSqlEncoderObjectManager(),
+			sqlLockManager:   newSqlEncoderLockManager(),
 		},
 		resource:     resource,
 		connProvider: connProvider,

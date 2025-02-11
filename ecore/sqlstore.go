@@ -729,14 +729,18 @@ func (s *SQLStore) getFeatureTable(object EObject, feature EStructuralFeature) (
 	return featureSchema.table, nil
 }
 
+func (s *SQLStore) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
+	s.mutexEncoder.Lock()
+	defer s.mutexEncoder.Unlock()
+	return s.sqlEncoder.getEncoderClassData(conn, eClass)
+}
+
 func (s *SQLStore) getEncoderFeatureData(conn *sqlite.Conn, object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
 	// retrieve class schema
 	class := object.EClass()
 
 	// retrieve class data
-	s.mutexEncoder.Lock()
-	defer s.mutexEncoder.Unlock()
-	classData, err := s.sqlEncoder.getEncoderClassData(conn, class)
+	classData, err := s.getEncoderClassData(conn, class)
 	if err != nil {
 		s.errorHandler(err)
 		return nil, fmt.Errorf("class %s is unknown", class.GetName())
@@ -757,6 +761,24 @@ func (e *SQLStore) decodeFeatureValue(conn *sqlite.Conn, featureData *sqlFeature
 	e.mutexDecoder.Lock()
 	defer e.mutexDecoder.Unlock()
 	return e.sqlDecoder.decodeFeatureValue(conn, featureData, value)
+}
+
+func (e *SQLStore) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) {
+	e.mutexDecoder.Lock()
+	defer e.mutexDecoder.Unlock()
+	return e.sqlDecoder.decodeObject(conn, id)
+}
+
+func (e *SQLStore) encodeContent(conn *sqlite.Conn, eObject EObject) error {
+	e.mutexEncoder.Lock()
+	defer e.mutexEncoder.Unlock()
+	return e.sqlEncoder.encodeContent(conn, eObject)
+}
+
+func (e *SQLStore) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
+	e.mutexEncoder.Lock()
+	defer e.mutexEncoder.Unlock()
+	return e.sqlEncoder.encodeObject(conn, eObject)
 }
 
 func (e *SQLStore) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
@@ -799,9 +821,7 @@ func (s *SQLStore) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
 			s.sqlIDManager.SetObjectID(eObject, sqlID)
 		} else {
 			// object doesn't exists in db - encode it with encoder
-			s.mutexEncoder.Lock()
-			defer s.mutexEncoder.Unlock()
-			return s.sqlEncoder.encodeObject(conn, eObject)
+			return s.encodeObject(conn, eObject)
 		}
 	}
 	return sqlID, nil
@@ -1556,9 +1576,7 @@ func (s *SQLStore) GetContainer(object EObject) (container EObject, feature EStr
 		s.errorHandler(fmt.Errorf("unable to find container for object '%v'", sqlID))
 	case 0:
 	default:
-		s.mutexDecoder.Lock()
-		defer s.mutexDecoder.Unlock()
-		container, err = s.sqlDecoder.decodeObject(conn, containerID)
+		container, err = s.decodeObject(conn, containerID)
 		if err != nil {
 			s.errorHandler(err)
 			return

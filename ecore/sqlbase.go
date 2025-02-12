@@ -24,7 +24,7 @@ type sqlBase struct {
 	executeQueryScript    executeQueryFn
 }
 
-var logQuery bool = true
+var logQuery bool = false
 
 func getExecuteQueryWithLoggerFn(fn executeQueryFn, logger *zap.Logger) executeQueryFn {
 	if logQuery {

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/chebyrash/promise"
+	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
@@ -141,38 +142,6 @@ func (d *sqlDecoder) resolveURI(uri *URI) *URI {
 	return uri
 }
 
-func decodeProperties(conn *sqlite.Conn) (map[string]string, error) {
-	// result
-	properties := map[string]string{}
-
-	// check if properties table exists
-	tableExists := false
-	if err := sqlitex.Execute(conn, `SELECT name FROM sqlite_master WHERE type='table' AND name='.properties';`, &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			tableExists = true
-			return nil
-		},
-	}); err != nil {
-		return nil, err
-	}
-	if !tableExists {
-		return properties, nil
-	}
-
-	// retrieve properties from table
-	if err := sqlitex.Execute(conn, `SELECT key,value FROM ".properties" `, &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			key := stmt.ColumnText(0)
-			value := stmt.ColumnText(1)
-			properties[key] = value
-			return nil
-		},
-	}); err != nil {
-		return nil, err
-	}
-	return properties, nil
-}
-
 func (d *sqlDecoder) decodeVersion(pool *sqlitex.Pool) error {
 	conn, err := pool.Take(context.Background())
 	if err != nil {
@@ -181,7 +150,7 @@ func (d *sqlDecoder) decodeVersion(pool *sqlitex.Pool) error {
 	defer pool.Put(conn)
 
 	var version int64
-	if err := sqlitex.ExecuteTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
+	if err := d.executeQueryTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			version = stmt.ColumnInt64(0)
 			return nil
@@ -204,7 +173,7 @@ func (d *sqlDecoder) decodeSchema(pool *sqlitex.Pool, schemaOptions []sqlSchemaO
 	defer pool.Put(conn)
 
 	// properties
-	properties, err := decodeProperties(conn)
+	properties, err := d.decodeProperties(conn)
 	if err != nil {
 		return nil
 	}
@@ -241,7 +210,7 @@ func (d *sqlDecoder) decodePackage(conn *sqlite.Conn, id int64) (EPackage, error
 		table := d.schema.packagesTable
 		var packageID int64
 		var packageURI string
-		if err := sqlitex.Execute(
+		if err := d.executeQuery(
 			conn,
 			table.selectQuery(nil, table.keyName()+"=?", ""),
 			&sqlitex.ExecOptions{
@@ -276,7 +245,7 @@ func (d *sqlDecoder) decodeClass(conn *sqlite.Conn, id int64) (*sqlDecoderClassD
 		table := d.schema.classesTable
 		var className string
 		var packageID int64
-		if err := sqlitex.Execute(
+		if err := d.executeQuery(
 			conn,
 			table.selectQuery(nil, table.keyName()+"=?", ""),
 			&sqlitex.ExecOptions{
@@ -322,7 +291,7 @@ func (d *sqlDecoder) getDecoderClassData(eClass EClass) *sqlDecoderClassData {
 func (d *sqlDecoder) decodeContents(conn *sqlite.Conn) ([]EObject, error) {
 	table := d.schema.contentsTable
 	contents := []EObject{}
-	if err := sqlitex.Execute(
+	if err := d.executeQuery(
 		conn,
 		table.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
@@ -354,7 +323,7 @@ func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) 
 		if d.isObjectID {
 			columns = append(columns, d.objectIDName)
 		}
-		if err := sqlitex.Execute(
+		if err := d.executeQuery(
 			conn,
 			table.selectQuery(columns, table.keyName()+"=?", ""),
 			&sqlitex.ExecOptions{
@@ -417,7 +386,7 @@ func (d *sqlDecoder) decodeEnumLiteral(conn *sqlite.Conn, id int64) (EEnumLitera
 		var packageID int64
 		var enumName string
 		var literalValue string
-		if err := sqlitex.Execute(
+		if err := d.executeQuery(
 			conn,
 			table.selectQuery(nil, table.keyName()+"=?", ""),
 			&sqlitex.ExecOptions{
@@ -811,12 +780,16 @@ func NewSQLDBDecoder(connPool *sqlitex.Pool, resource EResource, options map[str
 func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connectionPoolClose func(conn *sqlitex.Pool) error, resource EResource, options map[string]any) *SQLDecoder {
 	codecVersion := sqlCodecVersion
 	sqlIDManager := newSQLDecoderIDManager()
+	logger := zap.NewNop()
 	if options != nil {
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
 		}
 		if m, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLDecoderIDManager); isSQLIDManager {
 			sqlIDManager = m
+		}
+		if l, isLogger := options[SQL_OPTION_LOGGER]; isLogger {
+			logger = l.(*zap.Logger)
 		}
 	}
 
@@ -830,9 +803,13 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 	return &SQLDecoder{
 		sqlDecoder: sqlDecoder{
 			sqlBase: &sqlBase{
-				codecVersion:    codecVersion,
-				uri:             resource.GetURI(),
-				objectIDManager: resource.GetObjectIDManager(),
+				codecVersion:          codecVersion,
+				uri:                   resource.GetURI(),
+				objectIDManager:       resource.GetObjectIDManager(),
+				logger:                logger,
+				executeQuery:          getExecuteQueryWithLoggerFn(sqlitex.Execute, logger),
+				executeQueryTransient: getExecuteQueryWithLoggerFn(sqlitex.ExecuteTransient, logger),
+				executeQueryScript:    getExecuteQueryWithLoggerFn(sqlitex.ExecuteScript, logger),
 			},
 			packageRegistry:  packageRegistry,
 			sqlIDManager:     sqlIDManager,
@@ -909,7 +886,7 @@ func (d *SQLDecoder) decodeContents(pool *sqlitex.Pool) error {
 	}
 	defer pool.Put(conn)
 
-	return sqlitex.ExecuteTransient(
+	return d.executeQueryTransient(
 		conn,
 		d.schema.contentsTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
@@ -932,7 +909,7 @@ func (d *SQLDecoder) decodePackages(pool *sqlitex.Pool) error {
 	}
 	defer pool.Put(conn)
 
-	return sqlitex.ExecuteTransient(
+	return d.executeQueryTransient(
 		conn,
 		d.schema.packagesTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
@@ -956,7 +933,7 @@ func (d *SQLDecoder) decodeEnums(pool *sqlitex.Pool) error {
 	}
 	defer pool.Put(conn)
 
-	return sqlitex.ExecuteTransient(
+	return d.executeQueryTransient(
 		conn,
 		d.schema.enumsTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
@@ -995,7 +972,7 @@ func (d *SQLDecoder) decodeClasses(pool *sqlitex.Pool) error {
 	}
 	defer pool.Put(conn)
 
-	return sqlitex.ExecuteTransient(
+	return d.executeQueryTransient(
 		conn,
 		d.schema.classesTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
@@ -1030,7 +1007,7 @@ func (d *SQLDecoder) decodeObjects(pool *sqlitex.Pool) error {
 	}
 	defer pool.Put(conn)
 
-	return sqlitex.ExecuteTransient(
+	return d.executeQueryTransient(
 		conn,
 		d.schema.objectsTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
@@ -1135,7 +1112,7 @@ func (d *SQLDecoder) decodeColumnFeatures(conn *sqlite.Conn, table *sqlTable, co
 	if len(columnFeatures) == 0 {
 		return nil
 	}
-	return sqlitex.Execute(
+	return d.executeQuery(
 		conn,
 		table.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
@@ -1170,7 +1147,7 @@ func (d *SQLDecoder) decodeTableFeature(conn *sqlite.Conn, table *sqlTable, tabl
 	feature := tableFeature.feature
 	values := []any{}
 	var id int64 = -1
-	if err := sqlitex.Execute(
+	if err := d.executeQuery(
 		conn,
 		query,
 		&sqlitex.ExecOptions{

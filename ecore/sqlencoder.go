@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
@@ -166,7 +167,7 @@ type sqlEncoder struct {
 func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
 	if !e.isForced {
 		var version int64
-		if err := sqlitex.ExecuteTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
+		if err := e.executeQueryTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				version = stmt.ColumnInt64(0)
 				return nil
@@ -180,7 +181,7 @@ func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
 		}
 	}
 	// encode
-	return sqlitex.ExecuteTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v;`, e.codecVersion), nil)
+	return e.executeQueryTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v;`, e.codecVersion), nil)
 }
 
 func (e *sqlEncoder) encodeSchema(conn *sqlite.Conn) error {
@@ -193,7 +194,7 @@ func (e *sqlEncoder) encodeSchema(conn *sqlite.Conn) error {
 		e.schema.contentsTable,
 		e.schema.enumsTable,
 	} {
-		if err := sqlitex.ExecuteScript(conn, table.createQuery(), nil); err != nil {
+		if err := e.executeQueryScript(conn, table.createQuery(), nil); err != nil {
 			return err
 		}
 	}
@@ -203,7 +204,7 @@ func (e *sqlEncoder) encodeSchema(conn *sqlite.Conn) error {
 func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) (err error) {
 	previous := map[string]string{}
 	if !e.isForced {
-		previous, err = decodeProperties(conn)
+		previous, err = e.decodeProperties(conn)
 		if err != nil {
 			return err
 		}
@@ -219,7 +220,7 @@ func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) (err error) {
 	query := e.schema.propertiesTable.insertOrReplaceQuery()
 	for k, v := range properties {
 		if previous[k] != v {
-			if err := sqlitex.Execute(conn, query, &sqlitex.ExecOptions{
+			if err := e.executeQuery(conn, query, &sqlitex.ExecOptions{
 				Args: []any{k, v},
 			}); err != nil {
 				return err
@@ -234,10 +235,22 @@ func (e *sqlEncoder) encodeContent(conn *sqlite.Conn, eObject EObject) error {
 	if err != nil {
 		return err
 	}
-	return sqlitex.Execute(conn, e.schema.contentsTable.insertQuery(), &sqlitex.ExecOptions{Args: []any{objectID}})
+	return e.executeQuery(conn, e.schema.contentsTable.insertQuery(), &sqlitex.ExecOptions{Args: []any{objectID}})
+}
+
+func Pointer(key string, ptr interface{}) zapcore.Field {
+	return zap.Stringer(key, ptrField{ptr})
+}
+
+type ptrField struct{ ptr interface{} }
+
+func (f ptrField) String() string {
+	return fmt.Sprintf("%p", f.ptr)
 }
 
 func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
+	logger := e.logger.Named("encodeObject").With(Pointer("object", eObject), zap.String("class", eObject.EClass().GetName()))
+	logger.Debug("encode")
 	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
 	if !isSqlObjectID {
 		e.sqlLockManager.lock(eObject)
@@ -246,8 +259,11 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 		// object may be encoded in another goroutine
 		sqlObjectID, isSqlObjectID = e.sqlIDManager.GetObjectID(eObject)
 		if isSqlObjectID {
+			logger.Debug("encoded in another goroutine", zap.Int64("id", sqlObjectID))
 			return sqlObjectID, nil
 		}
+
+		logger.Debug("starts encoding")
 
 		// encode object
 		defer sqlitex.Save(conn)(&err)
@@ -289,7 +305,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 		}
 
 		// query
-		if err := sqlitex.Execute(
+		if err := e.executeQuery(
 			conn,
 			e.schema.objectsTable.insertQuery(),
 			&sqlitex.ExecOptions{Args: args}); err != nil {
@@ -342,7 +358,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 							if err != nil {
 								return -1, err
 							}
-							if err := sqlitex.Execute(
+							if err := e.executeQuery(
 								conn,
 								featureTable.insertQuery(),
 								&sqlitex.ExecOptions{Args: []any{sqlObjectID, index, converted}},
@@ -356,7 +372,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 			}
 
 			// insert new row in class column
-			if err := sqlitex.Execute(
+			if err := e.executeQuery(
 				conn,
 				classTable.insertQuery(),
 				&sqlitex.ExecOptions{
@@ -369,8 +385,8 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 		// register in sql object manager
 		// (must be done at the end otherwise internal data of eObject may disappear if its a EStoreEObject)
 		e.sqlObjectManager.registerObject(eObject)
-
 	}
+	logger.Debug("encoded", zap.Int64("id", sqlObjectID))
 	return sqlObjectID, nil
 }
 
@@ -435,7 +451,7 @@ func (e *sqlEncoder) encodeEnumLiteral(conn *sqlite.Conn, eEnumLiteral EEnumLite
 		args = append(args, packageID, eEnum.GetName(), eEnumLiteral.GetLiteral())
 
 		// insert enum
-		if err := sqlitex.Execute(conn, e.schema.enumsTable.insertQuery(), &sqlitex.ExecOptions{
+		if err := e.executeQuery(conn, e.schema.enumsTable.insertQuery(), &sqlitex.ExecOptions{
 			Args: args,
 		}); err != nil {
 			return nil, err
@@ -500,7 +516,7 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 			args = append(args, packageID, eClass.GetName())
 
 			// insert new class
-			if err := sqlitex.Execute(conn, e.schema.classesTable.insertQuery(), &sqlitex.ExecOptions{
+			if err := e.executeQuery(conn, e.schema.classesTable.insertQuery(), &sqlitex.ExecOptions{
 				Args: args,
 			}); err != nil {
 				return nil, err
@@ -552,7 +568,7 @@ func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sql
 		}
 
 		// create class tables
-		if err := sqlitex.ExecuteScript(conn, classSchema.table.createQuery(), nil); err != nil {
+		if err := e.executeQueryScript(conn, classSchema.table.createQuery(), nil); err != nil {
 			return nil, err
 		}
 
@@ -564,7 +580,7 @@ func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sql
 
 			// create feature table if any
 			if table := featureSchema.table; table != nil {
-				if err := sqlitex.ExecuteScript(conn, table.createQuery(), nil); err != nil {
+				if err := e.executeQueryScript(conn, table.createQuery(), nil); err != nil {
 					return nil, err
 				}
 			}
@@ -611,7 +627,7 @@ func (e *sqlEncoder) encodePackage(conn *sqlite.Conn, ePackage EPackage) (int64,
 		args = append(args, ePackage.GetNsURI())
 
 		// query
-		if err := sqlitex.Execute(conn, e.schema.packagesTable.insertQuery(), &sqlitex.ExecOptions{
+		if err := e.executeQuery(conn, e.schema.packagesTable.insertQuery(), &sqlitex.ExecOptions{
 			Args: args,
 		}); err != nil {
 			return -1, err
@@ -738,6 +754,7 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 	codecVersion := sqlCodecVersion
 	sqlIDManager := newSQLEncoderIDManager()
 	objectIDManager := resource.GetObjectIDManager()
+	logger := zap.NewNop()
 	if options != nil {
 		if id, isID := options[SQL_OPTION_OBJECT_ID].(string); isID && len(id) > 0 && objectIDManager != nil {
 			schemaOptions = append(schemaOptions, withObjectIDName(id))
@@ -757,19 +774,26 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 		if m, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLEncoderIDManager); isSQLIDManager {
 			sqlIDManager = m
 		}
+		if l, isLogger := options[SQL_OPTION_LOGGER]; isLogger {
+			logger = l.(*zap.Logger)
+		}
 	}
 
 	// encoder structure
 	return &SQLEncoder{
 		sqlEncoder: sqlEncoder{
 			sqlBase: &sqlBase{
-				codecVersion:    codecVersion,
-				uri:             resource.GetURI(),
-				objectIDManager: objectIDManager,
-				objectIDName:    objectIDName,
-				isContainerID:   isContainerID,
-				isObjectID:      isObjectID,
-				schema:          newSqlSchema(schemaOptions...),
+				codecVersion:          codecVersion,
+				uri:                   resource.GetURI(),
+				objectIDManager:       objectIDManager,
+				objectIDName:          objectIDName,
+				isContainerID:         isContainerID,
+				isObjectID:            isObjectID,
+				schema:                newSqlSchema(schemaOptions...),
+				logger:                logger,
+				executeQuery:          getExecuteQueryWithLoggerFn(sqlitex.Execute, logger),
+				executeQueryTransient: getExecuteQueryWithLoggerFn(sqlitex.ExecuteTransient, logger),
+				executeQueryScript:    getExecuteQueryWithLoggerFn(sqlitex.ExecuteScript, logger),
 			},
 			isForced:         true,
 			isKeepDefaults:   isKeepDefaults,

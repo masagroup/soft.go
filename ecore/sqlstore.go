@@ -11,7 +11,6 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/chebyrash/promise"
 	"go.uber.org/zap"
@@ -21,7 +20,6 @@ import (
 )
 
 // log queries
-var logQuery bool = true
 
 type sqlSingleQueries struct {
 	column      *sqlColumn
@@ -435,7 +433,6 @@ type SQLStore struct {
 	manyQueries         map[*sqlTable]*sqlManyQueries
 	mutexQueries        sync.Mutex
 	connectionPoolClose func(conn *sqlitex.Pool) error
-	executeQuery        func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error
 	operations          map[any][]*operation
 	mutexOperations     sync.Mutex
 }
@@ -573,22 +570,6 @@ func newSQLStore(
 		}
 	}
 
-	// log sqlite queries
-	executeQuery := sqlitex.Execute
-	if logQuery {
-		executeQuery = func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {
-			start := time.Now()
-			if err := sqlitex.Execute(conn, query, opts); err != nil {
-				return err
-			}
-			logger.Debug("execute",
-				zap.String("query", query),
-				zap.Any("args", opts.Args),
-				zap.Duration("duration", time.Since(start)))
-			return nil
-		}
-	}
-
 	// retrieve connection pool
 	pool, err := connectionPoolProvider()
 	if err != nil {
@@ -604,13 +585,16 @@ func newSQLStore(
 
 	// create sql base
 	base := &sqlBase{
-		codecVersion:    codecVersion,
-		uri:             resourceURI,
-		objectIDName:    objectIDName,
-		objectIDManager: idManager,
-		isContainerID:   true,
-		isObjectID:      len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
-		logger:          logger,
+		codecVersion:          codecVersion,
+		uri:                   resourceURI,
+		objectIDName:          objectIDName,
+		objectIDManager:       idManager,
+		isContainerID:         true,
+		isObjectID:            len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
+		logger:                logger,
+		executeQuery:          getExecuteQueryWithLoggerFn(sqlitex.Execute, logger),
+		executeQueryTransient: getExecuteQueryWithLoggerFn(sqlitex.ExecuteTransient, logger),
+		executeQueryScript:    getExecuteQueryWithLoggerFn(sqlitex.ExecuteScript, logger),
 	}
 
 	// create sql store
@@ -637,7 +621,6 @@ func newSQLStore(
 		singleQueries:       map[*sqlColumn]*sqlSingleQueries{},
 		manyQueries:         map[*sqlTable]*sqlManyQueries{},
 		connectionPoolClose: connectionPoolClose,
-		executeQuery:        executeQuery,
 		operations:          map[any][]*operation{},
 	}
 

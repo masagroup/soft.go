@@ -1681,30 +1681,34 @@ func (s *SQLStore) Close() error {
 }
 
 func (s *SQLStore) WaitOperations(context context.Context, object any) error {
-	var promises []*promise.Promise[any]
+	logger := s.logger.Named("scheduler")
+	// compute operations to wait for
+	var allOperations []*operation
 	s.mutexOperations.Lock()
 	if object == nil {
-		promises = make([]*promise.Promise[any], 0)
+		allOperations = make([]*operation, 0)
 		for _, operations := range s.operations {
-			for _, operation := range operations {
-				promises = append(promises, operation.promise_)
-			}
+			allOperations = append(allOperations, operations...)
 		}
 	} else {
-		operations := s.operations[object]
-		promises = make([]*promise.Promise[any], 0, len(operations))
-		for _, operation := range operations {
-			promises = append(promises, operation.promise_)
-		}
+		allOperations = s.operations[object]
 	}
 	s.mutexOperations.Unlock()
 
-	if len(promises) > 0 {
-		allOperations := promise.All(context, promises...)
-		_, err := allOperations.Await(context)
+	// wait for operations to be finished
+	if len(allOperations) > 0 {
+		// debug
+		if e := logger.Check(zap.DebugLevel, "waiting operations"); e != nil {
+			e.Write(zap.Int64s("ops", mapSlice(allOperations, func(index int, op *operation) int64 { return op.id_ })))
+		}
+		// compute promises
+		allPromises := mapSlice(allOperations, func(index int, op *operation) *promise.Promise[any] { return op.promise_ })
+		// wait for promises
+		_, err := promise.All(context, allPromises...).Await(context)
 		if err != nil {
 			return err
 		}
+		logger.Debug("waiting operations finished")
 	}
 	return nil
 }
@@ -1718,7 +1722,8 @@ func (s *SQLStore) ScheduleOperation(objects []any, operationType OperationType,
 }
 
 func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (any, error)) *promise.Promise[any] {
-	s.logger.Debug("schedule exclusive access")
+	logger := s.logger.Named("scheduler")
+	logger.Debug("schedule exclusive access")
 	return promise.New(func(resolve func(any), reject func(error)) {
 		s.mutexOperations.Lock()
 		objects := slices.Collect(maps.Keys(s.operations))
@@ -1744,7 +1749,7 @@ func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (
 			})
 		}
 
-		s.logger.Debug("waiting for exclusive access")
+		logger.Debug("waiting for exclusive access")
 
 		// wait for all tables to be locked
 		if err := locked.Acquire(context.Background(), size); err != nil {
@@ -1755,7 +1760,7 @@ func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (
 		// indicate all queries that operation is run
 		defer close(run)
 
-		s.logger.Debug("executing with exclusive access")
+		logger.Debug("executing with exclusive access")
 		if result, err := op(); err != nil {
 			reject(err)
 		} else {
@@ -1795,7 +1800,7 @@ var operationID atomic.Int64
 
 func (s *SQLStore) scheduleOperationObject(objects []any, operationType OperationType, op func() (any, error)) *promise.Promise[any] {
 	id := operationID.Add(1)
-	logger := s.logger.With(zap.Int64("op", id))
+	logger := s.logger.Named("scheduler").With(zap.Int64("op", id))
 
 	// only keep objects
 	objects = filterSlice(objects, func(index int, a any) bool {

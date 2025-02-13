@@ -249,7 +249,7 @@ func (f ptrField) String() string {
 }
 
 func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
-	logger := e.logger.With(Pointer("object", eObject), zap.String("class", eObject.EClass().GetName()))
+	logger := e.logger.Named("encoder").With(Pointer("object", eObject), zap.String("class", eObject.EClass().GetName()))
 	logger.Debug("object encode")
 	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
 	if !isSqlObjectID {
@@ -470,7 +470,7 @@ func (e *sqlEncoder) encodeEnumLiteral(conn *sqlite.Conn, eEnumLiteral EEnumLite
 }
 
 func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
-	logger := e.logger.With(zap.String("class", eClass.GetName()))
+	logger := e.logger.Named("encoder").With(zap.String("class", eClass.GetName()))
 	logger.Debug("class encode")
 
 	// retrieve class data
@@ -539,7 +539,7 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 }
 
 func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
-	logger := e.logger.With(zap.String("class", eClass.GetName()))
+	logger := e.logger.Named("encoder").With(zap.String("class", eClass.GetName()))
 
 	// lock class
 	e.sqlLockManager.lock(eClass)

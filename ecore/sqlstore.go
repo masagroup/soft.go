@@ -1713,17 +1713,17 @@ func (s *SQLStore) WaitOperations(context context.Context, object any) error {
 	return nil
 }
 
-func (s *SQLStore) ScheduleOperation(objects []any, operationType OperationType, op func() (any, error)) *promise.Promise[any] {
+func (s *SQLStore) ScheduleOperation(objects []any, operationType OperationType, desc string, op func() (any, error)) *promise.Promise[any] {
 	if objects == nil {
-		return s.scheduleOperationAll(operationType, op)
+		return s.scheduleOperationAll(operationType, desc, op)
 	} else {
-		return s.scheduleOperationObject(objects, operationType, op)
+		return s.scheduleOperationObject(objects, operationType, desc, op)
 	}
 }
 
-func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (any, error)) *promise.Promise[any] {
+func (s *SQLStore) scheduleOperationAll(operationType OperationType, desc string, op func() (any, error)) *promise.Promise[any] {
 	logger := s.logger.Named("scheduler")
-	logger.Debug("schedule exclusive access")
+	logger.Debug("schedule exclusive access", zap.String("desc", desc))
 	return promise.New(func(resolve func(any), reject func(error)) {
 		s.mutexOperations.Lock()
 		objects := slices.Collect(maps.Keys(s.operations))
@@ -1738,7 +1738,7 @@ func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (
 		}
 
 		for _, object := range objects {
-			s.scheduleOperationObject([]any{object}, operationType, func() (any, error) {
+			s.scheduleOperationObject([]any{object}, operationType, "exclusive", func() (any, error) {
 				// the object is locked
 				locked.Release(1)
 
@@ -1798,7 +1798,7 @@ func (as anys) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 var operationID atomic.Int64
 
-func (s *SQLStore) scheduleOperationObject(objects []any, operationType OperationType, operationFn func() (any, error)) *promise.Promise[any] {
+func (s *SQLStore) scheduleOperationObject(objects []any, operationType OperationType, desc string, operationFn func() (any, error)) *promise.Promise[any] {
 	// create operation
 	op := &operation{
 		id_:   operationID.Add(1),
@@ -1817,7 +1817,7 @@ func (s *SQLStore) scheduleOperationObject(objects []any, operationType Operatio
 		}
 	})
 
-	logger.Debug("schedule operation", zap.Array("locks", anys(objects)))
+	logger.Debug("schedule operation", zap.Array("locks", anys(objects)), zap.String("desc", desc))
 
 	s.mutexOperations.Lock()
 	// compute previous operations
@@ -1855,6 +1855,7 @@ func (s *SQLStore) scheduleOperationObject(objects []any, operationType Operatio
 			// wait for promises
 			_, err := promise.All(context.Background(), promises...).Await(context.Background())
 			if err != nil {
+				logger.Error("error in previous operation", zap.Error(err))
 				reject(err)
 				return
 			}

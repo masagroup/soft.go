@@ -21,16 +21,22 @@ type sqlBase struct {
 	logger          *zap.Logger
 }
 
-func (d *sqlBase) executeSqlite(fn executeQueryFn, conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {
+func (d *sqlBase) executeSqlite(fn executeQueryFn, conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) (err error) {
 	start := time.Now()
 	defer func() {
 		args := []zap.Field{zap.String("query", query), zap.Duration("duration", time.Since(start))}
 		if opts != nil {
 			args = append(args, zap.Any("args", opts.Args))
 		}
-		d.logger.Named("sqlite").Debug("execute query", args...)
+		if err != nil {
+			d.logger.Named("sqlite").Error("execute query", args...)
+		} else {
+			d.logger.Named("sqlite").Debug("execute query", args...)
+		}
+
 	}()
-	return fn(conn, query, opts)
+	err = fn(conn, query, opts)
+	return
 }
 
 func (d *sqlBase) executeQuery(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {

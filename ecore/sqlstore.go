@@ -1798,9 +1798,14 @@ func (as anys) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 var operationID atomic.Int64
 
-func (s *SQLStore) scheduleOperationObject(objects []any, operationType OperationType, op func() (any, error)) *promise.Promise[any] {
-	id := operationID.Add(1)
-	logger := s.logger.Named("scheduler").With(zap.Int64("op", id))
+func (s *SQLStore) scheduleOperationObject(objects []any, operationType OperationType, operationFn func() (any, error)) *promise.Promise[any] {
+	// create operation
+	op := &operation{
+		id_:   operationID.Add(1),
+		type_: operationType,
+	}
+
+	logger := s.logger.Named("scheduler").With(zap.Int64("op", op.id_))
 
 	// only keep objects
 	objects = filterSlice(objects, func(index int, a any) bool {
@@ -1839,50 +1844,33 @@ func (s *SQLStore) scheduleOperationObject(objects []any, operationType Operatio
 		}
 	}
 
-	// create operation
-	operation := &operation{
-		id_:   id,
-		type_: operationType,
-		promise_: promise.New(func(resolve func(any), reject func(error)) {
-			// wait for all previous promises
-			if len(previous) > 0 {
-				if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
-					e.Write(zap.Int64s("ops", mapSlice(previous, func(index int, op *operation) int64 { return op.id_ })))
-				}
-				// compute promises
-				promises := mapSlice(previous, func(index int, op *operation) *promise.Promise[any] { return op.promise_ })
-				// wait for promises
-				_, err := promise.All(context.Background(), promises...).Await(context.Background())
-				if err != nil {
-					reject(err)
-					return
-				}
+	op.promise_ = promise.New(func(resolve func(any), reject func(error)) {
+		// wait for all previous promises
+		if len(previous) > 0 {
+			if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
+				e.Write(zap.Int64s("previous", mapSlice(previous, func(index int, op *operation) int64 { return op.id_ })))
 			}
-			logger.Debug("execute operation")
-			result, err := op()
+			// compute promises
+			promises := mapSlice(previous, func(index int, op *operation) *promise.Promise[any] { return op.promise_ })
+			// wait for promises
+			_, err := promise.All(context.Background(), promises...).Await(context.Background())
 			if err != nil {
 				reject(err)
-			} else {
-				resolve(result)
+				return
 			}
-		}),
-	}
-	// add operation
-	for _, object := range objects {
-		s.operations[object] = append(s.operations[object], operation)
-	}
-	s.mutexOperations.Unlock()
-	// remove operation when finished with result or error
-	return promise.New(func(resolve func(any), reject func(error)) {
-		logger.Debug("waiting")
-		r, err := operation.promise_.Await(context.Background())
-		logger.Debug("cleaning")
+		}
+		logger.Debug("execute operation")
+		result, err := operationFn()
+
+		logger.Debug("cleaning operation")
 		s.mutexOperations.Lock()
+		defer s.mutexOperations.Unlock()
 		for _, object := range objects {
 			operations := s.operations[object]
 			// retrieve operation index
-			index := slices.Index(operations, operation)
+			index := slices.Index(operations, op)
 			if index == -1 {
+				logger.Error("unable to find operation index")
 				reject(errors.New("unable to find operation index"))
 				return
 			}
@@ -1898,11 +1886,22 @@ func (s *SQLStore) scheduleOperationObject(objects []any, operationType Operatio
 				s.operations[object] = operations
 			}
 		}
-		s.mutexOperations.Unlock()
+		logger.Debug("cleaned operation")
+		if len(s.operations) == 0 {
+			logger.Debug("no pending operations")
+		}
+
+		// operation result
 		if err != nil {
 			reject(err)
 		} else {
-			resolve(*r)
+			resolve(result)
 		}
 	})
+	// add operation
+	for _, object := range objects {
+		s.operations[object] = append(s.operations[object], op)
+	}
+	s.mutexOperations.Unlock()
+	return op.promise_
 }

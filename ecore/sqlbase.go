@@ -29,6 +29,7 @@ func (d *sqlBase) executeSqlite(fn executeQueryFn, conn *sqlite.Conn, query stri
 			args = append(args, zap.Any("args", opts.Args))
 		}
 		if err != nil {
+			args = append(args, zap.Error(err))
 			d.logger.Named("sqlite").Error("execute query", args...)
 		} else {
 			d.logger.Named("sqlite").Debug("execute query", args...)

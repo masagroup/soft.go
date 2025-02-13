@@ -158,6 +158,7 @@ type sqlEncoder struct {
 	*sqlBase
 	isForced         bool
 	isKeepDefaults   bool
+	isObjectExists   bool
 	classDataMap     map[EClass]*sqlEncoderClassData
 	sqlIDManager     SQLEncoderIDManager
 	sqlObjectManager sqlObjectManager
@@ -248,6 +249,37 @@ func (f ptrField) String() string {
 	return fmt.Sprintf("%p", f.ptr)
 }
 
+func (e *sqlEncoder) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
+	// retrieve sql id for eObject
+	sqlID, isSQLID := e.sqlIDManager.GetObjectID(eObject)
+	if !isSQLID {
+		// object is not in store - check if it exists in db
+		objectExists := false
+		if sqlID != 0 && e.isObjectExists {
+			if err := e.executeQuery(
+				conn,
+				`SELECT objectID FROM ".objects" WHERE objectID=?`,
+				&sqlitex.ExecOptions{
+					Args: []any{sqlID},
+					ResultFunc: func(stmt *sqlite.Stmt) error {
+						objectExists = true
+						return nil
+					},
+				}); err != nil {
+				return 0, err
+			}
+		}
+		if objectExists {
+			// object exists - register it as decoded
+			e.sqlIDManager.SetObjectID(eObject, sqlID)
+		} else {
+			// object doesn't exists in db - encode it with encoder
+			return e.encodeObject(conn, eObject)
+		}
+	}
+	return sqlID, nil
+}
+
 func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
 	logger := e.logger.Named("encoder").With(Pointer("object", eObject), zap.String("class", eObject.EClass().GetName()))
 	logger.Debug("object encode")
@@ -288,7 +320,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 		// container and container feature id
 		if e.isContainerID {
 			if container := eObject.EContainer(); container != nil {
-				containerID, err := e.encodeObject(conn, container)
+				containerID, err := e.getSQLID(conn, container)
 				if err != nil {
 					return -1, err
 				}

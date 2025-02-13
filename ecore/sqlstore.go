@@ -610,6 +610,7 @@ func newSQLStore(
 		sqlEncoder: sqlEncoder{
 			sqlBase:          base,
 			isForced:         false,
+			isObjectExists:   true,
 			classDataMap:     map[EClass]*sqlEncoderClassData{},
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,

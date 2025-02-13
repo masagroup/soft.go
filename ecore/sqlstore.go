@@ -585,16 +585,13 @@ func newSQLStore(
 
 	// create sql base
 	base := &sqlBase{
-		codecVersion:          codecVersion,
-		uri:                   resourceURI,
-		objectIDName:          objectIDName,
-		objectIDManager:       idManager,
-		isContainerID:         true,
-		isObjectID:            len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
-		logger:                logger,
-		executeQuery:          getExecuteQueryWithLoggerFn(sqlitex.Execute, logger),
-		executeQueryTransient: getExecuteQueryWithLoggerFn(sqlitex.ExecuteTransient, logger),
-		executeQueryScript:    getExecuteQueryWithLoggerFn(sqlitex.ExecuteScript, logger),
+		codecVersion:    codecVersion,
+		uri:             resourceURI,
+		objectIDName:    objectIDName,
+		objectIDManager: idManager,
+		isContainerID:   true,
+		isObjectID:      len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
+		logger:          logger,
 	}
 
 	// create sql store

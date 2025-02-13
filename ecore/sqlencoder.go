@@ -249,8 +249,8 @@ func (f ptrField) String() string {
 }
 
 func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
-	logger := e.logger.Named("encodeObject").With(Pointer("object", eObject), zap.String("class", eObject.EClass().GetName()))
-	logger.Debug("encode")
+	logger := e.logger.With(Pointer("object", eObject), zap.String("class", eObject.EClass().GetName()))
+	logger.Debug("object encode")
 	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
 	if !isSqlObjectID {
 		e.sqlLockManager.lock(eObject)
@@ -259,11 +259,11 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 		// object may be encoded in another goroutine
 		sqlObjectID, isSqlObjectID = e.sqlIDManager.GetObjectID(eObject)
 		if isSqlObjectID {
-			logger.Debug("encoded in another goroutine", zap.Int64("id", sqlObjectID))
+			logger.Debug("object encoded in another goroutine", zap.Int64("id", sqlObjectID))
 			return sqlObjectID, nil
 		}
 
-		logger.Debug("starts encoding")
+		logger.Debug("object encoding")
 
 		// encode object
 		defer sqlitex.Save(conn)(&err)
@@ -386,7 +386,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 		// (must be done at the end otherwise internal data of eObject may disappear if its a EStoreEObject)
 		e.sqlObjectManager.registerObject(eObject)
 	}
-	logger.Debug("encoded", zap.Int64("id", sqlObjectID))
+	logger.Debug("object encoded", zap.Int64("id", sqlObjectID))
 	return sqlObjectID, nil
 }
 
@@ -470,8 +470,8 @@ func (e *sqlEncoder) encodeEnumLiteral(conn *sqlite.Conn, eEnumLiteral EEnumLite
 }
 
 func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
-	logger := e.logger.Named("encodeClass").With(zap.String("class", eClass.GetName()))
-	logger.Debug("encode")
+	logger := e.logger.With(zap.String("class", eClass.GetName()))
+	logger.Debug("class encode")
 
 	// retrieve class data
 	classData, err := e.getEncoderClassData(conn, eClass)
@@ -485,17 +485,17 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 
 	// encode class
 	if classData.id == -1 {
-		logger.Debug("register")
+		logger.Debug("class register")
 
 		// class is not encoded
 		// check if class is registered in registry
 		classID, isClassID := e.sqlIDManager.GetClassID(eClass)
 		if isClassID {
-			logger.Debug("already registered", zap.Int64("id", classID))
+			logger.Debug("class already registered", zap.Int64("id", classID))
 			// already registered
 			classData.id = classID
 		} else {
-			logger.Debug("not registered", zap.Int64("id", classID))
+			logger.Debug("class not registered", zap.Int64("id", classID))
 			// not registered
 			// got to insert in classes table and retirve its id
 
@@ -534,12 +534,12 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 			e.sqlIDManager.SetClassID(eClass, classID)
 		}
 	}
-	logger.Debug("encoded", zap.Int64("id", classData.id))
+	logger.Debug("class encoded", zap.Int64("id", classData.id))
 	return classData, nil
 }
 
 func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
-	logger := e.logger.Named("getEncoderClassData").With(zap.String("class", eClass.GetName()))
+	logger := e.logger.With(zap.String("class", eClass.GetName()))
 
 	// lock class
 	e.sqlLockManager.lock(eClass)
@@ -547,7 +547,7 @@ func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sql
 
 	classData := e.classDataMap[eClass]
 	if classData == nil {
-		logger.Debug("create")
+		logger.Debug("class data create")
 
 		// compute class data for super types
 		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
@@ -572,7 +572,7 @@ func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sql
 			return nil, err
 		}
 
-		logger.Debug("created", zap.String("table", classSchema.table.name))
+		logger.Debug("class data created", zap.String("table", classSchema.table.name))
 
 		// computes features data
 		classFeatures := newLinkedHashMap[EStructuralFeature, *sqlEncoderFeatureData]()
@@ -783,17 +783,14 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 	return &SQLEncoder{
 		sqlEncoder: sqlEncoder{
 			sqlBase: &sqlBase{
-				codecVersion:          codecVersion,
-				uri:                   resource.GetURI(),
-				objectIDManager:       objectIDManager,
-				objectIDName:          objectIDName,
-				isContainerID:         isContainerID,
-				isObjectID:            isObjectID,
-				schema:                newSqlSchema(schemaOptions...),
-				logger:                logger,
-				executeQuery:          getExecuteQueryWithLoggerFn(sqlitex.Execute, logger),
-				executeQueryTransient: getExecuteQueryWithLoggerFn(sqlitex.ExecuteTransient, logger),
-				executeQueryScript:    getExecuteQueryWithLoggerFn(sqlitex.ExecuteScript, logger),
+				codecVersion:    codecVersion,
+				uri:             resource.GetURI(),
+				objectIDManager: objectIDManager,
+				objectIDName:    objectIDName,
+				isContainerID:   isContainerID,
+				isObjectID:      isObjectID,
+				schema:          newSqlSchema(schemaOptions...),
+				logger:          logger,
 			},
 			isForced:         true,
 			isKeepDefaults:   isKeepDefaults,

@@ -11,36 +11,38 @@ import (
 type executeQueryFn func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error
 
 type sqlBase struct {
-	codecVersion          int64
-	schema                *sqlSchema
-	uri                   *URI
-	objectIDName          string
-	objectIDManager       EObjectIDManager
-	isObjectID            bool
-	isContainerID         bool
-	logger                *zap.Logger
-	executeQuery          executeQueryFn
-	executeQueryTransient executeQueryFn
-	executeQueryScript    executeQueryFn
+	codecVersion    int64
+	schema          *sqlSchema
+	uri             *URI
+	objectIDName    string
+	objectIDManager EObjectIDManager
+	isObjectID      bool
+	isContainerID   bool
+	logger          *zap.Logger
 }
 
-var logQuery bool = false
-
-func getExecuteQueryWithLoggerFn(fn executeQueryFn, logger *zap.Logger) executeQueryFn {
-	if logQuery {
-		return func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) (err error) {
-			start := time.Now()
-			defer func() {
-				args := []zap.Field{zap.String("query", query), zap.Duration("duration", time.Since(start))}
-				if opts != nil {
-					args = append(args, zap.Any("args", opts.Args))
-				}
-				logger.Debug("execute", args...)
-			}()
-			return fn(conn, query, opts)
+func (d *sqlBase) execute(fn executeQueryFn, conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {
+	start := time.Now()
+	defer func() {
+		args := []zap.Field{zap.String("query", query), zap.Duration("duration", time.Since(start))}
+		if opts != nil {
+			args = append(args, zap.Any("args", opts.Args))
 		}
-	}
-	return fn
+		d.logger.Debug("execute", args...)
+	}()
+	return fn(conn, query, opts)
+}
+
+func (d *sqlBase) executeQuery(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {
+	return d.execute(sqlitex.Execute, conn, query, opts)
+}
+
+func (d *sqlBase) executeQueryTransient(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {
+	return d.execute(sqlitex.ExecuteTransient, conn, query, opts)
+}
+
+func (d *sqlBase) executeQueryScript(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {
+	return d.execute(sqlitex.ExecuteScript, conn, query, opts)
 }
 
 func (d *sqlBase) decodeProperties(conn *sqlite.Conn) (map[string]string, error) {

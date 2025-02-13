@@ -803,13 +803,10 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 	return &SQLDecoder{
 		sqlDecoder: sqlDecoder{
 			sqlBase: &sqlBase{
-				codecVersion:          codecVersion,
-				uri:                   resource.GetURI(),
-				objectIDManager:       resource.GetObjectIDManager(),
-				logger:                logger,
-				executeQuery:          getExecuteQueryWithLoggerFn(sqlitex.Execute, logger),
-				executeQueryTransient: getExecuteQueryWithLoggerFn(sqlitex.ExecuteTransient, logger),
-				executeQueryScript:    getExecuteQueryWithLoggerFn(sqlitex.ExecuteScript, logger),
+				codecVersion:    codecVersion,
+				uri:             resource.GetURI(),
+				objectIDManager: resource.GetObjectIDManager(),
+				logger:          logger,
 			},
 			packageRegistry:  packageRegistry,
 			sqlIDManager:     sqlIDManager,

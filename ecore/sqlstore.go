@@ -11,9 +11,11 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/chebyrash/promise"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/semaphore"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -418,6 +420,7 @@ func (r *sqlStoreIDManagerImpl) SetEnumLiteralID(e EEnumLiteral, id int64) {
 }
 
 type operation struct {
+	id_      int64
 	type_    OperationType
 	promise_ *promise.Promise[any]
 }
@@ -1715,6 +1718,7 @@ func (s *SQLStore) ScheduleOperation(objects []any, operationType OperationType,
 }
 
 func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (any, error)) *promise.Promise[any] {
+	s.logger.Debug("schedule exclusive access")
 	return promise.New(func(resolve func(any), reject func(error)) {
 		s.mutexOperations.Lock()
 		objects := slices.Collect(maps.Keys(s.operations))
@@ -1740,6 +1744,8 @@ func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (
 			})
 		}
 
+		s.logger.Debug("waiting for exclusive access")
+
 		// wait for all tables to be locked
 		if err := locked.Acquire(context.Background(), size); err != nil {
 			reject(err)
@@ -1749,6 +1755,7 @@ func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (
 		// indicate all queries that operation is run
 		defer close(run)
 
+		s.logger.Debug("executing with exclusive access")
 		if result, err := op(); err != nil {
 			reject(err)
 		} else {
@@ -1757,18 +1764,41 @@ func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (
 	})
 }
 
-func filter[T any](ss []T, test func(T) bool) (ret []T) {
-	for _, s := range ss {
-		if test(s) {
-			ret = append(ret, s)
+func filterSlice[S ~[]E, E any](slice S, filter func(int, E) bool) []E {
+	filteredSlice := make([]E, 0, len(slice))
+	for i, v := range slice {
+		if filter(i, v) {
+			filteredSlice = append(filteredSlice, v)
 		}
 	}
-	return
+	return slices.Clip(filteredSlice)
 }
 
+func mapSlice[S ~[]E, E, R any](slice S, mapper func(int, E) R) []R {
+	mappedSlice := make([]R, len(slice))
+	for i, v := range slice {
+		mappedSlice[i] = mapper(i, v)
+	}
+	return mappedSlice
+}
+
+type anys []any
+
+func (as anys) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+	for _, a := range as {
+		arr.AppendString(fmt.Sprintf("%p", a))
+	}
+	return nil
+}
+
+var operationID atomic.Int64
+
 func (s *SQLStore) scheduleOperationObject(objects []any, operationType OperationType, op func() (any, error)) *promise.Promise[any] {
-	// only keep
-	objects = filter(objects, func(a any) bool {
+	id := operationID.Add(1)
+	logger := s.logger.With(zap.Int64("op", id))
+
+	// only keep objects
+	objects = filterSlice(objects, func(index int, a any) bool {
 		switch a.(type) {
 		case EObject, EList, EMap:
 			return true
@@ -1776,9 +1806,12 @@ func (s *SQLStore) scheduleOperationObject(objects []any, operationType Operatio
 			return false
 		}
 	})
+
+	logger.Debug("schedule operation", zap.Array("locks", anys(objects)))
+
 	s.mutexOperations.Lock()
 	// compute previous operations
-	previous := []*promise.Promise[any]{}
+	previous := []*operation{}
 	for _, object := range objects {
 		operations := s.operations[object]
 		switch operationType {
@@ -1786,14 +1819,14 @@ func (s *SQLStore) scheduleOperationObject(objects []any, operationType Operatio
 			for i := len(operations) - 1; i >= 0; i-- {
 				operation := operations[i]
 				if operation.type_ == WriteOperation {
-					previous = append(previous, operation.promise_)
+					previous = append(previous, operation)
 					break
 				}
 			}
 		case WriteOperation:
 			for i := len(operations) - 1; i >= 0; i-- {
 				operation := operations[i]
-				previous = append(previous, operation.promise_)
+				previous = append(previous, operation)
 				if operation.type_ == WriteOperation {
 					break
 				}
@@ -1803,16 +1836,24 @@ func (s *SQLStore) scheduleOperationObject(objects []any, operationType Operatio
 
 	// create operation
 	operation := &operation{
+		id_:   id,
 		type_: operationType,
 		promise_: promise.New(func(resolve func(any), reject func(error)) {
 			// wait for all previous promises
 			if len(previous) > 0 {
-				_, err := promise.All(context.Background(), previous...).Await(context.Background())
+				if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
+					e.Write(zap.Int64s("ops", mapSlice(previous, func(index int, op *operation) int64 { return op.id_ })))
+				}
+				// compute promises
+				promises := mapSlice(previous, func(index int, op *operation) *promise.Promise[any] { return op.promise_ })
+				// wait for promises
+				_, err := promise.All(context.Background(), promises...).Await(context.Background())
 				if err != nil {
 					reject(err)
 					return
 				}
 			}
+			logger.Debug("execute operation")
 			result, err := op()
 			if err != nil {
 				reject(err)
@@ -1828,7 +1869,9 @@ func (s *SQLStore) scheduleOperationObject(objects []any, operationType Operatio
 	s.mutexOperations.Unlock()
 	// remove operation when finished with result or error
 	return promise.New(func(resolve func(any), reject func(error)) {
+		logger.Debug("waiting")
 		r, err := operation.promise_.Await(context.Background())
+		logger.Debug("cleaning")
 		s.mutexOperations.Lock()
 		for _, object := range objects {
 			operations := s.operations[object]

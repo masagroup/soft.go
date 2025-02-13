@@ -238,11 +238,11 @@ func (e *sqlEncoder) encodeContent(conn *sqlite.Conn, eObject EObject) error {
 	return e.executeQuery(conn, e.schema.contentsTable.insertQuery(), &sqlitex.ExecOptions{Args: []any{objectID}})
 }
 
-func Pointer(key string, ptr interface{}) zapcore.Field {
+func Pointer(key string, ptr any) zapcore.Field {
 	return zap.Stringer(key, ptrField{ptr})
 }
 
-type ptrField struct{ ptr interface{} }
+type ptrField struct{ ptr any }
 
 func (f ptrField) String() string {
 	return fmt.Sprintf("%p", f.ptr)

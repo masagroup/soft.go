@@ -147,9 +147,13 @@ func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 	}
 	if store := o.AsEStoreEObject().GetEStore(); store != nil {
 		eFeature := o.eDynamicFeature(dynamicFeatureID)
-		return awaitPromise[bool](o.scheduleOperation(ReadOperation, fmt.Sprintf("%v.IsSet(%s)", o.AsEObject(), eFeature.GetName()), func() (any, error) {
-			return store.IsSet(o.AsEObject(), eFeature), nil
-		}))
+		return awaitPromise[bool](o.scheduleOperation(
+			ReadOperation,
+			fmt.Sprintf("%v.IsSet(%s)", o.AsEObject(), eFeature.GetName()),
+			func() (any, error) {
+				return store.IsSet(o.AsEObject(), eFeature), nil
+			}),
+		)
 	}
 	return false
 }
@@ -175,9 +179,13 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 				properties = o.getProperties()
 			} else if store := o.AsEStoreEObject().GetEStore(); store != nil {
 				// feature is not transient and we have a store
-				result = awaitPromise[any](o.scheduleOperation(ReadOperation, fmt.Sprintf("%v.Get(%s)", o.AsEObject(), eFeature.GetName()), func() (any, error) {
-					return store.Get(o.AsEObject(), eFeature, NO_INDEX), nil
-				}))
+				result = awaitPromise[any](o.scheduleOperation(
+					ReadOperation,
+					fmt.Sprintf("%v.Get(%s)", o.AsEObject(), eFeature.GetName()),
+					func() (any, error) {
+						return store.Get(o.AsEObject(), eFeature, NO_INDEX), nil
+					}),
+				)
 				if o.cache {
 					properties = o.getProperties()
 				}
@@ -198,9 +206,13 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 	store := o.AsEStoreEObject().GetEStore()
 	if store != nil && !eFeature.IsTransient() {
 		// store and feature is not transient
-		o.scheduleOperation(WriteOperation, fmt.Sprintf("%v.Set(%s,%v)", o.AsEObject(), eFeature.GetName(), value), func() (any, error) {
-			return store.Set(o.AsEObject(), eFeature, NO_INDEX, value, false), nil
-		})
+		o.scheduleOperation(
+			WriteOperation,
+			fmt.Sprintf("%v.Set(%s,%v)", o.AsEObject(), eFeature.GetName(), value),
+			func() (any, error) {
+				return store.Set(o.AsEObject(), eFeature, NO_INDEX, value, false), nil
+			},
+		)
 		if o.cache {
 			properties = o.getProperties()
 		}

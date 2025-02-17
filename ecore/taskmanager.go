@@ -192,19 +192,19 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 	for _, object := range objects {
 		tasks := s.tasks[object]
 		switch operationType {
-		case ReadOperation:
+		case TaskRead:
 			for i := len(tasks) - 1; i >= 0; i-- {
 				operation := tasks[i]
-				if operation.type_ == WriteOperation {
+				if operation.type_ == TaskWrite {
 					previous = append(previous, operation)
 					break
 				}
 			}
-		case WriteOperation:
+		case TaskWrite:
 			for i := len(tasks) - 1; i >= 0; i-- {
 				operation := tasks[i]
 				previous = append(previous, operation)
-				if operation.type_ == WriteOperation {
+				if operation.type_ == TaskWrite {
 					break
 				}
 			}

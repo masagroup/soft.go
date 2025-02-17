@@ -10,10 +10,7 @@
 package ecore
 
 import (
-	"context"
 	"iter"
-
-	"github.com/chebyrash/promise"
 )
 
 type EStore interface {
@@ -58,20 +55,9 @@ type EStore interface {
 	ToArray(object EObject, feature EStructuralFeature) []any
 }
 
-type OperationType uint8
-
-const (
-	ReadOperation  = 1 << 0
-	WriteOperation = 1 << 1
-)
-
 type EStoreAsync interface {
 	EStore
-
-	ScheduleOperation(objects []any, operationType OperationType, desc string, operation func() (any, error)) *promise.Promise[any]
-
-	WaitOperations(context context.Context, object any) error
-
+	TaskManager
 	Close() error
 }
 

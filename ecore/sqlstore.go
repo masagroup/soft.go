@@ -5,18 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"iter"
-	"maps"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
-	"sync/atomic"
 
-	"github.com/chebyrash/promise"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"golang.org/x/sync/semaphore"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
@@ -419,16 +414,11 @@ func (r *sqlStoreIDManagerImpl) SetEnumLiteralID(e EEnumLiteral, id int64) {
 	r.sqlEncoderIDManagerImpl.enumLiterals[e] = id
 }
 
-type operation struct {
-	id_      int64
-	type_    OperationType
-	promise_ *promise.Promise[any]
-}
-
 type SQLStore struct {
 	*sqlBase
 	sqlDecoder
 	sqlEncoder
+	taskManager
 	pool                *sqlitex.Pool
 	errorHandler        func(error)
 	sqlIDManager        SQLStoreIDManager
@@ -436,8 +426,6 @@ type SQLStore struct {
 	manyQueries         map[*sqlTable]*sqlManyQueries
 	mutexQueries        sync.Mutex
 	connectionPoolClose func(conn *sqlitex.Pool) error
-	operations          map[any][]*operation
-	mutexOperations     sync.Mutex
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -616,13 +604,16 @@ func newSQLStore(
 			sqlObjectManager: sqlObjectManager,
 			sqlLockManager:   newSqlEncoderLockManager(),
 		},
+		taskManager: taskManager{
+			tasks:  map[any][]*task{},
+			logger: logger.Named("task-manager"),
+		},
 		pool:                pool,
 		sqlIDManager:        sqlIDManager,
 		errorHandler:        errorHandler,
 		singleQueries:       map[*sqlColumn]*sqlSingleQueries{},
 		manyQueries:         map[*sqlTable]*sqlManyQueries{},
 		connectionPoolClose: connectionPoolClose,
-		operations:          map[any][]*operation{},
 	}
 
 	// set store in sql object manager
@@ -1674,236 +1665,9 @@ func (s *SQLStore) Serialize(ctx context.Context) ([]byte, error) {
 }
 
 func (s *SQLStore) Close() error {
-	if err := s.WaitOperations(context.Background(), nil); err != nil {
+	if err := s.taskManager.Close(); err != nil {
 		return err
 	}
 
 	return s.connectionPoolClose(s.pool)
-}
-
-func (s *SQLStore) WaitOperations(context context.Context, object any) error {
-	logger := s.logger.Named("scheduler")
-	// compute operations to wait for
-	var allOperations []*operation
-	s.mutexOperations.Lock()
-	if object == nil {
-		allOperations = make([]*operation, 0)
-		for _, operations := range s.operations {
-			allOperations = append(allOperations, operations...)
-		}
-	} else {
-		allOperations = s.operations[object]
-	}
-	s.mutexOperations.Unlock()
-
-	// wait for operations to be finished
-	if len(allOperations) > 0 {
-		// debug
-		if e := logger.Check(zap.DebugLevel, "waiting operations"); e != nil {
-			e.Write(zap.Int64s("ops", mapSlice(allOperations, func(index int, op *operation) int64 { return op.id_ })))
-		}
-		// compute promises
-		allPromises := mapSlice(allOperations, func(index int, op *operation) *promise.Promise[any] { return op.promise_ })
-		// wait for promises
-		_, err := promise.All(context, allPromises...).Await(context)
-		if err != nil {
-			return err
-		}
-		logger.Debug("waiting operations finished")
-	}
-	return nil
-}
-
-func (s *SQLStore) ScheduleOperation(objects []any, operationType OperationType, desc string, op func() (any, error)) *promise.Promise[any] {
-	if objects == nil {
-		return s.scheduleOperationAll(operationType, desc, op)
-	} else {
-		return s.scheduleOperationObject(objects, operationType, desc, op)
-	}
-}
-
-func (s *SQLStore) scheduleOperationAll(operationType OperationType, desc string, op func() (any, error)) *promise.Promise[any] {
-	logger := s.logger.Named("scheduler")
-	logger.Debug("schedule exclusive access", zap.String("desc", desc))
-	return promise.New(func(resolve func(any), reject func(error)) {
-		s.mutexOperations.Lock()
-		objects := slices.Collect(maps.Keys(s.operations))
-		size := int64(len(objects))
-		s.mutexOperations.Unlock()
-
-		run := make(chan struct{})
-		locked := semaphore.NewWeighted(size)
-		if err := locked.Acquire(context.Background(), size); err != nil {
-			reject(err)
-			return
-		}
-
-		for _, object := range objects {
-			s.scheduleOperationObject([]any{object}, operationType, "exclusive", func() (any, error) {
-				// the object is locked
-				locked.Release(1)
-
-				// wait for the op to be run
-				<-run
-
-				return nil, nil
-			})
-		}
-
-		logger.Debug("waiting for exclusive access")
-
-		// wait for all tables to be locked
-		if err := locked.Acquire(context.Background(), size); err != nil {
-			reject(err)
-			return
-		}
-
-		// indicate all queries that operation is run
-		defer close(run)
-
-		logger.Debug("executing with exclusive access")
-		if result, err := op(); err != nil {
-			reject(err)
-		} else {
-			resolve(result)
-		}
-	})
-}
-
-func filterSlice[S ~[]E, E any](slice S, filter func(int, E) bool) []E {
-	filteredSlice := make([]E, 0, len(slice))
-	for i, v := range slice {
-		if filter(i, v) {
-			filteredSlice = append(filteredSlice, v)
-		}
-	}
-	return slices.Clip(filteredSlice)
-}
-
-func mapSlice[S ~[]E, E, R any](slice S, mapper func(int, E) R) []R {
-	mappedSlice := make([]R, len(slice))
-	for i, v := range slice {
-		mappedSlice[i] = mapper(i, v)
-	}
-	return mappedSlice
-}
-
-type anys []any
-
-func (as anys) MarshalLogArray(arr zapcore.ArrayEncoder) error {
-	for _, a := range as {
-		arr.AppendString(fmt.Sprintf("%p", a))
-	}
-	return nil
-}
-
-var operationID atomic.Int64
-
-func (s *SQLStore) scheduleOperationObject(objects []any, operationType OperationType, desc string, operationFn func() (any, error)) *promise.Promise[any] {
-	// create operation
-	op := &operation{
-		id_:   operationID.Add(1),
-		type_: operationType,
-	}
-
-	logger := s.logger.Named("scheduler").With(zap.Int64("op", op.id_))
-
-	// only keep objects
-	objects = filterSlice(objects, func(index int, a any) bool {
-		switch a.(type) {
-		case EObject, EList, EMap:
-			return true
-		default:
-			return false
-		}
-	})
-
-	logger.Debug("schedule operation", zap.Array("locks", anys(objects)), zap.String("desc", desc))
-
-	s.mutexOperations.Lock()
-	// compute previous operations
-	previous := []*operation{}
-	for _, object := range objects {
-		operations := s.operations[object]
-		switch operationType {
-		case ReadOperation:
-			for i := len(operations) - 1; i >= 0; i-- {
-				operation := operations[i]
-				if operation.type_ == WriteOperation {
-					previous = append(previous, operation)
-					break
-				}
-			}
-		case WriteOperation:
-			for i := len(operations) - 1; i >= 0; i-- {
-				operation := operations[i]
-				previous = append(previous, operation)
-				if operation.type_ == WriteOperation {
-					break
-				}
-			}
-		}
-	}
-
-	op.promise_ = promise.New(func(resolve func(any), reject func(error)) {
-		// wait for all previous promises
-		if len(previous) > 0 {
-			if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
-				e.Write(zap.Int64s("previous", mapSlice(previous, func(index int, op *operation) int64 { return op.id_ })))
-			}
-			// compute promises
-			promises := mapSlice(previous, func(index int, op *operation) *promise.Promise[any] { return op.promise_ })
-			// wait for promises
-			_, err := promise.All(context.Background(), promises...).Await(context.Background())
-			if err != nil {
-				logger.Error("error in previous operation", zap.Error(err))
-				reject(err)
-				return
-			}
-		}
-		logger.Debug("execute operation")
-		result, err := operationFn()
-
-		logger.Debug("cleaning operation")
-		s.mutexOperations.Lock()
-		defer s.mutexOperations.Unlock()
-		for _, object := range objects {
-			operations := s.operations[object]
-			// retrieve operation index
-			index := slices.Index(operations, op)
-			if index == -1 {
-				logger.Error("unable to find operation index")
-				reject(errors.New("unable to find operation index"))
-				return
-			}
-			// remove operation from collection
-			copy(operations[index:], operations[index+1:])
-			operations[len(operations)-1] = nil
-			operations = operations[:len(operations)-1]
-			if len(operations) == 0 {
-				// no more operations - remove object from map
-				delete(s.operations, object)
-			} else {
-				// set remaining operations
-				s.operations[object] = operations
-			}
-		}
-		logger.Debug("cleaned operation")
-		if len(s.operations) == 0 {
-			logger.Debug("no pending operations")
-		}
-
-		// operation result
-		if err != nil {
-			reject(err)
-		} else {
-			resolve(result)
-		}
-	})
-	// add operation
-	for _, object := range objects {
-		s.operations[object] = append(s.operations[object], op)
-	}
-	s.mutexOperations.Unlock()
-	return op.promise_
 }

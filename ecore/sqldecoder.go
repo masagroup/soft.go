@@ -806,6 +806,7 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 				codecVersion:    codecVersion,
 				uri:             resource.GetURI(),
 				objectIDManager: resource.GetObjectIDManager(),
+				sqliteManager:   newTaskManager(logger.Named("sqlite")),
 				logger:          logger,
 			},
 			packageRegistry:  packageRegistry,

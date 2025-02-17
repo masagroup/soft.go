@@ -1,7 +1,8 @@
 package ecore
 
 import (
-	"time"
+	"context"
+	"strings"
 
 	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
@@ -18,26 +19,40 @@ type sqlBase struct {
 	objectIDManager EObjectIDManager
 	isObjectID      bool
 	isContainerID   bool
+	sqliteManager   *taskManager
 	logger          *zap.Logger
 }
 
-func (d *sqlBase) executeSqlite(fn executeQueryFn, conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) (err error) {
-	start := time.Now()
-	defer func() {
-		args := []zap.Field{zap.String("query", query), zap.Duration("duration", time.Since(start))}
-		if opts != nil {
-			args = append(args, zap.Any("args", opts.Args))
-		}
-		if err != nil {
-			args = append(args, zap.Error(err))
-			d.logger.Named("sqlite").Error("execute query", args...)
-		} else {
-			d.logger.Named("sqlite").Debug("execute query", args...)
-		}
+func (d *sqlBase) executeSqlite(fn executeQueryFn, conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {
+	// retrieve task type
+	var taskType TaskType
+	switch operation, _, _ := strings.Cut(query, " "); operation {
+	case "SELECT":
+		taskType = TaskRead
+	default:
+		taskType = TaskWrite
+	}
 
-	}()
-	err = fn(conn, query, opts)
-	return
+	// schedule sqlite task :
+	// only one write to db is active
+	// multiple read to db is allowed
+	_, err := d.sqliteManager.ScheduleTask([]any{d}, taskType, query,
+		func() (res any, err error) {
+			args := []zap.Field{zap.String("query", query)}
+			if opts != nil {
+				args = append(args, zap.Any("args", opts.Args))
+			}
+
+			logger := d.logger.With(args...)
+			err = fn(conn, query, opts)
+			if err != nil {
+				logger.Error("execute query", zap.Error(err))
+			} else {
+				logger.Debug("execute query")
+			}
+			return
+		}).Await(context.Background())
+	return err
 }
 
 func (d *sqlBase) executeQuery(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {

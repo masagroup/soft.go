@@ -416,9 +416,9 @@ func (r *sqlStoreIDManagerImpl) SetEnumLiteralID(e EEnumLiteral, id int64) {
 
 type SQLStore struct {
 	*sqlBase
+	*taskManager
 	sqlDecoder
 	sqlEncoder
-	taskManager
 	pool                *sqlitex.Pool
 	errorHandler        func(error)
 	sqlIDManager        SQLStoreIDManager
@@ -582,6 +582,7 @@ func newSQLStore(
 		objectIDManager: idManager,
 		isContainerID:   true,
 		isObjectID:      len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
+		sqliteManager:   newTaskManager(logger.Named("sqlite")),
 		logger:          logger,
 	}
 
@@ -604,10 +605,7 @@ func newSQLStore(
 			sqlObjectManager: sqlObjectManager,
 			sqlLockManager:   newSqlEncoderLockManager(),
 		},
-		taskManager: taskManager{
-			tasks:  map[any][]*task{},
-			logger: logger.Named("task-manager"),
-		},
+		taskManager:         newTaskManager(logger.Named("task-manager")),
 		pool:                pool,
 		sqlIDManager:        sqlIDManager,
 		errorHandler:        errorHandler,

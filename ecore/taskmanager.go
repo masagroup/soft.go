@@ -40,32 +40,39 @@ type taskManager struct {
 	logger *zap.Logger
 }
 
+func newTaskManager(logger *zap.Logger) *taskManager {
+	return &taskManager{
+		tasks:  map[any][]*task{},
+		logger: logger,
+	}
+}
+
 func (s *taskManager) Close() error {
 	return s.WaitTasks(context.Background(), nil)
 }
 
 func (s *taskManager) WaitTasks(context context.Context, object any) error {
 	// compute tasks to wait for
-	var allOperations []*task
+	var allTasks []*task
 	s.mutex.Lock()
 	if object == nil {
-		allOperations = make([]*task, 0)
+		allTasks = make([]*task, 0)
 		for _, tasks := range s.tasks {
-			allOperations = append(allOperations, tasks...)
+			allTasks = append(allTasks, tasks...)
 		}
 	} else {
-		allOperations = s.tasks[object]
+		allTasks = s.tasks[object]
 	}
 	s.mutex.Unlock()
 
 	// wait for tasks to be finished
-	if len(allOperations) > 0 {
+	if len(allTasks) > 0 {
 		// debug
 		if e := s.logger.Check(zap.DebugLevel, "waiting tasks"); e != nil {
-			e.Write(zap.Int64s("ops", mapSlice(allOperations, func(index int, op *task) int64 { return op.id_ })))
+			e.Write(zap.Int64s("ops", mapSlice(allTasks, func(index int, op *task) int64 { return op.id_ })))
 		}
 		// compute promises
-		allPromises := mapSlice(allOperations, func(index int, op *task) *promise.Promise[any] { return op.promise_ })
+		allPromises := mapSlice(allTasks, func(index int, op *task) *promise.Promise[any] { return op.promise_ })
 		// wait for promises
 		_, err := promise.All(context, allPromises...).Await(context)
 		if err != nil {
@@ -78,13 +85,13 @@ func (s *taskManager) WaitTasks(context context.Context, object any) error {
 
 func (s *taskManager) ScheduleTask(objects []any, taskType TaskType, desc string, op func() (any, error)) *promise.Promise[any] {
 	if objects == nil {
-		return s.scheduleTaskAll(taskType, desc, op)
+		return s.scheduleTaskExclusive(taskType, desc, op)
 	} else {
 		return s.scheduleTaskObject(objects, taskType, desc, op)
 	}
 }
 
-func (s *taskManager) scheduleTaskAll(taskType TaskType, desc string, op func() (any, error)) *promise.Promise[any] {
+func (s *taskManager) scheduleTaskExclusive(taskType TaskType, desc string, op func() (any, error)) *promise.Promise[any] {
 	s.logger.Debug("schedule exclusive access", zap.String("desc", desc))
 	return promise.New(func(resolve func(any), reject func(error)) {
 		s.mutex.Lock()
@@ -177,7 +184,7 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 		}
 	})
 
-	s.logger.Debug("schedule operation", zap.Array("locks", anys(objects)), zap.String("desc", desc))
+	s.logger.Debug("schedule task", zap.Array("locks", anys(objects)), zap.String("desc", desc))
 
 	s.mutex.Lock()
 	// compute previous tasks
@@ -220,10 +227,10 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 				return
 			}
 		}
-		s.logger.Debug("execute operation")
+		s.logger.Debug("execute task")
 		result, err := operationFn()
 
-		s.logger.Debug("cleaning operation")
+		s.logger.Debug("cleaning task")
 		s.mutex.Lock()
 		defer s.mutex.Unlock()
 		for _, object := range objects {

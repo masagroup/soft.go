@@ -822,6 +822,7 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 				isContainerID:   isContainerID,
 				isObjectID:      isObjectID,
 				schema:          newSqlSchema(schemaOptions...),
+				sqliteManager:   newTaskManager(logger.Named("sqlite")),
 				logger:          logger,
 			},
 			isForced:         true,

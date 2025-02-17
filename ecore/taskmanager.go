@@ -222,7 +222,7 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 			// wait for promises
 			_, err := promise.All(context.Background(), promises...).Await(context.Background())
 			if err != nil {
-				s.logger.Error("error in previous operation", zap.Error(err))
+				s.logger.Error("error in previous task", zap.Error(err))
 				reject(err)
 				return
 			}
@@ -238,8 +238,8 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 			// retrieve operation index
 			index := slices.Index(tasks, op)
 			if index == -1 {
-				s.logger.Error("unable to find operation index")
-				reject(errors.New("unable to find operation index"))
+				s.logger.Error("unable to find task index")
+				reject(errors.New("unable to find task index"))
 				return
 			}
 			// remove operation from collection
@@ -254,7 +254,7 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 				s.tasks[object] = tasks
 			}
 		}
-		s.logger.Debug("cleaned operation")
+		s.logger.Debug("cleaned task")
 		if len(s.tasks) == 0 {
 			s.logger.Debug("no pending tasks")
 		}

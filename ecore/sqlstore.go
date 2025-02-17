@@ -605,7 +605,7 @@ func newSQLStore(
 			sqlObjectManager: sqlObjectManager,
 			sqlLockManager:   newSqlEncoderLockManager(),
 		},
-		taskManager:         newTaskManager(logger.Named("task-manager")),
+		taskManager:         newTaskManager(logger.Named("tasks")),
 		pool:                pool,
 		sqlIDManager:        sqlIDManager,
 		errorHandler:        errorHandler,
@@ -1335,7 +1335,7 @@ func (s *SQLStore) getInsertIdx(conn *sqlite.Conn, table *sqlTable, sqlID int64,
 		}
 		switch count {
 		case 0:
-			panic(fmt.Sprintf("invalid index in table %v for object %v : %v not in list bounds", index, table.name, sqlID))
+			return 0, 0, fmt.Errorf("invalid index in table %v for object %v : %v not in list bounds", table.name, sqlID, index)
 		case 1:
 			// at the end
 			return idx + 1, 1, nil

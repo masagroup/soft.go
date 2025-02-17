@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
@@ -239,16 +238,6 @@ func (e *sqlEncoder) encodeContent(conn *sqlite.Conn, eObject EObject) error {
 	return e.executeQuery(conn, e.schema.contentsTable.insertQuery(), &sqlitex.ExecOptions{Args: []any{objectID}})
 }
 
-func Pointer(key string, ptr any) zapcore.Field {
-	return zap.Stringer(key, ptrField{ptr})
-}
-
-type ptrField struct{ ptr any }
-
-func (f ptrField) String() string {
-	return fmt.Sprintf("%p", f.ptr)
-}
-
 func (e *sqlEncoder) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
 	// retrieve sql id for eObject
 	sqlID, isSQLID := e.sqlIDManager.GetObjectID(eObject)
@@ -280,8 +269,14 @@ func (e *sqlEncoder) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error)
 	return sqlID, nil
 }
 
+type ptrField struct{ ptr any }
+
+func (f ptrField) String() string {
+	return fmt.Sprintf("%p", f.ptr)
+}
+
 func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
-	logger := e.logger.Named("encoder").With(Pointer("object", eObject), zap.String("class", eObject.EClass().GetName()))
+	logger := e.logger.Named("encoder").With(zap.Stringer("object", ptrField{eObject}), zap.String("class", eObject.EClass().GetName()))
 	logger.Debug("object encode")
 	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
 	if !isSqlObjectID {

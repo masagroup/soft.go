@@ -12,18 +12,21 @@ import (
 type executeQueryFn func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error
 
 type sqlBase struct {
-	codecVersion    int64
-	schema          *sqlSchema
-	uri             *URI
-	objectIDName    string
-	objectIDManager EObjectIDManager
-	isObjectID      bool
-	isContainerID   bool
-	sqliteManager   *taskManager
-	logger          *zap.Logger
+	codecVersion     int64
+	schema           *sqlSchema
+	uri              *URI
+	objectIDName     string
+	objectIDManager  EObjectIDManager
+	isObjectID       bool
+	isContainerID    bool
+	sqliteManager    *taskManager
+	logger           *zap.Logger
+	connPool         *sqlitex.Pool
+	connPoolProvider func() (*sqlitex.Pool, error)
+	connPoolClose    func(conn *sqlitex.Pool) error
 }
 
-func (d *sqlBase) executeSqlite(fn executeQueryFn, conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {
+func (d *sqlBase) executeSqlite(fn executeQueryFn, query string, opts *sqlitex.ExecOptions) error {
 	// retrieve task type
 	var taskType TaskType
 	switch operation, _, _ := strings.Cut(query, " "); operation {
@@ -42,38 +45,41 @@ func (d *sqlBase) executeSqlite(fn executeQueryFn, conn *sqlite.Conn, query stri
 			if opts != nil {
 				args = append(args, zap.Any("args", opts.Args))
 			}
-
 			logger := d.logger.With(args...)
-			err = fn(conn, query, opts)
+			conn, err := d.connPool.Take(context.Background())
 			if err != nil {
+				return
+			}
+			if err = fn(conn, query, opts); err != nil {
 				logger.Error("execute query", zap.Error(err))
 			} else {
 				logger.Debug("execute query")
 			}
+			d.connPool.Put(conn)
 			return
 		}).Await(context.Background())
 	return err
 }
 
-func (d *sqlBase) executeQuery(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {
-	return d.executeSqlite(sqlitex.Execute, conn, query, opts)
+func (d *sqlBase) executeQuery(query string, opts *sqlitex.ExecOptions) error {
+	return d.executeSqlite(sqlitex.Execute, query, opts)
 }
 
-func (d *sqlBase) executeQueryTransient(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {
-	return d.executeSqlite(sqlitex.ExecuteTransient, conn, query, opts)
+func (d *sqlBase) executeQueryTransient(query string, opts *sqlitex.ExecOptions) error {
+	return d.executeSqlite(sqlitex.ExecuteTransient, query, opts)
 }
 
-func (d *sqlBase) executeQueryScript(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {
-	return d.executeSqlite(sqlitex.ExecuteScript, conn, query, opts)
+func (d *sqlBase) executeQueryScript(query string, opts *sqlitex.ExecOptions) error {
+	return d.executeSqlite(sqlitex.ExecuteScript, query, opts)
 }
 
-func (d *sqlBase) decodeProperties(conn *sqlite.Conn) (map[string]string, error) {
+func (d *sqlBase) decodeProperties() (map[string]string, error) {
 	// result
 	properties := map[string]string{}
 
 	// check if properties table exists
 	tableExists := false
-	if err := d.executeQuery(conn, `SELECT name FROM sqlite_master WHERE type='table' AND name='.properties';`, &sqlitex.ExecOptions{
+	if err := d.executeQuery(`SELECT name FROM sqlite_master WHERE type='table' AND name='.properties';`, &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			tableExists = true
 			return nil
@@ -86,7 +92,7 @@ func (d *sqlBase) decodeProperties(conn *sqlite.Conn) (map[string]string, error)
 	}
 
 	// retrieve properties from table
-	if err := d.executeQuery(conn, `SELECT key,value FROM ".properties" `, &sqlitex.ExecOptions{
+	if err := d.executeQuery(`SELECT key,value FROM ".properties" `, &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			key := stmt.ColumnText(0)
 			value := stmt.ColumnText(1)

@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -164,10 +165,10 @@ type sqlEncoder struct {
 	sqlLockManager   *sqlEncoderLockManager
 }
 
-func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
+func (e *sqlEncoder) encodeVersion() error {
 	if !e.isForced {
 		var version int64
-		if err := e.executeQueryTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
+		if err := e.executeQueryTransient("PRAGMA user_version;", &sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				version = stmt.ColumnInt64(0)
 				return nil
@@ -181,10 +182,10 @@ func (e *sqlEncoder) encodeVersion(conn *sqlite.Conn) error {
 		}
 	}
 	// encode
-	return e.executeQueryTransient(conn, fmt.Sprintf(`PRAGMA user_version = %v;`, e.codecVersion), nil)
+	return e.executeQueryTransient(fmt.Sprintf(`PRAGMA user_version = %v;`, e.codecVersion), nil)
 }
 
-func (e *sqlEncoder) encodeSchema(conn *sqlite.Conn) error {
+func (e *sqlEncoder) encodeSchema() error {
 	// tables
 	for _, table := range []*sqlTable{
 		e.schema.propertiesTable,
@@ -194,17 +195,17 @@ func (e *sqlEncoder) encodeSchema(conn *sqlite.Conn) error {
 		e.schema.contentsTable,
 		e.schema.enumsTable,
 	} {
-		if err := e.executeQueryScript(conn, table.createQuery(), nil); err != nil {
+		if err := e.executeQueryScript(table.createQuery(), nil); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) (err error) {
+func (e *sqlEncoder) encodeProperties() (err error) {
 	previous := map[string]string{}
 	if !e.isForced {
-		previous, err = e.decodeProperties(conn)
+		previous, err = e.decodeProperties()
 		if err != nil {
 			return err
 		}
@@ -220,7 +221,7 @@ func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) (err error) {
 	query := e.schema.propertiesTable.insertOrReplaceQuery()
 	for k, v := range properties {
 		if previous[k] != v {
-			if err := e.executeQuery(conn, query, &sqlitex.ExecOptions{
+			if err := e.executeQuery(query, &sqlitex.ExecOptions{
 				Args: []any{k, v},
 			}); err != nil {
 				return err
@@ -230,15 +231,15 @@ func (e *sqlEncoder) encodeProperties(conn *sqlite.Conn) (err error) {
 	return nil
 }
 
-func (e *sqlEncoder) encodeContent(conn *sqlite.Conn, eObject EObject) error {
-	objectID, err := e.encodeObject(conn, eObject)
+func (e *sqlEncoder) encodeContent(eObject EObject) error {
+	objectID, err := e.encodeObject(eObject)
 	if err != nil {
 		return err
 	}
-	return e.executeQuery(conn, e.schema.contentsTable.insertQuery(), &sqlitex.ExecOptions{Args: []any{objectID}})
+	return e.executeQuery(e.schema.contentsTable.insertQuery(), &sqlitex.ExecOptions{Args: []any{objectID}})
 }
 
-func (e *sqlEncoder) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
+func (e *sqlEncoder) getSQLID(eObject EObject) (int64, error) {
 	// retrieve sql id for eObject
 	sqlID, isSQLID := e.sqlIDManager.GetObjectID(eObject)
 	if !isSQLID {
@@ -246,7 +247,6 @@ func (e *sqlEncoder) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error)
 		objectExists := false
 		if sqlID != 0 && e.isObjectExists {
 			if err := e.executeQuery(
-				conn,
 				`SELECT objectID FROM ".objects" WHERE objectID=?`,
 				&sqlitex.ExecOptions{
 					Args: []any{sqlID},
@@ -263,7 +263,7 @@ func (e *sqlEncoder) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error)
 			e.sqlIDManager.SetObjectID(eObject, sqlID)
 		} else {
 			// object doesn't exists in db - encode it with encoder
-			return e.encodeObject(conn, eObject)
+			return e.encodeObject(eObject)
 		}
 	}
 	return sqlID, nil
@@ -275,7 +275,7 @@ func (f ptrField) String() string {
 	return fmt.Sprintf("%p", f.ptr)
 }
 
-func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64, err error) {
+func (e *sqlEncoder) encodeObject(eObject EObject) (id int64, err error) {
 	logger := e.logger.Named("encoder").With(zap.Stringer("object", ptrField{eObject}), zap.String("class", eObject.EClass().GetName()))
 	logger.Debug("object encode")
 	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
@@ -292,12 +292,9 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 
 		logger.Debug("object encoding")
 
-		// encode object
-		defer sqlitex.Save(conn)(&err)
-
 		// encode object class
 		eClass := eObject.EClass()
-		classData, err := e.encodeClass(conn, eClass)
+		classData, err := e.encodeClass(eClass)
 		if err != nil {
 			return -1, fmt.Errorf("getData('%s') error : %w", eClass.GetName(), err)
 		}
@@ -315,7 +312,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 		// container and container feature id
 		if e.isContainerID {
 			if container := eObject.EContainer(); container != nil {
-				containerID, err := e.getSQLID(conn, container)
+				containerID, err := e.getSQLID(container)
 				if err != nil {
 					return -1, err
 				}
@@ -333,16 +330,17 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 
 		// query
 		if err := e.executeQuery(
-			conn,
 			e.schema.objectsTable.insertQuery(),
-			&sqlitex.ExecOptions{Args: args}); err != nil {
+			&sqlitex.ExecOptions{
+				Args: args,
+				ResultFunc: func(stmt *sqlite.Stmt) error {
+					if sqlObjectID == 0 {
+						sqlObjectID = stmt.ColumnInt64(0)
+					}
+					return nil
+				},
+			}); err != nil {
 			return -1, err
-		}
-
-		if sqlObjectID == 0 {
-			// if object id not defined, retrieve it
-			// as the last insert row id
-			sqlObjectID = conn.LastInsertRowID()
 		}
 
 		// register object in registry
@@ -350,7 +348,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 
 		// for all object hierarchy classes
 		for _, eClass := range classData.hierarchy {
-			classData, err := e.getEncoderClassData(conn, eClass)
+			classData, err := e.getEncoderClassData(eClass)
 			if err != nil {
 				return -1, err
 			}
@@ -365,7 +363,7 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 					featureData := itFeature.Value()
 					if featureColumn := featureData.schema.column; featureColumn != nil {
 						featureValue := eObject.EGetResolve(eFeature, false)
-						columnValue, err := e.encodeFeatureValue(conn, featureData, featureValue)
+						columnValue, err := e.encodeFeatureValue(featureData, featureValue)
 						if err != nil {
 							return -1, err
 						}
@@ -381,12 +379,11 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 						index := 1.0
 						for itList := featureList.Iterator(); itList.HasNext(); {
 							value := itList.Next()
-							converted, err := e.encodeFeatureValue(conn, featureData, value)
+							converted, err := e.encodeFeatureValue(featureData, value)
 							if err != nil {
 								return -1, err
 							}
 							if err := e.executeQuery(
-								conn,
 								featureTable.insertQuery(),
 								&sqlitex.ExecOptions{Args: []any{sqlObjectID, index, converted}},
 							); err != nil {
@@ -400,7 +397,6 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 
 			// insert new row in class column
 			if err := e.executeQuery(
-				conn,
 				classTable.insertQuery(),
 				&sqlitex.ExecOptions{
 					Args: columnValues,
@@ -417,12 +413,12 @@ func (e *sqlEncoder) encodeObject(conn *sqlite.Conn, eObject EObject) (id int64,
 	return sqlObjectID, nil
 }
 
-func (e *sqlEncoder) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
+func (e *sqlEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
 	if value != nil {
 		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:
 			eObject := value.(EObject)
-			return e.encodeObject(conn, eObject)
+			return e.encodeObject(eObject)
 		case sfkObjectReference, sfkObjectReferenceList:
 			eObject := value.(EObject)
 			sqlID, _ := e.sqlIDManager.GetObjectID(eObject)
@@ -440,7 +436,7 @@ func (e *sqlEncoder) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncod
 			if eEnumLiteral == nil {
 				return nil, fmt.Errorf("unable to find enum literal in enmu '%s' with value '%v'", eEnum.GetName(), literal)
 			}
-			return e.encodeEnumLiteral(conn, eEnumLiteral)
+			return e.encodeEnumLiteral(eEnumLiteral)
 		case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64, sfkString, sfkByteArray, sfkFloat32, sfkFloat64:
 			return value, nil
 		case sfkDate:
@@ -453,7 +449,7 @@ func (e *sqlEncoder) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncod
 	return nil, nil
 }
 
-func (e *sqlEncoder) encodeEnumLiteral(conn *sqlite.Conn, eEnumLiteral EEnumLiteral) (any, error) {
+func (e *sqlEncoder) encodeEnumLiteral(eEnumLiteral EEnumLiteral) (any, error) {
 	// lock class data
 	e.sqlLockManager.lock(eEnumLiteral)
 	defer e.sqlLockManager.unlock(eEnumLiteral)
@@ -463,7 +459,7 @@ func (e *sqlEncoder) encodeEnumLiteral(conn *sqlite.Conn, eEnumLiteral EEnumLite
 	} else {
 		eEnum := eEnumLiteral.GetEEnum()
 		ePackage := eEnum.GetEPackage()
-		packageID, err := e.encodePackage(conn, ePackage)
+		packageID, err := e.encodePackage(ePackage)
 		if err != nil {
 			return nil, err
 		}
@@ -478,15 +474,17 @@ func (e *sqlEncoder) encodeEnumLiteral(conn *sqlite.Conn, eEnumLiteral EEnumLite
 		args = append(args, packageID, eEnum.GetName(), eEnumLiteral.GetLiteral())
 
 		// insert enum
-		if err := e.executeQuery(conn, e.schema.enumsTable.insertQuery(), &sqlitex.ExecOptions{
-			Args: args,
-		}); err != nil {
+		if err := e.executeQuery(e.schema.enumsTable.insertQuery(),
+			&sqlitex.ExecOptions{
+				Args: args,
+				ResultFunc: func(stmt *sqlite.Stmt) error {
+					if enumLiteralID == 0 {
+						enumLiteralID = stmt.ColumnInt64(0)
+					}
+					return nil
+				},
+			}); err != nil {
 			return nil, err
-		}
-
-		if enumLiteralID == 0 {
-			// retrieve enum index if not defined
-			enumLiteralID = conn.LastInsertRowID()
 		}
 
 		// register enum literal
@@ -496,12 +494,12 @@ func (e *sqlEncoder) encodeEnumLiteral(conn *sqlite.Conn, eEnumLiteral EEnumLite
 	}
 }
 
-func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
+func (e *sqlEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
 	logger := e.logger.Named("encoder").With(zap.String("class", eClass.GetName()))
 	logger.Debug("class encode")
 
 	// retrieve class data
-	classData, err := e.getEncoderClassData(conn, eClass)
+	classData, err := e.getEncoderClassData(eClass)
 	if err != nil {
 		return nil, err
 	}
@@ -528,7 +526,7 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 
 			// encode package
 			ePackage := eClass.GetEPackage()
-			packageID, err := e.encodePackage(conn, ePackage)
+			packageID, err := e.encodePackage(ePackage)
 			if err != nil {
 				return nil, err
 			}
@@ -543,15 +541,16 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 			args = append(args, packageID, eClass.GetName())
 
 			// insert new class
-			if err := e.executeQuery(conn, e.schema.classesTable.insertQuery(), &sqlitex.ExecOptions{
+			if err := e.executeQuery(e.schema.classesTable.insertQuery(), &sqlitex.ExecOptions{
 				Args: args,
+				ResultFunc: func(stmt *sqlite.Stmt) error {
+					if classID == 0 {
+						classID = stmt.ColumnInt64(0)
+					}
+					return nil
+				},
 			}); err != nil {
 				return nil, err
-			}
-
-			if classID == 0 {
-				// retrieve class id
-				classID = conn.LastInsertRowID()
 			}
 
 			// set class data id
@@ -565,7 +564,7 @@ func (e *sqlEncoder) encodeClass(conn *sqlite.Conn, eClass EClass) (*sqlEncoderC
 	return classData, nil
 }
 
-func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sqlEncoderClassData, error) {
+func (e *sqlEncoder) getEncoderClassData(eClass EClass) (*sqlEncoderClassData, error) {
 	logger := e.logger.Named("encoder").With(zap.String("class", eClass.GetName()))
 
 	// lock class
@@ -579,7 +578,7 @@ func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sql
 		// compute class data for super types
 		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 			eClass := itClass.Next().(EClass)
-			_, err := e.getEncoderClassData(conn, eClass)
+			_, err := e.getEncoderClassData(eClass)
 			if err != nil {
 				return nil, err
 			}
@@ -595,7 +594,7 @@ func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sql
 		}
 
 		// create class tables
-		if err := e.executeQueryScript(conn, classSchema.table.createQuery(), nil); err != nil {
+		if err := e.executeQueryScript(classSchema.table.createQuery(), nil); err != nil {
 			return nil, err
 		}
 
@@ -607,7 +606,7 @@ func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sql
 
 			// create feature table if any
 			if table := featureSchema.table; table != nil {
-				if err := e.executeQueryScript(conn, table.createQuery(), nil); err != nil {
+				if err := e.executeQueryScript(table.createQuery(), nil); err != nil {
 					return nil, err
 				}
 			}
@@ -638,7 +637,7 @@ func (e *sqlEncoder) getEncoderClassData(conn *sqlite.Conn, eClass EClass) (*sql
 	return classData, nil
 }
 
-func (e *sqlEncoder) encodePackage(conn *sqlite.Conn, ePackage EPackage) (int64, error) {
+func (e *sqlEncoder) encodePackage(ePackage EPackage) (int64, error) {
 	e.sqlLockManager.lock(ePackage)
 	defer e.sqlLockManager.unlock(ePackage)
 
@@ -654,15 +653,16 @@ func (e *sqlEncoder) encodePackage(conn *sqlite.Conn, ePackage EPackage) (int64,
 		args = append(args, ePackage.GetNsURI())
 
 		// query
-		if err := e.executeQuery(conn, e.schema.packagesTable.insertQuery(), &sqlitex.ExecOptions{
+		if err := e.executeQuery(e.schema.packagesTable.insertQuery(), &sqlitex.ExecOptions{
 			Args: args,
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				if packageID == 0 {
+					packageID = stmt.ColumnInt64(0)
+				}
+				return nil
+			},
 		}); err != nil {
 			return -1, err
-		}
-
-		if packageID == 0 {
-			// retrieve package index
-			packageID = conn.LastInsertRowID()
 		}
 
 		// set package id
@@ -673,9 +673,7 @@ func (e *sqlEncoder) encodePackage(conn *sqlite.Conn, ePackage EPackage) (int64,
 
 type SQLEncoder struct {
 	sqlEncoder
-	resource     EResource
-	connProvider func() (*sqlite.Conn, error)
-	connClose    func(conn *sqlite.Conn) error
+	resource EResource
 }
 
 func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any) *SQLEncoder {
@@ -685,10 +683,24 @@ func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any
 	}
 	if inMemoryDatabase {
 		return newSQLEncoder(
-			func() (*sqlite.Conn, error) {
-				return sqlite.OpenConn(":memory:", sqlite.OpenReadWrite|sqlite.OpenCreate)
+			func() (*sqlitex.Pool, error) {
+				return sqlitex.NewPool("file::memory:?mode=memory&cache=shared", sqlitex.PoolOptions{Flags: sqlite.OpenReadWrite | sqlite.OpenCreate | sqlite.OpenURI})
 			},
-			func(conn *sqlite.Conn) error {
+			func(connPool *sqlitex.Pool) (err error) {
+				// close pool
+				defer func() {
+					if err2 := connPool.Close(); err2 != nil && err == nil {
+						err = err2
+					}
+				}()
+
+				// open connection
+				conn, err := connPool.Take(context.Background())
+				if err != nil {
+					return
+				}
+				defer connPool.Put(conn)
+
 				// save bytes
 				bytes, err := conn.Serialize("")
 				if err != nil {
@@ -701,11 +713,6 @@ func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any
 
 				// write bytes to writer
 				if _, err := w.Write(bytes); err != nil {
-					return err
-				}
-
-				// close db
-				if err := conn.Close(); err != nil {
 					return err
 				}
 
@@ -722,12 +729,12 @@ func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any
 			return nil
 		}
 		return newSQLEncoder(
-			func() (*sqlite.Conn, error) {
-				return sqlite.OpenConn(dbPath, sqlite.OpenReadWrite|sqlite.OpenCreate|sqlite.OpenWAL)
+			func() (*sqlitex.Pool, error) {
+				return sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenReadWrite | sqlite.OpenCreate | sqlite.OpenWAL})
 			},
-			func(conn *sqlite.Conn) error {
+			func(connPool *sqlitex.Pool) error {
 				// close db
-				if err := conn.Close(); err != nil {
+				if err := connPool.Close(); err != nil {
 					return err
 				}
 
@@ -763,15 +770,15 @@ func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any
 	}
 }
 
-func NewSQLDBEncoder(conn *sqlite.Conn, resource EResource, options map[string]any) *SQLEncoder {
+func NewSQLDBEncoder(connPool *sqlitex.Pool, resource EResource, options map[string]any) *SQLEncoder {
 	return newSQLEncoder(
-		func() (*sqlite.Conn, error) { return conn, nil },
-		func(conn *sqlite.Conn) error { return nil },
+		func() (*sqlitex.Pool, error) { return connPool, nil },
+		func(conn *sqlitex.Pool) error { return nil },
 		resource,
 		options)
 }
 
-func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(conn *sqlite.Conn) error, resource EResource, options map[string]any) *SQLEncoder {
+func newSQLEncoder(connectionPoolProvider func() (*sqlitex.Pool, error), connectionPoolClose func(conn *sqlitex.Pool) error, resource EResource, options map[string]any) *SQLEncoder {
 	// options
 	schemaOptions := []sqlSchemaOption{}
 	objectIDName := ""
@@ -810,15 +817,17 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 	return &SQLEncoder{
 		sqlEncoder: sqlEncoder{
 			sqlBase: &sqlBase{
-				codecVersion:    codecVersion,
-				uri:             resource.GetURI(),
-				objectIDManager: objectIDManager,
-				objectIDName:    objectIDName,
-				isContainerID:   isContainerID,
-				isObjectID:      isObjectID,
-				schema:          newSqlSchema(schemaOptions...),
-				sqliteManager:   newTaskManager(logger.Named("sqlite")),
-				logger:          logger,
+				codecVersion:     codecVersion,
+				uri:              resource.GetURI(),
+				objectIDManager:  objectIDManager,
+				objectIDName:     objectIDName,
+				isContainerID:    isContainerID,
+				isObjectID:       isObjectID,
+				schema:           newSqlSchema(schemaOptions...),
+				sqliteManager:    newTaskManager(logger.Named("sqlite")),
+				logger:           logger,
+				connPoolProvider: connectionPoolProvider,
+				connPoolClose:    connectionPoolClose,
 			},
 			isForced:         true,
 			isKeepDefaults:   isKeepDefaults,
@@ -827,38 +836,33 @@ func newSQLEncoder(connProvider func() (*sqlite.Conn, error), connClose func(con
 			sqlObjectManager: newSqlEncoderObjectManager(),
 			sqlLockManager:   newSqlEncoderLockManager(),
 		},
-		resource:     resource,
-		connProvider: connProvider,
-		connClose:    connClose,
+		resource: resource,
 	}
 }
 
 func (e *SQLEncoder) EncodeResource() {
-	// create conn
-	// open conn
-	conn, err := e.connProvider()
-	if err != nil {
+	var err error
+	if e.connPool, err = e.connPoolProvider(); err != nil {
 		e.addError(err)
 		return
 	}
 	defer func() {
-		err = e.connClose(conn)
-		if err != nil {
+		if err := e.connPoolClose(e.connPool); err != nil {
 			e.addError(err)
 		}
 	}()
 
-	if err := e.encodeVersion(conn); err != nil {
+	if err := e.encodeVersion(); err != nil {
 		e.addError(err)
 		return
 	}
 
-	if err := e.encodeSchema(conn); err != nil {
+	if err := e.encodeSchema(); err != nil {
 		e.addError(err)
 		return
 	}
 
-	if err := e.encodeProperties(conn); err != nil {
+	if err := e.encodeProperties(); err != nil {
 		e.addError(err)
 		return
 	}
@@ -866,7 +870,7 @@ func (e *SQLEncoder) EncodeResource() {
 	// encode contents into db
 	if contents := e.resource.GetContents(); !contents.Empty() {
 		object := contents.Get(0).(EObject)
-		if err := e.encodeContent(conn, object); err != nil {
+		if err := e.encodeContent(object); err != nil {
 			e.addError(err)
 			return
 		}

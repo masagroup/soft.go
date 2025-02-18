@@ -214,7 +214,12 @@ func (t *sqlTable) insertQuery() string {
 		}
 		tableQuery.WriteString("?")
 	}
-	tableQuery.WriteString(")")
+	tableQuery.WriteString(") RETURNING ")
+	if t.key != nil {
+		tableQuery.WriteString(sqlEscapeIdentifier(t.key.columnName))
+	} else {
+		tableQuery.WriteString("rowid")
+	}
 	return tableQuery.String()
 }
 

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/chebyrash/promise"
+	"github.com/panjf2000/ants/v2"
 	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -22,6 +23,7 @@ type sqlBase struct {
 	isContainerID    bool
 	sqliteManager    *taskManager
 	logger           *zap.Logger
+	antsPool         *ants.Pool
 	promisePool      promise.Pool
 	connPool         *sqlitex.Pool
 	connPoolProvider func() (*sqlitex.Pool, error)

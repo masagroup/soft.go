@@ -802,6 +802,7 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 				objectIDManager:  resource.GetObjectIDManager(),
 				sqliteManager:    newTaskManager(promisePool, logger.Named("sqlite")),
 				logger:           logger,
+				antsPool:         antsPool,
 				promisePool:      promisePool,
 				connPoolProvider: connectionPoolProvider,
 				connPoolClose:    connectionPoolClose,
@@ -825,6 +826,8 @@ func (d *SQLDecoder) DecodeResource() {
 		if err := d.connPoolClose(d.connPool); err != nil {
 			d.addError(err)
 		}
+
+		d.antsPool.Release()
 	}()
 
 	if err := d.decodeVersion(); err != nil {

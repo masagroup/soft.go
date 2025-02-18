@@ -832,6 +832,7 @@ func newSQLEncoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 				schema:           newSqlSchema(schemaOptions...),
 				sqliteManager:    newTaskManager(promisePool, logger.Named("sqlite")),
 				logger:           logger,
+				antsPool:         antsPool,
 				promisePool:      promisePool,
 				connPoolProvider: connectionPoolProvider,
 				connPoolClose:    connectionPoolClose,
@@ -857,6 +858,8 @@ func (e *SQLEncoder) EncodeResource() {
 		if err := e.connPoolClose(e.connPool); err != nil {
 			e.addError(err)
 		}
+
+		e.antsPool.Release()
 	}()
 
 	if err := e.encodeVersion(); err != nil {

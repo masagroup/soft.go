@@ -588,6 +588,7 @@ func newSQLStore(
 		isObjectID:       len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
 		sqliteManager:    newTaskManager(promisePool, logger.Named("sqlite")),
 		logger:           logger,
+		antsPool:         antsPool,
 		promisePool:      promisePool,
 		connPool:         connPool,
 		connPoolProvider: connectionPoolProvider,
@@ -1514,5 +1515,11 @@ func (s *SQLStore) Close() error {
 		return err
 	}
 
-	return s.connPoolClose(s.connPool)
+	if err := s.connPoolClose(s.connPool); err != nil {
+		return err
+	}
+
+	s.antsPool.Release()
+
+	return nil
 }

@@ -224,7 +224,7 @@ func (list *EStoreList) performAdd(object any) {
 		operation := list.scheduleTask(
 			[]any{list.asEList(), object},
 			TaskWrite,
-			fmt.Sprintf("EStoreList(%p).Add(%v)", list.asEList(), object),
+			fmt.Sprintf("%v.%s(%p).Add(%d,%v)", list.owner, list.feature.GetName(), list.asEList(), index, object),
 			func() (any, error) {
 				list.store.Add(list.owner, list.feature, index, object)
 				return nil, nil
@@ -251,7 +251,7 @@ func (list *EStoreList) performAddAll(c Collection) {
 		operation := list.scheduleTask(
 			append([]any{list.asEList()}, c.ToArray()...),
 			TaskWrite,
-			fmt.Sprintf("EStoreList(%p).AddAll(%v)", list.asEList(), c),
+			fmt.Sprintf("%v.%s(%p).AddAll(%v)", list.owner, list.feature.GetName(), list.asEList(), c),
 			func() (any, error) {
 				list.store.AddAll(list.owner, list.feature, index, c)
 				return nil, nil
@@ -275,7 +275,7 @@ func (list *EStoreList) performInsert(index int, object any) {
 		operation := list.scheduleTask(
 			[]any{list.asEList(), object},
 			TaskWrite,
-			fmt.Sprintf("EStoreList(%p).Insert(%v,%v)", list.asEList(), index, object),
+			fmt.Sprintf("%v.%s(%p).Insert(%v,%v)", list.owner, list.feature.GetName(), list.asEList(), index, object),
 			func() (any, error) {
 				list.store.Add(list.owner, list.feature, index, object)
 				return nil, nil
@@ -301,7 +301,7 @@ func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 		operation := list.scheduleTask(
 			append([]any{list.asEList()}, c.ToArray()...),
 			TaskWrite,
-			fmt.Sprintf("EStoreList(%p).Insert(%v,%v)", list.asEList(), index, c),
+			fmt.Sprintf("%v.%s(%p).Insert(%v,%v)", list.owner, list.feature.GetName(), list.asEList(), index, c),
 			func() (any, error) {
 				list.store.AddAll(list.owner, list.feature, index, c)
 				return true, nil
@@ -329,7 +329,7 @@ func (list *EStoreList) performClear() []any {
 		operation := list.scheduleTask(
 			[]any{list.asEList()},
 			TaskWrite,
-			fmt.Sprintf("EStoreList(%p).Clear()", list.asEList()),
+			fmt.Sprintf("%v.%s(%p).Clear()", list.owner, list.feature.GetName(), list.asEList()),
 			func() (any, error) {
 				var result []any
 				if needResult {
@@ -359,7 +359,7 @@ func (list *EStoreList) performRemove(index int) any {
 		operation := list.scheduleTask(
 			[]any{list.asEList()},
 			TaskWrite,
-			fmt.Sprintf("EStoreList(%p).Remove(%v)", list.asEList(), index),
+			fmt.Sprintf("%v.%s(%p).Remove(%v)", list.owner, list.feature.GetName(), list.asEList(), index),
 			func() (any, error) {
 				return list.store.Remove(list.owner, list.feature, index), nil
 			},
@@ -382,7 +382,7 @@ func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
 		operation := list.scheduleTask(
 			[]any{list.asEList()},
 			TaskWrite,
-			fmt.Sprintf("EStoreList(%p).RemoveRange(%v,%v)", list.asEList(), fromIndex, toIndex),
+			fmt.Sprintf("%v.%s(%p).RemoveRange(%v,%v)", list.owner, list.feature.GetName(), list.asEList(), fromIndex, toIndex),
 			func() (any, error) {
 				var objects []any
 				for i := fromIndex; i < toIndex; i++ {
@@ -410,7 +410,7 @@ func (list *EStoreList) performSet(index int, object any) any {
 		operation := list.scheduleTask(
 			[]any{list.asEList(), object},
 			TaskWrite,
-			fmt.Sprintf("EStoreList(%p).Set(%v,%v)", list.asEList(), index, object),
+			fmt.Sprintf("%v.%s(%p).Set(%v,%v)", list.owner, list.feature.GetName(), list.asEList(), index, object),
 			func() (any, error) {
 				return list.store.Set(list.owner, list.feature, index, object, oldValue), nil
 			},
@@ -431,7 +431,7 @@ func (list *EStoreList) performMove(oldIndex, newIndex int) any {
 		operation := list.scheduleTask(
 			[]any{list.asEList()},
 			TaskWrite,
-			fmt.Sprintf("EStoreList(%p).Move(%v,%v)", list.asEList(), oldIndex, newIndex),
+			fmt.Sprintf("%v.%s(%p).Move(%v,%v)", list.owner, list.feature.GetName(), list.asEList(), oldIndex, newIndex),
 			func() (any, error) {
 				return list.store.Move(list.owner, list.feature, oldIndex, newIndex), nil
 			},
@@ -454,7 +454,7 @@ func (list *EStoreList) get(index int) any {
 		operation := list.scheduleTask(
 			[]any{list.asEList()},
 			TaskRead,
-			fmt.Sprintf("EStoreList(%p).Get(%v)", list.asEList(), index),
+			fmt.Sprintf("%v.%s(%p).Get(%v)", list.owner, list.feature.GetName(), list.asEList(), index),
 			func() (any, error) {
 				return list.store.Get(list.owner, list.feature, index), nil
 			},

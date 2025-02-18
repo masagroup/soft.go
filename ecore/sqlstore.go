@@ -13,6 +13,7 @@ import (
 
 	"github.com/chebyrash/promise"
 	"github.com/panjf2000/ants/v2"
+	"github.com/petermattis/goid"
 	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -767,6 +768,11 @@ func (s *SQLStore) getSQLID(eObject EObject) (int64, error) {
 }
 
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
+	s.sqlBase.logger.Named("ops").Debug("Get",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+		zap.Int("index", index))
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -812,6 +818,14 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 }
 
 func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any, isOldValue bool) (oldValue any) {
+	s.sqlBase.logger.Named("ops").Debug("Set",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+		zap.Int("index", index),
+		zap.Any("value", value),
+	)
+
 	// get object sql id
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
@@ -857,6 +871,12 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 }
 
 func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
+	s.sqlBase.logger.Named("ops").Debug("IsSet",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+	)
+
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -899,6 +919,12 @@ func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 }
 
 func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
+	s.sqlBase.logger.Named("ops").Debug("UnSet",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+	)
+
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -926,6 +952,12 @@ func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
 }
 
 func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
+	s.sqlBase.logger.Named("ops").Debug("IsEmpty",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+	)
+
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -955,6 +987,12 @@ func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
 }
 
 func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
+	s.sqlBase.logger.Named("ops").Debug("Size",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+	)
+
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -983,6 +1021,13 @@ func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
 }
 
 func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value any) bool {
+	s.sqlBase.logger.Named("ops").Debug("Contains",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+		zap.Any("value", value),
+	)
+
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -1073,12 +1118,26 @@ func (s *SQLStore) indexOf(object EObject, feature EStructuralFeature, value any
 }
 
 func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
+	s.sqlBase.logger.Named("ops").Debug("IndexOf",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+		zap.Any("value", value),
+	)
+
 	return s.indexOf(object, feature, value, func(sms *sqlManyQueries) string {
 		return sms.getIndexOfQuery()
 	})
 }
 
 func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {
+	s.sqlBase.logger.Named("ops").Debug("LastIndexOf",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+		zap.Any("value", value),
+	)
+
 	return s.indexOf(object, feature, value, func(sms *sqlManyQueries) string {
 		return sms.getLastIndexOfQuery()
 	})
@@ -1121,6 +1180,14 @@ func (s *SQLStore) UnRegister(object EObject) {
 }
 
 func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, value any) {
+	s.sqlBase.logger.Named("ops").Debug("Add",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+		zap.Int("index", index),
+		zap.Any("value", value),
+	)
+
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -1151,6 +1218,13 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 }
 
 func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int, c Collection) {
+	s.sqlBase.logger.Named("ops").Debug("AddAll",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+		zap.Int("index", index),
+	)
+
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -1242,6 +1316,13 @@ func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int, nb int)
 }
 
 func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int) any {
+	s.sqlBase.logger.Named("ops").Debug("Remove",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+		zap.Int("index", index),
+	)
+
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -1277,6 +1358,14 @@ func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int)
 }
 
 func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int) any {
+	s.sqlBase.logger.Named("ops").Debug("Move",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+		zap.Int("sourceIndex", sourceIndex),
+		zap.Int("targetIndex", targetIndex),
+	)
+
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -1324,6 +1413,12 @@ func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex 
 }
 
 func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
+	s.sqlBase.logger.Named("ops").Debug("Clear",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+	)
+
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -1344,6 +1439,11 @@ func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
 }
 
 func (s *SQLStore) GetContainer(object EObject) (container EObject, feature EStructuralFeature) {
+	s.sqlBase.logger.Named("ops").Debug("GetContainer",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+	)
+
 	sqlID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -1393,6 +1493,11 @@ func (s *SQLStore) GetContainer(object EObject) (container EObject, feature EStr
 }
 
 func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStructuralFeature) {
+	s.sqlBase.logger.Named("ops").Debug("SetContainer",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+	)
+
 	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
@@ -1423,6 +1528,12 @@ func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStru
 }
 
 func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any] {
+	s.sqlBase.logger.Named("ops").Debug("SetContainer",
+		zap.Int64("goid", goid.Get()),
+		zap.Stringer("object", object.(fmt.Stringer)),
+		zap.String("feature", feature.GetName()),
+	)
+
 	return func(yield func(any) bool) {
 		interrupted := errors.New("interrupted")
 		sqlID, err := s.getSQLID(object)
@@ -1463,6 +1574,10 @@ func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 }
 
 func (s *SQLStore) Serialize(ctx context.Context) ([]byte, error) {
+	s.sqlBase.logger.Named("ops").Debug("Serialize",
+		zap.Int64("goid", goid.Get()),
+	)
+
 	// retrieve database size
 	var dbSize int64
 	if err := s.executeQueryTransient("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size();", &sqlitex.ExecOptions{
@@ -1511,6 +1626,10 @@ func (s *SQLStore) Serialize(ctx context.Context) ([]byte, error) {
 }
 
 func (s *SQLStore) Close() error {
+	s.sqlBase.logger.Named("ops").Debug("Close",
+		zap.Int64("goid", goid.Get()),
+	)
+
 	if err := s.taskManager.Close(); err != nil {
 		return err
 	}

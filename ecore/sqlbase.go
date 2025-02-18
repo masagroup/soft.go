@@ -6,6 +6,7 @@ import (
 
 	"github.com/chebyrash/promise"
 	"github.com/panjf2000/ants/v2"
+	"github.com/petermattis/goid"
 	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -45,11 +46,11 @@ func (d *sqlBase) executeSqlite(fn executeQueryFn, query string, opts *sqlitex.E
 	// multiple read to db is allowed
 	_, err := d.sqliteManager.ScheduleTask([]any{d}, taskType, query,
 		func() (res any, err error) {
-			args := []zap.Field{zap.String("query", query)}
+			args := []zap.Field{zap.Int64("goid", goid.Get()), zap.String("query", query)}
 			if opts != nil {
 				args = append(args, zap.Any("args", opts.Args))
 			}
-			logger := d.logger.With(args...)
+			logger := d.logger.Named("sqlite").With(args...)
 			conn, err := d.connPool.Take(context.Background())
 			if err != nil {
 				return

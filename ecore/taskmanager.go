@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 
 	"github.com/chebyrash/promise"
+	"github.com/petermattis/goid"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/semaphore"
@@ -186,7 +187,7 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 		}
 	})
 
-	s.logger.Debug("schedule task", zap.Array("locks", anys(objects)), zap.String("desc", desc))
+	s.logger.Debug("schedule", zap.Int64("goid", goid.Get()), zap.Array("locks", anys(objects)), zap.String("desc", desc))
 
 	s.mutex.Lock()
 	// compute previous tasks
@@ -214,9 +215,10 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 	}
 
 	op.promise_ = promise.NewWithPool(func(resolve func(any), reject func(error)) {
+		logger := s.logger.With(zap.Int64("goid", goid.Get()))
 		// wait for all previous promises
 		if len(previous) > 0 {
-			if e := s.logger.Check(zap.DebugLevel, "waiting previous tasks"); e != nil {
+			if e := logger.Check(zap.DebugLevel, "waiting previous tasks"); e != nil {
 				e.Write(zap.Int64s("previous", mapSlice(previous, func(index int, op *task) int64 { return op.id_ })))
 			}
 			// compute promises
@@ -224,15 +226,15 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 			// wait for promises
 			_, err := promise.All(context.Background(), promises...).Await(context.Background())
 			if err != nil {
-				s.logger.Error("error in previous task", zap.Error(err))
+				logger.Error("error in previous task", zap.Error(err))
 				reject(err)
 				return
 			}
 		}
-		s.logger.Debug("execute task")
+		logger.Debug("execute")
 		result, err := operationFn()
 
-		s.logger.Debug("cleaning task")
+		logger.Debug("cleaning")
 		s.mutex.Lock()
 		defer s.mutex.Unlock()
 		for _, object := range objects {
@@ -240,7 +242,7 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 			// retrieve operation index
 			index := slices.Index(tasks, op)
 			if index == -1 {
-				s.logger.Error("unable to find task index")
+				logger.Error("unable to find task index")
 				reject(errors.New("unable to find task index"))
 				return
 			}
@@ -256,9 +258,9 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 				s.tasks[object] = tasks
 			}
 		}
-		s.logger.Debug("cleaned task")
+		logger.Debug("cleaned")
 		if len(s.tasks) == 0 {
-			s.logger.Debug("no pending tasks")
+			logger.Debug("no pending")
 		}
 
 		// operation result

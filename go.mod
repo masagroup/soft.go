@@ -10,6 +10,7 @@ require (
 	github.com/karlseguin/jsonwriter v1.0.4-0.20170525085137-6f05566bac1c
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/panjf2000/ants/v2 v2.11.1
+	github.com/petermattis/goid v0.0.0-20250211185408-f2b9d978cd7a
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/stretchr/testify v1.10.0
 	github.com/vmihailenco/msgpack/v5 v5.4.1

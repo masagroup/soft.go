@@ -168,12 +168,13 @@ func (as anys) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 	return nil
 }
 
-var operationID atomic.Int64
+var taskID atomic.Int64
 
 func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, desc string, operationFn func() (any, error)) *promise.Promise[any] {
 	// create operation
+	taskID := taskID.Add(1)
 	op := &task{
-		id_:   operationID.Add(1),
+		id_:   taskID,
 		type_: operationType,
 	}
 
@@ -187,7 +188,7 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 		}
 	})
 
-	s.logger.Debug("schedule", zap.Int64("goid", goid.Get()), zap.Array("locks", anys(objects)), zap.String("desc", desc))
+	s.logger.Debug("schedule", zap.Int64("goid", goid.Get()), zap.Int64("id", taskID), zap.Array("locks", anys(objects)), zap.String("desc", desc))
 
 	s.mutex.Lock()
 	// compute previous tasks
@@ -215,7 +216,7 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 	}
 
 	op.promise_ = promise.NewWithPool(func(resolve func(any), reject func(error)) {
-		logger := s.logger.With(zap.Int64("goid", goid.Get()))
+		logger := s.logger.With(zap.Int64("goid", goid.Get()), zap.Int64("id", taskID))
 		// wait for all previous promises
 		if len(previous) > 0 {
 			if e := logger.Check(zap.DebugLevel, "waiting previous tasks"); e != nil {

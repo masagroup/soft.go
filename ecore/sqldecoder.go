@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/chebyrash/promise"
+	"github.com/panjf2000/ants/v2"
 	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -758,6 +759,14 @@ func NewSQLDBDecoder(connPool *sqlitex.Pool, resource EResource, options map[str
 	)
 }
 
+type zapLogger struct {
+	*zap.Logger
+}
+
+func (l *zapLogger) Printf(format string, args ...any) {
+	l.Info(fmt.Sprintf(format, args...))
+}
+
 func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connectionPoolClose func(conn *sqlitex.Pool) error, resource EResource, options map[string]any) *SQLDecoder {
 	codecVersion := sqlCodecVersion
 	sqlIDManager := newSQLDecoderIDManager()
@@ -781,14 +790,19 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 		packageRegistry = resourceSet.GetPackageRegistry()
 	}
 
+	// ants pool
+	antsPool, _ := ants.NewPool(-1, ants.WithLogger(&zapLogger{logger.Named("ants")}))
+	promisePool := promise.FromAntsPool(antsPool)
+
 	return &SQLDecoder{
 		sqlDecoder: sqlDecoder{
 			sqlBase: &sqlBase{
 				codecVersion:     codecVersion,
 				uri:              resource.GetURI(),
 				objectIDManager:  resource.GetObjectIDManager(),
-				sqliteManager:    newTaskManager(logger.Named("sqlite")),
+				sqliteManager:    newTaskManager(promisePool, logger.Named("sqlite")),
 				logger:           logger,
+				promisePool:      promisePool,
 				connPoolProvider: connectionPoolProvider,
 				connPoolClose:    connectionPoolClose,
 			},
@@ -1008,13 +1022,13 @@ func (d *SQLDecoder) decodeFeatures() error {
 			decodingClass := eClass
 			if _, isDecoded := decoded[decodingClass]; !isDecoded {
 				decoded[decodingClass] = struct{}{}
-				decoding = append(decoding, promise.New(func(resolve func(any), reject func(error)) {
+				decoding = append(decoding, promise.NewWithPool(func(resolve func(any), reject func(error)) {
 					if err := d.decodeClassFeatures(decodingClass); err != nil {
 						reject(err)
 					} else {
 						resolve(nil)
 					}
-				}))
+				}, d.promisePool))
 			}
 
 			// next super class

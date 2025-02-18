@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/chebyrash/promise"
+	"github.com/panjf2000/ants/v2"
 	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -572,6 +574,10 @@ func newSQLStore(
 		}
 	}()
 
+	// ants promise pool
+	antsPool, _ := ants.NewPool(-1, ants.WithLogger(&zapLogger{logger.Named("ants")}))
+	promisePool := promise.FromAntsPool(antsPool)
+
 	// create sql base
 	base := &sqlBase{
 		codecVersion:     codecVersion,
@@ -580,8 +586,9 @@ func newSQLStore(
 		objectIDManager:  idManager,
 		isContainerID:    true,
 		isObjectID:       len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
-		sqliteManager:    newTaskManager(logger.Named("sqlite")),
+		sqliteManager:    newTaskManager(promisePool, logger.Named("sqlite")),
 		logger:           logger,
+		promisePool:      promisePool,
 		connPool:         connPool,
 		connPoolProvider: connectionPoolProvider,
 		connPoolClose:    connectionPoolClose,
@@ -606,7 +613,7 @@ func newSQLStore(
 			sqlObjectManager: sqlObjectManager,
 			sqlLockManager:   newSqlEncoderLockManager(),
 		},
-		taskManager:   newTaskManager(logger.Named("tasks")),
+		taskManager:   newTaskManager(promisePool, logger.Named("tasks")),
 		sqlIDManager:  sqlIDManager,
 		errorHandler:  errorHandler,
 		singleQueries: map[*sqlColumn]*sqlSingleQueries{},

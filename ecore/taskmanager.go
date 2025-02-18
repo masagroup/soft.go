@@ -38,11 +38,13 @@ type taskManager struct {
 	mutex  sync.Mutex
 	tasks  map[any][]*task
 	logger *zap.Logger
+	pool   promise.Pool
 }
 
-func newTaskManager(logger *zap.Logger) *taskManager {
+func newTaskManager(pool promise.Pool, logger *zap.Logger) *taskManager {
 	return &taskManager{
 		tasks:  map[any][]*task{},
+		pool:   pool,
 		logger: logger,
 	}
 }
@@ -74,7 +76,7 @@ func (s *taskManager) WaitTasks(context context.Context, object any) error {
 		// compute promises
 		allPromises := mapSlice(allTasks, func(index int, op *task) *promise.Promise[any] { return op.promise_ })
 		// wait for promises
-		_, err := promise.All(context, allPromises...).Await(context)
+		_, err := promise.AllWithPool(context, s.pool, allPromises...).Await(context)
 		if err != nil {
 			return err
 		}
@@ -93,7 +95,7 @@ func (s *taskManager) ScheduleTask(objects []any, taskType TaskType, desc string
 
 func (s *taskManager) scheduleTaskExclusive(taskType TaskType, desc string, op func() (any, error)) *promise.Promise[any] {
 	s.logger.Debug("schedule exclusive access", zap.String("desc", desc))
-	return promise.New(func(resolve func(any), reject func(error)) {
+	return promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		s.mutex.Lock()
 		objects := slices.Collect(maps.Keys(s.tasks))
 		size := int64(len(objects))
@@ -135,7 +137,7 @@ func (s *taskManager) scheduleTaskExclusive(taskType TaskType, desc string, op f
 		} else {
 			resolve(result)
 		}
-	})
+	}, s.pool)
 }
 
 func filterSlice[S ~[]E, E any](slice S, filter func(int, E) bool) []E {
@@ -211,7 +213,7 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 		}
 	}
 
-	op.promise_ = promise.New(func(resolve func(any), reject func(error)) {
+	op.promise_ = promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		// wait for all previous promises
 		if len(previous) > 0 {
 			if e := s.logger.Check(zap.DebugLevel, "waiting previous tasks"); e != nil {
@@ -265,7 +267,7 @@ func (s *taskManager) scheduleTaskObject(objects []any, operationType TaskType, 
 		} else {
 			resolve(result)
 		}
-	})
+	}, s.pool)
 	// add operation
 	for _, object := range objects {
 		s.tasks[object] = append(s.tasks[object], op)

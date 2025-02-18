@@ -12,6 +12,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/chebyrash/promise"
+	"github.com/panjf2000/ants/v2"
 	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -813,6 +815,10 @@ func newSQLEncoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 		}
 	}
 
+	// ants pool
+	antsPool, _ := ants.NewPool(-1, ants.WithLogger(&zapLogger{logger.Named("ants")}))
+	promisePool := promise.FromAntsPool(antsPool)
+
 	// encoder structure
 	return &SQLEncoder{
 		sqlEncoder: sqlEncoder{
@@ -824,8 +830,9 @@ func newSQLEncoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 				isContainerID:    isContainerID,
 				isObjectID:       isObjectID,
 				schema:           newSqlSchema(schemaOptions...),
-				sqliteManager:    newTaskManager(logger.Named("sqlite")),
+				sqliteManager:    newTaskManager(promisePool, logger.Named("sqlite")),
 				logger:           logger,
+				promisePool:      promisePool,
 				connPoolProvider: connectionPoolProvider,
 				connPoolClose:    connectionPoolClose,
 			},

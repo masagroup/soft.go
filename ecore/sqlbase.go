@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/chebyrash/promise"
 	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -21,6 +22,7 @@ type sqlBase struct {
 	isContainerID    bool
 	sqliteManager    *taskManager
 	logger           *zap.Logger
+	promisePool      promise.Pool
 	connPool         *sqlitex.Pool
 	connPoolProvider func() (*sqlitex.Pool, error)
 	connPoolClose    func(conn *sqlitex.Pool) error

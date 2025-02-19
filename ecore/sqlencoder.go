@@ -20,9 +20,10 @@ import (
 )
 
 type sqlEncoderFeatureData struct {
-	schema   *sqlFeatureSchema
-	dataType EDataType
-	factory  EFactory
+	schema    *sqlFeatureSchema
+	featureID int64
+	dataType  EDataType
+	factory   EFactory
 }
 
 type sqlEncoderClassData struct {
@@ -234,41 +235,11 @@ func (e *sqlEncoder) encodeProperties() (err error) {
 }
 
 func (e *sqlEncoder) encodeContent(eObject EObject) error {
-	objectID, err := e.encodeObject(eObject)
+	objectID, err := e.encodeObject(eObject, -1, -1)
 	if err != nil {
 		return err
 	}
 	return e.executeQuery(e.schema.contentsTable.insertQuery(), &sqlitex.ExecOptions{Args: []any{objectID}})
-}
-
-func (e *sqlEncoder) getSQLID(eObject EObject) (int64, error) {
-	// retrieve sql id for eObject
-	sqlID, isSQLID := e.sqlIDManager.GetObjectID(eObject)
-	if !isSQLID {
-		// object is not in store - check if it exists in db
-		objectExists := false
-		if sqlID != 0 && e.isObjectExists {
-			if err := e.executeQuery(
-				`SELECT objectID FROM ".objects" WHERE objectID=?`,
-				&sqlitex.ExecOptions{
-					Args: []any{sqlID},
-					ResultFunc: func(stmt *sqlite.Stmt) error {
-						objectExists = true
-						return nil
-					},
-				}); err != nil {
-				return 0, err
-			}
-		}
-		if objectExists {
-			// object exists - register it as decoded
-			e.sqlIDManager.SetObjectID(eObject, sqlID)
-		} else {
-			// object doesn't exists in db - encode it with encoder
-			return e.encodeObject(eObject)
-		}
-	}
-	return sqlID, nil
 }
 
 type ptrField struct{ ptr any }
@@ -277,7 +248,7 @@ func (f ptrField) String() string {
 	return fmt.Sprintf("%p", f.ptr)
 }
 
-func (e *sqlEncoder) encodeObject(eObject EObject) (id int64, err error) {
+func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, containerFeatureID int64) (id int64, err error) {
 	logger := e.logger.Named("encoder").With(zap.Stringer("object", ptrField{eObject}), zap.String("class", eObject.EClass().GetName()))
 	logger.Debug("object encode")
 	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
@@ -313,13 +284,8 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (id int64, err error) {
 		args = append(args, classData.id)
 		// container and container feature id
 		if e.isContainerID {
-			if container := eObject.EContainer(); container != nil {
-				containerID, err := e.getSQLID(container)
-				if err != nil {
-					return -1, err
-				}
-				containerFeatureID := eObject.EContainingFeature().GetFeatureID()
-				args = append(args, containerID, containerFeatureID)
+			if sqlContainerID > 0 {
+				args = append(args, sqlContainerID, containerFeatureID)
 			} else {
 				args = append(args, nil, nil)
 			}
@@ -365,7 +331,7 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (id int64, err error) {
 					featureData := itFeature.Value()
 					if featureColumn := featureData.schema.column; featureColumn != nil {
 						featureValue := eObject.EGetResolve(eFeature, false)
-						columnValue, err := e.encodeFeatureValue(featureData, featureValue)
+						columnValue, err := e.encodeFeatureValue(sqlObjectID, featureData, featureValue)
 						if err != nil {
 							return -1, err
 						}
@@ -381,7 +347,7 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (id int64, err error) {
 						index := 1.0
 						for itList := featureList.Iterator(); itList.HasNext(); {
 							value := itList.Next()
-							converted, err := e.encodeFeatureValue(featureData, value)
+							converted, err := e.encodeFeatureValue(sqlObjectID, featureData, value)
 							if err != nil {
 								return -1, err
 							}
@@ -415,12 +381,12 @@ func (e *sqlEncoder) encodeObject(eObject EObject) (id int64, err error) {
 	return sqlObjectID, nil
 }
 
-func (e *sqlEncoder) encodeFeatureValue(featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
+func (e *sqlEncoder) encodeFeatureValue(containerID int64, featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
 	if value != nil {
 		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:
 			eObject := value.(EObject)
-			return e.encodeObject(eObject)
+			return e.encodeObject(eObject, containerID, featureData.featureID)
 		case sfkObjectReference, sfkObjectReferenceList:
 			eObject := value.(EObject)
 			sqlID, _ := e.sqlIDManager.GetObjectID(eObject)
@@ -605,6 +571,7 @@ func (e *sqlEncoder) getEncoderClassData(eClass EClass) (*sqlEncoderClassData, e
 		// computes features data
 		classFeatures := newLinkedHashMap[EStructuralFeature, *sqlEncoderFeatureData]()
 		for _, featureSchema := range classSchema.features {
+			eFeature := featureSchema.feature
 
 			// create feature table if any
 			if table := featureSchema.table; table != nil {
@@ -615,9 +582,9 @@ func (e *sqlEncoder) getEncoderClassData(eClass EClass) (*sqlEncoderClassData, e
 
 			// create feature data
 			featureData := &sqlEncoderFeatureData{
-				schema: featureSchema,
+				schema:    featureSchema,
+				featureID: int64(eClass.GetFeatureID(eFeature)),
 			}
-			eFeature := featureSchema.feature
 			if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
 				eDataType := eAttribute.GetEAttributeType()
 				featureData.dataType = eDataType

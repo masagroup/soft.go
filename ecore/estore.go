@@ -48,8 +48,6 @@ type EStore interface {
 
 	GetContainer(object EObject) (EObject, EStructuralFeature)
 
-	SetContainer(object EObject, container EObject, feature EStructuralFeature)
-
 	All(object EObject, feature EStructuralFeature) iter.Seq[any]
 
 	ToArray(object EObject, feature EStructuralFeature) []any

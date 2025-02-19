@@ -743,41 +743,6 @@ func (_c *MockEStore_Set_Call) RunAndReturn(run func(EObject, EStructuralFeature
 	return _c
 }
 
-// SetContainer provides a mock function with given fields: object, container, feature
-func (_m *MockEStore) SetContainer(object EObject, container EObject, feature EStructuralFeature) {
-	_m.Called(object, container, feature)
-}
-
-// MockEStore_SetContainer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetContainer'
-type MockEStore_SetContainer_Call struct {
-	*mock.Call
-}
-
-// SetContainer is a helper method to define mock.On call
-//   - object EObject
-//   - container EObject
-//   - feature EStructuralFeature
-func (_e *MockEStore_Expecter) SetContainer(object interface{}, container interface{}, feature interface{}) *MockEStore_SetContainer_Call {
-	return &MockEStore_SetContainer_Call{Call: _e.mock.On("SetContainer", object, container, feature)}
-}
-
-func (_c *MockEStore_SetContainer_Call) Run(run func(object EObject, container EObject, feature EStructuralFeature)) *MockEStore_SetContainer_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(EObject), args[1].(EObject), args[2].(EStructuralFeature))
-	})
-	return _c
-}
-
-func (_c *MockEStore_SetContainer_Call) Return() *MockEStore_SetContainer_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *MockEStore_SetContainer_Call) RunAndReturn(run func(EObject, EObject, EStructuralFeature)) *MockEStore_SetContainer_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Size provides a mock function with given fields: object, feature
 func (_m *MockEStore) Size(object EObject, feature EStructuralFeature) int {
 	ret := _m.Called(object, feature)

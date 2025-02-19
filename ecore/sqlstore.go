@@ -1492,41 +1492,6 @@ func (s *SQLStore) GetContainer(object EObject) (container EObject, feature EStr
 	return
 }
 
-func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStructuralFeature) {
-	s.sqlBase.logger.Named("ops").Debug("SetContainer",
-		zap.Int64("goid", goid.Get()),
-		zap.Stringer("object", object.(fmt.Stringer)),
-	)
-
-	sqlObjectID, err := s.getSQLID(object)
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-
-	var sqlContainerID any
-	if container != nil {
-		sqlContainerID, err = s.getSQLID(container)
-		if err != nil {
-			s.errorHandler(err)
-			return
-		}
-	}
-
-	var featureID any
-	if container != nil && feature != nil {
-		featureID = container.EClass().GetFeatureID(feature)
-	}
-
-	if err := s.executeQuery(`UPDATE ".objects" SET containerID=?,containerFeatureID=? WHERE objectID=?`, &sqlitex.ExecOptions{
-		Args: []any{sqlContainerID, featureID, sqlObjectID},
-	}); err != nil {
-		s.errorHandler(err)
-		return
-	}
-
-}
-
 func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any] {
 	s.sqlBase.logger.Named("ops").Debug("SetContainer",
 		zap.Int64("goid", goid.Get()),

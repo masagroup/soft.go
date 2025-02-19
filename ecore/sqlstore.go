@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/chebyrash/promise"
 	"github.com/panjf2000/ants/v2"
@@ -417,16 +418,49 @@ func (r *sqlStoreIDManagerImpl) SetEnumLiteralID(e EEnumLiteral, id int64) {
 	r.sqlEncoderIDManagerImpl.enumLiterals[e] = id
 }
 
+var operationID atomic.Int64
+
+type operation struct {
+	id      int64
+	cmd     string
+	object  EObject
+	feature EStructuralFeature
+	index   int
+	value   any
+	fn      func() (any, error)
+	promise *promise.Promise[any]
+}
+
+func newOperation(
+	cmd string,
+	object EObject,
+	feature EStructuralFeature,
+	index int,
+	value any,
+	fn func() (any, error)) *operation {
+	return &operation{
+		id:      operationID.Add(1),
+		cmd:     cmd,
+		object:  object,
+		feature: feature,
+		index:   index,
+		value:   value,
+		fn:      fn,
+	}
+}
+
 type SQLStore struct {
 	*sqlBase
 	*taskManager
 	sqlDecoder
 	sqlEncoder
-	errorHandler  func(error)
-	sqlIDManager  SQLStoreIDManager
-	singleQueries map[*sqlColumn]*sqlSingleQueries
-	manyQueries   map[*sqlTable]*sqlManyQueries
-	mutexQueries  sync.Mutex
+	errorHandler     func(error)
+	sqlIDManager     SQLStoreIDManager
+	singleQueries    map[*sqlColumn]*sqlSingleQueries
+	manyQueries      map[*sqlTable]*sqlManyQueries
+	mutexQueries     sync.Mutex
+	objectOperations map[EObject]map[EStructuralFeature][]*operation
+	mutexOperations  sync.Mutex
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -615,11 +649,12 @@ func newSQLStore(
 			sqlObjectManager: sqlObjectManager,
 			sqlLockManager:   newSqlEncoderLockManager(),
 		},
-		taskManager:   newTaskManager(promisePool, logger.Named("tasks")),
-		sqlIDManager:  sqlIDManager,
-		errorHandler:  errorHandler,
-		singleQueries: map[*sqlColumn]*sqlSingleQueries{},
-		manyQueries:   map[*sqlTable]*sqlManyQueries{},
+		taskManager:      newTaskManager(promisePool, logger.Named("tasks")),
+		sqlIDManager:     sqlIDManager,
+		errorHandler:     errorHandler,
+		singleQueries:    map[*sqlColumn]*sqlSingleQueries{},
+		manyQueries:      map[*sqlTable]*sqlManyQueries{},
+		objectOperations: map[EObject]map[EStructuralFeature][]*operation{},
 	}
 
 	// set store in sql object manager
@@ -738,7 +773,7 @@ func (e *SQLStore) encodeFeatureValue(sqlObjectID int64, featureData *sqlEncoder
 }
 
 // get object sql id
-func (e *sqlEncoder) getSQLID(eObject EObject) (int64, error) {
+func (e *SQLStore) getSQLID(eObject EObject) (int64, error) {
 	// retrieve sql id for eObject
 	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
 	if !isSqlObjectID {
@@ -766,6 +801,135 @@ func (e *sqlEncoder) getSQLID(eObject EObject) (int64, error) {
 		}
 	}
 	return sqlObjectID, nil
+}
+
+func mapSet[S ~map[E]struct{}, E comparable, R any](s S, mapper func(E) R) []R {
+	i := 0
+	slice := make([]R, len(s))
+	for v := range s {
+		slice[i] = mapper(v)
+	}
+	return slice
+}
+
+func (s *SQLStore) scheduleOperation(op *operation) *promise.Promise[any] {
+	logger := s.sqlBase.logger.Named("operations")
+	logger.Debug("schedule", zap.Int64("goid", goid.Get()),
+		zap.String("op", op.cmd),
+		zap.Stringer("object", op.object.(fmt.Stringer)),
+		zap.String("feature", op.feature.GetName()),
+		zap.Int("index", op.index),
+		zap.Any("value", op.value))
+
+	type objectFeature struct {
+		object  EObject
+		feature EStructuralFeature
+	}
+
+	// objects features = { object all operations, object feature operations [, value object all operations] }
+	objectFeatures := []objectFeature{{op.object, nil}, {op.object, op.feature}}
+	if object, isObject := op.value.(EObject); isObject {
+		objectFeatures = append(objectFeatures, objectFeature{object, nil})
+	}
+
+	// lock operations
+	s.mutexOperations.Lock()
+
+	// compute previous operations to wait for
+	previous := map[*operation]struct{}{}
+	for _, objectFeature := range objectFeatures {
+		if objectOperations := s.objectOperations[objectFeature.object]; objectOperations != nil {
+			for _, operation := range objectOperations[objectFeature.feature] {
+				previous[operation] = struct{}{}
+			}
+		}
+	}
+
+	// create promise
+	op.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
+		logger := logger.With(zap.Int64("goid", goid.Get()), zap.Int64("id", op.id))
+		// wait for previous operations
+		if len(previous) > 0 {
+			if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
+				e.Write(zap.Int64s("previous", mapSet(previous, func(operation *operation) int64 { return op.id })))
+			}
+			promises := mapSet(previous, func(operation *operation) *promise.Promise[any] { return operation.promise })
+			if _, err := promise.All(context.Background(), promises...).Await(context.Background()); err != nil {
+				logger.Debug("error in previous operation", zap.Error(err))
+				reject(err)
+				return
+			}
+		}
+
+		// execute operation
+		logger.Debug("execute")
+		result, err := op.fn()
+
+		// clean operations
+		logger.Debug("cleaning")
+		s.mutexOperations.Lock()
+		defer s.mutexOperations.Unlock()
+		for _, objectFeature := range objectFeatures {
+			if err := s.unregisterOperation(objectFeature.object, objectFeature.feature, op); err != nil {
+				reject(err)
+				return
+			}
+		}
+		logger.Debug("cleaned")
+
+		if len(s.objectOperations) == 0 {
+			logger.Debug("no pending")
+		}
+
+		// result or error
+		if err != nil {
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	}, s.promisePool)
+
+	// register operation for object and value if its an object
+	// to lock objects for future updates
+	for _, of := range objectFeatures {
+		s.registerOperation(of.object, of.feature, op)
+	}
+	s.mutexOperations.Unlock()
+	return op.promise
+}
+
+func (s *SQLStore) registerOperation(object EObject, feature EStructuralFeature, op *operation) {
+	objectOperations := s.objectOperations[object]
+	if objectOperations == nil {
+		objectOperations = map[EStructuralFeature][]*operation{}
+		s.objectOperations[object] = objectOperations
+	}
+	objectOperations[feature] = append(objectOperations[feature], op)
+}
+
+func (s *SQLStore) unregisterOperation(object EObject, feature EStructuralFeature, op *operation) error {
+	objectOperations := s.objectOperations[object]
+	operations := objectOperations[feature]
+	// retrieve operation index
+	index := slices.Index(operations, op)
+	if index == -1 {
+		return errors.New("unable to find task index")
+	}
+	// remove operation from collection
+	copy(operations[index:], operations[index+1:])
+	operations[len(operations)-1] = nil
+	operations = operations[:len(operations)-1]
+	// set object operations for feature
+	if len(operations) == 0 {
+		delete(objectOperations, feature)
+		// cleanup object operations
+		if len(objectOperations) == 0 {
+			delete(s.objectOperations, object)
+		}
+	} else {
+		objectOperations[feature] = operations
+	}
+	return nil
 }
 
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {

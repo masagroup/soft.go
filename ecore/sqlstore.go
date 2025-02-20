@@ -471,7 +471,6 @@ func newOperation(
 
 type SQLStore struct {
 	*sqlBase
-	*taskManager
 	sqlDecoder
 	sqlEncoder
 	isClosed         atomic.Bool
@@ -671,7 +670,6 @@ func newSQLStore(
 			sqlObjectManager: sqlObjectManager,
 			sqlLockManager:   newSqlEncoderLockManager(),
 		},
-		taskManager:      newTaskManager(promisePool, logger.Named("tasks")),
 		sqlIDManager:     sqlIDManager,
 		errorHandler:     errorHandler,
 		singleQueries:    map[*sqlColumn]*sqlSingleQueries{},
@@ -854,7 +852,7 @@ func (s *SQLStore) waitOperations(context context.Context, object any) error {
 		// compute promises
 		allPromises := mapSlice(allOperations, func(index int, op *operation) *promise.Promise[any] { return op.promise })
 		// wait for promises
-		_, err := promise.AllWithPool(context, s.pool, allPromises...).Await(context)
+		_, err := promise.AllWithPool(context, s.promisePool, allPromises...).Await(context)
 		if err != nil {
 			return err
 		}
@@ -1921,10 +1919,6 @@ func (s *SQLStore) Close() error {
 		)
 
 		if err := s.waitOperations(context.Background(), nil); err != nil {
-			return err
-		}
-
-		if err := s.taskManager.Close(); err != nil {
 			return err
 		}
 

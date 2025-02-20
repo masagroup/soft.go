@@ -1495,7 +1495,10 @@ func (s *SQLStore) GetRoots() []EObject {
 }
 
 func (s *SQLStore) UnRegister(object EObject) {
-	s.sqlIDManager.ClearObjectID(object)
+	s.scheduleOperation(context.Background(), newOperation("UnRegister", operationWrite, object, nil, -1, nil, func() (any, error) {
+		s.sqlIDManager.ClearObjectID(object)
+		return nil, nil
+	}))
 }
 
 func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, value any) {

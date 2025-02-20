@@ -10,11 +10,8 @@
 package ecore
 
 import (
-	"fmt"
 	"iter"
 	"slices"
-
-	"github.com/chebyrash/promise"
 )
 
 type EStoreList struct {
@@ -176,31 +173,6 @@ func (list *EStoreList) IsCache() bool {
 	return list.cache
 }
 
-type noPool struct {
-}
-
-func (p *noPool) Go(f func()) {
-	f()
-}
-
-var promiseNoPool promise.Pool = &noPool{}
-
-func (list *EStoreList) scheduleTask(objects []any, taskType TaskType, desc string, operation func() (any, error)) *promise.Promise[any] {
-	if asyncStore, _ := list.store.(EStoreAsync); asyncStore != nil {
-		return asyncStore.ScheduleTask(objects, taskType, desc, func() (any, error) {
-			return operation()
-		})
-	} else {
-		return promise.NewWithPool(func(resolve func(any), reject func(error)) {
-			if result, err := operation(); err != nil {
-				reject(err)
-			} else {
-				resolve(result)
-			}
-		}, promiseNoPool)
-	}
-}
-
 func (list *EStoreList) performAdd(object any) {
 	// add to cache
 	if list.data != nil {
@@ -208,19 +180,7 @@ func (list *EStoreList) performAdd(object any) {
 	}
 	// add to store
 	if list.store != nil {
-		index := list.size
-		operation := list.scheduleTask(
-			[]any{list.asEList(), object},
-			TaskWrite,
-			fmt.Sprintf("%v.%s(%p).Add(%d,%v)", list.owner, list.feature.GetName(), list.asEList(), index, object),
-			func() (any, error) {
-				list.store.Add(list.owner, list.feature, index, object)
-				return nil, nil
-			},
-		)
-		if list.data == nil {
-			_ = awaitPromise[any](operation)
-		}
+		list.store.Add(list.owner, list.feature, list.size, object)
 	}
 	// size
 	list.size++
@@ -235,19 +195,7 @@ func (list *EStoreList) performAddAll(c Collection) {
 
 	// add to store
 	if list.store != nil {
-		index := list.size
-		operation := list.scheduleTask(
-			append([]any{list.asEList()}, c.ToArray()...),
-			TaskWrite,
-			fmt.Sprintf("%v.%s(%p).AddAll(%v)", list.owner, list.feature.GetName(), list.asEList(), c),
-			func() (any, error) {
-				list.store.AddAll(list.owner, list.feature, index, c)
-				return nil, nil
-			},
-		)
-		if list.data == nil {
-			_ = awaitPromise[any](operation)
-		}
+		list.store.AddAll(list.owner, list.feature, list.size, c)
 	}
 	// size
 	list.size += c.Size()
@@ -260,18 +208,7 @@ func (list *EStoreList) performInsert(index int, object any) {
 	}
 	// add to store
 	if list.store != nil {
-		operation := list.scheduleTask(
-			[]any{list.asEList(), object},
-			TaskWrite,
-			fmt.Sprintf("%v.%s(%p).Insert(%v,%v)", list.owner, list.feature.GetName(), list.asEList(), index, object),
-			func() (any, error) {
-				list.store.Add(list.owner, list.feature, index, object)
-				return nil, nil
-			},
-		)
-		if list.data == nil {
-			_ = awaitPromise[any](operation)
-		}
+		list.store.Add(list.owner, list.feature, index, object)
 	}
 	// size
 	list.size++
@@ -286,18 +223,7 @@ func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 	}
 	// add to store
 	if list.store != nil {
-		operation := list.scheduleTask(
-			append([]any{list.asEList()}, c.ToArray()...),
-			TaskWrite,
-			fmt.Sprintf("%v.%s(%p).Insert(%v,%v)", list.owner, list.feature.GetName(), list.asEList(), index, c),
-			func() (any, error) {
-				list.store.AddAll(list.owner, list.feature, index, c)
-				return true, nil
-			},
-		)
-		if list.data == nil {
-			_ = awaitPromise[any](operation)
-		}
+		list.store.AddAll(list.owner, list.feature, index, c)
 	}
 	// size
 	list.size += c.Size()
@@ -310,26 +236,15 @@ func (list *EStoreList) performClear() []any {
 	//cache
 	if list.data != nil {
 		result = list.BasicENotifyingList.performClear()
-		needResult = true
+		needResult = false
 	}
 	// store
 	if list.store != nil {
-		operation := list.scheduleTask(
-			[]any{list.asEList()},
-			TaskWrite,
-			fmt.Sprintf("%v.%s(%p).Clear()", list.owner, list.feature.GetName(), list.asEList()),
-			func() (any, error) {
-				var result []any
-				if needResult {
-					result = list.store.ToArray(list.owner, list.feature)
-				}
-				list.store.Clear(list.owner, list.feature)
-				return result, nil
-			},
-		)
 		if needResult {
-			result = awaitPromise[[]any](operation)
+			result = list.store.ToArray(list.owner, list.feature)
 		}
+		list.store.Clear(list.owner, list.feature)
+
 	}
 	// size
 	list.size = 0
@@ -344,17 +259,7 @@ func (list *EStoreList) performRemove(index int) any {
 	}
 	//store
 	if list.store != nil {
-		operation := list.scheduleTask(
-			[]any{list.asEList()},
-			TaskWrite,
-			fmt.Sprintf("%v.%s(%p).Remove(%v)", list.owner, list.feature.GetName(), list.asEList(), index),
-			func() (any, error) {
-				return list.store.Remove(list.owner, list.feature, index), nil
-			},
-		)
-		if list.data == nil {
-			result = awaitPromise[any](operation)
-		}
+		result = list.store.Remove(list.owner, list.feature, index)
 	}
 	// size
 	list.size--
@@ -367,21 +272,9 @@ func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
 		result = list.BasicENotifyingList.performRemoveRange(fromIndex, toIndex)
 	}
 	if list.store != nil {
-		operation := list.scheduleTask(
-			[]any{list.asEList()},
-			TaskWrite,
-			fmt.Sprintf("%v.%s(%p).RemoveRange(%v,%v)", list.owner, list.feature.GetName(), list.asEList(), fromIndex, toIndex),
-			func() (any, error) {
-				var objects []any
-				for i := fromIndex; i < toIndex; i++ {
-					object := list.store.Remove(list.owner, list.feature, i)
-					objects = append(objects, object)
-				}
-				return objects, nil
-			},
-		)
-		if list.data == nil {
-			result = awaitPromise[[]any](operation)
+		for i := fromIndex; i < toIndex; i++ {
+			object := list.store.Remove(list.owner, list.feature, i)
+			result = append(result, object)
 		}
 	}
 	list.size -= len(result)
@@ -394,18 +287,7 @@ func (list *EStoreList) performSet(index int, object any) any {
 		result = list.BasicENotifyingList.performSet(index, object)
 	}
 	if list.store != nil {
-		oldValue := list.data == nil
-		operation := list.scheduleTask(
-			[]any{list.asEList(), object},
-			TaskWrite,
-			fmt.Sprintf("%v.%s(%p).Set(%v,%v)", list.owner, list.feature.GetName(), list.asEList(), index, object),
-			func() (any, error) {
-				return list.store.Set(list.owner, list.feature, index, object, oldValue), nil
-			},
-		)
-		if oldValue {
-			result = awaitPromise[any](operation)
-		}
+		result = list.store.Set(list.owner, list.feature, index, object, list.data == nil)
 	}
 	return result
 }
@@ -416,17 +298,7 @@ func (list *EStoreList) performMove(oldIndex, newIndex int) any {
 		result = list.BasicENotifyingList.performMove(oldIndex, newIndex)
 	}
 	if list.store != nil {
-		operation := list.scheduleTask(
-			[]any{list.asEList()},
-			TaskWrite,
-			fmt.Sprintf("%v.%s(%p).Move(%v,%v)", list.owner, list.feature.GetName(), list.asEList(), oldIndex, newIndex),
-			func() (any, error) {
-				return list.store.Move(list.owner, list.feature, oldIndex, newIndex), nil
-			},
-		)
-		if list.data == nil {
-			result = awaitPromise[any](operation)
-		}
+		result = list.store.Move(list.owner, list.feature, oldIndex, newIndex)
 	}
 	return result
 }
@@ -439,15 +311,7 @@ func (list *EStoreList) get(index int) any {
 	if list.data != nil {
 		return list.data[index]
 	} else if list.store != nil {
-		operation := list.scheduleTask(
-			[]any{list.asEList()},
-			TaskRead,
-			fmt.Sprintf("%v.%s(%p).Get(%v)", list.owner, list.feature.GetName(), list.asEList(), index),
-			func() (any, error) {
-				return list.store.Get(list.owner, list.feature, index), nil
-			},
-		)
-		return awaitPromise[any](operation)
+		return list.store.Get(list.owner, list.feature, index)
 	}
 	return nil
 }

@@ -53,12 +53,6 @@ type EStore interface {
 	ToArray(object EObject, feature EStructuralFeature) []any
 }
 
-type EStoreAsync interface {
-	EStore
-	TaskManager
-	Close() error
-}
-
 type EStoreProvider interface {
 	SetEStore(store EStore)
 

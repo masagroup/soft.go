@@ -815,6 +815,43 @@ func (e *SQLStore) getSQLID(eObject EObject) (int64, error) {
 	return sqlObjectID, nil
 }
 
+func (s *SQLStore) waitOperations(context context.Context, object any) error {
+	// compute operations to wait for
+	s.mutexOperations.Lock()
+	allOperations := []*operation{}
+	if object == nil {
+		allOperations = make([]*operation, 0)
+		for _, objectOperations := range s.objectOperations {
+			for _, operations := range objectOperations {
+				allOperations = append(allOperations, operations...)
+			}
+		}
+	} else {
+		for _, operations := range s.objectOperations[object.(EObject)] {
+			allOperations = append(allOperations, operations...)
+		}
+	}
+	s.mutex.Unlock()
+
+	// wait for operations to be finished
+	if len(allOperations) > 0 {
+		logger := s.sqlBase.logger.Named("ops")
+		// debug
+		if e := logger.Check(zap.DebugLevel, "waiting operations"); e != nil {
+			e.Write(zap.Int64s("operations", mapSlice(allOperations, func(index int, op *operation) int64 { return op.id })))
+		}
+		// compute promises
+		allPromises := mapSlice(allOperations, func(index int, op *operation) *promise.Promise[any] { return op.promise })
+		// wait for promises
+		_, err := promise.AllWithPool(context, s.pool, allPromises...).Await(context)
+		if err != nil {
+			return err
+		}
+		logger.Debug("waiting operations finished")
+	}
+	return nil
+}
+
 func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *promise.Promise[any] {
 	logger := s.sqlBase.logger.Named("ops")
 	logger.Debug("schedule", zap.Int64("goid", goid.Get()),
@@ -988,7 +1025,7 @@ func (s *SQLStore) scheduleExclusive(context context.Context, op *operation) *pr
 	}, s.promisePool)
 }
 
-func (s *SQLStore) getOperation(type_ operationType, object EObject, feature EStructuralFeature, index int) *operation {
+func (s *SQLStore) getLastOperation(type_ operationType, object EObject, feature EStructuralFeature, index int) *operation {
 	s.mutexOperations.Lock()
 	defer s.mutexOperations.Unlock()
 	if objectOperations := s.objectOperations[object]; objectOperations != nil {
@@ -1051,7 +1088,7 @@ func awaitPromise[T any](p *promise.Promise[any]) T {
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
 	// optimization : if we have a non many feature, check if we have a pending write operation
 	if !feature.IsMany() {
-		if operation := s.getOperation(operationWrite, object, feature, index); operation != nil {
+		if operation := s.getLastOperation(operationWrite, object, feature, index); operation != nil {
 			return operation.value
 		}
 	}
@@ -1155,7 +1192,7 @@ func (s *SQLStore) doSet(object EObject, feature EStructuralFeature, index int, 
 func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 	// optimization : if we have a non many feature, check if we have a pending write operation
 	if !feature.IsMany() {
-		if operation := s.getOperation(operationWrite, object, feature, -1); operation != nil {
+		if operation := s.getLastOperation(operationWrite, object, feature, -1); operation != nil {
 			return operation.value != nil
 		}
 	}
@@ -1849,6 +1886,10 @@ func (s *SQLStore) Close() error {
 	s.sqlBase.logger.Named("ops").Debug("Close",
 		zap.Int64("goid", goid.Get()),
 	)
+
+	if err := s.waitOperations(context.Background(), nil); err != nil {
+		return err
+	}
 
 	if err := s.taskManager.Close(); err != nil {
 		return err

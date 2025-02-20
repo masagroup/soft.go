@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"context"
 	"fmt"
 	"iter"
 	"slices"
@@ -185,17 +184,6 @@ func (p *noPool) Go(f func()) {
 }
 
 var promiseNoPool promise.Pool = &noPool{}
-
-func awaitPromise[T any](p *promise.Promise[any]) T {
-	var def T
-	if r, err := p.Await(context.Background()); err != nil {
-		return def
-	} else if result, isResult := (*r).(T); isResult {
-		return result
-	} else {
-		return def
-	}
-}
 
 func (list *EStoreList) scheduleTask(objects []any, taskType TaskType, desc string, operation func() (any, error)) *promise.Promise[any] {
 	if asyncStore, _ := list.store.(EStoreAsync); asyncStore != nil {

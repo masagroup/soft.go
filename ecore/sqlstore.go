@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"iter"
-	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -17,7 +16,6 @@ import (
 	"github.com/panjf2000/ants/v2"
 	"github.com/petermattis/goid"
 	"go.uber.org/zap"
-	"golang.org/x/sync/semaphore"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
@@ -424,6 +422,16 @@ var operationID atomic.Int64
 
 type operationType uint8
 
+func (ot operationType) String() string {
+	switch ot {
+	case operationRead:
+		return "read"
+	case operationWrite:
+		return "write"
+	}
+	return ""
+}
+
 const (
 	operationRead  = 1 << 0
 	operationWrite = 1 << 1
@@ -466,6 +474,7 @@ type SQLStore struct {
 	*taskManager
 	sqlDecoder
 	sqlEncoder
+	isClosed         atomic.Bool
 	errorHandler     func(error)
 	sqlIDManager     SQLStoreIDManager
 	singleQueries    map[*sqlColumn]*sqlSingleQueries
@@ -854,6 +863,16 @@ func (s *SQLStore) waitOperations(context context.Context, object any) error {
 	return nil
 }
 
+func mapSet[S ~map[E]struct{}, E comparable, R any](m S, mapper func(E) R) []R {
+	i := 0
+	mappedSlice := make([]R, len(m))
+	for e := range m {
+		mappedSlice[i] = mapper(e)
+		i++
+	}
+	return mappedSlice
+}
+
 func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *promise.Promise[any] {
 	logger := s.logger.Named("ops")
 	if e := logger.Check(zap.DebugLevel, "schedule"); e != nil {
@@ -867,6 +886,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		}
 		e.Write(zap.Int64("goid", goid.Get()),
 			zap.String("op", op.cmd),
+			zap.Stringer("type", op.type_),
 			zap.Stringer("object", objectStringer),
 			zap.String("feature", featureString),
 			zap.Int("index", op.index),
@@ -878,45 +898,60 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		feature EStructuralFeature
 	}
 
-	// objects features = { object feature operations [, value object lock operations] }
-	objectFeatures := []objectFeature{{op.object, op.feature}}
+	// lock objects features = { object feature operations [, value all operations] }
+	lockObjectFeatures := []objectFeature{{op.object, op.feature}}
 	if object, isObject := op.value.(EObject); isObject {
-		objectFeatures = append(objectFeatures, objectFeature{object, nil})
+		lockObjectFeatures = append(lockObjectFeatures, objectFeature{object, nil})
 	}
 
-	// previous features = { general lock operations, object lock operations , object feature operations }
-	previousFeatures := map[objectFeature]struct{}{
-		{nil, nil}:              {},
-		{op.object, nil}:        {},
-		{op.object, op.feature}: {},
+	objectFeaturesIterator := func(of objectFeature) iter.Seq[objectFeature] {
+		return func(yield func(objectFeature) bool) {
+			if of.object == nil {
+				if !yield(objectFeature{nil, nil}) {
+					return
+				}
+				for object, objectOperations := range s.objectOperations {
+					if object != nil {
+						if !yield(objectFeature{object, nil}) {
+							return
+						}
+						for feature := range objectOperations {
+							if feature != nil {
+								if !yield(objectFeature{object, feature}) {
+									return
+								}
+							}
+						}
+					}
+				}
+			} else if of.feature == nil {
+				if !yield(objectFeature{of.object, nil}) {
+					return
+				}
+				for feature := range s.objectOperations[of.object] {
+					if feature != nil {
+						if !yield(objectFeature{of.object, feature}) {
+							return
+						}
+					}
+				}
+			} else {
+				if !yield(objectFeature{of.object, of.feature}) {
+					return
+				}
+			}
+		}
 	}
 
 	// lock operations
 	s.mutexOperations.Lock()
 
-	// compute previous operations to wait for
-	previous := []*operation{}
-	for objectFeature := range previousFeatures {
-		if objectOperations := s.objectOperations[objectFeature.object]; objectOperations != nil {
-			if operations := objectOperations[objectFeature.feature]; len(operations) > 0 {
-				switch op.type_ {
-				case TaskRead:
-					for i := len(operations) - 1; i >= 0; i-- {
-						operation := operations[i]
-						if operation.type_ == TaskWrite {
-							previous = append(previous, operation)
-							break
-						}
-					}
-				case TaskWrite:
-					for i := len(operations) - 1; i >= 0; i-- {
-						operation := operations[i]
-						previous = append(previous, operation)
-						if operation.type_ == TaskWrite {
-							break
-						}
-					}
-				}
+	// register operation for all objects and and compute previous operations to wait for
+	previous := map[*operation]struct{}{}
+	for _, lof := range lockObjectFeatures {
+		for of := range objectFeaturesIterator(lof) {
+			if po := s.registerOperation(of.object, of.feature, op); po != nil {
+				previous[po] = struct{}{}
 			}
 		}
 	}
@@ -927,9 +962,9 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		// wait for previous operations
 		if len(previous) > 0 {
 			if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
-				e.Write(zap.Int64s("previous", mapSlice(previous, func(index int, operation *operation) int64 { return op.id })))
+				e.Write(zap.Int64s("previous", mapSet(previous, func(operation *operation) int64 { return op.id })))
 			}
-			promises := mapSlice(previous, func(index int, operation *operation) *promise.Promise[any] { return operation.promise })
+			promises := mapSet(previous, func(operation *operation) *promise.Promise[any] { return operation.promise })
 			if _, err := promise.All(context, promises...).Await(context); err != nil {
 				logger.Debug("error in previous operation", zap.Error(err))
 				reject(err)
@@ -945,10 +980,12 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		logger.Debug("cleaning")
 		s.mutexOperations.Lock()
 		defer s.mutexOperations.Unlock()
-		for _, objectFeature := range objectFeatures {
-			if err := s.unregisterOperation(objectFeature.object, objectFeature.feature, op); err != nil {
-				reject(err)
-				return
+		for _, lof := range lockObjectFeatures {
+			for of := range objectFeaturesIterator(lof) {
+				if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
+					reject(err)
+					return
+				}
 			}
 		}
 		logger.Debug("cleaned")
@@ -966,75 +1003,8 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		}
 	}, s.promisePool)
 
-	// register operation for object and value if its an object
-	// to lock objects for future updates
-	for _, of := range objectFeatures {
-		s.registerOperation(of.object, of.feature, op)
-	}
 	s.mutexOperations.Unlock()
 	return op.promise
-}
-
-func (s *SQLStore) scheduleExclusive(context context.Context, op *operation) *promise.Promise[any] {
-	logger := s.logger.Named("ops")
-	logger.Debug("schedule", zap.Int64("goid", goid.Get()), zap.String("op", op.cmd))
-	return promise.NewWithPool(func(resolve func(any), reject func(error)) {
-		s.mutexOperations.Lock()
-		objects := slices.Collect(maps.Keys(s.objectOperations))
-		size := int64(len(objects))
-		s.mutexOperations.Unlock()
-
-		// create a lock semaphore
-		run := make(chan struct{})
-		locked := semaphore.NewWeighted(size)
-		if err := locked.Acquire(context, size); err != nil {
-			reject(err)
-			return
-		}
-
-		// schedule lock operation
-		for _, object := range objects {
-			s.scheduleOperation(context, newOperation("child-exclusive", op.type_, object, nil, -1, nil, func() (any, error) {
-				// the object is locked
-				locked.Release(1)
-
-				// wait for the op to be run
-				<-run
-
-				return nil, nil
-			}))
-		}
-
-		// register exclusive operation
-		s.mutexOperations.Lock()
-		s.registerOperation(nil, nil, op)
-		s.mutexOperations.Unlock()
-
-		// wait for all objects to be locked
-		logger.Debug("waiting for exclusive access")
-		if err := locked.Acquire(context, size); err != nil {
-			reject(err)
-			return
-		}
-
-		// indicate all child exclusive that operation is ready to run
-		defer close(run)
-
-		// execute exclusive operation
-		logger.Debug("executing with exclusive access")
-		result, err := op.fn()
-
-		// unregister exclusive operation
-		s.mutexOperations.Lock()
-		s.unregisterOperation(nil, nil, op)
-		s.mutexOperations.Unlock()
-
-		if err != nil {
-			reject(err)
-		} else {
-			resolve(result)
-		}
-	}, s.promisePool)
 }
 
 func (s *SQLStore) getLastOperation(type_ operationType, object EObject, feature EStructuralFeature, index int) *operation {
@@ -1052,13 +1022,38 @@ func (s *SQLStore) getLastOperation(type_ operationType, object EObject, feature
 	return nil
 }
 
-func (s *SQLStore) registerOperation(object EObject, feature EStructuralFeature, op *operation) {
+func (s *SQLStore) registerOperation(object EObject, feature EStructuralFeature, op *operation) (previous *operation) {
+	// get operations for object-feature
 	objectOperations := s.objectOperations[object]
 	if objectOperations == nil {
 		objectOperations = map[EStructuralFeature][]*operation{}
 		s.objectOperations[object] = objectOperations
 	}
-	objectOperations[feature] = append(objectOperations[feature], op)
+	operations := objectOperations[feature]
+	if operations == nil {
+		operations = []*operation{}
+		objectOperations[feature] = operations
+	}
+
+	// compute previous operation
+	switch op.type_ {
+	case operationRead:
+		for i := len(operations) - 1; i >= 0; i-- {
+			operation := operations[i]
+			if operation.type_ == operationWrite {
+				previous = operation
+				break
+			}
+		}
+	case operationWrite:
+		if len(operations) > 0 {
+			previous = operations[len(operations)-1]
+		}
+	}
+
+	// add operation
+	objectOperations[feature] = append(operations, op)
+	return
 }
 
 func (s *SQLStore) unregisterOperation(object EObject, feature EStructuralFeature, op *operation) error {
@@ -1148,17 +1143,17 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 	return s.decodeFeatureValue(featureSchema, value)
 }
 
-func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any, isOldValue bool) (oldValue any) {
+func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any, needResult bool) (oldValue any) {
 	p := s.scheduleOperation(context.Background(), newOperation("Set", operationWrite, object, feature, index, value, func() (any, error) {
-		return s.doSet(object, feature, index, value, isOldValue)
+		return s.doSet(object, feature, index, value, needResult)
 	}))
-	if isOldValue {
+	if needResult {
 		oldValue = awaitPromise[any](p)
 	}
 	return
 }
 
-func (s *SQLStore) doSet(object EObject, feature EStructuralFeature, index int, value any, isOldValue bool) (oldValue any, err error) {
+func (s *SQLStore) doSet(object EObject, feature EStructuralFeature, index int, value any, needResult bool) (oldValue any, err error) {
 	// get object sql id
 	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
@@ -1171,7 +1166,7 @@ func (s *SQLStore) doSet(object EObject, feature EStructuralFeature, index int, 
 		return nil, err
 	}
 
-	if isOldValue {
+	if needResult {
 		// retrieve previous value
 		if oldValue, err = s.getValue(sqlObjectID, featureData.schema, index); err != nil {
 			return nil, err
@@ -1492,9 +1487,9 @@ func (s *SQLStore) UnRegister(object EObject) {
 }
 
 func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, value any) {
-	awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Add", operationWrite, object, feature, index, value, func() (any, error) {
+	s.scheduleOperation(context.Background(), newOperation("Add", operationWrite, object, feature, index, value, func() (any, error) {
 		return s.doAdd(object, feature, index, value)
-	})))
+	}))
 }
 
 func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, value any) (any, error) {
@@ -1525,9 +1520,9 @@ func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, 
 }
 
 func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int, c Collection) {
-	awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("AddAll", operationWrite, object, feature, index, c, func() (any, error) {
+	s.scheduleOperation(context.Background(), newOperation("AddAll", operationWrite, object, feature, index, c, func() (any, error) {
 		return s.doAddAll(object, feature, index, c)
-	})))
+	}))
 }
 
 func (s *SQLStore) doAddAll(object EObject, feature EStructuralFeature, index int, c Collection) (any, error) {
@@ -1617,13 +1612,13 @@ func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int, nb int)
 	}
 }
 
-func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int) any {
+func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int, needResult bool) any {
 	return awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Remove", operationWrite, object, feature, index, nil, func() (any, error) {
-		return s.doRemove(object, feature, index)
+		return s.doRemove(object, feature, index, needResult)
 	})))
 }
 
-func (s *SQLStore) doRemove(object EObject, feature EStructuralFeature, index int) (any, error) {
+func (s *SQLStore) doRemove(object EObject, feature EStructuralFeature, index int, needResult bool) (decoded any, err error) {
 	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
 		return nil, err
@@ -1647,11 +1642,13 @@ func (s *SQLStore) doRemove(object EObject, feature EStructuralFeature, index in
 	}
 
 	// decode previous value
-	decoded, err := s.decodeFeatureValue(featureData.schema, value)
-	if err != nil {
-		return nil, err
+	if needResult {
+		decoded, err = s.decodeFeatureValue(featureData.schema, value)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return decoded, nil
+	return
 }
 
 type moveIndexes struct {
@@ -1663,13 +1660,13 @@ func (mi moveIndexes) String() string {
 	return fmt.Sprintf("{ sourceIndex : %v, targetIndex %v}", mi.sourceIndex, mi.targetIndex)
 }
 
-func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int) any {
+func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) any {
 	return awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Move", operationWrite, object, feature, -1, moveIndexes{sourceIndex, targetIndex}, func() (any, error) {
-		return s.doMove(object, feature, sourceIndex, targetIndex)
+		return s.doMove(object, feature, sourceIndex, targetIndex, needResult)
 	})))
 }
 
-func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int) (any, error) {
+func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) (decoded any, err error) {
 	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
 		return nil, err
@@ -1703,18 +1700,20 @@ func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceInde
 	}
 
 	// decode value
-	decoded, err := s.decodeFeatureValue(featureSchema, value)
-	if err != nil {
-		return nil, err
+	if needResult {
+		decoded, err = s.decodeFeatureValue(featureSchema, value)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return decoded, nil
+	return
 }
 
 func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
-	awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Clear", operationWrite, object, feature, -1, nil, func() (any, error) {
+	s.scheduleOperation(context.Background(), newOperation("Clear", operationWrite, object, feature, -1, nil, func() (any, error) {
 		return s.doClear(object, feature)
-	})))
+	}))
 }
 
 func (s *SQLStore) doClear(object EObject, feature EStructuralFeature) (any, error) {
@@ -1837,7 +1836,7 @@ func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 }
 
 func (s *SQLStore) Serialize(ctx context.Context) ([]byte, error) {
-	p := s.scheduleExclusive(ctx, newOperation("Serialize", operationRead, nil, nil, -1, nil, func() (any, error) {
+	p := s.scheduleOperation(ctx, newOperation("Serialize", operationRead, nil, nil, -1, nil, func() (any, error) {
 		return s.doSerialize(ctx)
 	}))
 	r, err := p.Await(ctx)
@@ -1894,24 +1893,43 @@ func (s *SQLStore) doSerialize(ctx context.Context) ([]byte, error) {
 	}
 }
 
+func (s *SQLStore) ExecuteQuery(ctx context.Context, query string, opts *sqlitex.ExecOptions) error {
+	var operationType operationType
+	switch operation, _, _ := strings.Cut(query, " "); operation {
+	case "SELECT":
+		operationType = operationRead
+	default:
+		operationType = operationWrite
+	}
+	_, err := s.scheduleOperation(ctx, newOperation("ExecuteQuery", operationType, nil, nil, -1, nil, func() (any, error) {
+		return nil, s.executeQuery(query, opts)
+	})).Await(ctx)
+	return err
+}
+
+func (s *SQLStore) Sync(ctx context.Context) error {
+	return s.waitOperations(ctx, nil)
+}
+
 func (s *SQLStore) Close() error {
-	s.logger.Named("ops").Debug("Close",
-		zap.Int64("goid", goid.Get()),
-	)
+	if !s.isClosed.Swap(true) {
+		s.logger.Named("ops").Debug("Close",
+			zap.Int64("goid", goid.Get()),
+		)
 
-	if err := s.waitOperations(context.Background(), nil); err != nil {
-		return err
+		if err := s.waitOperations(context.Background(), nil); err != nil {
+			return err
+		}
+
+		if err := s.taskManager.Close(); err != nil {
+			return err
+		}
+
+		if err := s.connPoolClose(s.connPool); err != nil {
+			return err
+		}
+
+		s.antsPool.Release()
 	}
-
-	if err := s.taskManager.Close(); err != nil {
-		return err
-	}
-
-	if err := s.connPoolClose(s.connPool); err != nil {
-		return err
-	}
-
-	s.antsPool.Release()
-
 	return nil
 }

@@ -873,6 +873,10 @@ func mapSet[S ~map[E]struct{}, E comparable, R any](m S, mapper func(E) R) []R {
 	return mappedSlice
 }
 
+// schedule operation in the store
+// s.objectOperations[nil][nil] all operations
+// s.objectOperations[object][nil] all operations for object
+// s.objectOperations[object][feature] all operations for object-feature
 func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *promise.Promise[any] {
 	logger := s.logger.Named("ops")
 	if e := logger.Check(zap.DebugLevel, "schedule"); e != nil {
@@ -904,6 +908,9 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		lockObjectFeatures = append(lockObjectFeatures, objectFeature{object, nil})
 	}
 
+	// of is {nil,nil} : return store object-feature iterator
+	// of is {object,nil} : return object object-feature iterator
+	// of is {object,feature} : return object-feature iterator
 	objectFeaturesIterator := func(of objectFeature) iter.Seq[objectFeature] {
 		return func(yield func(objectFeature) bool) {
 			if of.object == nil {
@@ -1905,10 +1912,6 @@ func (s *SQLStore) ExecuteQuery(ctx context.Context, query string, opts *sqlitex
 		return nil, s.executeQuery(query, opts)
 	})).Await(ctx)
 	return err
-}
-
-func (s *SQLStore) Sync(ctx context.Context) error {
-	return s.waitOperations(ctx, nil)
 }
 
 func (s *SQLStore) Close() error {

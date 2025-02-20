@@ -885,9 +885,9 @@ func (s *SQLStore) waitOperations(context context.Context, object any) error {
 func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *promise.Promise[any] {
 	logger := s.logger.Named("ops")
 	if e := logger.Check(zap.DebugLevel, "schedule"); e != nil {
-		var objectStringer fmt.Stringer
+		var objectString string
 		if op.object != nil {
-			objectStringer = op.object.(fmt.Stringer)
+			objectString = fmt.Sprintf("%s(%p)", op.object.EClass().GetName(), op.object)
 		}
 		var featureString string
 		if op.feature != nil {
@@ -896,7 +896,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		e.Write(zap.Int64("goid", goid.Get()),
 			zap.String("op", op.cmd),
 			zap.Stringer("type", op.type_),
-			zap.Stringer("object", objectStringer),
+			zap.String("object", objectString),
 			zap.String("feature", featureString),
 			zap.Int("index", op.index),
 			zap.Any("value", op.value))

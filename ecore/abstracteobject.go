@@ -10,7 +10,6 @@
 package ecore
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -920,8 +919,4 @@ func (o *AbstractEObject) EURIFragmentSegment(feature EStructuralFeature, object
 		s += "." + strconv.Itoa(i)
 	}
 	return s
-}
-
-func (o *AbstractEObject) String() string {
-	return fmt.Sprintf("%s(%p)", o.AsEObject().EClass().GetName(), o.AsEObject())
 }

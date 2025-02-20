@@ -142,7 +142,6 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 				if o.cache {
 					properties = o.getProperties()
 				}
-
 			}
 		}
 		// store value in properties

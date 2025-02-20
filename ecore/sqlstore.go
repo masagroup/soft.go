@@ -473,6 +473,7 @@ type SQLStore struct {
 	mutexQueries     sync.Mutex
 	objectOperations map[EObject]map[EStructuralFeature][]*operation
 	mutexOperations  sync.Mutex
+	logger           *zap.Logger
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -667,6 +668,7 @@ func newSQLStore(
 		singleQueries:    map[*sqlColumn]*sqlSingleQueries{},
 		manyQueries:      map[*sqlTable]*sqlManyQueries{},
 		objectOperations: map[EObject]map[EStructuralFeature][]*operation{},
+		logger:           logger,
 	}
 
 	// set store in sql object manager
@@ -831,11 +833,11 @@ func (s *SQLStore) waitOperations(context context.Context, object any) error {
 			allOperations = append(allOperations, operations...)
 		}
 	}
-	s.mutex.Unlock()
+	s.mutexOperations.Unlock()
 
 	// wait for operations to be finished
 	if len(allOperations) > 0 {
-		logger := s.sqlBase.logger.Named("ops")
+		logger := s.logger.Named("ops")
 		// debug
 		if e := logger.Check(zap.DebugLevel, "waiting operations"); e != nil {
 			e.Write(zap.Int64s("operations", mapSlice(allOperations, func(index int, op *operation) int64 { return op.id })))
@@ -853,13 +855,23 @@ func (s *SQLStore) waitOperations(context context.Context, object any) error {
 }
 
 func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *promise.Promise[any] {
-	logger := s.sqlBase.logger.Named("ops")
-	logger.Debug("schedule", zap.Int64("goid", goid.Get()),
-		zap.String("op", op.cmd),
-		zap.Stringer("object", op.object.(fmt.Stringer)),
-		zap.String("feature", op.feature.GetName()),
-		zap.Int("index", op.index),
-		zap.Any("value", op.value))
+	logger := s.logger.Named("ops")
+	if e := logger.Check(zap.DebugLevel, "schedule"); e != nil {
+		var objectStringer fmt.Stringer
+		if op.object != nil {
+			objectStringer = op.object.(fmt.Stringer)
+		}
+		var featureString string
+		if op.feature != nil {
+			featureString = op.feature.GetName()
+		}
+		e.Write(zap.Int64("goid", goid.Get()),
+			zap.String("op", op.cmd),
+			zap.Stringer("object", objectStringer),
+			zap.String("feature", featureString),
+			zap.Int("index", op.index),
+			zap.Any("value", op.value))
+	}
 
 	type objectFeature struct {
 		object  EObject
@@ -872,7 +884,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		objectFeatures = append(objectFeatures, objectFeature{object, nil})
 	}
 
-	// previous features = { general lock operations, object lock operations [, object feature operations] }
+	// previous features = { general lock operations, object lock operations , object feature operations }
 	previousFeatures := map[objectFeature]struct{}{
 		{nil, nil}:              {},
 		{op.object, nil}:        {},
@@ -964,7 +976,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 }
 
 func (s *SQLStore) scheduleExclusive(context context.Context, op *operation) *promise.Promise[any] {
-	logger := s.sqlBase.logger.Named("ops")
+	logger := s.logger.Named("ops")
 	logger.Debug("schedule", zap.Int64("goid", goid.Get()), zap.String("op", op.cmd))
 	return promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		s.mutexOperations.Lock()
@@ -1301,7 +1313,7 @@ func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, 
 				value = decodeAny(stmt, 0)
 				return nil
 			}}); err != nil {
-		return false, err
+		return true, nil
 	}
 	return value == nil, nil
 
@@ -1883,7 +1895,7 @@ func (s *SQLStore) doSerialize(ctx context.Context) ([]byte, error) {
 }
 
 func (s *SQLStore) Close() error {
-	s.sqlBase.logger.Named("ops").Debug("Close",
+	s.logger.Named("ops").Debug("Close",
 		zap.Int64("goid", goid.Get()),
 	)
 

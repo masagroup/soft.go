@@ -20,7 +20,7 @@ type EStore interface {
 
 	Get(object EObject, feature EStructuralFeature, index int) any
 
-	Set(object EObject, feature EStructuralFeature, index int, value any, oldValue bool) any
+	Set(object EObject, feature EStructuralFeature, index int, value any, needResult bool) any
 
 	IsSet(object EObject, feature EStructuralFeature) bool
 
@@ -40,9 +40,9 @@ type EStore interface {
 
 	AddAll(object EObject, feature EStructuralFeature, index int, collection Collection)
 
-	Remove(object EObject, feature EStructuralFeature, index int) any
+	Remove(object EObject, feature EStructuralFeature, index int, needResult bool) any
 
-	Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int) any
+	Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) any
 
 	Clear(object EObject, feature EStructuralFeature)
 

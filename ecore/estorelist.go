@@ -232,15 +232,13 @@ func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 
 func (list *EStoreList) performClear() []any {
 	var result []any
-	needResult := true
 	//cache
 	if list.data != nil {
 		result = list.BasicENotifyingList.performClear()
-		needResult = false
 	}
 	// store
 	if list.store != nil {
-		if needResult {
+		if list.data == nil {
 			result = list.store.ToArray(list.owner, list.feature)
 		}
 		list.store.Clear(list.owner, list.feature)
@@ -259,7 +257,11 @@ func (list *EStoreList) performRemove(index int) any {
 	}
 	//store
 	if list.store != nil {
-		result = list.store.Remove(list.owner, list.feature, index)
+		if list.data == nil {
+			result = list.store.Remove(list.owner, list.feature, index, true)
+		} else {
+			_ = list.store.Remove(list.owner, list.feature, index, false)
+		}
 	}
 	// size
 	list.size--
@@ -273,8 +275,12 @@ func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
 	}
 	if list.store != nil {
 		for i := fromIndex; i < toIndex; i++ {
-			object := list.store.Remove(list.owner, list.feature, i)
-			result = append(result, object)
+			if list.data == nil {
+				result = append(result, list.store.Remove(list.owner, list.feature, i, true))
+			} else {
+				_ = list.store.Remove(list.owner, list.feature, i, false)
+			}
+
 		}
 	}
 	list.size -= len(result)
@@ -287,7 +293,11 @@ func (list *EStoreList) performSet(index int, object any) any {
 		result = list.BasicENotifyingList.performSet(index, object)
 	}
 	if list.store != nil {
-		result = list.store.Set(list.owner, list.feature, index, object, list.data == nil)
+		if list.data == nil {
+			result = list.store.Set(list.owner, list.feature, index, object, true)
+		} else {
+			_ = list.store.Set(list.owner, list.feature, index, object, false)
+		}
 	}
 	return result
 }
@@ -298,7 +308,11 @@ func (list *EStoreList) performMove(oldIndex, newIndex int) any {
 		result = list.BasicENotifyingList.performMove(oldIndex, newIndex)
 	}
 	if list.store != nil {
-		result = list.store.Move(list.owner, list.feature, oldIndex, newIndex)
+		if list.data == nil {
+			result = list.store.Move(list.owner, list.feature, oldIndex, newIndex, true)
+		} else {
+			_ = list.store.Move(list.owner, list.feature, oldIndex, newIndex, false)
+		}
 	}
 	return result
 }

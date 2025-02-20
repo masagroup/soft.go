@@ -331,7 +331,7 @@ func TestEStoreList_MoveObject(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
 
 	mockStore.EXPECT().IndexOf(mockOwner, mockFeature, 1).Return(0).Once()
-	mockStore.EXPECT().Move(mockOwner, mockFeature, 0, 1).Return(mockObject).Once()
+	mockStore.EXPECT().Move(mockOwner, mockFeature, 0, 1, true).Return(mockObject).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
 	mockOwner.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {
@@ -358,7 +358,7 @@ func TestEStoreList_Move(t *testing.T) {
 	})
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
 
-	mockStore.EXPECT().Move(mockOwner, mockFeature, 0, 1).Return(mockObject).Once()
+	mockStore.EXPECT().Move(mockOwner, mockFeature, 0, 1, true).Return(mockObject).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
 	mockOwner.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {
@@ -512,7 +512,7 @@ func TestEStoreList_RemoveAt(t *testing.T) {
 	})
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
-	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0).Return(1).Once()
+	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, true).Return(1).Once()
 	mockOwner.EXPECT().EDeliver().Return(false).Once()
 	assert.Equal(t, 1, list.RemoveAt(0))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
@@ -533,7 +533,7 @@ func TestEStoreList_Remove(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
 	mockStore.EXPECT().IndexOf(mockOwner, mockFeature, 1).Return(0).Once()
-	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0).Return(1).Once()
+	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, true).Return(1).Once()
 	mockOwner.EXPECT().EDeliver().Return(false).Once()
 	assert.True(t, list.Remove(1))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
@@ -556,7 +556,7 @@ func TestEStoreList_RemoveWithNotification(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockNotifications)
 
 	mockStore.EXPECT().IndexOf(mockOwner, mockFeature, 1).Return(0).Once()
-	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0).Return(1).Once()
+	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, true).Return(1).Once()
 	mockOwner.EXPECT().EDeliver().Return(false).Once()
 	assert.Equal(t, mockNotifications, list.RemoveWithNotification(1, mockNotifications))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockNotifications)
@@ -574,7 +574,7 @@ func TestEStoreList_RemoveAll(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
 	mockStore.EXPECT().Get(mockOwner, mockFeature, 0).Return(1).Once()
-	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0).Return(1).Once()
+	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, true).Return(1).Once()
 	mockOwner.EXPECT().EDeliver().Return(false)
 	list.RemoveAll(NewImmutableEList([]any{1}))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
@@ -821,7 +821,7 @@ func TestEStoreList_RemoveRange(t *testing.T) {
 	require.NotNil(t, list)
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
-	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0).Return(mockObject).Once()
+	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, true).Return(mockObject).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
 	mockOwner.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {
@@ -849,8 +849,8 @@ func TestEStoreList_RemoveRange_Many(t *testing.T) {
 	require.NotNil(t, list)
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
-	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0).Return(mockObject).Once()
-	mockStore.EXPECT().Remove(mockOwner, mockFeature, 1).Return(mockObject2).Once()
+	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, true).Return(mockObject).Once()
+	mockStore.EXPECT().Remove(mockOwner, mockFeature, 1, true).Return(mockObject2).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
 	mockOwner.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {

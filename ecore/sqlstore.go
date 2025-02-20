@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -16,6 +17,7 @@ import (
 	"github.com/panjf2000/ants/v2"
 	"github.com/petermattis/goid"
 	"go.uber.org/zap"
+	"golang.org/x/sync/semaphore"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
@@ -826,21 +828,28 @@ func (s *SQLStore) scheduleOperation(op *operation) *promise.Promise[any] {
 		feature EStructuralFeature
 	}
 
-	// objects features = { object all operations, object feature operations [, value object all operations] }
-	objectFeatures := []objectFeature{{op.object, nil}, {op.object, op.feature}}
+	// objects features = { object feature operations [, value object lock operations] }
+	objectFeatures := []objectFeature{{op.object, op.feature}}
 	if object, isObject := op.value.(EObject); isObject {
 		objectFeatures = append(objectFeatures, objectFeature{object, nil})
+	}
+
+	// previous features = { general lock operations, object lock operations [, object feature operations] }
+	previousFeatures := map[objectFeature]struct{}{
+		{nil, nil}:              {},
+		{op.object, nil}:        {},
+		{op.object, op.feature}: {},
 	}
 
 	// lock operations
 	s.mutexOperations.Lock()
 
 	// compute previous operations to wait for
-	previous := map[*operation]struct{}{}
-	for _, objectFeature := range objectFeatures {
+	previous := []*operation{}
+	for objectFeature := range previousFeatures {
 		if objectOperations := s.objectOperations[objectFeature.object]; objectOperations != nil {
-			for _, operation := range objectOperations[objectFeature.feature] {
-				previous[operation] = struct{}{}
+			if operations := objectOperations[objectFeature.feature]; len(operations) > 0 {
+				previous = append(previous, operations[len(operations)-1])
 			}
 		}
 	}
@@ -851,9 +860,9 @@ func (s *SQLStore) scheduleOperation(op *operation) *promise.Promise[any] {
 		// wait for previous operations
 		if len(previous) > 0 {
 			if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
-				e.Write(zap.Int64s("previous", mapSet(previous, func(operation *operation) int64 { return op.id })))
+				e.Write(zap.Int64s("previous", mapSlice(previous, func(index int, operation *operation) int64 { return op.id })))
 			}
-			promises := mapSet(previous, func(operation *operation) *promise.Promise[any] { return operation.promise })
+			promises := mapSlice(previous, func(index int, operation *operation) *promise.Promise[any] { return operation.promise })
 			if _, err := promise.All(context.Background(), promises...).Await(context.Background()); err != nil {
 				logger.Debug("error in previous operation", zap.Error(err))
 				reject(err)
@@ -896,6 +905,68 @@ func (s *SQLStore) scheduleOperation(op *operation) *promise.Promise[any] {
 	}
 	s.mutexOperations.Unlock()
 	return op.promise
+}
+
+func (s *SQLStore) scheduleExclusive(op *operation) *promise.Promise[any] {
+	logger := s.sqlBase.logger.Named("operations")
+	logger.Debug("schedule", zap.Int64("goid", goid.Get()), zap.String("op", op.cmd))
+	return promise.NewWithPool(func(resolve func(any), reject func(error)) {
+		s.mutexOperations.Lock()
+		objects := slices.Collect(maps.Keys(s.objectOperations))
+		size := int64(len(objects))
+		s.mutexOperations.Unlock()
+
+		// create a lock semaphore
+		run := make(chan struct{})
+		locked := semaphore.NewWeighted(size)
+		if err := locked.Acquire(context.Background(), size); err != nil {
+			reject(err)
+			return
+		}
+
+		// schedule lock operation
+		for _, object := range objects {
+			s.scheduleOperation(newOperation("child-exclusive", object, nil, -1, nil, func() (any, error) {
+				// the object is locked
+				locked.Release(1)
+
+				// wait for the op to be run
+				<-run
+
+				return nil, nil
+			}))
+		}
+
+		// register exclusive operation
+		s.mutexOperations.Lock()
+		s.registerOperation(nil, nil, op)
+		s.mutexOperations.Unlock()
+
+		// wait for all objects to be locked
+		logger.Debug("waiting for exclusive access")
+		if err := locked.Acquire(context.Background(), size); err != nil {
+			reject(err)
+			return
+		}
+
+		// indicate all child exclusive that operation is ready to run
+		defer close(run)
+
+		// execute exclusive operation
+		logger.Debug("executing with exclusive access")
+		result, err := op.fn()
+
+		// unregister exclusive operation
+		s.mutexOperations.Lock()
+		s.unregisterOperation(nil, nil, op)
+		s.mutexOperations.Unlock()
+
+		if err != nil {
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	}, s.promisePool)
 }
 
 func (s *SQLStore) registerOperation(object EObject, feature EStructuralFeature, op *operation) {

@@ -894,6 +894,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 			featureString = op.feature.GetName()
 		}
 		e.Write(zap.Int64("goid", goid.Get()),
+			zap.Int64("id", op.id),
 			zap.String("op", op.cmd),
 			zap.Stringer("type", op.type_),
 			zap.String("object", objectString),

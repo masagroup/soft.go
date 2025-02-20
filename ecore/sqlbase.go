@@ -105,6 +105,7 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 	// create query promise
 	q.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		logger := s.logger.Named("sqlite").With(zap.Int64("goid", goid.Get()), zap.Int64("id", q.id))
+
 		// wait for previous query to be finished
 		if previous != nil {
 			if e := logger.Check(zap.DebugLevel, "waiting previous query"); e != nil {
@@ -126,12 +127,18 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 		}
 		defer s.connPool.Put(conn)
 
+		args := []zap.Field{zap.String("query", cmd)}
+		if opts != nil {
+			args = append(args, zap.Any("args", opts.Args))
+		}
+		executeLogger := logger.With(args...)
+		executeLogger.Debug("executing")
 		if err := fn(conn, cmd, opts); err != nil {
-			logger.Error("execute", zap.Error(err))
+			executeLogger.Error("executed", zap.Error(err))
 			reject(err)
 			return
 		} else {
-			logger.Error("execute")
+			executeLogger.Debug("executed")
 		}
 
 		// clean query
@@ -146,9 +153,10 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 			return
 		}
 		// remove query from queries
-		copy(s.sqliteQueries[index:], s.sqliteQueries[index+1:])
-		s.sqliteQueries[len(s.sqliteQueries)-1] = nil
-		s.sqliteQueries = s.sqliteQueries[:len(s.sqliteQueries)-1]
+		queries := s.sqliteQueries
+		copy(queries[index:], queries[index+1:])
+		queries[len(queries)-1] = nil
+		s.sqliteQueries = queries[:len(queries)-1]
 		logger.Debug("cleaned")
 		if len(s.sqliteQueries) == 0 {
 			logger.Debug("no pending")

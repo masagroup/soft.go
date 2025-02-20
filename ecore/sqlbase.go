@@ -2,7 +2,11 @@ package ecore
 
 import (
 	"context"
+	"errors"
+	"slices"
 	"strings"
+	"sync"
+	"sync/atomic"
 
 	"github.com/chebyrash/promise"
 	"github.com/panjf2000/ants/v2"
@@ -14,6 +18,37 @@ import (
 
 type executeQueryFn func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error
 
+var queryID atomic.Int64
+
+type queryType uint8
+
+const (
+	queryRead  queryType = 1 << 0
+	queryWrite queryType = 1 << 1
+)
+
+type query struct {
+	id      int64
+	type_   queryType
+	cmd     string
+	promise *promise.Promise[any]
+}
+
+func newQuery(cmd string) *query {
+	var queryType queryType
+	switch operation, _, _ := strings.Cut(cmd, " "); operation {
+	case "SELECT":
+		queryType = queryRead
+	default:
+		queryType = queryWrite
+	}
+	return &query{
+		id:    queryID.Add(1),
+		type_: queryType,
+		cmd:   cmd,
+	}
+}
+
 type sqlBase struct {
 	codecVersion     int64
 	schema           *sqlSchema
@@ -22,7 +57,8 @@ type sqlBase struct {
 	objectIDManager  EObjectIDManager
 	isObjectID       bool
 	isContainerID    bool
-	sqliteManager    *taskManager
+	sqliteMutex      sync.Mutex
+	sqliteQueries    []*query
 	logger           *zap.Logger
 	antsPool         *ants.Pool
 	promisePool      promise.Pool
@@ -31,38 +67,99 @@ type sqlBase struct {
 	connPoolClose    func(conn *sqlitex.Pool) error
 }
 
-func (d *sqlBase) executeSqlite(fn executeQueryFn, query string, opts *sqlitex.ExecOptions) error {
-	// retrieve task type
-	var taskType TaskType
-	switch operation, _, _ := strings.Cut(query, " "); operation {
-	case "SELECT":
-		taskType = TaskRead
-	default:
-		taskType = TaskWrite
-	}
+// execute sqlite cmd
+func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.ExecOptions) error {
+	s.sqliteMutex.Lock()
 
-	// schedule sqlite task :
+	// create query
+	q := newQuery(cmd)
+
+	// log
+	args := []zap.Field{zap.Int64("goid", goid.Get()), zap.Int64("id", q.id), zap.String("query", cmd)}
+	if opts != nil {
+		args = append(args, zap.Any("args", opts.Args))
+	}
+	s.logger.Named("sqlite").Debug("schedule", args...)
+
+	// compute previous query
 	// only one write to db is active
 	// multiple read to db is allowed
-	_, err := d.sqliteManager.ScheduleTask([]any{d}, taskType, query,
-		func() (res any, err error) {
-			args := []zap.Field{zap.Int64("goid", goid.Get()), zap.String("query", query)}
-			if opts != nil {
-				args = append(args, zap.Any("args", opts.Args))
+	var previous *query
+	switch q.type_ {
+	case queryRead:
+		for i := len(s.sqliteQueries) - 1; i >= 0; i-- {
+			if operation := s.sqliteQueries[i]; operation.type_ == queryWrite {
+				previous = operation
+				break
 			}
-			logger := d.logger.Named("sqlite").With(args...)
-			conn, err := d.connPool.Take(context.Background())
+		}
+	case queryWrite:
+		if len(s.sqliteQueries) > 0 {
+			previous = s.sqliteQueries[len(s.sqliteQueries)-1]
+		}
+	}
+
+	// add query to queries
+	s.sqliteQueries = append(s.sqliteQueries, q)
+
+	// create query promise
+	q.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
+		logger := s.logger.Named("sqlite").With(zap.Int64("goid", goid.Get()), zap.Int64("id", q.id))
+		// wait for previous query to be finished
+		if previous != nil {
+			if e := logger.Check(zap.DebugLevel, "waiting previous query"); e != nil {
+				e.Write(zap.Int64("previous", previous.id))
+			}
+			_, err := previous.promise.Await(context.Background())
 			if err != nil {
+				logger.Error("error in previous", zap.Error(err))
+				reject(err)
 				return
 			}
-			if err = fn(conn, query, opts); err != nil {
-				logger.Error("execute query", zap.Error(err))
-			} else {
-				logger.Debug("execute query")
-			}
-			d.connPool.Put(conn)
+		}
+
+		// execute query
+		conn, err := s.connPool.Take(context.Background())
+		if err != nil {
+			reject(err)
 			return
-		}).Await(context.Background())
+		}
+		defer s.connPool.Put(conn)
+
+		if err := fn(conn, cmd, opts); err != nil {
+			logger.Error("execute", zap.Error(err))
+			reject(err)
+			return
+		} else {
+			logger.Error("execute")
+		}
+
+		// clean query
+		logger.Debug("cleaning")
+		s.sqliteMutex.Lock()
+		defer s.sqliteMutex.Unlock()
+
+		// retrieve operation index
+		index := slices.Index(s.sqliteQueries, q)
+		if index == -1 {
+			reject(errors.New("unable to find query index"))
+			return
+		}
+		// remove query from queries
+		copy(s.sqliteQueries[index:], s.sqliteQueries[index+1:])
+		s.sqliteQueries[len(s.sqliteQueries)-1] = nil
+		s.sqliteQueries = s.sqliteQueries[:len(s.sqliteQueries)-1]
+		logger.Debug("cleaned")
+		if len(s.sqliteQueries) == 0 {
+			logger.Debug("no pending")
+		}
+		resolve(nil)
+	}, s.promisePool)
+
+	s.sqliteMutex.Unlock()
+
+	// wait for query to be finished
+	_, err := q.promise.Await(context.Background())
 	return err
 }
 

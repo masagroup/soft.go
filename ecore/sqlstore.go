@@ -433,8 +433,8 @@ func (ot operationType) String() string {
 }
 
 const (
-	operationRead  = 1 << 0
-	operationWrite = 1 << 1
+	operationRead  operationType = 1 << 0
+	operationWrite operationType = 1 << 1
 )
 
 type operation struct {
@@ -642,7 +642,6 @@ func newSQLStore(
 		objectIDManager:  idManager,
 		isContainerID:    true,
 		isObjectID:       len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
-		sqliteManager:    newTaskManager(promisePool, logger.Named("sqlite")),
 		logger:           logger,
 		antsPool:         antsPool,
 		promisePool:      promisePool,
@@ -824,6 +823,24 @@ func (e *SQLStore) getSQLID(eObject EObject) (int64, error) {
 	return sqlObjectID, nil
 }
 
+func mapSet[S ~map[E]struct{}, E comparable, R any](m S, mapper func(E) R) []R {
+	i := 0
+	mappedSlice := make([]R, len(m))
+	for e := range m {
+		mappedSlice[i] = mapper(e)
+		i++
+	}
+	return mappedSlice
+}
+
+func mapSlice[S ~[]E, E, R any](slice S, mapper func(int, E) R) []R {
+	mappedSlice := make([]R, len(slice))
+	for i, v := range slice {
+		mappedSlice[i] = mapper(i, v)
+	}
+	return mappedSlice
+}
+
 func (s *SQLStore) waitOperations(context context.Context, object any) error {
 	// compute operations to wait for
 	s.mutexOperations.Lock()
@@ -859,16 +876,6 @@ func (s *SQLStore) waitOperations(context context.Context, object any) error {
 		logger.Debug("waiting operations finished")
 	}
 	return nil
-}
-
-func mapSet[S ~map[E]struct{}, E comparable, R any](m S, mapper func(E) R) []R {
-	i := 0
-	mappedSlice := make([]R, len(m))
-	for e := range m {
-		mappedSlice[i] = mapper(e)
-		i++
-	}
-	return mappedSlice
 }
 
 // schedule operation in the store

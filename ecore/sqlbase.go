@@ -75,7 +75,7 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 	q := newQuery(cmd)
 
 	// log
-	args := []zap.Field{zap.Int64("goid", goid.Get()), zap.Int64("id", q.id), zap.String("query", cmd)}
+	args := []zap.Field{zap.Int64("id", q.id), zap.Int64("goid", goid.Get()), zap.String("query", cmd)}
 	if opts != nil {
 		args = append(args, zap.Any("args", opts.Args))
 	}
@@ -104,7 +104,7 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 
 	// create query promise
 	q.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
-		logger := s.logger.Named("sqlite").With(zap.Int64("goid", goid.Get()), zap.Int64("id", q.id))
+		logger := s.logger.Named("sqlite").With(zap.Int64("id", q.id), zap.Int64("goid", goid.Get()))
 
 		// wait for previous query to be finished
 		if previous != nil {

@@ -893,8 +893,9 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		if op.feature != nil {
 			featureString = op.feature.GetName()
 		}
-		e.Write(zap.Int64("goid", goid.Get()),
+		e.Write(
 			zap.Int64("id", op.id),
+			zap.Int64("goid", goid.Get()),
 			zap.String("op", op.cmd),
 			zap.Stringer("type", op.type_),
 			zap.String("object", objectString),
@@ -971,7 +972,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 
 	// create promise
 	op.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
-		logger := logger.With(zap.Int64("goid", goid.Get()), zap.Int64("id", op.id))
+		logger := logger.With(zap.Int64("id", op.id), zap.Int64("goid", goid.Get()))
 		// wait for previous operations
 		if len(previous) > 0 {
 			if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {

@@ -11,6 +11,7 @@ import (
 	"github.com/chebyrash/promise"
 	"github.com/panjf2000/ants/v2"
 	"github.com/petermattis/goid"
+	"github.com/rqlite/sql"
 	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -29,23 +30,67 @@ const (
 
 type query struct {
 	id      int64
-	type_   queryType
 	cmd     string
+	type_   queryType
+	tables  []string
 	promise *promise.Promise[any]
+}
+
+func getTableNames(sources []sql.Source) (result []string) {
+	for _, source := range sources {
+		switch s := source.(type) {
+		case *sql.JoinClause:
+			result = append(result, getTableNames([]sql.Source{s.X, s.Y})...)
+		case *sql.ParenSource:
+			result = append(result, getTableNames([]sql.Source{s.X})...)
+		case *sql.QualifiedTableName:
+			result = append(result, s.Name.Name)
+		}
+	}
+	return
 }
 
 func newQuery(cmd string) *query {
 	var queryType queryType
-	switch operation, _, _ := strings.Cut(cmd, " "); operation {
-	case "SELECT":
-		queryType = queryRead
-	default:
-		queryType = queryWrite
+	var queryTables []string
+	parser := sql.NewParser(strings.NewReader(cmd))
+loop:
+	for {
+		stmt, err := parser.ParseStatement()
+		if err != nil {
+			break loop
+		}
+
+		// compute query type and query tables
+		switch s := stmt.(type) {
+		case *sql.SelectStatement:
+			queryType = queryRead
+			queryTables = append(queryTables, getTableNames([]sql.Source{s.Source})...)
+		case *sql.CreateTableStatement:
+			queryType = queryWrite
+			queryTables = append(queryTables, s.Name.Name)
+		case *sql.InsertStatement:
+			queryType = queryWrite
+			queryTables = append(queryTables, s.Table.Name)
+		case *sql.DeleteStatement:
+			queryType = queryWrite
+			queryTables = append(queryTables, s.Table.Name.Name)
+		case *sql.UpdateStatement:
+			queryType = queryWrite
+			queryTables = append(queryTables, s.Table.Name.Name)
+		default:
+			// unknown statement - lock all
+			queryType = queryWrite
+			queryTables = nil
+			break loop
+		}
 	}
+
 	return &query{
-		id:    queryID.Add(1),
-		type_: queryType,
-		cmd:   cmd,
+		id:     queryID.Add(1),
+		cmd:    cmd,
+		type_:  queryType,
+		tables: queryTables,
 	}
 }
 
@@ -202,7 +247,7 @@ func (d *sqlBase) decodeProperties() (map[string]string, error) {
 	}
 
 	// retrieve properties from table
-	if err := d.executeQuery(`SELECT key,value FROM ".properties" `, &sqlitex.ExecOptions{
+	if err := d.executeQuery(`SELECT "key",value FROM ".properties";`, &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			key := stmt.ColumnText(0)
 			value := stmt.ColumnText(1)

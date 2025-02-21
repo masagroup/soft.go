@@ -3,6 +3,7 @@ package ecore
 import (
 	"context"
 	"errors"
+	"io"
 	"slices"
 	"strings"
 	"sync"
@@ -36,13 +37,13 @@ type query struct {
 	promise *promise.Promise[any]
 }
 
-func getTableNames(sources []sql.Source) (result []string) {
+func getTableIdentifiers(sources []sql.Source) (result []string) {
 	for _, source := range sources {
 		switch s := source.(type) {
 		case *sql.JoinClause:
-			result = append(result, getTableNames([]sql.Source{s.X, s.Y})...)
+			result = append(result, getTableIdentifiers([]sql.Source{s.X, s.Y})...)
 		case *sql.ParenSource:
-			result = append(result, getTableNames([]sql.Source{s.X})...)
+			result = append(result, getTableIdentifiers([]sql.Source{s.X})...)
 		case *sql.QualifiedTableName:
 			result = append(result, s.Name.Name)
 		}
@@ -58,6 +59,11 @@ loop:
 	for {
 		stmt, err := parser.ParseStatement()
 		if err != nil {
+			if err != io.EOF {
+				// parser error - all tables - write
+				queryType = queryWrite
+				queryTables = nil
+			}
 			break loop
 		}
 
@@ -65,7 +71,7 @@ loop:
 		switch s := stmt.(type) {
 		case *sql.SelectStatement:
 			queryType = queryRead
-			queryTables = append(queryTables, getTableNames([]sql.Source{s.Source})...)
+			queryTables = append(queryTables, getTableIdentifiers([]sql.Source{s.Source})...)
 		case *sql.CreateTableStatement:
 			queryType = queryWrite
 			queryTables = append(queryTables, s.Name.Name)
@@ -79,7 +85,7 @@ loop:
 			queryType = queryWrite
 			queryTables = append(queryTables, s.Table.Name.Name)
 		default:
-			// unknown statement - lock all
+			// unknown statement - all tables - write
 			queryType = queryWrite
 			queryTables = nil
 			break loop

@@ -797,6 +797,7 @@ func newSQLEncoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 				isContainerID:    isContainerID,
 				isObjectID:       isObjectID,
 				schema:           newSqlSchema(schemaOptions...),
+				sqliteQueries:    map[string][]*query{},
 				logger:           logger,
 				antsPool:         antsPool,
 				promisePool:      promisePool,

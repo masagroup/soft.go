@@ -642,6 +642,7 @@ func newSQLStore(
 		objectIDManager:  idManager,
 		isContainerID:    true,
 		isObjectID:       len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
+		sqliteQueries:    map[string][]*query{},
 		logger:           logger,
 		antsPool:         antsPool,
 		promisePool:      promisePool,

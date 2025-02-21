@@ -92,6 +92,12 @@ loop:
 		}
 	}
 
+	// add empty table if in write mode
+	// to ensure query will be global locked
+	if queryType == queryWrite {
+		queryTables = append(queryTables, "")
+	}
+
 	return &query{
 		id:     queryID.Add(1),
 		cmd:    cmd,
@@ -109,7 +115,7 @@ type sqlBase struct {
 	isObjectID       bool
 	isContainerID    bool
 	sqliteMutex      sync.Mutex
-	sqliteQueries    []*query
+	sqliteQueries    map[string][]*query
 	logger           *zap.Logger
 	antsPool         *ants.Pool
 	promisePool      promise.Pool
@@ -135,36 +141,39 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 	// compute previous query
 	// only one write to db is active
 	// multiple read to db is allowed
-	var previous *query
-	switch q.type_ {
-	case queryRead:
-		for i := len(s.sqliteQueries) - 1; i >= 0; i-- {
-			if operation := s.sqliteQueries[i]; operation.type_ == queryWrite {
-				previous = operation
-				break
+	previous := map[*query]struct{}{}
+	for _, table := range q.tables {
+		// previous
+		sqliteQueries := s.sqliteQueries[table]
+		switch q.type_ {
+		case queryRead:
+			for i := len(sqliteQueries) - 1; i >= 0; i-- {
+				if query := sqliteQueries[i]; query.type_ == queryWrite {
+					previous[query] = struct{}{}
+					break
+				}
+			}
+		case queryWrite:
+			if len(sqliteQueries) > 0 {
+				query := sqliteQueries[len(sqliteQueries)-1]
+				previous[query] = struct{}{}
 			}
 		}
-	case queryWrite:
-		if len(s.sqliteQueries) > 0 {
-			previous = s.sqliteQueries[len(s.sqliteQueries)-1]
-		}
+		// register query for thid table
+		s.sqliteQueries[table] = append(sqliteQueries, q)
 	}
-
-	// add query to queries
-	s.sqliteQueries = append(s.sqliteQueries, q)
 
 	// create query promise
 	q.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		logger := s.logger.Named("sqlite").With(zap.Int64("id", q.id), zap.Int64("goid", goid.Get()))
 
-		// wait for previous query to be finished
-		if previous != nil {
-			if e := logger.Check(zap.DebugLevel, "waiting previous query"); e != nil {
-				e.Write(zap.Int64("previous", previous.id))
+		if len(previous) > 0 {
+			if e := logger.Check(zap.DebugLevel, "waiting previous queries"); e != nil {
+				e.Write(zap.Int64s("previous", mapSet(previous, func(query *query) int64 { return query.id })))
 			}
-			_, err := previous.promise.Await(context.Background())
-			if err != nil {
-				logger.Error("error in previous", zap.Error(err))
+			promises := mapSet(previous, func(query *query) *promise.Promise[any] { return query.promise })
+			if _, err := promise.All(context.Background(), promises...).Await(context.Background()); err != nil {
+				logger.Debug("error in previous query", zap.Error(err))
 				reject(err)
 				return
 			}
@@ -197,18 +206,25 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 		s.sqliteMutex.Lock()
 		defer s.sqliteMutex.Unlock()
 
-		// retrieve operation index
-		index := slices.Index(s.sqliteQueries, q)
-		if index == -1 {
-			reject(errors.New("unable to find query index"))
-			return
+		// unregister query from all tables
+		for _, table := range q.tables {
+			queries := s.sqliteQueries[table]
+			index := slices.Index(queries, q)
+			if index == -1 {
+				reject(errors.New("unable to find query index"))
+				return
+			}
+			// remove query from queries
+			copy(queries[index:], queries[index+1:])
+			queries[len(queries)-1] = nil
+			queries = queries[:len(queries)-1]
+			if len(queries) > 0 {
+				s.sqliteQueries[table] = queries
+			} else {
+				delete(s.sqliteQueries, table)
+			}
+			logger.Debug("cleaned")
 		}
-		// remove query from queries
-		queries := s.sqliteQueries
-		copy(queries[index:], queries[index+1:])
-		queries[len(queries)-1] = nil
-		s.sqliteQueries = queries[:len(queries)-1]
-		logger.Debug("cleaned")
 		if len(s.sqliteQueries) == 0 {
 			logger.Debug("no pending")
 		}

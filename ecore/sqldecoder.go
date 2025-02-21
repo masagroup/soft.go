@@ -800,6 +800,7 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 				codecVersion:     codecVersion,
 				uri:              resource.GetURI(),
 				objectIDManager:  resource.GetObjectIDManager(),
+				sqliteQueries:    map[string][]*query{},
 				logger:           logger,
 				antsPool:         antsPool,
 				promisePool:      promisePool,

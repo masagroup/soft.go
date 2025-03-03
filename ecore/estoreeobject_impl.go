@@ -153,6 +153,11 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 }
 
 func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
+	// set value store
+	if storeObject, isStoreObject := value.(EStoreEObject); isStoreObject {
+		storeObject.SetEStore(o.store)
+	}
+	// retrieve properties
 	var properties []any
 	eFeature := o.eDynamicFeature(dynamicFeatureID)
 	store := o.AsEStoreEObject().GetEStore()
@@ -174,8 +179,15 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 }
 
 func (o *EStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
+	// retrieve previous value and unset properties
+	var value any
 	if o.properties != nil {
+		value = o.properties[dynamicFeatureID]
 		o.properties[dynamicFeatureID] = nil
+	}
+	// reset previous value store
+	if storeObject, isStoreObject := value.(EStoreEObject); isStoreObject {
+		storeObject.SetEStore(nil)
 	}
 	eFeature := o.eDynamicFeature(dynamicFeatureID)
 	store := o.AsEStoreEObject().GetEStore()

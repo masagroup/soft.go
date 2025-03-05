@@ -192,15 +192,15 @@ func TestMockEStoreRemove(t *testing.T) {
 	mockObject := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockOld := NewMockEObject(t)
-	m := NewMockRun(t, mockObject, mockFeature, 0)
-	mockEStore.EXPECT().Remove(mockObject, mockFeature, 0).Return(mockOld).Run(func(object EObject, feature EStructuralFeature, index int) {
-		m.Run(object, feature, index)
+	m := NewMockRun(t, mockObject, mockFeature, 0, true)
+	mockEStore.EXPECT().Remove(mockObject, mockFeature, 0, true).Return(mockOld).Run(func(object EObject, feature EStructuralFeature, index int, needResult bool) {
+		m.Run(object, feature, index, needResult)
 	}).Once()
-	mockEStore.EXPECT().Remove(mockObject, mockFeature, 0).Call.Return(func(object EObject, feature EStructuralFeature, index int) any {
+	mockEStore.EXPECT().Remove(mockObject, mockFeature, 0, true).Call.Return(func(object EObject, feature EStructuralFeature, index int, needResult bool) any {
 		return mockOld
 	}).Once()
-	assert.Equal(t, mockOld, mockEStore.Remove(mockObject, mockFeature, 0))
-	assert.Equal(t, mockOld, mockEStore.Remove(mockObject, mockFeature, 0))
+	assert.Equal(t, mockOld, mockEStore.Remove(mockObject, mockFeature, 0, true))
+	assert.Equal(t, mockOld, mockEStore.Remove(mockObject, mockFeature, 0, true))
 }
 
 func TestMockEStoreRemoveRoot(t *testing.T) {
@@ -218,15 +218,15 @@ func TestMockEStoreMove(t *testing.T) {
 	mockObject := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockOld := NewMockEObject(t)
-	m := NewMockRun(t, mockObject, mockFeature, 0, 1)
-	mockEStore.EXPECT().Move(mockObject, mockFeature, 0, 1).Return(mockOld).Run(func(object EObject, feature EStructuralFeature, targetIndex, sourceIndex int) {
-		m.Run(object, feature, targetIndex, sourceIndex)
+	m := NewMockRun(t, mockObject, mockFeature, 0, 1, true)
+	mockEStore.EXPECT().Move(mockObject, mockFeature, 0, 1, true).Return(mockOld).Run(func(object EObject, feature EStructuralFeature, targetIndex, sourceIndex int, needResult bool) {
+		m.Run(object, feature, targetIndex, sourceIndex, needResult)
 	}).Once()
-	mockEStore.EXPECT().Move(mockObject, mockFeature, 0, 1).Call.Return(func(object EObject, feature EStructuralFeature, index int, old int) any {
+	mockEStore.EXPECT().Move(mockObject, mockFeature, 0, 1, true).Call.Return(func(object EObject, feature EStructuralFeature, index int, old int, needResult bool) any {
 		return mockOld
 	}).Once()
-	assert.Equal(t, mockOld, mockEStore.Move(mockObject, mockFeature, 0, 1))
-	assert.Equal(t, mockOld, mockEStore.Move(mockObject, mockFeature, 0, 1))
+	assert.Equal(t, mockOld, mockEStore.Move(mockObject, mockFeature, 0, 1, true))
+	assert.Equal(t, mockOld, mockEStore.Move(mockObject, mockFeature, 0, 1, true))
 }
 
 func TestMockEStoreClear(t *testing.T) {

@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/chebyrash/promise"
+	"github.com/panjf2000/ants/v2"
+	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
@@ -141,47 +143,9 @@ func (d *sqlDecoder) resolveURI(uri *URI) *URI {
 	return uri
 }
 
-func decodeProperties(conn *sqlite.Conn) (map[string]string, error) {
-	// result
-	properties := map[string]string{}
-
-	// check if properties table exists
-	tableExists := false
-	if err := sqlitex.Execute(conn, `SELECT name FROM sqlite_master WHERE type='table' AND name='.properties';`, &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			tableExists = true
-			return nil
-		},
-	}); err != nil {
-		return nil, err
-	}
-	if !tableExists {
-		return properties, nil
-	}
-
-	// retrieve properties from table
-	if err := sqlitex.Execute(conn, `SELECT key,value FROM ".properties" `, &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			key := stmt.ColumnText(0)
-			value := stmt.ColumnText(1)
-			properties[key] = value
-			return nil
-		},
-	}); err != nil {
-		return nil, err
-	}
-	return properties, nil
-}
-
-func (d *sqlDecoder) decodeVersion(pool *sqlitex.Pool) error {
-	conn, err := pool.Take(context.Background())
-	if err != nil {
-		return err
-	}
-	defer pool.Put(conn)
-
+func (d *sqlDecoder) decodeVersion() error {
 	var version int64
-	if err := sqlitex.ExecuteTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
+	if err := d.executeQueryTransient("PRAGMA user_version;", &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			version = stmt.ColumnInt64(0)
 			return nil
@@ -196,15 +160,9 @@ func (d *sqlDecoder) decodeVersion(pool *sqlitex.Pool) error {
 	return nil
 }
 
-func (d *sqlDecoder) decodeSchema(pool *sqlitex.Pool, schemaOptions []sqlSchemaOption) error {
-	conn, err := pool.Take(context.Background())
-	if err != nil {
-		return err
-	}
-	defer pool.Put(conn)
-
+func (d *sqlDecoder) decodeSchema(schemaOptions []sqlSchemaOption) error {
 	// properties
-	properties, err := decodeProperties(conn)
+	properties, err := d.decodeProperties()
 	if err != nil {
 		return nil
 	}
@@ -235,14 +193,13 @@ func (d *sqlDecoder) decodeSchema(pool *sqlitex.Pool, schemaOptions []sqlSchemaO
 	return nil
 }
 
-func (d *sqlDecoder) decodePackage(conn *sqlite.Conn, id int64) (EPackage, error) {
+func (d *sqlDecoder) decodePackage(id int64) (EPackage, error) {
 	ePackage, isPackage := d.sqlIDManager.GetPackageFromID(id)
 	if !isPackage {
 		table := d.schema.packagesTable
 		var packageID int64
 		var packageURI string
-		if err := sqlitex.Execute(
-			conn,
+		if err := d.executeQuery(
 			table.selectQuery(nil, table.keyName()+"=?", ""),
 			&sqlitex.ExecOptions{
 				Args: []any{id},
@@ -270,14 +227,13 @@ func (d *sqlDecoder) decodePackage(conn *sqlite.Conn, id int64) (EPackage, error
 	return ePackage, nil
 }
 
-func (d *sqlDecoder) decodeClass(conn *sqlite.Conn, id int64) (*sqlDecoderClassData, error) {
+func (d *sqlDecoder) decodeClass(id int64) (*sqlDecoderClassData, error) {
 	eClass, isClass := d.sqlIDManager.GetClassFromID(id)
 	if !isClass {
 		table := d.schema.classesTable
 		var className string
 		var packageID int64
-		if err := sqlitex.Execute(
-			conn,
+		if err := d.executeQuery(
 			table.selectQuery(nil, table.keyName()+"=?", ""),
 			&sqlitex.ExecOptions{
 				Args: []any{id},
@@ -291,7 +247,7 @@ func (d *sqlDecoder) decodeClass(conn *sqlite.Conn, id int64) (*sqlDecoderClassD
 		}
 
 		// retrieve package
-		ePackage, err := d.decodePackage(conn, packageID)
+		ePackage, err := d.decodePackage(packageID)
 		if err != nil {
 			return nil, err
 		}
@@ -319,18 +275,17 @@ func (d *sqlDecoder) getDecoderClassData(eClass EClass) *sqlDecoderClassData {
 	return classData
 }
 
-func (d *sqlDecoder) decodeContents(conn *sqlite.Conn) ([]EObject, error) {
+func (d *sqlDecoder) decodeContents() ([]EObject, error) {
 	table := d.schema.contentsTable
 	contents := []EObject{}
-	if err := sqlitex.Execute(
-		conn,
+	if err := d.executeQuery(
 		table.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				// retrieve object id
 				objectID := stmt.ColumnInt64(0)
 				// decode object
-				object, err := d.decodeObject(conn, objectID)
+				object, err := d.decodeObject(objectID)
 				if err != nil {
 					return err
 				}
@@ -344,7 +299,7 @@ func (d *sqlDecoder) decodeContents(conn *sqlite.Conn) ([]EObject, error) {
 	return contents, nil
 }
 
-func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) {
+func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 	eObject, isObject := d.sqlIDManager.GetObjectFromID(id)
 	if !isObject {
 		table := d.schema.objectsTable
@@ -354,8 +309,7 @@ func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) 
 		if d.isObjectID {
 			columns = append(columns, d.objectIDName)
 		}
-		if err := sqlitex.Execute(
-			conn,
+		if err := d.executeQuery(
 			table.selectQuery(columns, table.keyName()+"=?", ""),
 			&sqlitex.ExecOptions{
 				Args: []any{id},
@@ -376,7 +330,7 @@ func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) 
 		}
 
 		// retrieve class data
-		classData, err := d.decodeClass(conn, classID)
+		classData, err := d.decodeClass(classID)
 		if err != nil {
 			return nil, err
 		}
@@ -409,7 +363,7 @@ func (d *sqlDecoder) decodeObject(conn *sqlite.Conn, id int64) (EObject, error) 
 	return eObject, nil
 }
 
-func (d *sqlDecoder) decodeEnumLiteral(conn *sqlite.Conn, id int64) (EEnumLiteral, error) {
+func (d *sqlDecoder) decodeEnumLiteral(id int64) (EEnumLiteral, error) {
 	eEnumLiteral, isEnumLiteral := d.sqlIDManager.GetEnumLiteralFromID(id)
 	if !isEnumLiteral {
 		table := d.schema.enumsTable
@@ -417,8 +371,7 @@ func (d *sqlDecoder) decodeEnumLiteral(conn *sqlite.Conn, id int64) (EEnumLitera
 		var packageID int64
 		var enumName string
 		var literalValue string
-		if err := sqlitex.Execute(
-			conn,
+		if err := d.executeQuery(
 			table.selectQuery(nil, table.keyName()+"=?", ""),
 			&sqlitex.ExecOptions{
 				Args: []any{id},
@@ -434,7 +387,7 @@ func (d *sqlDecoder) decodeEnumLiteral(conn *sqlite.Conn, id int64) (EEnumLitera
 		}
 
 		// package
-		ePackage, err := d.decodePackage(conn, packageID)
+		ePackage, err := d.decodePackage(packageID)
 		if err != nil {
 			return nil, err
 		}
@@ -456,14 +409,14 @@ func (d *sqlDecoder) decodeEnumLiteral(conn *sqlite.Conn, id int64) (EEnumLitera
 	return eEnumLiteral, nil
 }
 
-func (d *sqlDecoder) decodeFeatureValue(conn *sqlite.Conn, featureData *sqlFeatureSchema, value any) (any, error) {
+func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any) (any, error) {
 	switch featureData.featureKind {
 	case sfkObject, sfkObjectList:
 		switch v := value.(type) {
 		case nil:
 			return nil, nil
 		case int64:
-			return d.decodeObject(conn, v)
+			return d.decodeObject(v)
 		default:
 			return nil, fmt.Errorf("%v is not supported as a object id", v)
 		}
@@ -480,7 +433,7 @@ func (d *sqlDecoder) decodeFeatureValue(conn *sqlite.Conn, featureData *sqlFeatu
 				if err == nil {
 					// string is an int => object is in the resource
 					// decode it
-					return d.decodeObject(conn, sqlID)
+					return d.decodeObject(sqlID)
 				} else {
 					// string is an uri
 					proxyURI := NewURI(v)
@@ -557,7 +510,7 @@ func (d *sqlDecoder) decodeFeatureValue(conn *sqlite.Conn, featureData *sqlFeatu
 		case nil:
 			return featureData.feature.GetDefaultValue(), nil
 		case int64:
-			enumLiteral, err := d.decodeEnumLiteral(conn, v)
+			enumLiteral, err := d.decodeEnumLiteral(v)
 			if err != nil {
 				return nil, err
 			}
@@ -645,9 +598,7 @@ func (d *sqlDecoder) decodeFeatureData(featureSchema *sqlFeatureSchema, v string
 
 type SQLDecoder struct {
 	sqlDecoder
-	resource               EResource
-	connectionPoolProvider func() (*sqlitex.Pool, error)
-	connectionPoolClose    func(conn *sqlitex.Pool) error
+	resource EResource
 }
 
 const SQLITE_MAX_ALLOCATION_SIZE = 2147483391
@@ -808,15 +759,27 @@ func NewSQLDBDecoder(connPool *sqlitex.Pool, resource EResource, options map[str
 	)
 }
 
+type zapLogger struct {
+	*zap.Logger
+}
+
+func (l *zapLogger) Printf(format string, args ...any) {
+	l.Info(fmt.Sprintf(format, args...))
+}
+
 func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connectionPoolClose func(conn *sqlitex.Pool) error, resource EResource, options map[string]any) *SQLDecoder {
 	codecVersion := sqlCodecVersion
 	sqlIDManager := newSQLDecoderIDManager()
+	logger := zap.NewNop()
 	if options != nil {
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
 		}
 		if m, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLDecoderIDManager); isSQLIDManager {
 			sqlIDManager = m
+		}
+		if l, isLogger := options[SQL_OPTION_LOGGER]; isLogger {
+			logger = l.(*zap.Logger)
 		}
 	}
 
@@ -827,72 +790,82 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 		packageRegistry = resourceSet.GetPackageRegistry()
 	}
 
+	// ants pool
+	antsPool, _ := ants.NewPool(-1, ants.WithLogger(&zapLogger{logger.Named("ants")}))
+	promisePool := promise.FromAntsPool(antsPool)
+
 	return &SQLDecoder{
 		sqlDecoder: sqlDecoder{
 			sqlBase: &sqlBase{
-				codecVersion:    codecVersion,
-				uri:             resource.GetURI(),
-				objectIDManager: resource.GetObjectIDManager(),
+				codecVersion:     codecVersion,
+				uri:              resource.GetURI(),
+				objectIDManager:  resource.GetObjectIDManager(),
+				sqliteQueries:    map[string][]*query{},
+				logger:           logger,
+				antsPool:         antsPool,
+				promisePool:      promisePool,
+				connPoolProvider: connectionPoolProvider,
+				connPoolClose:    connectionPoolClose,
 			},
 			packageRegistry:  packageRegistry,
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: newSqlDecoderObjectManager(),
 			classDataMap:     map[EClass]*sqlDecoderClassData{},
 		},
-		resource:               resource,
-		connectionPoolProvider: connectionPoolProvider,
-		connectionPoolClose:    connectionPoolClose,
+		resource: resource,
 	}
 }
 
 func (d *SQLDecoder) DecodeResource() {
-	pool, err := d.connectionPoolProvider()
-	if err != nil {
+	var err error
+	if d.connPool, err = d.connPoolProvider(); err != nil {
 		d.addError(err)
 		return
 	}
 	defer func() {
-		if err := d.connectionPoolClose(pool); err != nil {
+		if err := d.connPoolClose(d.connPool); err != nil {
 			d.addError(err)
 		}
+
+		d.antsPool.Release()
 	}()
 
-	if err := d.decodeVersion(pool); err != nil {
+	if err := d.decodeVersion(); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodeSchema(pool, nil); err != nil {
+	if err := d.decodeSchema(nil); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodePackages(pool); err != nil {
+	if err := d.decodePackages(); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodeEnums(pool); err != nil {
+	if err := d.decodeEnums(); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodeClasses(pool); err != nil {
+	if err := d.decodeClasses(); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodeObjects(pool); err != nil {
+	if err := d.decodeObjects(); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodeFeatures(pool); err != nil {
+	if err := d.decodeFeatures(); err != nil {
 		d.addError(err)
 		return
 	}
 
-	if err := d.decodeContents(pool); err != nil {
+	if err := d.decodeContents(); err != nil {
 		d.addError(err)
 		return
 	}
@@ -902,15 +875,8 @@ func (d *SQLDecoder) DecodeObject() (EObject, error) {
 	panic("SQLDecoder doesn't support object decoding")
 }
 
-func (d *SQLDecoder) decodeContents(pool *sqlitex.Pool) error {
-	conn, err := pool.Take(context.Background())
-	if err != nil {
-		return err
-	}
-	defer pool.Put(conn)
-
-	return sqlitex.ExecuteTransient(
-		conn,
+func (d *SQLDecoder) decodeContents() error {
+	return d.executeQueryTransient(
 		d.schema.contentsTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
@@ -925,15 +891,8 @@ func (d *SQLDecoder) decodeContents(pool *sqlitex.Pool) error {
 		})
 }
 
-func (d *SQLDecoder) decodePackages(pool *sqlitex.Pool) error {
-	conn, err := pool.Take(context.Background())
-	if err != nil {
-		return err
-	}
-	defer pool.Put(conn)
-
-	return sqlitex.ExecuteTransient(
-		conn,
+func (d *SQLDecoder) decodePackages() error {
+	return d.executeQueryTransient(
 		d.schema.packagesTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
@@ -949,15 +908,8 @@ func (d *SQLDecoder) decodePackages(pool *sqlitex.Pool) error {
 		})
 }
 
-func (d *SQLDecoder) decodeEnums(pool *sqlitex.Pool) error {
-	conn, err := pool.Take(context.Background())
-	if err != nil {
-		return err
-	}
-	defer pool.Put(conn)
-
-	return sqlitex.ExecuteTransient(
-		conn,
+func (d *SQLDecoder) decodeEnums() error {
+	return d.executeQueryTransient(
 		d.schema.enumsTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
@@ -988,15 +940,8 @@ func (d *SQLDecoder) decodeEnums(pool *sqlitex.Pool) error {
 		})
 }
 
-func (d *SQLDecoder) decodeClasses(pool *sqlitex.Pool) error {
-	conn, err := pool.Take(context.Background())
-	if err != nil {
-		return err
-	}
-	defer pool.Put(conn)
-
-	return sqlitex.ExecuteTransient(
-		conn,
+func (d *SQLDecoder) decodeClasses() error {
+	return d.executeQueryTransient(
 		d.schema.classesTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
@@ -1023,15 +968,8 @@ func (d *SQLDecoder) decodeClasses(pool *sqlitex.Pool) error {
 		})
 }
 
-func (d *SQLDecoder) decodeObjects(pool *sqlitex.Pool) error {
-	conn, err := pool.Take(context.Background())
-	if err != nil {
-		return err
-	}
-	defer pool.Put(conn)
-
-	return sqlitex.ExecuteTransient(
-		conn,
+func (d *SQLDecoder) decodeObjects() error {
+	return d.executeQueryTransient(
 		d.schema.objectsTable.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
@@ -1075,7 +1013,7 @@ func (d *SQLDecoder) decodeObjects(pool *sqlitex.Pool) error {
 		})
 }
 
-func (d *SQLDecoder) decodeFeatures(pool *sqlitex.Pool) error {
+func (d *SQLDecoder) decodeFeatures() error {
 	decoded := map[EClass]struct{}{}
 	decoding := []*promise.Promise[any]{}
 	// for each leaf class
@@ -1087,20 +1025,13 @@ func (d *SQLDecoder) decodeFeatures(pool *sqlitex.Pool) error {
 			decodingClass := eClass
 			if _, isDecoded := decoded[decodingClass]; !isDecoded {
 				decoded[decodingClass] = struct{}{}
-				decoding = append(decoding, promise.New(func(resolve func(any), reject func(error)) {
-					conn, err := pool.Take(context.Background())
-					if err != nil {
-						reject(err)
-						return
-					}
-					defer pool.Put(conn)
-
-					if err := d.decodeClassFeatures(conn, decodingClass); err != nil {
+				decoding = append(decoding, promise.NewWithPool(func(resolve func(any), reject func(error)) {
+					if err := d.decodeClassFeatures(decodingClass); err != nil {
 						reject(err)
 					} else {
 						resolve(nil)
 					}
-				}))
+				}, d.promisePool))
 			}
 
 			// next super class
@@ -1115,28 +1046,27 @@ func (d *SQLDecoder) decodeFeatures(pool *sqlitex.Pool) error {
 	return err
 }
 
-func (d *SQLDecoder) decodeClassFeatures(conn *sqlite.Conn, eClass EClass) error {
+func (d *SQLDecoder) decodeClassFeatures(eClass EClass) error {
 	classSchema := d.schema.getClassSchema(eClass)
 	columnFeatures := []*sqlFeatureSchema{}
 	for _, featureData := range classSchema.features {
 		if featureData.column != nil {
 			columnFeatures = append(columnFeatures, featureData)
 		} else if featureData.table != nil {
-			if err := d.decodeTableFeature(conn, featureData.table, featureData); err != nil {
+			if err := d.decodeTableFeature(featureData.table, featureData); err != nil {
 				return err
 			}
 		}
 	}
 
-	return d.decodeColumnFeatures(conn, classSchema.table, columnFeatures)
+	return d.decodeColumnFeatures(classSchema.table, columnFeatures)
 }
 
-func (d *SQLDecoder) decodeColumnFeatures(conn *sqlite.Conn, table *sqlTable, columnFeatures []*sqlFeatureSchema) error {
+func (d *SQLDecoder) decodeColumnFeatures(table *sqlTable, columnFeatures []*sqlFeatureSchema) error {
 	if len(columnFeatures) == 0 {
 		return nil
 	}
-	return sqlitex.Execute(
-		conn,
+	return d.executeQuery(
 		table.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
@@ -1149,7 +1079,7 @@ func (d *SQLDecoder) decodeColumnFeatures(conn *sqlite.Conn, table *sqlTable, co
 				// for each column
 				for i, columnData := range columnFeatures {
 					value := decodeAny(stmt, i+1)
-					columnValue, err := d.decodeFeatureValue(conn, columnData, value)
+					columnValue, err := d.decodeFeatureValue(columnData, value)
 					if err != nil {
 						return err
 					}
@@ -1164,21 +1094,20 @@ func (d *SQLDecoder) decodeColumnFeatures(conn *sqlite.Conn, table *sqlTable, co
 		})
 }
 
-func (d *SQLDecoder) decodeTableFeature(conn *sqlite.Conn, table *sqlTable, tableFeature *sqlFeatureSchema) error {
+func (d *SQLDecoder) decodeTableFeature(table *sqlTable, tableFeature *sqlFeatureSchema) error {
 	column := sqlEscapeIdentifier(table.columns[len(table.columns)-1].columnName)
 	query := table.selectQuery([]string{table.keyName(), column}, "", table.keyName()+" ASC, idx ASC")
 	feature := tableFeature.feature
 	values := []any{}
 	var id int64 = -1
-	if err := sqlitex.Execute(
-		conn,
+	if err := d.executeQuery(
 		query,
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				// object id
 				objectID := stmt.ColumnInt64(0)
 				value := decodeAny(stmt, 1)
-				decoded, err := d.decodeFeatureValue(conn, tableFeature, value)
+				decoded, err := d.decodeFeatureValue(tableFeature, value)
 				if err != nil {
 					return err
 				}

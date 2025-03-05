@@ -5,23 +5,22 @@ import (
 	"errors"
 	"fmt"
 	"iter"
-	"maps"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
-	"time"
+	"sync/atomic"
 
 	"github.com/chebyrash/promise"
+	"github.com/panjf2000/ants/v2"
+	"github.com/petermattis/goid"
 	"go.uber.org/zap"
-	"golang.org/x/sync/semaphore"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 // log queries
-var logQuery bool = true
 
 type sqlSingleQueries struct {
 	column      *sqlColumn
@@ -419,27 +418,70 @@ func (r *sqlStoreIDManagerImpl) SetEnumLiteralID(e EEnumLiteral, id int64) {
 	r.sqlEncoderIDManagerImpl.enumLiterals[e] = id
 }
 
+var operationID atomic.Int64
+
+type operationType uint8
+
+func (ot operationType) String() string {
+	switch ot {
+	case operationRead:
+		return "read"
+	case operationWrite:
+		return "write"
+	}
+	return ""
+}
+
+const (
+	operationRead  operationType = 1 << 0
+	operationWrite operationType = 1 << 1
+)
+
 type operation struct {
-	type_    OperationType
-	promise_ *promise.Promise[any]
+	id      int64
+	type_   operationType
+	cmd     string
+	object  EObject
+	feature EStructuralFeature
+	index   int
+	value   any
+	fn      func() (any, error)
+	promise *promise.Promise[any]
+}
+
+func newOperation(
+	cmd string,
+	type_ operationType,
+	object EObject,
+	feature EStructuralFeature,
+	index int,
+	value any,
+	fn func() (any, error)) *operation {
+	return &operation{
+		id:      operationID.Add(1),
+		type_:   type_,
+		cmd:     cmd,
+		object:  object,
+		feature: feature,
+		index:   index,
+		value:   value,
+		fn:      fn,
+	}
 }
 
 type SQLStore struct {
 	*sqlBase
 	sqlDecoder
 	sqlEncoder
-	pool                *sqlitex.Pool
-	errorHandler        func(error)
-	sqlIDManager        SQLStoreIDManager
-	singleQueries       map[*sqlColumn]*sqlSingleQueries
-	manyQueries         map[*sqlTable]*sqlManyQueries
-	mutexQueries        sync.Mutex
-	connectionPoolClose func(conn *sqlitex.Pool) error
-	executeQuery        func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error
-	operations          map[any][]*operation
-	mutexOperations     sync.Mutex
-	mutexEncoder        sync.Mutex
-	mutexDecoder        sync.Mutex
+	isClosed         atomic.Bool
+	errorHandler     func(error)
+	sqlIDManager     SQLStoreIDManager
+	singleQueries    map[*sqlColumn]*sqlSingleQueries
+	manyQueries      map[*sqlTable]*sqlManyQueries
+	mutexQueries     sync.Mutex
+	objectOperations map[EObject]map[EStructuralFeature][]*operation
+	mutexOperations  sync.Mutex
+	logger           *zap.Logger
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -575,24 +617,8 @@ func newSQLStore(
 		}
 	}
 
-	// log sqlite queries
-	executeQuery := sqlitex.Execute
-	if logQuery {
-		executeQuery = func(conn *sqlite.Conn, query string, opts *sqlitex.ExecOptions) error {
-			start := time.Now()
-			if err := sqlitex.Execute(conn, query, opts); err != nil {
-				return err
-			}
-			logger.Debug("execute",
-				zap.String("query", query),
-				zap.Any("args", opts.Args),
-				zap.Duration("duration", time.Since(start)))
-			return nil
-		}
-	}
-
 	// retrieve connection pool
-	pool, err := connectionPoolProvider()
+	connPool, err := connectionPoolProvider()
 	if err != nil {
 		return nil, err
 	}
@@ -600,19 +626,29 @@ func newSQLStore(
 	// close pool if there is an error
 	defer func() {
 		if err != nil {
-			_ = connectionPoolClose(pool)
+			_ = connectionPoolClose(connPool)
 		}
 	}()
 
+	// ants promise pool
+	antsPool, _ := ants.NewPool(-1, ants.WithLogger(&zapLogger{logger.Named("ants")}))
+	promisePool := promise.FromAntsPool(antsPool)
+
 	// create sql base
 	base := &sqlBase{
-		codecVersion:    codecVersion,
-		uri:             resourceURI,
-		objectIDName:    objectIDName,
-		objectIDManager: idManager,
-		isContainerID:   true,
-		isObjectID:      len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
-		logger:          logger,
+		codecVersion:     codecVersion,
+		uri:              resourceURI,
+		objectIDName:     objectIDName,
+		objectIDManager:  idManager,
+		isContainerID:    true,
+		isObjectID:       len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
+		sqliteQueries:    map[string][]*query{},
+		logger:           logger,
+		antsPool:         antsPool,
+		promisePool:      promisePool,
+		connPool:         connPool,
+		connPoolProvider: connectionPoolProvider,
+		connPoolClose:    connectionPoolClose,
 	}
 
 	// create sql store
@@ -628,52 +664,45 @@ func newSQLStore(
 		sqlEncoder: sqlEncoder{
 			sqlBase:          base,
 			isForced:         false,
+			isObjectExists:   true,
 			classDataMap:     map[EClass]*sqlEncoderClassData{},
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
+			sqlLockManager:   newSqlEncoderLockManager(),
 		},
-		pool:                pool,
-		sqlIDManager:        sqlIDManager,
-		errorHandler:        errorHandler,
-		singleQueries:       map[*sqlColumn]*sqlSingleQueries{},
-		manyQueries:         map[*sqlTable]*sqlManyQueries{},
-		connectionPoolClose: connectionPoolClose,
-		executeQuery:        executeQuery,
-		operations:          map[any][]*operation{},
+		sqlIDManager:     sqlIDManager,
+		errorHandler:     errorHandler,
+		singleQueries:    map[*sqlColumn]*sqlSingleQueries{},
+		manyQueries:      map[*sqlTable]*sqlManyQueries{},
+		objectOperations: map[EObject]map[EStructuralFeature][]*operation{},
+		logger:           logger,
 	}
 
 	// set store in sql object manager
 	sqlObjectManager.store = store
 
 	// decode version
-	if err = store.decodeVersion(pool); err != nil {
+	if err = store.decodeVersion(); err != nil {
 		return nil, err
 	}
 
 	// decode schema
-	if err = store.decodeSchema(pool, []sqlSchemaOption{withCreateIfNotExists(true)}); err != nil {
+	if err = store.decodeSchema([]sqlSchemaOption{withCreateIfNotExists(true)}); err != nil {
 		return nil, err
 	}
-
-	// write connection
-	conn, err := pool.Take(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defer pool.Put(conn)
 
 	// encode version
-	if err = store.encodeVersion(conn); err != nil {
+	if err = store.encodeVersion(); err != nil {
 		return nil, err
 	}
 
 	// encode schema
-	if err = store.encodeSchema(conn); err != nil {
+	if err = store.encodeSchema(); err != nil {
 		return nil, err
 	}
 
 	// encode schema
-	if err = store.encodeProperties(conn); err != nil {
+	if err = store.encodeProperties(); err != nil {
 		return nil, err
 	}
 
@@ -729,14 +758,12 @@ func (s *SQLStore) getFeatureTable(object EObject, feature EStructuralFeature) (
 	return featureSchema.table, nil
 }
 
-func (s *SQLStore) getEncoderFeatureData(conn *sqlite.Conn, object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
+func (s *SQLStore) getEncoderFeatureData(object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
 	// retrieve class schema
 	class := object.EClass()
 
 	// retrieve class data
-	s.mutexEncoder.Lock()
-	defer s.mutexEncoder.Unlock()
-	classData, err := s.sqlEncoder.getEncoderClassData(conn, class)
+	classData, err := s.getEncoderClassData(class)
 	if err != nil {
 		s.errorHandler(err)
 		return nil, fmt.Errorf("class %s is unknown", class.GetName())
@@ -753,82 +780,359 @@ func (s *SQLStore) getEncoderFeatureData(conn *sqlite.Conn, object EObject, feat
 	return featureData, nil
 }
 
-func (e *SQLStore) decodeFeatureValue(conn *sqlite.Conn, featureData *sqlFeatureSchema, value any) (any, error) {
-	e.mutexDecoder.Lock()
-	defer e.mutexDecoder.Unlock()
-	return e.sqlDecoder.decodeFeatureValue(conn, featureData, value)
-}
-
-func (e *SQLStore) encodeFeatureValue(conn *sqlite.Conn, featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
+func (e *SQLStore) encodeFeatureValue(sqlObjectID int64, featureData *sqlEncoderFeatureData, value any) (encoded any, err error) {
 	if value != nil {
 		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:
 			eObject := value.(EObject)
-			return e.getSQLID(conn, eObject)
+			return e.getSQLID(eObject)
 		default:
-			e.mutexEncoder.Lock()
-			defer e.mutexEncoder.Unlock()
-			return e.sqlEncoder.encodeFeatureValue(conn, featureData, value)
+			return e.sqlEncoder.encodeFeatureValue(sqlObjectID, featureData, value)
 		}
 	}
 	return nil, nil
 }
 
 // get object sql id
-func (s *SQLStore) getSQLID(conn *sqlite.Conn, eObject EObject) (int64, error) {
+func (e *SQLStore) getSQLID(eObject EObject) (int64, error) {
 	// retrieve sql id for eObject
-	sqlID, isSQLID := s.sqlIDManager.GetObjectID(eObject)
-	if !isSQLID {
+	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
+	if !isSqlObjectID {
 		// object is not in store - check if it exists in db
 		objectExists := false
-		objectsTable := s.schema.objectsTable
-		if err := s.executeQuery(
-			conn,
-			s.getSingleQueries(objectsTable.key).getSelectQuery(),
-			&sqlitex.ExecOptions{
-				Args: []any{sqlID},
-				ResultFunc: func(stmt *sqlite.Stmt) error {
-					objectExists = true
-					return nil
-				},
-			}); err != nil {
-			return 0, err
+		if sqlObjectID != 0 && e.isObjectExists {
+			if err := e.executeQuery(
+				`SELECT objectID FROM ".objects" WHERE objectID=?`,
+				&sqlitex.ExecOptions{
+					Args: []any{sqlObjectID},
+					ResultFunc: func(stmt *sqlite.Stmt) error {
+						objectExists = true
+						return nil
+					},
+				}); err != nil {
+				return 0, err
+			}
 		}
 		if objectExists {
 			// object exists - register it as decoded
-			s.sqlIDManager.SetObjectID(eObject, sqlID)
+			e.sqlIDManager.SetObjectID(eObject, sqlObjectID)
 		} else {
 			// object doesn't exists in db - encode it with encoder
-			s.mutexEncoder.Lock()
-			defer s.mutexEncoder.Unlock()
-			return s.sqlEncoder.encodeObject(conn, eObject)
+			return e.encodeObject(eObject, -1, -1)
 		}
 	}
-	return sqlID, nil
+	return sqlObjectID, nil
+}
+
+func mapSet[S ~map[E]struct{}, E comparable, R any](m S, mapper func(E) R) []R {
+	i := 0
+	mappedSlice := make([]R, len(m))
+	for e := range m {
+		mappedSlice[i] = mapper(e)
+		i++
+	}
+	return mappedSlice
+}
+
+func mapSlice[S ~[]E, E, R any](slice S, mapper func(int, E) R) []R {
+	mappedSlice := make([]R, len(slice))
+	for i, v := range slice {
+		mappedSlice[i] = mapper(i, v)
+	}
+	return mappedSlice
+}
+
+func (s *SQLStore) waitOperations(context context.Context, object any) error {
+	// compute operations to wait for
+	s.mutexOperations.Lock()
+	allOperations := []*operation{}
+	if object == nil {
+		allOperations = make([]*operation, 0)
+		for _, objectOperations := range s.objectOperations {
+			for _, operations := range objectOperations {
+				allOperations = append(allOperations, operations...)
+			}
+		}
+	} else {
+		for _, operations := range s.objectOperations[object.(EObject)] {
+			allOperations = append(allOperations, operations...)
+		}
+	}
+	s.mutexOperations.Unlock()
+
+	// wait for operations to be finished
+	if len(allOperations) > 0 {
+		logger := s.logger.Named("ops")
+		// debug
+		if e := logger.Check(zap.DebugLevel, "waiting operations"); e != nil {
+			e.Write(zap.Int64s("operations", mapSlice(allOperations, func(index int, op *operation) int64 { return op.id })))
+		}
+		// compute promises
+		allPromises := mapSlice(allOperations, func(index int, op *operation) *promise.Promise[any] { return op.promise })
+		// wait for promises
+		_, err := promise.AllWithPool(context, s.promisePool, allPromises...).Await(context)
+		if err != nil {
+			return err
+		}
+		logger.Debug("waiting operations finished")
+	}
+	return nil
+}
+
+// schedule operation in the store
+// s.objectOperations[nil][nil] all operations
+// s.objectOperations[object][nil] all operations for object
+// s.objectOperations[object][feature] all operations for object-feature
+func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *promise.Promise[any] {
+	logger := s.logger.Named("ops")
+	if e := logger.Check(zap.DebugLevel, "schedule"); e != nil {
+		var objectString string
+		if op.object != nil {
+			objectString = fmt.Sprintf("%s(%p)", op.object.EClass().GetName(), op.object)
+		}
+		var featureString string
+		if op.feature != nil {
+			featureString = op.feature.GetName()
+		}
+		e.Write(
+			zap.Int64("id", op.id),
+			zap.Int64("goid", goid.Get()),
+			zap.String("op", op.cmd),
+			zap.Stringer("type", op.type_),
+			zap.String("object", objectString),
+			zap.String("feature", featureString),
+			zap.Int("index", op.index),
+			zap.Any("value", op.value))
+	}
+
+	type objectFeature struct {
+		object  EObject
+		feature EStructuralFeature
+	}
+
+	// lock objects features = { object feature operations [, value all operations] }
+	lockObjectFeatures := []objectFeature{{op.object, op.feature}}
+	if object, isObject := op.value.(EObject); isObject {
+		lockObjectFeatures = append(lockObjectFeatures, objectFeature{object, nil})
+	}
+
+	// of is {nil,nil} : return store object-feature iterator
+	// of is {object,nil} : return object object-feature iterator
+	// of is {object,feature} : return object-feature iterator
+	objectFeaturesIterator := func(of objectFeature) iter.Seq[objectFeature] {
+		return func(yield func(objectFeature) bool) {
+			if of.object == nil {
+				if !yield(objectFeature{nil, nil}) {
+					return
+				}
+				for object, objectOperations := range s.objectOperations {
+					if object != nil {
+						if !yield(objectFeature{object, nil}) {
+							return
+						}
+						for feature := range objectOperations {
+							if feature != nil {
+								if !yield(objectFeature{object, feature}) {
+									return
+								}
+							}
+						}
+					}
+				}
+			} else if of.feature == nil {
+				if !yield(objectFeature{of.object, nil}) {
+					return
+				}
+				for feature := range s.objectOperations[of.object] {
+					if feature != nil {
+						if !yield(objectFeature{of.object, feature}) {
+							return
+						}
+					}
+				}
+			} else {
+				if !yield(objectFeature{of.object, of.feature}) {
+					return
+				}
+			}
+		}
+	}
+
+	// lock operations
+	s.mutexOperations.Lock()
+
+	// register operation for all objects and and compute previous operations to wait for
+	previous := map[*operation]struct{}{}
+	for _, lof := range lockObjectFeatures {
+		for of := range objectFeaturesIterator(lof) {
+			if po := s.registerOperation(of.object, of.feature, op); po != nil {
+				previous[po] = struct{}{}
+			}
+		}
+	}
+
+	// create promise
+	op.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
+		logger := logger.With(zap.Int64("id", op.id), zap.Int64("goid", goid.Get()))
+		// wait for previous operations
+		if len(previous) > 0 {
+			if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
+				e.Write(zap.Int64s("previous", mapSet(previous, func(operation *operation) int64 { return op.id })))
+			}
+			promises := mapSet(previous, func(operation *operation) *promise.Promise[any] { return operation.promise })
+			if _, err := promise.All(context, promises...).Await(context); err != nil {
+				logger.Debug("error in previous operation", zap.Error(err))
+				reject(err)
+				return
+			}
+		}
+
+		// execute operation
+		logger.Debug("execute")
+		result, err := op.fn()
+
+		// clean operations
+		logger.Debug("cleaning")
+		s.mutexOperations.Lock()
+		defer s.mutexOperations.Unlock()
+		for _, lof := range lockObjectFeatures {
+			for of := range objectFeaturesIterator(lof) {
+				if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
+					reject(err)
+					return
+				}
+			}
+		}
+		logger.Debug("cleaned")
+
+		if len(s.objectOperations) == 0 {
+			logger.Debug("no pending")
+		}
+
+		// result or error
+		if err != nil {
+			s.errorHandler(err)
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	}, s.promisePool)
+
+	s.mutexOperations.Unlock()
+	return op.promise
+}
+
+func (s *SQLStore) getLastOperation(type_ operationType, object EObject, feature EStructuralFeature, index int) *operation {
+	s.mutexOperations.Lock()
+	defer s.mutexOperations.Unlock()
+	if objectOperations := s.objectOperations[object]; objectOperations != nil {
+		if operations := objectOperations[feature]; operations != nil {
+			for i := len(operations) - 1; i >= 0; i-- {
+				if operation := operations[i]; operation.type_ == type_ && operation.index == index {
+					return operation
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (s *SQLStore) registerOperation(object EObject, feature EStructuralFeature, op *operation) (previous *operation) {
+	// get operations for object-feature
+	objectOperations := s.objectOperations[object]
+	if objectOperations == nil {
+		objectOperations = map[EStructuralFeature][]*operation{}
+		s.objectOperations[object] = objectOperations
+	}
+	operations := objectOperations[feature]
+	if operations == nil {
+		operations = []*operation{}
+		objectOperations[feature] = operations
+	}
+
+	// compute previous operation
+	switch op.type_ {
+	case operationRead:
+		for i := len(operations) - 1; i >= 0; i-- {
+			operation := operations[i]
+			if operation.type_ == operationWrite {
+				previous = operation
+				break
+			}
+		}
+	case operationWrite:
+		if len(operations) > 0 {
+			previous = operations[len(operations)-1]
+		}
+	}
+
+	// add operation
+	objectOperations[feature] = append(operations, op)
+	return
+}
+
+func (s *SQLStore) unregisterOperation(object EObject, feature EStructuralFeature, op *operation) error {
+	objectOperations := s.objectOperations[object]
+	operations := objectOperations[feature]
+	// retrieve operation index
+	index := slices.Index(operations, op)
+	if index == -1 {
+		return errors.New("unable to find task index")
+	}
+	// remove operation from collection
+	copy(operations[index:], operations[index+1:])
+	operations[len(operations)-1] = nil
+	operations = operations[:len(operations)-1]
+	// set object operations for feature
+	if len(operations) == 0 {
+		delete(objectOperations, feature)
+		// cleanup object operations
+		if len(objectOperations) == 0 {
+			delete(s.objectOperations, object)
+		}
+	} else {
+		objectOperations[feature] = operations
+	}
+	return nil
+}
+
+func awaitPromise[T any](p *promise.Promise[any]) T {
+	var def T
+	if r, err := p.Await(context.Background()); err != nil {
+		return def
+	} else if result, isResult := (*r).(T); isResult {
+		return result
+	} else {
+		return def
+	}
 }
 
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return nil
+	// optimization : if we have a non many feature, check if we have a pending write operation
+	if !feature.IsMany() {
+		if operation := s.getLastOperation(operationWrite, object, feature, index); operation != nil {
+			return operation.value
+		}
 	}
-	defer s.pool.Put(conn)
+	return awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Get", operationRead, object, feature, index, nil, func() (any, error) {
+		return s.doGet(object, feature, index)
+	})))
+}
 
-	sqlID, err := s.getSQLID(conn, object)
+func (s *SQLStore) doGet(object EObject, feature EStructuralFeature, index int) (any, error) {
+	// retrieve value from sqlite db
+	sqlID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return nil
+		return err, nil
 	}
 	featureSchema, err := s.getFeatureSchema(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return nil
+		return err, nil
 	}
-	return s.getValue(conn, sqlID, featureSchema, index)
+	return s.getValue(sqlID, featureSchema, index)
 }
 
-func (s *SQLStore) getValue(conn *sqlite.Conn, sqlID int64, featureSchema *sqlFeatureSchema, index int) any {
+func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index int) (any, error) {
 	var query string
 	var args []any
 	if featureColumn := featureSchema.column; featureColumn != nil {
@@ -841,7 +1145,6 @@ func (s *SQLStore) getValue(conn *sqlite.Conn, sqlID int64, featureSchema *sqlFe
 
 	var value any
 	if err := s.executeQuery(
-		conn,
 		query,
 		&sqlitex.ExecOptions{
 			Args: args,
@@ -849,380 +1152,337 @@ func (s *SQLStore) getValue(conn *sqlite.Conn, sqlID int64, featureSchema *sqlFe
 				value = decodeAny(stmt, 0)
 				return nil
 			}}); err != nil {
-		s.errorHandler(err)
-		return nil
+		return err, nil
 	}
 
-	decoded, err := s.decodeFeatureValue(conn, featureSchema, value)
-	if err != nil {
-		s.errorHandler(err)
-	}
-	return decoded
+	return s.decodeFeatureValue(featureSchema, value)
 }
 
-func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any, isOldValue bool) (oldValue any) {
-	// connection
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return
+func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any, needResult bool) (oldValue any) {
+	p := s.scheduleOperation(context.Background(), newOperation("Set", operationWrite, object, feature, index, value, func() (any, error) {
+		return s.doSet(object, feature, index, value, needResult)
+	}))
+	if needResult {
+		oldValue = awaitPromise[any](p)
 	}
-	defer s.pool.Put(conn)
+	return
+}
 
+func (s *SQLStore) doSet(object EObject, feature EStructuralFeature, index int, value any, needResult bool) (oldValue any, err error) {
 	// get object sql id
-	sqlID, err := s.getSQLID(conn, object)
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 
 	// get encoder feature data
-	featureData, err := s.getEncoderFeatureData(conn, object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 
-	if isOldValue {
+	if needResult {
 		// retrieve previous value
-		oldValue = s.getValue(conn, sqlID, featureData.schema, index)
+		if oldValue, err = s.getValue(sqlObjectID, featureData.schema, index); err != nil {
+			return nil, err
+		}
 	}
 
 	// encode value
-	encoded, err := s.encodeFeatureValue(conn, featureData, value)
+	encoded, err := s.encodeFeatureValue(sqlObjectID, featureData, value)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 
 	var query string
 	var args []any
 	if featureColumn := featureData.schema.column; featureColumn != nil {
 		query = s.getSingleQueries(featureColumn).getUpdateQuery()
-		args = []any{encoded, sqlID}
+		args = []any{encoded, sqlObjectID}
 	} else if featureTable := featureData.schema.table; featureTable != nil {
 		query = s.getManyQueries(featureTable).getUpdateValueQuery()
-		args = []any{encoded, sqlID, index}
+		args = []any{encoded, sqlObjectID, index}
 	}
 
-	if err := s.executeQuery(conn, query, &sqlitex.ExecOptions{Args: args}); err != nil {
-		s.errorHandler(err)
-		return
+	if err := s.executeQuery(query, &sqlitex.ExecOptions{Args: args}); err != nil {
+		return nil, err
 	}
 
-	return
+	return oldValue, nil
 }
 
 func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return false
+	// optimization : if we have a non many feature, check if we have a pending write operation
+	if !feature.IsMany() {
+		if operation := s.getLastOperation(operationWrite, object, feature, -1); operation != nil {
+			return operation.value != nil
+		}
 	}
-	defer s.pool.Put(conn)
+	return awaitPromise[bool](s.scheduleOperation(context.Background(), newOperation("IsSet", operationRead, object, feature, -1, nil, func() (any, error) {
+		return s.doIsSet(object, feature)
+	})))
+}
 
-	sqlID, err := s.getSQLID(conn, object)
+func (s *SQLStore) doIsSet(object EObject, feature EStructuralFeature) (bool, error) {
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return false
+		return false, err
 	}
 
 	featureSchema, err := s.getFeatureSchema(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return false
+		return false, err
 	}
 	if featureColumn := featureSchema.column; featureColumn != nil {
 		var value any
 		if err := s.executeQuery(
-			conn,
 			s.getSingleQueries(featureColumn).getSelectQuery(),
 			&sqlitex.ExecOptions{
-				Args: []any{sqlID},
+				Args: []any{sqlObjectID},
 				ResultFunc: func(stmt *sqlite.Stmt) error {
 					value = decodeAny(stmt, 0)
 					return nil
 				}}); err != nil {
-			s.errorHandler(err)
+			return false, err
 		}
-		return value != featureSchema.feature.GetDefaultValue()
+		return value != featureSchema.feature.GetDefaultValue(), nil
 	} else if featureTable := featureSchema.table; featureTable != nil {
 		var value any
 		if err := s.executeQuery(
-			conn,
 			s.getManyQueries(featureTable).getExistsQuery(),
 			&sqlitex.ExecOptions{
-				Args: []any{sqlID},
+				Args: []any{sqlObjectID},
 				ResultFunc: func(stmt *sqlite.Stmt) error {
 					value = decodeAny(stmt, 0)
 					return nil
 				}}); err != nil {
-			s.errorHandler(err)
+			return false, err
 		}
-		return value != nil
+		return value != nil, nil
 	}
-	return false
+	return false, nil
 }
 
 func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-	defer s.pool.Put(conn)
+	awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("UnSet", operationWrite, object, feature, -1, nil, func() (any, error) {
+		return s.doUnSet(object, feature)
+	})))
+}
 
-	sqlID, err := s.getSQLID(conn, object)
+func (s *SQLStore) doUnSet(object EObject, feature EStructuralFeature) (any, error) {
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 
-	featureData, err := s.getEncoderFeatureData(conn, object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 
 	var query string
 	var args []any
 	if featureColumn := featureData.schema.column; featureColumn != nil {
 		query = s.getSingleQueries(featureColumn).getUpdateQuery()
-		args = []any{feature.GetDefaultValue(), sqlID}
+		args = []any{feature.GetDefaultValue(), sqlObjectID}
 	} else if featureTable := featureData.schema.table; featureTable != nil {
 		query = s.getManyQueries(featureTable).getClearQuery()
-		args = []any{sqlID}
+		args = []any{sqlObjectID}
 	}
-	if err := s.executeQuery(conn, query, &sqlitex.ExecOptions{Args: args}); err != nil {
-		s.errorHandler(err)
+	if err := s.executeQuery(query, &sqlitex.ExecOptions{Args: args}); err != nil {
+		return nil, err
 	}
+	return nil, nil
 }
 
 func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return false
-	}
-	defer s.pool.Put(conn)
+	return awaitPromise[bool](s.scheduleOperation(context.Background(), newOperation("IsEmpty", operationRead, object, feature, -1, nil, func() (any, error) {
+		return s.doIsEmpty(object, feature)
+	})))
+}
 
-	sqlID, err := s.getSQLID(conn, object)
+func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, error) {
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return false
+		return false, err
 	}
 
 	// retrieve table
 	featureTable, err := s.getFeatureTable(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return false
+		return false, err
 	}
 
 	// retrieve statement
 	var value any
 	if err := s.executeQuery(
-		conn,
 		s.getManyQueries(featureTable).getExistsQuery(),
 		&sqlitex.ExecOptions{
-			Args: []any{sqlID},
+			Args: []any{sqlObjectID},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				value = decodeAny(stmt, 0)
 				return nil
 			}}); err != nil {
-		s.errorHandler(err)
+		return true, nil
 	}
-	return value == nil
+	return value == nil, nil
+
 }
 
 func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return 0
-	}
-	defer s.pool.Put(conn)
+	return awaitPromise[int](s.scheduleOperation(context.Background(), newOperation("Size", operationRead, object, feature, -1, nil, func() (any, error) {
+		return s.doSize(object, feature)
+	})))
+}
 
-	sqlID, err := s.getSQLID(conn, object)
+func (s *SQLStore) doSize(object EObject, feature EStructuralFeature) (int, error) {
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return 0
+		return 0, err
 	}
 
 	// retrieve table
 	featureTable, err := s.getFeatureTable(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return 0
+		return 0, err
 	}
 
 	var size int
 	if err := s.executeQuery(
-		conn,
 		s.getManyQueries(featureTable).getCountQuery(),
 		&sqlitex.ExecOptions{
-			Args: []any{sqlID},
+			Args: []any{sqlObjectID},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				size = stmt.ColumnInt(0)
 				return nil
 			}}); err != nil {
-		s.errorHandler(err)
+		return 0, err
 	}
-	return size
+	return size, nil
 }
 
 func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value any) bool {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return false
-	}
-	defer s.pool.Put(conn)
+	return awaitPromise[bool](s.scheduleOperation(context.Background(), newOperation("Contains", operationRead, object, feature, -1, value, func() (any, error) {
+		return s.doContains(object, feature, value)
+	})))
+}
 
-	sqlID, err := s.getSQLID(conn, object)
+func (s *SQLStore) doContains(object EObject, feature EStructuralFeature, value any) (bool, error) {
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return false
+		return false, err
 	}
 
 	// retrieve table
-	featureData, err := s.getEncoderFeatureData(conn, object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return false
+		return false, err
 	}
 
 	// query statement
-	encoded, err := s.encodeFeatureValue(conn, featureData, value)
+	encoded, err := s.encodeFeatureValue(sqlObjectID, featureData, value)
 	if err != nil {
-		s.errorHandler(err)
-		return false
+		return false, err
 	}
 
 	var rowid int64
 	featureTable := featureData.schema.table
 	if err := s.executeQuery(
-		conn,
 		s.getManyQueries(featureTable).getContainsQuery(),
 		&sqlitex.ExecOptions{
-			Args: []any{sqlID, encoded},
+			Args: []any{sqlObjectID, encoded},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				rowid = stmt.ColumnInt64(0)
 				return nil
 			}}); err != nil {
-		s.errorHandler(err)
+		return false, err
 	}
-	return rowid != 0
+	return rowid != 0, nil
 }
 
-func (s *SQLStore) indexOf(object EObject, feature EStructuralFeature, value any, getIndexOfQuery func(*sqlManyQueries) string) int {
-	conn, err := s.pool.Take(context.Background())
+func (s *SQLStore) doIndexOf(object EObject, feature EStructuralFeature, value any, getIndexOfQuery func(*sqlManyQueries) string) (int, error) {
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return -1
-	}
-	defer s.pool.Put(conn)
-
-	sqlID, err := s.getSQLID(conn, object)
-	if err != nil {
-		s.errorHandler(err)
-		return -1
+		return -1, err
 	}
 
 	// retrieve table
-	featureData, err := s.getEncoderFeatureData(conn, object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return -1
+		return -1, err
 	}
 	featureTable := featureData.schema.table
 
 	// compute parameters
-	encoded, err := s.encodeFeatureValue(conn, featureData, value)
+	encoded, err := s.encodeFeatureValue(sqlObjectID, featureData, value)
 	if err != nil {
-		s.errorHandler(err)
-		return -1
+		return -1, err
 	}
 	// retrieve row idx in table
 	idx := -1.0
 	if err := s.executeQuery(
-		conn,
 		getIndexOfQuery(s.getManyQueries(featureTable)),
 		&sqlitex.ExecOptions{
-			Args: []any{sqlID, encoded},
+			Args: []any{sqlObjectID, encoded},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				idx = stmt.ColumnFloat(0)
 				return nil
 			}}); err != nil {
-		s.errorHandler(err)
-		return -1
+		return -1, err
 	}
 	if idx == -1.0 {
-		return -1
+		return -1, err
 	}
 
 	// convert idx to list index - index is the count of rows where idx < expected idx
 	index := -1
 	if err := s.executeQuery(
-		conn,
 		s.getManyQueries(featureTable).getIdxToListIndexQuery(),
 		&sqlitex.ExecOptions{
-			Args: []any{sqlID, idx},
+			Args: []any{sqlObjectID, idx},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				index = stmt.ColumnInt(0)
 				return nil
 			}}); err != nil {
-		s.errorHandler(err)
-		return -1
+		return -1, err
 	}
-	return index
+	return index, err
 }
 
 func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
-	return s.indexOf(object, feature, value, func(sms *sqlManyQueries) string {
-		return sms.getIndexOfQuery()
-	})
+	return awaitPromise[int](s.scheduleOperation(context.Background(), newOperation("IndexOf", operationRead, object, feature, -1, value, func() (any, error) {
+		return s.doIndexOf(object, feature, value, func(sms *sqlManyQueries) string {
+			return sms.getIndexOfQuery()
+		})
+	})))
 }
 
 func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {
-	return s.indexOf(object, feature, value, func(sms *sqlManyQueries) string {
-		return sms.getLastIndexOfQuery()
-	})
+	return awaitPromise[int](s.scheduleOperation(context.Background(), newOperation("LastIndexOf", operationRead, object, feature, -1, value, func() (any, error) {
+		return s.doIndexOf(object, feature, value, func(sms *sqlManyQueries) string {
+			return sms.getLastIndexOfQuery()
+		})
+	})))
 }
 
 // AddRoot add object as store root
 func (s *SQLStore) AddRoot(object EObject) {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-	defer s.pool.Put(conn)
-
-	if err := s.encodeContent(conn, object); err != nil {
+	if err := s.encodeContent(object); err != nil {
 		s.errorHandler(err)
 	}
 }
 
 // RemoveRoot implements EStore.
 func (s *SQLStore) RemoveRoot(object EObject) {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-	defer s.pool.Put(conn)
-
-	sqlID, err := s.getSQLID(conn, object)
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
 		return
 	}
 
 	if err := s.executeQuery(
-		conn,
 		s.getSingleQueries(s.schema.contentsTable.key).getRemoveQuery(),
-		&sqlitex.ExecOptions{Args: []any{sqlID}},
+		&sqlitex.ExecOptions{Args: []any{sqlObjectID}},
 	); err != nil {
 		s.errorHandler(err)
 	}
@@ -1230,14 +1490,7 @@ func (s *SQLStore) RemoveRoot(object EObject) {
 
 // GetRoot return root objects
 func (s *SQLStore) GetRoots() []EObject {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-	defer s.pool.Put(conn)
-
-	contents, err := s.decodeContents(conn)
+	contents, err := s.decodeContents()
 	if err != nil {
 		s.errorHandler(err)
 	}
@@ -1245,101 +1498,92 @@ func (s *SQLStore) GetRoots() []EObject {
 }
 
 func (s *SQLStore) UnRegister(object EObject) {
-	s.sqlIDManager.ClearObjectID(object)
+	s.scheduleOperation(context.Background(), newOperation("UnRegister", operationWrite, object, nil, -1, nil, func() (any, error) {
+		s.sqlIDManager.ClearObjectID(object)
+		return nil, nil
+	}))
 }
 
 func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, value any) {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-	defer s.pool.Put(conn)
+	s.scheduleOperation(context.Background(), newOperation("Add", operationWrite, object, feature, index, value, func() (any, error) {
+		return s.doAdd(object, feature, index, value)
+	}))
+}
 
-	sqlID, err := s.getSQLID(conn, object)
+func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, value any) (any, error) {
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
-	featureData, err := s.getEncoderFeatureData(conn, object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 	featureTable := featureData.schema.table
-	idx, _, err := s.getInsertIdx(conn, featureTable, sqlID, index, 1)
+	idx, _, err := s.getInsertIdx(featureTable, sqlObjectID, index, 1)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
-	encoded, err := s.encodeFeatureValue(conn, featureData, value)
+	encoded, err := s.encodeFeatureValue(sqlObjectID, featureData, value)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 	if err := s.executeQuery(
-		conn,
 		s.getManyQueries(featureTable).getInsertQuery(),
-		&sqlitex.ExecOptions{Args: []any{sqlID, idx, encoded}},
+		&sqlitex.ExecOptions{Args: []any{sqlObjectID, idx, encoded}},
 	); err != nil {
-		s.errorHandler(err)
+		return nil, err
 	}
+	return nil, nil
 }
 
 func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int, c Collection) {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-	defer s.pool.Put(conn)
+	s.scheduleOperation(context.Background(), newOperation("AddAll", operationWrite, object, feature, index, c, func() (any, error) {
+		return s.doAddAll(object, feature, index, c)
+	}))
+}
 
-	sqlID, err := s.getSQLID(conn, object)
+func (s *SQLStore) doAddAll(object EObject, feature EStructuralFeature, index int, c Collection) (any, error) {
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
-	featureData, err := s.getEncoderFeatureData(conn, object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 	featureTable := featureData.schema.table
-	idx, inc, err := s.getInsertIdx(conn, featureTable, sqlID, index, c.Size())
+	idx, inc, err := s.getInsertIdx(featureTable, sqlObjectID, index, c.Size())
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 	// encode each value
 	query := s.getManyQueries(featureTable).getInsertQuery()
 	for it := c.Iterator(); it.HasNext(); {
 		value := it.Next()
-		v, err := s.encodeFeatureValue(conn, featureData, value)
+		v, err := s.encodeFeatureValue(sqlObjectID, featureData, value)
 		if err != nil {
-			s.errorHandler(err)
-			return
+			return nil, err
 		}
 		if err := s.executeQuery(
-			conn,
 			query,
-			&sqlitex.ExecOptions{Args: []any{sqlID, idx, v}},
+			&sqlitex.ExecOptions{Args: []any{sqlObjectID, idx, v}},
 		); err != nil {
-			s.errorHandler(err)
-			return
+			return nil, err
 		}
 		idx += inc
 	}
+	return nil, nil
 }
 
 // compute insert idx of element in the list whose index is index. nb is the number of elements to be inserted
 // return idx, increment (for each inserted element) and error if any
-func (s *SQLStore) getInsertIdx(conn *sqlite.Conn, table *sqlTable, sqlID int64, index int, nb int) (float64, float64, error) {
+func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int, nb int) (float64, float64, error) {
 	if index == 0 {
 		// first row in the list
 		idx := 1.0
 		withElements := false
 		if err := s.executeQuery(
-			conn,
 			s.getManyQueries(table).getListIndexToIdxQuery(),
 			&sqlitex.ExecOptions{
 				Args: []any{sqlID, 1, 0},
@@ -1361,7 +1605,6 @@ func (s *SQLStore) getInsertIdx(conn *sqlite.Conn, table *sqlTable, sqlID int64,
 		count := 0
 		idx := 0.0
 		if err := s.executeQuery(
-			conn,
 			s.getManyQueries(table).getListIndexToIdxQuery(),
 			&sqlitex.ExecOptions{
 				Args: []any{sqlID, 2, index - 1},
@@ -1375,7 +1618,7 @@ func (s *SQLStore) getInsertIdx(conn *sqlite.Conn, table *sqlTable, sqlID int64,
 		}
 		switch count {
 		case 0:
-			panic(fmt.Sprintf("invalid index in table %v for object %v : %v not in list bounds", index, table.name, sqlID))
+			return 0, 0, fmt.Errorf("invalid index in table %v for object %v : %v not in list bounds", table.name, sqlID, index)
 		case 1:
 			// at the end
 			return idx + 1, 1, nil
@@ -1387,66 +1630,68 @@ func (s *SQLStore) getInsertIdx(conn *sqlite.Conn, table *sqlTable, sqlID int64,
 	}
 }
 
-func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int) any {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-	defer s.pool.Put(conn)
+func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int, needResult bool) any {
+	return awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Remove", operationWrite, object, feature, index, nil, func() (any, error) {
+		return s.doRemove(object, feature, index, needResult)
+	})))
+}
 
-	sqlID, err := s.getSQLID(conn, object)
+func (s *SQLStore) doRemove(object EObject, feature EStructuralFeature, index int, needResult bool) (decoded any, err error) {
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return nil
+		return nil, err
 	}
-	featureData, err := s.getEncoderFeatureData(conn, object, feature)
+	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return nil
+		return nil, err
 	}
 	featureTable := featureData.schema.table
 
 	var value any
 	if err := s.executeQuery(
-		conn,
 		s.getManyQueries(featureTable).getRemoveQuery(),
 		&sqlitex.ExecOptions{
-			Args: []any{sqlID, index},
+			Args: []any{sqlObjectID, index},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				value = decodeAny(stmt, 0)
 				return nil
 			}}); err != nil {
-		s.errorHandler(err)
-		return nil
+		return nil, err
 	}
 
 	// decode previous value
-	decoded, err := s.decodeFeatureValue(conn, featureData.schema, value)
-	if err != nil {
-		s.errorHandler(err)
-		return nil
+	if needResult {
+		decoded, err = s.decodeFeatureValue(featureData.schema, value)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return decoded
+	return
 }
 
-func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int) any {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return nil
-	}
-	defer s.pool.Put(conn)
+type moveIndexes struct {
+	sourceIndex int
+	targetIndex int
+}
 
-	sqlID, err := s.getSQLID(conn, object)
+func (mi moveIndexes) String() string {
+	return fmt.Sprintf("{ sourceIndex : %v, targetIndex %v}", mi.sourceIndex, mi.targetIndex)
+}
+
+func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) any {
+	return awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Move", operationWrite, object, feature, -1, moveIndexes{sourceIndex, targetIndex}, func() (any, error) {
+		return s.doMove(object, feature, sourceIndex, targetIndex, needResult)
+	})))
+}
+
+func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) (decoded any, err error) {
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return nil
+		return nil, err
 	}
 	featureSchema, err := s.getFeatureSchema(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return nil
+		return nil, err
 	}
 	featureTable := featureSchema.table
 
@@ -1454,82 +1699,83 @@ func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex 
 	if targetIndex > sourceIndex {
 		targetIndex++
 	}
-	idx, _, err := s.getInsertIdx(conn, featureTable, sqlID, targetIndex, 1)
+	idx, _, err := s.getInsertIdx(featureTable, sqlObjectID, targetIndex, 1)
 	if err != nil {
-		s.errorHandler(err)
-		return nil
+		return nil, err
 	}
 
 	// update idx of source index row with target idx
 	var value any
 	if err := s.executeQuery(
-		conn,
 		s.getManyQueries(featureTable).getUpdateIdxQuery(),
 		&sqlitex.ExecOptions{
-			Args: []any{idx, sqlID, sourceIndex},
+			Args: []any{idx, sqlObjectID, sourceIndex},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				value = decodeAny(stmt, 0)
 				return nil
 			}}); err != nil {
-		s.errorHandler(err)
-		return nil
+		return nil, err
 	}
 
 	// decode value
-	decoded, err := s.decodeFeatureValue(conn, featureSchema, value)
-	if err != nil {
-		s.errorHandler(err)
-		return nil
+	if needResult {
+		decoded, err = s.decodeFeatureValue(featureSchema, value)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return decoded
+	return
 }
 
 func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-	defer s.pool.Put(conn)
+	s.scheduleOperation(context.Background(), newOperation("Clear", operationWrite, object, feature, -1, nil, func() (any, error) {
+		return s.doClear(object, feature)
+	}))
+}
 
-	sqlID, err := s.getSQLID(conn, object)
+func (s *SQLStore) doClear(object EObject, feature EStructuralFeature) (any, error) {
+	sqlObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 	featureTable, err := s.getFeatureTable(object, feature)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 
 	if err := s.executeQuery(
-		conn,
 		s.getManyQueries(featureTable).getClearQuery(),
-		&sqlitex.ExecOptions{Args: []any{sqlID}},
+		&sqlitex.ExecOptions{Args: []any{sqlObjectID}},
 	); err != nil {
-		s.errorHandler(err)
+		return nil, err
 	}
+	return nil, nil
 }
 
-func (s *SQLStore) GetContainer(object EObject) (container EObject, feature EStructuralFeature) {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-	defer s.pool.Put(conn)
+type containerAndFeature struct {
+	container EObject
+	feature   EStructuralFeature
+}
 
-	sqlID, err := s.getSQLID(conn, object)
+func (s *SQLStore) GetContainer(object EObject) (EObject, EStructuralFeature) {
+	if result := awaitPromise[*containerAndFeature](s.scheduleOperation(context.Background(), newOperation("GetContainer", operationRead, object, nil, -1, nil, func() (any, error) {
+		return s.doGetContainer(object)
+	}))); result != nil {
+		return result.container, result.feature
+	}
+	return nil, nil
+}
+
+func (s *SQLStore) doGetContainer(object EObject) (*containerAndFeature, error) {
+	sqlID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 
 	containerID := int64(-1)
 	containerFeatureID := int64(-1)
-	if err := s.executeQuery(conn, `SELECT containerID,containerFeatureID FROM ".objects" WHERE objectID=?`, &sqlitex.ExecOptions{
+	if err := s.executeQuery(`SELECT containerID,containerFeatureID FROM ".objects" WHERE objectID=?`, &sqlitex.ExecOptions{
 		Args: []any{sqlID},
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			switch stmt.ColumnType(0) {
@@ -1547,108 +1793,59 @@ func (s *SQLStore) GetContainer(object EObject) (container EObject, feature EStr
 			return nil
 		},
 	}); err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	}
 
 	switch containerID {
 	case -1:
-		s.errorHandler(fmt.Errorf("unable to find container for object '%v'", sqlID))
+		return nil, fmt.Errorf("unable to find container for object '%v'", sqlID)
 	case 0:
+		return nil, nil
 	default:
-		s.mutexDecoder.Lock()
-		defer s.mutexDecoder.Unlock()
-		container, err = s.sqlDecoder.decodeObject(conn, containerID)
+		container, err := s.decodeObject(containerID)
 		if err != nil {
-			s.errorHandler(err)
-			return
+			return nil, err
 		}
 
 		containerInternal := container.(EObjectInternal)
 		containerClass := containerInternal.EClass()
-		feature = containerClass.GetEStructuralFeature(containerInternal.EStaticFeatureCount() + int(containerFeatureID))
+		feature := containerClass.GetEStructuralFeature(containerInternal.EStaticFeatureCount() + int(containerFeatureID))
+		return &containerAndFeature{container, feature}, nil
 	}
-	return
-}
-
-func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStructuralFeature) {
-	conn, err := s.pool.Take(context.Background())
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-	defer s.pool.Put(conn)
-
-	sqlObjectID, err := s.getSQLID(conn, object)
-	if err != nil {
-		s.errorHandler(err)
-		return
-	}
-
-	var sqlContainerID any
-	if container != nil {
-		sqlContainerID, err = s.getSQLID(conn, container)
-		if err != nil {
-			s.errorHandler(err)
-			return
-		}
-	}
-
-	var featureID any
-	if container != nil && feature != nil {
-		featureID = container.EClass().GetFeatureID(feature)
-	}
-
-	if err := s.executeQuery(conn, `UPDATE ".objects" SET containerID=?,containerFeatureID=? WHERE objectID=?`, &sqlitex.ExecOptions{
-		Args: []any{sqlContainerID, featureID, sqlObjectID},
-	}); err != nil {
-		s.errorHandler(err)
-		return
-	}
-
 }
 
 func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any] {
 	return func(yield func(any) bool) {
-		interrupted := errors.New("interrupted")
-		conn, err := s.pool.Take(context.Background())
-		if err != nil {
-			s.errorHandler(err)
-			return
-		}
-		defer s.pool.Put(conn)
-
-		sqlID, err := s.getSQLID(conn, object)
-		if err != nil {
-			s.errorHandler(err)
-			return
-		}
-		featureSchema, err := s.getFeatureSchema(object, feature)
-		if err != nil {
-			s.errorHandler(err)
-			return
-		}
-		featureTable := featureSchema.table
-		if err := s.executeQuery(
-			conn,
-			s.getManyQueries(featureTable).getSelectAllQuery(),
-			&sqlitex.ExecOptions{
-				Args: []any{sqlID},
-				ResultFunc: func(stmt *sqlite.Stmt) error {
-					value := decodeAny(stmt, 0)
-					decoded, err := s.decodeFeatureValue(conn, featureSchema, value)
-					if err != nil {
-						return err
-					}
-					if !yield(decoded) {
-						return interrupted
-					}
-					return nil
-				}}); err != nil {
-			if err != interrupted {
-				s.errorHandler(err)
+		awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("All", operationRead, object, feature, -1, nil, func() (any, error) {
+			interrupted := errors.New("interrupted")
+			sqlID, err := s.getSQLID(object)
+			if err != nil {
+				return nil, err
 			}
-		}
+			featureSchema, err := s.getFeatureSchema(object, feature)
+			if err != nil {
+				return nil, err
+			}
+			featureTable := featureSchema.table
+			if err := s.executeQuery(
+				s.getManyQueries(featureTable).getSelectAllQuery(),
+				&sqlitex.ExecOptions{
+					Args: []any{sqlID},
+					ResultFunc: func(stmt *sqlite.Stmt) error {
+						value := decodeAny(stmt, 0)
+						decoded, err := s.decodeFeatureValue(featureSchema, value)
+						if err != nil {
+							return err
+						}
+						if !yield(decoded) {
+							return interrupted
+						}
+						return nil
+					}}); err != nil && err != interrupted {
+				return nil, err
+			}
+			return nil, nil
+		})))
 	}
 }
 
@@ -1657,16 +1854,20 @@ func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 }
 
 func (s *SQLStore) Serialize(ctx context.Context) ([]byte, error) {
-	// connection
-	conn, err := s.pool.Take(ctx)
+	p := s.scheduleOperation(ctx, newOperation("Serialize", operationRead, nil, nil, -1, nil, func() (any, error) {
+		return s.doSerialize(ctx)
+	}))
+	r, err := p.Await(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer s.pool.Put(conn)
+	return (*r).([]byte), nil
+}
 
-	// retrive database size
+func (s *SQLStore) doSerialize(ctx context.Context) ([]byte, error) {
+	// retrieve database size
 	var dbSize int64
-	if err := sqlitex.ExecuteTransient(conn, "SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size();", &sqlitex.ExecOptions{
+	if err := s.executeQueryTransient("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size();", &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			dbSize = stmt.ColumnInt64(0)
 			return nil
@@ -1674,6 +1875,13 @@ func (s *SQLStore) Serialize(ctx context.Context) ([]byte, error) {
 	}); err != nil {
 		return nil, err
 	}
+
+	// open connection to serialize
+	conn, err := s.connPool.Take(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer s.connPool.Put(conn)
 
 	// supports big databases
 	if dbSize > SQLITE_MAX_ALLOCATION_SIZE {
@@ -1700,196 +1908,38 @@ func (s *SQLStore) Serialize(ctx context.Context) ([]byte, error) {
 
 	} else {
 		return conn.Serialize("main")
-
 	}
+}
+
+func (s *SQLStore) ExecuteQuery(ctx context.Context, query string, opts *sqlitex.ExecOptions) error {
+	var operationType operationType
+	switch operation, _, _ := strings.Cut(query, " "); operation {
+	case "SELECT":
+		operationType = operationRead
+	default:
+		operationType = operationWrite
+	}
+	_, err := s.scheduleOperation(ctx, newOperation("ExecuteQuery", operationType, nil, nil, -1, nil, func() (any, error) {
+		return nil, s.executeQuery(query, opts)
+	})).Await(ctx)
+	return err
 }
 
 func (s *SQLStore) Close() error {
-	if err := s.WaitOperations(context.Background(), nil); err != nil {
-		return err
-	}
+	if !s.isClosed.Swap(true) {
+		s.logger.Named("ops").Debug("Close",
+			zap.Int64("goid", goid.Get()),
+		)
 
-	return s.connectionPoolClose(s.pool)
-}
-
-func (s *SQLStore) WaitOperations(context context.Context, object any) error {
-	var promises []*promise.Promise[any]
-	s.mutexOperations.Lock()
-	if object == nil {
-		promises = make([]*promise.Promise[any], 0)
-		for _, operations := range s.operations {
-			for _, operation := range operations {
-				promises = append(promises, operation.promise_)
-			}
-		}
-	} else {
-		operations := s.operations[object]
-		promises = make([]*promise.Promise[any], 0, len(operations))
-		for _, operation := range operations {
-			promises = append(promises, operation.promise_)
-		}
-	}
-	s.mutexOperations.Unlock()
-
-	if len(promises) > 0 {
-		allOperations := promise.All(context, promises...)
-		_, err := allOperations.Await(context)
-		if err != nil {
+		if err := s.waitOperations(context.Background(), nil); err != nil {
 			return err
 		}
+
+		if err := s.connPoolClose(s.connPool); err != nil {
+			return err
+		}
+
+		s.antsPool.Release()
 	}
 	return nil
-}
-
-func (s *SQLStore) ScheduleOperation(objects []any, operationType OperationType, op func() (any, error)) *promise.Promise[any] {
-	if objects == nil {
-		return s.scheduleOperationAll(operationType, op)
-	} else {
-		return s.scheduleOperationObject(objects, operationType, op)
-	}
-}
-
-func (s *SQLStore) scheduleOperationAll(operationType OperationType, op func() (any, error)) *promise.Promise[any] {
-	return promise.New(func(resolve func(any), reject func(error)) {
-		s.mutexOperations.Lock()
-		objects := slices.Collect(maps.Keys(s.operations))
-		size := int64(len(objects))
-		s.mutexOperations.Unlock()
-
-		run := make(chan struct{})
-		locked := semaphore.NewWeighted(size)
-		if err := locked.Acquire(context.Background(), size); err != nil {
-			reject(err)
-			return
-		}
-
-		for _, object := range objects {
-			s.scheduleOperationObject([]any{object}, operationType, func() (any, error) {
-				// the object is locked
-				locked.Release(1)
-
-				// wait for the op to be run
-				<-run
-
-				return nil, nil
-			})
-		}
-
-		// wait for all tables to be locked
-		if err := locked.Acquire(context.Background(), size); err != nil {
-			reject(err)
-			return
-		}
-
-		// indicate all queries that operation is run
-		defer close(run)
-
-		if result, err := op(); err != nil {
-			reject(err)
-		} else {
-			resolve(result)
-		}
-	})
-}
-
-func filter[T any](ss []T, test func(T) bool) (ret []T) {
-	for _, s := range ss {
-		if test(s) {
-			ret = append(ret, s)
-		}
-	}
-	return
-}
-
-func (s *SQLStore) scheduleOperationObject(objects []any, operationType OperationType, op func() (any, error)) *promise.Promise[any] {
-	// only keep
-	objects = filter(objects, func(a any) bool {
-		switch a.(type) {
-		case EObject, EList, EMap:
-			return true
-		default:
-			return false
-		}
-	})
-	s.mutexOperations.Lock()
-	// compute previous operations
-	previous := []*promise.Promise[any]{}
-	for _, object := range objects {
-		operations := s.operations[object]
-		switch operationType {
-		case ReadOperation:
-			for i := len(operations) - 1; i >= 0; i-- {
-				operation := operations[i]
-				if operation.type_ == WriteOperation {
-					previous = append(previous, operation.promise_)
-					break
-				}
-			}
-		case WriteOperation:
-			for i := len(operations) - 1; i >= 0; i-- {
-				operation := operations[i]
-				previous = append(previous, operation.promise_)
-				if operation.type_ == WriteOperation {
-					break
-				}
-			}
-		}
-	}
-
-	// create operation
-	operation := &operation{
-		type_: operationType,
-		promise_: promise.New(func(resolve func(any), reject func(error)) {
-			// wait for all previous promises
-			if len(previous) > 0 {
-				_, err := promise.All(context.Background(), previous...).Await(context.Background())
-				if err != nil {
-					reject(err)
-					return
-				}
-			}
-			result, err := op()
-			if err != nil {
-				reject(err)
-			} else {
-				resolve(result)
-			}
-		}),
-	}
-	// add operation
-	for _, object := range objects {
-		s.operations[object] = append(s.operations[object], operation)
-	}
-	s.mutexOperations.Unlock()
-	// remove operation when finished with result or error
-	return promise.New(func(resolve func(any), reject func(error)) {
-		r, err := operation.promise_.Await(context.Background())
-		s.mutexOperations.Lock()
-		for _, object := range objects {
-			operations := s.operations[object]
-			// retrieve operation index
-			index := slices.Index(operations, operation)
-			if index == -1 {
-				reject(errors.New("unable to find operation index"))
-				return
-			}
-			// remove operation from collection
-			copy(operations[index:], operations[index+1:])
-			operations[len(operations)-1] = nil
-			operations = operations[:len(operations)-1]
-			if len(operations) == 0 {
-				// no more operations - remove object from map
-				delete(s.operations, object)
-			} else {
-				// set remaining operations
-				s.operations[object] = operations
-			}
-		}
-		s.mutexOperations.Unlock()
-		if err != nil {
-			reject(err)
-		} else {
-			resolve(*r)
-		}
-	})
 }

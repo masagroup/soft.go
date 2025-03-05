@@ -9,8 +9,6 @@
 
 package ecore
 
-import "github.com/chebyrash/promise"
-
 var unitializedContainer EObject = newEObjectImpl()
 
 type EStoreEObjectImpl struct {
@@ -83,22 +81,6 @@ func (o *EStoreEObjectImpl) IsCache() bool {
 	return o.cache
 }
 
-func (o *EStoreEObjectImpl) scheduleOperation(operationType OperationType, operation func() (any, error)) *promise.Promise[any] {
-	if asyncStore, _ := o.store.(EStoreAsync); asyncStore != nil {
-		return asyncStore.ScheduleOperation([]any{o.asEObject()}, operationType, func() (any, error) {
-			return operation()
-		})
-	} else {
-		return promise.NewWithPool(func(resolve func(any), reject func(error)) {
-			if result, err := operation(); err != nil {
-				reject(err)
-			} else {
-				resolve(result)
-			}
-		}, promiseNoPool)
-	}
-}
-
 func (o *EStoreEObjectImpl) EInternalContainer() EObject {
 	o.initializeContainer()
 	return o.ReflectiveEObjectImpl.EInternalContainer()
@@ -107,19 +89,6 @@ func (o *EStoreEObjectImpl) EInternalContainer() EObject {
 func (o *EStoreEObjectImpl) EInternalContainerFeatureID() int {
 	o.initializeContainer()
 	return o.ReflectiveEObjectImpl.EInternalContainerFeatureID()
-}
-
-func (o *EStoreEObjectImpl) ESetInternalContainer(newContainer EObject, newContainerFeatureID int) {
-	o.ReflectiveEObjectImpl.ESetInternalContainer(newContainer, newContainerFeatureID)
-	if o.store != nil {
-		var containerFeature EStructuralFeature
-		if newContainerFeatureID <= EOPPOSITE_FEATURE_BASE {
-			containerFeature = newContainer.EClass().GetEStructuralFeature(EOPPOSITE_FEATURE_BASE - newContainerFeatureID)
-		} else {
-			containerFeature = o.AsEObject().EClass().GetEStructuralFeature(newContainerFeatureID).(EReference).GetEOpposite()
-		}
-		o.store.SetContainer(o.AsEObject(), newContainer, containerFeature)
-	}
 }
 
 func (o *EStoreEObjectImpl) initializeContainer() {
@@ -143,9 +112,7 @@ func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 	}
 	if store := o.AsEStoreEObject().GetEStore(); store != nil {
 		eFeature := o.eDynamicFeature(dynamicFeatureID)
-		return awaitPromise[bool](o.scheduleOperation(ReadOperation, func() (any, error) {
-			return store.IsSet(o.AsEObject(), eFeature), nil
-		}))
+		return store.IsSet(o.AsEObject(), eFeature)
 	}
 	return false
 }
@@ -171,13 +138,10 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 				properties = o.getProperties()
 			} else if store := o.AsEStoreEObject().GetEStore(); store != nil {
 				// feature is not transient and we have a store
-				result = awaitPromise[any](o.scheduleOperation(ReadOperation, func() (any, error) {
-					return store.Get(o.AsEObject(), eFeature, NO_INDEX), nil
-				}))
+				result = store.Get(o.AsEObject(), eFeature, NO_INDEX)
 				if o.cache {
 					properties = o.getProperties()
 				}
-
 			}
 		}
 		// store value in properties
@@ -194,9 +158,7 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 	store := o.AsEStoreEObject().GetEStore()
 	if store != nil && !eFeature.IsTransient() {
 		// store and feature is not transient
-		o.scheduleOperation(WriteOperation, func() (any, error) {
-			return store.Set(o.AsEObject(), eFeature, NO_INDEX, value, false), nil
-		})
+		store.Set(o.AsEObject(), eFeature, NO_INDEX, value, false)
 		if o.cache {
 			properties = o.getProperties()
 		}
@@ -218,10 +180,7 @@ func (o *EStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	eFeature := o.eDynamicFeature(dynamicFeatureID)
 	store := o.AsEStoreEObject().GetEStore()
 	if store != nil && !eFeature.IsTransient() {
-		o.scheduleOperation(WriteOperation, func() (any, error) {
-			store.UnSet(o.AsEObject(), eFeature)
-			return nil, nil
-		})
+		store.UnSet(o.AsEObject(), eFeature)
 	}
 }
 

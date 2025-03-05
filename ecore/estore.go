@@ -10,10 +10,7 @@
 package ecore
 
 import (
-	"context"
 	"iter"
-
-	"github.com/chebyrash/promise"
 )
 
 type EStore interface {
@@ -23,7 +20,7 @@ type EStore interface {
 
 	Get(object EObject, feature EStructuralFeature, index int) any
 
-	Set(object EObject, feature EStructuralFeature, index int, value any, oldValue bool) any
+	Set(object EObject, feature EStructuralFeature, index int, value any, needResult bool) any
 
 	IsSet(object EObject, feature EStructuralFeature) bool
 
@@ -43,36 +40,17 @@ type EStore interface {
 
 	AddAll(object EObject, feature EStructuralFeature, index int, collection Collection)
 
-	Remove(object EObject, feature EStructuralFeature, index int) any
+	Remove(object EObject, feature EStructuralFeature, index int, needResult bool) any
 
-	Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int) any
+	Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) any
 
 	Clear(object EObject, feature EStructuralFeature)
 
 	GetContainer(object EObject) (EObject, EStructuralFeature)
 
-	SetContainer(object EObject, container EObject, feature EStructuralFeature)
-
 	All(object EObject, feature EStructuralFeature) iter.Seq[any]
 
 	ToArray(object EObject, feature EStructuralFeature) []any
-}
-
-type OperationType uint8
-
-const (
-	ReadOperation  = 1 << 0
-	WriteOperation = 1 << 1
-)
-
-type EStoreAsync interface {
-	EStore
-
-	ScheduleOperation(objects []any, operationType OperationType, operation func() (any, error)) *promise.Promise[any]
-
-	WaitOperations(context context.Context, object any) error
-
-	Close() error
 }
 
 type EStoreProvider interface {

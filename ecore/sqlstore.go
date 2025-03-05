@@ -784,7 +784,7 @@ func (e *SQLStore) encodeFeatureValue(sqlObjectID int64, featureData *sqlEncoder
 		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:
 			eObject := value.(EObject)
-			return e.getSQLID(eObject)
+			return e.encodeSQLID(eObject)
 		default:
 			return e.sqlEncoder.encodeFeatureValue(sqlObjectID, featureData, value)
 		}
@@ -792,35 +792,41 @@ func (e *SQLStore) encodeFeatureValue(sqlObjectID int64, featureData *sqlEncoder
 	return nil, nil
 }
 
-// get object sql id
-func (e *SQLStore) getSQLID(eObject EObject) (int64, error) {
+func (s *SQLStore) getSQLID(eObject EObject) (int64, bool, error) {
 	// retrieve sql id for eObject
-	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
+	sqlObjectID, isSqlObjectID := s.sqlIDManager.GetObjectID(eObject)
 	if !isSqlObjectID {
 		// object is not in store - check if it exists in db
-		objectExists := false
 		if sqlObjectID != 0 {
-			if err := e.executeQuery(
+			if err := s.executeQuery(
 				`SELECT objectID FROM ".objects" WHERE objectID=?`,
 				&sqlitex.ExecOptions{
 					Args: []any{sqlObjectID},
 					ResultFunc: func(stmt *sqlite.Stmt) error {
-						objectExists = true
+						isSqlObjectID = true
 						return nil
 					},
 				}); err != nil {
-				return 0, err
+				return 0, false, err
 			}
 		}
-		if objectExists {
+		if isSqlObjectID {
 			// object exists - register it as decoded
-			e.sqlIDManager.SetObjectID(eObject, sqlObjectID)
-		} else {
-			// object doesn't exists in db - encode it with encoder
-			return e.encodeObject(eObject, -1, -1)
+			s.sqlIDManager.SetObjectID(eObject, sqlObjectID)
 		}
 	}
-	return sqlObjectID, nil
+	return sqlObjectID, isSqlObjectID, nil
+}
+
+// encode object sql id
+func (s *SQLStore) encodeSQLID(eObject EObject) (int64, error) {
+	if sqlObjectID, isSqlObjectID, err := s.getSQLID(eObject); err != nil {
+		return 0, err
+	} else if isSqlObjectID {
+		return sqlObjectID, nil
+	} else {
+		return s.encodeObject(eObject, -1, -1)
+	}
 }
 
 func mapSet[S ~map[E]struct{}, E comparable, R any](m S, mapper func(E) R) []R {
@@ -1120,7 +1126,7 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 
 func (s *SQLStore) doGet(object EObject, feature EStructuralFeature, index int) (any, error) {
 	// retrieve value from sqlite db
-	sqlID, err := s.getSQLID(object)
+	sqlID, err := s.encodeSQLID(object)
 	if err != nil {
 		return err, nil
 	}
@@ -1169,7 +1175,7 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 
 func (s *SQLStore) doSet(object EObject, feature EStructuralFeature, index int, value any, needResult bool) (oldValue any, err error) {
 	// get object sql id
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1223,7 +1229,7 @@ func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 }
 
 func (s *SQLStore) doIsSet(object EObject, feature EStructuralFeature) (bool, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return false, err
 	}
@@ -1269,7 +1275,7 @@ func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
 }
 
 func (s *SQLStore) doUnSet(object EObject, feature EStructuralFeature) (any, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1301,7 +1307,7 @@ func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
 }
 
 func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return false, err
 	}
@@ -1335,7 +1341,7 @@ func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
 }
 
 func (s *SQLStore) doSize(object EObject, feature EStructuralFeature) (int, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return 0, err
 	}
@@ -1367,7 +1373,7 @@ func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value an
 }
 
 func (s *SQLStore) doContains(object EObject, feature EStructuralFeature, value any) (bool, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return false, err
 	}
@@ -1400,7 +1406,7 @@ func (s *SQLStore) doContains(object EObject, feature EStructuralFeature, value 
 }
 
 func (s *SQLStore) doIndexOf(object EObject, feature EStructuralFeature, value any, getIndexOfQuery func(*sqlManyQueries) string) (int, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return -1, err
 	}
@@ -1473,7 +1479,7 @@ func (s *SQLStore) AddRoot(object EObject) {
 
 // RemoveRoot implements EStore.
 func (s *SQLStore) RemoveRoot(object EObject) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
 		return
@@ -1510,7 +1516,7 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 }
 
 func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, value any) (any, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1543,7 +1549,7 @@ func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int,
 }
 
 func (s *SQLStore) doAddAll(object EObject, feature EStructuralFeature, index int, c Collection) (any, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1636,7 +1642,7 @@ func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int,
 }
 
 func (s *SQLStore) doRemove(object EObject, feature EStructuralFeature, index int, needResult bool) (decoded any, err error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1684,7 +1690,7 @@ func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex 
 }
 
 func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) (decoded any, err error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1734,7 +1740,7 @@ func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
 }
 
 func (s *SQLStore) doClear(object EObject, feature EStructuralFeature) (any, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1767,7 +1773,7 @@ func (s *SQLStore) GetContainer(object EObject) (EObject, EStructuralFeature) {
 }
 
 func (s *SQLStore) doGetContainer(object EObject) (*containerAndFeature, error) {
-	sqlID, err := s.getSQLID(object)
+	sqlID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1817,7 +1823,7 @@ func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any]
 	return func(yield func(any) bool) {
 		awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("All", operationRead, object, feature, -1, nil, func() (any, error) {
 			interrupted := errors.New("interrupted")
-			sqlID, err := s.getSQLID(object)
+			sqlID, err := s.encodeSQLID(object)
 			if err != nil {
 				return nil, err
 			}

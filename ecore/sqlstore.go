@@ -1126,15 +1126,17 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 
 func (s *SQLStore) doGet(object EObject, feature EStructuralFeature, index int) (any, error) {
 	// retrieve value from sqlite db
-	sqlID, err := s.encodeSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
-		return err, nil
+		return nil, err
+	} else if !isSQLObjectID {
+		return nil, nil
 	}
 	featureSchema, err := s.getFeatureSchema(object, feature)
 	if err != nil {
 		return err, nil
 	}
-	return s.getValue(sqlID, featureSchema, index)
+	return s.getValue(sqlObjectID, featureSchema, index)
 }
 
 func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index int) (any, error) {
@@ -1229,11 +1231,12 @@ func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 }
 
 func (s *SQLStore) doIsSet(object EObject, feature EStructuralFeature) (bool, error) {
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
 		return false, err
+	} else if !isSQLObjectID {
+		return false, nil
 	}
-
 	featureSchema, err := s.getFeatureSchema(object, feature)
 	if err != nil {
 		return false, err
@@ -1307,15 +1310,16 @@ func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
 }
 
 func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, error) {
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
-		return false, err
+		return true, err
+	} else if !isSQLObjectID {
+		return true, nil
 	}
-
 	// retrieve table
 	featureTable, err := s.getFeatureTable(object, feature)
 	if err != nil {
-		return false, err
+		return true, err
 	}
 
 	// retrieve statement
@@ -1341,11 +1345,12 @@ func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
 }
 
 func (s *SQLStore) doSize(object EObject, feature EStructuralFeature) (int, error) {
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
 		return 0, err
+	} else if !isSQLObjectID {
+		return 0, nil
 	}
-
 	// retrieve table
 	featureTable, err := s.getFeatureTable(object, feature)
 	if err != nil {
@@ -1373,11 +1378,12 @@ func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value an
 }
 
 func (s *SQLStore) doContains(object EObject, feature EStructuralFeature, value any) (bool, error) {
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
 		return false, err
+	} else if !isSQLObjectID {
+		return false, nil
 	}
-
 	// retrieve table
 	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
@@ -1406,11 +1412,12 @@ func (s *SQLStore) doContains(object EObject, feature EStructuralFeature, value 
 }
 
 func (s *SQLStore) doIndexOf(object EObject, feature EStructuralFeature, value any, getIndexOfQuery func(*sqlManyQueries) string) (int, error) {
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
 		return -1, err
+	} else if !isSQLObjectID {
+		return -1, nil
 	}
-
 	// retrieve table
 	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
@@ -1479,12 +1486,13 @@ func (s *SQLStore) AddRoot(object EObject) {
 
 // RemoveRoot implements EStore.
 func (s *SQLStore) RemoveRoot(object EObject) {
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
 		return
+	} else if !isSQLObjectID {
+		return
 	}
-
 	if err := s.executeQuery(
 		s.getSingleQueries(s.schema.contentsTable.key).getRemoveQuery(),
 		&sqlitex.ExecOptions{Args: []any{sqlObjectID}},
@@ -1773,15 +1781,17 @@ func (s *SQLStore) GetContainer(object EObject) (EObject, EStructuralFeature) {
 }
 
 func (s *SQLStore) doGetContainer(object EObject) (*containerAndFeature, error) {
-	sqlID, err := s.encodeSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
 		return nil, err
+	} else if !isSQLObjectID {
+		return nil, nil
 	}
 
 	containerID := int64(-1)
 	containerFeatureID := int64(-1)
 	if err := s.executeQuery(`SELECT containerID,containerFeatureID FROM ".objects" WHERE objectID=?`, &sqlitex.ExecOptions{
-		Args: []any{sqlID},
+		Args: []any{sqlObjectID},
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			switch stmt.ColumnType(0) {
 			case sqlite.TypeNull:
@@ -1803,7 +1813,7 @@ func (s *SQLStore) doGetContainer(object EObject) (*containerAndFeature, error) 
 
 	switch containerID {
 	case -1:
-		return nil, fmt.Errorf("unable to find container for object '%v'", sqlID)
+		return nil, fmt.Errorf("unable to find container for object '%v'", sqlObjectID)
 	case 0:
 		return nil, nil
 	default:
@@ -1823,9 +1833,11 @@ func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any]
 	return func(yield func(any) bool) {
 		awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("All", operationRead, object, feature, -1, nil, func() (any, error) {
 			interrupted := errors.New("interrupted")
-			sqlID, err := s.encodeSQLID(object)
+			sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 			if err != nil {
 				return nil, err
+			} else if !isSQLObjectID {
+				return nil, nil
 			}
 			featureSchema, err := s.getFeatureSchema(object, feature)
 			if err != nil {
@@ -1835,7 +1847,7 @@ func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any]
 			if err := s.executeQuery(
 				s.getManyQueries(featureTable).getSelectAllQuery(),
 				&sqlitex.ExecOptions{
-					Args: []any{sqlID},
+					Args: []any{sqlObjectID},
 					ResultFunc: func(stmt *sqlite.Stmt) error {
 						value := decodeAny(stmt, 0)
 						decoded, err := s.decodeFeatureValue(featureSchema, value)

@@ -664,7 +664,6 @@ func newSQLStore(
 		sqlEncoder: sqlEncoder{
 			sqlBase:          base,
 			isForced:         false,
-			isObjectExists:   true,
 			classDataMap:     map[EClass]*sqlEncoderClassData{},
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
@@ -800,7 +799,7 @@ func (e *SQLStore) getSQLID(eObject EObject) (int64, error) {
 	if !isSqlObjectID {
 		// object is not in store - check if it exists in db
 		objectExists := false
-		if sqlObjectID != 0 && e.isObjectExists {
+		if sqlObjectID != 0 {
 			if err := e.executeQuery(
 				`SELECT objectID FROM ".objects" WHERE objectID=?`,
 				&sqlitex.ExecOptions{

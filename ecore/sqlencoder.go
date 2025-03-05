@@ -161,7 +161,6 @@ type sqlEncoder struct {
 	*sqlBase
 	isForced         bool
 	isKeepDefaults   bool
-	isObjectExists   bool
 	classDataMap     map[EClass]*sqlEncoderClassData
 	sqlIDManager     SQLEncoderIDManager
 	sqlObjectManager sqlObjectManager

@@ -107,24 +107,19 @@ func (list *EStoreList) GetEStore() EStore {
 func (list *EStoreList) SetEStore(newStore EStore) {
 	if oldStore := list.store; oldStore != newStore {
 		list.store = newStore
-		var data []any
 		if newStore == nil {
 			// unbind previous store
 			if !list.cache {
 				// got to backup store if data is not existing
 				list.data = oldStore.ToArray(list.owner, list.feature)
-			} else {
-				data = list.data
 			}
-		} else if !list.cache {
-			// don't update store - it is done in sqlstore while encoding or decoding
-			// just update cache
-			data = list.data
-			list.data = nil
-		}
-		for _, v := range data {
-			if sp, _ := v.(EStoreProvider); sp != nil {
-				sp.SetEStore(newStore)
+		} else {
+			// add data to the store
+			if len(list.data) > 0 {
+				newStore.AddAll(list.owner, list.feature, 0, NewImmutableEList(list.data))
+			}
+			if !list.cache {
+				list.data = nil
 			}
 		}
 	}
@@ -174,10 +169,6 @@ func (list *EStoreList) IsCache() bool {
 }
 
 func (list *EStoreList) performAdd(object any) {
-	// set value store
-	if storeObject, isStoreObject := object.(EStoreEObject); isStoreObject {
-		storeObject.SetEStore(list.store)
-	}
 	// add to cache
 	if list.data != nil {
 		list.BasicENotifyingList.performAdd(object)
@@ -191,12 +182,6 @@ func (list *EStoreList) performAdd(object any) {
 }
 
 func (list *EStoreList) performAddAll(c Collection) {
-	// set collection value store
-	for object := range c.All() {
-		if storeObject, isStoreObject := object.(EStoreEObject); isStoreObject {
-			storeObject.SetEStore(list.store)
-		}
-	}
 	// index computed now before list potentially modified
 	// add to cache
 	if list.data != nil {
@@ -212,10 +197,6 @@ func (list *EStoreList) performAddAll(c Collection) {
 }
 
 func (list *EStoreList) performInsert(index int, object any) {
-	// set value store
-	if storeObject, isStoreObject := object.(EStoreEObject); isStoreObject {
-		storeObject.SetEStore(list.store)
-	}
 	// add to cache
 	if list.data != nil {
 		list.BasicENotifyingList.performInsert(index, object)
@@ -229,12 +210,6 @@ func (list *EStoreList) performInsert(index int, object any) {
 }
 
 func (list *EStoreList) performInsertAll(index int, c Collection) bool {
-	// set collection value store
-	for object := range c.All() {
-		if storeObject, isStoreObject := object.(EStoreEObject); isStoreObject {
-			storeObject.SetEStore(list.store)
-		}
-	}
 	// add to cache
 	if list.data != nil {
 		if !list.BasicENotifyingList.performInsertAll(index, c) {
@@ -266,12 +241,6 @@ func (list *EStoreList) performClear() []any {
 	}
 	// size
 	list.size = 0
-	// reset collection value store
-	for _, value := range result {
-		if storeObject, isStoreObject := value.(EStoreEObject); isStoreObject {
-			storeObject.SetEStore(nil)
-		}
-	}
 	return result
 }
 
@@ -291,10 +260,6 @@ func (list *EStoreList) performRemove(index int) any {
 	}
 	// size
 	list.size--
-	// reset previous value store
-	if storeObject, isStoreObject := result.(EStoreEObject); isStoreObject {
-		storeObject.SetEStore(nil)
-	}
 	return result
 }
 
@@ -317,20 +282,10 @@ func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
 	}
 	// size
 	list.size -= len(result)
-	// reset collection value store
-	for _, value := range result {
-		if storeObject, isStoreObject := value.(EStoreEObject); isStoreObject {
-			storeObject.SetEStore(nil)
-		}
-	}
 	return result
 }
 
 func (list *EStoreList) performSet(index int, object any) any {
-	// set current value store
-	if storeObject, isStoreObject := object.(EStoreEObject); isStoreObject {
-		storeObject.SetEStore(list.store)
-	}
 	// cache
 	var result any
 	if list.data != nil {
@@ -343,10 +298,6 @@ func (list *EStoreList) performSet(index int, object any) any {
 		} else {
 			_ = list.store.Set(list.owner, list.feature, index, object, false)
 		}
-	}
-	// reset previous value store
-	if storeObject, isStoreObject := result.(EStoreEObject); isStoreObject {
-		storeObject.SetEStore(nil)
 	}
 	return result
 }

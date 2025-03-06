@@ -41,20 +41,13 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 		if newStore == nil {
 			// build cache with previous store
 			if !o.cache {
-				for featureID := 0; featureID < len(o.properties); featureID++ {
+				for featureID := range o.properties {
 					if eFeature := o.eDynamicFeature(featureID); !eFeature.IsTransient() {
 						o.properties[featureID] = oldStore.Get(o.AsEObject(), eFeature, NO_INDEX)
 					}
 				}
 			}
 		} else {
-			// set children store
-			for _, v := range o.properties {
-				if sp, _ := v.(EStoreProvider); sp != nil {
-					sp.SetEStore(newStore)
-				}
-			}
-
 			// clear properties because we are not caching
 			if !o.cache {
 				o.properties = nil
@@ -153,10 +146,6 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 }
 
 func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
-	// set value store
-	if storeObject, isStoreObject := value.(EStoreEObject); isStoreObject {
-		storeObject.SetEStore(o.store)
-	}
 	// retrieve properties
 	var properties []any
 	eFeature := o.eDynamicFeature(dynamicFeatureID)
@@ -180,14 +169,8 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 
 func (o *EStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	// retrieve previous value and unset properties
-	var value any
 	if o.properties != nil {
-		value = o.properties[dynamicFeatureID]
 		o.properties[dynamicFeatureID] = nil
-	}
-	// reset previous value store
-	if storeObject, isStoreObject := value.(EStoreEObject); isStoreObject {
-		storeObject.SetEStore(nil)
 	}
 	eFeature := o.eDynamicFeature(dynamicFeatureID)
 	store := o.AsEStoreEObject().GetEStore()

@@ -915,10 +915,10 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		feature EStructuralFeature
 	}
 
-	// lock objects features = { object feature operations [, value all operations] }
-	lockObjectFeatures := []objectFeature{{op.object, op.feature}}
-	if object, isObject := op.value.(EObject); isObject {
-		lockObjectFeatures = append(lockObjectFeatures, objectFeature{object, nil})
+	// input objects features = { object feature operations [, value all operations] }
+	inputObjectFeatures := []objectFeature{{op.object, op.feature}}
+	if object, isObject := op.value.(EObject); isObject && object != op.object {
+		inputObjectFeatures = append(inputObjectFeatures, objectFeature{object, nil})
 	}
 
 	// of is {nil,nil} : return store object-feature iterator
@@ -968,8 +968,10 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 
 	// register operation for all objects and and compute previous operations to wait for
 	previous := map[*operation]struct{}{}
-	for _, lof := range lockObjectFeatures {
+	registeredObjectFeatures := []objectFeature{}
+	for _, lof := range inputObjectFeatures {
 		for of := range objectFeaturesIterator(lof) {
+			registeredObjectFeatures = append(registeredObjectFeatures, of)
 			if po := s.registerOperation(of.object, of.feature, op); po != nil {
 				previous[po] = struct{}{}
 			}
@@ -982,11 +984,11 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		// wait for previous operations
 		if len(previous) > 0 {
 			if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
-				e.Write(zap.Int64s("previous", mapSet(previous, func(operation *operation) int64 { return op.id })))
+				e.Write(zap.Int64s("previous", mapSet(previous, func(o *operation) int64 { return o.id })))
 			}
-			promises := mapSet(previous, func(operation *operation) *promise.Promise[any] { return operation.promise })
+			promises := mapSet(previous, func(o *operation) *promise.Promise[any] { return o.promise })
 			if _, err := promise.All(context, promises...).Await(context); err != nil {
-				logger.Debug("error in previous operation", zap.Error(err))
+				logger.Error("error in previous operation", zap.Error(err))
 				reject(err)
 				return
 			}
@@ -1000,12 +1002,10 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		logger.Debug("cleaning")
 		s.mutexOperations.Lock()
 		defer s.mutexOperations.Unlock()
-		for _, lof := range lockObjectFeatures {
-			for of := range objectFeaturesIterator(lof) {
-				if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
-					reject(err)
-					return
-				}
+		for _, of := range registeredObjectFeatures {
+			if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
+				reject(err)
+				return
 			}
 		}
 		logger.Debug("cleaned")

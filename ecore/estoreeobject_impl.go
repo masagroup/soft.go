@@ -48,6 +48,13 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 				}
 			}
 		} else {
+			// set children collection store
+			for _, v := range o.properties {
+				if storeList, isStoreList := v.(*EStoreList); isStoreList {
+					storeList.SetEStore(newStore)
+				}
+			}
+
 			// clear properties because we are not caching
 			if !o.cache {
 				o.properties = nil

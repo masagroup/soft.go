@@ -114,10 +114,6 @@ func (list *EStoreList) SetEStore(newStore EStore) {
 				list.data = oldStore.ToArray(list.owner, list.feature)
 			}
 		} else {
-			// add data to the store
-			if len(list.data) > 0 {
-				newStore.AddAll(list.owner, list.feature, 0, NewImmutableEList(list.data))
-			}
 			if !list.cache {
 				list.data = nil
 			}

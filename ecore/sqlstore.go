@@ -885,6 +885,53 @@ func (s *SQLStore) waitOperations(context context.Context, object any) error {
 	return nil
 }
 
+type objectFeature struct {
+	object  EObject
+	feature EStructuralFeature
+}
+
+// of is {nil,nil} : return store object-feature iterator
+// of is {object,nil} : return object object-feature iterator
+// of is {object,feature} : return object-feature iterator
+func (s *SQLStore) objectFeaturesIterator(of objectFeature) iter.Seq[objectFeature] {
+	return func(yield func(objectFeature) bool) {
+		if of.object == nil {
+			if !yield(objectFeature{nil, nil}) {
+				return
+			}
+			for object, objectOperations := range s.objectOperations {
+				if object != nil {
+					if !yield(objectFeature{object, nil}) {
+						return
+					}
+					for feature := range objectOperations {
+						if feature != nil {
+							if !yield(objectFeature{object, feature}) {
+								return
+							}
+						}
+					}
+				}
+			}
+		} else if of.feature == nil {
+			if !yield(objectFeature{of.object, nil}) {
+				return
+			}
+			for feature := range s.objectOperations[of.object] {
+				if feature != nil {
+					if !yield(objectFeature{of.object, feature}) {
+						return
+					}
+				}
+			}
+		} else {
+			if !yield(objectFeature{of.object, of.feature}) {
+				return
+			}
+		}
+	}
+}
+
 // schedule operation in the store
 // s.objectOperations[nil][nil] all operations
 // s.objectOperations[object][nil] all operations for object
@@ -911,57 +958,10 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 			zap.Any("value", op.value))
 	}
 
-	type objectFeature struct {
-		object  EObject
-		feature EStructuralFeature
-	}
-
 	// input objects features = { object feature operations [, value all operations] }
 	inputObjectFeatures := []objectFeature{{op.object, op.feature}}
 	if object, isObject := op.value.(EObject); isObject && object != op.object {
 		inputObjectFeatures = append(inputObjectFeatures, objectFeature{object, nil})
-	}
-
-	// of is {nil,nil} : return store object-feature iterator
-	// of is {object,nil} : return object object-feature iterator
-	// of is {object,feature} : return object-feature iterator
-	objectFeaturesIterator := func(of objectFeature) iter.Seq[objectFeature] {
-		return func(yield func(objectFeature) bool) {
-			if of.object == nil {
-				if !yield(objectFeature{nil, nil}) {
-					return
-				}
-				for object, objectOperations := range s.objectOperations {
-					if object != nil {
-						if !yield(objectFeature{object, nil}) {
-							return
-						}
-						for feature := range objectOperations {
-							if feature != nil {
-								if !yield(objectFeature{object, feature}) {
-									return
-								}
-							}
-						}
-					}
-				}
-			} else if of.feature == nil {
-				if !yield(objectFeature{of.object, nil}) {
-					return
-				}
-				for feature := range s.objectOperations[of.object] {
-					if feature != nil {
-						if !yield(objectFeature{of.object, feature}) {
-							return
-						}
-					}
-				}
-			} else {
-				if !yield(objectFeature{of.object, of.feature}) {
-					return
-				}
-			}
-		}
 	}
 
 	// lock operations
@@ -971,7 +971,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 	previous := map[*operation]struct{}{}
 	registeredObjectFeatures := []objectFeature{}
 	for _, lof := range inputObjectFeatures {
-		for of := range objectFeaturesIterator(lof) {
+		for of := range s.objectFeaturesIterator(lof) {
 			registeredObjectFeatures = append(registeredObjectFeatures, of)
 			if po := s.registerOperation(of.object, of.feature, op); po != nil {
 				previous[po] = struct{}{}

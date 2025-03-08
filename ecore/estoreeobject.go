@@ -13,4 +13,5 @@ type EStoreEObject interface {
 	EObject
 	EStoreProvider
 	ECacheProvider
+	ELockProvider
 }

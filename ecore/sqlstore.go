@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"math"
 	"os"
 	"path/filepath"
 	"slices"
@@ -631,7 +632,7 @@ func newSQLStore(
 	}()
 
 	// ants promise pool
-	antsPool, _ := ants.NewPool(-1, ants.WithLogger(&zapLogger{logger.Named("ants")}))
+	antsPool, _ := ants.NewPool(math.MaxInt32, ants.WithLogger(&zapLogger{logger.Named("ants")}))
 	promisePool := promise.FromAntsPool(antsPool)
 
 	// create sql base

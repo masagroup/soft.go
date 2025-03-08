@@ -313,6 +313,11 @@ func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, contain
 		// register object in registry
 		e.sqlIDManager.SetObjectID(eObject, sqlObjectID)
 
+		if lockProvider, isLockProvider := eObject.(ELockProvider); isLockProvider {
+			lockProvider.Lock()
+			defer lockProvider.Unlock()
+		}
+
 		// for all object hierarchy classes
 		for _, eClass := range classData.hierarchy {
 			classData, err := e.getEncoderClassData(eClass)
@@ -344,8 +349,7 @@ func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, contain
 						}
 						// for each list element, insert its value
 						index := 1.0
-						for itList := featureList.Iterator(); itList.HasNext(); {
-							value := itList.Next()
+						for value := range featureList.All() {
 							converted, err := e.encodeFeatureValue(sqlObjectID, featureData, value)
 							if err != nil {
 								return -1, err

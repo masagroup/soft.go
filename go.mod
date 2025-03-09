@@ -4,6 +4,7 @@ go 1.23.0
 
 require (
 	github.com/KarpelesLab/weak v0.1.1
+	github.com/SokaDance/rmx v1.0.0
 	github.com/chebyrash/promise v0.0.0-20230709133807-42ec49ba1459
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/uuid v1.6.0
@@ -21,7 +22,6 @@ require (
 )
 
 require (
-	github.com/SokaDance/rmx v1.0.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/karlseguin/expect v1.0.8 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

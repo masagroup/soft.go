@@ -1887,15 +1887,15 @@ func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 	return slices.Collect(s.All(object, feature))
 }
 
-func (s *SQLStore) Serialize(ctx context.Context) ([]byte, error) {
-	p := s.scheduleOperation(ctx, newOperation("Serialize", operationRead, nil, nil, false, -1, nil, func() (any, error) {
-		return s.doSerialize(ctx)
-	}))
-	r, err := p.Await(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return (*r).([]byte), nil
+func (s *SQLStore) Serialize(ctx context.Context) *promise.Promise[[]byte] {
+	return promise.ThenWithPool(
+		s.scheduleOperation(ctx, newOperation("Serialize", operationRead, nil, nil, false, -1, nil, func() (any, error) {
+			return s.doSerialize(ctx)
+		})),
+		ctx,
+		func(a any) ([]byte, error) { return a.([]byte), nil },
+		s.promisePool,
+	)
 }
 
 func (s *SQLStore) doSerialize(ctx context.Context) ([]byte, error) {

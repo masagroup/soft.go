@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/chebyrash/promise"
 	"github.com/panjf2000/ants/v2"
@@ -632,7 +633,7 @@ func newSQLStore(
 	}()
 
 	// ants promise pool
-	antsPool, _ := ants.NewPool(math.MaxInt32, ants.WithLogger(&zapLogger{logger.Named("ants")}))
+	antsPool, _ := ants.NewPool(math.MaxInt32, ants.WithExpiryDuration(5*time.Second), ants.WithLogger(&zapLogger{logger.Named("ants")}))
 	promisePool := promise.FromAntsPool(antsPool)
 
 	// create sql base

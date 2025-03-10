@@ -1511,11 +1511,25 @@ func (s *SQLStore) GetRoots() []EObject {
 	return contents
 }
 
-func (s *SQLStore) UnRegister(object EObject) {
-	s.scheduleOperation(context.Background(), newOperation("UnRegister", operationWrite, object, nil, -1, nil, func() (any, error) {
-		s.sqlIDManager.ClearObjectID(object)
-		return nil, nil
-	}))
+func (s *SQLStore) UnRegister(object EObject, withContents bool) *promise.Promise[any] {
+	promises := []*promise.Promise[any]{
+		s.scheduleOperation(context.Background(), newOperation("UnRegister", operationWrite, object, nil, -1, nil, func() (any, error) {
+			s.sqlIDManager.ClearObjectID(object)
+			return nil, nil
+		})),
+	}
+	if withContents {
+		for it := object.EAllContents(); it.HasNext(); {
+			object := it.Next().(EObject)
+			promises = append(promises,
+				s.scheduleOperation(context.Background(), newOperation("UnRegister", operationWrite, object, nil, -1, nil, func() (any, error) {
+					s.sqlIDManager.ClearObjectID(object)
+					return nil, nil
+				})),
+			)
+		}
+	}
+	return promise.ThenWithPool(promise.AllWithPool(context.Background(), s.promisePool, promises...), context.Background(), func([]any) (any, error) { return nil, nil }, s.promisePool)
 }
 
 func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, value any) {

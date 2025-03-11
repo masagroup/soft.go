@@ -1644,8 +1644,8 @@ func TestSQLStore_Serialize(t *testing.T) {
 	defer s.Close()
 
 	//
-	bytes, err := s.Serialize(context.Background())
+	bytes, err := s.Serialize(context.Background()).Await(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, bytes)
-	requireSameDB(t, "testdata/library.store.sqlite", bytes)
+	requireSameDB(t, "testdata/library.store.sqlite", *bytes)
 }

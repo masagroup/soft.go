@@ -9,12 +9,17 @@
 
 package ecore
 
+import (
+	"github.com/SokaDance/rmx"
+)
+
 var unitializedContainer EObject = newEObjectImpl()
 
 type EStoreEObjectImpl struct {
 	ReflectiveEObjectImpl
 	store EStore
 	cache bool
+	mutex rmx.RecursiveMutex
 }
 
 func NewEStoreEObjectImpl(cache bool) *EStoreEObjectImpl {
@@ -30,28 +35,47 @@ func (o *EStoreEObjectImpl) AsEStoreEObject() EStoreEObject {
 	return o.GetInterfaces().(EStoreEObject)
 }
 
+func (o *EStoreEObjectImpl) Lock() {
+	o.mutex.Lock()
+	for _, v := range o.properties {
+		if storeList, isStoreList := v.(*EStoreList); isStoreList {
+			storeList.Lock()
+		}
+	}
+}
+
+func (o *EStoreEObjectImpl) Unlock() {
+	for _, v := range o.properties {
+		if storeList, isStoreList := v.(*EStoreList); isStoreList {
+			storeList.Unlock()
+		}
+	}
+	o.mutex.Unlock()
+}
+
 func (o *EStoreEObjectImpl) GetEStore() EStore {
 	return o.store
 }
 
 func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
+	o.mutex.Lock()
 	if oldStore := o.store; newStore != oldStore {
 		// set store to object and its children
 		o.store = newStore
 		if newStore == nil {
 			// build cache with previous store
 			if !o.cache {
-				for featureID := 0; featureID < len(o.properties); featureID++ {
+				for featureID := range o.properties {
 					if eFeature := o.eDynamicFeature(featureID); !eFeature.IsTransient() {
 						o.properties[featureID] = oldStore.Get(o.AsEObject(), eFeature, NO_INDEX)
 					}
 				}
 			}
 		} else {
-			// set children store
+			// set children collection store
 			for _, v := range o.properties {
-				if sp, _ := v.(EStoreProvider); sp != nil {
-					sp.SetEStore(newStore)
+				if storeList, isStoreList := v.(*EStoreList); isStoreList {
+					storeList.SetEStore(newStore)
 				}
 			}
 
@@ -61,9 +85,11 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 			}
 		}
 	}
+	o.mutex.Unlock()
 }
 
 func (o *EStoreEObjectImpl) SetCache(cache bool) {
+	o.mutex.Lock()
 	if o.cache != cache {
 		o.cache = cache
 
@@ -75,9 +101,12 @@ func (o *EStoreEObjectImpl) SetCache(cache bool) {
 		}
 		o.properties = nil
 	}
+	o.mutex.Unlock()
 }
 
 func (o *EStoreEObjectImpl) IsCache() bool {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
 	return o.cache
 }
 
@@ -107,6 +136,9 @@ func (o *EStoreEObjectImpl) initializeContainer() {
 }
 
 func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
+
 	if o.properties != nil && o.properties[dynamicFeatureID] != nil {
 		return true
 	}
@@ -118,6 +150,9 @@ func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 }
 
 func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
+
 	// retrieve value
 	var result any
 	if o.properties != nil {
@@ -153,6 +188,8 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 }
 
 func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
+	o.mutex.Lock()
+	// retrieve properties
 	var properties []any
 	eFeature := o.eDynamicFeature(dynamicFeatureID)
 	store := o.AsEStoreEObject().GetEStore()
@@ -171,9 +208,12 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 	if properties != nil {
 		properties[dynamicFeatureID] = value
 	}
+	o.mutex.Unlock()
 }
 
 func (o *EStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
+	o.mutex.Lock()
+	// retrieve previous value and unset properties
 	if o.properties != nil {
 		o.properties[dynamicFeatureID] = nil
 	}
@@ -182,6 +222,7 @@ func (o *EStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	if store != nil && !eFeature.IsTransient() {
 		store.UnSet(o.AsEObject(), eFeature)
 	}
+	o.mutex.Unlock()
 }
 
 func (o *EStoreEObjectImpl) eDynamicFeature(dynamicFeatureID int) EStructuralFeature {

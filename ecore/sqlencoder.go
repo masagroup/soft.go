@@ -20,10 +20,11 @@ import (
 )
 
 type sqlEncoderFeatureData struct {
-	schema    *sqlFeatureSchema
-	featureID int64
-	dataType  EDataType
-	factory   EFactory
+	schema      *sqlFeatureSchema
+	featureID   int64
+	dataType    EDataType
+	factory     EFactory
+	isTransient bool
 }
 
 type sqlEncoderClassData struct {
@@ -161,7 +162,6 @@ type sqlEncoder struct {
 	*sqlBase
 	isForced         bool
 	isKeepDefaults   bool
-	isObjectExists   bool
 	classDataMap     map[EClass]*sqlEncoderClassData
 	sqlIDManager     SQLEncoderIDManager
 	sqlObjectManager sqlObjectManager
@@ -248,6 +248,10 @@ func (f ptrField) String() string {
 	return fmt.Sprintf("%p", f.ptr)
 }
 
+func (e *sqlEncoder) shouldEncodeFeature(eObject EObject, eFeature EStructuralFeature) bool {
+	return eObject.EIsSet(eFeature) || (e.isKeepDefaults && len(eFeature.GetDefaultValueLiteral()) > 0)
+}
+
 func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, containerFeatureID int64) (id int64, err error) {
 	logger := e.logger.Named("encoder").With(zap.Stringer("object", ptrField{eObject}), zap.String("class", eObject.EClass().GetName()))
 	logger.Debug("object encode")
@@ -314,6 +318,11 @@ func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, contain
 		// register object in registry
 		e.sqlIDManager.SetObjectID(eObject, sqlObjectID)
 
+		if lockProvider, isLockProvider := eObject.(ELockProvider); isLockProvider {
+			lockProvider.Lock()
+			defer lockProvider.Unlock()
+		}
+
 		// for all object hierarchy classes
 		for _, eClass := range classData.hierarchy {
 			classData, err := e.getEncoderClassData(eClass)
@@ -327,8 +336,8 @@ func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, contain
 			columnValues[classTable.key.index] = sqlObjectID
 			for itFeature := classData.features.Iterator(); itFeature.HasNext(); {
 				eFeature := itFeature.Key()
-				if eObject.EIsSet(eFeature) || (e.isKeepDefaults && len(eFeature.GetDefaultValueLiteral()) > 0) {
-					featureData := itFeature.Value()
+				featureData := itFeature.Value()
+				if !featureData.isTransient && e.shouldEncodeFeature(eObject, eFeature) {
 					if featureColumn := featureData.schema.column; featureColumn != nil {
 						featureValue := eObject.EGetResolve(eFeature, false)
 						columnValue, err := e.encodeFeatureValue(sqlObjectID, featureData, featureValue)
@@ -345,8 +354,7 @@ func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, contain
 						}
 						// for each list element, insert its value
 						index := 1.0
-						for itList := featureList.Iterator(); itList.HasNext(); {
-							value := itList.Next()
+						for value := range featureList.All() {
 							converted, err := e.encodeFeatureValue(sqlObjectID, featureData, value)
 							if err != nil {
 								return -1, err
@@ -585,8 +593,11 @@ func (e *sqlEncoder) getEncoderClassData(eClass EClass) (*sqlEncoderClassData, e
 				schema:    featureSchema,
 				featureID: int64(eClass.GetFeatureID(eFeature)),
 			}
-			if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
+			if eReference, _ := eFeature.(EReference); eReference != nil {
+				featureData.isTransient = eReference.IsTransient() || (eReference.IsContainer() && !eReference.IsResolveProxies())
+			} else if eAttribute, _ := eFeature.(EAttribute); eAttribute != nil {
 				eDataType := eAttribute.GetEAttributeType()
+				featureData.isTransient = eAttribute.IsTransient()
 				featureData.dataType = eDataType
 				featureData.factory = eDataType.GetEPackage().GetEFactoryInstance()
 			}

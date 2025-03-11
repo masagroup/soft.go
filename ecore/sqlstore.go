@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"math"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/chebyrash/promise"
 	"github.com/panjf2000/ants/v2"
@@ -438,15 +440,16 @@ const (
 )
 
 type operation struct {
-	id      int64
-	type_   operationType
-	cmd     string
-	object  EObject
-	feature EStructuralFeature
-	index   int
-	value   any
-	fn      func() (any, error)
-	promise *promise.Promise[any]
+	id       int64
+	type_    operationType
+	cmd      string
+	object   EObject
+	feature  EStructuralFeature
+	contents bool
+	index    int
+	value    any
+	fn       func() (any, error)
+	promise  *promise.Promise[any]
 }
 
 func newOperation(
@@ -454,18 +457,20 @@ func newOperation(
 	type_ operationType,
 	object EObject,
 	feature EStructuralFeature,
+	contents bool,
 	index int,
 	value any,
 	fn func() (any, error)) *operation {
 	return &operation{
-		id:      operationID.Add(1),
-		type_:   type_,
-		cmd:     cmd,
-		object:  object,
-		feature: feature,
-		index:   index,
-		value:   value,
-		fn:      fn,
+		id:       operationID.Add(1),
+		type_:    type_,
+		cmd:      cmd,
+		object:   object,
+		feature:  feature,
+		contents: contents,
+		index:    index,
+		value:    value,
+		fn:       fn,
 	}
 }
 
@@ -631,7 +636,7 @@ func newSQLStore(
 	}()
 
 	// ants promise pool
-	antsPool, _ := ants.NewPool(-1, ants.WithLogger(&zapLogger{logger.Named("ants")}))
+	antsPool, _ := ants.NewPool(math.MaxInt32, ants.WithExpiryDuration(5*time.Second), ants.WithLogger(&zapLogger{logger.Named("ants")}))
 	promisePool := promise.FromAntsPool(antsPool)
 
 	// create sql base
@@ -664,7 +669,6 @@ func newSQLStore(
 		sqlEncoder: sqlEncoder{
 			sqlBase:          base,
 			isForced:         false,
-			isObjectExists:   true,
 			classDataMap:     map[EClass]*sqlEncoderClassData{},
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
@@ -785,7 +789,7 @@ func (e *SQLStore) encodeFeatureValue(sqlObjectID int64, featureData *sqlEncoder
 		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:
 			eObject := value.(EObject)
-			return e.getSQLID(eObject)
+			return e.encodeSQLID(eObject)
 		default:
 			return e.sqlEncoder.encodeFeatureValue(sqlObjectID, featureData, value)
 		}
@@ -793,35 +797,41 @@ func (e *SQLStore) encodeFeatureValue(sqlObjectID int64, featureData *sqlEncoder
 	return nil, nil
 }
 
-// get object sql id
-func (e *SQLStore) getSQLID(eObject EObject) (int64, error) {
+func (s *SQLStore) getSQLID(eObject EObject) (int64, bool, error) {
 	// retrieve sql id for eObject
-	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
+	sqlObjectID, isSqlObjectID := s.sqlIDManager.GetObjectID(eObject)
 	if !isSqlObjectID {
 		// object is not in store - check if it exists in db
-		objectExists := false
-		if sqlObjectID != 0 && e.isObjectExists {
-			if err := e.executeQuery(
+		if sqlObjectID != 0 {
+			if err := s.executeQuery(
 				`SELECT objectID FROM ".objects" WHERE objectID=?`,
 				&sqlitex.ExecOptions{
 					Args: []any{sqlObjectID},
 					ResultFunc: func(stmt *sqlite.Stmt) error {
-						objectExists = true
+						isSqlObjectID = true
 						return nil
 					},
 				}); err != nil {
-				return 0, err
+				return 0, false, err
 			}
 		}
-		if objectExists {
+		if isSqlObjectID {
 			// object exists - register it as decoded
-			e.sqlIDManager.SetObjectID(eObject, sqlObjectID)
-		} else {
-			// object doesn't exists in db - encode it with encoder
-			return e.encodeObject(eObject, -1, -1)
+			s.sqlIDManager.SetObjectID(eObject, sqlObjectID)
 		}
 	}
-	return sqlObjectID, nil
+	return sqlObjectID, isSqlObjectID, nil
+}
+
+// encode object sql id
+func (s *SQLStore) encodeSQLID(eObject EObject) (int64, error) {
+	if sqlObjectID, isSqlObjectID, err := s.getSQLID(eObject); err != nil {
+		return 0, err
+	} else if isSqlObjectID {
+		return sqlObjectID, nil
+	} else {
+		return s.encodeObject(eObject, -1, -1)
+	}
 }
 
 func mapSet[S ~map[E]struct{}, E comparable, R any](m S, mapper func(E) R) []R {
@@ -879,6 +889,53 @@ func (s *SQLStore) waitOperations(context context.Context, object any) error {
 	return nil
 }
 
+type objectFeature struct {
+	object  EObject
+	feature EStructuralFeature
+}
+
+// of is {nil,nil} : return store object-feature iterator
+// of is {object,nil} : return object object-feature iterator
+// of is {object,feature} : return object-feature iterator
+func (s *SQLStore) objectFeaturesIterator(of objectFeature) iter.Seq[objectFeature] {
+	return func(yield func(objectFeature) bool) {
+		if of.object == nil {
+			if !yield(objectFeature{nil, nil}) {
+				return
+			}
+			for object, objectOperations := range s.objectOperations {
+				if object != nil {
+					if !yield(objectFeature{object, nil}) {
+						return
+					}
+					for feature := range objectOperations {
+						if feature != nil {
+							if !yield(objectFeature{object, feature}) {
+								return
+							}
+						}
+					}
+				}
+			}
+		} else if of.feature == nil {
+			if !yield(objectFeature{of.object, nil}) {
+				return
+			}
+			for feature := range s.objectOperations[of.object] {
+				if feature != nil {
+					if !yield(objectFeature{of.object, feature}) {
+						return
+					}
+				}
+			}
+		} else {
+			if !yield(objectFeature{of.object, of.feature}) {
+				return
+			}
+		}
+	}
+}
+
 // schedule operation in the store
 // s.objectOperations[nil][nil] all operations
 // s.objectOperations[object][nil] all operations for object
@@ -901,61 +958,21 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 			zap.Stringer("type", op.type_),
 			zap.String("object", objectString),
 			zap.String("feature", featureString),
+			zap.Bool("contents", op.contents),
 			zap.Int("index", op.index),
 			zap.Any("value", op.value))
 	}
 
-	type objectFeature struct {
-		object  EObject
-		feature EStructuralFeature
-	}
-
-	// lock objects features = { object feature operations [, value all operations] }
-	lockObjectFeatures := []objectFeature{{op.object, op.feature}}
-	if object, isObject := op.value.(EObject); isObject {
-		lockObjectFeatures = append(lockObjectFeatures, objectFeature{object, nil})
-	}
-
-	// of is {nil,nil} : return store object-feature iterator
-	// of is {object,nil} : return object object-feature iterator
-	// of is {object,feature} : return object-feature iterator
-	objectFeaturesIterator := func(of objectFeature) iter.Seq[objectFeature] {
-		return func(yield func(objectFeature) bool) {
-			if of.object == nil {
-				if !yield(objectFeature{nil, nil}) {
-					return
-				}
-				for object, objectOperations := range s.objectOperations {
-					if object != nil {
-						if !yield(objectFeature{object, nil}) {
-							return
-						}
-						for feature := range objectOperations {
-							if feature != nil {
-								if !yield(objectFeature{object, feature}) {
-									return
-								}
-							}
-						}
-					}
-				}
-			} else if of.feature == nil {
-				if !yield(objectFeature{of.object, nil}) {
-					return
-				}
-				for feature := range s.objectOperations[of.object] {
-					if feature != nil {
-						if !yield(objectFeature{of.object, feature}) {
-							return
-						}
-					}
-				}
-			} else {
-				if !yield(objectFeature{of.object, of.feature}) {
-					return
-				}
-			}
+	// input objects features = { object feature operations [, value all operations] }
+	allObjectFeatures := []objectFeature{{op.object, op.feature}}
+	if op.contents {
+		for it := op.object.EAllContents(); it.HasNext(); {
+			object := it.Next().(EObject)
+			allObjectFeatures = append(allObjectFeatures, objectFeature{object, nil})
 		}
+	}
+	if object, isObject := op.value.(EObject); isObject && object != op.object {
+		allObjectFeatures = append(allObjectFeatures, objectFeature{object, nil})
 	}
 
 	// lock operations
@@ -963,8 +980,10 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 
 	// register operation for all objects and and compute previous operations to wait for
 	previous := map[*operation]struct{}{}
-	for _, lof := range lockObjectFeatures {
-		for of := range objectFeaturesIterator(lof) {
+	registeredObjectFeatures := []objectFeature{}
+	for _, lof := range allObjectFeatures {
+		for of := range s.objectFeaturesIterator(lof) {
+			registeredObjectFeatures = append(registeredObjectFeatures, of)
 			if po := s.registerOperation(of.object, of.feature, op); po != nil {
 				previous[po] = struct{}{}
 			}
@@ -977,11 +996,11 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		// wait for previous operations
 		if len(previous) > 0 {
 			if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
-				e.Write(zap.Int64s("previous", mapSet(previous, func(operation *operation) int64 { return op.id })))
+				e.Write(zap.Int64s("previous", mapSet(previous, func(o *operation) int64 { return o.id })))
 			}
-			promises := mapSet(previous, func(operation *operation) *promise.Promise[any] { return operation.promise })
+			promises := mapSet(previous, func(o *operation) *promise.Promise[any] { return o.promise })
 			if _, err := promise.All(context, promises...).Await(context); err != nil {
-				logger.Debug("error in previous operation", zap.Error(err))
+				logger.Error("error in previous operation", zap.Error(err))
 				reject(err)
 				return
 			}
@@ -995,12 +1014,10 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *pr
 		logger.Debug("cleaning")
 		s.mutexOperations.Lock()
 		defer s.mutexOperations.Unlock()
-		for _, lof := range lockObjectFeatures {
-			for of := range objectFeaturesIterator(lof) {
-				if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
-					reject(err)
-					return
-				}
+		for _, of := range registeredObjectFeatures {
+			if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
+				reject(err)
+				return
 			}
 		}
 		logger.Debug("cleaned")
@@ -1114,22 +1131,24 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 			return operation.value
 		}
 	}
-	return awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Get", operationRead, object, feature, index, nil, func() (any, error) {
+	return awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Get", operationRead, object, feature, false, index, nil, func() (any, error) {
 		return s.doGet(object, feature, index)
 	})))
 }
 
 func (s *SQLStore) doGet(object EObject, feature EStructuralFeature, index int) (any, error) {
 	// retrieve value from sqlite db
-	sqlID, err := s.getSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
-		return err, nil
+		return nil, err
+	} else if !isSQLObjectID {
+		return nil, nil
 	}
 	featureSchema, err := s.getFeatureSchema(object, feature)
 	if err != nil {
 		return err, nil
 	}
-	return s.getValue(sqlID, featureSchema, index)
+	return s.getValue(sqlObjectID, featureSchema, index)
 }
 
 func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index int) (any, error) {
@@ -1159,7 +1178,7 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 }
 
 func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any, needResult bool) (oldValue any) {
-	p := s.scheduleOperation(context.Background(), newOperation("Set", operationWrite, object, feature, index, value, func() (any, error) {
+	p := s.scheduleOperation(context.Background(), newOperation("Set", operationWrite, object, feature, false, index, value, func() (any, error) {
 		return s.doSet(object, feature, index, value, needResult)
 	}))
 	if needResult {
@@ -1170,7 +1189,7 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 
 func (s *SQLStore) doSet(object EObject, feature EStructuralFeature, index int, value any, needResult bool) (oldValue any, err error) {
 	// get object sql id
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1218,17 +1237,18 @@ func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 			return operation.value != nil
 		}
 	}
-	return awaitPromise[bool](s.scheduleOperation(context.Background(), newOperation("IsSet", operationRead, object, feature, -1, nil, func() (any, error) {
+	return awaitPromise[bool](s.scheduleOperation(context.Background(), newOperation("IsSet", operationRead, object, feature, false, -1, nil, func() (any, error) {
 		return s.doIsSet(object, feature)
 	})))
 }
 
 func (s *SQLStore) doIsSet(object EObject, feature EStructuralFeature) (bool, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
 		return false, err
+	} else if !isSQLObjectID {
+		return false, nil
 	}
-
 	featureSchema, err := s.getFeatureSchema(object, feature)
 	if err != nil {
 		return false, err
@@ -1264,13 +1284,13 @@ func (s *SQLStore) doIsSet(object EObject, feature EStructuralFeature) (bool, er
 }
 
 func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
-	awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("UnSet", operationWrite, object, feature, -1, nil, func() (any, error) {
+	awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("UnSet", operationWrite, object, feature, false, -1, nil, func() (any, error) {
 		return s.doUnSet(object, feature)
 	})))
 }
 
 func (s *SQLStore) doUnSet(object EObject, feature EStructuralFeature) (any, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1296,21 +1316,22 @@ func (s *SQLStore) doUnSet(object EObject, feature EStructuralFeature) (any, err
 }
 
 func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
-	return awaitPromise[bool](s.scheduleOperation(context.Background(), newOperation("IsEmpty", operationRead, object, feature, -1, nil, func() (any, error) {
+	return awaitPromise[bool](s.scheduleOperation(context.Background(), newOperation("IsEmpty", operationRead, object, feature, false, -1, nil, func() (any, error) {
 		return s.doIsEmpty(object, feature)
 	})))
 }
 
 func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
-		return false, err
+		return true, err
+	} else if !isSQLObjectID {
+		return true, nil
 	}
-
 	// retrieve table
 	featureTable, err := s.getFeatureTable(object, feature)
 	if err != nil {
-		return false, err
+		return true, err
 	}
 
 	// retrieve statement
@@ -1330,17 +1351,18 @@ func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, 
 }
 
 func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
-	return awaitPromise[int](s.scheduleOperation(context.Background(), newOperation("Size", operationRead, object, feature, -1, nil, func() (any, error) {
+	return awaitPromise[int](s.scheduleOperation(context.Background(), newOperation("Size", operationRead, object, feature, false, -1, nil, func() (any, error) {
 		return s.doSize(object, feature)
 	})))
 }
 
 func (s *SQLStore) doSize(object EObject, feature EStructuralFeature) (int, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
 		return 0, err
+	} else if !isSQLObjectID {
+		return 0, nil
 	}
-
 	// retrieve table
 	featureTable, err := s.getFeatureTable(object, feature)
 	if err != nil {
@@ -1362,17 +1384,18 @@ func (s *SQLStore) doSize(object EObject, feature EStructuralFeature) (int, erro
 }
 
 func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value any) bool {
-	return awaitPromise[bool](s.scheduleOperation(context.Background(), newOperation("Contains", operationRead, object, feature, -1, value, func() (any, error) {
+	return awaitPromise[bool](s.scheduleOperation(context.Background(), newOperation("Contains", operationRead, object, feature, false, -1, value, func() (any, error) {
 		return s.doContains(object, feature, value)
 	})))
 }
 
 func (s *SQLStore) doContains(object EObject, feature EStructuralFeature, value any) (bool, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
 		return false, err
+	} else if !isSQLObjectID {
+		return false, nil
 	}
-
 	// retrieve table
 	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
@@ -1401,11 +1424,12 @@ func (s *SQLStore) doContains(object EObject, feature EStructuralFeature, value 
 }
 
 func (s *SQLStore) doIndexOf(object EObject, feature EStructuralFeature, value any, getIndexOfQuery func(*sqlManyQueries) string) (int, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
 		return -1, err
+	} else if !isSQLObjectID {
+		return -1, nil
 	}
-
 	// retrieve table
 	featureData, err := s.getEncoderFeatureData(object, feature)
 	if err != nil {
@@ -1450,7 +1474,7 @@ func (s *SQLStore) doIndexOf(object EObject, feature EStructuralFeature, value a
 }
 
 func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
-	return awaitPromise[int](s.scheduleOperation(context.Background(), newOperation("IndexOf", operationRead, object, feature, -1, value, func() (any, error) {
+	return awaitPromise[int](s.scheduleOperation(context.Background(), newOperation("IndexOf", operationRead, object, feature, false, -1, value, func() (any, error) {
 		return s.doIndexOf(object, feature, value, func(sms *sqlManyQueries) string {
 			return sms.getIndexOfQuery()
 		})
@@ -1458,7 +1482,7 @@ func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any
 }
 
 func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {
-	return awaitPromise[int](s.scheduleOperation(context.Background(), newOperation("LastIndexOf", operationRead, object, feature, -1, value, func() (any, error) {
+	return awaitPromise[int](s.scheduleOperation(context.Background(), newOperation("LastIndexOf", operationRead, object, feature, false, -1, value, func() (any, error) {
 		return s.doIndexOf(object, feature, value, func(sms *sqlManyQueries) string {
 			return sms.getLastIndexOfQuery()
 		})
@@ -1474,12 +1498,13 @@ func (s *SQLStore) AddRoot(object EObject) {
 
 // RemoveRoot implements EStore.
 func (s *SQLStore) RemoveRoot(object EObject) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
 		s.errorHandler(err)
 		return
+	} else if !isSQLObjectID {
+		return
 	}
-
 	if err := s.executeQuery(
 		s.getSingleQueries(s.schema.contentsTable.key).getRemoveQuery(),
 		&sqlitex.ExecOptions{Args: []any{sqlObjectID}},
@@ -1497,21 +1522,44 @@ func (s *SQLStore) GetRoots() []EObject {
 	return contents
 }
 
-func (s *SQLStore) UnRegister(object EObject) {
-	s.scheduleOperation(context.Background(), newOperation("UnRegister", operationWrite, object, nil, -1, nil, func() (any, error) {
-		s.sqlIDManager.ClearObjectID(object)
+func postOrderTraverse(object EObject, yield func(EObject) bool) bool {
+	for child := range object.EContents().All() {
+		if !postOrderTraverse(child.(EObject), yield) {
+			return false
+		}
+	}
+	return yield(object)
+}
+
+func postOrderIterator(object EObject) iter.Seq[EObject] {
+	return func(yield func(EObject) bool) {
+		postOrderTraverse(object, yield)
+	}
+}
+
+func (s *SQLStore) UnRegister(object EObject, withContents bool) *promise.Promise[any] {
+	return s.scheduleOperation(context.Background(), newOperation("UnRegister", operationWrite, object, nil, withContents, -1, nil, func() (any, error) {
+		if withContents {
+			// we use a post order iterator to avoid registering again
+			// parent
+			for object := range postOrderIterator(object) {
+				s.sqlIDManager.ClearObjectID(object)
+			}
+		} else {
+			s.sqlIDManager.ClearObjectID(object)
+		}
 		return nil, nil
 	}))
 }
 
 func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, value any) {
-	s.scheduleOperation(context.Background(), newOperation("Add", operationWrite, object, feature, index, value, func() (any, error) {
+	s.scheduleOperation(context.Background(), newOperation("Add", operationWrite, object, feature, false, index, value, func() (any, error) {
 		return s.doAdd(object, feature, index, value)
 	}))
 }
 
 func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, value any) (any, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1538,13 +1586,13 @@ func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, 
 }
 
 func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int, c Collection) {
-	s.scheduleOperation(context.Background(), newOperation("AddAll", operationWrite, object, feature, index, c, func() (any, error) {
+	s.scheduleOperation(context.Background(), newOperation("AddAll", operationWrite, object, feature, false, index, c, func() (any, error) {
 		return s.doAddAll(object, feature, index, c)
 	}))
 }
 
 func (s *SQLStore) doAddAll(object EObject, feature EStructuralFeature, index int, c Collection) (any, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1631,13 +1679,13 @@ func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int, nb int)
 }
 
 func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int, needResult bool) any {
-	return awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Remove", operationWrite, object, feature, index, nil, func() (any, error) {
+	return awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Remove", operationWrite, object, feature, false, index, nil, func() (any, error) {
 		return s.doRemove(object, feature, index, needResult)
 	})))
 }
 
 func (s *SQLStore) doRemove(object EObject, feature EStructuralFeature, index int, needResult bool) (decoded any, err error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1679,13 +1727,13 @@ func (mi moveIndexes) String() string {
 }
 
 func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) any {
-	return awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Move", operationWrite, object, feature, -1, moveIndexes{sourceIndex, targetIndex}, func() (any, error) {
+	return awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("Move", operationWrite, object, feature, false, -1, moveIndexes{sourceIndex, targetIndex}, func() (any, error) {
 		return s.doMove(object, feature, sourceIndex, targetIndex, needResult)
 	})))
 }
 
 func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) (decoded any, err error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1729,13 +1777,13 @@ func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceInde
 }
 
 func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
-	s.scheduleOperation(context.Background(), newOperation("Clear", operationWrite, object, feature, -1, nil, func() (any, error) {
+	s.scheduleOperation(context.Background(), newOperation("Clear", operationWrite, object, feature, false, -1, nil, func() (any, error) {
 		return s.doClear(object, feature)
 	}))
 }
 
 func (s *SQLStore) doClear(object EObject, feature EStructuralFeature) (any, error) {
-	sqlObjectID, err := s.getSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object)
 	if err != nil {
 		return nil, err
 	}
@@ -1759,7 +1807,7 @@ type containerAndFeature struct {
 }
 
 func (s *SQLStore) GetContainer(object EObject) (EObject, EStructuralFeature) {
-	if result := awaitPromise[*containerAndFeature](s.scheduleOperation(context.Background(), newOperation("GetContainer", operationRead, object, nil, -1, nil, func() (any, error) {
+	if result := awaitPromise[*containerAndFeature](s.scheduleOperation(context.Background(), newOperation("GetContainer", operationRead, object, nil, false, -1, nil, func() (any, error) {
 		return s.doGetContainer(object)
 	}))); result != nil {
 		return result.container, result.feature
@@ -1768,15 +1816,17 @@ func (s *SQLStore) GetContainer(object EObject) (EObject, EStructuralFeature) {
 }
 
 func (s *SQLStore) doGetContainer(object EObject) (*containerAndFeature, error) {
-	sqlID, err := s.getSQLID(object)
+	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
 		return nil, err
+	} else if !isSQLObjectID {
+		return nil, nil
 	}
 
 	containerID := int64(-1)
 	containerFeatureID := int64(-1)
 	if err := s.executeQuery(`SELECT containerID,containerFeatureID FROM ".objects" WHERE objectID=?`, &sqlitex.ExecOptions{
-		Args: []any{sqlID},
+		Args: []any{sqlObjectID},
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			switch stmt.ColumnType(0) {
 			case sqlite.TypeNull:
@@ -1798,7 +1848,7 @@ func (s *SQLStore) doGetContainer(object EObject) (*containerAndFeature, error) 
 
 	switch containerID {
 	case -1:
-		return nil, fmt.Errorf("unable to find container for object '%v'", sqlID)
+		return nil, fmt.Errorf("unable to find container for object '%v'", sqlObjectID)
 	case 0:
 		return nil, nil
 	default:
@@ -1816,11 +1866,13 @@ func (s *SQLStore) doGetContainer(object EObject) (*containerAndFeature, error) 
 
 func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any] {
 	return func(yield func(any) bool) {
-		awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("All", operationRead, object, feature, -1, nil, func() (any, error) {
+		awaitPromise[any](s.scheduleOperation(context.Background(), newOperation("All", operationRead, object, feature, false, -1, nil, func() (any, error) {
 			interrupted := errors.New("interrupted")
-			sqlID, err := s.getSQLID(object)
+			sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 			if err != nil {
 				return nil, err
+			} else if !isSQLObjectID {
+				return nil, nil
 			}
 			featureSchema, err := s.getFeatureSchema(object, feature)
 			if err != nil {
@@ -1830,7 +1882,7 @@ func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any]
 			if err := s.executeQuery(
 				s.getManyQueries(featureTable).getSelectAllQuery(),
 				&sqlitex.ExecOptions{
-					Args: []any{sqlID},
+					Args: []any{sqlObjectID},
 					ResultFunc: func(stmt *sqlite.Stmt) error {
 						value := decodeAny(stmt, 0)
 						decoded, err := s.decodeFeatureValue(featureSchema, value)
@@ -1853,15 +1905,15 @@ func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 	return slices.Collect(s.All(object, feature))
 }
 
-func (s *SQLStore) Serialize(ctx context.Context) ([]byte, error) {
-	p := s.scheduleOperation(ctx, newOperation("Serialize", operationRead, nil, nil, -1, nil, func() (any, error) {
-		return s.doSerialize(ctx)
-	}))
-	r, err := p.Await(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return (*r).([]byte), nil
+func (s *SQLStore) Serialize(ctx context.Context) *promise.Promise[[]byte] {
+	return promise.ThenWithPool(
+		s.scheduleOperation(ctx, newOperation("Serialize", operationRead, nil, nil, false, -1, nil, func() (any, error) {
+			return s.doSerialize(ctx)
+		})),
+		ctx,
+		func(a any) ([]byte, error) { return a.([]byte), nil },
+		s.promisePool,
+	)
 }
 
 func (s *SQLStore) doSerialize(ctx context.Context) ([]byte, error) {
@@ -1919,7 +1971,7 @@ func (s *SQLStore) ExecuteQuery(ctx context.Context, query string, opts *sqlitex
 	default:
 		operationType = operationWrite
 	}
-	_, err := s.scheduleOperation(ctx, newOperation("ExecuteQuery", operationType, nil, nil, -1, nil, func() (any, error) {
+	_, err := s.scheduleOperation(ctx, newOperation("ExecuteQuery", operationType, nil, nil, false, -1, nil, func() (any, error) {
 		return nil, s.executeQuery(query, opts)
 	})).Await(ctx)
 	return err

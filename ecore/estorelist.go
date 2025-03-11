@@ -12,10 +12,13 @@ package ecore
 import (
 	"iter"
 	"slices"
+
+	"github.com/SokaDance/rmx"
 )
 
 type EStoreList struct {
 	BasicENotifyingList
+	mutex       rmx.RecursiveMutex
 	owner       EObject
 	feature     EStructuralFeature
 	cache       bool
@@ -100,38 +103,42 @@ func (list *EStoreList) GetFeatureID() int {
 	return list.owner.EClass().GetFeatureID(list.feature)
 }
 
+func (list *EStoreList) Lock() {
+	list.mutex.Lock()
+}
+
+func (list *EStoreList) Unlock() {
+	list.mutex.Unlock()
+}
+
 func (list *EStoreList) GetEStore() EStore {
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
 	return list.store
 }
 
 func (list *EStoreList) SetEStore(newStore EStore) {
+	list.mutex.Lock()
 	if oldStore := list.store; oldStore != newStore {
 		list.store = newStore
-		var data []any
 		if newStore == nil {
 			// unbind previous store
 			if !list.cache {
 				// got to backup store if data is not existing
 				list.data = oldStore.ToArray(list.owner, list.feature)
-			} else {
-				data = list.data
 			}
-		} else if !list.cache {
-			// don't update store - it is done in sqlstore while encoding or decoding
-			// just update cache
-			data = list.data
-			list.data = nil
-		}
-		for _, v := range data {
-			if sp, _ := v.(EStoreProvider); sp != nil {
-				sp.SetEStore(newStore)
+		} else {
+			if !list.cache {
+				list.data = nil
 			}
 		}
 	}
+	list.mutex.Unlock()
 }
 
 // Set object with a cache for its feature values
 func (list *EStoreList) SetCache(cache bool) {
+	list.mutex.Lock()
 	if list.cache != cache {
 		list.cache = cache
 		var data []any
@@ -166,14 +173,18 @@ func (list *EStoreList) SetCache(cache bool) {
 			}
 		}
 	}
+	list.mutex.Unlock()
 }
 
 // Returns true if object is caching feature values
 func (list *EStoreList) IsCache() bool {
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
 	return list.cache
 }
 
 func (list *EStoreList) performAdd(object any) {
+	list.mutex.Lock()
 	// add to cache
 	if list.data != nil {
 		list.BasicENotifyingList.performAdd(object)
@@ -184,24 +195,27 @@ func (list *EStoreList) performAdd(object any) {
 	}
 	// size
 	list.size++
+	list.mutex.Unlock()
 }
 
 func (list *EStoreList) performAddAll(c Collection) {
+	list.mutex.Lock()
 	// index computed now before list potentially modified
 	// add to cache
 	if list.data != nil {
 		list.BasicENotifyingList.performAddAll(c)
 	}
-
 	// add to store
 	if list.store != nil {
 		list.store.AddAll(list.owner, list.feature, list.size, c)
 	}
 	// size
 	list.size += c.Size()
+	list.mutex.Unlock()
 }
 
 func (list *EStoreList) performInsert(index int, object any) {
+	list.mutex.Lock()
 	// add to cache
 	if list.data != nil {
 		list.BasicENotifyingList.performInsert(index, object)
@@ -212,9 +226,13 @@ func (list *EStoreList) performInsert(index int, object any) {
 	}
 	// size
 	list.size++
+	list.mutex.Unlock()
 }
 
 func (list *EStoreList) performInsertAll(index int, c Collection) bool {
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
+
 	// add to cache
 	if list.data != nil {
 		if !list.BasicENotifyingList.performInsertAll(index, c) {
@@ -231,6 +249,7 @@ func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 }
 
 func (list *EStoreList) performClear() []any {
+	list.mutex.Lock()
 	var result []any
 	//cache
 	if list.data != nil {
@@ -246,10 +265,12 @@ func (list *EStoreList) performClear() []any {
 	}
 	// size
 	list.size = 0
+	list.mutex.Unlock()
 	return result
 }
 
 func (list *EStoreList) performRemove(index int) any {
+	list.mutex.Lock()
 	var result any
 	//cache
 	if list.data != nil {
@@ -265,14 +286,18 @@ func (list *EStoreList) performRemove(index int) any {
 	}
 	// size
 	list.size--
+	list.mutex.Unlock()
 	return result
 }
 
 func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
+	list.mutex.Lock()
 	var result []any
+	// cache
 	if list.data != nil {
 		result = list.BasicENotifyingList.performRemoveRange(fromIndex, toIndex)
 	}
+	// store
 	if list.store != nil {
 		for i := fromIndex; i < toIndex; i++ {
 			if list.data == nil {
@@ -283,15 +308,20 @@ func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
 
 		}
 	}
+	// size
 	list.size -= len(result)
+	list.mutex.Unlock()
 	return result
 }
 
 func (list *EStoreList) performSet(index int, object any) any {
+	list.mutex.Lock()
+	// cache
 	var result any
 	if list.data != nil {
 		result = list.BasicENotifyingList.performSet(index, object)
 	}
+	// store
 	if list.store != nil {
 		if list.data == nil {
 			result = list.store.Set(list.owner, list.feature, index, object, true)
@@ -299,10 +329,12 @@ func (list *EStoreList) performSet(index int, object any) any {
 			_ = list.store.Set(list.owner, list.feature, index, object, false)
 		}
 	}
+	list.mutex.Unlock()
 	return result
 }
 
 func (list *EStoreList) performMove(oldIndex, newIndex int) any {
+	list.mutex.Lock()
 	var result any
 	if list.data != nil {
 		result = list.BasicENotifyingList.performMove(oldIndex, newIndex)
@@ -314,10 +346,13 @@ func (list *EStoreList) performMove(oldIndex, newIndex int) any {
 			_ = list.store.Move(list.owner, list.feature, oldIndex, newIndex, false)
 		}
 	}
+	list.mutex.Unlock()
 	return result
 }
 
 func (list *EStoreList) doGet(index int) any {
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
 	return list.resolve(index, list.get(index))
 }
 
@@ -361,6 +396,7 @@ func (list *EStoreList) resolveProxy(eObject EObject) EObject {
 
 func (list *EStoreList) All() iter.Seq[any] {
 	return func(yield func(any) bool) {
+		list.mutex.Lock()
 		if list.data != nil {
 			for i, v := range list.data {
 				if d := list.resolve(i, v); !yield(d) {
@@ -376,10 +412,13 @@ func (list *EStoreList) All() iter.Seq[any] {
 				i++
 			}
 		}
+		list.mutex.Unlock()
 	}
 }
 
 func (list *EStoreList) ToArray() []any {
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
 	if list.data != nil {
 		if list.proxies {
 			for i := len(list.data) - 1; i >= 0; i-- {
@@ -400,14 +439,20 @@ func (list *EStoreList) ToArray() []any {
 }
 
 func (list *EStoreList) Size() int {
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
 	return list.size
 }
 
 func (list *EStoreList) Empty() bool {
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
 	return list.size == 0
 }
 
 func (list *EStoreList) IndexOf(element any) int {
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
 	if list.data != nil {
 		for i, value := range list.data {
 			if value == element || (list.resolve(i, value) == element) {
@@ -420,7 +465,7 @@ func (list *EStoreList) IndexOf(element any) int {
 			return result
 		}
 		if list.object && list.proxies {
-			for i := 0; i < list.Size(); i++ {
+			for i := range list.size {
 				eObject, _ := list.store.Get(list.owner, list.feature, i).(EObject)
 				eResolved := list.resolveProxy(eObject)
 				if element == eResolved {
@@ -436,10 +481,12 @@ func (list *EStoreList) Contains(element any) bool {
 	if list.data != nil {
 		return list.BasicENotifyingList.Contains(element)
 	} else if list.store != nil {
+		list.mutex.Lock()
+		defer list.mutex.Unlock()
 		if list.store.Contains(list.owner, list.feature, element) {
 			return true
 		} else if list.object && list.proxies {
-			for i := 0; i < list.Size(); i++ {
+			for i := range list.size {
 				eObject, _ := list.store.Get(list.owner, list.feature, i).(EObject)
 				eResolved := list.resolveProxy(eObject)
 				if element == eResolved {
@@ -500,6 +547,8 @@ func newUnResolvedEStoreList(delegate *EStoreList) *unResolvedEStoreList {
 }
 
 func (list *unResolvedEStoreList) doGet(index int) any {
+	list.delegate.mutex.Lock()
+	defer list.delegate.mutex.Unlock()
 	return list.delegate.get(index)
 }
 
@@ -508,6 +557,8 @@ func (list *unResolvedEStoreList) IndexOf(elem any) int {
 }
 
 func (list *unResolvedEStoreList) All() iter.Seq[any] {
+	list.delegate.mutex.Lock()
+	defer list.delegate.mutex.Unlock()
 	if list.delegate.data != nil {
 		return slices.Values(list.delegate.data)
 	}
@@ -518,6 +569,8 @@ func (list *unResolvedEStoreList) All() iter.Seq[any] {
 }
 
 func (list *unResolvedEStoreList) ToArray() []any {
+	list.delegate.mutex.Lock()
+	defer list.delegate.mutex.Unlock()
 	if list.delegate.data != nil {
 		return list.delegate.data
 	}

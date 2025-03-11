@@ -104,11 +104,11 @@ func (list *EStoreList) GetFeatureID() int {
 }
 
 func (list *EStoreList) Lock() {
-
+	list.mutex.Lock()
 }
 
 func (list *EStoreList) Unlock() {
-
+	list.mutex.Unlock()
 }
 
 func (list *EStoreList) GetEStore() EStore {

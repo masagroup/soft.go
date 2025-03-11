@@ -1522,13 +1522,31 @@ func (s *SQLStore) GetRoots() []EObject {
 	return contents
 }
 
+func postOrderTraverse(object EObject, yield func(EObject) bool) bool {
+	for child := range object.EContents().All() {
+		if !postOrderTraverse(child.(EObject), yield) {
+			return false
+		}
+	}
+	return yield(object)
+}
+
+func postOrderIterator(object EObject) iter.Seq[EObject] {
+	return func(yield func(EObject) bool) {
+		postOrderTraverse(object, yield)
+	}
+}
+
 func (s *SQLStore) UnRegister(object EObject, withContents bool) *promise.Promise[any] {
 	return s.scheduleOperation(context.Background(), newOperation("UnRegister", operationWrite, object, nil, withContents, -1, nil, func() (any, error) {
-		s.sqlIDManager.ClearObjectID(object)
 		if withContents {
-			for it := object.EAllContents(); it.HasNext(); {
-				s.sqlIDManager.ClearObjectID(it.Next().(EObject))
+			// we use a post order iterator to avoid registering again
+			// parent
+			for object := range postOrderIterator(object) {
+				s.sqlIDManager.ClearObjectID(object)
 			}
+		} else {
+			s.sqlIDManager.ClearObjectID(object)
 		}
 		return nil, nil
 	}))

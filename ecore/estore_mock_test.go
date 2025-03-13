@@ -162,6 +162,10 @@ func TestMockEStoreAdd(t *testing.T) {
 	mockEStore.EXPECT().Add(mockObject, mockFeature, 0, mockValue).Return().Run(func(object EObject, feature EStructuralFeature, index int, value interface{}) {
 		m.Run(object, feature, index, value)
 	}).Once()
+	mockEStore.EXPECT().Add(mockObject, mockFeature, 0, mockValue).RunAndReturn(func(object EObject, feature EStructuralFeature, index int, value interface{}) {
+		m.Run(object, feature, index, value)
+	}).Once()
+	mockEStore.Add(mockObject, mockFeature, 0, mockValue)
 	mockEStore.Add(mockObject, mockFeature, 0, mockValue)
 }
 

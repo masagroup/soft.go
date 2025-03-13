@@ -579,7 +579,13 @@ func NewSQLStore(
 	} else {
 		return newSQLStore(
 			func() (*sqlitex.Pool, error) {
-				return sqlitex.NewPool(databasePath, sqlitex.PoolOptions{})
+				return sqlitex.NewPool(databasePath, sqlitex.PoolOptions{
+					Flags: sqlite.OpenReadWrite | sqlite.OpenCreate | sqlite.OpenWAL,
+					PrepareConn: func(conn *sqlite.Conn) error {
+						// connection is in synchronous mode
+						return sqlitex.ExecuteTransient(conn, "PRAGMA synchronous=normal", nil)
+					},
+				})
 			},
 			func(pool *sqlitex.Pool) error {
 				return pool.Close()

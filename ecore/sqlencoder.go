@@ -168,6 +168,13 @@ type sqlEncoder struct {
 	sqlLockManager   *sqlEncoderLockManager
 }
 
+func (e *sqlEncoder) encodePragmas() error {
+	if err := e.executeQueryTransient("PRAGMA synchronous=normal;", nil); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (e *sqlEncoder) encodeVersion() error {
 	if !e.isForced {
 		var version int64
@@ -710,7 +717,15 @@ func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any
 		}
 		return newSQLEncoder(
 			func() (*sqlitex.Pool, error) {
-				return sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenReadWrite | sqlite.OpenCreate | sqlite.OpenWAL})
+				return sqlitex.NewPool(
+					dbPath,
+					sqlitex.PoolOptions{
+						Flags: sqlite.OpenReadWrite | sqlite.OpenCreate | sqlite.OpenWAL,
+						PrepareConn: func(conn *sqlite.Conn) error {
+							// connection is in synchronous mode
+							return sqlitex.ExecuteTransient(conn, "PRAGMA synchronous=normal", nil)
+						}},
+				)
 			},
 			func(connPool *sqlitex.Pool) error {
 				// close db

@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDynamicEObjectConstructor(t *testing.T) {
@@ -214,4 +215,14 @@ func TestDynamicEObject_Bidirectional(t *testing.T) {
 	assert.False(t, o2.EIsSet(r2))
 	assert.False(t, o1.EIsSet(r1))
 
+}
+
+func TestDynamicEObject_EOperationID(t *testing.T) {
+	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
+	o := NewDynamicEObjectImpl()
+	o.SetEClass(mockClass)
+	mockOperation := NewMockEOperation(t)
+	mockClass.EXPECT().GetOperationID(mockOperation).Return(1).Once()
+	require.Equal(t, 1, o.EOperationID(mockOperation))
 }

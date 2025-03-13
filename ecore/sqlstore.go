@@ -185,11 +185,11 @@ func (ss *sqlManyQueries) getSelectAllQuery() string {
 func (ss *sqlManyQueries) getExistsQuery() string {
 	if len(ss.existsQuery) == 0 {
 		var query strings.Builder
-		query.WriteString("SELECT 1 FROM ")
+		query.WriteString("SELECT EXISTS(SELECT 1 FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
-		query.WriteString("=?")
+		query.WriteString("=?)")
 		ss.existsQuery = query.String()
 	}
 	return ss.existsQuery
@@ -1267,18 +1267,18 @@ func (s *SQLStore) doIsSet(object EObject, feature EStructuralFeature) (bool, er
 		}
 		return value != featureSchema.feature.GetDefaultValue(), nil
 	} else if featureTable := featureSchema.table; featureTable != nil {
-		var value any
+		isSet := false
 		if err := s.executeQuery(
 			s.getManyQueries(featureTable).getExistsQuery(),
 			&sqlitex.ExecOptions{
 				Args: []any{sqlObjectID},
 				ResultFunc: func(stmt *sqlite.Stmt) error {
-					value = decodeAny(stmt, 0)
+					isSet = stmt.ColumnBool(0)
 					return nil
 				}}); err != nil {
 			return false, err
 		}
-		return value != nil, nil
+		return isSet, nil
 	}
 	return false, nil
 }
@@ -1335,18 +1335,18 @@ func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, 
 	}
 
 	// retrieve statement
-	var value any
+	isEmpty := true
 	if err := s.executeQuery(
 		s.getManyQueries(featureTable).getExistsQuery(),
 		&sqlitex.ExecOptions{
 			Args: []any{sqlObjectID},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
-				value = decodeAny(stmt, 0)
+				isEmpty = !stmt.ColumnBool(0)
 				return nil
 			}}); err != nil {
 		return true, nil
 	}
-	return value == nil, nil
+	return isEmpty, nil
 
 }
 

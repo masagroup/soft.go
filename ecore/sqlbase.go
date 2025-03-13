@@ -137,9 +137,8 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 		if opts != nil {
 			args = append(args, zap.Any("args", opts.Args))
 		}
-
+		s.logger.Named("sqlite").Debug("schedule", args...)
 	}
-	s.logger.Named("sqlite").Debug("schedule", args...)
 
 	// compute previous query
 	// only one write to db is active

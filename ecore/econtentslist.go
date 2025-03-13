@@ -87,8 +87,8 @@ func newEContentsList(o EObject, features EList, resolve bool) *eContentsList {
 
 // Get an element of the array
 func (l *eContentsList) Get(index int) any {
-	it := l.features.Iterator()
-	for i := 0; i < index; i++ {
+	it := l.Iterator()
+	for range index {
 		it.Next()
 	}
 	return it.Next()

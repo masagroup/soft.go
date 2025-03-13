@@ -132,9 +132,12 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 	q := newQuery(cmd)
 
 	// log
-	args := []zap.Field{zap.Int64("id", q.id), zap.Int64("goid", goid.Get()), zap.String("query", cmd)}
-	if opts != nil {
-		args = append(args, zap.Any("args", opts.Args))
+	if e := s.logger.Named("sqlite").Check(zap.DebugLevel, "schedule"); e != nil {
+		args := []zap.Field{zap.Int64("id", q.id), zap.Int64("goid", goid.Get()), zap.String("query", cmd)}
+		if opts != nil {
+			args = append(args, zap.Any("args", opts.Args))
+		}
+
 	}
 	s.logger.Named("sqlite").Debug("schedule", args...)
 

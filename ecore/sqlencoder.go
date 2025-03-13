@@ -168,13 +168,6 @@ type sqlEncoder struct {
 	sqlLockManager   *sqlEncoderLockManager
 }
 
-func (e *sqlEncoder) encodePragmas() error {
-	if err := e.executeQueryTransient("PRAGMA synchronous=normal;", nil); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (e *sqlEncoder) encodeVersion() error {
 	if !e.isForced {
 		var version int64

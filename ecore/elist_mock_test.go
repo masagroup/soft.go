@@ -176,9 +176,13 @@ func TestMockEList_All(t *testing.T) {
 	m := NewMockRun(t)
 	it := func(yield func(any) bool) {}
 	l.EXPECT().All().Return(it).Run(func() { m.Run() }).Once()
-	l.EXPECT().All().Call.Return(func() iter.Seq[any] { return it }).Once()
+	l.EXPECT().All().RunAndReturn(func() iter.Seq[any] { return it }).Once()
+	l.EXPECT().All()
 	require.NotNil(t, l.All())
 	require.NotNil(t, l.All())
+	require.Panics(t, func() {
+		l.All()
+	})
 }
 
 func TestMockEList_Contains(t *testing.T) {

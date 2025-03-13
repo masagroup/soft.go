@@ -126,7 +126,6 @@ type sqlBase struct {
 
 // execute sqlite cmd
 func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.ExecOptions) error {
-	s.sqliteMutex.Lock()
 
 	// create query
 	q := newQuery(cmd)
@@ -139,6 +138,9 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 		}
 		s.logger.Named("sqlite").Debug("schedule", args...)
 	}
+
+	// lock sqlite
+	s.sqliteMutex.Lock()
 
 	// compute previous query
 	// only one write to db is active

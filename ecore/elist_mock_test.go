@@ -10,9 +10,11 @@
 package ecore
 
 import (
+	"iter"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMockEList_Add(t *testing.T) {
@@ -167,6 +169,16 @@ func TestMockEList_ToArray(t *testing.T) {
 	l.EXPECT().ToArray().Call.Return(func() []any { return r }).Once()
 	assert.Equal(t, r, l.ToArray())
 	assert.Equal(t, r, l.ToArray())
+}
+
+func TestMockEList_All(t *testing.T) {
+	l := NewMockEList(t)
+	m := NewMockRun(t)
+	it := func(yield func(any) bool) {}
+	l.EXPECT().All().Return(it).Run(func() { m.Run() }).Once()
+	l.EXPECT().All().Call.Return(func() iter.Seq[any] { return it }).Once()
+	require.NotNil(t, l.All())
+	require.NotNil(t, l.All())
 }
 
 func TestMockEList_Contains(t *testing.T) {

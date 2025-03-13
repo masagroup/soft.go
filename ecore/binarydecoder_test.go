@@ -266,6 +266,81 @@ func TestBinaryDecoder_Maps(t *testing.T) {
 	assert.Equal(t, 5, mapKeyToInt.Size())
 }
 
+func TestBinaryDecoder_AllTypes(t *testing.T) {
+
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(t, ePackage)
+
+	// retrive library class & library name attribute
+	objectClass, _ := ePackage.GetEClassifier("Object").(EClass)
+	require.NotNil(t, objectClass)
+
+	enumType := ePackage.GetEClassifier("EnumCategory").(EEnum)
+	require.NotNil(t, enumType)
+
+	objectF32Attribute := objectClass.GetEStructuralFeatureFromName("f32")
+	require.NotNil(t, objectF32Attribute)
+
+	objectF64Attribute := objectClass.GetEStructuralFeatureFromName("f64")
+	require.NotNil(t, objectF64Attribute)
+
+	objectStringAttribute := objectClass.GetEStructuralFeatureFromName("str")
+	require.NotNil(t, objectStringAttribute)
+
+	objectI8Attribute := objectClass.GetEStructuralFeatureFromName("i8")
+	require.NotNil(t, objectI8Attribute)
+
+	objectI16Attribute := objectClass.GetEStructuralFeatureFromName("i16")
+	require.NotNil(t, objectI16Attribute)
+
+	objectI32Attribute := objectClass.GetEStructuralFeatureFromName("i32")
+	require.NotNil(t, objectI32Attribute)
+
+	objectI64Attribute := objectClass.GetEStructuralFeatureFromName("i64")
+	require.NotNil(t, objectI64Attribute)
+
+	objectIntAttribute := objectClass.GetEStructuralFeatureFromName("i")
+	require.NotNil(t, objectIntAttribute)
+
+	objectBytesAttribute := objectClass.GetEStructuralFeatureFromName("bytes")
+	require.NotNil(t, objectBytesAttribute)
+
+	objectBoolAttribute := objectClass.GetEStructuralFeatureFromName("b")
+	require.NotNil(t, objectBoolAttribute)
+
+	objectEnumAttribute := objectClass.GetEStructuralFeatureFromName("e")
+	require.NotNil(t, objectEnumAttribute)
+
+	//
+	uri := NewURI("testdata/alltypes.bin")
+	eResource := NewEResourceImpl()
+	eResource.SetURI(uri)
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(eResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	// file
+	f, err := os.Open(uri.String())
+	require.Nil(t, err)
+
+	binaryDecoder := NewBinaryDecoder(eResource, f, nil)
+	binaryDecoder.DecodeResource()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	eObject := eResource.GetContents().Get(0).(EObject)
+	require.Equal(t, float32(3.0), eObject.EGet(objectF32Attribute))
+	require.Equal(t, float64(4.0), eObject.EGet(objectF64Attribute))
+	require.Equal(t, "str", eObject.EGet(objectStringAttribute))
+	require.Equal(t, byte('b'), eObject.EGet(objectI8Attribute))
+	require.Equal(t, int16(2), eObject.EGet(objectI16Attribute))
+	require.Equal(t, int32(1), eObject.EGet(objectI32Attribute))
+	require.Equal(t, int64(0), eObject.EGet(objectI64Attribute))
+	require.Equal(t, int(-1), eObject.EGet(objectIntAttribute))
+	require.Equal(t, []byte("bytes"), eObject.EGet(objectBytesAttribute))
+	require.Equal(t, true, eObject.EGet(objectBoolAttribute))
+	require.Equal(t, enumType.GetDefaultValue(), eObject.EGet(objectEnumAttribute))
+}
+
 func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")

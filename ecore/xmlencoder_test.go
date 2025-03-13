@@ -334,3 +334,70 @@ func BenchmarkXMLEncoderLibraryComplexBig(b *testing.B) {
 		assert.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}
 }
+
+func BenchmarkXMLEncoderAllTypes(b *testing.B) {
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(b, ePackage)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+	eResource := eResourceSet.CreateResource(NewURI("testdata/alltypes.xml"))
+	require.NotNil(b, eResource)
+
+	// retrive library class & library name attribute
+	objectClass, _ := ePackage.GetEClassifier("Object").(EClass)
+	require.NotNil(b, objectClass)
+
+	enumType := ePackage.GetEClassifier("EnumCategory").(EEnum)
+	require.NotNil(b, enumType)
+
+	objectF32Attribute := objectClass.GetEStructuralFeatureFromName("f32")
+	require.NotNil(b, objectF32Attribute)
+
+	objectF64Attribute := objectClass.GetEStructuralFeatureFromName("f64")
+	require.NotNil(b, objectF64Attribute)
+
+	objectStringAttribute := objectClass.GetEStructuralFeatureFromName("str")
+	require.NotNil(b, objectStringAttribute)
+
+	objectI8Attribute := objectClass.GetEStructuralFeatureFromName("i8")
+	require.NotNil(b, objectI8Attribute)
+
+	objectI16Attribute := objectClass.GetEStructuralFeatureFromName("i16")
+	require.NotNil(b, objectI16Attribute)
+
+	objectI32Attribute := objectClass.GetEStructuralFeatureFromName("i32")
+	require.NotNil(b, objectI32Attribute)
+
+	objectI64Attribute := objectClass.GetEStructuralFeatureFromName("i64")
+	require.NotNil(b, objectI64Attribute)
+
+	objectIntAttribute := objectClass.GetEStructuralFeatureFromName("i")
+	require.NotNil(b, objectIntAttribute)
+
+	objectBytesAttribute := objectClass.GetEStructuralFeatureFromName("bytes")
+	require.NotNil(b, objectBytesAttribute)
+
+	objectBoolAttribute := objectClass.GetEStructuralFeatureFromName("b")
+	require.NotNil(b, objectBoolAttribute)
+
+	objectEnumAttribute := objectClass.GetEStructuralFeatureFromName("e")
+	require.NotNil(b, objectEnumAttribute)
+
+	eFactory := ePackage.GetEFactoryInstance()
+	eObject := eFactory.Create(objectClass)
+	eObject.ESet(objectF64Attribute, float64(4.0))
+	eObject.ESet(objectF32Attribute, float32(3.0))
+	eObject.ESet(objectStringAttribute, "str")
+	eObject.ESet(objectI8Attribute, byte('b'))
+	eObject.ESet(objectI16Attribute, int16(2))
+	eObject.ESet(objectI32Attribute, int32(1))
+	eObject.ESet(objectI64Attribute, int64(0))
+	eObject.ESet(objectIntAttribute, int(-1))
+	eObject.ESet(objectBytesAttribute, []byte("bytes"))
+	eObject.ESet(objectBoolAttribute, true)
+	eObject.ESet(objectEnumAttribute, enumType.GetDefaultValue())
+
+	eResource.GetContents().Add(eObject)
+	eResource.Save()
+}

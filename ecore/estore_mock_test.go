@@ -174,6 +174,10 @@ func TestMockEStoreAddAll(t *testing.T) {
 	mockEStore.EXPECT().AddAll(mockObject, mockFeature, 0, mockCollection).Return().Run(func(object EObject, feature EStructuralFeature, index int, c Collection) {
 		m.Run(object, feature, index, c)
 	}).Once()
+	mockEStore.EXPECT().AddAll(mockObject, mockFeature, 0, mockCollection).RunAndReturn(func(e EObject, ef EStructuralFeature, i int, c Collection) {
+		m.Run(e, ef, i, c)
+	}).Once()
+	mockEStore.AddAll(mockObject, mockFeature, 0, mockCollection)
 	mockEStore.AddAll(mockObject, mockFeature, 0, mockCollection)
 }
 

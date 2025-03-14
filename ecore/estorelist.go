@@ -413,7 +413,7 @@ func (list *EStoreList) ToArray() []any {
 	} else if list.store != nil {
 		data := list.store.ToArray(list.owner, list.feature)
 		if list.proxies {
-			for i := len(list.data) - 1; i >= 0; i-- {
+			for i := len(data) - 1; i >= 0; i-- {
 				data[i] = list.resolve(i, data[i])
 			}
 		}

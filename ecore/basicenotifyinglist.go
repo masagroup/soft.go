@@ -6,8 +6,6 @@ type abstractENotifyingList interface {
 
 	performAdd(object any)
 
-	performAddAll(list Collection)
-
 	performInsert(index int, object any)
 
 	performInsertAll(index int, list Collection) bool
@@ -350,10 +348,6 @@ func (list *BasicENotifyingList) doRemoveAll(collection Collection, getAndCompar
 
 func (list *BasicENotifyingList) performAdd(object any) {
 	list.BasicEList.doAdd(object)
-}
-
-func (list *BasicENotifyingList) performAddAll(l Collection) {
-	list.BasicEList.doAddAll(l)
 }
 
 func (list *BasicENotifyingList) performInsert(index int, object any) {

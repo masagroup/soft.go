@@ -198,22 +198,6 @@ func (list *EStoreList) performAdd(object any) {
 	list.mutex.Unlock()
 }
 
-func (list *EStoreList) performAddAll(c Collection) {
-	list.mutex.Lock()
-	// index computed now before list potentially modified
-	// add to cache
-	if list.data != nil {
-		list.BasicENotifyingList.performAddAll(c)
-	}
-	// add to store
-	if list.store != nil {
-		list.store.AddAll(list.owner, list.feature, list.size, c)
-	}
-	// size
-	list.size += c.Size()
-	list.mutex.Unlock()
-}
-
 func (list *EStoreList) performInsert(index int, object any) {
 	list.mutex.Lock()
 	// add to cache

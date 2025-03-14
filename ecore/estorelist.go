@@ -525,6 +525,7 @@ type unResolvedEStoreList struct {
 
 func newUnResolvedEStoreList(delegate *EStoreList) *unResolvedEStoreList {
 	l := &unResolvedEStoreList{}
+	l.interfaces = l
 	l.delegate = delegate
 	l.isUnique = true
 	return l

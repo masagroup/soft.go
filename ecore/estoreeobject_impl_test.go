@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 func TestEStoreEObjectImpl_GetAttribute_Transient(t *testing.T) {
@@ -266,4 +267,152 @@ func TestEStoreEObjectImpl_GetContainer(t *testing.T) {
 	mockClass.EXPECT().GetFeatureID(mockOpposite).Return(1).Once()
 	mockObject.EXPECT().EIsProxy().Return(false).Once()
 	require.Equal(t, mockObject, o.EContainer())
+	require.Equal(t, 1, o.EContainerFeatureID())
+}
+
+func TestEStoreEObjectImpl_IsSet_NoCache_NoStore(t *testing.T) {
+	mockClass := NewMockEClass(t)
+	mockAttribute := NewMockEAttribute(t)
+	o := NewEStoreEObjectImpl(false)
+	o.SetEClass(mockClass)
+	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Once()
+	require.False(t, o.EIsSetFromID(0))
+}
+
+func TestEStoreEObjectImpl_IsSet_NoCache(t *testing.T) {
+	mockClass := NewMockEClass(t)
+	mockStore := NewMockEStore(t)
+	mockAttribute := NewMockEAttribute(t)
+	o := NewEStoreEObjectImpl(false)
+	o.SetEClass(mockClass)
+	o.SetEStore(mockStore)
+	mockStore.EXPECT().IsSet(o, mockAttribute).Return(true).Once()
+	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Twice()
+	require.True(t, o.EIsSetFromID(0))
+}
+
+func TestEStoreEObjectImpl_IsSet_WithCache(t *testing.T) {
+	mockClass := NewMockEClass(t)
+	mockAttribute := NewMockEAttribute(t)
+	o := NewEStoreEObjectImpl(true)
+	o.SetEClass(mockClass)
+	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute)
+	mockAttribute.EXPECT().IsTransient().Return(false).Once()
+	mockAttribute.EXPECT().IsMany().Return(false).Once()
+	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
+	o.ESetFromID(0, 2)
+	require.True(t, o.EIsSetFromID(0))
+}
+
+type EStoreEObjectImplWithCacheTestSuite struct {
+	suite.Suite
+	mockClass   *MockEClass
+	mockStore   *MockEStore
+	mockFeature *MockEAttribute
+	o           *EStoreEObjectImpl
+}
+
+func (suite *EStoreEObjectImplWithCacheTestSuite) SetupTest() {
+	t := suite.T()
+	suite.mockClass = NewMockEClass(t)
+	suite.mockStore = NewMockEStore(t)
+	suite.mockFeature = NewMockEAttribute(t)
+	suite.o = NewEStoreEObjectImpl(true)
+	suite.o.SetEClass(suite.mockClass)
+	suite.mockFeature.EXPECT().IsUnique().Return(true).Once()
+	suite.mockFeature.EXPECT().IsMany().Return(true).Once()
+	suite.mockFeature.EXPECT().IsTransient().Return(false).Once()
+	suite.mockFeature.EXPECT().GetEType().Return(nil).Once()
+	suite.mockClass.EXPECT().GetFeatureCount().Return(1).Once()
+	suite.mockClass.EXPECT().GetEStructuralFeature(0).Return(suite.mockFeature).Twice()
+	list := suite.o.EGetFromID(0, true)
+	require.NotNil(t, list)
+}
+
+func (suite *EStoreEObjectImplWithCacheTestSuite) TestLockUnlock() {
+	suite.o.Lock()
+	defer suite.o.Unlock()
+	require.Equal(suite.T(), suite.mockClass, suite.o.EClass())
+}
+
+func (suite *EStoreEObjectImplWithCacheTestSuite) TestSetStore() {
+	t := suite.T()
+	mockStore := NewMockEStore(t)
+	require.Equal(t, nil, suite.o.GetEStore())
+	suite.o.SetEStore(mockStore)
+	require.Equal(t, mockStore, suite.o.GetEStore())
+	suite.o.SetEStore(nil)
+	require.Equal(t, nil, suite.o.GetEStore())
+}
+
+func (suite *EStoreEObjectImplWithCacheTestSuite) TestSetCache() {
+	t := suite.T()
+	require.True(t, suite.o.IsCache())
+	suite.o.SetCache(false)
+	require.False(t, suite.o.IsCache())
+	suite.o.SetCache(true)
+	require.True(t, suite.o.IsCache())
+}
+
+func TestEStoreEObjectImplWithCache(t *testing.T) {
+	suite.Run(t, &EStoreEObjectImplWithCacheTestSuite{})
+}
+
+type EStoreEObjectImplNoCacheTestSuite struct {
+	suite.Suite
+	mockClass       *MockEClass
+	mockStore       *MockEStore
+	mockFeatureList *MockEAttribute
+	mockAttribute   *MockEAttribute
+	o               *EStoreEObjectImpl
+}
+
+func (suite *EStoreEObjectImplNoCacheTestSuite) SetupTest() {
+	t := suite.T()
+	suite.mockClass = NewMockEClass(t)
+	suite.mockStore = NewMockEStore(t)
+	suite.mockFeatureList = NewMockEAttribute(t)
+	suite.mockAttribute = NewMockEAttribute(t)
+	suite.o = NewEStoreEObjectImpl(false)
+	suite.o.SetEClass(suite.mockClass)
+	suite.mockFeatureList.EXPECT().IsUnique().Return(true).Once()
+	suite.mockFeatureList.EXPECT().IsMany().Return(true).Once()
+	suite.mockFeatureList.EXPECT().IsTransient().Return(false).Once()
+	suite.mockFeatureList.EXPECT().GetEType().Return(nil).Once()
+	suite.mockClass.EXPECT().GetFeatureCount().Return(2).Once()
+	suite.mockClass.EXPECT().GetEStructuralFeature(0).Return(suite.mockFeatureList).Twice()
+	list := suite.o.EGetFromID(0, true)
+	require.NotNil(t, list)
+}
+
+func (suite *EStoreEObjectImplNoCacheTestSuite) TestSetStore() {
+	t := suite.T()
+	mockStore := NewMockEStore(t)
+	require.Equal(t, nil, suite.o.GetEStore())
+	suite.o.SetEStore(mockStore)
+	require.Equal(t, mockStore, suite.o.GetEStore())
+
+	suite.mockClass.EXPECT().GetFeatureCount().Return(2).Once()
+	suite.mockClass.EXPECT().GetEStructuralFeature(0).Return(suite.mockFeatureList).Once()
+	suite.mockFeatureList.EXPECT().IsTransient().Return(false).Once()
+	suite.mockFeatureList.EXPECT().IsMany().Return(true).Once()
+	suite.mockClass.EXPECT().GetEStructuralFeature(1).Return(suite.mockAttribute).Once()
+	suite.mockAttribute.EXPECT().IsTransient().Return(false).Once()
+	suite.mockAttribute.EXPECT().IsMany().Return(false).Once()
+	mockStore.EXPECT().Get(suite.o, suite.mockAttribute, NO_INDEX).Return(2).Once()
+	suite.o.SetEStore(nil)
+	require.Equal(t, nil, suite.o.GetEStore())
+}
+
+func (suite *EStoreEObjectImplNoCacheTestSuite) TestSetCache() {
+	t := suite.T()
+	require.False(t, suite.o.IsCache())
+	suite.o.SetCache(true)
+	require.True(t, suite.o.IsCache())
+	suite.o.SetCache(false)
+	require.False(t, suite.o.IsCache())
+}
+
+func TestEStoreEObjectImplNoCache(t *testing.T) {
+	suite.Run(t, &EStoreEObjectImplNoCacheTestSuite{})
 }

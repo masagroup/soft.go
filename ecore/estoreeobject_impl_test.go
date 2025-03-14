@@ -238,6 +238,10 @@ func TestEStoreEObjectImpl_UnSetAttribute(t *testing.T) {
 	o.SetEClass(mockClass)
 	o.SetEStore(mockStore)
 
+	// create cache
+	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
+	o.getProperties()
+
 	mockAttribute.EXPECT().IsMany().Return(false).Once()
 	mockAttribute.EXPECT().IsTransient().Return(false).Twice()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(3)

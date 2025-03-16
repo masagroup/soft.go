@@ -247,7 +247,7 @@ func TestReflectiveEObjectImpl_SetAttribute(t *testing.T) {
 
 	mockClass := NewMockEClass(t)
 	mockClass.EXPECT().GetFeatureCount().Return(2).Once()
-	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Twice()
+	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(4)
 
 	mockObject := NewMockEObject(t)
 
@@ -255,10 +255,12 @@ func TestReflectiveEObjectImpl_SetAttribute(t *testing.T) {
 	o.SetEClass(mockClass)
 
 	// set
+	assert.False(t, o.EIsSetFromID(0))
 	o.ESetFromID(0, mockObject)
 
 	// check that value is well set
 	assert.Equal(t, mockObject, o.EGetFromID(0, true))
+	assert.True(t, o.EIsSetFromID(0))
 
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute)
 }

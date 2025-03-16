@@ -89,7 +89,7 @@ func NewMockEObjectEMapEntryWithCache(t mockConstructorTestingTNewMockEObjectEMa
 	return mock
 }
 
-func TestEStoreMap_Add(t *testing.T) {
+func TestEStoreMap_Put(t *testing.T) {
 	mockClass := NewMockEClass(t)
 	mockOwner := NewMockEObjectInternal(t)
 	mockFeature := NewMockEStructuralFeature(t)
@@ -113,4 +113,74 @@ func TestEStoreMap_Add(t *testing.T) {
 	mockStore.EXPECT().Add(mockOwner, mockFeature, 0, mockEntry).Return().Once()
 	mockOwner.EXPECT().EDeliver().Return(false).Once()
 	m.Put(1, 2)
+}
+
+func TestEStoreMap_Add(t *testing.T) {
+	mockClass := NewMockEClass(t)
+	mockOwner := NewMockEObjectInternal(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(0).Once()
+	m := NewEStoreMap(mockClass, mockOwner, mockFeature, mockStore)
+	require.NotNil(t, m)
+
+	mockEntry := NewMockEObjectEMapEntryWithCache(t)
+	mockStore.EXPECT().Contains(mockOwner, mockFeature, mockEntry).Return(false).Once()
+	mockStore.EXPECT().Add(mockOwner, mockFeature, 0, mockEntry).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	m.Add(mockEntry)
+}
+
+func TestEStoreMap_Remove(t *testing.T) {
+	mockClass := NewMockEClass(t)
+	mockOwner := NewMockEObjectInternal(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	m := NewEStoreMap(mockClass, mockOwner, mockFeature, mockStore)
+	require.NotNil(t, m)
+
+	mockEntry := NewMockEObjectEMapEntryWithCache(t)
+	mockEntry.EXPECT().GetKey().Return("key").Once()
+	mockStore.EXPECT().IndexOf(mockOwner, mockFeature, mockEntry).Return(0).Once()
+	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, true).Return(mockEntry).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	require.Equal(t, true, m.Remove(mockEntry))
+}
+
+func TestEStoreMap_Set(t *testing.T) {
+	mockClass := NewMockEClass(t)
+	mockOwner := NewMockEObjectInternal(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	m := NewEStoreMap(mockClass, mockOwner, mockFeature, mockStore)
+	require.NotNil(t, m)
+
+	oldEntry := NewMockEObjectEMapEntryWithCache(t)
+	newEntry := NewMockEObjectEMapEntryWithCache(t)
+	mockStore.EXPECT().IndexOf(mockOwner, mockFeature, newEntry).Return(-1).Once()
+	mockStore.EXPECT().Set(mockOwner, mockFeature, 0, newEntry, true).Return(oldEntry).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	oldEntry.EXPECT().GetKey().Return("key").Once()
+	require.Equal(t, oldEntry, m.Set(0, newEntry))
+}
+
+func TestEStoreMap_Clear(t *testing.T) {
+	mockClass := NewMockEClass(t)
+	mockOwner := NewMockEObjectInternal(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	m := NewEStoreMap(mockClass, mockOwner, mockFeature, mockStore)
+	require.NotNil(t, m)
+
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{}).Once()
+	mockStore.EXPECT().Clear(mockOwner, mockFeature).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	m.Clear()
 }

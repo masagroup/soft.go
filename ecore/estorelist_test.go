@@ -1049,7 +1049,7 @@ func TestEStoreList_RemoveRange_Many(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
 	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, true).Return(mockObject).Once()
-	mockStore.EXPECT().Remove(mockOwner, mockFeature, 1, true).Return(mockObject2).Once()
+	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, true).Return(mockObject2).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
 	mockOwner.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {

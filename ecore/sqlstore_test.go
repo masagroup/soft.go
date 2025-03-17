@@ -1765,15 +1765,15 @@ func TestSQLStore_Parallel_GetSet(t *testing.T) {
 // 	defer s.Close()
 
 // 	mockObject := NewMockSQLObject(t)
-// 	mockObject.EXPECT().GetSQLID().Return(int64(6)).Once()
-// 	mockObject.EXPECT().SetSQLID(int64(6)).Once()
+// 	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+// 	mockObject.EXPECT().SetSQLID(int64(5)).Once()
 // 	mockObject.EXPECT().EClass().Return(eClass).Once()
 
 // 	// readers
 // 	numOperations := 20
 // 	done := &sync.WaitGroup{}
 // 	done.Add(numOperations)
-// 	index := 0
+// 	index := s.Size(mockObject, eFeature)
 // 	for i := range numOperations {
 // 		if i%4 == 0 {
 // 			newIndex := index
@@ -1782,7 +1782,6 @@ func TestSQLStore_Parallel_GetSet(t *testing.T) {
 // 				s.Add(mockObject, eFeature, newIndex, fmt.Sprintf("c4%v", newIndex))
 // 				done.Done()
 // 			}()
-
 // 		} else {
 // 			go func() {
 // 				size := s.Size(mockObject, eFeature)

@@ -178,7 +178,6 @@ func TestEStoreMap_Clear(t *testing.T) {
 	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
 	m := NewEStoreMap(mockClass, mockOwner, mockFeature, mockStore)
 	require.NotNil(t, m)
-
 	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{}).Once()
 	mockStore.EXPECT().Clear(mockOwner, mockFeature).Once()
 	mockOwner.EXPECT().EDeliver().Return(false).Once()

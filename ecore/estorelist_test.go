@@ -1237,3 +1237,81 @@ func TestEStoreList_UnResolvedList_ToArray_Cache(t *testing.T) {
 	assert.NotNil(t, unresolved)
 	require.Equal(t, []any{mockObject}, unresolved.ToArray())
 }
+
+func TestEStoreLisy_SetCache_EmptyData(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(2).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return(nil).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	require.NotNil(t, list)
+	require.Equal(t, 2, list.Size())
+	list.SetCache(true)
+	list.SetCache(false)
+}
+
+type MockEObjectWithCache struct {
+	mock.Mock
+	MockEObjectWithCache_Prototype
+}
+
+type MockEObjectWithCache_Prototype struct {
+	mock *mock.Mock
+	MockEObjectInternal_Prototype
+	MockECacheProvider_Prototype
+}
+
+func (_mp *MockEObjectWithCache_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockEObjectInternal_Prototype.SetMock(mock)
+	_mp.MockECacheProvider_Prototype.SetMock(mock)
+}
+
+type MockEObjectWithCache_Expecter struct {
+	MockEObjectInternal_Expecter
+	MockECacheProvider_Expecter
+}
+
+func (_me *MockEObjectWithCache_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockEObject_Expecter.SetMock(mock)
+	_me.MockECacheProvider_Expecter.SetMock(mock)
+}
+
+func (eMapEntry *MockEObjectWithCache_Prototype) EXPECT() *MockEObjectWithCache_Expecter {
+	e := &MockEObjectWithCache_Expecter{}
+	e.SetMock(eMapEntry.mock)
+	return e
+}
+
+type mockConstructorTestingTNewMockEObjectWithCache interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockENotifier creates a new instance of MockENotifier_Prototype. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEObjectWithCache(t mockConstructorTestingTNewMockEObjectWithCache) *MockEObjectWithCache {
+	mock := &MockEObjectWithCache{}
+	mock.SetMock(&mock.Mock)
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
+func TestEStoreList_SetCache_WithData(t *testing.T) {
+	mockObject := NewMockEObjectWithCache(t)
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{mockObject}).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	require.NotNil(t, list)
+	require.Equal(t, 1, list.Size())
+	mockObject.EXPECT().SetCache(true).Once()
+	list.SetCache(true)
+	mockObject.EXPECT().SetCache(false).Once()
+	list.SetCache(false)
+}

@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -1649,3 +1650,146 @@ func TestSQLStore_Serialize(t *testing.T) {
 	require.NotNil(t, bytes)
 	requireSameDB(t, "testdata/library.store.sqlite", *bytes)
 }
+
+func TestSQLStore_ParallelRead(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Lendable").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("copies")
+	require.NotNil(t, eFeature)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	// object
+	objectID := int64(7)
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(objectID)
+	mockObject.EXPECT().SetSQLID(objectID).Return()
+	mockObject.EXPECT().EClass().Return(eClass)
+
+	// readers
+	numReaders := 10
+	done := &sync.WaitGroup{}
+	done.Add(numReaders)
+	for range numReaders {
+		go func() {
+			v := s.Get(mockObject, eFeature, -1)
+			assert.Equal(t, 3, v)
+			done.Done()
+		}()
+	}
+	done.Wait()
+}
+
+func TestSQLStore_Parallel_GetSet(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Lendable").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("copies")
+	require.NotNil(t, eFeature)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	// object
+	objectID := int64(7)
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(objectID)
+	mockObject.EXPECT().SetSQLID(objectID).Return()
+	mockObject.EXPECT().EClass().Return(eClass)
+
+	// readers
+	numOperations := 20
+	done := &sync.WaitGroup{}
+	done.Add(numOperations)
+	for i := range numOperations {
+		if i%4 == 0 {
+			go func() {
+				v := s.Set(mockObject, eFeature, -1, 3, true)
+				assert.Equal(t, 3, v)
+				done.Done()
+			}()
+		} else {
+			go func() {
+				v := s.Get(mockObject, eFeature, -1)
+				assert.Equal(t, 3, v)
+				done.Done()
+			}()
+		}
+	}
+	done.Wait()
+}
+
+// func TestSQLStore_Parallel_AddSize(t *testing.T) {
+// 	ePackage := loadPackage("library.datalist.ecore")
+// 	require.NotNil(t, ePackage)
+
+// 	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+// 	require.NotNil(t, eClass)
+
+// 	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+// 	require.NotNil(t, eFeature)
+
+// 	// database
+// 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+// 	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+// 	require.Nil(t, err)
+
+// 	// create store
+// 	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+// 	require.Nil(t, err)
+// 	require.NotNil(t, s)
+// 	defer s.Close()
+
+// 	mockObject := NewMockSQLObject(t)
+// 	mockObject.EXPECT().GetSQLID().Return(int64(6)).Once()
+// 	mockObject.EXPECT().SetSQLID(int64(6)).Once()
+// 	mockObject.EXPECT().EClass().Return(eClass).Once()
+
+// 	// readers
+// 	numOperations := 20
+// 	done := &sync.WaitGroup{}
+// 	done.Add(numOperations)
+// 	index := 0
+// 	for i := range numOperations {
+// 		if i%4 == 0 {
+// 			newIndex := index
+// 			index++
+// 			go func() {
+// 				s.Add(mockObject, eFeature, newIndex, fmt.Sprintf("c4%v", newIndex))
+// 				done.Done()
+// 			}()
+
+// 		} else {
+// 			go func() {
+// 				size := s.Size(mockObject, eFeature)
+// 				assert.NotEqual(t, 0, size)
+// 				done.Done()
+// 			}()
+// 		}
+// 	}
+// 	done.Wait()
+// }

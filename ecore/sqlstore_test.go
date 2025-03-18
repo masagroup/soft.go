@@ -1905,3 +1905,27 @@ func TestSQLStore_Parallel_AddSize(t *testing.T) {
 		}
 	}
 }
+
+func TestSQLStore_UnRegister(t *testing.T) {
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	objectID := int64(1)
+	mockObject := NewMockSQLObject(t)
+	mockObject2 := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(objectID)
+	mockObject2.EXPECT().GetSQLID().Return(2)
+	mockObject.EXPECT().EAllContents().Return(NewImmutableEList([]any{mockObject2}).Iterator()).Once()
+	mockObject.EXPECT().EContents().Return(NewImmutableEList([]any{mockObject2})).Once()
+	mockObject2.EXPECT().EContents().Return(NewImmutableEList([]any{})).Once()
+	s.UnRegister(mockObject, true)
+}

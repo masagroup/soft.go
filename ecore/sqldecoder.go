@@ -214,7 +214,7 @@ func (d *sqlDecoder) decodePackage(id int64) (EPackage, error) {
 
 		// retrieve package
 		if d.packageRegistry == nil {
-			panic(fmt.Errorf("package registry not defined in sql decoder"))
+			return nil, fmt.Errorf("package registry not defined in sql decoder")
 		}
 		ePackage = d.packageRegistry.GetPackage(packageURI)
 		if ePackage == nil {
@@ -273,30 +273,6 @@ func (d *sqlDecoder) getDecoderClassData(eClass EClass) *sqlDecoderClassData {
 		d.classDataMap[eClass] = classData
 	}
 	return classData
-}
-
-func (d *sqlDecoder) decodeContents() ([]EObject, error) {
-	table := d.schema.contentsTable
-	contents := []EObject{}
-	if err := d.executeQuery(
-		table.selectQuery(nil, "", ""),
-		&sqlitex.ExecOptions{
-			ResultFunc: func(stmt *sqlite.Stmt) error {
-				// retrieve object id
-				objectID := stmt.ColumnInt64(0)
-				// decode object
-				object, err := d.decodeObject(objectID)
-				if err != nil {
-					return err
-				}
-				// add object to contents
-				contents = append(contents, object)
-				return nil
-			},
-		}); err != nil {
-		return nil, err
-	}
-	return contents, nil
 }
 
 func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {

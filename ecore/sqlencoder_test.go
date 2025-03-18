@@ -326,6 +326,23 @@ func TestSQLEncoder_ComplexWithContainerID(t *testing.T) {
 	testSQLEncoder(t, eResource, "testdata/library.complex.container.sqlite", map[string]any{SQL_OPTION_CONTAINER_ID: true})
 }
 
+func TestSQLEncoder_ComplexWithContainerID_MemoryDatabase(t *testing.T) {
+	// load package
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/library.complex.xml"), nil)
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	// test encoder
+	testSQLEncoder(t, eResource, "testdata/library.complex.container.sqlite", map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: true, SQL_OPTION_CONTAINER_ID: true})
+}
+
 func TestSQLEncoder_AllTypes(t *testing.T) {
 	// load package
 	ePackage := loadPackage("alltypes.ecore")

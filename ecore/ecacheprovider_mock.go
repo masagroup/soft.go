@@ -26,7 +26,6 @@ func (_me *MockECacheProvider_Expecter) SetMock(mock *mock.Mock) {
 	_me.mock = mock
 }
 
-
 func (_m *MockECacheProvider_Prototype) EXPECT() *MockECacheProvider_Expecter {
 	return &MockECacheProvider_Expecter{mock: _m.mock}
 }

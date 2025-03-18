@@ -501,6 +501,8 @@ func (s *sqlSchema) getOrComputeClassSchema(eClass EClass) *sqlClassSchema {
 				)
 			case sfkEnum:
 				newFeatureReferenceColumn(featureSchema, eFeature, s.enumsTable)
+			case sfkFloat64, sfkFloat32:
+				newFeatureAttributeColumn(featureSchema, eFeature, "REAL")
 			case sfkBool, sfkByte, sfkInt, sfkInt16, sfkInt32, sfkInt64:
 				newFeatureAttributeColumn(featureSchema, eFeature, "INTEGER")
 			case sfkDate, sfkString, sfkData:

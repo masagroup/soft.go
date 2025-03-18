@@ -1454,6 +1454,44 @@ func TestSQLStore_Add_Invalid(t *testing.T) {
 	//assert.Panics(t, func() { s.Add(mockObject, eFeature, 6, "c") })
 }
 
+func TestSQLStore_AddAll(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// create store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+
+	s.AddAll(mockObject, eFeature, 3, NewImmutableEList([]any{"c34", "c35"}))
+
+	// check result by querying store directly
+	count := 0
+	err = s.ExecuteQuery(context.Background(), "SELECT COUNT(contents) FROM book_contents WHERE bookID=5",
+		&sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+			count = stmt.ColumnInt(0)
+			return nil
+		}})
+	assert.NoError(t, err)
+	assert.Equal(t, 5, count)
+}
+
 func TestSQLStore_Move_End(t *testing.T) {
 	ePackage := loadPackage("library.datalist.ecore")
 	require.NotNil(t, ePackage)

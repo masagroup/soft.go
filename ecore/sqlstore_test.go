@@ -1651,6 +1651,83 @@ func TestSQLStore_Serialize(t *testing.T) {
 	requireSameDB(t, "testdata/library.store.sqlite", *bytes)
 }
 
+func TestSQLStore_GetRoots(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	roots := s.GetRoots()
+	require.Equal(t, 1, len(roots))
+}
+
+func TestSQLStore_RemoveRoot(t *testing.T) {
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	objectID := int64(1)
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(objectID)
+	mockObject.EXPECT().SetSQLID(objectID).Return()
+
+	s.RemoveRoot(mockObject)
+	roots := s.GetRoots()
+	require.Equal(t, 0, len(roots))
+}
+
+func TestSQLStore_AddRoot(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eBookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eBookClass)
+
+	eBookName := eBookClass.GetEStructuralFeatureFromName("title")
+	require.NotNil(t, eBookName)
+
+	// create a book
+	eFactory := ePackage.GetEFactoryInstance()
+	eBook := eFactory.Create(eBookClass)
+	eBook.ESet(eBookName, "MyBook")
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.add.sqlite")
+
+	// store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+	roots := s.GetRoots()
+	require.Equal(t, 0, len(roots))
+
+	s.AddRoot(eBook)
+
+	roots = s.GetRoots()
+	require.Equal(t, 1, len(roots))
+}
+
 func TestSQLStore_ParallelRead(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
@@ -1759,7 +1836,9 @@ func TestSQLStore_Parallel_GetSet(t *testing.T) {
 // 	require.Nil(t, err)
 
 // 	// create store
-// 	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+// 	mockPackageRegitry := NewMockEPackageRegistry(t)
+// 	//mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
+// 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 // 	require.Nil(t, err)
 // 	require.NotNil(t, s)
 // 	defer s.Close()

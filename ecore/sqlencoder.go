@@ -318,6 +318,8 @@ func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, contain
 		// register object in registry
 		e.sqlIDManager.SetObjectID(eObject, sqlObjectID)
 
+		// lock object to ensure its object features values are not modified
+		// while encoding
 		if lockProvider, isLockProvider := eObject.(ELockProvider); isLockProvider {
 			lockProvider.Lock()
 			defer lockProvider.Unlock()

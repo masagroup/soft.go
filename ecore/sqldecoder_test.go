@@ -433,3 +433,26 @@ func TestSQLDecoder_AllTypes(t *testing.T) {
 	sqlDecoder.DecodeResource()
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
+
+func TestSQLDecoder_InvalidVersion(t *testing.T) {
+	// load package
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(t, ePackage)
+
+	// create resource & resourceset
+	sqlURI := NewURI("testdata/alltypes.sqlite")
+	sqlResource := NewEResourceImpl()
+	sqlResource.SetURI(sqlURI)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(sqlResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	sqlReader, err := os.Open(sqlURI.String())
+	require.NoError(t, err)
+	defer sqlReader.Close()
+
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_CODEC_VERSION: 2})
+	sqlDecoder.DecodeResource()
+	require.False(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
+}

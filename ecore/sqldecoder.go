@@ -430,7 +430,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkBool:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return false, nil
 		case int64:
 			return v == 1, nil
 		default:
@@ -439,7 +439,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkByte:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return byte(0), nil
 		case int64:
 			return byte(v), nil
 		default:
@@ -448,7 +448,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkInt:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return 0, nil
 		case int64:
 			return int(v), nil
 		default:
@@ -457,7 +457,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkInt64:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return int64(0), nil
 		case int64:
 			return v, nil
 		default:
@@ -466,7 +466,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkInt32:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return int32(0), nil
 		case int64:
 			return int32(v), nil
 		default:
@@ -475,7 +475,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkInt16:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return int16(0), nil
 		case int64:
 			return int16(v), nil
 		default:
@@ -534,7 +534,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkFloat64:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return float64(0), nil
 		case float64:
 			return v, nil
 		default:
@@ -543,7 +543,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkFloat32:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return float32(0), nil
 		case float64:
 			return float32(v), nil
 		default:
@@ -750,6 +750,8 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 	if options != nil {
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
+		} else if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int); isVersion {
+			codecVersion = int64(v)
 		}
 		if m, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLDecoderIDManager); isSQLIDManager {
 			sqlIDManager = m

@@ -325,3 +325,20 @@ func TestSQLEncoder_ComplexWithContainerID(t *testing.T) {
 	// test encoder
 	testSQLEncoder(t, eResource, "testdata/library.complex.container.sqlite", map[string]any{SQL_OPTION_CONTAINER_ID: true})
 }
+
+func TestSQLEncoder_AllTypes(t *testing.T) {
+	// load package
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/alltypes.xml"), nil)
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	// test encoder
+	testSQLEncoder(t, eResource, "testdata/alltypes.sqlite", nil)
+}

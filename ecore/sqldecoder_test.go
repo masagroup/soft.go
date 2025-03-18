@@ -410,3 +410,26 @@ func TestSqlDecoder_SharedMemoryPool_DeserializeDB(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, count > 0)
 }
+
+func TestSQLDecoder_AllTypes(t *testing.T) {
+	// load package
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(t, ePackage)
+
+	// create resource & resourceset
+	sqlURI := NewURI("testdata/alltypes.sqlite")
+	sqlResource := NewEResourceImpl()
+	sqlResource.SetURI(sqlURI)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(sqlResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	sqlReader, err := os.Open(sqlURI.String())
+	require.NoError(t, err)
+	defer sqlReader.Close()
+
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, nil)
+	sqlDecoder.DecodeResource()
+	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
+}

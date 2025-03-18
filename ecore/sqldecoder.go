@@ -431,8 +431,8 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		switch v := value.(type) {
 		case nil:
 			return nil, nil
-		case bool:
-			return v, nil
+		case int64:
+			return v == 1, nil
 		default:
 			return nil, fmt.Errorf("%v is not a bool value", v)
 		}
@@ -440,10 +440,10 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		switch v := value.(type) {
 		case nil:
 			return nil, nil
-		case byte:
-			return v, nil
+		case int64:
+			return byte(v), nil
 		default:
-			return nil, fmt.Errorf("%v is not a bool value", v)
+			return nil, fmt.Errorf("%v is not a byte value", v)
 		}
 	case sfkInt:
 		switch v := value.(type) {

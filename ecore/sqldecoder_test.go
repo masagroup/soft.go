@@ -13,7 +13,7 @@ import (
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
-func TestSqlDecoder_DecodeResource(t *testing.T) {
+func TestSQLDecoder_DecodeResource(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
@@ -35,7 +35,7 @@ func TestSqlDecoder_DecodeResource(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 }
 
-func TestSqlDecoder_DecodeResource_Memory(t *testing.T) {
+func TestSQLDecoder_DecodeResource_Memory(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
@@ -115,7 +115,7 @@ func BenchmarkSQLDecoder_Complex_Memory(b *testing.B) {
 	}
 }
 
-func TestSqlDecoder_EMaps(t *testing.T) {
+func TestSQLDecoder_EMaps(t *testing.T) {
 	// load package
 	ePackage := loadPackage("emap.ecore")
 	require.NotNil(t, ePackage)
@@ -139,7 +139,7 @@ func TestSqlDecoder_EMaps(t *testing.T) {
 
 }
 
-func TestSqlDecoder_SimpleNoIDs_NoObjectIDManager(t *testing.T) {
+func TestSQLDecoder_SimpleNoIDs_NoObjectIDManager(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)
@@ -162,7 +162,7 @@ func TestSqlDecoder_SimpleNoIDs_NoObjectIDManager(t *testing.T) {
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
 
-func TestSqlDecoder_SimpleNoIDs(t *testing.T) {
+func TestSQLDecoder_SimpleNoIDs(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)
@@ -193,7 +193,7 @@ func TestSqlDecoder_SimpleNoIDs(t *testing.T) {
 	require.Equal(t, int64(0), objectIDManager.GetID(eRoot))
 }
 
-func TestSqlDecoder_SimpleWithIDs(t *testing.T) {
+func TestSQLDecoder_SimpleWithIDs(t *testing.T) {
 
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
@@ -226,7 +226,7 @@ func TestSqlDecoder_SimpleWithIDs(t *testing.T) {
 
 }
 
-func TestSqlDecoder_SimpleWithULIDs(t *testing.T) {
+func TestSQLDecoder_SimpleWithULIDs(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)
@@ -235,6 +235,7 @@ func TestSqlDecoder_SimpleWithULIDs(t *testing.T) {
 	sqlURI := NewURI("testdata/library.simple.ulids.sqlite")
 	sqlResource := NewEResourceImpl()
 	sqlResource.SetURI(sqlURI)
+	sqlResource.SetObjectIDManager(NewULIDManager())
 
 	eResourceSet := NewEResourceSetImpl()
 	eResourceSet.GetResources().Add(sqlResource)
@@ -249,7 +250,7 @@ func TestSqlDecoder_SimpleWithULIDs(t *testing.T) {
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
 
-func TestSqlDecoder_SimpleWithContainerIDs(t *testing.T) {
+func TestSQLDecoder_SimpleWithContainerIDs(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)
@@ -272,7 +273,7 @@ func TestSqlDecoder_SimpleWithContainerIDs(t *testing.T) {
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
 
-func TestSqlDecoder_SharedMemoryPool_CreateDB(t *testing.T) {
+func TestSQLDecoder_SharedMemoryPool_CreateDB(t *testing.T) {
 	fileName := "test.sqlite"
 	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
 	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
@@ -315,7 +316,7 @@ func TestSqlDecoder_SharedMemoryPool_CreateDB(t *testing.T) {
 
 }
 
-func TestSqlDecoder_SharedMemoryPool_DeserializeDB_NotWorking(t *testing.T) {
+func TestSQLDecoder_SharedMemoryPool_DeserializeDB_NotWorking(t *testing.T) {
 	fileName := "test.sqlite"
 	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
 	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
@@ -355,7 +356,7 @@ func TestSqlDecoder_SharedMemoryPool_DeserializeDB_NotWorking(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestSqlDecoder_SharedMemoryPool_DeserializeDB(t *testing.T) {
+func TestSQLDecoder_SharedMemoryPool_DeserializeDB(t *testing.T) {
 	fileName := "test.sqlite"
 	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
 	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})

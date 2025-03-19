@@ -140,7 +140,7 @@ func BenchmarkSQLEncoder_Complex_Memory(b *testing.B) {
 	}
 }
 
-func SQLEncoder_DataList(t *testing.T) {
+func TestSQLEncoder_DataList(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.datalist.ecore")
 	require.NotNil(t, ePackage)
@@ -157,7 +157,7 @@ func SQLEncoder_DataList(t *testing.T) {
 	testSQLEncoder(t, eResource, "testdata/library.datalist.sqlite", nil)
 }
 
-func SQLEncoder_ComplexWithOwner(t *testing.T) {
+func TestSQLEncoder_ComplexWithOwner(t *testing.T) {
 	// load package and retrieve library / person features
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)

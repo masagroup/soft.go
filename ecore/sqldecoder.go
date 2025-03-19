@@ -214,7 +214,7 @@ func (d *sqlDecoder) decodePackage(id int64) (EPackage, error) {
 
 		// retrieve package
 		if d.packageRegistry == nil {
-			panic(fmt.Errorf("package registry not defined in sql decoder"))
+			return nil, fmt.Errorf("package registry not defined in sql decoder")
 		}
 		ePackage = d.packageRegistry.GetPackage(packageURI)
 		if ePackage == nil {
@@ -273,30 +273,6 @@ func (d *sqlDecoder) getDecoderClassData(eClass EClass) *sqlDecoderClassData {
 		d.classDataMap[eClass] = classData
 	}
 	return classData
-}
-
-func (d *sqlDecoder) decodeContents() ([]EObject, error) {
-	table := d.schema.contentsTable
-	contents := []EObject{}
-	if err := d.executeQuery(
-		table.selectQuery(nil, "", ""),
-		&sqlitex.ExecOptions{
-			ResultFunc: func(stmt *sqlite.Stmt) error {
-				// retrieve object id
-				objectID := stmt.ColumnInt64(0)
-				// decode object
-				object, err := d.decodeObject(objectID)
-				if err != nil {
-					return err
-				}
-				// add object to contents
-				contents = append(contents, object)
-				return nil
-			},
-		}); err != nil {
-		return nil, err
-	}
-	return contents, nil
 }
 
 func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
@@ -454,25 +430,25 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkBool:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
-		case bool:
-			return v, nil
+			return false, nil
+		case int64:
+			return v == 1, nil
 		default:
 			return nil, fmt.Errorf("%v is not a bool value", v)
 		}
 	case sfkByte:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
-		case byte:
-			return v, nil
+			return byte(0), nil
+		case int64:
+			return byte(v), nil
 		default:
-			return nil, fmt.Errorf("%v is not a bool value", v)
+			return nil, fmt.Errorf("%v is not a byte value", v)
 		}
 	case sfkInt:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return 0, nil
 		case int64:
 			return int(v), nil
 		default:
@@ -481,7 +457,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkInt64:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return int64(0), nil
 		case int64:
 			return v, nil
 		default:
@@ -490,7 +466,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkInt32:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return int32(0), nil
 		case int64:
 			return int32(v), nil
 		default:
@@ -499,7 +475,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkInt16:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return int16(0), nil
 		case int64:
 			return int16(v), nil
 		default:
@@ -558,7 +534,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkFloat64:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return float64(0), nil
 		case float64:
 			return v, nil
 		default:
@@ -567,7 +543,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	case sfkFloat32:
 		switch v := value.(type) {
 		case nil:
-			return nil, nil
+			return float32(0), nil
 		case float64:
 			return float32(v), nil
 		default:
@@ -603,7 +579,7 @@ type SQLDecoder struct {
 
 const SQLITE_MAX_ALLOCATION_SIZE = 2147483391
 
-func newMemoryConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
+func newMemoryConnectionPool(name string, r io.Reader, allocationSize int) (*sqlitex.Pool, error) {
 	// create a memory connection
 	var connSrc *sqlite.Conn
 
@@ -620,7 +596,7 @@ func newMemoryConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
 
 		// sqlite.Conn.Deserialize method has a max allocation size
 		// must use an intermediate file if bytes array is bigger
-		if len(bytes) > SQLITE_MAX_ALLOCATION_SIZE {
+		if len(bytes) > allocationSize {
 			// use file connection
 
 			// create tmp file
@@ -734,7 +710,7 @@ func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any
 				inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
 			}
 			if inMemoryDatabase {
-				return newMemoryConnectionPool(fileName, r)
+				return newMemoryConnectionPool(fileName, r, SQLITE_MAX_ALLOCATION_SIZE)
 			} else {
 				return newFileConnectionPool(fileName, r)
 			}
@@ -774,6 +750,8 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 	if options != nil {
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
+		} else if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int); isVersion {
+			codecVersion = int64(v)
 		}
 		if m, isSQLIDManager := options[SQL_OPTION_SQL_ID_MANAGER].(SQLDecoderIDManager); isSQLIDManager {
 			sqlIDManager = m

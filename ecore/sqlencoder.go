@@ -318,6 +318,8 @@ func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, contain
 		// register object in registry
 		e.sqlIDManager.SetObjectID(eObject, sqlObjectID)
 
+		// lock object to ensure its object features values are not modified
+		// while encoding
 		if lockProvider, isLockProvider := eObject.(ELockProvider); isLockProvider {
 			lockProvider.Lock()
 			defer lockProvider.Unlock()
@@ -710,7 +712,15 @@ func NewSQLWriterEncoder(w io.Writer, resource EResource, options map[string]any
 		}
 		return newSQLEncoder(
 			func() (*sqlitex.Pool, error) {
-				return sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenReadWrite | sqlite.OpenCreate | sqlite.OpenWAL})
+				return sqlitex.NewPool(
+					dbPath,
+					sqlitex.PoolOptions{
+						Flags: sqlite.OpenReadWrite | sqlite.OpenCreate | sqlite.OpenWAL,
+						PrepareConn: func(conn *sqlite.Conn) error {
+							// connection is in synchronous mode
+							return sqlitex.ExecuteTransient(conn, "PRAGMA synchronous=normal", nil)
+						}},
+				)
 			},
 			func(connPool *sqlitex.Pool) error {
 				// close db

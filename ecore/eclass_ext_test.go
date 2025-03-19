@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEClassInstance(t *testing.T) {
@@ -325,4 +326,18 @@ func TestEClassGetOverride(t *testing.T) {
 
 func TestEClassEClass(t *testing.T) {
 	assert.Equal(t, GetPackage().GetEClass(), GetFactory().CreateEClass().EClass())
+}
+
+func TestEClass_GetFeatureID(t *testing.T) {
+	eClass := newEClassExt()
+	mockFeature := NewMockEStructuralFeature(t)
+	mockFeature.EXPECT().GetFeatureID().Return(-1).Once()
+	require.Equal(t, -1, eClass.GetFeatureID(mockFeature))
+}
+
+func TestEClass_GetOperationID(t *testing.T) {
+	eClass := newEClassExt()
+	mockOperation := NewMockEOperation(t)
+	mockOperation.EXPECT().GetOperationID().Return(-1).Once()
+	require.Equal(t, -1, eClass.GetOperationID(mockOperation))
 }

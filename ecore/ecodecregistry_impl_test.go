@@ -34,3 +34,13 @@ func TestECodecRegistryGetCodecExtension(t *testing.T) {
 	assert.Equal(t, mockCodec, rfr.GetCodec(NewURI("test:///file.test")))
 	assert.Nil(t, rfr.GetCodec(NewURI("file:///file.t")))
 }
+
+func TestECodecRegistryGetCodecDefault(t *testing.T) {
+	mockCodec := new(MockECodec)
+
+	rfr := NewECodecRegistryImpl()
+	rfr.GetExtensionToCodecMap()[DEFAULT_EXTENSION] = mockCodec
+
+	assert.Equal(t, mockCodec, rfr.GetCodec(NewURI("test:///file.test")))
+	assert.Equal(t, mockCodec, rfr.GetCodec(NewURI("file:///file.t")))
+}

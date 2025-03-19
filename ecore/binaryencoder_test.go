@@ -149,6 +149,31 @@ func TestBinaryEncoder_Maps(t *testing.T) {
 	assert.Equal(t, bytes, w.Bytes())
 }
 
+func TestBinaryEncoder_AllTypes(t *testing.T) {
+	// load package
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(t, ePackage)
+
+	// load resource
+	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
+	eResource := xmlProcessor.LoadWithOptions(NewURI("testdata/alltypes.xml"), nil)
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	w := &bytes.Buffer{}
+	binaryEncoder := NewBinaryEncoder(eResource, w, map[string]any{})
+	binaryEncoder.EncodeResource()
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+
+	//os.WriteFile("testdata/alltypes.bin", w.Bytes(), 0644)
+
+	bytes, err := os.ReadFile("testdata/alltypes.bin")
+	assert.Nil(t, err)
+	assert.Equal(t, bytes, w.Bytes())
+}
+
 func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")

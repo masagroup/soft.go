@@ -100,7 +100,10 @@ func TestEStoreList_Accessors(t *testing.T) {
 	require.NotNil(t, list)
 	assert.Equal(t, 0, list.Size())
 	assert.Equal(t, mockOwner, list.GetOwner())
+	assert.Equal(t, mockOwner, list.GetNotifier())
 	assert.Equal(t, mockFeature, list.GetFeature())
+	assert.Equal(t, mockStore, list.GetEStore())
+	assert.Equal(t, false, list.IsCache())
 
 	mockClass := NewMockEClass(t)
 	mockClass.EXPECT().GetFeatureID(mockFeature).Return(0).Once()
@@ -144,6 +147,25 @@ func TestEStoreList_Add(t *testing.T) {
 	assert.True(t, list.Add(2))
 	assert.Equal(t, 2, list.Size())
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+}
+
+func TestEStoreList_AddWithCache(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(0).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	require.NotNil(t, list)
+	assert.Equal(t, 0, list.Size())
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{}).Once()
+	list.SetCache(true)
+	assert.Equal(t, 0, list.Size())
+
+	mockStore.EXPECT().Add(mockOwner, mockFeature, 0, 1).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	assert.True(t, list.Add(1))
+	assert.Equal(t, 1, list.Size())
 }
 
 func TestEStoreList_AddReferenceContainmentNoOpposite(t *testing.T) {
@@ -247,6 +269,28 @@ func TestEStoreList_Insert(t *testing.T) {
 		list.Insert(2, 0)
 	})
 	mock.AssertExpectationsForObjects(t, mockStore)
+
+	mockStore.EXPECT().Contains(mockOwner, mockFeature, 1).Return(false).Once()
+	mockStore.EXPECT().Add(mockOwner, mockFeature, 0, 1).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	list.Insert(0, 1)
+}
+
+func TestEStoreList_Insert_WithCache(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(0).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{}).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	list.SetCache(true)
+	assert.Equal(t, 0, list.Size())
+
+	mockStore.EXPECT().Add(mockOwner, mockFeature, 0, 1).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	assert.True(t, list.Insert(0, 1))
+	assert.Equal(t, 1, list.Size())
 }
 
 func TestEStoreList_AddAll(t *testing.T) {
@@ -368,6 +412,36 @@ func TestEStoreList_Move(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
 }
 
+func TestEStoreList_Move_WithCache(t *testing.T) {
+	mockObject := NewMockEObjectInternal(t)
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{mockObject}).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	list.SetCache(true)
+	assert.Equal(t, 1, list.Size())
+
+	mockStore.EXPECT().Move(mockOwner, mockFeature, 0, 0, false).Return(mockObject).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	list.Move(0, 0)
+}
+
+func TestEStoreList_Get_WithCache(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{2}).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	list.SetCache(true)
+	assert.Equal(t, 1, list.Size())
+	assert.Equal(t, 2, list.Get(0))
+}
+
 func TestEStoreList_Get_NoProxy(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockReference := NewMockEReference(t)
@@ -431,6 +505,43 @@ func TestEStoreList_Get_Proxy(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject, mockOpposite, mockResolved, mockClass)
 }
 
+func TestEStoreList_Get_Proxy_WithCache(t *testing.T) {
+	mockOwner := NewMockEObjectInternal(t)
+	mockReference := NewMockEReference(t)
+	mockOpposite := NewMockEReference(t)
+	mockStore := NewMockEStore(t)
+	mockObject := NewMockEObjectInternal(t)
+	mockResolved := NewMockEObjectInternal(t)
+	mockReference.EXPECT().IsUnique().Return(true).Once()
+	mockReference.EXPECT().IsContainment().Return(true).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
+	mockReference.EXPECT().IsUnsettable().Return(false).Once()
+	mockReference.EXPECT().GetEOpposite().Return(mockOpposite).Once()
+	mockStore.EXPECT().Size(mockOwner, mockReference).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockReference).Return([]any{mockObject}).Once()
+	list := NewEStoreList(mockOwner, mockReference, mockStore)
+	list.SetCache(true)
+	require.NotNil(t, list)
+	require.Equal(t, 1, list.Size())
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockObject, mockOpposite)
+
+	mockClass := NewMockEClass(t)
+	mockObject.EXPECT().EIsProxy().Return(true).Once()
+	mockOwner.EXPECT().EResolveProxy(mockObject).Return(mockResolved).Once()
+	mockReference.EXPECT().GetEOpposite().Return(mockOpposite).Once()
+	mockClass.EXPECT().GetFeatureID(mockOpposite).Return(0).Once()
+	mockObject.EXPECT().EClass().Return(mockClass).Once()
+	mockObject.EXPECT().EInverseRemove(mockOwner, 0, nil).Return(nil).Once()
+	mockResolved.EXPECT().EInternalContainer().Return(nil).Once()
+	mockReference.EXPECT().GetEOpposite().Return(mockOpposite).Once()
+	mockClass.EXPECT().GetFeatureID(mockOpposite).Return(0).Once()
+	mockResolved.EXPECT().EClass().Return(mockClass).Once()
+	mockResolved.EXPECT().EInverseAdd(mockOwner, 0, nil).Return(nil).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	require.Equal(t, mockResolved, list.Get(0))
+
+}
+
 func TestEStoreList_Set(t *testing.T) {
 	mockOwner := NewMockEObjectInternal(t)
 	mockReference := NewMockEReference(t)
@@ -469,6 +580,23 @@ func TestEStoreList_Set(t *testing.T) {
 	assert.Equal(t, mockOldObject, list.Set(0, mockNewObject))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockNewObject, mockOldObject)
 
+}
+
+func TestEStoreList_Set_WithCache(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{1}).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	list.SetCache(true)
+	assert.Equal(t, 1, list.Size())
+
+	mockStore.EXPECT().Set(mockOwner, mockFeature, 0, 2, false).Return(4).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	assert.Equal(t, 1, list.Set(0, 2))
+	assert.Equal(t, 1, list.Size())
 }
 
 func TestEStoreList_SetWithNotification(t *testing.T) {
@@ -537,6 +665,23 @@ func TestEStoreList_Remove(t *testing.T) {
 	mockOwner.EXPECT().EDeliver().Return(false).Once()
 	assert.True(t, list.Remove(1))
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+}
+
+func TestEStoreList_RemoveWithCache(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{1}).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	require.NotNil(t, list)
+	require.Equal(t, 1, list.Size())
+	list.SetCache(true)
+
+	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, false).Return(1).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	assert.True(t, list.Remove(1))
 }
 
 func TestEStoreList_RemoveWithNotification(t *testing.T) {
@@ -637,7 +782,22 @@ func TestEStoreList_Clear(t *testing.T) {
 	}))
 	list.Clear()
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockAdapter)
+}
 
+func TestEStoreList_ClearWithCache(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(0).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{}).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	list.SetCache(true)
+
+	mockStore.EXPECT().Clear(mockOwner, mockFeature).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	assert.Equal(t, 0, list.Size())
+	list.Clear()
 }
 
 func TestEStoreList_Empty(t *testing.T) {
@@ -754,18 +914,51 @@ func TestEStoreList_Iterator(t *testing.T) {
 }
 
 func TestEStoreList_ToArray(t *testing.T) {
-	mockOwner := NewMockEObject(t)
-	mockFeature := NewMockEStructuralFeature(t)
+	mockObject := NewMockEObjectInternal(t)
+	mockResolved := NewMockEObjectInternal(t)
+	mockOwner := NewMockEObjectInternal(t)
+	mockReference := NewMockEReference(t)
 	mockStore := NewMockEStore(t)
-	mockFeature.EXPECT().IsUnique().Return(true).Once()
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(2).Once()
-	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	mockReference.EXPECT().IsUnique().Return(true).Once()
+	mockReference.EXPECT().IsContainment().Return(false).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
+	mockReference.EXPECT().IsUnsettable().Return(false).Once()
+	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
+	mockStore.EXPECT().Size(mockOwner, mockReference).Return(1).Once()
+	list := NewEStoreList(mockOwner, mockReference, mockStore)
 	require.NotNil(t, list)
-	assert.Equal(t, 2, list.Size())
-	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+	assert.Equal(t, 1, list.Size())
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore)
 
-	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{1, 2})
-	assert.Equal(t, []any{1, 2}, list.ToArray())
+	mockStore.EXPECT().ToArray(mockOwner, mockReference).Return([]any{mockObject})
+	mockObject.EXPECT().EIsProxy().Return(true).Once()
+	mockOwner.EXPECT().EResolveProxy(mockObject).Return(mockResolved).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	assert.Equal(t, []any{mockResolved}, list.ToArray())
+}
+
+func TestEStoreList_ToArray_WithCache(t *testing.T) {
+	mockObject := NewMockEObjectInternal(t)
+	mockResolved := NewMockEObjectInternal(t)
+	mockOwner := NewMockEObjectInternal(t)
+	mockReference := NewMockEReference(t)
+	mockStore := NewMockEStore(t)
+	mockReference.EXPECT().IsUnique().Return(true).Once()
+	mockReference.EXPECT().IsContainment().Return(false).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
+	mockReference.EXPECT().IsUnsettable().Return(false).Once()
+	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
+	mockStore.EXPECT().Size(mockOwner, mockReference).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockReference).Return([]any{mockObject}).Once()
+	list := NewEStoreList(mockOwner, mockReference, mockStore)
+	list.SetCache(true)
+	require.Equal(t, 1, list.Size())
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore)
+
+	mockObject.EXPECT().EIsProxy().Return(true).Once()
+	mockOwner.EXPECT().EResolveProxy(mockObject).Return(mockResolved).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	assert.Equal(t, []any{mockResolved}, list.ToArray())
 }
 
 func TestEStoreList_All_Data(t *testing.T) {
@@ -797,18 +990,6 @@ func TestEStoreList_All_Store(t *testing.T) {
 	assert.Equal(t, []any{1, 2}, slices.Collect(list.All()))
 }
 
-func TestEStoreList_GetUnResolvedList(t *testing.T) {
-	mockOwner := NewMockEObject(t)
-	mockFeature := NewMockEStructuralFeature(t)
-	mockStore := NewMockEStore(t)
-	mockFeature.EXPECT().IsUnique().Return(true).Once()
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(0).Once()
-	list := NewEStoreList(mockOwner, mockFeature, mockStore)
-	require.NotNil(t, list)
-	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
-	assert.NotNil(t, list.GetUnResolvedList())
-}
-
 func TestEStoreList_RemoveRange(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
@@ -836,6 +1017,24 @@ func TestEStoreList_RemoveRange(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockAdapter)
 }
 
+func TestEStoreList_RemoveRange_WithCache(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(2).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{1, 2}).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	require.NotNil(t, list)
+	require.Equal(t, 2, list.Size())
+	list.SetCache(true)
+
+	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, false).Return(1).Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	list.RemoveRange(0, 1)
+	assert.Equal(t, 1, list.Size())
+}
+
 func TestEStoreList_RemoveRange_Many(t *testing.T) {
 	mockOwner := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
@@ -850,7 +1049,7 @@ func TestEStoreList_RemoveRange_Many(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
 
 	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, true).Return(mockObject).Once()
-	mockStore.EXPECT().Remove(mockOwner, mockFeature, 1, true).Return(mockObject2).Once()
+	mockStore.EXPECT().Remove(mockOwner, mockFeature, 0, true).Return(mockObject2).Once()
 	mockOwner.EXPECT().EDeliver().Return(true).Once()
 	mockOwner.EXPECT().EAdapters().Return(NewImmutableEList([]any{mockAdapter})).Once()
 	mockOwner.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {
@@ -863,4 +1062,256 @@ func TestEStoreList_RemoveRange_Many(t *testing.T) {
 	list.RemoveRange(0, 2)
 	assert.Equal(t, 0, list.Size())
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockAdapter)
+}
+
+func TestEStoreList_GetUnResolvedList(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(0).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	require.NotNil(t, list)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore)
+	assert.NotNil(t, list.GetUnResolvedList())
+}
+
+func TestEStoreList_GetUnResolvedList_Proxies(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockReference := NewMockEReference(t)
+	mockStore := NewMockEStore(t)
+	mockReference.EXPECT().IsUnique().Return(true).Once()
+	mockReference.EXPECT().IsContainment().Return(false).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
+	mockReference.EXPECT().IsUnsettable().Return(false).Once()
+	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
+	mockStore.EXPECT().Size(mockOwner, mockReference).Return(0).Once()
+	list := NewEStoreList(mockOwner, mockReference, mockStore)
+	require.NotNil(t, list)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore)
+	assert.NotNil(t, list.GetUnResolvedList())
+}
+
+func TestEStoreList_UnResolvedList_Get(t *testing.T) {
+	mockObject := NewMockEObjectInternal(t)
+	mockOwner := NewMockEObject(t)
+	mockReference := NewMockEReference(t)
+	mockStore := NewMockEStore(t)
+	mockReference.EXPECT().IsUnique().Return(true).Once()
+	mockReference.EXPECT().IsContainment().Return(false).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
+	mockReference.EXPECT().IsUnsettable().Return(false).Once()
+	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
+	mockStore.EXPECT().Size(mockOwner, mockReference).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockReference).Return([]any{mockObject}).Once()
+	list := NewEStoreList(mockOwner, mockReference, mockStore)
+	require.NotNil(t, list)
+	list.SetCache(true)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore)
+	unresolved := list.GetUnResolvedList()
+	assert.NotNil(t, unresolved)
+	require.Equal(t, mockObject, unresolved.Get(0))
+}
+
+func TestEStoreList_UnResolvedList_GetUnResolvedList(t *testing.T) {
+	mockObject := NewMockEObjectInternal(t)
+	mockOwner := NewMockEObject(t)
+	mockReference := NewMockEReference(t)
+	mockStore := NewMockEStore(t)
+	mockReference.EXPECT().IsUnique().Return(true).Once()
+	mockReference.EXPECT().IsContainment().Return(false).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
+	mockReference.EXPECT().IsUnsettable().Return(false).Once()
+	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
+	mockStore.EXPECT().Size(mockOwner, mockReference).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockReference).Return([]any{mockObject}).Once()
+	list := NewEStoreList(mockOwner, mockReference, mockStore)
+	require.NotNil(t, list)
+	list.SetCache(true)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore)
+	unresolved := list.GetUnResolvedList().(EObjectList)
+	assert.NotNil(t, unresolved)
+	require.Equal(t, unresolved, unresolved.GetUnResolvedList())
+}
+
+func TestEStoreList_UnResolvedList_IndexOf(t *testing.T) {
+	mockObject := NewMockEObjectInternal(t)
+	mockOwner := NewMockEObject(t)
+	mockReference := NewMockEReference(t)
+	mockStore := NewMockEStore(t)
+	mockReference.EXPECT().IsUnique().Return(true).Once()
+	mockReference.EXPECT().IsContainment().Return(false).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
+	mockReference.EXPECT().IsUnsettable().Return(false).Once()
+	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
+	mockStore.EXPECT().Size(mockOwner, mockReference).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockReference).Return([]any{mockObject}).Once()
+	list := NewEStoreList(mockOwner, mockReference, mockStore)
+	require.NotNil(t, list)
+	list.SetCache(true)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore)
+	unresolved := list.GetUnResolvedList()
+	assert.NotNil(t, unresolved)
+	require.Equal(t, 0, unresolved.IndexOf(mockObject))
+}
+
+func TestEStoreList_UnResolvedList_All_Cache(t *testing.T) {
+	mockObject := NewMockEObjectInternal(t)
+	mockOwner := NewMockEObject(t)
+	mockReference := NewMockEReference(t)
+	mockStore := NewMockEStore(t)
+	mockReference.EXPECT().IsUnique().Return(true).Once()
+	mockReference.EXPECT().IsContainment().Return(false).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
+	mockReference.EXPECT().IsUnsettable().Return(false).Once()
+	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
+	mockStore.EXPECT().Size(mockOwner, mockReference).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockReference).Return([]any{mockObject}).Once()
+	list := NewEStoreList(mockOwner, mockReference, mockStore)
+	require.NotNil(t, list)
+	list.SetCache(true)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore)
+	unresolved := list.GetUnResolvedList()
+	assert.NotNil(t, unresolved)
+	require.Equal(t, []any{mockObject}, slices.Collect(unresolved.All()))
+}
+
+func TestEStoreList_UnResolvedList_All_NoCache(t *testing.T) {
+	mockObject := NewMockEObjectInternal(t)
+	mockOwner := NewMockEObject(t)
+	mockReference := NewMockEReference(t)
+	mockStore := NewMockEStore(t)
+	mockReference.EXPECT().IsUnique().Return(true).Once()
+	mockReference.EXPECT().IsContainment().Return(false).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
+	mockReference.EXPECT().IsUnsettable().Return(false).Once()
+	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
+	mockStore.EXPECT().Size(mockOwner, mockReference).Return(1).Once()
+	list := NewEStoreList(mockOwner, mockReference, mockStore)
+	require.NotNil(t, list)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore)
+	unresolved := list.GetUnResolvedList()
+	assert.NotNil(t, unresolved)
+	mockStore.EXPECT().All(mockOwner, mockReference).Return(slices.Values([]any{mockObject})).Once()
+	require.Equal(t, []any{mockObject}, slices.Collect(unresolved.All()))
+}
+
+func TestEStoreList_UnResolvedList_ToArray_NoCache(t *testing.T) {
+	mockObject := NewMockEObjectInternal(t)
+	mockOwner := NewMockEObject(t)
+	mockReference := NewMockEReference(t)
+	mockStore := NewMockEStore(t)
+	mockReference.EXPECT().IsUnique().Return(true).Once()
+	mockReference.EXPECT().IsContainment().Return(false).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
+	mockReference.EXPECT().IsUnsettable().Return(false).Once()
+	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
+	mockStore.EXPECT().Size(mockOwner, mockReference).Return(1).Once()
+	list := NewEStoreList(mockOwner, mockReference, mockStore)
+	require.NotNil(t, list)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore)
+
+	unresolved := list.GetUnResolvedList()
+	assert.NotNil(t, unresolved)
+	mockStore.EXPECT().ToArray(mockOwner, mockReference).Return([]any{mockObject}).Once()
+	require.Equal(t, []any{mockObject}, unresolved.ToArray())
+}
+
+func TestEStoreList_UnResolvedList_ToArray_Cache(t *testing.T) {
+	mockObject := NewMockEObjectInternal(t)
+	mockOwner := NewMockEObject(t)
+	mockReference := NewMockEReference(t)
+	mockStore := NewMockEStore(t)
+	mockReference.EXPECT().IsUnique().Return(true).Once()
+	mockReference.EXPECT().IsContainment().Return(false).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
+	mockReference.EXPECT().IsUnsettable().Return(false).Once()
+	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
+	mockStore.EXPECT().Size(mockOwner, mockReference).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockReference).Return([]any{mockObject}).Once()
+	list := NewEStoreList(mockOwner, mockReference, mockStore)
+	require.NotNil(t, list)
+	list.SetCache(true)
+	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore)
+	unresolved := list.GetUnResolvedList()
+	assert.NotNil(t, unresolved)
+	require.Equal(t, []any{mockObject}, unresolved.ToArray())
+}
+
+func TestEStoreLisy_SetCache_EmptyData(t *testing.T) {
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(2).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return(nil).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	require.NotNil(t, list)
+	require.Equal(t, 2, list.Size())
+	list.SetCache(true)
+	list.SetCache(false)
+}
+
+type MockEObjectWithCache struct {
+	mock.Mock
+	MockEObjectWithCache_Prototype
+}
+
+type MockEObjectWithCache_Prototype struct {
+	mock *mock.Mock
+	MockEObjectInternal_Prototype
+	MockECacheProvider_Prototype
+}
+
+func (_mp *MockEObjectWithCache_Prototype) SetMock(mock *mock.Mock) {
+	_mp.mock = mock
+	_mp.MockEObjectInternal_Prototype.SetMock(mock)
+	_mp.MockECacheProvider_Prototype.SetMock(mock)
+}
+
+type MockEObjectWithCache_Expecter struct {
+	MockEObjectInternal_Expecter
+	MockECacheProvider_Expecter
+}
+
+func (_me *MockEObjectWithCache_Expecter) SetMock(mock *mock.Mock) {
+	_me.MockEObject_Expecter.SetMock(mock)
+	_me.MockECacheProvider_Expecter.SetMock(mock)
+}
+
+func (eMapEntry *MockEObjectWithCache_Prototype) EXPECT() *MockEObjectWithCache_Expecter {
+	e := &MockEObjectWithCache_Expecter{}
+	e.SetMock(eMapEntry.mock)
+	return e
+}
+
+type mockConstructorTestingTNewMockEObjectWithCache interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockENotifier creates a new instance of MockENotifier_Prototype. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockEObjectWithCache(t mockConstructorTestingTNewMockEObjectWithCache) *MockEObjectWithCache {
+	mock := &MockEObjectWithCache{}
+	mock.SetMock(&mock.Mock)
+	mock.Mock.Test(t)
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+	return mock
+}
+
+func TestEStoreList_SetCache_WithData(t *testing.T) {
+	mockObject := NewMockEObjectWithCache(t)
+	mockOwner := NewMockEObject(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	mockStore.EXPECT().ToArray(mockOwner, mockFeature).Return([]any{mockObject}).Once()
+	list := NewEStoreList(mockOwner, mockFeature, mockStore)
+	require.NotNil(t, list)
+	require.Equal(t, 1, list.Size())
+	mockObject.EXPECT().SetCache(true).Once()
+	list.SetCache(true)
+	mockObject.EXPECT().SetCache(false).Once()
+	list.SetCache(false)
 }

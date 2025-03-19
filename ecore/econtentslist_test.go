@@ -99,6 +99,10 @@ func (suite *EContentsListTestSuite) TestGet() {
 
 }
 
+func (suite *EContentsListTestSuite) TestAll() {
+
+}
+
 func (suite *EContentsListTestSuite) TestGetUnResolved() {
 	assert.Equal(suite.T(), suite.l, suite.l.GetUnResolvedList())
 }

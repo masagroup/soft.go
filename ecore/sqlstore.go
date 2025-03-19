@@ -185,11 +185,11 @@ func (ss *sqlManyQueries) getSelectAllQuery() string {
 func (ss *sqlManyQueries) getExistsQuery() string {
 	if len(ss.existsQuery) == 0 {
 		var query strings.Builder
-		query.WriteString("SELECT 1 FROM ")
+		query.WriteString("SELECT EXISTS(SELECT 1 FROM ")
 		query.WriteString(sqlEscapeIdentifier(ss.table.name))
 		query.WriteString(" WHERE ")
 		query.WriteString(ss.table.keyName())
-		query.WriteString("=?")
+		query.WriteString("=?)")
 		ss.existsQuery = query.String()
 	}
 	return ss.existsQuery
@@ -579,7 +579,13 @@ func NewSQLStore(
 	} else {
 		return newSQLStore(
 			func() (*sqlitex.Pool, error) {
-				return sqlitex.NewPool(databasePath, sqlitex.PoolOptions{})
+				return sqlitex.NewPool(databasePath, sqlitex.PoolOptions{
+					Flags: sqlite.OpenReadWrite | sqlite.OpenCreate | sqlite.OpenWAL,
+					PrepareConn: func(conn *sqlite.Conn) error {
+						// connection is in synchronous mode
+						return sqlitex.ExecuteTransient(conn, "PRAGMA synchronous=normal", nil)
+					},
+				})
 			},
 			func(pool *sqlitex.Pool) error {
 				return pool.Close()
@@ -1267,18 +1273,18 @@ func (s *SQLStore) doIsSet(object EObject, feature EStructuralFeature) (bool, er
 		}
 		return value != featureSchema.feature.GetDefaultValue(), nil
 	} else if featureTable := featureSchema.table; featureTable != nil {
-		var value any
+		isSet := false
 		if err := s.executeQuery(
 			s.getManyQueries(featureTable).getExistsQuery(),
 			&sqlitex.ExecOptions{
 				Args: []any{sqlObjectID},
 				ResultFunc: func(stmt *sqlite.Stmt) error {
-					value = decodeAny(stmt, 0)
+					isSet = stmt.ColumnBool(0)
 					return nil
 				}}); err != nil {
 			return false, err
 		}
-		return value != nil, nil
+		return isSet, nil
 	}
 	return false, nil
 }
@@ -1335,18 +1341,18 @@ func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, 
 	}
 
 	// retrieve statement
-	var value any
+	isEmpty := true
 	if err := s.executeQuery(
 		s.getManyQueries(featureTable).getExistsQuery(),
 		&sqlitex.ExecOptions{
 			Args: []any{sqlObjectID},
 			ResultFunc: func(stmt *sqlite.Stmt) error {
-				value = decodeAny(stmt, 0)
+				isEmpty = !stmt.ColumnBool(0)
 				return nil
 			}}); err != nil {
 		return true, nil
 	}
-	return value == nil, nil
+	return isEmpty, nil
 
 }
 
@@ -1491,35 +1497,68 @@ func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value
 
 // AddRoot add object as store root
 func (s *SQLStore) AddRoot(object EObject) {
-	if err := s.encodeContent(object); err != nil {
-		s.errorHandler(err)
-	}
+	s.scheduleOperation(context.Background(), newOperation("AddRoot", operationWrite, nil, nil, false, -1, nil, func() (any, error) {
+		return s.doAddRoot(object)
+	}))
+}
+
+func (s *SQLStore) doAddRoot(object EObject) (any, error) {
+	return nil, s.encodeContent(object)
 }
 
 // RemoveRoot implements EStore.
 func (s *SQLStore) RemoveRoot(object EObject) {
+	s.scheduleOperation(context.Background(), newOperation("RemoveRoot", operationWrite, nil, nil, false, -1, nil, func() (any, error) {
+		return s.doRemoveRoot(object)
+	}))
+}
+
+func (s *SQLStore) doRemoveRoot(object EObject) (any, error) {
 	sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
 	if err != nil {
-		s.errorHandler(err)
-		return
+		return nil, err
 	} else if !isSQLObjectID {
-		return
+		return nil, err
 	}
+	contentColumn := s.schema.contentsTable.columns[0]
 	if err := s.executeQuery(
-		s.getSingleQueries(s.schema.contentsTable.key).getRemoveQuery(),
+		s.getSingleQueries(contentColumn).getRemoveQuery(),
 		&sqlitex.ExecOptions{Args: []any{sqlObjectID}},
 	); err != nil {
-		s.errorHandler(err)
+		return nil, err
 	}
+	return nil, nil
 }
 
 // GetRoot return root objects
 func (s *SQLStore) GetRoots() []EObject {
-	contents, err := s.decodeContents()
-	if err != nil {
-		s.errorHandler(err)
+	return awaitPromise[[]EObject](s.scheduleOperation(context.Background(), newOperation("GetRoots", operationRead, nil, nil, false, -1, nil, func() (any, error) {
+		return s.doGetRoots()
+	})))
+}
+
+func (s *SQLStore) doGetRoots() ([]EObject, error) {
+	table := s.schema.contentsTable
+	contents := []EObject{}
+	if err := s.executeQuery(
+		table.selectQuery(nil, "", ""),
+		&sqlitex.ExecOptions{
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				// retrieve object id
+				objectID := stmt.ColumnInt64(0)
+				// decode object
+				object, err := s.decodeObject(objectID)
+				if err != nil {
+					return err
+				}
+				// add object to contents
+				contents = append(contents, object)
+				return nil
+			},
+		}); err != nil {
+		return nil, err
 	}
-	return contents
+	return contents, nil
 }
 
 func postOrderTraverse(object EObject, yield func(EObject) bool) bool {

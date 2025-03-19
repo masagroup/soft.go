@@ -2,9 +2,11 @@ package ecore
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -1452,6 +1454,44 @@ func TestSQLStore_Add_Invalid(t *testing.T) {
 	//assert.Panics(t, func() { s.Add(mockObject, eFeature, 6, "c") })
 }
 
+func TestSQLStore_AddAll(t *testing.T) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// create store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass).Once()
+
+	s.AddAll(mockObject, eFeature, 3, NewImmutableEList([]any{"c34", "c35"}))
+
+	// check result by querying store directly
+	count := 0
+	err = s.ExecuteQuery(context.Background(), "SELECT COUNT(contents) FROM book_contents WHERE bookID=5",
+		&sqlitex.ExecOptions{ResultFunc: func(stmt *sqlite.Stmt) error {
+			count = stmt.ColumnInt(0)
+			return nil
+		}})
+	assert.NoError(t, err)
+	assert.Equal(t, 5, count)
+}
+
 func TestSQLStore_Move_End(t *testing.T) {
 	ePackage := loadPackage("library.datalist.ecore")
 	require.NotNil(t, ePackage)
@@ -1648,4 +1688,244 @@ func TestSQLStore_Serialize(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, bytes)
 	requireSameDB(t, "testdata/library.store.sqlite", *bytes)
+}
+
+func TestSQLStore_GetRoots(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	roots := s.GetRoots()
+	require.Equal(t, 1, len(roots))
+}
+
+func TestSQLStore_RemoveRoot(t *testing.T) {
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	objectID := int64(1)
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(objectID)
+	mockObject.EXPECT().SetSQLID(objectID).Return()
+
+	s.RemoveRoot(mockObject)
+	roots := s.GetRoots()
+	require.Equal(t, 0, len(roots))
+}
+
+func TestSQLStore_AddRoot(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eBookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eBookClass)
+
+	eBookName := eBookClass.GetEStructuralFeatureFromName("title")
+	require.NotNil(t, eBookName)
+
+	// create a book
+	eFactory := ePackage.GetEFactoryInstance()
+	eBook := eFactory.Create(eBookClass)
+	eBook.ESet(eBookName, "MyBook")
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.add.sqlite")
+
+	// store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+	roots := s.GetRoots()
+	require.Equal(t, 0, len(roots))
+
+	s.AddRoot(eBook)
+
+	roots = s.GetRoots()
+	require.Equal(t, 1, len(roots))
+}
+
+func TestSQLStore_ParallelRead(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Lendable").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("copies")
+	require.NotNil(t, eFeature)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	// object
+	objectID := int64(7)
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(objectID)
+	mockObject.EXPECT().SetSQLID(objectID).Return()
+	mockObject.EXPECT().EClass().Return(eClass)
+
+	// readers
+	numReaders := 10
+	done := &sync.WaitGroup{}
+	done.Add(numReaders)
+	for range numReaders {
+		go func() {
+			v := s.Get(mockObject, eFeature, -1)
+			assert.Equal(t, 3, v)
+			done.Done()
+		}()
+	}
+	done.Wait()
+}
+
+func TestSQLStore_Parallel_GetSet(t *testing.T) {
+	logger := newDebugLogger()
+	require.NotNil(t, logger)
+
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Lendable").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("copies")
+	require.NotNil(t, eFeature)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, map[string]any{SQL_OPTION_LOGGER: logger})
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	// object
+	objectID := int64(7)
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(objectID)
+	mockObject.EXPECT().SetSQLID(objectID).Return()
+	mockObject.EXPECT().EClass().Return(eClass)
+
+	// readers
+	numOperations := 20
+	done := &sync.WaitGroup{}
+	done.Add(numOperations)
+	for i := range numOperations {
+		if i%4 == 0 {
+			go func() {
+				v := s.Set(mockObject, eFeature, -1, 3, true)
+				assert.Equal(t, 3, v)
+				done.Done()
+			}()
+		} else {
+			go func() {
+				v := s.Get(mockObject, eFeature, -1)
+				assert.Equal(t, 3, v)
+				done.Done()
+			}()
+		}
+	}
+	done.Wait()
+}
+
+func TestSQLStore_Parallel_AddSize(t *testing.T) {
+	logger := newTestLogger(t.Name(), t)
+	require.NotNil(t, logger)
+
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+
+	eFeature := eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, eFeature)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// create store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, map[string]any{SQL_OPTION_LOGGER: logger})
+	require.Nil(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(int64(5))
+	mockObject.EXPECT().SetSQLID(int64(5))
+	mockObject.EXPECT().EClass().Return(eClass)
+
+	// readers
+	numOperations := 20
+	index := s.Size(mockObject, eFeature)
+	for i := range numOperations {
+		if i%4 == 0 {
+			s.Add(mockObject, eFeature, index, fmt.Sprintf("c4%v", index))
+			index++
+		} else {
+			size := s.Size(mockObject, eFeature)
+			assert.NotEqual(t, 0, size)
+		}
+	}
+}
+
+func TestSQLStore_UnRegister(t *testing.T) {
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	objectID := int64(1)
+	mockObject := NewMockSQLObject(t)
+	mockObject2 := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(objectID)
+	mockObject2.EXPECT().GetSQLID().Return(2)
+	mockObject.EXPECT().EAllContents().Return(NewImmutableEList([]any{mockObject2}).Iterator()).Once()
+	mockObject.EXPECT().EContents().Return(NewImmutableEList([]any{mockObject2})).Once()
+	mockObject2.EXPECT().EContents().Return(NewImmutableEList([]any{})).Once()
+	s.UnRegister(mockObject, true)
 }

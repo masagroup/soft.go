@@ -13,7 +13,7 @@ import (
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
-func TestSqlDecoder_DecodeResource(t *testing.T) {
+func TestSQLDecoder_DecodeResource(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
@@ -35,7 +35,7 @@ func TestSqlDecoder_DecodeResource(t *testing.T) {
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 }
 
-func TestSqlDecoder_DecodeResource_Memory(t *testing.T) {
+func TestSQLDecoder_DecodeResource_Memory(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)
@@ -115,7 +115,7 @@ func BenchmarkSQLDecoder_Complex_Memory(b *testing.B) {
 	}
 }
 
-func TestSqlDecoder_EMaps(t *testing.T) {
+func TestSQLDecoder_EMaps(t *testing.T) {
 	// load package
 	ePackage := loadPackage("emap.ecore")
 	require.NotNil(t, ePackage)
@@ -139,7 +139,7 @@ func TestSqlDecoder_EMaps(t *testing.T) {
 
 }
 
-func TestSqlDecoder_SimpleNoIDs_NoObjectIDManager(t *testing.T) {
+func TestSQLDecoder_SimpleNoIDs_NoObjectIDManager(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)
@@ -162,7 +162,7 @@ func TestSqlDecoder_SimpleNoIDs_NoObjectIDManager(t *testing.T) {
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
 
-func TestSqlDecoder_SimpleNoIDs(t *testing.T) {
+func TestSQLDecoder_SimpleNoIDs(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)
@@ -193,7 +193,7 @@ func TestSqlDecoder_SimpleNoIDs(t *testing.T) {
 	require.Equal(t, int64(0), objectIDManager.GetID(eRoot))
 }
 
-func TestSqlDecoder_SimpleWithIDs(t *testing.T) {
+func TestSQLDecoder_SimpleWithIDs(t *testing.T) {
 
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
@@ -226,7 +226,7 @@ func TestSqlDecoder_SimpleWithIDs(t *testing.T) {
 
 }
 
-func TestSqlDecoder_SimpleWithULIDs(t *testing.T) {
+func TestSQLDecoder_SimpleWithULIDs(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)
@@ -235,6 +235,7 @@ func TestSqlDecoder_SimpleWithULIDs(t *testing.T) {
 	sqlURI := NewURI("testdata/library.simple.ulids.sqlite")
 	sqlResource := NewEResourceImpl()
 	sqlResource.SetURI(sqlURI)
+	sqlResource.SetObjectIDManager(NewULIDManager())
 
 	eResourceSet := NewEResourceSetImpl()
 	eResourceSet.GetResources().Add(sqlResource)
@@ -249,7 +250,7 @@ func TestSqlDecoder_SimpleWithULIDs(t *testing.T) {
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
 
-func TestSqlDecoder_SimpleWithContainerIDs(t *testing.T) {
+func TestSQLDecoder_SimpleWithContainerIDs(t *testing.T) {
 	// load package
 	ePackage := loadPackage("library.simple.ecore")
 	require.NotNil(t, ePackage)
@@ -272,7 +273,7 @@ func TestSqlDecoder_SimpleWithContainerIDs(t *testing.T) {
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
 
-func TestSqlDecoder_SharedMemoryPool_CreateDB(t *testing.T) {
+func TestSQLDecoder_SharedMemoryPool_CreateDB(t *testing.T) {
 	fileName := "test.sqlite"
 	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
 	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
@@ -315,7 +316,7 @@ func TestSqlDecoder_SharedMemoryPool_CreateDB(t *testing.T) {
 
 }
 
-func TestSqlDecoder_SharedMemoryPool_DeserializeDB_NotWorking(t *testing.T) {
+func TestSQLDecoder_SharedMemoryPool_DeserializeDB_NotWorking(t *testing.T) {
 	fileName := "test.sqlite"
 	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
 	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
@@ -355,7 +356,7 @@ func TestSqlDecoder_SharedMemoryPool_DeserializeDB_NotWorking(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestSqlDecoder_SharedMemoryPool_DeserializeDB(t *testing.T) {
+func TestSQLDecoder_SharedMemoryPool_DeserializeDB(t *testing.T) {
 	fileName := "test.sqlite"
 	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", fileName)
 	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
@@ -409,4 +410,140 @@ func TestSqlDecoder_SharedMemoryPool_DeserializeDB(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.True(t, count > 0)
+}
+
+func TestSQLDecoder_AllTypes(t *testing.T) {
+	// load package
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(t, ePackage)
+
+	// create resource & resourceset
+	sqlURI := NewURI("testdata/alltypes.sqlite")
+	sqlResource := NewEResourceImpl()
+	sqlResource.SetURI(sqlURI)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(sqlResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	sqlReader, err := os.Open(sqlURI.String())
+	require.NoError(t, err)
+	defer sqlReader.Close()
+
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, nil)
+	sqlDecoder.DecodeResource()
+	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
+}
+
+func TestSQLDecoder_InvalidVersion(t *testing.T) {
+	// load package
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(t, ePackage)
+
+	// create resource & resourceset
+	sqlURI := NewURI("testdata/alltypes.sqlite")
+	sqlResource := NewEResourceImpl()
+	sqlResource.SetURI(sqlURI)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(sqlResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	sqlReader, err := os.Open(sqlURI.String())
+	require.NoError(t, err)
+	defer sqlReader.Close()
+
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_CODEC_VERSION: 2})
+	sqlDecoder.DecodeResource()
+	require.False(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
+}
+
+func TestSQLDecoder_WithConnectionPool(t *testing.T) {
+	// load package
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(t, ePackage)
+
+	// create resource & resourceset
+	sqlURI := NewURI("testdata/alltypes.sqlite")
+	sqlResource := NewEResourceImpl()
+	sqlResource.SetURI(sqlURI)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(sqlResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	connPool, err := sqlitex.NewPool(sqlURI.String(), sqlitex.PoolOptions{})
+	require.NoError(t, err)
+	defer connPool.Close()
+
+	sqlDecoder := NewSQLDBDecoder(connPool, sqlResource, nil)
+	sqlDecoder.DecodeResource()
+	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
+}
+
+func TestSQLDecoder_NewMemoryConnectionPool_Big(t *testing.T) {
+	// file reader
+	sqlReader, err := os.Open("testdata/alltypes.sqlite")
+	require.NoError(t, err)
+	defer sqlReader.Close()
+
+	// conn pool
+	connPool, err := newMemoryConnectionPool("alltypes", sqlReader, 0)
+	require.NoError(t, err)
+	require.NotNil(t, connPool)
+	defer connPool.Close()
+
+	// request db
+	conn, err := connPool.Take(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, conn)
+	defer connPool.Put(conn)
+
+	count := 0
+	require.NoError(t, sqlitex.Execute(conn, `SELECT COUNT(*) FROM ".objects"`, &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			count = stmt.ColumnInt(0)
+			return nil
+		},
+	}))
+	require.Equal(t, 1, count)
+}
+
+func TestSQLDecoder_NewMemoryConnectionPool_Small(t *testing.T) {
+	// file reader
+	sqlReader, err := os.Open("testdata/alltypes.sqlite")
+	require.NoError(t, err)
+	defer sqlReader.Close()
+
+	// conn pool
+	connPool, err := newMemoryConnectionPool("alltypes", sqlReader, SQLITE_MAX_ALLOCATION_SIZE)
+	require.NoError(t, err)
+	require.NotNil(t, connPool)
+	defer connPool.Close()
+
+	// request db
+	conn, err := connPool.Take(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, conn)
+	defer connPool.Put(conn)
+
+	count := 0
+	require.NoError(t, sqlitex.Execute(conn, `SELECT COUNT(*) FROM ".objects"`, &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			count = stmt.ColumnInt(0)
+			return nil
+		},
+	}))
+	require.Equal(t, 1, count)
+}
+
+func TestSQLDecoder_DecodeObject(t *testing.T) {
+	mockResource := NewMockEResource(t)
+	mockResource.EXPECT().GetResourceSet().Return(nil).Once()
+	mockResource.EXPECT().GetURI().Return(nil).Once()
+	mockResource.EXPECT().GetObjectIDManager().Return(nil).Once()
+	decoder := NewSQLReaderDecoder(nil, mockResource, nil)
+	require.Panics(t, func() {
+		_, _ = decoder.DecodeObject()
+	})
 }

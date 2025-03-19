@@ -54,6 +54,8 @@ func (o *EStoreEObjectImpl) Unlock() {
 }
 
 func (o *EStoreEObjectImpl) GetEStore() EStore {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
 	return o.store
 }
 
@@ -65,8 +67,8 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 		if newStore == nil {
 			// build cache with previous store
 			if !o.cache {
-				for featureID := range o.properties {
-					if eFeature := o.eDynamicFeature(featureID); !eFeature.IsTransient() {
+				for featureID := range o.getProperties() {
+					if eFeature := o.eDynamicFeature(featureID); !eFeature.IsTransient() && !eFeature.IsMany() {
 						o.properties[featureID] = oldStore.Get(o.AsEObject(), eFeature, NO_INDEX)
 					}
 				}

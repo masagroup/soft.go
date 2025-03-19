@@ -185,32 +185,24 @@ func (list *EStoreList) IsCache() bool {
 
 func (list *EStoreList) performAdd(object any) {
 	list.mutex.Lock()
-	// add to cache
+	index := list.size
+	// add to data
 	if list.data != nil {
 		list.BasicENotifyingList.performAdd(object)
 	}
-	// add to store
-	if list.store != nil {
-		list.store.Add(list.owner, list.feature, list.size, object)
-	}
-	// size
-	list.size++
-	list.mutex.Unlock()
-}
 
-func (list *EStoreList) performAddAll(c Collection) {
-	list.mutex.Lock()
-	// index computed now before list potentially modified
-	// add to cache
-	if list.data != nil {
-		list.BasicENotifyingList.performAddAll(c)
-	}
 	// add to store
 	if list.store != nil {
-		list.store.AddAll(list.owner, list.feature, list.size, c)
+		list.store.Add(list.owner, list.feature, index, object)
+		// events
+		if list.data == nil {
+			listCallbacks := list.asEListCallbacks()
+			listCallbacks.DidAdd(index, object)
+			listCallbacks.DidChange()
+		}
 	}
-	// size
-	list.size += c.Size()
+	// update size
+	list.size++
 	list.mutex.Unlock()
 }
 
@@ -223,6 +215,12 @@ func (list *EStoreList) performInsert(index int, object any) {
 	// add to store
 	if list.store != nil {
 		list.store.Add(list.owner, list.feature, index, object)
+		// events
+		if list.data == nil {
+			listCallbacks := list.asEListCallbacks()
+			listCallbacks.DidAdd(index, object)
+			listCallbacks.DidChange()
+		}
 	}
 	// size
 	list.size++
@@ -232,7 +230,6 @@ func (list *EStoreList) performInsert(index int, object any) {
 func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
-
 	// add to cache
 	if list.data != nil {
 		if !list.BasicENotifyingList.performInsertAll(index, c) {
@@ -242,6 +239,15 @@ func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 	// add to store
 	if list.store != nil {
 		list.store.AddAll(list.owner, list.feature, index, c)
+		// events
+		if list.data == nil {
+			listCallbacks := list.asEListCallbacks()
+			for object := range c.All() {
+				listCallbacks.DidAdd(index, object)
+				listCallbacks.DidChange()
+				index++
+			}
+		}
 	}
 	// size
 	list.size += c.Size()
@@ -251,17 +257,24 @@ func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 func (list *EStoreList) performClear() []any {
 	list.mutex.Lock()
 	var result []any
+
 	//cache
 	if list.data != nil {
 		result = list.BasicENotifyingList.performClear()
 	}
+
 	// store
 	if list.store != nil {
 		if list.data == nil {
+			// clear with events
 			result = list.store.ToArray(list.owner, list.feature)
+			list.store.Clear(list.owner, list.feature)
+			listCallbacks := list.asEListCallbacks()
+			listCallbacks.DidClear(result)
+		} else {
+			// clear
+			list.store.Clear(list.owner, list.feature)
 		}
-		list.store.Clear(list.owner, list.feature)
-
 	}
 	// size
 	list.size = 0
@@ -272,6 +285,7 @@ func (list *EStoreList) performClear() []any {
 func (list *EStoreList) performRemove(index int) any {
 	list.mutex.Lock()
 	var result any
+
 	//cache
 	if list.data != nil {
 		result = list.BasicENotifyingList.performRemove(index)
@@ -279,8 +293,13 @@ func (list *EStoreList) performRemove(index int) any {
 	//store
 	if list.store != nil {
 		if list.data == nil {
+			// remove with events
 			result = list.store.Remove(list.owner, list.feature, index, true)
+			listCallbacks := list.asEListCallbacks()
+			listCallbacks.DidRemove(index, result)
+			listCallbacks.DidChange()
 		} else {
+			// remove
 			_ = list.store.Remove(list.owner, list.feature, index, false)
 		}
 	}
@@ -293,19 +312,25 @@ func (list *EStoreList) performRemove(index int) any {
 func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
 	list.mutex.Lock()
 	var result []any
+
 	// cache
 	if list.data != nil {
 		result = list.BasicENotifyingList.performRemoveRange(fromIndex, toIndex)
 	}
 	// store
 	if list.store != nil {
-		for i := fromIndex; i < toIndex; i++ {
-			if list.data == nil {
-				result = append(result, list.store.Remove(list.owner, list.feature, i, true))
-			} else {
-				_ = list.store.Remove(list.owner, list.feature, i, false)
+		if list.data == nil {
+			listCallbacks := list.asEListCallbacks()
+			for i := fromIndex; i < toIndex; i++ {
+				object := list.store.Remove(list.owner, list.feature, fromIndex, true)
+				result = append(result, object)
+				listCallbacks.DidRemove(fromIndex, result)
 			}
-
+			listCallbacks.DidChange()
+		} else {
+			for i := fromIndex; i < toIndex; i++ {
+				_ = list.store.Remove(list.owner, list.feature, fromIndex, false)
+			}
 		}
 	}
 	// size
@@ -324,7 +349,11 @@ func (list *EStoreList) performSet(index int, object any) any {
 	// store
 	if list.store != nil {
 		if list.data == nil {
+			// set with events
 			result = list.store.Set(list.owner, list.feature, index, object, true)
+			listCallbacks := list.asEListCallbacks()
+			listCallbacks.DidSet(index, object, result)
+			listCallbacks.DidChange()
 		} else {
 			_ = list.store.Set(list.owner, list.feature, index, object, false)
 		}
@@ -342,6 +371,9 @@ func (list *EStoreList) performMove(oldIndex, newIndex int) any {
 	if list.store != nil {
 		if list.data == nil {
 			result = list.store.Move(list.owner, list.feature, oldIndex, newIndex, true)
+			listCallbacks := list.asEListCallbacks()
+			listCallbacks.DidMove(newIndex, result, oldIndex)
+			listCallbacks.DidChange()
 		} else {
 			_ = list.store.Move(list.owner, list.feature, oldIndex, newIndex, false)
 		}
@@ -429,7 +461,7 @@ func (list *EStoreList) ToArray() []any {
 	} else if list.store != nil {
 		data := list.store.ToArray(list.owner, list.feature)
 		if list.proxies {
-			for i := len(list.data) - 1; i >= 0; i-- {
+			for i := len(data) - 1; i >= 0; i-- {
 				data[i] = list.resolve(i, data[i])
 			}
 		}
@@ -541,6 +573,7 @@ type unResolvedEStoreList struct {
 
 func newUnResolvedEStoreList(delegate *EStoreList) *unResolvedEStoreList {
 	l := &unResolvedEStoreList{}
+	l.interfaces = l
 	l.delegate = delegate
 	l.isUnique = true
 	return l

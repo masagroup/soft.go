@@ -457,3 +457,28 @@ func TestSQLDecoder_InvalidVersion(t *testing.T) {
 	sqlDecoder.DecodeResource()
 	require.False(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
+
+func TestSQLDecoder_WithConnectionPool(t *testing.T) {
+
+	// load package
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(t, ePackage)
+
+	// create resource & resourceset
+	sqlURI := NewURI("testdata/alltypes.sqlite")
+	sqlResource := NewEResourceImpl()
+	sqlResource.SetURI(sqlURI)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(sqlResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	connPool, err := sqlitex.NewPool(sqlURI.String(), sqlitex.PoolOptions{})
+	require.NoError(t, err)
+	defer connPool.Close()
+
+	sqlDecoder := NewSQLDBDecoder(connPool, sqlResource, nil)
+	sqlDecoder.DecodeResource()
+	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
+
+}

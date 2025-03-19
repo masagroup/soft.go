@@ -579,7 +579,7 @@ type SQLDecoder struct {
 
 const SQLITE_MAX_ALLOCATION_SIZE = 2147483391
 
-func newMemoryConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
+func newMemoryConnectionPool(name string, r io.Reader, allocationSize int) (*sqlitex.Pool, error) {
 	// create a memory connection
 	var connSrc *sqlite.Conn
 
@@ -596,7 +596,7 @@ func newMemoryConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
 
 		// sqlite.Conn.Deserialize method has a max allocation size
 		// must use an intermediate file if bytes array is bigger
-		if len(bytes) > SQLITE_MAX_ALLOCATION_SIZE {
+		if len(bytes) > allocationSize {
 			// use file connection
 
 			// create tmp file
@@ -710,7 +710,7 @@ func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any
 				inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
 			}
 			if inMemoryDatabase {
-				return newMemoryConnectionPool(fileName, r)
+				return newMemoryConnectionPool(fileName, r, SQLITE_MAX_ALLOCATION_SIZE)
 			} else {
 				return newFileConnectionPool(fileName, r)
 			}

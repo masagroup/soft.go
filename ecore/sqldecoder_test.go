@@ -536,3 +536,14 @@ func TestSQLDecoder_NewMemoryConnectionPool_Small(t *testing.T) {
 	}))
 	require.Equal(t, 1, count)
 }
+
+func TestSQLDecoder_DecodeObject(t *testing.T) {
+	mockResource := NewMockEResource(t)
+	mockResource.EXPECT().GetResourceSet().Return(nil).Once()
+	mockResource.EXPECT().GetURI().Return(nil).Once()
+	mockResource.EXPECT().GetObjectIDManager().Return(nil).Once()
+	decoder := NewSQLReaderDecoder(nil, mockResource, nil)
+	require.Panics(t, func() {
+		_, _ = decoder.DecodeObject()
+	})
+}

@@ -1020,8 +1020,13 @@ func (d *SQLDecoder) decodeFeatures() error {
 			}
 		}
 	}
-	_, err := promise.All(context.Background(), decoding...).Await(context.Background())
-	return err
+	if len(decoding) > 0 {
+		_, err := promise.All(context.Background(), decoding...).Await(context.Background())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (d *SQLDecoder) decodeClassFeatures(eClass EClass) error {

@@ -612,6 +612,7 @@ func newSQLStore(
 	sqlIDManager := newSQLStoreIDManager()
 	sqlObjectManager := newSQLStoreObjectManager()
 	logger := zap.NewNop()
+	isKeepDefaults := false
 	if options != nil {
 		objectIDName, _ = options[SQL_OPTION_OBJECT_ID].(string)
 		if eh, isErrorHandler := options[SQL_OPTION_ERROR_HANDLER]; isErrorHandler {
@@ -625,6 +626,9 @@ func newSQLStore(
 		}
 		if l, isLogger := options[SQL_OPTION_LOGGER]; isLogger {
 			logger = l.(*zap.Logger)
+		}
+		if b, isBool := options[SQL_OPTION_KEEP_DEFAULTS].(bool); isBool {
+			isKeepDefaults = b
 		}
 	}
 
@@ -675,6 +679,7 @@ func newSQLStore(
 		sqlEncoder: sqlEncoder{
 			sqlBase:          base,
 			isForced:         false,
+			isKeepDefaults:   isKeepDefaults,
 			classDataMap:     map[EClass]*sqlEncoderClassData{},
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,

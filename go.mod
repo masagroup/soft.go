@@ -11,13 +11,13 @@ require (
 	github.com/karlseguin/jsonwriter v1.0.4-0.20170525085137-6f05566bac1c
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/panjf2000/ants/v2 v2.11.2
-	github.com/petermattis/goid v0.0.0-20250303134427-723919f7f203
+	github.com/petermattis/goid v0.0.0-20250319124200-ccd6737f222a
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/rqlite/sql v0.0.0-20241111133259-a4122fabb196
 	github.com/stretchr/testify v1.10.0
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	go.uber.org/zap v1.27.0
-	golang.org/x/net v0.37.0
+	golang.org/x/net v0.38.0
 	zombiezen.com/go/sqlite v1.4.0
 )
 
@@ -36,8 +36,8 @@ require (
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.61.13 // indirect
+	modernc.org/libc v1.62.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.8.2 // indirect
-	modernc.org/sqlite v1.36.0 // indirect
+	modernc.org/memory v1.9.1 // indirect
+	modernc.org/sqlite v1.37.0 // indirect
 )

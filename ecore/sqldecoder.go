@@ -574,7 +574,9 @@ func (d *sqlDecoder) decodeFeatureData(featureSchema *sqlFeatureSchema, v string
 
 type SQLDecoder struct {
 	sqlDecoder
-	resource EResource
+	resource     EResource
+	withFeatures bool
+	withObjects  bool
 }
 
 const SQLITE_MAX_ALLOCATION_SIZE = 2147483391
@@ -747,6 +749,8 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 	codecVersion := sqlCodecVersion
 	sqlIDManager := newSQLDecoderIDManager()
 	logger := zap.NewNop()
+	withFeatures := true
+	withObjects := true
 	if options != nil {
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
@@ -758,6 +762,12 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 		}
 		if l, isLogger := options[SQL_OPTION_LOGGER]; isLogger {
 			logger = l.(*zap.Logger)
+		}
+		if b, isWithFeatures := options[SQL_OPTION_WITH_FEATURES].(bool); isWithFeatures {
+			withFeatures = b
+		}
+		if b, isWithObjects := options[SQL_OPTION_WITH_OBJECTS].(bool); isWithObjects {
+			withObjects = b
 		}
 	}
 
@@ -790,7 +800,9 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 			sqlObjectManager: newSqlDecoderObjectManager(),
 			classDataMap:     map[EClass]*sqlDecoderClassData{},
 		},
-		resource: resource,
+		resource:     resource,
+		withFeatures: withFeatures,
+		withObjects:  withObjects,
 	}
 }
 
@@ -833,14 +845,18 @@ func (d *SQLDecoder) DecodeResource() {
 		return
 	}
 
-	if err := d.decodeObjects(); err != nil {
-		d.addError(err)
-		return
+	if d.withObjects {
+		if err := d.decodeObjects(); err != nil {
+			d.addError(err)
+			return
+		}
 	}
 
-	if err := d.decodeFeatures(); err != nil {
-		d.addError(err)
-		return
+	if d.withFeatures {
+		if err := d.decodeFeatures(); err != nil {
+			d.addError(err)
+			return
+		}
 	}
 
 	if err := d.decodeContents(); err != nil {
@@ -859,9 +875,9 @@ func (d *SQLDecoder) decodeContents() error {
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				objectID := stmt.ColumnInt64(0)
-				object, _ := d.sqlIDManager.GetObjectFromID(objectID)
-				if object == nil {
-					return fmt.Errorf("unable to find object with id '%v'", objectID)
+				object, err := d.decodeObject(objectID)
+				if err != nil {
+					return err
 				}
 				d.resource.GetContents().Add(object)
 				return nil

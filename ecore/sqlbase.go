@@ -227,8 +227,8 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 			} else {
 				delete(s.sqliteQueries, table)
 			}
-			logger.Debug("cleaned")
 		}
+		logger.Debug("cleaned")
 		if len(s.sqliteQueries) == 0 {
 			logger.Debug("no pending")
 		}

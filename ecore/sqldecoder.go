@@ -761,8 +761,8 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 		if l, isLogger := options[SQL_OPTION_LOGGER]; isLogger {
 			logger = l.(*zap.Logger)
 		}
-		if b, isNoFeatures := options[SQL_OPTION_NO_FEATURES].(bool); isNoFeatures {
-			withFeatures = !b
+		if b, isWithFeatures := options[SQL_OPTION_WITH_FEATURES].(bool); isWithFeatures {
+			withFeatures = b
 		}
 
 	}

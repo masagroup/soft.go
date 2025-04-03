@@ -17,7 +17,7 @@ const (
 	SQL_OPTION_CONTAINER_ID       = "CONTAINER_ID"       // container id ( boolean ) if true, encode object's container and container feature id
 	SQL_OPTION_SQL_ID_MANAGER     = "SQL_ID_MANAGER"     // SQL id manager
 	SQL_OPTION_IN_MEMORY_DATABASE = "IN_MEMORY_DATABASE" // uses a memory database
-	SQL_OPTION_NO_FEATURES        = "NO_FEATURES"        // no features decoding
+	SQL_OPTION_WITH_FEATURES      = "WITH_FEATURES"      // with object features
 	SQL_OPTION_LOGGER             = "LOGGER"
 )
 

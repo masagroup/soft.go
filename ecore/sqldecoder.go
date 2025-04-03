@@ -574,7 +574,8 @@ func (d *sqlDecoder) decodeFeatureData(featureSchema *sqlFeatureSchema, v string
 
 type SQLDecoder struct {
 	sqlDecoder
-	resource EResource
+	resource     EResource
+	withFeatures bool
 }
 
 const SQLITE_MAX_ALLOCATION_SIZE = 2147483391
@@ -747,6 +748,7 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 	codecVersion := sqlCodecVersion
 	sqlIDManager := newSQLDecoderIDManager()
 	logger := zap.NewNop()
+	withFeatures := true
 	if options != nil {
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
 			codecVersion = v
@@ -759,6 +761,10 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 		if l, isLogger := options[SQL_OPTION_LOGGER]; isLogger {
 			logger = l.(*zap.Logger)
 		}
+		if b, isNoFeatures := options[SQL_OPTION_NO_FEATURES].(bool); isNoFeatures {
+			withFeatures = !b
+		}
+
 	}
 
 	// package registry
@@ -790,7 +796,8 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 			sqlObjectManager: newSqlDecoderObjectManager(),
 			classDataMap:     map[EClass]*sqlDecoderClassData{},
 		},
-		resource: resource,
+		resource:     resource,
+		withFeatures: withFeatures,
 	}
 }
 
@@ -838,9 +845,11 @@ func (d *SQLDecoder) DecodeResource() {
 		return
 	}
 
-	if err := d.decodeFeatures(); err != nil {
-		d.addError(err)
-		return
+	if d.withFeatures {
+		if err := d.decodeFeatures(); err != nil {
+			d.addError(err)
+			return
+		}
 	}
 
 	if err := d.decodeContents(); err != nil {

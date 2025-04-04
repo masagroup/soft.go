@@ -481,42 +481,14 @@ func TestSQLDecoder_WithConnectionPool(t *testing.T) {
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
 
-func TestSQLDecoder_NewMemoryConnectionPool_Big(t *testing.T) {
+func TestSQLDecoder_NewMemoryConnectionPool(t *testing.T) {
 	// file reader
 	sqlReader, err := os.Open("testdata/alltypes.sqlite")
 	require.NoError(t, err)
 	defer sqlReader.Close()
 
 	// conn pool
-	connPool, err := newMemoryConnectionPool("alltypes", sqlReader, 0)
-	require.NoError(t, err)
-	require.NotNil(t, connPool)
-	defer connPool.Close()
-
-	// request db
-	conn, err := connPool.Take(context.Background())
-	require.NoError(t, err)
-	require.NotNil(t, conn)
-	defer connPool.Put(conn)
-
-	count := 0
-	require.NoError(t, sqlitex.Execute(conn, `SELECT COUNT(*) FROM ".objects"`, &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			count = stmt.ColumnInt(0)
-			return nil
-		},
-	}))
-	require.Equal(t, 1, count)
-}
-
-func TestSQLDecoder_NewMemoryConnectionPool_Small(t *testing.T) {
-	// file reader
-	sqlReader, err := os.Open("testdata/alltypes.sqlite")
-	require.NoError(t, err)
-	defer sqlReader.Close()
-
-	// conn pool
-	connPool, err := newMemoryConnectionPool("alltypes", sqlReader, SQLITE_MAX_ALLOCATION_SIZE)
+	connPool, err := newMemoryConnectionPool("alltypes", "", sqlReader)
 	require.NoError(t, err)
 	require.NotNil(t, connPool)
 	defer connPool.Close()

@@ -581,7 +581,7 @@ type SQLDecoder struct {
 
 const SQLITE_MAX_ALLOCATION_SIZE = 2147483391
 
-func newMemoryConnectionPool(name string, r io.Reader, allocationSize int) (*sqlitex.Pool, error) {
+func newMemoryConnectionPool(dbName string, dbPath string, r io.Reader) (*sqlitex.Pool, error) {
 	// create a memory connection
 	var connSrc *sqlite.Conn
 
@@ -597,59 +597,43 @@ func newMemoryConnectionPool(name string, r io.Reader, allocationSize int) (*sql
 		bytes[19] = 0x01
 
 		// sqlite.Conn.Deserialize method has a max allocation size
-		// must use an intermediate file if bytes array is bigger
-		if len(bytes) > allocationSize {
-			// use file connection
+		// so we must use an intermediate file
 
-			// create tmp file
-			dbPath, err := sqlTmpDB(name)
+		// create tmp file
+		if dbPath == "" {
+			dbPath, err = sqlTmpDB(dbName)
 			if err != nil {
-				return nil, err
-			}
-
-			dbFile, err := os.Create(dbPath)
-			if err != nil {
-				return nil, err
-			}
-
-			// write bytes inside it
-			_, err = dbFile.Write(bytes)
-			if err != nil {
-				dbFile.Close()
-				return nil, err
-			}
-
-			// close tmp file
-			if err = dbFile.Close(); err != nil {
-				return nil, err
-			}
-
-			// open connection to tmp file
-			connSrc, err = sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
-			if err != nil {
-				return nil, err
-			}
-			defer connSrc.Close()
-
-		} else {
-			// use memory connection
-
-			// open connection
-			connSrc, err = sqlite.OpenConn("file::memory:", sqlite.OpenCreate|sqlite.OpenReadWrite|sqlite.OpenURI)
-			if err != nil {
-				return nil, err
-			}
-			defer connSrc.Close()
-
-			// deserialize bytes into db
-			if err := connSrc.Deserialize("main", bytes); err != nil {
 				return nil, err
 			}
 		}
+
+		tmpDBFile, err := os.Create(dbPath)
+		if err != nil {
+			return nil, err
+		}
+
+		// write bytes inside it
+		_, err = tmpDBFile.Write(bytes)
+		if err != nil {
+			tmpDBFile.Close()
+			return nil, err
+		}
+
+		// close tmp file
+		if err = tmpDBFile.Close(); err != nil {
+			return nil, err
+		}
+
+		// open connection to tmp file
+		connSrc, err = sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
+		if err != nil {
+			return nil, err
+		}
+		defer connSrc.Close()
 	}
 
 	// create connection pool
-	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
+	dbPath = fmt.Sprintf("file:%s?mode=memory&cache=shared", dbName)
 	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
 	if err != nil {
 		return nil, err
@@ -682,10 +666,12 @@ func newMemoryConnectionPool(name string, r io.Reader, allocationSize int) (*sql
 	return connPool, nil
 }
 
-func newFileConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
-	dbPath, err := sqlTmpDB(name)
-	if err != nil {
-		return nil, err
+func newFileConnectionPool(dbName string, dbPath string, r io.Reader) (p *sqlitex.Pool, err error) {
+	if dbPath == "" {
+		dbPath, err = sqlTmpDB(dbName)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	dbFile, err := os.Create(dbPath)
@@ -706,15 +692,17 @@ func newFileConnectionPool(name string, r io.Reader) (*sqlitex.Pool, error) {
 func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any) *SQLDecoder {
 	return newSQLDecoder(
 		func() (*sqlitex.Pool, error) {
-			fileName := filepath.Base(resource.GetURI().Path())
+			dbName := filepath.Base(resource.GetURI().Path())
+			dbPath := ""
 			inMemoryDatabase := false
 			if options != nil {
 				inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
+				dbPath, _ = options[SQL_OPTION_DECODER_DB_PATH].(string)
 			}
 			if inMemoryDatabase {
-				return newMemoryConnectionPool(fileName, r, SQLITE_MAX_ALLOCATION_SIZE)
+				return newMemoryConnectionPool(dbName, dbPath, r)
 			} else {
-				return newFileConnectionPool(fileName, r)
+				return newFileConnectionPool(dbName, dbPath, r)
 			}
 		},
 		func(connPool *sqlitex.Pool) error {
@@ -763,10 +751,10 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 		if l, isLogger := options[SQL_OPTION_LOGGER]; isLogger {
 			logger = l.(*zap.Logger)
 		}
-		if b, isWithFeatures := options[SQL_OPTION_WITH_FEATURES].(bool); isWithFeatures {
+		if b, isWithFeatures := options[SQL_OPTION_DECODER_WITH_FEATURES].(bool); isWithFeatures {
 			withFeatures = b
 		}
-		if b, isWithObjects := options[SQL_OPTION_WITH_OBJECTS].(bool); isWithObjects {
+		if b, isWithObjects := options[SQL_OPTION_DECODER_WITH_OBJECTS].(bool); isWithObjects {
 			withObjects = b
 		}
 	}

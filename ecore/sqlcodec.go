@@ -10,16 +10,16 @@ import (
 )
 
 const (
-	SQL_OPTION_ERROR_HANDLER      = "ERROR_HANDLER"      // error handler funtion
-	SQL_OPTION_KEEP_DEFAULTS      = "KEEP_DEFAULTS"      // keep default values
-	SQL_OPTION_CODEC_VERSION      = "CODEC_VERSION"      // codec version ( int64 )
-	SQL_OPTION_OBJECT_ID          = "OBJECT_ID"          // object id column name ( string )
-	SQL_OPTION_CONTAINER_ID       = "CONTAINER_ID"       // container id ( boolean ) if true, encode object's container and container feature id
-	SQL_OPTION_SQL_ID_MANAGER     = "SQL_ID_MANAGER"     // SQL id manager
-	SQL_OPTION_IN_MEMORY_DATABASE = "IN_MEMORY_DATABASE" // uses a memory database
-	SQL_OPTION_WITH_FEATURES      = "WITH_FEATURES"      // with object features
-	SQL_OPTION_WITH_OBJECTS       = "WITH_OBJECTS"       // with objects
-	SQL_OPTION_LOGGER             = "LOGGER"
+	SQL_OPTION_KEEP_DEFAULTS         = "KEEP_DEFAULTS"         // keep default values
+	SQL_OPTION_CODEC_VERSION         = "CODEC_VERSION"         // codec version ( int64 )
+	SQL_OPTION_OBJECT_ID             = "OBJECT_ID"             // object id column name ( string )
+	SQL_OPTION_CONTAINER_ID          = "CONTAINER_ID"          // container id ( boolean ) if true, encode object's container and container feature id
+	SQL_OPTION_SQL_ID_MANAGER        = "SQL_ID_MANAGER"        // SQL id manager
+	SQL_OPTION_IN_MEMORY_DATABASE    = "IN_MEMORY_DATABASE"    // uses a memory database
+	SQL_OPTION_DECODER_WITH_FEATURES = "DECODER_WITH_FEATURES" // decoder with object features
+	SQL_OPTION_DECODER_WITH_OBJECTS  = "DECODER_WITH_OBJECTS"  // decoder with objects
+	SQL_OPTION_DECODER_DB_PATH       = "DECODER_DB_PATH"
+	SQL_OPTION_LOGGER                = "LOGGER"
 )
 
 type SQLCodec struct {

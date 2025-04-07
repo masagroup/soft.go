@@ -1214,9 +1214,11 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 }
 
 func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any, needResult bool) (oldValue any) {
-	op := s.scheduleOperation(context.Background(), newOperation("Set", operationWrite, object, feature, false, index, value, func() (any, error) {
-		return s.doSet(object, feature, index, value, needResult)
-	}))
+	op := s.scheduleOperation(
+		context.Background(),
+		newOperation("Set", operationWrite, object, feature, false, index, value, func() (any, error) {
+			return s.doSet(object, feature, index, value, needResult)
+		}))
 	if needResult {
 		oldValue = awaitOperation[any](s, context.Background(), op)
 	} else {

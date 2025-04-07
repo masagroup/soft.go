@@ -863,7 +863,7 @@ func mapSlice[S ~[]E, E, R any](slice S, mapper func(int, E) R) []R {
 	return mappedSlice
 }
 
-func (s *SQLStore) waitOperations(context context.Context, object any) error {
+func (s *SQLStore) WaitOperations(context context.Context, object any) error {
 	// compute operations to wait for
 	s.mutexOperations.Lock()
 	allOperations := []*operation{}
@@ -2027,7 +2027,7 @@ func (s *SQLStore) Close() error {
 			zap.Int64("goid", goid.Get()),
 		)
 
-		if err := s.waitOperations(context.Background(), nil); err != nil {
+		if err := s.WaitOperations(context.Background(), nil); err != nil {
 			return err
 		}
 

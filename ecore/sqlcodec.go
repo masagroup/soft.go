@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	SQL_OPTION_ERROR_HANDLER         = "ERROR_HANDLER"         // error handler funtion
 	SQL_OPTION_KEEP_DEFAULTS         = "KEEP_DEFAULTS"         // keep default values
 	SQL_OPTION_CODEC_VERSION         = "CODEC_VERSION"         // codec version ( int64 )
 	SQL_OPTION_OBJECT_ID             = "OBJECT_ID"             // object id column name ( string )

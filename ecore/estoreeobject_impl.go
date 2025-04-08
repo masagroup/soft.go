@@ -101,7 +101,9 @@ func (o *EStoreEObjectImpl) SetCache(cache bool) {
 				sc.SetCache(cache)
 			}
 		}
-		o.properties = nil
+		if o.store != nil {
+			o.properties = nil
+		}
 	}
 	o.mutex.Unlock()
 }

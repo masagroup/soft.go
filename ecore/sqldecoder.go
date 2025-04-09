@@ -974,7 +974,7 @@ func (d *SQLDecoder) decodeObjects() error {
 
 				// set its id
 				if d.objectIDManager != nil {
-					if stmt.ColumnCount() > 2 {
+					if d.isObjectID {
 						switch stmt.ColumnType(2) {
 						case sqlite.TypeNull:
 						case sqlite.TypeText:
@@ -984,12 +984,12 @@ func (d *SQLDecoder) decodeObjects() error {
 							}
 						}
 					} else if d.objectIDName == d.schema.objectsTable.key.columnName {
+						// object id is sql id
 						if err := d.objectIDManager.SetID(eObject, sqlObjectID); err != nil {
 							return err
 						}
 					}
 				}
-
 				return nil
 			},
 		})

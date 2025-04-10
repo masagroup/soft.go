@@ -823,7 +823,7 @@ func (e *SQLStore) encodeFeatureValue(sqlObjectID int64, featureData *sqlEncoder
 		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:
 			eObject := value.(EObject)
-			return e.encodeSQLID(eObject)
+			return e.encodeSQLID(eObject, sqlObjectID, featureData.featureID)
 		default:
 			return e.sqlEncoder.encodeFeatureValue(sqlObjectID, featureData, value)
 		}
@@ -858,13 +858,13 @@ func (s *SQLStore) getSQLID(eObject EObject) (int64, bool, error) {
 }
 
 // encode object sql id
-func (s *SQLStore) encodeSQLID(eObject EObject) (int64, error) {
+func (s *SQLStore) encodeSQLID(eObject EObject, sqlContainerID int64, containerFeatureID int64) (int64, error) {
 	if sqlObjectID, isSqlObjectID, err := s.getSQLID(eObject); err != nil {
 		return 0, err
 	} else if isSqlObjectID {
 		return sqlObjectID, nil
 	} else {
-		return s.encodeObject(eObject, -1, -1)
+		return s.encodeObject(eObject, sqlContainerID, containerFeatureID)
 	}
 }
 
@@ -1229,7 +1229,7 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 
 func (s *SQLStore) doSet(object EObject, feature EStructuralFeature, index int, value any, needResult bool) (oldValue any, err error) {
 	// get object sql id
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object, -1, -1)
 	if err != nil {
 		return nil, err
 	}
@@ -1340,7 +1340,7 @@ func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
 }
 
 func (s *SQLStore) doUnSet(object EObject, feature EStructuralFeature) (any, error) {
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object, -1, -1)
 	if err != nil {
 		return nil, err
 	}
@@ -1682,7 +1682,7 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 }
 
 func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, value any) (any, error) {
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object, -1, -1)
 	if err != nil {
 		return nil, err
 	}
@@ -1720,7 +1720,7 @@ func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int,
 }
 
 func (s *SQLStore) doAddAll(object EObject, feature EStructuralFeature, index int, c Collection) (any, error) {
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object, -1, -1)
 	if err != nil {
 		return nil, err
 	}
@@ -1819,7 +1819,7 @@ func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int,
 }
 
 func (s *SQLStore) doRemove(object EObject, feature EStructuralFeature, index int, needResult bool) (decoded any, err error) {
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object, -1, -1)
 	if err != nil {
 		return nil, err
 	}
@@ -1872,7 +1872,7 @@ func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex 
 }
 
 func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) (decoded any, err error) {
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object, -1, -1)
 	if err != nil {
 		return nil, err
 	}
@@ -1925,7 +1925,7 @@ func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
 }
 
 func (s *SQLStore) doClear(object EObject, feature EStructuralFeature) (any, error) {
-	sqlObjectID, err := s.encodeSQLID(object)
+	sqlObjectID, err := s.encodeSQLID(object, -1, -1)
 	if err != nil {
 		return nil, err
 	}

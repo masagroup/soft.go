@@ -192,12 +192,13 @@ func TestMockEStoreAdd(t *testing.T) {
 	mockObject := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
 	mockValue := NewMockEObject(t)
-	m := NewMockRun(t, mockObject, mockFeature, 0, mockValue)
-	mockEStore.EXPECT().Add(mockObject, mockFeature, 0, mockValue).Return().Run(func(object EObject, feature EStructuralFeature, index int, value interface{}) {
-		m.Run(object, feature, index, value)
+	m1 := NewMockRun(t, mockObject, mockFeature, 0, mockValue)
+	m2 := NewMockRun(t, mockObject, mockFeature, 0, mockValue)
+	mockEStore.EXPECT().Add(mockObject, mockFeature, 0, mockValue).Return().Run(func(object EObject, feature EStructuralFeature, index int, value any) {
+		m1.Run(object, feature, index, value)
 	}).Once()
-	mockEStore.EXPECT().Add(mockObject, mockFeature, 0, mockValue).RunAndReturn(func(object EObject, feature EStructuralFeature, index int, value interface{}) {
-		m.Run(object, feature, index, value)
+	mockEStore.EXPECT().Add(mockObject, mockFeature, 0, mockValue).RunAndReturn(func(object EObject, feature EStructuralFeature, index int, value any) {
+		m2.Run(object, feature, index, value)
 	}).Once()
 	mockEStore.Add(mockObject, mockFeature, 0, mockValue)
 	mockEStore.Add(mockObject, mockFeature, 0, mockValue)
@@ -208,12 +209,13 @@ func TestMockEStoreAddAll(t *testing.T) {
 	mockObject := NewMockEObject(t)
 	mockCollection := NewImmutableEList(nil)
 	mockFeature := NewMockEStructuralFeature(t)
-	m := NewMockRun(t, mockObject, mockFeature, 0, mockCollection)
+	m1 := NewMockRun(t, mockObject, mockFeature, 0, mockCollection)
 	mockEStore.EXPECT().AddAll(mockObject, mockFeature, 0, mockCollection).Return().Run(func(object EObject, feature EStructuralFeature, index int, c Collection) {
-		m.Run(object, feature, index, c)
+		m1.Run(object, feature, index, c)
 	}).Once()
+	m2 := NewMockRun(t, mockObject, mockFeature, 0, mockCollection)
 	mockEStore.EXPECT().AddAll(mockObject, mockFeature, 0, mockCollection).RunAndReturn(func(e EObject, ef EStructuralFeature, i int, c Collection) {
-		m.Run(e, ef, i, c)
+		m2.Run(e, ef, i, c)
 	}).Once()
 	mockEStore.AddAll(mockObject, mockFeature, 0, mockCollection)
 	mockEStore.AddAll(mockObject, mockFeature, 0, mockCollection)

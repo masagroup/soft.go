@@ -693,8 +693,9 @@ func (o *AbstractEObject) eDynamicPropertiesInverseAdd(properties EDynamicProper
 			value = o.eDynamicPropertiesCreateList(dynamicFeature)
 			properties.EDynamicSet(dynamicFeatureID, value)
 		}
-		list := value.(ENotifyingList)
-		return list.AddWithNotification(otherEnd, notifications)
+		if list, _ := value.(ENotifyingList); list != nil {
+			return list.AddWithNotification(otherEnd, notifications)
+		}
 	} else if IsContainer(dynamicFeature) {
 		msgs := notifications
 		if o.AsEObjectInternal().EInternalContainer() != nil {
@@ -753,8 +754,9 @@ func (o *AbstractEObject) eDynamicPropertiesInverseRemove(properties EDynamicPro
 	if dynamicFeature.IsMany() {
 		value := properties.EDynamicGet(dynamicFeatureID)
 		if value != nil {
-			list := value.(ENotifyingList)
-			return list.RemoveWithNotification(otherEnd, notifications)
+			if list, _ := value.(ENotifyingList); list != nil {
+				return list.RemoveWithNotification(otherEnd, notifications)
+			}
 		}
 	} else if IsContainer(dynamicFeature) {
 		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)

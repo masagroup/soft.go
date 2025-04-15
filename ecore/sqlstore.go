@@ -823,7 +823,7 @@ func (e *SQLStore) encodeFeatureValue(sqlObjectID int64, featureData *sqlEncoder
 		switch featureData.schema.featureKind {
 		case sfkObject, sfkObjectList:
 			eObject := value.(EObject)
-			return e.encodeSQLID(eObject, sqlObjectID, featureData.featureID)
+			return e.encodeSQLID(eObject, -1, -1)
 		default:
 			return e.sqlEncoder.encodeFeatureValue(sqlObjectID, featureData, value)
 		}
@@ -2009,6 +2009,42 @@ func (s *SQLStore) doGetContainer(object EObject) (*containerAndFeature, error) 
 		feature := containerClass.GetEStructuralFeature(containerInternal.EStaticFeatureCount() + int(containerFeatureID))
 		return &containerAndFeature{container, feature}, nil
 	}
+}
+
+func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStructuralFeature) {
+	asyncOperation(
+		s,
+		context.Background(),
+		s.scheduleOperation(context.Background(), newOperation("SetContainer", operationWrite, object, feature, false, -1, container, func() (any, error) {
+			return s.doSetContainer(object, container, feature)
+		})))
+}
+
+func (s *SQLStore) doSetContainer(object EObject, container EObject, feature EStructuralFeature) (any, error) {
+	sqlObjectID, err := s.encodeSQLID(object, -1, -1)
+	if err != nil {
+		return nil, err
+	}
+
+	var sqlContainerID any
+	if container != nil {
+		sqlContainerID, err = s.encodeSQLID(container, -1, -1)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var featureID any
+	if container != nil && feature != nil {
+		featureID = container.EClass().GetFeatureID(feature)
+	}
+
+	if err := s.executeQuery(`UPDATE ".objects" SET containerID=?,containerFeatureID=? WHERE objectID=?`, &sqlitex.ExecOptions{
+		Args: []any{sqlContainerID, featureID, sqlObjectID},
+	}); err != nil {
+		return nil, err
+	}
+	return nil, nil
 }
 
 func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any] {

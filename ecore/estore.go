@@ -46,6 +46,8 @@ type EStore interface {
 
 	Clear(object EObject, feature EStructuralFeature)
 
+	SetContainer(object EObject, container EObject, feature EStructuralFeature)
+
 	GetContainer(object EObject) (EObject, EStructuralFeature)
 
 	All(object EObject, feature EStructuralFeature) iter.Seq[any]

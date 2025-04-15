@@ -31,6 +31,11 @@ func NewEStoreEObjectImpl(cache bool) *EStoreEObjectImpl {
 	return o
 }
 
+func (o *EStoreEObjectImpl) Initialize() {
+	o.ReflectiveEObjectImpl.Initialize()
+	o.ESetInternalContainer(unitializedContainer, -1)
+}
+
 func (o *EStoreEObjectImpl) AsEStoreEObject() EStoreEObject {
 	return o.GetInterfaces().(EStoreEObject)
 }
@@ -125,16 +130,20 @@ func (o *EStoreEObjectImpl) EInternalContainerFeatureID() int {
 }
 
 func (o *EStoreEObjectImpl) initializeContainer() {
-	if o.ReflectiveEObjectImpl.EInternalContainer() == unitializedContainer && o.store != nil {
-		container, feature := o.store.GetContainer(o.AsEObject())
-		if container != nil && feature != nil {
-			featureID := EOPPOSITE_FEATURE_BASE - container.EClass().GetFeatureID(feature)
-			if reference, _ := feature.(EReference); reference != nil {
-				if opposite := reference.GetEOpposite(); opposite != nil {
-					featureID = o.AsEObject().EClass().GetFeatureID(opposite)
+	if o.ReflectiveEObjectImpl.EInternalContainer() == unitializedContainer {
+		if o.store != nil {
+			container, feature := o.store.GetContainer(o.AsEObject())
+			if container != nil && feature != nil {
+				featureID := EOPPOSITE_FEATURE_BASE - container.EClass().GetFeatureID(feature)
+				if reference, _ := feature.(EReference); reference != nil {
+					if opposite := reference.GetEOpposite(); opposite != nil {
+						featureID = o.AsEObject().EClass().GetFeatureID(opposite)
+					}
 				}
+				o.ReflectiveEObjectImpl.ESetInternalContainer(container, featureID)
 			}
-			o.ReflectiveEObjectImpl.ESetInternalContainer(container, featureID)
+		} else {
+			o.ReflectiveEObjectImpl.ESetInternalContainer(nil, -1)
 		}
 	}
 }

@@ -119,6 +119,19 @@ func (o *EStoreEObjectImpl) IsCache() bool {
 	return o.cache
 }
 
+func (o *EStoreEObjectImpl) ESetInternalContainer(newContainer EObject, newContainerFeatureID int) {
+	o.ReflectiveEObjectImpl.ESetInternalContainer(newContainer, newContainerFeatureID)
+	if o.store != nil {
+		var containerFeature EStructuralFeature
+		if newContainerFeatureID <= EOPPOSITE_FEATURE_BASE {
+			containerFeature = newContainer.EClass().GetEStructuralFeature(EOPPOSITE_FEATURE_BASE - newContainerFeatureID)
+		} else {
+			containerFeature = o.AsEObject().EClass().GetEStructuralFeature(newContainerFeatureID).(EReference).GetEOpposite()
+		}
+		o.store.SetContainer(o.AsEObject(), newContainer, containerFeature)
+	}
+}
+
 func (o *EStoreEObjectImpl) EInternalContainer() EObject {
 	o.initializeContainer()
 	return o.ReflectiveEObjectImpl.EInternalContainer()
@@ -141,6 +154,8 @@ func (o *EStoreEObjectImpl) initializeContainer() {
 					}
 				}
 				o.ReflectiveEObjectImpl.ESetInternalContainer(container, featureID)
+			} else {
+				o.ReflectiveEObjectImpl.ESetInternalContainer(nil, -1)
 			}
 		} else {
 			o.ReflectiveEObjectImpl.ESetInternalContainer(nil, -1)

@@ -625,7 +625,7 @@ func newMemoryConnectionPool(dbName string, dbPath string, r io.Reader) (*sqlite
 		}
 
 		// open connection to tmp file
-		connSrc, err = sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
+		connSrc, err = sqlite.OpenConn(dbPath)
 		if err != nil {
 			return nil, err
 		}
@@ -686,7 +686,7 @@ func newFileConnectionPool(dbName string, dbPath string, r io.Reader) (p *sqlite
 	}
 	dbFile.Close()
 
-	return sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenReadOnly})
+	return sqlitex.NewPool(dbPath, sqlitex.PoolOptions{})
 }
 
 func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any) *SQLDecoder {

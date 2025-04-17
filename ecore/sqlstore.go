@@ -892,40 +892,42 @@ func mapSlice[S ~[]E, E, R any](slice S, mapper func(int, E) R) []R {
 }
 
 func (s *SQLStore) WaitOperations(context context.Context, object any) error {
-	// compute operations to wait for
-	s.mutexOperations.Lock()
-	allOperations := []*operation{}
-	if object == nil {
-		allOperations = make([]*operation, 0)
-		for _, objectOperations := range s.objectOperations {
-			for _, operations := range objectOperations {
+	logger := s.logger.Named("ops")
+	for {
+		// compute operations to wait for
+		s.mutexOperations.Lock()
+		allOperations := []*operation{}
+		if object == nil {
+			allOperations = make([]*operation, 0)
+			for _, objectOperations := range s.objectOperations {
+				for _, operations := range objectOperations {
+					allOperations = append(allOperations, operations...)
+				}
+			}
+		} else {
+			for _, operations := range s.objectOperations[object.(EObject)] {
 				allOperations = append(allOperations, operations...)
 			}
 		}
-	} else {
-		for _, operations := range s.objectOperations[object.(EObject)] {
-			allOperations = append(allOperations, operations...)
+		s.mutexOperations.Unlock()
+		// wait for operations to be finished
+		if len(allOperations) > 0 {
+			// debug
+			if e := logger.Check(zap.DebugLevel, "waiting operations"); e != nil {
+				e.Write(zap.Int64s("operations", mapSlice(allOperations, func(index int, op *operation) int64 { return op.id })))
+			}
+			// compute promises
+			allPromises := mapSlice(allOperations, func(index int, op *operation) *promise.Promise[any] { return op.promise })
+			// wait for promises
+			_, err := promise.AllWithPool(context, s.promisePool, allPromises...).Await(context)
+			if err != nil {
+				return err
+			}
+		} else {
+			logger.Debug("waiting operations finished")
+			return nil
 		}
 	}
-	s.mutexOperations.Unlock()
-
-	// wait for operations to be finished
-	if len(allOperations) > 0 {
-		logger := s.logger.Named("ops")
-		// debug
-		if e := logger.Check(zap.DebugLevel, "waiting operations"); e != nil {
-			e.Write(zap.Int64s("operations", mapSlice(allOperations, func(index int, op *operation) int64 { return op.id })))
-		}
-		// compute promises
-		allPromises := mapSlice(allOperations, func(index int, op *operation) *promise.Promise[any] { return op.promise })
-		// wait for promises
-		_, err := promise.AllWithPool(context, s.promisePool, allPromises...).Await(context)
-		if err != nil {
-			return err
-		}
-		logger.Debug("waiting operations finished")
-	}
-	return nil
 }
 
 type objectFeature struct {

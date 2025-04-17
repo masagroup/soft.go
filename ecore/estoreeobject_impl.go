@@ -79,6 +79,9 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 				}
 			}
 		} else {
+			// set container in store
+			o.setContainerInStore()
+
 			// set children collection store
 			for _, v := range o.properties {
 				if storeList, isStoreList := v.(*EStoreList); isStoreList {
@@ -121,28 +124,20 @@ func (o *EStoreEObjectImpl) IsCache() bool {
 
 func (o *EStoreEObjectImpl) ESetInternalContainer(newContainer EObject, newContainerFeatureID int) {
 	o.ReflectiveEObjectImpl.ESetInternalContainer(newContainer, newContainerFeatureID)
-	if o.store != nil {
-		var containerFeature EStructuralFeature
-		if newContainerFeatureID <= EOPPOSITE_FEATURE_BASE {
-			containerFeature = newContainer.EClass().GetEStructuralFeature(EOPPOSITE_FEATURE_BASE - newContainerFeatureID)
-		} else {
-			containerFeature = o.AsEObject().EClass().GetEStructuralFeature(newContainerFeatureID).(EReference).GetEOpposite()
-		}
-		o.store.SetContainer(o.AsEObject(), newContainer, containerFeature)
-	}
+	o.setContainerInStore()
 }
 
 func (o *EStoreEObjectImpl) EInternalContainer() EObject {
-	o.initializeContainer()
+	o.initializeContainerFromStore()
 	return o.ReflectiveEObjectImpl.EInternalContainer()
 }
 
 func (o *EStoreEObjectImpl) EInternalContainerFeatureID() int {
-	o.initializeContainer()
+	o.initializeContainerFromStore()
 	return o.ReflectiveEObjectImpl.EInternalContainerFeatureID()
 }
 
-func (o *EStoreEObjectImpl) initializeContainer() {
+func (o *EStoreEObjectImpl) initializeContainerFromStore() {
 	if o.ReflectiveEObjectImpl.EInternalContainer() == unitializedContainer {
 		if o.store != nil {
 			container, feature := o.store.GetContainer(o.AsEObject())
@@ -159,6 +154,24 @@ func (o *EStoreEObjectImpl) initializeContainer() {
 			}
 		} else {
 			o.ReflectiveEObjectImpl.ESetInternalContainer(nil, -1)
+		}
+	}
+}
+
+func (o *EStoreEObjectImpl) setContainerInStore() {
+	if o.store != nil {
+		container := o.ReflectiveEObjectImpl.EInternalContainer()
+		containerFeatureID := o.ReflectiveEObjectImpl.EInternalContainerFeatureID()
+		if container != unitializedContainer {
+			var containerFeature EStructuralFeature
+			if container != nil {
+				if containerFeatureID <= EOPPOSITE_FEATURE_BASE {
+					containerFeature = container.EClass().GetEStructuralFeature(EOPPOSITE_FEATURE_BASE - containerFeatureID)
+				} else {
+					containerFeature = o.AsEObject().EClass().GetEStructuralFeature(containerFeatureID).(EReference).GetEOpposite()
+				}
+			}
+			o.store.SetContainer(o.AsEObject(), container, containerFeature)
 		}
 	}
 }

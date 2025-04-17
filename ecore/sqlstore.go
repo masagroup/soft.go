@@ -522,6 +522,8 @@ type SQLStore struct {
 	mutexQueries     sync.Mutex
 	objectOperations map[EObject]map[EStructuralFeature][]*operation
 	mutexOperations  sync.Mutex
+	goroutines       map[int64]map[EObject]struct{}
+	mutexGoRoutines  sync.Mutex
 	logger           *zap.Logger
 }
 
@@ -721,6 +723,7 @@ func newSQLStore(
 		singleQueries:    map[*sqlColumn]*sqlSingleQueries{},
 		manyQueries:      map[*sqlTable]*sqlManyQueries{},
 		objectOperations: map[EObject]map[EStructuralFeature][]*operation{},
+		goroutines:       map[int64]map[EObject]struct{}{},
 		logger:           logger,
 	}
 
@@ -989,13 +992,20 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 
 	// input objects features = { object feature operations [, value all operations] }
 	allObjectFeatures := []objectFeature{{op.object, op.feature}}
-	if op.contents {
-		for it := op.object.EAllContents(); it.HasNext(); {
-			object := it.Next().(EObject)
-			allObjectFeatures = append(allObjectFeatures, objectFeature{object, nil})
+	allObjects := map[EObject]struct{}{}
+	if op.object != nil {
+		allObjects[op.object] = struct{}{}
+		if op.contents {
+			for it := op.object.EAllContents(); it.HasNext(); {
+				object := it.Next().(EObject)
+				allObjectFeatures = append(allObjectFeatures, objectFeature{object, nil})
+				allObjects[object] = struct{}{}
+			}
 		}
+
 	}
 	if object, isObject := op.value.(EObject); isObject && object != op.object {
+		allObjects[object] = struct{}{}
 		allObjectFeatures = append(allObjectFeatures, objectFeature{object, nil})
 	}
 
@@ -1016,7 +1026,19 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 
 	// create promise
 	op.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
-		logger := logger.With(zap.Int64("goid", goid.Get()), zap.Int64("id", op.id))
+		goid := goid.Get()
+		logger := logger.With(zap.Int64("goid", goid), zap.Int64("id", op.id))
+
+		// associate all objets to this goroutine
+		s.mutexGoRoutines.Lock()
+		s.goroutines[goid] = allObjects
+		s.mutexGoRoutines.Unlock()
+		defer func() {
+			s.mutexGoRoutines.Lock()
+			delete(s.goroutines, goid)
+			s.mutexGoRoutines.Unlock()
+		}()
+
 		// wait for previous operations
 		if len(previous) > 0 {
 			if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
@@ -2019,12 +2041,25 @@ func (s *SQLStore) doGetContainer(object EObject) (*containerAndFeature, error) 
 }
 
 func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStructuralFeature) {
-	asyncOperation(
-		s,
-		context.Background(),
-		s.scheduleOperation(context.Background(), newOperation("SetContainer", operationWrite, object, feature, false, -1, container, func() (any, error) {
-			return s.doSetContainer(object, container, feature)
-		})))
+	// if this method is called from a scheduled operation, execute doSetContainer in the current goroutine
+	// otherwise schedule operation doSetContainer operation
+	goid := goid.Get()
+	sync := false
+	s.mutexGoRoutines.Lock()
+	if objects := s.goroutines[goid]; objects != nil {
+		_, sync = objects[object]
+	}
+	s.mutexGoRoutines.Unlock()
+	if sync {
+		s.doSetContainer(object, container, feature)
+	} else {
+		asyncOperation(
+			s,
+			context.Background(),
+			s.scheduleOperation(context.Background(), newOperation("SetContainer", operationWrite, object, feature, false, -1, container, func() (any, error) {
+				return s.doSetContainer(object, container, feature)
+			})))
+	}
 }
 
 func (s *SQLStore) doSetContainer(object EObject, container EObject, feature EStructuralFeature) (any, error) {

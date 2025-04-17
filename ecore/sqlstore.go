@@ -500,8 +500,13 @@ func (m *operationMarshaler) MarshalLogObject(e zapcore.ObjectEncoder) error {
 	e.AddString("feature", featureString)
 	e.AddBool("contents", op.contents)
 	e.AddInt("index", op.index)
-	if err := e.AddReflected("value", op.value); err != nil {
-		return err
+	switch v := op.value.(type) {
+	case EObject:
+		e.AddString("value", fmt.Sprintf("%s(%p)", v.EClass().GetName(), v))
+	default:
+		if err := e.AddReflected("value", op.value); err != nil {
+			return err
+		}
 	}
 	return nil
 }

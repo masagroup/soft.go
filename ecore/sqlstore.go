@@ -2051,7 +2051,7 @@ func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStru
 	}
 	s.mutexGoRoutines.Unlock()
 	if sync {
-		s.doSetContainer(object, container, feature)
+		_, _ = s.doSetContainer(object, container, feature)
 	} else {
 		asyncOperation(
 			s,

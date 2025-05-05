@@ -1028,6 +1028,25 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 	op.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		goid := goid.Get()
 		logger := logger.With(zap.Int64("goid", goid), zap.Int64("id", op.id))
+		rejectWithLogger := func(err error) {
+			if err != context.Err() {
+				s.logger.Error("error",
+					zap.Object("operation", newOperationMarshaler(op)),
+					zap.Error(err))
+			}
+			reject(err)
+		}
+
+		defer func() {
+			switch err := recover(); v := err.(type) {
+			case nil:
+				return
+			case error:
+				rejectWithLogger(v)
+			default:
+				rejectWithLogger(fmt.Errorf("%+v", v))
+			}
+		}()
 
 		// associate all objets to this goroutine
 		s.mutexGoRoutines.Lock()
@@ -1046,7 +1065,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 			}
 			promises := mapSet(previous, func(o *operation) *promise.Promise[any] { return o.promise })
 			if _, err := promise.AllWithPool(context, s.promisePool, promises...).Await(context); err != nil {
-				reject(fmt.Errorf("error in previous operation: %w", err))
+				rejectWithLogger(fmt.Errorf("error in previous operation: %w", err))
 				return
 			}
 		}
@@ -1061,7 +1080,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 		defer s.mutexOperations.Unlock()
 		for _, of := range registeredObjectFeatures {
 			if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
-				reject(err)
+				rejectWithLogger(err)
 				return
 			}
 		}
@@ -1073,7 +1092,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 
 		// result or error
 		if err != nil {
-			reject(err)
+			rejectWithLogger(err)
 		} else {
 			resolve(result)
 		}
@@ -1177,9 +1196,11 @@ func awaitOperation[T any](s *SQLStore, ctx context.Context, op *operation) T {
 // don't w8 for the result of the operation but handle error
 func asyncOperation(s *SQLStore, ctx context.Context, op *operation) {
 	_ = promise.CatchWithPool(op.promise, ctx, func(err error) error {
-		s.logger.Error("error",
-			zap.Object("operation", newOperationMarshaler(op)),
-			zap.Error(err))
+		if err != ctx.Err() {
+			s.logger.Error("error",
+				zap.Object("operation", newOperationMarshaler(op)),
+				zap.Error(err))
+		}
 		return err
 	}, s.promisePool)
 }

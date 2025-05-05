@@ -1025,7 +1025,7 @@ func (d *SQLDecoder) decodeFeatures() error {
 		}
 	}
 	if len(decoding) > 0 {
-		_, err := promise.All(context.Background(), decoding...).Await(context.Background())
+		_, err := promise.AllWithPool(context.Background(), d.promisePool, decoding...).Await(context.Background())
 		if err != nil {
 			return err
 		}

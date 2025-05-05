@@ -176,7 +176,7 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 				e.Write(zap.Int64s("previous", mapSet(previous, func(query *query) int64 { return query.id })))
 			}
 			promises := mapSet(previous, func(query *query) *promise.Promise[any] { return query.promise })
-			if _, err := promise.All(context.Background(), promises...).Await(context.Background()); err != nil {
+			if _, err := promise.AllWithPool(context.Background(), s.promisePool, promises...).Await(context.Background()); err != nil {
 				logger.Debug("error in previous query", zap.Error(err))
 				reject(err)
 				return

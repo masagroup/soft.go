@@ -1045,7 +1045,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 				e.Write(zap.Int64s("previous", mapSet(previous, func(o *operation) int64 { return o.id })))
 			}
 			promises := mapSet(previous, func(o *operation) *promise.Promise[any] { return o.promise })
-			if _, err := promise.All(context, promises...).Await(context); err != nil {
+			if _, err := promise.AllWithPool(context, s.promisePool, promises...).Await(context); err != nil {
 				reject(fmt.Errorf("error in previous operation: %w", err))
 				return
 			}

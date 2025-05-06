@@ -1442,16 +1442,18 @@ func TestSQLStore_Add_Invalid(t *testing.T) {
 	require.Nil(t, err)
 
 	// create store
-	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	logger := newTestLogger(t.Name(), t)
+	options := map[string]any{SQL_OPTION_LOGGER: logger}
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, options)
 	require.Nil(t, err)
 	require.NotNil(t, s)
 	defer s.Close()
 
-	// mockObject := NewMockSQLObject(t)
-	// mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
-	// mockObject.EXPECT().SetSQLID(int64(5)).Once()
-	// mockObject.EXPECT().EClass().Return(eClass).Once()
-	//assert.Panics(t, func() { s.Add(mockObject, eFeature, 6, "c") })
+	mockObject := NewMockSQLObject(t)
+	mockObject.EXPECT().GetSQLID().Return(int64(5)).Once()
+	mockObject.EXPECT().SetSQLID(int64(5)).Once()
+	mockObject.EXPECT().EClass().Return(eClass)
+	s.Add(mockObject, eFeature, 6, "c")
 }
 
 func TestSQLStore_AddAll(t *testing.T) {

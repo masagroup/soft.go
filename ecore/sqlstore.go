@@ -2194,9 +2194,9 @@ func (s *SQLStore) Close() error {
 			zap.Int64("goid", goid.Get()),
 		)
 
-		if err := s.WaitOperations(context.Background(), nil); err != nil {
-			return err
-		}
+		// error is an an operation error and is handled with the logger
+		// ignore it
+		_ = s.WaitOperations(context.Background(), nil)
 
 		if err := s.connPoolClose(s.connPool); err != nil {
 			return err

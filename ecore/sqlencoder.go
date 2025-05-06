@@ -118,7 +118,7 @@ func (r *sqlEncoderObjectManager) registerObject(EObject) {
 }
 
 type sqlEncoderLock struct {
-	mutex    sync.Mutex
+	mutex    *sync.Mutex
 	refCount atomic.Int64
 }
 
@@ -133,29 +133,41 @@ func newSqlEncoderLockManager() *sqlEncoderLockManager {
 	}
 }
 
-func (l *sqlEncoderLockManager) lock(object any) {
+func (l *sqlEncoderLockManager) getMutex(object any) *sync.Mutex {
+	// lock manager
 	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	// retrieve lock
 	lock := l.locks[object]
 	if lock == nil {
-		lock = &sqlEncoderLock{}
+		lock = &sqlEncoderLock{mutex: &sync.Mutex{}}
 		l.locks[object] = lock
 	}
-	l.mutex.Unlock()
+	// increase use count
 	lock.refCount.Add(1)
-	lock.mutex.Lock()
 
+	return lock.mutex
+}
+
+func (l *sqlEncoderLockManager) releaseMutex(object any) {
+	// lock manager
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	// cleanup mutex if refcount is 0
+	if lock := l.locks[object]; lock != nil && lock.refCount.Add(-1) == 0 {
+		delete(l.locks, object)
+	}
+}
+
+func (l *sqlEncoderLockManager) lock(object any) {
+	mutex := l.getMutex(object)
+	mutex.Lock()
 }
 
 func (l *sqlEncoderLockManager) unlock(object any) {
-	l.mutex.Lock()
-	lock := l.locks[object]
-	if lock != nil {
-		if lock.refCount.Add(-1) == 0 {
-			delete(l.locks, object)
-		}
-		lock.mutex.Unlock()
-	}
-	l.mutex.Unlock()
+	mutex := l.getMutex(object)
+	mutex.Unlock()
+	l.releaseMutex(object)
 }
 
 type sqlEncoder struct {

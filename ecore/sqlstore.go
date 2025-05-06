@@ -1028,6 +1028,33 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 	op.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		goid := goid.Get()
 		logger := logger.With(zap.Int64("goid", goid), zap.Int64("id", op.id))
+		// handle error
+		handleError := func(err error) {
+			if err != context.Err() {
+				s.logger.Error("error",
+					zap.Object("operation", newOperationMarshaler(op)),
+					zap.Error(err))
+			}
+			reject(err)
+		}
+		// handle panic
+		handlePanic := func() {
+			var err error
+			switch recover := recover(); v := recover.(type) {
+			case nil:
+				return
+			case error:
+				err = v
+			default:
+				err = fmt.Errorf("%+v", v)
+			}
+			s.logger.Error("error",
+				zap.Object("operation", newOperationMarshaler(op)),
+				zap.Error(err),
+				zap.Stack("stack"))
+			reject(err)
+		}
+		defer handlePanic()
 
 		// associate all objets to this goroutine
 		s.mutexGoRoutines.Lock()
@@ -1045,8 +1072,8 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 				e.Write(zap.Int64s("previous", mapSet(previous, func(o *operation) int64 { return o.id })))
 			}
 			promises := mapSet(previous, func(o *operation) *promise.Promise[any] { return o.promise })
-			if _, err := promise.All(context, promises...).Await(context); err != nil {
-				reject(fmt.Errorf("error in previous operation: %w", err))
+			if _, err := promise.AllWithPool(context, s.promisePool, promises...).Await(context); err != nil {
+				handleError(fmt.Errorf("error in previous operation: %w", err))
 				return
 			}
 		}
@@ -1061,7 +1088,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 		defer s.mutexOperations.Unlock()
 		for _, of := range registeredObjectFeatures {
 			if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
-				reject(err)
+				handleError(err)
 				return
 			}
 		}
@@ -1073,7 +1100,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 
 		// result or error
 		if err != nil {
-			reject(err)
+			handleError(err)
 		} else {
 			resolve(result)
 		}
@@ -1158,30 +1185,15 @@ func (s *SQLStore) unregisterOperation(object EObject, feature EStructuralFeatur
 }
 
 // w8 for the result of the operation
-func awaitOperation[T any](s *SQLStore, ctx context.Context, op *operation) T {
+func awaitOperation[T any](ctx context.Context, op *operation) T {
 	var def T
 	if r, err := op.promise.Await(ctx); err != nil {
-		if err != ctx.Err() {
-			s.logger.Error("error",
-				zap.Object("operation", newOperationMarshaler(op)),
-				zap.Error(err))
-		}
 		return def
 	} else if result, isResult := (*r).(T); isResult {
 		return result
 	} else {
 		return def
 	}
-}
-
-// don't w8 for the result of the operation but handle error
-func asyncOperation(s *SQLStore, ctx context.Context, op *operation) {
-	_ = promise.CatchWithPool(op.promise, ctx, func(err error) error {
-		s.logger.Error("error",
-			zap.Object("operation", newOperationMarshaler(op)),
-			zap.Error(err))
-		return err
-	}, s.promisePool)
 }
 
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
@@ -1192,7 +1204,6 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 		}
 	}
 	return awaitOperation[any](
-		s,
 		context.Background(),
 		s.scheduleOperation(
 			context.Background(),
@@ -1249,9 +1260,7 @@ func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, va
 			return s.doSet(object, feature, index, value, needResult)
 		}))
 	if needResult {
-		oldValue = awaitOperation[any](s, context.Background(), op)
-	} else {
-		asyncOperation(s, context.Background(), op)
+		oldValue = awaitOperation[any](context.Background(), op)
 	}
 	return
 }
@@ -1307,7 +1316,6 @@ func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 		}
 	}
 	return awaitOperation[bool](
-		s,
 		context.Background(),
 		s.scheduleOperation(
 			context.Background(),
@@ -1359,7 +1367,6 @@ func (s *SQLStore) doIsSet(object EObject, feature EStructuralFeature) (bool, er
 
 func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
 	awaitOperation[any](
-		s,
 		context.Background(),
 		s.scheduleOperation(
 			context.Background(),
@@ -1396,7 +1403,6 @@ func (s *SQLStore) doUnSet(object EObject, feature EStructuralFeature) (any, err
 
 func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
 	return awaitOperation[bool](
-		s,
 		context.Background(),
 		s.scheduleOperation(
 			context.Background(),
@@ -1436,7 +1442,6 @@ func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, 
 
 func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
 	return awaitOperation[int](
-		s,
 		context.Background(),
 		s.scheduleOperation(
 			context.Background(),
@@ -1474,7 +1479,6 @@ func (s *SQLStore) doSize(object EObject, feature EStructuralFeature) (int, erro
 
 func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value any) bool {
 	return awaitOperation[bool](
-		s,
 		context.Background(),
 		s.scheduleOperation(context.Background(), newOperation("Contains", operationRead, object, feature, false, -1, value, func() (any, error) {
 			return s.doContains(object, feature, value)
@@ -1567,7 +1571,6 @@ func (s *SQLStore) doIndexOf(object EObject, feature EStructuralFeature, value a
 
 func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
 	return awaitOperation[int](
-		s,
 		context.Background(),
 		s.scheduleOperation(
 			context.Background(),
@@ -1580,7 +1583,6 @@ func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any
 
 func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {
 	return awaitOperation[int](
-		s,
 		context.Background(),
 		s.scheduleOperation(
 			context.Background(),
@@ -1593,12 +1595,9 @@ func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value
 
 // AddRoot add object as store root
 func (s *SQLStore) AddRoot(object EObject) {
-	asyncOperation(
-		s,
-		context.Background(),
-		s.scheduleOperation(context.Background(), newOperation("AddRoot", operationWrite, nil, nil, false, -1, nil, func() (any, error) {
-			return s.doAddRoot(object)
-		})))
+	s.scheduleOperation(context.Background(), newOperation("AddRoot", operationWrite, nil, nil, false, -1, nil, func() (any, error) {
+		return s.doAddRoot(object)
+	}))
 }
 
 func (s *SQLStore) doAddRoot(object EObject) (any, error) {
@@ -1607,12 +1606,9 @@ func (s *SQLStore) doAddRoot(object EObject) (any, error) {
 
 // RemoveRoot implements EStore.
 func (s *SQLStore) RemoveRoot(object EObject) {
-	asyncOperation(
-		s,
-		context.Background(),
-		s.scheduleOperation(context.Background(), newOperation("RemoveRoot", operationWrite, nil, nil, false, -1, nil, func() (any, error) {
-			return s.doRemoveRoot(object)
-		})))
+	s.scheduleOperation(context.Background(), newOperation("RemoveRoot", operationWrite, nil, nil, false, -1, nil, func() (any, error) {
+		return s.doRemoveRoot(object)
+	}))
 }
 
 func (s *SQLStore) doRemoveRoot(object EObject) (any, error) {
@@ -1635,7 +1631,6 @@ func (s *SQLStore) doRemoveRoot(object EObject) (any, error) {
 // GetRoot return root objects
 func (s *SQLStore) GetRoots() []EObject {
 	return awaitOperation[[]EObject](
-		s,
 		context.Background(),
 		s.scheduleOperation(
 			context.Background(), newOperation("GetRoots", operationRead, nil, nil, false, -1, nil, func() (any, error) {
@@ -1700,14 +1695,11 @@ func (s *SQLStore) UnRegister(object EObject, withContents bool) *promise.Promis
 }
 
 func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, value any) {
-	asyncOperation(
-		s,
+	s.scheduleOperation(
 		context.Background(),
-		s.scheduleOperation(
-			context.Background(),
-			newOperation("Add", operationWrite, object, feature, false, index, value, func() (any, error) {
-				return s.doAdd(object, feature, index, value)
-			})))
+		newOperation("Add", operationWrite, object, feature, false, index, value, func() (any, error) {
+			return s.doAdd(object, feature, index, value)
+		}))
 }
 
 func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, value any) (any, error) {
@@ -1738,14 +1730,11 @@ func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, 
 }
 
 func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int, c Collection) {
-	asyncOperation(
-		s,
+	s.scheduleOperation(
 		context.Background(),
-		s.scheduleOperation(
-			context.Background(),
-			newOperation("AddAll", operationWrite, object, feature, false, index, c, func() (any, error) {
-				return s.doAddAll(object, feature, index, c)
-			})))
+		newOperation("AddAll", operationWrite, object, feature, false, index, c, func() (any, error) {
+			return s.doAddAll(object, feature, index, c)
+		}))
 }
 
 func (s *SQLStore) doAddAll(object EObject, feature EStructuralFeature, index int, c Collection) (any, error) {
@@ -1840,11 +1829,9 @@ func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int,
 			return s.doRemove(object, feature, index, needResult)
 		}))
 	if needResult {
-		return awaitOperation[any](s, context.Background(), op)
-	} else {
-		asyncOperation(s, context.Background(), op)
-		return nil
+		return awaitOperation[any](context.Background(), op)
 	}
+	return nil
 }
 
 func (s *SQLStore) doRemove(object EObject, feature EStructuralFeature, index int, needResult bool) (decoded any, err error) {
@@ -1891,7 +1878,6 @@ func (mi moveIndexes) String() string {
 
 func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) any {
 	return awaitOperation[any](
-		s,
 		context.Background(),
 		s.scheduleOperation(
 			context.Background(),
@@ -1945,12 +1931,9 @@ func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceInde
 }
 
 func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
-	asyncOperation(
-		s,
-		context.Background(),
-		s.scheduleOperation(context.Background(), newOperation("Clear", operationWrite, object, feature, false, -1, nil, func() (any, error) {
-			return s.doClear(object, feature)
-		})))
+	s.scheduleOperation(context.Background(), newOperation("Clear", operationWrite, object, feature, false, -1, nil, func() (any, error) {
+		return s.doClear(object, feature)
+	}))
 }
 
 func (s *SQLStore) doClear(object EObject, feature EStructuralFeature) (any, error) {
@@ -1979,7 +1962,6 @@ type containerAndFeature struct {
 
 func (s *SQLStore) GetContainer(object EObject) (EObject, EStructuralFeature) {
 	if result := awaitOperation[*containerAndFeature](
-		s,
 		context.Background(),
 		s.scheduleOperation(
 			context.Background(),
@@ -2051,14 +2033,11 @@ func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStru
 	}
 	s.mutexGoRoutines.Unlock()
 	if sync {
-		s.doSetContainer(object, container, feature)
+		_, _ = s.doSetContainer(object, container, feature)
 	} else {
-		asyncOperation(
-			s,
-			context.Background(),
-			s.scheduleOperation(context.Background(), newOperation("SetContainer", operationWrite, object, feature, false, -1, container, func() (any, error) {
-				return s.doSetContainer(object, container, feature)
-			})))
+		s.scheduleOperation(context.Background(), newOperation("SetContainer", operationWrite, object, feature, false, -1, container, func() (any, error) {
+			return s.doSetContainer(object, container, feature)
+		}))
 	}
 }
 
@@ -2092,7 +2071,6 @@ func (s *SQLStore) doSetContainer(object EObject, container EObject, feature ESt
 func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any] {
 	return func(yield func(any) bool) {
 		awaitOperation[any](
-			s,
 			context.Background(),
 			s.scheduleOperation(
 				context.Background(),
@@ -2216,9 +2194,9 @@ func (s *SQLStore) Close() error {
 			zap.Int64("goid", goid.Get()),
 		)
 
-		if err := s.WaitOperations(context.Background(), nil); err != nil {
-			return err
-		}
+		// error is an an operation error and is handled with the logger
+		// ignore it
+		_ = s.WaitOperations(context.Background(), nil)
 
 		if err := s.connPoolClose(s.connPool); err != nil {
 			return err

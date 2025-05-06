@@ -2,6 +2,7 @@ package ecore
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -1930,4 +1931,29 @@ func TestSQLStore_UnRegister(t *testing.T) {
 	mockObject.EXPECT().EContents().Return(NewImmutableEList([]any{mockObject2})).Once()
 	mockObject2.EXPECT().EContents().Return(NewImmutableEList([]any{})).Once()
 	s.UnRegister(mockObject, true)
+}
+
+func TestSQLStore_Panics(t *testing.T) {
+	logger := newTestLogger(t.Name(), t)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	options := map[string]any{SQL_OPTION_LOGGER: logger}
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, options)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	s.scheduleOperation(context.Background(), newOperation("test", operationRead, nil, nil, false, 0, nil, func() (any, error) {
+		panic("invalid test")
+	}))
+
+	s.scheduleOperation(context.Background(), newOperation("test", operationRead, nil, nil, false, 0, nil, func() (any, error) {
+		panic(errors.New("invalid test"))
+	}))
 }

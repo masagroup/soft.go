@@ -1028,7 +1028,8 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 	op.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		goid := goid.Get()
 		logger := logger.With(zap.Int64("goid", goid), zap.Int64("id", op.id))
-		rejectWithLogger := func(err error) {
+		// handle error
+		handleError := func(err error) {
 			if err != context.Err() {
 				s.logger.Error("error",
 					zap.Object("operation", newOperationMarshaler(op)),
@@ -1036,17 +1037,24 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 			}
 			reject(err)
 		}
-
-		defer func() {
-			switch err := recover(); v := err.(type) {
+		// handle panic
+		handlePanic := func() {
+			var err error
+			switch recover := recover(); v := recover.(type) {
 			case nil:
 				return
 			case error:
-				rejectWithLogger(v)
+				err = v
 			default:
-				rejectWithLogger(fmt.Errorf("%+v", v))
+				err = fmt.Errorf("%+v", v)
 			}
-		}()
+			s.logger.Error("error",
+				zap.Object("operation", newOperationMarshaler(op)),
+				zap.Error(err),
+				zap.Stack("stack"))
+			reject(err)
+		}
+		defer handlePanic()
 
 		// associate all objets to this goroutine
 		s.mutexGoRoutines.Lock()
@@ -1065,7 +1073,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 			}
 			promises := mapSet(previous, func(o *operation) *promise.Promise[any] { return o.promise })
 			if _, err := promise.AllWithPool(context, s.promisePool, promises...).Await(context); err != nil {
-				rejectWithLogger(fmt.Errorf("error in previous operation: %w", err))
+				handleError(fmt.Errorf("error in previous operation: %w", err))
 				return
 			}
 		}
@@ -1080,7 +1088,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 		defer s.mutexOperations.Unlock()
 		for _, of := range registeredObjectFeatures {
 			if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
-				rejectWithLogger(err)
+				handleError(err)
 				return
 			}
 		}
@@ -1092,7 +1100,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 
 		// result or error
 		if err != nil {
-			rejectWithLogger(err)
+			handleError(err)
 		} else {
 			resolve(result)
 		}

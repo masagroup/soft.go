@@ -125,11 +125,17 @@ type sqlEncoderLock struct {
 type sqlEncoderLockManager struct {
 	mutex sync.Mutex
 	locks map[any]*sqlEncoderLock
+	pool  sync.Pool
 }
 
 func newSqlEncoderLockManager() *sqlEncoderLockManager {
 	return &sqlEncoderLockManager{
 		locks: map[any]*sqlEncoderLock{},
+		pool: sync.Pool{
+			New: func() any {
+				return &sync.Mutex{}
+			},
+		},
 	}
 }
 
@@ -140,7 +146,8 @@ func (l *sqlEncoderLockManager) getMutex(object any) *sync.Mutex {
 	// retrieve lock
 	lock := l.locks[object]
 	if lock == nil {
-		lock = &sqlEncoderLock{mutex: &sync.Mutex{}}
+		mutex := l.pool.Get().(*sync.Mutex)
+		lock = &sqlEncoderLock{mutex: mutex}
 		l.locks[object] = lock
 	}
 	// increase use count
@@ -155,6 +162,8 @@ func (l *sqlEncoderLockManager) releaseMutex(object any) {
 	defer l.mutex.Unlock()
 	// cleanup mutex if refcount is 0
 	if lock := l.locks[object]; lock != nil && lock.refCount.Add(-1) == 0 {
+		l.pool.Put(lock.mutex)
+
 		delete(l.locks, object)
 	}
 }

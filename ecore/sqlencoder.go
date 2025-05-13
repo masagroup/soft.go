@@ -125,49 +125,56 @@ type sqlEncoderLock struct {
 type sqlEncoderLockManager struct {
 	mutex sync.Mutex
 	locks map[any]*sqlEncoderLock
+	pool  sync.Pool
 }
 
 func newSqlEncoderLockManager() *sqlEncoderLockManager {
 	return &sqlEncoderLockManager{
 		locks: map[any]*sqlEncoderLock{},
+		pool: sync.Pool{
+			New: func() any {
+				return &sync.Mutex{}
+			},
+		},
 	}
 }
 
-func (l *sqlEncoderLockManager) getMutex(object any) *sync.Mutex {
-	// lock manager
+func (l *sqlEncoderLockManager) aquireMutex(object any) *sync.Mutex {
 	l.mutex.Lock()
-	defer l.mutex.Unlock()
-	// retrieve lock
 	lock := l.locks[object]
 	if lock == nil {
-		lock = &sqlEncoderLock{mutex: &sync.Mutex{}}
+		mutex := l.pool.Get().(*sync.Mutex)
+		lock = &sqlEncoderLock{mutex: mutex}
 		l.locks[object] = lock
 	}
-	// increase use count
 	lock.refCount.Add(1)
-
+	l.mutex.Unlock()
 	return lock.mutex
 }
 
-func (l *sqlEncoderLockManager) releaseMutex(object any) {
-	// lock manager
+func (l *sqlEncoderLockManager) releaseMutex(object any) *sync.Mutex {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
-	// cleanup mutex if refcount is 0
-	if lock := l.locks[object]; lock != nil && lock.refCount.Add(-1) == 0 {
-		delete(l.locks, object)
+	if lock := l.locks[object]; lock != nil {
+		if lock.refCount.Add(-1) == 0 {
+			l.pool.Put(lock.mutex)
+			delete(l.locks, object)
+		}
+		return lock.mutex
 	}
+	return nil
 }
 
 func (l *sqlEncoderLockManager) lock(object any) {
-	mutex := l.getMutex(object)
-	mutex.Lock()
+	if mutex := l.aquireMutex(object); mutex != nil {
+		mutex.Lock()
+	}
 }
 
 func (l *sqlEncoderLockManager) unlock(object any) {
-	mutex := l.getMutex(object)
-	mutex.Unlock()
-	l.releaseMutex(object)
+	if mutex := l.releaseMutex(object); mutex != nil {
+		mutex.Unlock()
+	}
 }
 
 type sqlEncoder struct {

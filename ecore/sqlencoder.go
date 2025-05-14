@@ -185,6 +185,12 @@ type sqlEncoder struct {
 	sqlIDManager     SQLEncoderIDManager
 	sqlObjectManager sqlObjectManager
 	sqlLockManager   *sqlEncoderLockManager
+	encoderLogger    *zap.Logger
+}
+
+func (e *sqlEncoder) setLogger(logger *zap.Logger) {
+	e.sqlBase.setLogger(logger)
+	e.encoderLogger = logger.Named("encoder")
 }
 
 func (e *sqlEncoder) encodeVersion() error {
@@ -272,7 +278,7 @@ func (e *sqlEncoder) shouldEncodeFeature(eObject EObject, eFeature EStructuralFe
 }
 
 func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, containerFeatureID int64) (id int64, err error) {
-	logger := e.logger.Named("encoder").With(zap.Stringer("object", ptrField{eObject}), zap.String("class", eObject.EClass().GetName()))
+	logger := e.encoderLogger.With(zap.Stringer("object", ptrField{eObject}), zap.String("class", eObject.EClass().GetName()))
 	logger.Debug("object encode")
 	sqlObjectID, isSqlObjectID := e.sqlIDManager.GetObjectID(eObject)
 	if !isSqlObjectID {
@@ -492,7 +498,7 @@ func (e *sqlEncoder) encodeEnumLiteral(eEnumLiteral EEnumLiteral) (any, error) {
 }
 
 func (e *sqlEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
-	logger := e.logger.Named("encoder").With(zap.String("class", eClass.GetName()))
+	logger := e.encoderLogger.With(zap.String("class", eClass.GetName()))
 	logger.Debug("class encode")
 
 	// retrieve class data
@@ -562,7 +568,7 @@ func (e *sqlEncoder) encodeClass(eClass EClass) (*sqlEncoderClassData, error) {
 }
 
 func (e *sqlEncoder) getEncoderClassData(eClass EClass) (*sqlEncoderClassData, error) {
-	logger := e.logger.Named("encoder").With(zap.String("class", eClass.GetName()))
+	logger := e.encoderLogger.With(zap.String("class", eClass.GetName()))
 
 	// lock class
 	e.sqlLockManager.lock(eClass)
@@ -827,7 +833,7 @@ func newSQLEncoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 	promisePool := promise.FromAntsPool(antsPool)
 
 	// encoder structure
-	return &SQLEncoder{
+	e := &SQLEncoder{
 		sqlEncoder: sqlEncoder{
 			sqlBase: &sqlBase{
 				codecVersion:     codecVersion,
@@ -838,7 +844,6 @@ func newSQLEncoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 				isObjectID:       isObjectID,
 				schema:           newSqlSchema(schemaOptions...),
 				sqliteQueries:    map[string][]*query{},
-				logger:           logger,
 				antsPool:         antsPool,
 				promisePool:      promisePool,
 				connPoolProvider: connectionPoolProvider,
@@ -853,6 +858,8 @@ func newSQLEncoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 		},
 		resource: resource,
 	}
+	e.setLogger(logger)
+	return e
 }
 
 func (e *SQLEncoder) EncodeResource() {

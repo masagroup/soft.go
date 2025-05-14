@@ -770,14 +770,14 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 	antsPool, _ := ants.NewPool(-1, ants.WithLogger(&zapLogger{logger.Named("ants")}))
 	promisePool := promise.FromAntsPool(antsPool)
 
-	return &SQLDecoder{
+	// decoder
+	d := &SQLDecoder{
 		sqlDecoder: sqlDecoder{
 			sqlBase: &sqlBase{
 				codecVersion:     codecVersion,
 				uri:              resource.GetURI(),
 				objectIDManager:  resource.GetObjectIDManager(),
 				sqliteQueries:    map[string][]*query{},
-				logger:           logger,
 				antsPool:         antsPool,
 				promisePool:      promisePool,
 				connPoolProvider: connectionPoolProvider,
@@ -792,6 +792,8 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 		withFeatures: withFeatures,
 		withObjects:  withObjects,
 	}
+	d.setLogger(logger)
+	return d
 }
 
 func (d *SQLDecoder) DecodeResource() {

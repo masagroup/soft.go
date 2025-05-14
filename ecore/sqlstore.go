@@ -520,11 +520,11 @@ type SQLStore struct {
 	singleQueries    map[*sqlColumn]*sqlSingleQueries
 	manyQueries      map[*sqlTable]*sqlManyQueries
 	mutexQueries     sync.Mutex
+	loggerOperations *zap.Logger
 	objectOperations map[EObject]map[EStructuralFeature][]*operation
 	mutexOperations  sync.Mutex
 	goroutines       map[int64]map[EObject]struct{}
 	mutexGoRoutines  sync.Mutex
-	logger           *zap.Logger
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -692,7 +692,6 @@ func newSQLStore(
 		isContainerID:    true,
 		isObjectID:       len(objectIDName) > 0 && objectIDName != "objectID" && idManager != nil,
 		sqliteQueries:    map[string][]*query{},
-		logger:           logger,
 		antsPool:         antsPool,
 		promisePool:      promisePool,
 		connPool:         connPool,
@@ -724,8 +723,10 @@ func newSQLStore(
 		manyQueries:      map[*sqlTable]*sqlManyQueries{},
 		objectOperations: map[EObject]map[EStructuralFeature][]*operation{},
 		goroutines:       map[int64]map[EObject]struct{}{},
-		logger:           logger,
 	}
+
+	// set store logger
+	store.setLogger(logger)
 
 	// set store in sql object manager
 	sqlObjectManager.store = store
@@ -756,6 +757,12 @@ func newSQLStore(
 	}
 
 	return store, nil
+}
+
+func (s *SQLStore) setLogger(logger *zap.Logger) {
+	s.sqlBase.setLogger(logger)
+	s.sqlEncoder.setLogger(logger)
+	s.loggerOperations = logger.Named("ops")
 }
 
 func (s *SQLStore) getSingleQueries(column *sqlColumn) *sqlSingleQueries {
@@ -895,7 +902,6 @@ func mapSlice[S ~[]E, E, R any](slice S, mapper func(int, E) R) []R {
 }
 
 func (s *SQLStore) WaitOperations(context context.Context, object any) error {
-	logger := s.logger.Named("ops")
 	for {
 		// compute operations to wait for
 		s.mutexOperations.Lock()
@@ -916,7 +922,7 @@ func (s *SQLStore) WaitOperations(context context.Context, object any) error {
 		// wait for operations to be finished
 		if len(allOperations) > 0 {
 			// debug
-			if e := logger.Check(zap.DebugLevel, "waiting operations"); e != nil {
+			if e := s.loggerOperations.Check(zap.DebugLevel, "waiting operations"); e != nil {
 				e.Write(zap.Int64s("operations", mapSlice(allOperations, func(index int, op *operation) int64 { return op.id })))
 			}
 			// compute promises
@@ -927,7 +933,7 @@ func (s *SQLStore) WaitOperations(context context.Context, object any) error {
 				return err
 			}
 		} else {
-			logger.Debug("waiting operations finished")
+			s.loggerOperations.Debug("waiting operations finished")
 			return nil
 		}
 	}
@@ -985,8 +991,7 @@ func (s *SQLStore) objectFeaturesIterator(of objectFeature) iter.Seq[objectFeatu
 // s.objectOperations[object][nil] all operations for object
 // s.objectOperations[object][feature] all operations for object-feature
 func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *operation {
-	logger := s.logger.Named("ops")
-	if e := logger.Check(zap.DebugLevel, "schedule"); e != nil {
+	if e := s.loggerOperations.Check(zap.DebugLevel, "schedule"); e != nil {
 		e.Write(zap.Int64("goid", goid.Get()), zap.Object("operation", newOperationMarshaler(op)))
 	}
 
@@ -1027,7 +1032,6 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 	// create promise
 	op.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		goid := goid.Get()
-		logger := logger.With(zap.Int64("goid", goid), zap.Int64("id", op.id))
 		// handle error
 		handleError := func(err error) {
 			if err != context.Err() {
@@ -1068,8 +1072,12 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 
 		// wait for previous operations
 		if len(previous) > 0 {
-			if e := logger.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
-				e.Write(zap.Int64s("previous", mapSet(previous, func(o *operation) int64 { return o.id })))
+			if e := s.loggerOperations.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
+				e.Write(
+					zap.Int64("goid", goid),
+					zap.Int64("id", op.id),
+					zap.Int64s("previous", mapSet(previous, func(o *operation) int64 { return o.id })),
+				)
 			}
 			promises := mapSet(previous, func(o *operation) *promise.Promise[any] { return o.promise })
 			if _, err := promise.AllWithPool(context, s.promisePool, promises...).Await(context); err != nil {
@@ -1079,11 +1087,21 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 		}
 
 		// execute operation
-		logger.Debug("execute")
+		if e := s.loggerOperations.Check(zap.DebugLevel, "execute"); e != nil {
+			e.Write(
+				zap.Int64("goid", goid),
+				zap.Int64("id", op.id),
+			)
+		}
 		result, err := op.fn()
 
 		// clean operations
-		logger.Debug("cleaning")
+		if e := s.loggerOperations.Check(zap.DebugLevel, "cleaning"); e != nil {
+			e.Write(
+				zap.Int64("goid", goid),
+				zap.Int64("id", op.id),
+			)
+		}
 		s.mutexOperations.Lock()
 		defer s.mutexOperations.Unlock()
 		for _, of := range registeredObjectFeatures {
@@ -1092,10 +1110,15 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 				return
 			}
 		}
-		logger.Debug("cleaned")
+		if e := s.loggerOperations.Check(zap.DebugLevel, "cleaned"); e != nil {
+			e.Write(
+				zap.Int64("goid", goid),
+				zap.Int64("id", op.id),
+			)
+		}
 
 		if len(s.objectOperations) == 0 {
-			logger.Debug("no pending")
+			s.loggerOperations.Debug("no pending")
 		}
 
 		// result or error

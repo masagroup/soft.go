@@ -117,11 +117,17 @@ type sqlBase struct {
 	sqliteMutex      sync.Mutex
 	sqliteQueries    map[string][]*query
 	logger           *zap.Logger
+	sqliteLogger     *zap.Logger
 	antsPool         *ants.Pool
 	promisePool      promise.Pool
 	connPool         *sqlitex.Pool
 	connPoolProvider func() (*sqlitex.Pool, error)
 	connPoolClose    func(conn *sqlitex.Pool) error
+}
+
+func (s *sqlBase) setLogger(logger *zap.Logger) {
+	s.logger = logger
+	s.sqliteLogger = logger.Named("sqlite")
 }
 
 // execute sqlite cmd
@@ -131,12 +137,12 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 	q := newQuery(cmd)
 
 	// log
-	if e := s.logger.Named("sqlite").Check(zap.DebugLevel, "schedule"); e != nil {
+	if e := s.sqliteLogger.Check(zap.DebugLevel, "schedule"); e != nil {
 		args := []zap.Field{zap.Int64("id", q.id), zap.Int64("goid", goid.Get()), zap.String("query", cmd)}
 		if opts != nil {
 			args = append(args, zap.Any("args", opts.Args))
 		}
-		s.logger.Named("sqlite").Debug("schedule", args...)
+		e.Write(args...)
 	}
 
 	// lock sqlite
@@ -169,15 +175,24 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 
 	// create query promise
 	q.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
-		logger := s.logger.Named("sqlite").With(zap.Int64("id", q.id), zap.Int64("goid", goid.Get()))
-
+		goid := goid.Get()
 		if len(previous) > 0 {
-			if e := logger.Check(zap.DebugLevel, "waiting previous queries"); e != nil {
-				e.Write(zap.Int64s("previous", mapSet(previous, func(query *query) int64 { return query.id })))
+			if e := s.sqliteLogger.Check(zap.DebugLevel, "waiting previous queries"); e != nil {
+				e.Write(
+					zap.Int64("id", q.id),
+					zap.Int64("goid", goid),
+					zap.Int64s("previous", mapSet(previous, func(query *query) int64 { return query.id })),
+				)
 			}
 			promises := mapSet(previous, func(query *query) *promise.Promise[any] { return query.promise })
 			if _, err := promise.AllWithPool(context.Background(), s.promisePool, promises...).Await(context.Background()); err != nil {
-				logger.Debug("error in previous query", zap.Error(err))
+				if e := s.sqliteLogger.Check(zap.DebugLevel, "error in previous query"); e != nil {
+					e.Write(
+						zap.Int64("id", q.id),
+						zap.Int64("goid", goid),
+						zap.Error(err),
+					)
+				}
 				reject(err)
 				return
 			}
@@ -191,22 +206,26 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 		}
 		defer s.connPool.Put(conn)
 
-		args := []zap.Field{zap.String("query", cmd)}
+		loggerArgs := []zap.Field{zap.Int64("id", q.id), zap.Int64("goid", goid), zap.String("query", cmd)}
 		if opts != nil {
-			args = append(args, zap.Any("args", opts.Args))
+			loggerArgs = append(loggerArgs, zap.Any("args", opts.Args))
 		}
-		executeLogger := logger.With(args...)
-		executeLogger.Debug("executing")
+		s.logger.Log(zap.DebugLevel, "executing", loggerArgs...)
 		if err := fn(conn, cmd, opts); err != nil {
-			executeLogger.Error("executed", zap.Error(err))
+			s.logger.Error("executed", append(loggerArgs, zap.Error(err))...)
 			reject(err)
 			return
 		} else {
-			executeLogger.Debug("executed")
+			s.logger.Log(zap.DebugLevel, "executed", loggerArgs...)
 		}
 
 		// clean query
-		logger.Debug("cleaning")
+		if e := s.sqliteLogger.Check(zap.DebugLevel, "cleaning"); e != nil {
+			e.Write(
+				zap.Int64("id", q.id),
+				zap.Int64("goid", goid),
+			)
+		}
 		s.sqliteMutex.Lock()
 		defer s.sqliteMutex.Unlock()
 
@@ -228,9 +247,14 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 				delete(s.sqliteQueries, table)
 			}
 		}
-		logger.Debug("cleaned")
+		if e := s.sqliteLogger.Check(zap.DebugLevel, "cleaned"); e != nil {
+			e.Write(
+				zap.Int64("id", q.id),
+				zap.Int64("goid", goid),
+			)
+		}
 		if len(s.sqliteQueries) == 0 {
-			logger.Debug("no pending")
+			s.sqliteLogger.Debug("no pending")
 		}
 		resolve(nil)
 	}, s.promisePool)

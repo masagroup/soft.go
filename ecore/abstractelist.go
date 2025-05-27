@@ -3,6 +3,8 @@ package ecore
 import (
 	"iter"
 	"strconv"
+
+	"github.com/ugurcsen/gods-generic/sets/linkedhashset"
 )
 
 type abstractEList interface {
@@ -47,10 +49,30 @@ func (list *AbstractEList) asAbstractEList() abstractEList {
 }
 
 func (list *AbstractEList) getNonDuplicates(collection Collection) Collection {
-	hashSet := newLinkedHashSet[any]()
-	hashSet.AddAll(collection)
-	hashSet.RemoveAll(list.asEList())
-	return NewImmutableEList(hashSet.ToArray())
+	// initialize hashset with collection
+	hashSet := linkedhashset.New[any]()
+	for it := collection.Iterator(); it.HasNext(); {
+		hashSet.Add(it.Next())
+	}
+	// remove all elements in list
+	collection = list.asEList()
+	if hashSet.Size() >= collection.Size() {
+		for it := collection.Iterator(); it.HasNext(); {
+			hashSet.Remove(it.Next())
+		}
+	} else {
+		for it := hashSet.Iterator(); it.Next(); {
+			v := it.Value()
+			if collection.Contains(v) {
+				hashSet.Remove(v)
+			}
+		}
+	}
+	array := make([]any, hashSet.Size())
+	hashSet.Each(func(index int, value any) {
+		array[index] = value
+	})
+	return NewImmutableEList(array)
 }
 
 func (list *AbstractEList) Add(elem any) bool {

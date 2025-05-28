@@ -8,7 +8,6 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -18,7 +17,6 @@ import (
 	"github.com/chebyrash/promise"
 	"github.com/panjf2000/ants/v2"
 	"github.com/petermattis/goid"
-	"github.com/ugurcsen/gods-generic/lists/singlylinkedlist"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"zombiezen.com/go/sqlite"
@@ -515,6 +513,71 @@ func (m *operationMarshaler) MarshalLogObject(e zapcore.ObjectEncoder) error {
 	return nil
 }
 
+type infiniteChannel[T any] struct {
+	in     chan T
+	out    chan T
+	closed atomic.Bool
+}
+
+func newInfiniteChannel[T any]() *infiniteChannel[T] {
+	in := make(chan T)
+	out := make(chan T)
+	go manage(in, out)
+	return &infiniteChannel[T]{
+		in:  in,
+		out: out,
+	}
+}
+
+func (q *infiniteChannel[T]) In() chan<- T {
+	return q.in
+}
+
+func (q *infiniteChannel[T]) Out() <-chan T {
+	return q.out
+}
+
+func (q *infiniteChannel[T]) Close() {
+	if !q.closed.Load() {
+		q.closed.Store(true)
+		close(q.in)
+	}
+}
+
+func (q *infiniteChannel[T]) IsClosed() bool {
+	return q.closed.Load()
+}
+
+func manage[T any](in <-chan T, out chan<- T) {
+	queue := []T{}
+	for {
+		if len(queue) == 0 {
+			if in == nil {
+				close(out)
+				return
+			}
+			value, ok := <-in
+			if !ok {
+				close(out)
+				return
+			}
+			queue = append(queue, value)
+		} else {
+			front := queue[0]
+			select {
+			case out <- front:
+				queue = queue[1:]
+			case value, ok := <-in:
+				if ok {
+					queue = append(queue, value)
+				} else {
+					in = nil
+				}
+			}
+		}
+	}
+}
+
 type SQLStore struct {
 	*sqlBase
 	sqlDecoder
@@ -526,11 +589,10 @@ type SQLStore struct {
 	mutexQueries     sync.Mutex
 	loggerOperations *zap.Logger
 	objectOperations map[EObject]map[EStructuralFeature][]*operation
-	listOperations   *singlylinkedlist.List[*operation]
+	chanOperations   *infiniteChannel[*operation]
 	mutexOperations  sync.Mutex
 	goroutines       map[int64]map[EObject]struct{}
 	mutexGoRoutines  sync.Mutex
-	unlockChannel    chan struct{}
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -728,9 +790,8 @@ func newSQLStore(
 		singleQueries:    map[*sqlColumn]*sqlSingleQueries{},
 		manyQueries:      map[*sqlTable]*sqlManyQueries{},
 		objectOperations: map[EObject]map[EStructuralFeature][]*operation{},
-		listOperations:   singlylinkedlist.New[*operation](),
+		chanOperations:   newInfiniteChannel[*operation](),
 		goroutines:       map[int64]map[EObject]struct{}{},
-		unlockChannel:    make(chan struct{}),
 	}
 
 	// set store logger
@@ -999,29 +1060,19 @@ func (s *SQLStore) objectFeaturesIterator(of objectFeature) iter.Seq[objectFeatu
 
 func (s *SQLStore) unlockOperation() {
 	for {
-		select {
-		case <-s.unlockChannel:
+		op, isOp := <-s.chanOperations.Out()
+		if !isOp {
 			return
-		default:
-			// retrieve front operation
-			s.mutexOperations.Lock()
-			op, isOp := s.listOperations.Get(0)
-			s.mutexOperations.Unlock()
-			if isOp {
-				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-				if _, err := op.promise.Await(ctx); err != nil && err == ctx.Err() {
-					// timeout => go to unlock op
-					if e := s.loggerOperations.Check(zap.InfoLevel, "unlock"); e != nil {
-						e.Write(zap.Object("operation", newOperationMarshaler(op)))
-					}
-					op.cancel()
-				}
-				cancel()
-			}
-
-			// let others goroutine do their job
-			runtime.Gosched()
 		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		if _, err := op.promise.Await(ctx); err != nil && err == ctx.Err() {
+			// timeout => go to unlock op
+			if e := s.loggerOperations.Check(zap.InfoLevel, "unlock"); e != nil {
+				e.Write(zap.Object("operation", newOperationMarshaler(op)))
+			}
+			op.cancel()
+		}
+		cancel()
 	}
 }
 
@@ -1070,9 +1121,6 @@ func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operat
 			}
 		}
 	}
-
-	// register operation in queue
-	s.listOperations.Add(op)
 
 	// initialize op
 	op.cancel = cancel
@@ -1152,11 +1200,6 @@ func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operat
 		s.mutexOperations.Lock()
 		defer s.mutexOperations.Unlock()
 
-		// remove from list
-		if index := s.listOperations.IndexOf(op); index != -1 {
-			s.listOperations.Remove(index)
-		}
-
 		for _, of := range registeredObjectFeatures {
 			if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
 				handleError(err)
@@ -1181,8 +1224,9 @@ func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operat
 			resolve(result)
 		}
 	}, s.promisePool)
-
 	s.mutexOperations.Unlock()
+	// add to channel operations
+	s.chanOperations.In() <- op
 	return op
 }
 
@@ -2274,8 +2318,8 @@ func (s *SQLStore) Close() error {
 		// ignore it
 		_ = s.WaitOperations(context.Background(), nil)
 
-		// close unlock channel
-		close(s.unlockChannel)
+		// close operations channel
+		s.chanOperations.Close()
 
 		if err := s.connPoolClose(s.connPool); err != nil {
 			return err

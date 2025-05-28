@@ -1008,10 +1008,10 @@ func (s *SQLStore) unlockOperation() {
 			op, isOp := s.listOperations.Get(0)
 			s.mutexOperations.Unlock()
 			if isOp {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				if _, err := op.promise.Await(ctx); err != nil && err == ctx.Err() {
 					// timeout => go to unlock op
-					if e := s.loggerOperations.Check(zap.DebugLevel, "unlock"); e != nil {
+					if e := s.loggerOperations.Check(zap.InfoLevel, "unlock"); e != nil {
 						e.Write(zap.Object("operation", newOperationMarshaler(op)))
 					}
 					op.cancel()

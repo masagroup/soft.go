@@ -453,6 +453,7 @@ type operation struct {
 	value    any
 	fn       func() (any, error)
 	previous map[*operation]struct{}
+	cancel   context.CancelFunc
 	promise  *promise.Promise[any]
 }
 
@@ -1002,19 +1003,22 @@ func (s *SQLStore) unlockOperation() {
 		case <-s.unlockChannel:
 			return
 		default:
+			// retrieve front operation
 			s.mutexOperations.Lock()
 			op, isOp := s.listOperations.Get(0)
+			s.mutexOperations.Unlock()
 			if isOp {
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-				if _, err := op.promise.Await(ctx); err != nil {
-					if err == ctx.Err() {
-						// timeout => go to unlock op
-
+				if _, err := op.promise.Await(ctx); err != nil && err == ctx.Err() {
+					// timeout => go to unlock op
+					if e := s.loggerOperations.Check(zap.DebugLevel, "unlock"); e != nil {
+						e.Write(zap.Object("operation", newOperationMarshaler(op)))
 					}
+					op.cancel()
 				}
 				cancel()
 			}
-			s.mutexOperations.Unlock()
+
 			// let others goroutine do their job
 			runtime.Gosched()
 		}
@@ -1029,6 +1033,9 @@ func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operat
 	if e := s.loggerOperations.Check(zap.DebugLevel, "schedule"); e != nil {
 		e.Write(zap.Int64("goid", goid.Get()), zap.Object("operation", newOperationMarshaler(op)))
 	}
+
+	// create cancelable context
+	ctx, cancel := context.WithCancel(ctx)
 
 	// input objects features = { object feature operations [, value all operations] }
 	allObjectFeatures := []objectFeature{{op.object, op.feature}}
@@ -1067,10 +1074,9 @@ func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operat
 	// register operation in queue
 	s.listOperations.Add(op)
 
-	// set previous operations
+	// initialize op
+	op.cancel = cancel
 	op.previous = previous
-
-	// create promise
 	op.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		goid := goid.Get()
 		// handle error
@@ -1121,7 +1127,7 @@ func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operat
 				)
 			}
 			promises := mapSet(op.previous, func(o *operation) *promise.Promise[any] { return o.promise })
-			if _, err := promise.AllWithPool(ctx, s.promisePool, promises...).Await(ctx); err != nil {
+			if _, err := promise.AllWithPool(ctx, s.promisePool, promises...).Await(ctx); err != nil && err != ctx.Err() {
 				handleError(fmt.Errorf("error in previous operation: %w", err))
 				return
 			}

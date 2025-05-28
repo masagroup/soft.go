@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -17,6 +18,7 @@ import (
 	"github.com/chebyrash/promise"
 	"github.com/panjf2000/ants/v2"
 	"github.com/petermattis/goid"
+	"github.com/ugurcsen/gods-generic/lists/singlylinkedlist"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"zombiezen.com/go/sqlite"
@@ -450,6 +452,7 @@ type operation struct {
 	index    int
 	value    any
 	fn       func() (any, error)
+	previous map[*operation]struct{}
 	promise  *promise.Promise[any]
 }
 
@@ -522,9 +525,11 @@ type SQLStore struct {
 	mutexQueries     sync.Mutex
 	loggerOperations *zap.Logger
 	objectOperations map[EObject]map[EStructuralFeature][]*operation
+	listOperations   *singlylinkedlist.List[*operation]
 	mutexOperations  sync.Mutex
 	goroutines       map[int64]map[EObject]struct{}
 	mutexGoRoutines  sync.Mutex
+	unlockChannel    chan struct{}
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -722,7 +727,9 @@ func newSQLStore(
 		singleQueries:    map[*sqlColumn]*sqlSingleQueries{},
 		manyQueries:      map[*sqlTable]*sqlManyQueries{},
 		objectOperations: map[EObject]map[EStructuralFeature][]*operation{},
+		listOperations:   singlylinkedlist.New[*operation](),
 		goroutines:       map[int64]map[EObject]struct{}{},
+		unlockChannel:    make(chan struct{}),
 	}
 
 	// set store logger
@@ -730,6 +737,9 @@ func newSQLStore(
 
 	// set store in sql object manager
 	sqlObjectManager.store = store
+
+	// launch unlock operation
+	go store.unlockOperation()
 
 	// decode version
 	if err = store.decodeVersion(); err != nil {
@@ -986,11 +996,36 @@ func (s *SQLStore) objectFeaturesIterator(of objectFeature) iter.Seq[objectFeatu
 	}
 }
 
+func (s *SQLStore) unlockOperation() {
+	for {
+		select {
+		case <-s.unlockChannel:
+			return
+		default:
+			s.mutexOperations.Lock()
+			op, isOp := s.listOperations.Get(0)
+			if isOp {
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+				if _, err := op.promise.Await(ctx); err != nil {
+					if err == ctx.Err() {
+						// timeout => go to unlock op
+
+					}
+				}
+				cancel()
+			}
+			s.mutexOperations.Unlock()
+			// let others goroutine do their job
+			runtime.Gosched()
+		}
+	}
+}
+
 // schedule operation in the store
 // s.objectOperations[nil][nil] all operations
 // s.objectOperations[object][nil] all operations for object
 // s.objectOperations[object][feature] all operations for object-feature
-func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *operation {
+func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operation {
 	if e := s.loggerOperations.Check(zap.DebugLevel, "schedule"); e != nil {
 		e.Write(zap.Int64("goid", goid.Get()), zap.Object("operation", newOperationMarshaler(op)))
 	}
@@ -1029,12 +1064,18 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 		}
 	}
 
+	// register operation in queue
+	s.listOperations.Add(op)
+
+	// set previous operations
+	op.previous = previous
+
 	// create promise
 	op.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		goid := goid.Get()
 		// handle error
 		handleError := func(err error) {
-			if err != context.Err() {
+			if err != ctx.Err() {
 				s.logger.Error("error",
 					zap.Object("operation", newOperationMarshaler(op)),
 					zap.Error(err))
@@ -1071,16 +1112,16 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 		}()
 
 		// wait for previous operations
-		if len(previous) > 0 {
+		if len(op.previous) > 0 {
 			if e := s.loggerOperations.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
 				e.Write(
 					zap.Int64("goid", goid),
 					zap.Int64("id", op.id),
-					zap.Int64s("previous", mapSet(previous, func(o *operation) int64 { return o.id })),
+					zap.Int64s("previous", mapSet(op.previous, func(o *operation) int64 { return o.id })),
 				)
 			}
-			promises := mapSet(previous, func(o *operation) *promise.Promise[any] { return o.promise })
-			if _, err := promise.AllWithPool(context, s.promisePool, promises...).Await(context); err != nil {
+			promises := mapSet(op.previous, func(o *operation) *promise.Promise[any] { return o.promise })
+			if _, err := promise.AllWithPool(ctx, s.promisePool, promises...).Await(ctx); err != nil {
 				handleError(fmt.Errorf("error in previous operation: %w", err))
 				return
 			}
@@ -1104,6 +1145,12 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 		}
 		s.mutexOperations.Lock()
 		defer s.mutexOperations.Unlock()
+
+		// remove from list
+		if index := s.listOperations.IndexOf(op); index != -1 {
+			s.listOperations.Remove(index)
+		}
+
 		for _, of := range registeredObjectFeatures {
 			if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
 				handleError(err)
@@ -2220,6 +2267,9 @@ func (s *SQLStore) Close() error {
 		// error is an an operation error and is handled with the logger
 		// ignore it
 		_ = s.WaitOperations(context.Background(), nil)
+
+		// close unlock channel
+		close(s.unlockChannel)
 
 		if err := s.connPoolClose(s.connPool); err != nil {
 			return err

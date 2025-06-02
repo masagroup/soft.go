@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"maps"
 	"math"
 	"os"
 	"path/filepath"
@@ -477,12 +478,18 @@ func newOperation(
 	}
 }
 
-type operationMarshaler struct {
-	op *operation
+type operationsMap map[*operation]struct{}
+
+func (ops operationsMap) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+	for op := range ops {
+		arr.AppendInt64(op.id)
+	}
+	return nil
 }
 
-func newOperationMarshaler(op *operation) *operationMarshaler {
-	return &operationMarshaler{op: op}
+type operationMarshaler struct {
+	op           *operation
+	withPrevious bool
 }
 
 func (m *operationMarshaler) MarshalLogObject(e zapcore.ObjectEncoder) error {
@@ -509,6 +516,9 @@ func (m *operationMarshaler) MarshalLogObject(e zapcore.ObjectEncoder) error {
 		if err := e.AddReflected("value", op.value); err != nil {
 			return err
 		}
+	}
+	if m.withPrevious {
+		e.AddArray("previous", operationsMap(op.previous))
 	}
 	return nil
 }
@@ -591,6 +601,7 @@ type SQLStore struct {
 	objectOperations map[EObject]map[EStructuralFeature][]*operation
 	chanOperations   *infiniteChannel[*operation]
 	mutexOperations  sync.Mutex
+	timeoutOperation time.Duration
 	goroutines       map[int64]map[EObject]struct{}
 	mutexGoRoutines  sync.Mutex
 }
@@ -718,6 +729,7 @@ func newSQLStore(
 	sqlObjectManager := newSQLStoreObjectManager()
 	logger := zap.NewNop()
 	isKeepDefaults := false
+	timeoutOperation := unlockOperationTimeout
 	if options != nil {
 		objectIDName, _ = options[SQL_OPTION_OBJECT_ID].(string)
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
@@ -731,6 +743,9 @@ func newSQLStore(
 		}
 		if b, isBool := options[SQL_OPTION_KEEP_DEFAULTS].(bool); isBool {
 			isKeepDefaults = b
+		}
+		if t, isTimeout := options[SQL_OPTION_OPERATION_TIMEOUT].(time.Duration); isTimeout {
+			timeoutOperation = t
 		}
 	}
 
@@ -791,6 +806,7 @@ func newSQLStore(
 		manyQueries:      map[*sqlTable]*sqlManyQueries{},
 		objectOperations: map[EObject]map[EStructuralFeature][]*operation{},
 		chanOperations:   newInfiniteChannel[*operation](),
+		timeoutOperation: timeoutOperation,
 		goroutines:       map[int64]map[EObject]struct{}{},
 	}
 
@@ -1058,18 +1074,35 @@ func (s *SQLStore) objectFeaturesIterator(of objectFeature) iter.Seq[objectFeatu
 	}
 }
 
+const unlockOperationTimeout = 5 * time.Second
+
 func (s *SQLStore) unlockOperation() {
 	for {
 		op, isOp := <-s.chanOperations.Out()
 		if !isOp {
 			return
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), s.timeoutOperation)
 		if _, err := op.promise.Await(ctx); err != nil && err == ctx.Err() {
 			// timeout => go to unlock op
-			if e := s.loggerOperations.Check(zap.InfoLevel, "unlock"); e != nil {
-				e.Write(zap.Object("operation", newOperationMarshaler(op)))
-			}
+			go func() {
+				// async log
+				if e := s.loggerOperations.Check(zap.WarnLevel, "unlock"); e != nil {
+					logged := map[*operation]struct{}{}
+					logging := []*operation{op}
+					for len(logging) > 0 {
+						op := logging[0]
+						logging = logging[1:]
+						if _, isLogged := logged[op]; !isLogged {
+							logged[op] = struct{}{}
+							e.Write(zap.Object("operation", &operationMarshaler{op: op, withPrevious: true}))
+							for previous := range maps.Keys(op.previous) {
+								logging = append(logging, previous)
+							}
+						}
+					}
+				}
+			}()
 			op.cancel()
 		}
 		cancel()
@@ -1082,7 +1115,7 @@ func (s *SQLStore) unlockOperation() {
 // s.objectOperations[object][feature] all operations for object-feature
 func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operation {
 	if e := s.loggerOperations.Check(zap.DebugLevel, "schedule"); e != nil {
-		e.Write(zap.Int64("goid", goid.Get()), zap.Object("operation", newOperationMarshaler(op)))
+		e.Write(zap.Int64("goid", goid.Get()), zap.Object("operation", &operationMarshaler{op: op}))
 	}
 
 	// create cancelable context
@@ -1131,7 +1164,7 @@ func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operat
 		handleError := func(err error) {
 			if err != ctx.Err() {
 				s.logger.Error("error",
-					zap.Object("operation", newOperationMarshaler(op)),
+					zap.Object("operation", &operationMarshaler{op: op}),
 					zap.Error(err))
 			}
 			reject(err)
@@ -1148,7 +1181,7 @@ func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operat
 				err = fmt.Errorf("%+v", v)
 			}
 			s.logger.Error("error",
-				zap.Object("operation", newOperationMarshaler(op)),
+				zap.Object("operation", &operationMarshaler{op: op}),
 				zap.Error(err),
 				zap.Stack("stack"))
 			reject(err)

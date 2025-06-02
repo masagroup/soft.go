@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1956,4 +1957,32 @@ func TestSQLStore_Panics(t *testing.T) {
 	s.scheduleOperation(context.Background(), newOperation("test", operationRead, nil, nil, false, 0, nil, func() (any, error) {
 		panic(errors.New("invalid test"))
 	}))
+}
+
+func TestSQLStore_UnlockOperation_Simple(t *testing.T) {
+	//t.Setenv("TestLogger", "true")
+	logger := newTestLogger(t.Name(), t)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	mockPackageRegitry := NewMockEPackageRegistry(t)
+	options := map[string]any{SQL_OPTION_LOGGER: logger, SQL_OPTION_OPERATION_TIMEOUT: 25 * time.Millisecond}
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, options)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	size := 0
+	s.ExecuteQuery(context.Background(), "SELECT COUNT(*) from library_books", &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			time.Sleep(50 * time.Millisecond)
+			size = stmt.ColumnInt(0)
+			return nil
+		},
+	})
+	require.Equal(t, 2, size)
 }

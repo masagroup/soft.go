@@ -15,6 +15,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/rqlite/sql v0.0.0-20241111133259-a4122fabb196
 	github.com/stretchr/testify v1.10.0
+	github.com/ugurcsen/gods-generic v0.10.4
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.40.0

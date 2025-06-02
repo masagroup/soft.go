@@ -14,6 +14,7 @@ import (
 
 	"github.com/chebyrash/promise"
 	"github.com/panjf2000/ants/v2"
+	"github.com/ugurcsen/gods-generic/maps/linkedhashmap"
 	"go.uber.org/zap"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -31,7 +32,7 @@ type sqlEncoderClassData struct {
 	id        int64
 	schema    *sqlClassSchema
 	hierarchy []EClass
-	features  *linkedHashMap[EStructuralFeature, *sqlEncoderFeatureData]
+	features  *linkedhashmap.Map[EStructuralFeature, *sqlEncoderFeatureData]
 }
 
 type SQLEncoderIDManager interface {
@@ -361,7 +362,7 @@ func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, contain
 			// encode features columnValues in table columns
 			columnValues := classTable.defaultValues()
 			columnValues[classTable.key.index] = sqlObjectID
-			for itFeature := classData.features.Iterator(); itFeature.HasNext(); {
+			for itFeature := classData.features.Iterator(); itFeature.Next(); {
 				eFeature := itFeature.Key()
 				featureData := itFeature.Value()
 				if !featureData.isTransient && e.shouldEncodeFeature(eObject, eFeature) {
@@ -604,7 +605,7 @@ func (e *sqlEncoder) getEncoderClassData(eClass EClass) (*sqlEncoderClassData, e
 		logger.Debug("class data created", zap.String("table", classSchema.table.name))
 
 		// computes features data
-		classFeatures := newLinkedHashMap[EStructuralFeature, *sqlEncoderFeatureData]()
+		classFeatures := linkedhashmap.New[EStructuralFeature, *sqlEncoderFeatureData]()
 		for _, featureSchema := range classSchema.features {
 			eFeature := featureSchema.feature
 

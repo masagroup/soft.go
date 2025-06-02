@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"maps"
 	"math"
 	"os"
 	"path/filepath"
@@ -450,6 +451,8 @@ type operation struct {
 	index    int
 	value    any
 	fn       func() (any, error)
+	previous map[*operation]struct{}
+	cancel   context.CancelFunc
 	promise  *promise.Promise[any]
 }
 
@@ -475,12 +478,18 @@ func newOperation(
 	}
 }
 
-type operationMarshaler struct {
-	op *operation
+type operationsMap map[*operation]struct{}
+
+func (ops operationsMap) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+	for op := range ops {
+		arr.AppendInt64(op.id)
+	}
+	return nil
 }
 
-func newOperationMarshaler(op *operation) *operationMarshaler {
-	return &operationMarshaler{op: op}
+type operationMarshaler struct {
+	op           *operation
+	withPrevious bool
 }
 
 func (m *operationMarshaler) MarshalLogObject(e zapcore.ObjectEncoder) error {
@@ -508,7 +517,75 @@ func (m *operationMarshaler) MarshalLogObject(e zapcore.ObjectEncoder) error {
 			return err
 		}
 	}
+	if m.withPrevious {
+		e.AddArray("previous", operationsMap(op.previous))
+	}
 	return nil
+}
+
+type infiniteChannel[T any] struct {
+	in     chan T
+	out    chan T
+	closed atomic.Bool
+}
+
+func newInfiniteChannel[T any]() *infiniteChannel[T] {
+	in := make(chan T)
+	out := make(chan T)
+	go manage(in, out)
+	return &infiniteChannel[T]{
+		in:  in,
+		out: out,
+	}
+}
+
+func (q *infiniteChannel[T]) In() chan<- T {
+	return q.in
+}
+
+func (q *infiniteChannel[T]) Out() <-chan T {
+	return q.out
+}
+
+func (q *infiniteChannel[T]) Close() {
+	if !q.closed.Load() {
+		q.closed.Store(true)
+		close(q.in)
+	}
+}
+
+func (q *infiniteChannel[T]) IsClosed() bool {
+	return q.closed.Load()
+}
+
+func manage[T any](in <-chan T, out chan<- T) {
+	queue := []T{}
+	for {
+		if len(queue) == 0 {
+			if in == nil {
+				close(out)
+				return
+			}
+			value, ok := <-in
+			if !ok {
+				close(out)
+				return
+			}
+			queue = append(queue, value)
+		} else {
+			front := queue[0]
+			select {
+			case out <- front:
+				queue = queue[1:]
+			case value, ok := <-in:
+				if ok {
+					queue = append(queue, value)
+				} else {
+					in = nil
+				}
+			}
+		}
+	}
 }
 
 type SQLStore struct {
@@ -522,7 +599,9 @@ type SQLStore struct {
 	mutexQueries     sync.Mutex
 	loggerOperations *zap.Logger
 	objectOperations map[EObject]map[EStructuralFeature][]*operation
+	chanOperations   *infiniteChannel[*operation]
 	mutexOperations  sync.Mutex
+	timeoutOperation time.Duration
 	goroutines       map[int64]map[EObject]struct{}
 	mutexGoRoutines  sync.Mutex
 }
@@ -650,6 +729,7 @@ func newSQLStore(
 	sqlObjectManager := newSQLStoreObjectManager()
 	logger := zap.NewNop()
 	isKeepDefaults := false
+	timeoutOperation := unlockOperationTimeout
 	if options != nil {
 		objectIDName, _ = options[SQL_OPTION_OBJECT_ID].(string)
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
@@ -663,6 +743,9 @@ func newSQLStore(
 		}
 		if b, isBool := options[SQL_OPTION_KEEP_DEFAULTS].(bool); isBool {
 			isKeepDefaults = b
+		}
+		if t, isTimeout := options[SQL_OPTION_OPERATION_TIMEOUT].(time.Duration); isTimeout {
+			timeoutOperation = t
 		}
 	}
 
@@ -722,6 +805,8 @@ func newSQLStore(
 		singleQueries:    map[*sqlColumn]*sqlSingleQueries{},
 		manyQueries:      map[*sqlTable]*sqlManyQueries{},
 		objectOperations: map[EObject]map[EStructuralFeature][]*operation{},
+		chanOperations:   newInfiniteChannel[*operation](),
+		timeoutOperation: timeoutOperation,
 		goroutines:       map[int64]map[EObject]struct{}{},
 	}
 
@@ -730,6 +815,9 @@ func newSQLStore(
 
 	// set store in sql object manager
 	sqlObjectManager.store = store
+
+	// launch unlock operation
+	go store.unlockOperation()
 
 	// decode version
 	if err = store.decodeVersion(); err != nil {
@@ -986,14 +1074,52 @@ func (s *SQLStore) objectFeaturesIterator(of objectFeature) iter.Seq[objectFeatu
 	}
 }
 
+const unlockOperationTimeout = 5 * time.Second
+
+func (s *SQLStore) unlockOperation() {
+	for {
+		op, isOp := <-s.chanOperations.Out()
+		if !isOp {
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), s.timeoutOperation)
+		if _, err := op.promise.Await(ctx); err != nil && err == ctx.Err() {
+			// timeout => go to unlock op
+			go func() {
+				// async log
+				if e := s.loggerOperations.Check(zap.WarnLevel, "unlock"); e != nil {
+					logged := map[*operation]struct{}{}
+					logging := []*operation{op}
+					for len(logging) > 0 {
+						op := logging[0]
+						logging = logging[1:]
+						if _, isLogged := logged[op]; !isLogged {
+							logged[op] = struct{}{}
+							e.Write(zap.Object("operation", &operationMarshaler{op: op, withPrevious: true}))
+							for previous := range maps.Keys(op.previous) {
+								logging = append(logging, previous)
+							}
+						}
+					}
+				}
+			}()
+			op.cancel()
+		}
+		cancel()
+	}
+}
+
 // schedule operation in the store
 // s.objectOperations[nil][nil] all operations
 // s.objectOperations[object][nil] all operations for object
 // s.objectOperations[object][feature] all operations for object-feature
-func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *operation {
+func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operation {
 	if e := s.loggerOperations.Check(zap.DebugLevel, "schedule"); e != nil {
-		e.Write(zap.Int64("goid", goid.Get()), zap.Object("operation", newOperationMarshaler(op)))
+		e.Write(zap.Int64("goid", goid.Get()), zap.Object("operation", &operationMarshaler{op: op}))
 	}
+
+	// create cancelable context
+	ctx, cancel := context.WithCancel(ctx)
 
 	// input objects features = { object feature operations [, value all operations] }
 	allObjectFeatures := []objectFeature{{op.object, op.feature}}
@@ -1029,14 +1155,16 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 		}
 	}
 
-	// create promise
+	// initialize op
+	op.cancel = cancel
+	op.previous = previous
 	op.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		goid := goid.Get()
 		// handle error
 		handleError := func(err error) {
-			if err != context.Err() {
+			if err != ctx.Err() {
 				s.logger.Error("error",
-					zap.Object("operation", newOperationMarshaler(op)),
+					zap.Object("operation", &operationMarshaler{op: op}),
 					zap.Error(err))
 			}
 			reject(err)
@@ -1053,7 +1181,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 				err = fmt.Errorf("%+v", v)
 			}
 			s.logger.Error("error",
-				zap.Object("operation", newOperationMarshaler(op)),
+				zap.Object("operation", &operationMarshaler{op: op}),
 				zap.Error(err),
 				zap.Stack("stack"))
 			reject(err)
@@ -1071,16 +1199,16 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 		}()
 
 		// wait for previous operations
-		if len(previous) > 0 {
+		if len(op.previous) > 0 {
 			if e := s.loggerOperations.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
 				e.Write(
 					zap.Int64("goid", goid),
 					zap.Int64("id", op.id),
-					zap.Int64s("previous", mapSet(previous, func(o *operation) int64 { return o.id })),
+					zap.Int64s("previous", mapSet(op.previous, func(o *operation) int64 { return o.id })),
 				)
 			}
-			promises := mapSet(previous, func(o *operation) *promise.Promise[any] { return o.promise })
-			if _, err := promise.AllWithPool(context, s.promisePool, promises...).Await(context); err != nil {
+			promises := mapSet(op.previous, func(o *operation) *promise.Promise[any] { return o.promise })
+			if _, err := promise.AllWithPool(ctx, s.promisePool, promises...).Await(ctx); err != nil && err != ctx.Err() {
 				handleError(fmt.Errorf("error in previous operation: %w", err))
 				return
 			}
@@ -1104,6 +1232,7 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 		}
 		s.mutexOperations.Lock()
 		defer s.mutexOperations.Unlock()
+
 		for _, of := range registeredObjectFeatures {
 			if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
 				handleError(err)
@@ -1128,8 +1257,9 @@ func (s *SQLStore) scheduleOperation(context context.Context, op *operation) *op
 			resolve(result)
 		}
 	}, s.promisePool)
-
 	s.mutexOperations.Unlock()
+	// add to channel operations
+	s.chanOperations.In() <- op
 	return op
 }
 
@@ -2220,6 +2350,9 @@ func (s *SQLStore) Close() error {
 		// error is an an operation error and is handled with the logger
 		// ignore it
 		_ = s.WaitOperations(context.Background(), nil)
+
+		// close operations channel
+		s.chanOperations.Close()
 
 		if err := s.connPoolClose(s.connPool); err != nil {
 			return err

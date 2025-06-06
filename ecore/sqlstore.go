@@ -1209,6 +1209,11 @@ func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operat
 			}
 			promises := mapSet(op.previous, func(o *operation) *promise.Promise[any] { return o.promise })
 			if _, err := promise.AllWithPool(ctx, s.promisePool, promises...).Await(ctx); err != nil && err != ctx.Err() {
+				// unwrap error
+				if unwrapped := errors.Unwrap(err); unwrapped != nil {
+					err = unwrapped
+				}
+				// handle error
 				handleError(fmt.Errorf("error in previous operation: %w", err))
 				return
 			}

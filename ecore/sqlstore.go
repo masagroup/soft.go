@@ -2304,6 +2304,10 @@ func (s *SQLStore) doSerialize(ctx context.Context) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer func() {
+			// remove tmp file and ignore error
+			_ = os.Remove(dbPath)
+		}()
 
 		dstConn, err := sqlite.OpenConn(dbPath)
 		if err != nil {

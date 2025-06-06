@@ -1694,6 +1694,28 @@ func TestSQLStore_Serialize(t *testing.T) {
 	requireSameDB(t, "testdata/library.store.sqlite", *bytes)
 }
 
+func TestSQLStore_SerializeBig(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+
+	// database
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	err := copyFile("testdata/library.store.sqlite", dbPath)
+	require.Nil(t, err)
+
+	// store
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, map[string]any{SQL_OPTION_MAX_ALLOC_SIZE: 0})
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	defer s.Close()
+
+	//
+	bytes, err := s.Serialize(context.Background()).Await(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, bytes)
+	requireSameDB(t, "testdata/library.store.sqlite", *bytes)
+}
+
 func TestSQLStore_GetRoots(t *testing.T) {
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(t, ePackage)

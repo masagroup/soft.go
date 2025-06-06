@@ -604,6 +604,7 @@ type SQLStore struct {
 	timeoutOperation time.Duration
 	goroutines       map[int64]map[EObject]struct{}
 	mutexGoRoutines  sync.Mutex
+	maxAllocSize     int64
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -730,6 +731,7 @@ func newSQLStore(
 	logger := zap.NewNop()
 	isKeepDefaults := false
 	timeoutOperation := unlockOperationTimeout
+	maxAllocSize := SQLITE_MAX_ALLOCATION_SIZE
 	if options != nil {
 		objectIDName, _ = options[SQL_OPTION_OBJECT_ID].(string)
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
@@ -746,6 +748,9 @@ func newSQLStore(
 		}
 		if t, isTimeout := options[SQL_OPTION_OPERATION_TIMEOUT].(time.Duration); isTimeout {
 			timeoutOperation = t
+		}
+		if v, isMaxAllocSize := options[SQL_OPTION_MAX_ALLOC_SIZE].(int); isMaxAllocSize {
+			maxAllocSize = v
 		}
 	}
 
@@ -808,6 +813,7 @@ func newSQLStore(
 		chanOperations:   newInfiniteChannel[*operation](),
 		timeoutOperation: timeoutOperation,
 		goroutines:       map[int64]map[EObject]struct{}{},
+		maxAllocSize:     int64(maxAllocSize),
 	}
 
 	// set store logger
@@ -2304,7 +2310,7 @@ func (s *SQLStore) doSerialize(ctx context.Context) ([]byte, error) {
 	defer s.connPool.Put(conn)
 
 	// supports big databases
-	if dbSize > SQLITE_MAX_ALLOCATION_SIZE {
+	if dbSize > s.maxAllocSize {
 		dbPath, err := sqlTmpDB("store-serialize")
 		if err != nil {
 			return nil, err

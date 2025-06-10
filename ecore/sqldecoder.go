@@ -581,7 +581,7 @@ type SQLDecoder struct {
 
 const SQLITE_MAX_ALLOCATION_SIZE = 2147483391
 
-func newMemoryConnectionPool(dbName string, dbPath string, r io.Reader) (*sqlitex.Pool, error) {
+func newMemoryConnectionPool(dbName string, tmpPath string, r io.Reader) (*sqlitex.Pool, error) {
 	// create a memory connection
 	var connSrc *sqlite.Conn
 
@@ -598,42 +598,38 @@ func newMemoryConnectionPool(dbName string, dbPath string, r io.Reader) (*sqlite
 
 		// sqlite.Conn.Deserialize method has a max allocation size
 		// so we must use an intermediate file
-
-		// create tmp file
-		if dbPath == "" {
-			dbPath, err = sqlTmpDB(dbName)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		tmpDBFile, err := os.Create(dbPath)
+		tmpFile, err := os.Create(tmpPath)
 		if err != nil {
 			return nil, err
 		}
 
 		// write bytes inside it
-		_, err = tmpDBFile.Write(bytes)
+		_, err = tmpFile.Write(bytes)
 		if err != nil {
-			tmpDBFile.Close()
+			tmpFile.Close()
 			return nil, err
 		}
 
 		// close tmp file
-		if err = tmpDBFile.Close(); err != nil {
+		if err = tmpFile.Close(); err != nil {
 			return nil, err
 		}
 
 		// open connection to tmp file
-		connSrc, err = sqlite.OpenConn(dbPath)
+		connSrc, err = sqlite.OpenConn(tmpPath)
 		if err != nil {
 			return nil, err
 		}
-		defer connSrc.Close()
+		defer func() {
+			// collection source connection
+			_ = connSrc.Close()
+			// remove tmp file
+			_ = os.Remove(tmpPath)
+		}()
 	}
 
 	// create connection pool
-	dbPath = fmt.Sprintf("file:%s?mode=memory&cache=shared", dbName)
+	dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbName)
 	connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
 	if err != nil {
 		return nil, err
@@ -666,19 +662,11 @@ func newMemoryConnectionPool(dbName string, dbPath string, r io.Reader) (*sqlite
 	return connPool, nil
 }
 
-func newFileConnectionPool(dbName string, dbPath string, r io.Reader) (p *sqlitex.Pool, err error) {
-	if dbPath == "" {
-		dbPath, err = sqlTmpDB(dbName)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	dbFile, err := os.Create(dbPath)
+func newFileConnectionPool(tmpPath string, r io.Reader) (p *sqlitex.Pool, err error) {
+	dbFile, err := os.Create(tmpPath)
 	if err != nil {
 		return nil, err
 	}
-
 	_, err = io.Copy(dbFile, r)
 	if err != nil {
 		dbFile.Close()
@@ -686,27 +674,45 @@ func newFileConnectionPool(dbName string, dbPath string, r io.Reader) (p *sqlite
 	}
 	dbFile.Close()
 
-	return sqlitex.NewPool(dbPath, sqlitex.PoolOptions{})
+	return sqlitex.NewPool(tmpPath, sqlitex.PoolOptions{})
 }
 
 func NewSQLReaderDecoder(r io.Reader, resource EResource, options map[string]any) *SQLDecoder {
+	var err error
+	var dbPath string
+	var remove bool
 	return newSQLDecoder(
 		func() (*sqlitex.Pool, error) {
+			// db name
 			dbName := filepath.Base(resource.GetURI().Path())
-			dbPath := ""
 			inMemoryDatabase := false
 			if options != nil {
 				inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
 				dbPath, _ = options[SQL_OPTION_DECODER_DB_PATH].(string)
 			}
+			// tmp db path
+			if dbPath == "" {
+				if dbPath, err = sqlTmpDB(dbName); err != nil {
+					return nil, err
+				}
+				remove = true
+			}
 			if inMemoryDatabase {
 				return newMemoryConnectionPool(dbName, dbPath, r)
 			} else {
-				return newFileConnectionPool(dbName, dbPath, r)
+				return newFileConnectionPool(dbPath, r)
 			}
 		},
 		func(connPool *sqlitex.Pool) error {
-			return connPool.Close()
+			// close connection pool
+			if err := connPool.Close(); err != nil {
+				return err
+			}
+			// remove tmp dbPath
+			if remove {
+				_ = os.Remove(dbPath)
+			}
+			return nil
 		},
 		resource,
 		options)

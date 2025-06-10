@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -458,7 +459,7 @@ func TestSQLDecoder_InvalidVersion(t *testing.T) {
 	require.False(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
 
-func TestSQLDecoder_WithConnectionPool(t *testing.T) {
+func TestSQLDecoder_DBDecoder(t *testing.T) {
 	// load package
 	ePackage := loadPackage("alltypes.ecore")
 	require.NotNil(t, ePackage)
@@ -481,32 +482,82 @@ func TestSQLDecoder_WithConnectionPool(t *testing.T) {
 	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
 }
 
-func TestSQLDecoder_NewMemoryConnectionPool(t *testing.T) {
+func TestSQLDecoder_ReaderDecoder_File(t *testing.T) {
+	// load package
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(t, ePackage)
+
+	// create resource & resourceset
+	sqlURI := NewURI("testdata/alltypes.sqlite")
+	sqlResource := NewEResourceImpl()
+	sqlResource.SetURI(sqlURI)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(sqlResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
 	// file reader
 	sqlReader, err := os.Open("testdata/alltypes.sqlite")
 	require.NoError(t, err)
 	defer sqlReader.Close()
 
-	// conn pool
-	connPool, err := newMemoryConnectionPool("alltypes", "", sqlReader)
-	require.NoError(t, err)
-	require.NotNil(t, connPool)
-	defer connPool.Close()
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, nil)
+	sqlDecoder.DecodeResource()
+	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
+	require.False(t, sqlResource.GetContents().Empty())
+}
 
-	// request db
-	conn, err := connPool.Take(context.Background())
-	require.NoError(t, err)
-	require.NotNil(t, conn)
-	defer connPool.Put(conn)
+func TestSQLDecoder_ReaderDecoder_File_WithDB(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "alltypes.sqlite")
 
-	count := 0
-	require.NoError(t, sqlitex.Execute(conn, `SELECT COUNT(*) FROM ".objects"`, &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			count = stmt.ColumnInt(0)
-			return nil
-		},
-	}))
-	require.Equal(t, 1, count)
+	// load package
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(t, ePackage)
+
+	// create resource & resourceset
+	sqlURI := NewURI("testdata/alltypes.sqlite")
+	sqlResource := NewEResourceImpl()
+	sqlResource.SetURI(sqlURI)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(sqlResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	// file reader
+	sqlReader, err := os.Open("testdata/alltypes.sqlite")
+	require.NoError(t, err)
+	defer sqlReader.Close()
+
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_DECODER_DB_PATH: dbPath})
+	sqlDecoder.DecodeResource()
+	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
+	require.False(t, sqlResource.GetContents().Empty())
+	require.FileExists(t, dbPath)
+}
+
+func TestSQLDecoder_ReaderDecoder_Memory(t *testing.T) {
+	// load package
+	ePackage := loadPackage("alltypes.ecore")
+	require.NotNil(t, ePackage)
+
+	// create resource & resourceset
+	sqlURI := NewURI("testdata/alltypes.sqlite")
+	sqlResource := NewEResourceImpl()
+	sqlResource.SetURI(sqlURI)
+
+	eResourceSet := NewEResourceSetImpl()
+	eResourceSet.GetResources().Add(sqlResource)
+	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
+
+	// file reader
+	sqlReader, err := os.Open("testdata/alltypes.sqlite")
+	require.NoError(t, err)
+	defer sqlReader.Close()
+
+	sqlDecoder := NewSQLReaderDecoder(sqlReader, sqlResource, map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: true})
+	sqlDecoder.DecodeResource()
+	require.True(t, sqlResource.GetErrors().Empty(), diagnosticError(sqlResource.GetErrors()))
+	require.False(t, sqlResource.GetContents().Empty())
 }
 
 func TestSQLDecoder_DecodeObject(t *testing.T) {

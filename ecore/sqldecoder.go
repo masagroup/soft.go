@@ -629,7 +629,12 @@ func newMemoryConnectionPool(dbName string, dbPath string, r io.Reader) (*sqlite
 		if err != nil {
 			return nil, err
 		}
-		defer connSrc.Close()
+		defer func() {
+			// collection source connection
+			_ = connSrc.Close()
+			// remove tmp file
+			_ = os.Remove(dbPath)
+		}()
 	}
 
 	// create connection pool

@@ -200,13 +200,13 @@ func Delete(eObject EObject) {
 	resource := rootEObject.EResource()
 	var usages iter.Seq2[EObject, EStructuralFeature]
 	if resource == nil {
-		usages = findUsagesInObject(eObject, rootEObject)
+		usages = findUsages(eObject, rootEObject)
 	} else {
 		resourceSet := resource.GetResourceSet()
 		if resourceSet == nil {
-			usages = findUsagesInResource(eObject, resource)
+			usages = findUsages(eObject, resource)
 		} else {
-			usages = findUsagesInResourceSet(eObject, resourceSet)
+			usages = findUsages(eObject, resourceSet)
 		}
 	}
 	for object, feature := range usages {
@@ -222,22 +222,29 @@ func Delete(eObject EObject) {
 	Remove(eObject)
 }
 
-func findUsagesInObject(eObjectOfInterest EObject, eObject EObject) iter.Seq2[EObject, EStructuralFeature] {
+func findUsages(eObjectOfInterest EObject, object any) iter.Seq2[EObject, EStructuralFeature] {
 	return func(yield func(EObject, EStructuralFeature) bool) {
-		eObjectsOfInterest := []EObject{eObjectOfInterest}
+		iterator := &eAllContentIterator{
+			object: object,
+			root:   false,
+			getChildren: func(o any) EIterator {
+				switch t := o.(type) {
+				case EObject:
+					return t.EContents().Iterator()
+				case EResource:
+					return t.GetContents().Iterator()
+				case EResourceSet:
+					return t.GetResources().Iterator()
+				default:
+					return nil
+				}
+			}}
+		for iterator.HasNext() {
+			eObject, _ := iterator.Next().(EObject)
+			if eObject != nil {
 
-	}
-}
-
-func findUsagesInResource(eObjectOfInterest EObject, eResource EResource) iter.Seq2[EObject, EStructuralFeature] {
-	return func(yield func(EObject, EStructuralFeature) bool) {
-		eObjectsOfInterest := []EObject{eObjectOfInterest}
-	}
-}
-
-func findUsagesInResourceSet(eObjectOfInterest EObject, eResourceSet EResourceSet) iter.Seq2[EObject, EStructuralFeature] {
-	return func(yield func(EObject, EStructuralFeature) bool) {
-		eObjectsOfInterest := []EObject{eObjectOfInterest}
+			}
+		}
 	}
 }
 

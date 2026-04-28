@@ -10,6 +10,7 @@
 package ecore
 
 import (
+	"iter"
 	"strings"
 )
 
@@ -170,6 +171,7 @@ func EqualsAll(l1 EList, l2 EList) bool {
 	return dE.equalsObjectList(l1, l2)
 }
 
+// Removes the object from its containing resource and/or its containing object.
 func Remove(eObject EObject) {
 	if eObjectInternal, _ := eObject.(EObjectInternal); eObjectInternal != nil {
 		if eContainer := eObjectInternal.EInternalContainer(); eContainer != nil {
@@ -186,6 +188,83 @@ func Remove(eObject EObject) {
 			eResource.GetContents().Remove(eObject)
 		}
 	}
+}
+
+/**
+ * Deletes the object from its containing resource and/or its containing object
+ * as well as from any other feature that references it within the enclosing resource set,
+ * resource, or root object.
+ */
+func Delete(eObject EObject) {
+	rootEObject := GetRootContainer(eObject)
+	resource := rootEObject.EResource()
+	var usages iter.Seq2[EObject, EStructuralFeature]
+	if resource == nil {
+		usages = findUsagesInObject(eObject, rootEObject)
+	} else {
+		resourceSet := resource.GetResourceSet()
+		if resourceSet == nil {
+			usages = findUsagesInResource(eObject, resource)
+		} else {
+			usages = findUsagesInResourceSet(eObject, resourceSet)
+		}
+	}
+	for object, feature := range usages {
+		if feature.IsChangeable() {
+			if feature.IsMany() {
+				l := object.EGet(feature).(EList)
+				l.Remove(eObject)
+			} else {
+				object.EUnset(feature)
+			}
+		}
+	}
+	Remove(eObject)
+}
+
+func findUsagesInObject(eObjectOfInterest EObject, eObject EObject) iter.Seq2[EObject, EStructuralFeature] {
+	return func(yield func(EObject, EStructuralFeature) bool) {
+		eObjectsOfInterest := []EObject{eObjectOfInterest}
+
+	}
+}
+
+func findUsagesInResource(eObjectOfInterest EObject, eResource EResource) iter.Seq2[EObject, EStructuralFeature] {
+	return func(yield func(EObject, EStructuralFeature) bool) {
+		eObjectsOfInterest := []EObject{eObjectOfInterest}
+	}
+}
+
+func findUsagesInResourceSet(eObjectOfInterest EObject, eResourceSet EResourceSet) iter.Seq2[EObject, EStructuralFeature] {
+	return func(yield func(EObject, EStructuralFeature) bool) {
+		eObjectsOfInterest := []EObject{eObjectOfInterest}
+	}
+}
+
+/**
+ * Deletes the object from its containing resource and/or its containing object
+ * as well as from any other feature that references it
+ * within the enclosing resource set, resource, or root object.
+ * If recursive true, contained children of the object that are in the same resource
+ * are similarly removed from any features that reference them.
+ */
+func DeleteRecursive(eObject EObject, recursive bool) {
+}
+
+/**
+ * Returns the root container
+ * it may be this object itself and it will have a nil container
+ */
+func GetRootContainer(eObject EObject) EObject {
+	eCurrent := eObject
+	if eCurrent != nil {
+		parent := eCurrent.EContainer()
+		for parent != nil {
+			eCurrent = parent
+			parent = eCurrent.EContainer()
+		}
+	}
+	return eCurrent
 }
 
 func GetAncestor(eObject EObject, eClass EClass) EObject {

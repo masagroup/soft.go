@@ -11,6 +11,7 @@ package ecore
 
 type treeIterator struct {
 	object      any
+	current     EIterator
 	getChildren func(any) EIterator
 	data        []EIterator
 	root        bool
@@ -41,8 +42,8 @@ func (it *treeIterator) hasMoreChildren() bool {
 func (it *treeIterator) Next() any {
 	if it.data == nil {
 		// Yield that mapping, create a stack, and add it to the stack.
-		current := it.getChildren(it.object)
-		it.data = append(it.data, current)
+		it.current = it.getChildren(it.object)
+		it.data = append(it.data, it.current)
 		if it.root {
 			return it.object
 		}
@@ -57,8 +58,11 @@ func (it *treeIterator) Next() any {
 	iterator := it.getChildren(result)
 	if iterator.HasNext() {
 		// Add iterator to the stack.
+		it.current = iterator
 		it.data = append(it.data, iterator)
 	} else {
+		//
+		it.current = nil
 		// While the current iterator has no next...
 		for !current.HasNext() {
 			// Pop it from the stack.
@@ -74,4 +78,19 @@ func (it *treeIterator) Next() any {
 		}
 	}
 	return result
+}
+
+func (it *treeIterator) Prune() {
+	if it.current != nil {
+		if len(it.data) > 0 && it.data[len(it.data)-1] == it.current {
+			// Pop it from the stack.
+			it.data = it.data[:len(it.data)-1]
+			// then pop any iterators above it that have no next.
+			for len(it.data) > 0 && !it.data[len(it.data)-1].HasNext() {
+				it.data = it.data[:len(it.data)-1]
+			}
+		}
+		// clear the current iterator to prevent further pruning until the next call to next.
+		it.current = nil
+	}
 }

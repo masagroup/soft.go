@@ -11,6 +11,8 @@ package ecore
 
 import (
 	"iter"
+	"maps"
+	"slices"
 	"strings"
 )
 
@@ -171,17 +173,83 @@ func EqualsAll(l1 EList, l2 EList) bool {
 	return dE.equalsObjectList(l1, l2)
 }
 
+func crossReferencesInObject(eObject EObject, resolve bool) iter.Seq2[EStructuralFeature, EObject] {
+	return func(yield func(EStructuralFeature, EObject) bool) {
+		for crossReferenceAny := range eObject.EClass().GetEAllCrossReferences().All() {
+			crossReference := crossReferenceAny.(EStructuralFeature)
+			if eObject.EIsSet(crossReference) {
+				value := eObject.EGetResolve(crossReference, resolve)
+				if crossReference.IsMany() {
+					for it := value.(EList).Iterator(); it.HasNext(); {
+						eObject := it.Next().(EObject)
+						if !yield(crossReference, eObject) {
+							return
+						}
+					}
+				} else if value != nil {
+					eObject := value.(EObject)
+					if !yield(crossReference, eObject) {
+						return
+					}
+				}
+			}
+		}
+	}
+
+}
+
+type usage struct {
+	object  EObject
+	feature EStructuralFeature
+}
+
+func findUsages(root any, lookups []EObject) map[EObject][]usage {
+	usages := make(map[EObject][]usage)
+	iterator := &eAllContentIterator{
+		object: root,
+		root:   false,
+		getChildren: func(o any) EIterator {
+			switch t := o.(type) {
+			case EObject:
+				return t.EContents().Iterator()
+			case EResource:
+				return t.GetContents().Iterator()
+			case EResourceSet:
+				return t.GetResources().Iterator()
+			default:
+				return nil
+			}
+		}}
+	for iterator.HasNext() {
+		if eObject, _ := iterator.Next().(EObject); eObject != nil {
+			for crossReference, referencedObject := range crossReferencesInObject(eObject, true) {
+				if slices.Contains(lookups, referencedObject) {
+					usages[referencedObject] = append(
+						usages[referencedObject],
+						usage{object: eObject, feature: crossReference},
+					)
+				}
+			}
+		}
+	}
+	return usages
+}
+
+func removeValue(eObject EObject, feature EStructuralFeature, value any) {
+	if feature.IsMany() {
+		l := eObject.EGet(feature).(EList)
+		l.Remove(value)
+	} else {
+		eObject.EUnset(feature)
+	}
+}
+
 // Removes the object from its containing resource and/or its containing object.
 func Remove(eObject EObject) {
 	if eObjectInternal, _ := eObject.(EObjectInternal); eObjectInternal != nil {
 		if eContainer := eObjectInternal.EInternalContainer(); eContainer != nil {
 			if eFeature := eObject.EContainmentFeature(); eFeature != nil {
-				if eFeature.IsMany() {
-					l := eContainer.EGet(eFeature).(EList)
-					l.Remove(eObject)
-				} else {
-					eContainer.EUnset(eFeature)
-				}
+				removeValue(eContainer, eFeature, eObject)
 			}
 		}
 		if eResource := eObjectInternal.EInternalResource(); eResource != nil {
@@ -196,56 +264,30 @@ func Remove(eObject EObject) {
  * resource, or root object.
  */
 func Delete(eObject EObject) {
+	// compute the usages of the object to be deleted
 	rootEObject := GetRootContainer(eObject)
 	resource := rootEObject.EResource()
-	var usages iter.Seq2[EObject, EStructuralFeature]
+	var usages map[EObject][]usage
 	if resource == nil {
-		usages = findUsages(eObject, rootEObject)
+		usages = findUsages(rootEObject, []EObject{eObject})
 	} else {
 		resourceSet := resource.GetResourceSet()
 		if resourceSet == nil {
-			usages = findUsages(eObject, resource)
+			usages = findUsages(resource, []EObject{eObject})
 		} else {
-			usages = findUsages(eObject, resourceSet)
+			usages = findUsages(resourceSet, []EObject{eObject})
 		}
 	}
-	for object, feature := range usages {
+	// remove the object to be deleted from any referencing features
+	for _, usage := range usages[eObject] {
+		feature := usage.feature
+		object := usage.object
 		if feature.IsChangeable() {
-			if feature.IsMany() {
-				l := object.EGet(feature).(EList)
-				l.Remove(eObject)
-			} else {
-				object.EUnset(feature)
-			}
+			removeValue(object, feature, eObject)
 		}
 	}
+	// remove the object from its containing resource and/or its containing object
 	Remove(eObject)
-}
-
-func findUsages(eObjectOfInterest EObject, object any) iter.Seq2[EObject, EStructuralFeature] {
-	return func(yield func(EObject, EStructuralFeature) bool) {
-		iterator := &eAllContentIterator{
-			object: object,
-			root:   false,
-			getChildren: func(o any) EIterator {
-				switch t := o.(type) {
-				case EObject:
-					return t.EContents().Iterator()
-				case EResource:
-					return t.GetContents().Iterator()
-				case EResourceSet:
-					return t.GetResources().Iterator()
-				default:
-					return nil
-				}
-			}}
-		for iterator.HasNext() {
-			eObject, _ := iterator.Next().(EObject)
-			if eObject != nil {
-
-			}
-		}
-	}
 }
 
 /**
@@ -256,6 +298,60 @@ func findUsages(eObjectOfInterest EObject, object any) iter.Seq2[EObject, EStruc
  * are similarly removed from any features that reference them.
  */
 func DeleteRecursive(eObject EObject, recursive bool) {
+	if recursive {
+		rootEObject := GetRootContainer(eObject)
+		resource := rootEObject.EResource()
+		// compute the set of objects to be deleted and the set of directly
+		// contained objects in the same resource
+		objectSet := map[EObject]struct{}{}
+		directSet := map[EObject]struct{}{}
+		objectSet[eObject] = struct{}{}
+		for it := eObject.EAllContents(); it.HasNext(); {
+			childEObject := it.Next().(EObjectInternal)
+			if childEObject.EInternalResource() != nil {
+				directSet[childEObject] = struct{}{}
+				type prunableEIterator interface {
+					EIterator
+					Prune()
+				}
+				it.(prunableEIterator).Prune()
+			} else {
+				objectSet[childEObject] = struct{}{}
+			}
+		}
+		objects := slices.Collect(maps.Keys(objectSet))
+		// compute the usages of the objects to be deleted
+		var usages map[EObject][]usage
+		if resource == nil {
+			usages = findUsages(rootEObject, objects)
+		} else {
+			resourceSet := resource.GetResourceSet()
+			if resourceSet == nil {
+				usages = findUsages(resource, objects)
+			} else {
+				usages = findUsages(resourceSet, objects)
+			}
+		}
+		// remove the objects to be deleted from any referencing features
+		for deletedObject, usages := range usages {
+			for _, usage := range usages {
+				feature := usage.feature
+				object := usage.object
+				if _, contains := objectSet[object]; !contains && feature.IsChangeable() {
+					removeValue(object, feature, deletedObject)
+				}
+			}
+		}
+		// remove the object from its containing resource and/or its containing object
+		Remove(eObject)
+		// remove the directly contained objects in the same resource from any referencing features
+		for direct := range directSet {
+			removeValue(direct.EContainer(), direct.EContainingFeature(), direct)
+		}
+	} else {
+		// non-recursive delete is sufficient
+		Delete(eObject)
+	}
 }
 
 /**

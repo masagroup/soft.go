@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="delete" nsURI="http:///org/eclipse/emf/examples/delete/delete.ecore/1.0.0"
+    nsPrefix="delete">
+  <eClassifiers xsi:type="ecore:EClass" name="Root">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="a" upperBound="-1" eType="#//A"
+        containment="true" resolveProxies="false"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="b" upperBound="-1" eType="#//B"
+        containment="true" resolveProxies="false"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="o" upperBound="-1" eType="#//O"
+        containment="true" resolveProxies="false"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="c" upperBound="-1" eType="#//C"
+        containment="true" resolveProxies="false"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="A">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="b" eType="#//B"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="B">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="O">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="a" upperBound="-1" eType="#//A"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="C">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="m" eType="#//C"/>
+  </eClassifiers>
+</ecore:EPackage>

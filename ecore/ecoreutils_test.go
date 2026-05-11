@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEcoreUtilsConvertToString(t *testing.T) {
@@ -415,4 +416,38 @@ func TestEcoreUtils_IsAncestor(t *testing.T) {
 	mockObject1.EXPECT().EContainer().Return(nil).Once()
 	assert.False(t, IsAncestor(mockObject2, mockObject0))
 	mock.AssertExpectationsForObjects(t, mockObject0, mockObject1, mockObject2)
+}
+
+func TestEcoreUtils_Delete(t *testing.T) {
+	// load package
+	ePackage := loadPackage("delete.ecore")
+	assert.NotNil(t, ePackage)
+
+	// load resource
+	xmiProcessor := NewXMIProcessor(XMIProcessorPackages([]EPackage{ePackage}))
+	eResource := xmiProcessor.Load(NewURI("testdata/delete.xmi"))
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	root := eResource.GetContents().Get(0).(EObject)
+	classRoot := ePackage.GetEClassifier("Root").(EClass)
+
+	refA := classRoot.GetEStructuralFeatureFromName("a")
+	listA, _ := root.EGet(refA).(EList)
+	require.NotNil(t, listA)
+	//a1 := listA.Get(0)
+
+	refO := classRoot.GetEStructuralFeatureFromName("o")
+	listO, _ := root.EGet(refO).(EList)
+	require.NotNil(t, listO)
+
+	classO, _ := ePackage.GetEClassifier("O").(EClass)
+	require.NotNil(t, classO)
+	classO_A := classO.GetEStructuralFeatureFromName("a")
+	require.NotNil(t, classO_A)
+	classO_Name := classO.GetEStructuralFeatureFromName("name")
+	require.NotNil(t, classO_Name)
+
 }

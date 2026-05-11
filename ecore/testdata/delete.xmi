@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<delete:Root xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:delete="http:///org/eclipse/emf/examples/delete/delete.ecore/1.0.0">
-  <a name="a1" b="#//@b.0"/>
-  <a name="a2" b="#//@b.1"/>
-  <a name="a3" b="#//@b.2"/>
-  <b name="b1"/>
-  <b name="b2"/>
-  <b name="b3"/>
+<delete:Root xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:delete="http:///org/eclipse/emf/examples/delete/delete.ecore/1.0.0" b="#//@a.0/@b #//@a.1/@b #//@a.2/@b">
+  <a name="a1">
+    <b name="b1"/>
+  </a>
+  <a name="a2">
+    <b name="b2"/>
+  </a>
+  <a name="a3">
+    <b name="b3"/>
+  </a>
   <o name="o1" a="#//@a.0 #//@a.1"/>
   <c name="c1"/>
   <c name="c2" m="#//@c.0"/>

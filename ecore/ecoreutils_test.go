@@ -491,3 +491,60 @@ func TestEcoreUtils_Delete(t *testing.T) {
 	// check c2 ref no more c1
 	require.Equal(t, nil, c2.EGet(classC_M))
 }
+
+func TestEcoreUtils_DeleteRecursive(t *testing.T) {
+	// load package
+	ePackage := loadPackage("delete.ecore")
+	assert.NotNil(t, ePackage)
+
+	// load resource
+	xmiProcessor := NewXMIProcessor(XMIProcessorPackages([]EPackage{ePackage}))
+	eResource := xmiProcessor.Load(NewURI("testdata/delete.xmi"))
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
+
+	root := eResource.GetContents().Get(0).(EObject)
+	classRoot := ePackage.GetEClassifier("Root").(EClass)
+
+	refA := classRoot.GetEStructuralFeatureFromName("a")
+	listA, _ := root.EGet(refA).(EList)
+	require.NotNil(t, listA)
+	a1, _ := listA.Get(0).(EObject)
+	require.NotNil(t, a1)
+
+	refB := classRoot.GetEStructuralFeatureFromName("b")
+	listB, _ := root.EGet(refB).(EList)
+	require.NotNil(t, listB)
+
+	refO := classRoot.GetEStructuralFeatureFromName("o")
+	listO, _ := root.EGet(refO).(EList)
+	require.NotNil(t, listO)
+	o1, _ := listO.Get(0).(EObject)
+	require.NotNil(t, o1)
+
+	// check that a1 is referenced by o1
+	classO, _ := ePackage.GetEClassifier("O").(EClass)
+	require.NotNil(t, classO)
+	classO_A := classO.GetEStructuralFeatureFromName("a")
+	require.NotNil(t, classO_A)
+	classO_Name := classO.GetEStructuralFeatureFromName("name")
+	require.NotNil(t, classO_Name)
+	o1_aList := o1.EGet(classO_A).(EList)
+	require.Equal(t, 2, o1_aList.Size())
+
+	//
+	classA, _ := ePackage.GetEClassifier("A").(EClass)
+	require.NotNil(t, classA)
+	classA_B := classA.GetEStructuralFeatureFromName("b")
+	require.NotNil(t, classA_B)
+
+	// delete a1
+	DeleteRecursive(a1, true)
+
+	// check that a1 is not referenced anymore
+	require.Equal(t, 1, o1_aList.Size())
+	require.Equal(t, 2, listB.Size())
+
+}

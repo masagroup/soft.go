@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<delete:Root xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:delete="http:///org/eclipse/emf/examples/delete/delete.ecore/1.0.0" b="#//@a.0/@b #//@a.1/@b #//@a.2/@b">
+<delete:Root 
+  xmi:version="2.0" 
+  xmlns:xmi="http://www.omg.org/XMI" 
+  xmlns:delete="http:///org/eclipse/emf/examples/delete/delete.ecore/1.0.0"
+  b="#//@a.0/@b #//@a.1/@b #//@a.2/@b"
+  >
   <a name="a1">
     <b name="b1"/>
   </a>

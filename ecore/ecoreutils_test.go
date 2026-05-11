@@ -437,17 +437,57 @@ func TestEcoreUtils_Delete(t *testing.T) {
 	refA := classRoot.GetEStructuralFeatureFromName("a")
 	listA, _ := root.EGet(refA).(EList)
 	require.NotNil(t, listA)
-	//a1 := listA.Get(0)
+	a1, _ := listA.Get(0).(EObject)
+	require.NotNil(t, a1)
 
 	refO := classRoot.GetEStructuralFeatureFromName("o")
 	listO, _ := root.EGet(refO).(EList)
 	require.NotNil(t, listO)
+	o1, _ := listO.Get(0).(EObject)
+	require.NotNil(t, o1)
 
+	// check that a1 is referenced by o1
 	classO, _ := ePackage.GetEClassifier("O").(EClass)
 	require.NotNil(t, classO)
 	classO_A := classO.GetEStructuralFeatureFromName("a")
 	require.NotNil(t, classO_A)
 	classO_Name := classO.GetEStructuralFeatureFromName("name")
 	require.NotNil(t, classO_Name)
+	o1_aList := o1.EGet(classO_A).(EList)
+	require.Equal(t, 2, o1_aList.Size())
 
+	// delete a1
+	Delete(a1)
+
+	// check that a1 is not referenced anymore
+	require.Equal(t, 1, o1_aList.Size())
+
+	// C
+	classC, _ := ePackage.GetEClassifier("C").(EClass)
+	require.NotNil(t, classO)
+	classC_M := classC.GetEStructuralFeatureFromName("m")
+	require.NotNil(t, classC_M)
+	classC_Name := classC.GetEStructuralFeatureFromName("name")
+	require.NotNil(t, classC_Name)
+
+	refC := classRoot.GetEStructuralFeatureFromName("c")
+	listC, _ := root.EGet(refC).(EList)
+	require.NotNil(t, listC)
+	require.Equal(t, 3, listC.Size())
+
+	// retrieve c1 & c2 & check origin values
+	c1, _ := listC.Get(0).(EObject)
+	require.NotNil(t, c1)
+	require.Equal(t, "c1", c1.EGet(classC_Name))
+	require.Equal(t, nil, c1.EGet(classC_M))
+
+	c2, _ := listC.Get(1).(EObject)
+	require.NotNil(t, c2)
+	require.Equal(t, c1, c2.EGet(classC_M))
+
+	// delete c1
+	Delete(c1)
+
+	// check c2 ref no more c1
+	require.Equal(t, nil, c2.EGet(classC_M))
 }

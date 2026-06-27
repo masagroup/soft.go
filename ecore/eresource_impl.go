@@ -476,6 +476,20 @@ func (r *EResourceImpl) Load() {
 
 func (r *EResourceImpl) LoadWithOptions(options map[string]any) {
 	if !r.isLoaded {
+		// The resource set's default load options apply to a resource loaded without its own, as
+		// during proxy resolution; the resource's own options win.
+		if r.resourceSet != nil {
+			if defaults := r.resourceSet.GetDefaultLoadOptions(); len(defaults) > 0 {
+				merged := make(map[string]any, len(defaults)+len(options))
+				for k, v := range defaults {
+					merged[k] = v
+				}
+				for k, v := range options {
+					merged[k] = v
+				}
+				options = merged
+			}
+		}
 		uriConverter := r.getURIConverter()
 		if uriConverter != nil && r.uri != nil {
 			rd, err := uriConverter.CreateReader(r.uri)

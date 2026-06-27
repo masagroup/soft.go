@@ -74,6 +74,7 @@ type EResourceSetImpl struct {
 	resourceIndex         map[string]EResource
 	resourceCodecRegistry ECodecRegistry
 	packageRegistry       EPackageRegistry
+	defaultLoadOptions    map[string]any
 }
 
 func NewEResourceSetImpl() *EResourceSetImpl {
@@ -246,6 +247,14 @@ func (r *EResourceSetImpl) SetURIConverter(uriConverter EURIConverter) {
 		resource := it.Next().(EResource)
 		r.indexResource(resource, resource.GetURI())
 	}
+}
+
+func (r *EResourceSetImpl) GetDefaultLoadOptions() map[string]any {
+	return r.defaultLoadOptions
+}
+
+func (r *EResourceSetImpl) SetDefaultLoadOptions(options map[string]any) {
+	r.defaultLoadOptions = options
 }
 
 func (r *EResourceSetImpl) GetPackageRegistry() EPackageRegistry {

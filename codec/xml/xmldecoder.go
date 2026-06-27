@@ -86,8 +86,9 @@ type Decoder struct {
 	isSuppressDocumentRoot bool
 	// ids are the ids of the objects of the document set by SetObjectID (xmi:id): its references by id
 	// resolve with them, without an object id manager
-	ids               map[string]ecore.EObject
-	isResolveDeferred bool
+	ids                  map[string]ecore.EObject
+	isResolveDeferred    bool
+	isIDReferenceAsProxy bool
 	// options are the load options of the document: a package it names in xsi:schemaLocation loads
 	// with them
 	options map[string]any
@@ -116,6 +117,7 @@ func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *
 	if options != nil {
 		l.idAttributeName, _ = options[OPTION_ID_ATTRIBUTE_NAME].(string)
 		l.isResolveDeferred = options[OPTION_DEFERRED_REFERENCE_RESOLUTION] == true
+		l.isIDReferenceAsProxy = options[OPTION_ID_REFERENCE_AS_PROXY] == true
 		l.isSuppressDocumentRoot = options[OPTION_SUPPRESS_DOCUMENT_ROOT] == true
 		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
 			l.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
@@ -785,6 +787,12 @@ func (l *Decoder) setValueFromId(eObject ecore.EObject, eReference ecore.ERefere
 	references := []xmlReference{}
 	// an empty value has no id : an empty list
 	tokens := strings.Fields(ids)
+	// Ids resolved by name (OPTION_ID_REFERENCE_AS_PROXY) are names that may hold spaces
+	// ("Missile SA Stinger"): the whole value is one id, and a multi-valued reference is written
+	// as repeated elements instead of a space-separated list.
+	if l.isIDReferenceAsProxy && len(tokens) > 0 {
+		tokens = []string{ids}
+	}
 	qName := ""
 	for _, token := range tokens {
 		id := token
@@ -934,7 +942,17 @@ func (l *Decoder) handleReferences() {
 	}
 
 	for _, reference := range l.references {
+		// An empty id is no reference (an optional reference attribute present but empty): it is
+		// neither resolved nor proxied, an empty proxy URI would later load as a file.
+		if reference.id == "" {
+			continue
+		}
 		eObject := l.getEObject(reference.id)
+		if eObject == nil && l.isIDReferenceAsProxy {
+			// An id that resolves to nothing in this document is left as a proxy carrying the raw id,
+			// for a resolver by name across documents, instead of an unresolved-reference error.
+			eObject = l.createIDReferenceProxy(reference.feature, reference.id)
+		}
 		if eObject != nil {
 			l.setFeatureValue(reference.object, reference.feature, eObject, reference.pos)
 		} else {
@@ -942,6 +960,33 @@ func (l *Decoder) handleReferences() {
 				"Unresolved reference '"+reference.id+"'", l.location(), int(l.decoder.InputOffset()), 0))
 		}
 	}
+}
+
+// createIDReferenceProxy builds a proxy of the reference's target type whose URI is this
+// document's URI with the unresolved id as fragment, for OPTION_ID_REFERENCE_AS_PROXY. A fragment,
+// not a bare name: a bare name would be taken for a resource and loaded as a file on resolution.
+func (l *Decoder) createIDReferenceProxy(eFeature ecore.EStructuralFeature, id string) ecore.EObject {
+	if id == "" {
+		return nil
+	}
+	eReference, _ := eFeature.(ecore.EReference)
+	if eReference == nil {
+		return nil
+	}
+	eType := eReference.GetEType()
+	eProxy := l.createObjectWithFactory(eType.GetEPackage().GetEFactoryInstance(), eType, false)
+	if eProxy == nil {
+		// an abstract target type: a dynamic object of that class carries the id until resolved
+		if eClass, _ := eType.(ecore.EClass); eClass != nil {
+			dynamic := ecore.NewDynamicEObjectImpl()
+			dynamic.SetEClass(eClass)
+			eProxy = dynamic
+		}
+	}
+	if eProxy != nil {
+		eProxy.(ecore.EObjectInternal).ESetProxyURI(ecore.NewURIBuilder(l.resource.GetURI()).SetFragment(id).URI())
+	}
+	return eProxy
 }
 
 func (l *Decoder) recordSchemaLocations(eObject ecore.EObject) {

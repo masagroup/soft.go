@@ -34,6 +34,12 @@ type EResourceSet interface {
 
 	SetURIResourceMap(uriMap map[*URI]EResource)
 	GetURIResourceMap() map[*URI]EResource
+
+	// Default load options merged into every resource load in this set (a
+	// resource's own load options override). Lets a set apply decode options
+	// uniformly to lazily-resolved resources, not only those loaded explicitly.
+	GetDefaultLoadOptions() map[string]any
+	SetDefaultLoadOptions(options map[string]any)
 }
 
 // CreateEResourceSet creates a resource set whose package registry holds the

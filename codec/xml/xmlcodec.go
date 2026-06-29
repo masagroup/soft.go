@@ -28,6 +28,7 @@ const (
 	OPTION_SUPPRESS_DEFAULT_NS           = "SUPPRESS_DEFAULT_NS"           // encode: if true , omit the default xmlns declaration on the root (no-namespace output)
 	OPTION_NO_NAMESPACE_SCHEMA_LOCATION  = "NO_NAMESPACE_SCHEMA_LOCATION"  // encode: string, write xsi:noNamespaceSchemaLocation on the root
 	OPTION_FEATURE_VALUE_PROVIDER        = "FEATURE_VALUE_PROVIDER"        // encode: func(ecore.EObject, ecore.EStructuralFeature) string, a non-empty value is written verbatim in place of a reference
+	OPTION_KEEP_REQUIRED_DEFAULTS        = "KEEP_REQUIRED_DEFAULTS"        // encode: if true , save a required attribute even at its type default (dense form)
 )
 
 type Codec struct {

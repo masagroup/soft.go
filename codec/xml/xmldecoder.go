@@ -816,7 +816,9 @@ func (l *Decoder) setValueFromId(eObject ecore.EObject, eReference ecore.ERefere
 				position++
 				continue
 			}
-		} else if index := strings.Index(id, ":"); index != -1 {
+		} else if index := strings.Index(id, ":"); index != -1 && !l.isIDReferenceAsProxy {
+			// Under id-reference-as-proxy the whole value is one name, which may contain a
+			// ':': it is not a qName.
 			qName = id
 			continue
 		}

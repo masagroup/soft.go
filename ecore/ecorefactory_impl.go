@@ -534,16 +534,44 @@ func (ecoreFactoryImpl *EcoreFactoryImpl) convertECharacterObjectToString(eDataT
 }
 
 const (
-	dateFormat string = "2006-01-02T15:04:05.999Z"
+	dateFormat     string = "2006-01-02T15:04:05.999Z"
+	dateOnlyFormat string = "2006-01-02"
 )
 
+// dateFormats are the layouts createEDateFromString accepts, date-time first: EMF maps both
+// xs:date and xs:dateTime to EDate.
+var dateFormats = []string{
+	dateFormat,
+	"2006-01-02T15:04:05.999Z07:00",
+	time.RFC3339Nano,
+	time.RFC3339,
+	"2006-01-02T15:04:05.999",
+	"2006-01-02T15:04:05",
+	dateOnlyFormat,
+}
+
 func (ecoreFactoryImpl *EcoreFactoryImpl) createEDateFromString(eDataType EDataType, literalValue string) any {
-	t, _ := time.Parse(dateFormat, literalValue)
+	var t time.Time
+	for _, layout := range dateFormats {
+		if parsed, err := time.Parse(layout, literalValue); err == nil {
+			t = parsed
+			break
+		}
+	}
 	return &t
 }
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) convertEDateToString(eDataType EDataType, instanceValue any) string {
 	t, _ := instanceValue.(*time.Time)
+	if t == nil {
+		return ""
+	}
+	// A value with no sub-day component is an xs:date ("1900-01-11"); emitting the datetime
+	// form ("...T00:00:00Z") is rejected by xs:date-typed schema attributes. A genuine
+	// xs:dateTime keeps its time-of-day and stays in the full layout.
+	if t.Hour() == 0 && t.Minute() == 0 && t.Second() == 0 && t.Nanosecond() == 0 {
+		return t.Format(dateOnlyFormat)
+	}
 	return t.Format(dateFormat)
 }
 

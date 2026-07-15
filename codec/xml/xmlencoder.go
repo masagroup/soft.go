@@ -302,8 +302,13 @@ func (s *Encoder) saveFeatures(eObject ecore.EObject, attributesOnly bool) bool 
 				s.saveDataTypeSingle(eObject, eFeature)
 				continue
 			case xsfkObjectAttributeSingle:
-				// A provided value replaces the href or IDREF (XML_OPTION_FEATURE_VALUE_PROVIDER).
+				// A provided value replaces the href or IDREF (OPTION_FEATURE_VALUE_PROVIDER).
 				if s.saveProvidedFeatureValue(eObject, eFeature) {
+					continue
+				}
+				// A required attribute reference left unset is written empty, as the schema requires.
+				if v, _ := eObject.EGetResolve(eFeature, false).(ecore.EObject); v == nil {
+					s.str.addAttribute(s.getFeatureQName(eFeature), "")
 					continue
 				}
 				// An attribute reference: a full href across resources, an IDREF otherwise.
@@ -720,6 +725,13 @@ func (s *Encoder) shouldSaveFeature(o ecore.EObject, f ecore.EStructuralFeature)
 			(f.GetLowerBound() >= 1 || (s.denseDefaultField != nil && s.denseDefaultField(o, f))) {
 			return true
 		}
+		// A required kind="attribute" reference left unset is written as the empty attribute
+		// the schema requires; an element reference is not forced.
+		if r, isRef := f.(ecore.EReference); isRef && !r.IsContainment() &&
+			(f.GetLowerBound() >= 1 || (s.denseDefaultField != nil && s.denseDefaultField(o, f))) &&
+			s.extendedMetaData != nil && s.extendedMetaData.GetFeatureKind(f) == "attribute" {
+			return true
+		}
 	}
 	return false
 }
@@ -842,12 +854,22 @@ func (s *Encoder) getSaveResourceKindMany(eObject ecore.EObject, eFeature ecore.
 }
 
 func (s *Encoder) getClassQName(eClass ecore.EClass) string {
+	// A no-namespace document (xsi:noNamespaceSchemaLocation) is one flat vocabulary: names stay
+	// unqualified, whatever package declares them.
+	if s.noNSSchemaLocation != "" {
+		return s.getXmlName(eClass)
+	}
 	return s.getElementQName(eClass.GetEPackage(), s.getXmlName(eClass), false)
 }
 
 func (s *Encoder) getFeatureQName(eFeature ecore.EStructuralFeature) string {
 	if s.extendedMetaData != nil {
 		name := s.extendedMetaData.GetName(eFeature)
+		// A no-namespace document has one flat vocabulary: every name is unqualified, whatever
+		// package declares the feature.
+		if s.noNSSchemaLocation != "" {
+			return name
+		}
 		namespace := s.extendedMetaData.GetNamespace(eFeature)
 		ePackage := s.getPackageForSpace(namespace)
 		if ePackage != nil {

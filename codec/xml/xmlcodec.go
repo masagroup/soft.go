@@ -30,6 +30,7 @@ const (
 	OPTION_FEATURE_VALUE_PROVIDER        = "FEATURE_VALUE_PROVIDER"        // encode: func(ecore.EObject, ecore.EStructuralFeature) string, a non-empty value is written verbatim in place of a reference
 	OPTION_KEEP_REQUIRED_DEFAULTS        = "KEEP_REQUIRED_DEFAULTS"        // encode: if true , save a required attribute even at its type default (dense form)
 	OPTION_DENSE_DEFAULT_FIELDS          = "DENSE_DEFAULT_FIELDS"          // encode: func(ecore.EObject, ecore.EStructuralFeature) bool, an optional attribute it flags is saved at its default, with KEEP_REQUIRED_DEFAULTS
+	OPTION_KEEP_COMMENTS                 = "KEEP_COMMENTS"                 // encode: if true , write back the XML comments the document carried, each among the siblings it stood between
 )
 
 type Codec struct {

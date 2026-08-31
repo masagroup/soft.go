@@ -179,6 +179,10 @@ type EResourceImpl struct {
 	// idless is set by a scan that met no object whose class declares an id attribute: until such
 	// an object is attached, a rescan finds nothing whatever was renamed
 	idless bool
+
+	// codecData holds data of the document this resource was decoded from that its objects cannot
+	// hold, such as XML comments, by codec-chosen key: the decoder sets it, the encoder reads it
+	codecData map[any]any
 }
 
 // NewBasicEObject is BasicEObject constructor
@@ -551,10 +555,25 @@ func (r *EResourceImpl) Unload() {
 	}
 }
 
+// GetCodecData returns what a codec stored for this resource under key, nil if nothing: data of
+// the document it was decoded from that its objects cannot hold.
+func (r *EResourceImpl) GetCodecData(key any) any {
+	return r.codecData[key]
+}
+
+// SetCodecData stores data of the document under a codec-chosen key; it is dropped on unload.
+func (r *EResourceImpl) SetCodecData(key, value any) {
+	if r.codecData == nil {
+		r.codecData = map[any]any{}
+	}
+	r.codecData[key] = value
+}
+
 func (r *EResourceImpl) DoUnload() {
 	r.contents = nil
 	r.errors = nil
 	r.warnings = nil
+	r.codecData = nil
 	if r.objectIDManager != nil {
 		r.objectIDManager.Clear()
 	}

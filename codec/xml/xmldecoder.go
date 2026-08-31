@@ -61,27 +61,32 @@ type DecoderHooks interface {
 }
 
 type Decoder struct {
-	resource               ecore.EResource
-	interfaces             any
-	spacesToFactories      map[string]ecore.EFactory
-	attachFn               func(object ecore.EObject)
-	errorFn                func(diagnostic ecore.EDiagnostic)
-	extendedMetaData       *ExtendedMetaData
-	prefixesToURI          map[string]string
-	decoder                *xml.Decoder
-	textBuilder            *strings.Builder
-	namespaces             *xmlNamespaces
-	xmlVersion             string
-	encoding               string
-	idAttributeName        string
-	references             []xmlReference
-	attributes             []xml.Attr
-	sameDocumentProxies    []ecore.EObject
-	notFeatures            []xml.Name
-	types                  []any
-	objects                []ecore.EObject
-	deferred               []ecore.EObject
-	elements               []string
+	resource            ecore.EResource
+	interfaces          any
+	spacesToFactories   map[string]ecore.EFactory
+	attachFn            func(object ecore.EObject)
+	errorFn             func(diagnostic ecore.EDiagnostic)
+	extendedMetaData    *ExtendedMetaData
+	prefixesToURI       map[string]string
+	decoder             *xml.Decoder
+	textBuilder         *strings.Builder
+	namespaces          *xmlNamespaces
+	xmlVersion          string
+	encoding            string
+	idAttributeName     string
+	references          []xmlReference
+	attributes          []xml.Attr
+	sameDocumentProxies []ecore.EObject
+	notFeatures         []xml.Name
+	types               []any
+	objects             []ecore.EObject
+	deferred            []ecore.EObject
+	elements            []string
+	// path and comments carry the document's XML comments out of a decode: the object graph has no
+	// room for a comment (see XMLComments), so each one is recorded against the element tree and
+	// handed to the resource when the decode ends
+	path                   *xmlPath
+	comments               *XMLComments
 	simpleFeatures         map[ecore.EClass]ecore.EStructuralFeature
 	isSuppressDocumentRoot bool
 	// ids are the ids of the objects of the document set by SetObjectID (xmi:id): its references by id
@@ -109,6 +114,7 @@ func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *
 	l.decoder = xml.NewDecoder(r)
 	l.decoder.CharsetReader = charset.NewReaderLabel
 	l.namespaces = newXMLNamespaces()
+	l.path = newXMLPath()
 	l.prefixesToURI = make(map[string]string)
 	l.spacesToFactories = make(map[string]ecore.EFactory)
 	l.simpleFeatures = make(map[ecore.EClass]ecore.EStructuralFeature)
@@ -189,10 +195,12 @@ func (l *Decoder) decodeTopObject() {
 			l.directive(string([]byte(t)))
 		}
 	}
+	l.publishComments()
 }
 
 func (l *Decoder) startElement(e xml.StartElement) {
 	l.elements = append(l.elements, e.Name.Local)
+	l.path.push(e.Name.Local)
 	l.setAttributes(e.Attr)
 	l.namespaces.pushContext()
 	l.handlePrefixMapping()
@@ -206,6 +214,7 @@ func (l *Decoder) endElement(_ xml.EndElement) {
 	if len(l.elements) > 0 {
 		l.elements = l.elements[:len(l.elements)-1]
 	}
+	l.path.pop()
 
 	// remove last object
 	var eRoot ecore.EObject
@@ -569,7 +578,7 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 		if value == nil {
 			eObject.ESet(eFeature, nil)
 		} else if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
-			if data, ok := l.createFromString(eFactory, eDataType, value.(string)); ok {
+			if data, ok := l.createFromString(eFactory, eDataType, xsdCollapse(eDataType, value.(string))); ok {
 				eObject.ESet(eFeature, data)
 			}
 		}
@@ -592,7 +601,7 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 		} else if value == nil {
 			appendLoaded(eList, nil)
 		} else if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
-			if data, ok := l.createFromString(eFactory, eDataType, value.(string)); ok {
+			if data, ok := l.createFromString(eFactory, eDataType, xsdCollapse(eDataType, value.(string))); ok {
 				appendLoaded(eList, data)
 			}
 		}
@@ -1060,7 +1069,22 @@ func (l *Decoder) text(data string) {
 	}
 }
 
+// comment keeps a comment the graph cannot hold, addressed by its position in the element tree,
+// for OPTION_KEEP_COMMENTS to write back.
 func (l *Decoder) comment(comment string) {
+	if l.comments == nil {
+		l.comments = &XMLComments{}
+	}
+	l.comments.Add(l.path.here(), comment)
+}
+
+// publishComments hands the comments to the resource, which outlives the decoder and is what the
+// encoder is given. A document without comments leaves the resource untouched.
+func (l *Decoder) publishComments() {
+	if l.comments == nil {
+		return
+	}
+	setCommentsOf(l.resource, l.comments)
 }
 
 func (l *Decoder) processingInstruction(procInst xml.ProcInst) {

@@ -21,6 +21,10 @@ type xmlString struct {
 	depth              int
 	lastElementIsStart bool
 	lastElementHasText bool
+	// path mirrors the element tree as it is written; commentsAt, nil unless comments are kept,
+	// gives the comments pinned at each position.
+	path       *xmlPath
+	commentsAt func(anchor string) []string
 }
 
 const MaxInt = int(^uint(0) >> 1)
@@ -35,8 +39,29 @@ func newXmlString() *xmlString {
 		indentation:        "    ",
 		indents:            []string{""},
 		lastElementIsStart: false,
+		path:               newXMLPath(),
 	}
 	return s
+}
+
+// writeComments writes the comments pinned to the position being written, each on its own line at
+// the indent of the next child: only their layout may differ from the document read.
+func (s *xmlString) writeComments() {
+	if s.commentsAt == nil {
+		return
+	}
+	bodies := s.commentsAt(s.path.here())
+	if len(bodies) == 0 {
+		return
+	}
+	indent := s.getElementIndentWithExtra(1)
+	for _, body := range bodies {
+		s.add(indent)
+		s.add("<!--")
+		s.add(body)
+		s.add("-->")
+		s.addLine()
+	}
 }
 
 func (s *xmlString) write(w io.Writer) error {
@@ -64,7 +89,11 @@ func (s *xmlString) startElement(name string) {
 	if s.lastElementIsStart {
 		s.closeStartElement()
 	}
+	if len(name) > 0 {
+		s.writeComments() // whatever stood before this child in the source document
+	}
 	s.elementNames = append(s.elementNames, name)
+	s.path.push(name)
 	if len(name) > 0 {
 		s.depth++
 		s.add(s.getElementIndent())
@@ -97,6 +126,7 @@ func (s *xmlString) endElement() {
 		}
 		s.lastElementHasText = false
 	} else {
+		s.writeComments() // whatever stood after this element's last child
 		name := s.removeLast()
 		if name != "" {
 			s.add(s.getElementIndentWithExtra(1))
@@ -119,6 +149,7 @@ func (s *xmlString) removeLast() string {
 	end := len(s.elementNames) - 1
 	result := s.elementNames[end]
 	s.elementNames = s.elementNames[:end]
+	s.path.pop()
 	if result != "" {
 		s.depth--
 	}
@@ -154,7 +185,8 @@ func (s *xmlString) addNil(name string) {
 	if s.lastElementIsStart {
 		s.closeStartElement()
 	}
-
+	s.writeComments()
+	s.path.child() // a whole element, opened and closed here: it takes a sibling position
 	s.depth++
 	s.add(s.getElementIndent())
 	s.add("<")
@@ -175,6 +207,8 @@ func (s *xmlString) addContent(name string, content string) {
 	if s.lastElementIsStart {
 		s.closeStartElement()
 	}
+	s.writeComments()
+	s.path.child() // a whole element, opened and closed here: it takes a sibling position
 	s.depth++
 	s.add(s.getElementIndent())
 	s.add("<")

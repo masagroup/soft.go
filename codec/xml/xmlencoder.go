@@ -97,6 +97,9 @@ type Encoder struct {
 	suppressDefaultNS    bool                                                 // omit the default xmlns on the root
 	noNSSchemaLocation   string                                               // write xsi:noNamespaceSchemaLocation
 	featureValueProvider func(ecore.EObject, ecore.EStructuralFeature) string // a reference written as a verbatim value (a name)
+	keepComments         bool                                                 // write back the comments the resource's document carried
+	comments             *XMLComments                                         // those comments, by position; nil unless keepComments and the document had some
+	commentsWritten      int                                                  // how many found their position, so an unplaced one is reported rather than lost
 }
 
 func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *Encoder {
@@ -127,9 +130,22 @@ func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *
 		s.featureValueProvider, _ = options[OPTION_FEATURE_VALUE_PROVIDER].(func(ecore.EObject, ecore.EStructuralFeature) string)
 		s.keepRequired, _ = options[OPTION_KEEP_REQUIRED_DEFAULTS].(bool)
 		s.denseDefaultField, _ = options[OPTION_DENSE_DEFAULT_FIELDS].(func(ecore.EObject, ecore.EStructuralFeature) bool)
+		s.keepComments, _ = options[OPTION_KEEP_COMMENTS].(bool)
 	}
 	if s.extendedMetaData == nil {
 		s.extendedMetaData = NewExtendedMetaData()
+	}
+	if s.keepComments {
+		if comments := commentsOf(resource); comments.Len() > 0 {
+			s.comments = comments
+			// the lookup is the whole interface between the encoder and the string builder: the
+			// builder knows where it is, the encoder knows what belongs there
+			s.str.commentsAt = func(anchor string) []string {
+				bodies := s.comments.At(anchor)
+				s.commentsWritten += len(bodies)
+				return bodies
+			}
+		}
 	}
 	return s
 }
@@ -179,6 +195,8 @@ func (s *Encoder) encodeTopObject(eObject ecore.EObject) {
 	}
 
 	s.saveTopObject(eObject)
+	s.str.writeComments() // anything the document held after its root element
+	s.reportUnplacedComments()
 
 	// namespaces
 	s.str.resetToFirstElementMark()
@@ -188,6 +206,19 @@ func (s *Encoder) encodeTopObject(eObject ecore.EObject) {
 	if err := s.str.write(s.w); err != nil {
 		s.error(ecore.NewEDiagnosticImpl(err.Error(), s.location(), 0, 0))
 	}
+}
+
+// reportUnplacedComments warns about comments that had no position to go back to: the element
+// they stood in is gone, or is now written self-closing. The file is still written; the warning
+// tells the caller what the write could not carry.
+func (s *Encoder) reportUnplacedComments() {
+	if s.comments == nil || s.commentsWritten >= s.comments.Len() || s.resource == nil {
+		return
+	}
+	s.resource.GetWarnings().Add(ecore.NewEDiagnosticImpl(
+		fmt.Sprintf("%d of %d XML comments had no position in the written document and were dropped",
+			s.comments.Len()-s.commentsWritten, s.comments.Len()),
+		s.resource.GetURI().String(), 0, 0))
 }
 
 func (s *Encoder) saveHeader() {
@@ -871,6 +902,11 @@ func (s *Encoder) getFeatureQName(eFeature ecore.EStructuralFeature) string {
 			return name
 		}
 		namespace := s.extendedMetaData.GetNamespace(eFeature)
+		// A feature without an ExtendedMetaData namespace is unqualified: the registry would answer
+		// the empty namespace with the package bound there to decode, and leak its prefix.
+		if namespace == "" {
+			return name
+		}
 		ePackage := s.getPackageForSpace(namespace)
 		if ePackage != nil {
 			return s.getElementQName(ePackage, name, false)

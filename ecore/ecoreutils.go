@@ -205,9 +205,10 @@ type usage struct {
 
 func findUsages(root any, lookups []EObject) map[EObject][]usage {
 	usages := make(map[EObject][]usage)
+	_, isEObject := root.(EObject)
 	iterator := &eAllContentIterator{
 		object: root,
-		root:   false,
+		root:   isEObject,
 		getChildren: func(o any) EIterator {
 			switch t := o.(type) {
 			case EObject:

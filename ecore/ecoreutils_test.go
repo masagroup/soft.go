@@ -539,12 +539,215 @@ func TestEcoreUtils_DeleteRecursive(t *testing.T) {
 	require.NotNil(t, classA)
 	classA_B := classA.GetEStructuralFeatureFromName("b")
 	require.NotNil(t, classA_B)
+	b1 := a1.EGet(classA_B).(EObject)
+	require.NotNil(t, b1)
+	require.True(t, listB.Contains(b1))
+	require.Equal(t, 3, listA.Size())
+	require.True(t, listA.Contains(a1))
 
 	// delete a1
 	DeleteRecursive(a1, true)
 
-	// check that a1 is not referenced anymore
+	// check that a1 and its children are no longer referenced or contained
 	require.Equal(t, 1, o1_aList.Size())
+	require.False(t, o1_aList.Contains(a1))
 	require.Equal(t, 2, listB.Size())
+	require.False(t, listB.Contains(b1))
+	require.Equal(t, 2, listA.Size())
+	require.False(t, listA.Contains(a1))
+	require.Nil(t, a1.EContainer())
+	require.Nil(t, a1.EResource())
+}
 
+func TestEcoreUtils_DeleteRecursive_False(t *testing.T) {
+	ePackage := loadPackage("delete.ecore")
+	require.NotNil(t, ePackage)
+
+	xmiProcessor := NewXMIProcessor(XMIProcessorPackages([]EPackage{ePackage}))
+	eResource := xmiProcessor.Load(NewURI("testdata/delete.xmi"))
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+
+	root := eResource.GetContents().Get(0).(EObject)
+	classRoot := ePackage.GetEClassifier("Root").(EClass)
+
+	refA := classRoot.GetEStructuralFeatureFromName("a")
+	listA, _ := root.EGet(refA).(EList)
+	require.NotNil(t, listA)
+	a1, _ := listA.Get(0).(EObject)
+	require.NotNil(t, a1)
+
+	refB := classRoot.GetEStructuralFeatureFromName("b")
+	listB, _ := root.EGet(refB).(EList)
+	require.NotNil(t, listB)
+
+	refO := classRoot.GetEStructuralFeatureFromName("o")
+	listO, _ := root.EGet(refO).(EList)
+	require.NotNil(t, listO)
+	o1, _ := listO.Get(0).(EObject)
+	require.NotNil(t, o1)
+
+	classO, _ := ePackage.GetEClassifier("O").(EClass)
+	classO_A := classO.GetEStructuralFeatureFromName("a")
+	o1_aList := o1.EGet(classO_A).(EList)
+	require.Equal(t, 2, o1_aList.Size())
+
+	classA, _ := ePackage.GetEClassifier("A").(EClass)
+	classA_B := classA.GetEStructuralFeatureFromName("b")
+	b1 := a1.EGet(classA_B).(EObject)
+	require.NotNil(t, b1)
+	require.True(t, listB.Contains(b1))
+	require.Equal(t, 3, listB.Size())
+
+	// Non-recursive delete
+	DeleteRecursive(a1, false)
+
+	// a1 is removed from container and referencing feature o1.a
+	require.Equal(t, 1, o1_aList.Size())
+	require.False(t, o1_aList.Contains(a1))
+	require.Equal(t, 2, listA.Size())
+	require.False(t, listA.Contains(a1))
+	// But contained child b1 was NOT in the deleted object set, so root.b still holds it
+	require.Equal(t, 3, listB.Size())
+	require.True(t, listB.Contains(b1))
+}
+
+func TestEcoreUtils_DeleteRecursive_NoResource(t *testing.T) {
+	ePackage := loadPackage("delete.ecore")
+	require.NotNil(t, ePackage)
+
+	eFactory := ePackage.GetEFactoryInstance()
+	classRoot := ePackage.GetEClassifier("Root").(EClass)
+	classA := ePackage.GetEClassifier("A").(EClass)
+	classB := ePackage.GetEClassifier("B").(EClass)
+	classO := ePackage.GetEClassifier("O").(EClass)
+
+	refRootA := classRoot.GetEStructuralFeatureFromName("a")
+	refRootB := classRoot.GetEStructuralFeatureFromName("b")
+	refRootO := classRoot.GetEStructuralFeatureFromName("o")
+	refAB := classA.GetEStructuralFeatureFromName("b")
+	refOA := classO.GetEStructuralFeatureFromName("a")
+
+	root := eFactory.Create(classRoot)
+	a1 := eFactory.Create(classA)
+	b1 := eFactory.Create(classB)
+	o1 := eFactory.Create(classO)
+
+	a1.ESet(refAB, b1)
+	root.EGet(refRootA).(EList).Add(a1)
+	root.EGet(refRootB).(EList).Add(b1)
+	o1.EGet(refOA).(EList).Add(a1)
+	root.EGet(refRootO).(EList).Add(o1)
+
+	require.Nil(t, root.EResource())
+	require.Equal(t, 1, root.EGet(refRootA).(EList).Size())
+	require.Equal(t, 1, root.EGet(refRootB).(EList).Size())
+	require.Equal(t, 1, o1.EGet(refOA).(EList).Size())
+
+	// Delete a1 recursively on standalone hierarchy without a resource
+	DeleteRecursive(a1, true)
+
+	require.Equal(t, 0, root.EGet(refRootA).(EList).Size())
+	require.Equal(t, 0, root.EGet(refRootB).(EList).Size())
+	require.Equal(t, 0, o1.EGet(refOA).(EList).Size())
+	require.Nil(t, a1.EContainer())
+}
+
+func TestEcoreUtils_DeleteRecursive_ResourceSet(t *testing.T) {
+	ePackage := loadPackage("delete.ecore")
+	require.NotNil(t, ePackage)
+
+	eFactory := ePackage.GetEFactoryInstance()
+	classRoot := ePackage.GetEClassifier("Root").(EClass)
+	classA := ePackage.GetEClassifier("A").(EClass)
+	classB := ePackage.GetEClassifier("B").(EClass)
+	classO := ePackage.GetEClassifier("O").(EClass)
+
+	refRootA := classRoot.GetEStructuralFeatureFromName("a")
+	refRootB := classRoot.GetEStructuralFeatureFromName("b")
+	refAB := classA.GetEStructuralFeatureFromName("b")
+	refOA := classO.GetEStructuralFeatureFromName("a")
+
+	rs := NewEResourceSetImpl()
+	r1 := rs.CreateResource(NewURI("memory://res1.xmi"))
+	r2 := rs.CreateResource(NewURI("memory://res2.xmi"))
+
+	root1 := eFactory.Create(classRoot)
+	r1.GetContents().Add(root1)
+
+	a1 := eFactory.Create(classA)
+	b1 := eFactory.Create(classB)
+	a1.ESet(refAB, b1)
+	root1.EGet(refRootA).(EList).Add(a1)
+	root1.EGet(refRootB).(EList).Add(b1)
+
+	// Object in r2 referencing a1 in r1
+	o2 := eFactory.Create(classO)
+	o2.EGet(refOA).(EList).Add(a1)
+	r2.GetContents().Add(o2)
+
+	require.Equal(t, 1, o2.EGet(refOA).(EList).Size())
+	require.Equal(t, 1, root1.EGet(refRootB).(EList).Size())
+
+	// Delete a1 across ResourceSet
+	DeleteRecursive(a1, true)
+
+	require.Equal(t, 0, o2.EGet(refOA).(EList).Size())
+	require.Equal(t, 0, root1.EGet(refRootA).(EList).Size())
+	require.Equal(t, 0, root1.EGet(refRootB).(EList).Size())
+}
+
+func TestEcoreUtils_DeleteRecursive_DirectResourceChild(t *testing.T) {
+	ePackage := loadPackage("delete.ecore")
+	require.NotNil(t, ePackage)
+
+	eFactory := ePackage.GetEFactoryInstance()
+	classRoot := ePackage.GetEClassifier("Root").(EClass)
+	classA := ePackage.GetEClassifier("A").(EClass)
+	classB := ePackage.GetEClassifier("B").(EClass)
+
+	refRootA := classRoot.GetEStructuralFeatureFromName("a")
+	refAB := classA.GetEStructuralFeatureFromName("b")
+
+	rs := NewEResourceSetImpl()
+	r1 := rs.CreateResource(NewURI("memory://res1.xmi"))
+	rChild := rs.CreateResource(NewURI("memory://child.xmi"))
+
+	root := eFactory.Create(classRoot)
+	r1.GetContents().Add(root)
+
+	a1 := eFactory.Create(classA)
+	root.EGet(refRootA).(EList).Add(a1)
+
+	b1 := eFactory.Create(classB)
+	a1.ESet(refAB, b1)
+
+	// Set child b1 to have an internal resource
+	b1.(EObjectInternal).ESetResource(rChild, nil)
+	require.NotNil(t, b1.(EObjectInternal).EInternalResource())
+
+	// Delete a1 recursively
+	DeleteRecursive(a1, true)
+
+	// Direct child should have been removed from containing feature
+	require.Nil(t, a1.EGet(refAB))
+	require.Equal(t, 0, root.EGet(refRootA).(EList).Size())
+}
+
+func TestEcoreUtils_DeleteRecursive_Root(t *testing.T) {
+	ePackage := loadPackage("delete.ecore")
+	require.NotNil(t, ePackage)
+
+	xmiProcessor := NewXMIProcessor(XMIProcessorPackages([]EPackage{ePackage}))
+	eResource := xmiProcessor.Load(NewURI("testdata/delete.xmi"))
+	require.NotNil(t, eResource)
+	require.True(t, eResource.IsLoaded())
+
+	root := eResource.GetContents().Get(0).(EObject)
+	require.Equal(t, 1, eResource.GetContents().Size())
+
+	DeleteRecursive(root, true)
+
+	require.Equal(t, 0, eResource.GetContents().Size())
+	require.Nil(t, root.EResource())
 }

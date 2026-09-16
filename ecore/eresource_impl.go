@@ -76,7 +76,7 @@ func (rc *resourceContents) GetFeatureID() int {
 	return RESOURCE__CONTENTS
 }
 
-func (rc *resourceContents) inverseAdd(object any, notifications ENotificationChain) ENotificationChain {
+func (rc *resourceContents) InverseAdd(object any, notifications ENotificationChain) ENotificationChain {
 	n := notifications
 	if eObject, _ := object.(EObjectInternal); eObject != nil {
 		eResource := rc.resource.AsEResource()
@@ -86,7 +86,7 @@ func (rc *resourceContents) inverseAdd(object any, notifications ENotificationCh
 	return n
 }
 
-func (rc *resourceContents) inverseRemove(object any, notifications ENotificationChain) ENotificationChain {
+func (rc *resourceContents) InverseRemove(object any, notifications ENotificationChain) ENotificationChain {
 	n := notifications
 	if eObject, _ := object.(EObjectInternal); eObject != nil {
 		eResource := rc.resource.AsEResource()

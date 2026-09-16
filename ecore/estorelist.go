@@ -183,12 +183,12 @@ func (list *EStoreList) IsCache() bool {
 	return list.cache
 }
 
-func (list *EStoreList) performAdd(object any) {
+func (list *EStoreList) PerformAdd(object any) {
 	list.mutex.Lock()
 	index := list.size
 	// add to data
 	if list.data != nil {
-		list.BasicENotifyingList.performAdd(object)
+		list.BasicENotifyingList.PerformAdd(object)
 	}
 
 	// add to store
@@ -206,11 +206,11 @@ func (list *EStoreList) performAdd(object any) {
 	list.mutex.Unlock()
 }
 
-func (list *EStoreList) performInsert(index int, object any) {
+func (list *EStoreList) PerformInsert(index int, object any) {
 	list.mutex.Lock()
 	// add to cache
 	if list.data != nil {
-		list.BasicENotifyingList.performInsert(index, object)
+		list.BasicENotifyingList.PerformInsert(index, object)
 	}
 	// add to store
 	if list.store != nil {
@@ -227,12 +227,12 @@ func (list *EStoreList) performInsert(index int, object any) {
 	list.mutex.Unlock()
 }
 
-func (list *EStoreList) performInsertAll(index int, c Collection) bool {
+func (list *EStoreList) PerformInsertAll(index int, c Collection) bool {
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
 	// add to cache
 	if list.data != nil {
-		if !list.BasicENotifyingList.performInsertAll(index, c) {
+		if !list.BasicENotifyingList.PerformInsertAll(index, c) {
 			return false
 		}
 	}
@@ -254,13 +254,13 @@ func (list *EStoreList) performInsertAll(index int, c Collection) bool {
 	return true
 }
 
-func (list *EStoreList) performClear() []any {
+func (list *EStoreList) PerformClear() []any {
 	list.mutex.Lock()
 	var result []any
 
 	//cache
 	if list.data != nil {
-		result = list.BasicENotifyingList.performClear()
+		result = list.BasicENotifyingList.PerformClear()
 	}
 
 	// store
@@ -282,13 +282,13 @@ func (list *EStoreList) performClear() []any {
 	return result
 }
 
-func (list *EStoreList) performRemove(index int) any {
+func (list *EStoreList) PerformRemove(index int) any {
 	list.mutex.Lock()
 	var result any
 
 	//cache
 	if list.data != nil {
-		result = list.BasicENotifyingList.performRemove(index)
+		result = list.BasicENotifyingList.PerformRemove(index)
 	}
 	//store
 	if list.store != nil {
@@ -309,13 +309,13 @@ func (list *EStoreList) performRemove(index int) any {
 	return result
 }
 
-func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
+func (list *EStoreList) PerformRemoveRange(fromIndex int, toIndex int) []any {
 	list.mutex.Lock()
 	var result []any
 
 	// cache
 	if list.data != nil {
-		result = list.BasicENotifyingList.performRemoveRange(fromIndex, toIndex)
+		result = list.BasicENotifyingList.PerformRemoveRange(fromIndex, toIndex)
 	}
 	// store
 	if list.store != nil {
@@ -339,12 +339,12 @@ func (list *EStoreList) performRemoveRange(fromIndex int, toIndex int) []any {
 	return result
 }
 
-func (list *EStoreList) performSet(index int, object any) any {
+func (list *EStoreList) PerformSet(index int, object any) any {
 	list.mutex.Lock()
 	// cache
 	var result any
 	if list.data != nil {
-		result = list.BasicENotifyingList.performSet(index, object)
+		result = list.BasicENotifyingList.PerformSet(index, object)
 	}
 	// store
 	if list.store != nil {
@@ -362,11 +362,11 @@ func (list *EStoreList) performSet(index int, object any) any {
 	return result
 }
 
-func (list *EStoreList) performMove(oldIndex, newIndex int) any {
+func (list *EStoreList) PerformMove(oldIndex, newIndex int) any {
 	list.mutex.Lock()
 	var result any
 	if list.data != nil {
-		result = list.BasicENotifyingList.performMove(oldIndex, newIndex)
+		result = list.BasicENotifyingList.PerformMove(oldIndex, newIndex)
 	}
 	if list.store != nil {
 		if list.data == nil {
@@ -382,7 +382,7 @@ func (list *EStoreList) performMove(oldIndex, newIndex int) any {
 	return result
 }
 
-func (list *EStoreList) doGet(index int) any {
+func (list *EStoreList) DoGet(index int) any {
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
 	return list.resolve(index, list.get(index))
@@ -407,9 +407,9 @@ func (list *EStoreList) resolve(index int, object any) any {
 			}
 			var notifications ENotificationChain
 			if list.containment {
-				notifications = list.interfaces.(abstractENotifyingList).inverseRemove(object, notifications)
+				notifications = list.interfaces.(internalENotifyingList).InverseRemove(object, notifications)
 				if resolvedInternal, _ := resolved.(EObjectInternal); resolvedInternal != nil && resolvedInternal.EInternalContainer() == nil {
-					notifications = list.interfaces.(abstractENotifyingList).inverseAdd(resolved, notifications)
+					notifications = list.interfaces.(internalENotifyingList).InverseAdd(resolved, notifications)
 				}
 			}
 			list.createAndDispatchNotification(notifications, RESOLVE, object, resolved, index)
@@ -454,7 +454,7 @@ func (list *EStoreList) ToArray() []any {
 	if list.data != nil {
 		if list.proxies {
 			for i := len(list.data) - 1; i >= 0; i-- {
-				list.doGet(i)
+				list.DoGet(i)
 			}
 		}
 		return list.data
@@ -530,7 +530,7 @@ func (list *EStoreList) Contains(element any) bool {
 	return false
 }
 
-func (list *EStoreList) inverseAdd(object any, notifications ENotificationChain) ENotificationChain {
+func (list *EStoreList) InverseAdd(object any, notifications ENotificationChain) ENotificationChain {
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {
@@ -545,7 +545,7 @@ func (list *EStoreList) inverseAdd(object any, notifications ENotificationChain)
 	return notifications
 }
 
-func (list *EStoreList) inverseRemove(object any, notifications ENotificationChain) ENotificationChain {
+func (list *EStoreList) InverseRemove(object any, notifications ENotificationChain) ENotificationChain {
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {
@@ -579,7 +579,7 @@ func newUnResolvedEStoreList(delegate *EStoreList) *unResolvedEStoreList {
 	return l
 }
 
-func (list *unResolvedEStoreList) doGet(index int) any {
+func (list *unResolvedEStoreList) DoGet(index int) any {
 	list.delegate.mutex.Lock()
 	defer list.delegate.mutex.Unlock()
 	return list.delegate.get(index)

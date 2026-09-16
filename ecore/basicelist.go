@@ -61,7 +61,7 @@ func (list *BasicEList) asEListCallbacks() listCallBacks {
 }
 
 // Add a new element to the array
-func (list *BasicEList) doAdd(e any) {
+func (list *BasicEList) DoAdd(e any) {
 	size := len(list.data)
 	list.data = append(list.data, e)
 	// events
@@ -70,7 +70,7 @@ func (list *BasicEList) doAdd(e any) {
 	listCallbacks.DidChange()
 }
 
-func (list *BasicEList) doAddAll(collection Collection) bool {
+func (list *BasicEList) DoAddAll(collection Collection) bool {
 	data := collection.ToArray()
 	list.data = append(list.data, data...)
 	// events
@@ -82,7 +82,7 @@ func (list *BasicEList) doAddAll(collection Collection) bool {
 	return len(data) != 0
 }
 
-func (list *BasicEList) doInsert(index int, e any) {
+func (list *BasicEList) DoInsert(index int, e any) {
 	list.data = append(list.data, nil)
 	copy(list.data[index+1:], list.data[index:])
 	list.data[index] = e
@@ -92,7 +92,7 @@ func (list *BasicEList) doInsert(index int, e any) {
 	listCallbacks.DidChange()
 }
 
-func (list *BasicEList) doInsertAll(index int, collection Collection) bool {
+func (list *BasicEList) DoInsertAll(index int, collection Collection) bool {
 	data := collection.ToArray()
 	list.data = append(list.data[:index], append(data, list.data[index:]...)...)
 	// events
@@ -104,7 +104,7 @@ func (list *BasicEList) doInsertAll(index int, collection Collection) bool {
 	return len(data) != 0
 }
 
-func (list *BasicEList) doMove(oldIndex, newIndex int) any {
+func (list *BasicEList) DoMove(oldIndex, newIndex int) any {
 	object := list.data[oldIndex]
 	if oldIndex != newIndex {
 		if newIndex < oldIndex {
@@ -122,7 +122,7 @@ func (list *BasicEList) doMove(oldIndex, newIndex int) any {
 	return object
 }
 
-func (list *BasicEList) doRemove(index int) any {
+func (list *BasicEList) DoRemove(index int) any {
 	// retrieve removed object
 	object := list.data[index]
 
@@ -138,7 +138,7 @@ func (list *BasicEList) doRemove(index int) any {
 	return object
 }
 
-func (list *BasicEList) doRemoveRange(fromIndex int, toIndex int) []any {
+func (list *BasicEList) DoRemoveRange(fromIndex int, toIndex int) []any {
 	// backup old objects
 	objects := append([]any{}, list.data[fromIndex:toIndex]...)
 	// remove range
@@ -152,11 +152,11 @@ func (list *BasicEList) doRemoveRange(fromIndex int, toIndex int) []any {
 	return objects
 }
 
-func (list *BasicEList) doGet(index int) any {
+func (list *BasicEList) DoGet(index int) any {
 	return list.data[index]
 }
 
-func (list *BasicEList) doSet(index int, elem any) any {
+func (list *BasicEList) DoSet(index int, elem any) any {
 	old := list.data[index]
 	list.data[index] = elem
 	// events
@@ -166,7 +166,7 @@ func (list *BasicEList) doSet(index int, elem any) any {
 	return old
 }
 
-func (list *BasicEList) doClear() []any {
+func (list *BasicEList) DoClear() []any {
 	oldData := list.data
 	list.data = make([]any, 0)
 

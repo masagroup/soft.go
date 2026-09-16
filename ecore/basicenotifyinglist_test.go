@@ -152,7 +152,7 @@ func TestBasicNotifyingListInsert(t *testing.T) {
 func TestBasicNotifyingListInsertAll(t *testing.T) {
 	l := newNotifyingListTest(t)
 
-	assert.False(t, l.doInsertAll(0, NewImmutableEList([]any{})))
+	assert.False(t, l.DoInsertAll(0, NewImmutableEList([]any{})))
 
 	l.mockNotifier.EXPECT().ENotify(mock.MatchedBy(func(n ENotification) bool {
 		return n.GetNotifier() == l.mockNotifier &&

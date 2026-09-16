@@ -22,14 +22,14 @@ func (l *resourcesList) GetFeatureID() int {
 	return RESOURCE_SET__RESOURCES
 }
 
-func (l *resourcesList) inverseAdd(object any, notifications ENotificationChain) ENotificationChain {
+func (l *resourcesList) InverseAdd(object any, notifications ENotificationChain) ENotificationChain {
 	if eResource, _ := object.(EResourceInternal); eResource != nil {
 		return eResource.BasicSetResourceSet(l.resourceSet.AsEResourceSet(), notifications)
 	}
 	return notifications
 }
 
-func (l *resourcesList) inverseRemove(object any, notifications ENotificationChain) ENotificationChain {
+func (l *resourcesList) InverseRemove(object any, notifications ENotificationChain) ENotificationChain {
 	if eResource, _ := object.(EResourceInternal); eResource != nil {
 		return eResource.BasicSetResourceSet(nil, notifications)
 	}

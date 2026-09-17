@@ -17,6 +17,8 @@ import (
 
 type internalCompactEStoreEObjectImpl interface {
 	GetEStore() EStore
+	CreateList(feature EStructuralFeature, store EStore) EList
+	CreateMap(feature EStructuralFeature, store EStore) EMap
 }
 
 // CompactEStoreEObjectImpl is an abstract compact reflective EObject implementation.
@@ -68,6 +70,14 @@ func (o *CompactEStoreEObjectImpl) Lock() {
 
 func (o *CompactEStoreEObjectImpl) Unlock() {
 	o.mutex.Unlock()
+}
+
+// ClearCache clears all cached feature values from the dynamic compact cache.
+func (o *CompactEStoreEObjectImpl) ClearCache() {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
+	o.cachedValues = nil
+	o.cacheMask = 0
 }
 
 func (o *CompactEStoreEObjectImpl) isCached(featureID int) bool {
@@ -155,9 +165,9 @@ func (o *CompactEStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 		if !feature.IsTransient() {
 			if feature.IsMany() {
 				if IsMapType(feature) {
-					result = o.createMap(feature, o.getStore())
+					result = o.asInternal().CreateMap(feature, o.getStore())
 				} else {
-					result = o.createList(feature, o.getStore())
+					result = o.asInternal().CreateList(feature, o.getStore())
 				}
 				shouldCache = true
 			} else if store := o.getStore(); store != nil {
@@ -166,9 +176,9 @@ func (o *CompactEStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 			}
 		} else if feature.IsMany() {
 			if IsMapType(feature) {
-				result = o.createMap(feature, nil)
+				result = o.asInternal().CreateMap(feature, nil)
 			} else {
-				result = o.createList(feature, nil)
+				result = o.asInternal().CreateList(feature, nil)
 			}
 			shouldCache = true
 		}
@@ -227,13 +237,13 @@ func (o *CompactEStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	}
 }
 
-func (o *CompactEStoreEObjectImpl) createList(feature EStructuralFeature, store EStore) EList {
+func (o *CompactEStoreEObjectImpl) CreateList(feature EStructuralFeature, store EStore) EList {
 	l := NewEStoreList(o.AsEObject(), feature, store)
 	l.SetCache(true)
 	return l
 }
 
-func (o *CompactEStoreEObjectImpl) createMap(feature EStructuralFeature, store EStore) EMap {
+func (o *CompactEStoreEObjectImpl) CreateMap(feature EStructuralFeature, store EStore) EMap {
 	eClass := feature.GetEType().(EClass)
 	return NewEStoreMap(eClass, o.AsEObject(), feature, store)
 }

@@ -18,7 +18,7 @@ type JSONEncoder struct {
 	keepDefaults    bool
 }
 
-func NewJSONEncoder(resource EResource, w io.Writer, options map[string]interface{}) *JSONEncoder {
+func NewJSONEncoder(resource EResource, w io.Writer, options map[string]any) *JSONEncoder {
 	e := &JSONEncoder{
 		w:            jsonwriter.New(w),
 		resource:     resource,
@@ -161,7 +161,7 @@ func (e *JSONEncoder) getClassName(eClass EClass) string {
 	return ePackage.GetNsURI() + "#//" + eClass.GetName()
 }
 
-func (e *JSONEncoder) getData(value interface{}, f EStructuralFeature) (string, bool) {
+func (e *JSONEncoder) getData(value any, f EStructuralFeature) (string, bool) {
 	if value == nil {
 		return "", false
 	} else {

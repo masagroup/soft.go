@@ -18,7 +18,7 @@ import (
 func TestEListIterator(t *testing.T) {
 	mockList := NewMockEList(t)
 	mockList.EXPECT().Size().Return(3)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		mockList.EXPECT().Get(i).Return(i)
 	}
 	it := &listIterator{list: mockList}

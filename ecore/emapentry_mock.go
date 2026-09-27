@@ -37,11 +37,11 @@ func (_m *MockEMapEntry_Prototype) EXPECT() *MockEMapEntry_Expecter {
 }
 
 // GetKey provides a mock function with given fields:
-func (_m *MockEMapEntry_Prototype) GetKey() interface{} {
+func (_m *MockEMapEntry_Prototype) GetKey() any {
 	ret := _m.mock.Called()
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
@@ -69,17 +69,17 @@ func (_c *MockEMapEntry_GetKey_Call) Run(run func()) *MockEMapEntry_GetKey_Call 
 	return _c
 }
 
-func (_c *MockEMapEntry_GetKey_Call) Return(_a0 interface{}) *MockEMapEntry_GetKey_Call {
+func (_c *MockEMapEntry_GetKey_Call) Return(_a0 any) *MockEMapEntry_GetKey_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
 // GetValue provides a mock function with given fields:
-func (_m *MockEMapEntry_Prototype) GetValue() interface{} {
+func (_m *MockEMapEntry_Prototype) GetValue() any {
 	ret := _m.mock.Called()
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func() interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func() any); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
@@ -107,13 +107,13 @@ func (_c *MockEMapEntry_GetValue_Call) Run(run func()) *MockEMapEntry_GetValue_C
 	return _c
 }
 
-func (_c *MockEMapEntry_GetValue_Call) Return(_a0 interface{}) *MockEMapEntry_GetValue_Call {
+func (_c *MockEMapEntry_GetValue_Call) Return(_a0 any) *MockEMapEntry_GetValue_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
 // SetKey provides a mock function with given fields: _a0
-func (_m *MockEMapEntry_Prototype) SetKey(_a0 interface{}) {
+func (_m *MockEMapEntry_Prototype) SetKey(_a0 any) {
 	_m.mock.Called(_a0)
 }
 
@@ -124,11 +124,11 @@ type MockEMapEntry_SetKey_Call struct {
 
 // SetKey is a helper method to define mock.On call
 //   - _a0 interface{}
-func (_e *MockEMapEntry_Expecter) SetKey(_a0 interface{}) *MockEMapEntry_SetKey_Call {
+func (_e *MockEMapEntry_Expecter) SetKey(_a0 any) *MockEMapEntry_SetKey_Call {
 	return &MockEMapEntry_SetKey_Call{Call: _e.mock.On("SetKey", _a0)}
 }
 
-func (_c *MockEMapEntry_SetKey_Call) Run(run func(_a0 interface{})) *MockEMapEntry_SetKey_Call {
+func (_c *MockEMapEntry_SetKey_Call) Run(run func(_a0 any)) *MockEMapEntry_SetKey_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0])
 	})
@@ -141,7 +141,7 @@ func (_c *MockEMapEntry_SetKey_Call) Return() *MockEMapEntry_SetKey_Call {
 }
 
 // SetValue provides a mock function with given fields: _a0
-func (_m *MockEMapEntry_Prototype) SetValue(_a0 interface{}) {
+func (_m *MockEMapEntry_Prototype) SetValue(_a0 any) {
 	_m.mock.Called(_a0)
 }
 
@@ -152,11 +152,11 @@ type MockEMapEntry_SetValue_Call struct {
 
 // SetValue is a helper method to define mock.On call
 //   - _a0 interface{}
-func (_e *MockEMapEntry_Expecter) SetValue(_a0 interface{}) *MockEMapEntry_SetValue_Call {
+func (_e *MockEMapEntry_Expecter) SetValue(_a0 any) *MockEMapEntry_SetValue_Call {
 	return &MockEMapEntry_SetValue_Call{Call: _e.mock.On("SetValue", _a0)}
 }
 
-func (_c *MockEMapEntry_SetValue_Call) Run(run func(_a0 interface{})) *MockEMapEntry_SetValue_Call {
+func (_c *MockEMapEntry_SetValue_Call) Run(run func(_a0 any)) *MockEMapEntry_SetValue_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0])
 	})
@@ -177,7 +177,7 @@ type mockConstructorTestingTNewMockEMapEntry interface {
 func NewMockEMapEntry(t mockConstructorTestingTNewMockEMapEntry) *MockEMapEntry {
 	mock := &MockEMapEntry{}
 	mock.SetMock(&mock.Mock)
-	mock.Mock.Test(t)
+	mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock
 }

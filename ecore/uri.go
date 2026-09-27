@@ -619,7 +619,7 @@ func removeDots(path []rune, segs []int) {
 
 			if j >= 0 {
 				q := segs[j]
-				if !((path[q] == '.') && (path[q+1] == '.') && (path[q+2] == rune(0))) {
+				if path[q] != '.' || path[q+1] != '.' || path[q+2] != rune(0) {
 					segs[i] = -1
 					segs[j] = -1
 				}
@@ -689,7 +689,7 @@ func join(path []rune, segs []int) int {
 		path[p] = '/'
 		p++
 	}
-	for i := 0; i < ns; i++ {
+	for i := range ns {
 		q := segs[i] // Current segment
 		if q == -1 {
 			// Ignore this segment

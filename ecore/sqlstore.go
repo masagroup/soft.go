@@ -518,7 +518,9 @@ func (m *operationMarshaler) MarshalLogObject(e zapcore.ObjectEncoder) error {
 		}
 	}
 	if m.withPrevious {
-		e.AddArray("previous", operationsMap(op.previous))
+		if err := e.AddArray("previous", operationsMap(op.previous)); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1279,8 +1281,8 @@ func (s *SQLStore) getLastOperation(type_ operationType, object EObject, feature
 	defer s.mutexOperations.Unlock()
 	if objectOperations := s.objectOperations[object]; objectOperations != nil {
 		if operations := objectOperations[feature]; operations != nil {
-			for i := len(operations) - 1; i >= 0; i-- {
-				if operation := operations[i]; operation.type_ == type_ && operation.index == index {
+			for _, operation := range slices.Backward(operations) {
+				if operation.type_ == type_ && operation.index == index {
 					return operation
 				}
 			}
@@ -1305,8 +1307,8 @@ func (s *SQLStore) registerOperation(object EObject, feature EStructuralFeature,
 	// compute previous operation
 	switch op.type_ {
 	case operationRead:
-		for i := len(operations) - 1; i >= 0; i-- {
-			operation := operations[i]
+		for _, operation := range slices.Backward(operations) {
+
 			if operation.type_ == operationWrite {
 				previous = operation
 				break
@@ -1353,7 +1355,7 @@ func awaitOperation[T any](ctx context.Context, op *operation) T {
 	var def T
 	if r, err := op.promise.Await(ctx); err != nil {
 		return def
-	} else if result, isResult := (*r).(T); isResult {
+	} else if result, isResult := r.(T); isResult {
 		return result
 	} else {
 		return def
@@ -2282,8 +2284,7 @@ func (s *SQLStore) Serialize(ctx context.Context) *promise.Promise[[]byte] {
 		return s.doSerialize(ctx)
 	})
 	op = s.scheduleOperation(ctx, op)
-	return promise.ThenWithPool(
-		op.promise,
+	return op.promise.ThenWithPool(
 		ctx,
 		func(a any) ([]byte, error) { return a.([]byte), nil },
 		s.promisePool,

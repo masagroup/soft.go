@@ -157,8 +157,8 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 		sqliteQueries := s.sqliteQueries[table]
 		switch q.type_ {
 		case queryRead:
-			for i := len(sqliteQueries) - 1; i >= 0; i-- {
-				if query := sqliteQueries[i]; query.type_ == queryWrite {
+			for _, query := range slices.Backward(sqliteQueries) {
+				if query.type_ == queryWrite {
 					previous[query] = struct{}{}
 					break
 				}

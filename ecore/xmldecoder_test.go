@@ -363,7 +363,7 @@ func TestXMLDecoderMaps(t *testing.T) {
 	refToIntsMap, _ := mapTest.EGet(eMapTestKeyToValueReference).(EMap)
 	require.NotNil(t, refToIntsMap)
 	assert.Equal(t, 5, refToIntsMap.Size())
-	for i := 0; i < 0; i++ {
+	for i := range 0 {
 		ref := refList.Get(i)
 		l, _ := refToIntsMap.GetValue(ref).(EList)
 		require.NotNil(t, l)
@@ -390,7 +390,7 @@ func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 	require.Nil(b, err)
 	r := bytes.NewReader(content)
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, err = r.Seek(0, io.SeekStart)
 		require.Nil(b, err)
 		xmlDecoder := NewXMLDecoder(eResource, r, nil)

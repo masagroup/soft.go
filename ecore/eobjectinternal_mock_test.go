@@ -243,7 +243,7 @@ func TestMockEObjectInternal_ESetFromID(t *testing.T) {
 	o := NewMockEObjectInternal(t)
 	obj := NewMockEObject(t)
 	m := NewMockRun(t, 1, obj)
-	o.EXPECT().ESetFromID(1, obj).Return().Run(func(featureID int, newValue interface{}) { m.Run(featureID, newValue) }).Once()
+	o.EXPECT().ESetFromID(1, obj).Return().Run(func(featureID int, newValue any) { m.Run(featureID, newValue) }).Once()
 	o.ESetFromID(1, obj)
 }
 

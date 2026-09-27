@@ -89,7 +89,7 @@ type MockEStoreEObject_SetEStore_Call struct {
 
 // SetEStore is a helper method to define mock.On call
 //   - store EStore
-func (_e *MockEStoreEObject_Expecter) SetEStore(store interface{}) *MockEStoreEObject_SetEStore_Call {
+func (_e *MockEStoreEObject_Expecter) SetEStore(store any) *MockEStoreEObject_SetEStore_Call {
 	return &MockEStoreEObject_SetEStore_Call{Call: _e.mock.On("SetEStore", store)}
 }
 
@@ -146,7 +146,7 @@ type mockConstructorTestingTNewMockEStoreEObject interface {
 func NewMockEStoreEObject(t mockConstructorTestingTNewMockEStoreEObject) *MockEStoreEObject {
 	mock := &MockEStoreEObject{}
 	mock.SetMock(&mock.Mock)
-	mock.Mock.Test(t)
+	mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock
 }

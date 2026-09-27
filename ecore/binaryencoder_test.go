@@ -185,7 +185,7 @@ func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
 	require.NotNil(b, eResource)
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		var buffer bytes.Buffer
 		binaryEncoder := NewBinaryEncoder(eResource, &buffer, nil)
 		binaryEncoder.EncodeResource()

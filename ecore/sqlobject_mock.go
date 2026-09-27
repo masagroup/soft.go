@@ -105,7 +105,7 @@ type MockSQLObject_SetSQLID_Call struct {
 
 // SetSQLID is a helper method to define mock.On call
 //   - _a0 int64
-func (_e *MockSQLObject_Expecter_Methods) SetSQLID(_a0 interface{}) *MockSQLObject_SetSQLID_Call {
+func (_e *MockSQLObject_Expecter_Methods) SetSQLID(_a0 any) *MockSQLObject_SetSQLID_Call {
 	return &MockSQLObject_SetSQLID_Call{Call: _e.mock.On("SetSQLID", _a0)}
 }
 
@@ -134,7 +134,7 @@ func NewMockSQLObject(t interface {
 }) *MockSQLObject {
 	mock := &MockSQLObject{}
 	mock.SetMock(&mock.Mock)
-	mock.Mock.Test(t)
+	mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock
 }

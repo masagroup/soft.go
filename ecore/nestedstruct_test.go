@@ -66,7 +66,7 @@ func makeC() C {
 }
 
 func BenchmarkStructNested(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		c := C{
 			B: B{
 				A: A{a1: "a1",
@@ -88,7 +88,7 @@ func BenchmarkStructNested(b *testing.B) {
 }
 
 func BenchmarkStructInit(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		c := C{}
 		c.a1 = "a1"
 		c.a2 = "a2"
@@ -107,7 +107,7 @@ func BenchmarkStructInit(b *testing.B) {
 }
 
 func BenchmarkStructMake(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		c := makeC()
 		c.c4 += 1
 	}

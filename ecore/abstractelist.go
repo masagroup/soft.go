@@ -7,28 +7,28 @@ import (
 	"github.com/ugurcsen/gods-generic/sets/linkedhashset"
 )
 
-type abstractEList interface {
+type internalAbstractEList interface {
 	EList
 
-	doGet(index int) any
+	DoGet(index int) any
 
-	doSet(index int, elem any) any
+	DoSet(index int, elem any) any
 
-	doAdd(elem any)
+	DoAdd(elem any)
 
-	doAddAll(list Collection) bool
+	DoAddAll(list Collection) bool
 
-	doInsert(index int, elem any)
+	DoInsert(index int, elem any)
 
-	doInsertAll(index int, list Collection) bool
+	DoInsertAll(index int, list Collection) bool
 
-	doClear() []any
+	DoClear() []any
 
-	doMove(oldIndex, newIndex int) any
+	DoMove(oldIndex, newIndex int) any
 
-	doRemove(index int) any
+	DoRemove(index int) any
 
-	doRemoveRange(fromIndex, toIndex int) []any
+	DoRemoveRange(fromIndex, toIndex int) []any
 }
 
 type AbstractEList struct {
@@ -44,8 +44,8 @@ func (list *AbstractEList) asEList() EList {
 	return list.interfaces.(EList)
 }
 
-func (list *AbstractEList) asAbstractEList() abstractEList {
-	return list.interfaces.(abstractEList)
+func (list *AbstractEList) asInternal() internalAbstractEList {
+	return list.interfaces.(internalAbstractEList)
 }
 
 func (list *AbstractEList) getNonDuplicates(collection Collection) Collection {
@@ -76,11 +76,11 @@ func (list *AbstractEList) getNonDuplicates(collection Collection) Collection {
 }
 
 func (list *AbstractEList) Add(elem any) bool {
-	l := list.asAbstractEList()
+	l := list.asInternal()
 	if list.isUnique && l.Contains(elem) {
 		return false
 	}
-	l.doAdd(elem)
+	l.DoAdd(elem)
 	return true
 }
 
@@ -91,24 +91,24 @@ func (list *AbstractEList) AddAll(collection Collection) bool {
 			return false
 		}
 	}
-	list.asAbstractEList().doAddAll(collection)
+	list.asInternal().DoAddAll(collection)
 	return true
 }
 
 func (list *AbstractEList) Insert(index int, elem any) bool {
-	l := list.asAbstractEList()
+	l := list.asInternal()
 	if size := l.Size(); index < 0 || index > size {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(size))
 	}
 	if list.isUnique && l.Contains(elem) {
 		return false
 	}
-	l.doInsert(index, elem)
+	l.DoInsert(index, elem)
 	return true
 }
 
 func (list *AbstractEList) InsertAll(index int, collection Collection) bool {
-	l := list.asAbstractEList()
+	l := list.asInternal()
 	if size := l.Size(); index < 0 || index > size {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(size))
 	}
@@ -118,50 +118,50 @@ func (list *AbstractEList) InsertAll(index int, collection Collection) bool {
 			return false
 		}
 	}
-	l.doInsertAll(index, collection)
+	l.DoInsertAll(index, collection)
 	return true
 }
 
 func (list *AbstractEList) MoveObject(newIndex int, elem any) {
-	l := list.asAbstractEList()
+	l := list.asInternal()
 	oldIndex := l.IndexOf(elem)
 	if oldIndex == -1 {
 		panic("Object not found")
 	}
-	l.doMove(oldIndex, newIndex)
+	l.DoMove(oldIndex, newIndex)
 }
 
 // Swap move an element from oldIndex to newIndex
 func (list *AbstractEList) Move(oldIndex, newIndex int) any {
-	l := list.asAbstractEList()
+	l := list.asInternal()
 	if size := l.Size(); oldIndex < 0 || oldIndex >= size || newIndex < 0 || newIndex > size {
 		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(size))
 	}
-	return l.doMove(oldIndex, newIndex)
+	return l.DoMove(oldIndex, newIndex)
 }
 
 // RemoveAt remove an element at a given position
 func (list *AbstractEList) RemoveAt(index int) any {
-	l := list.asAbstractEList()
+	l := list.asInternal()
 	if size := l.Size(); index < 0 || index >= size {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(size))
 	}
-	return l.doRemove(index)
+	return l.DoRemove(index)
 }
 
 // Remove an element in an array
 func (list *AbstractEList) Remove(elem any) bool {
-	l := list.asAbstractEList()
+	l := list.asInternal()
 	index := l.IndexOf(elem)
 	if index == -1 {
 		return false
 	}
-	l.doRemove(index)
+	l.DoRemove(index)
 	return true
 }
 
 func (list *AbstractEList) RemoveRange(fromIndex int, toIndex int) {
-	l := list.asAbstractEList()
+	l := list.asInternal()
 	size := l.Size()
 	if fromIndex < 0 || fromIndex >= size {
 		panic("Index out of bounds: fromIndex=" + strconv.Itoa(fromIndex) + " size=" + strconv.Itoa(size))
@@ -172,14 +172,14 @@ func (list *AbstractEList) RemoveRange(fromIndex int, toIndex int) {
 	if fromIndex > toIndex {
 		panic("Indexes invalid: fromIndex=" + strconv.Itoa(fromIndex) + "must be less than toIndex=" + strconv.Itoa(toIndex))
 	}
-	l.doRemoveRange(fromIndex, toIndex)
+	l.DoRemoveRange(fromIndex, toIndex)
 }
 
 func (list *AbstractEList) RemoveAll(collection Collection) bool {
 	modified := false
-	l := list.asAbstractEList()
+	l := list.asInternal()
 	for i := l.Size() - 1; i >= 0; i-- {
-		if collection.Contains(l.doGet(i)) {
+		if collection.Contains(l.DoGet(i)) {
 			l.RemoveAt(i)
 			modified = true
 		}
@@ -189,16 +189,16 @@ func (list *AbstractEList) RemoveAll(collection Collection) bool {
 
 // Get an element of the array
 func (list *AbstractEList) Get(index int) any {
-	l := list.asAbstractEList()
+	l := list.asInternal()
 	if size := l.Size(); index < 0 || index >= size {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(size))
 	}
-	return l.doGet(index)
+	return l.DoGet(index)
 }
 
 // Set an element of the array
 func (list *AbstractEList) Set(index int, elem any) any {
-	l := list.asAbstractEList()
+	l := list.asInternal()
 	if size := l.Size(); index < 0 || index >= size {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(size))
 	}
@@ -208,11 +208,11 @@ func (list *AbstractEList) Set(index int, elem any) any {
 			panic("element already in list")
 		}
 	}
-	return l.doSet(index, elem)
+	return l.DoSet(index, elem)
 }
 
 func (list *AbstractEList) Clear() {
-	list.asAbstractEList().doClear()
+	list.asInternal().DoClear()
 }
 
 func (list *AbstractEList) Size() int {

@@ -55,7 +55,7 @@ func TestMockEPackageRegistryAddWithNotification(t *testing.T) {
 	n := NewMockENotificationChain(t)
 	v := NewMockEObject(t)
 	m := NewMockRun(t, v, n)
-	l.EXPECT().AddWithNotification(v, n).Return(n).Run(func(object interface{}, notifications ENotificationChain) { m.Run(object, notifications) }).Once()
+	l.EXPECT().AddWithNotification(v, n).Return(n).Run(func(object any, notifications ENotificationChain) { m.Run(object, notifications) }).Once()
 	l.EXPECT().AddWithNotification(v, n).Call.Return(func(object any, notifications ENotificationChain) ENotificationChain {
 		return n
 	}).Once()
@@ -68,7 +68,7 @@ func TestMockEPackageRegistryRemoveWithNotification(t *testing.T) {
 	n := NewMockENotificationChain(t)
 	v := NewMockEObject(t)
 	m := NewMockRun(t, v, n)
-	l.EXPECT().RemoveWithNotification(v, n).Return(n).Run(func(object interface{}, notifications ENotificationChain) { m.Run(object, notifications) }).Once()
+	l.EXPECT().RemoveWithNotification(v, n).Return(n).Run(func(object any, notifications ENotificationChain) { m.Run(object, notifications) }).Once()
 	l.EXPECT().RemoveWithNotification(v, n).Call.Return(func(object any, notifications ENotificationChain) ENotificationChain {
 		return n
 	}).Once()
@@ -81,7 +81,7 @@ func TestMockEPackageRegistrySetWithNotification(t *testing.T) {
 	n := NewMockENotificationChain(t)
 	v := NewMockEObject(t)
 	m := NewMockRun(t, 0, v, n)
-	l.EXPECT().SetWithNotification(0, v, n).Return(n).Run(func(index int, object interface{}, notifications ENotificationChain) {
+	l.EXPECT().SetWithNotification(0, v, n).Return(n).Run(func(index int, object any, notifications ENotificationChain) {
 		m.Run(index, object, notifications)
 	}).Once()
 	l.EXPECT().SetWithNotification(1, v, n).Call.Return(func(index int, object any, notifications ENotificationChain) ENotificationChain {

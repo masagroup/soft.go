@@ -158,7 +158,7 @@ func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 	require.Nil(b, err)
 	r := bytes.NewReader(content)
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, err := r.Seek(0, io.SeekStart)
 		require.Nil(b, err)
 		xmlDecoder := ecore.NewXMLDecoder(eResource, r, nil)
@@ -174,7 +174,7 @@ func BenchmarkXMLEncoderLibraryComplexBig(b *testing.B) {
 	require.NotNil(b, eResource)
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		var strbuff strings.Builder
 		binaryEncoder := ecore.NewXMLEncoder(eResource, &strbuff, nil)
 		binaryEncoder.EncodeResource()
@@ -196,7 +196,7 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	require.Nil(b, err)
 	r := bytes.NewReader(content)
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, err := r.Seek(0, io.SeekStart)
 		require.Nil(b, err)
 		xmlDecoder := ecore.NewBinaryDecoder(eResource, r, nil)
@@ -212,7 +212,7 @@ func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
 	require.NotNil(b, eResource)
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		var strbuff strings.Builder
 		binaryEncoder := ecore.NewBinaryEncoder(eResource, &strbuff, nil)
 		binaryEncoder.EncodeResource()

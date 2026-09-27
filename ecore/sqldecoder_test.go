@@ -79,7 +79,7 @@ func BenchmarkSQLDecoder_Complex(b *testing.B) {
 	array, err := io.ReadAll(r)
 	require.NoError(b, err)
 
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		r := bytes.NewReader(array)
 		sqlDecoder := NewSQLReaderDecoder(r, eResource, nil)
 		sqlDecoder.DecodeResource()
@@ -108,7 +108,7 @@ func BenchmarkSQLDecoder_Complex_Memory(b *testing.B) {
 	array, err := io.ReadAll(r)
 	require.NoError(b, err)
 
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		r := bytes.NewReader(array)
 		sqlDecoder := NewSQLReaderDecoder(r, eResource, map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: true})
 		sqlDecoder.DecodeResource()

@@ -111,7 +111,7 @@ func BenchmarkSQLEncoder_Complex(b *testing.B) {
 	require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		w := &bytes.Buffer{}
 		sqliteEncoder := NewSQLWriterEncoder(w, eResource, map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: false})
 		sqliteEncoder.EncodeResource()
@@ -132,7 +132,7 @@ func BenchmarkSQLEncoder_Complex_Memory(b *testing.B) {
 	require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		w := &bytes.Buffer{}
 		sqliteEncoder := NewSQLWriterEncoder(w, eResource, map[string]any{SQL_OPTION_IN_MEMORY_DATABASE: true})
 		sqliteEncoder.EncodeResource()

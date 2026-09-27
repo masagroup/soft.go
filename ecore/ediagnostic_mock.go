@@ -211,7 +211,7 @@ type mockConstructorTestingTNewMockEDiagnostic interface {
 // NewMockEDiagnostic creates a new instance of MockEDiagnostic. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEDiagnostic(t mockConstructorTestingTNewMockEDiagnostic) *MockEDiagnostic {
 	mock := &MockEDiagnostic{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

@@ -29,7 +29,7 @@ func TestMockEMapEntry_GetKey(t *testing.T) {
 func TestMockEMapEntry_SetKey(t *testing.T) {
 	l := NewMockEMapEntry(t)
 	m := NewMockRun(t, 1)
-	l.EXPECT().SetKey(1).Return().Run(func(_a0 interface{}) { m.Run(_a0) }).Once()
+	l.EXPECT().SetKey(1).Return().Run(func(_a0 any) { m.Run(_a0) }).Once()
 	l.SetKey(1)
 }
 
@@ -47,6 +47,6 @@ func TestMockEMapEntry_GetValue(t *testing.T) {
 func TestMockEMapEntry_SetValue(t *testing.T) {
 	l := NewMockEMapEntry(t)
 	m := NewMockRun(t, 1)
-	l.EXPECT().SetValue(1).Return().Run(func(_a0 interface{}) { m.Run(_a0) }).Once()
+	l.EXPECT().SetValue(1).Return().Run(func(_a0 any) { m.Run(_a0) }).Once()
 	l.SetValue(1)
 }

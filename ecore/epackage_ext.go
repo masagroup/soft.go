@@ -69,7 +69,7 @@ func (pack *EPackageExt) GetEClassifier(classifier string) EClassifier {
 }
 
 func (pack *EPackageExt) CreateResource() EResource {
-	resource := pack.EPackageImpl.EResource()
+	resource := pack.EResource()
 	if resource == nil {
 		uri := NewURI(pack.GetNsURI())
 		resource = NewEResourceImpl()

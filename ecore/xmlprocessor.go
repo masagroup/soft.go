@@ -11,6 +11,7 @@ package ecore
 
 import (
 	"io"
+	"maps"
 	"strings"
 )
 
@@ -73,9 +74,7 @@ func (p *XMLProcessor) LoadWithOptions(uri *URI, options map[string]any) EResour
 	rs := p.GetResourceSet()
 	r := rs.CreateResource(uri)
 	o := map[string]any{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
-	for k, v := range options {
-		o[k] = v
-	}
+	maps.Copy(o, options)
 	r.LoadWithOptions(o)
 	return r
 }
@@ -84,9 +83,7 @@ func (p *XMLProcessor) LoadWithReader(r io.Reader, options map[string]any) EReso
 	rs := p.GetResourceSet()
 	rc := rs.CreateResource(NewURI("*.xml"))
 	o := map[string]any{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
-	for k, v := range options {
-		o[k] = v
-	}
+	maps.Copy(o, options)
 	rc.LoadWithReader(r, o)
 	return rc
 }
@@ -97,17 +94,13 @@ func (p *XMLProcessor) Save(resource EResource) {
 
 func (p *XMLProcessor) SaveWithOptions(resource EResource, options map[string]any) {
 	o := map[string]any{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
-	for k, v := range options {
-		o[k] = v
-	}
+	maps.Copy(o, options)
 	resource.SaveWithOptions(o)
 }
 
 func (p *XMLProcessor) SaveWithWriter(w io.Writer, resource EResource, options map[string]any) {
 	o := map[string]any{XML_OPTION_EXTENDED_META_DATA: p.extendMetaData}
-	for k, v := range options {
-		o[k] = v
-	}
+	maps.Copy(o, options)
 	resource.SaveWithWriter(w, o)
 }
 

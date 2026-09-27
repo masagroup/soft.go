@@ -1691,7 +1691,7 @@ func TestSQLStore_Serialize(t *testing.T) {
 	bytes, err := s.Serialize(context.Background()).Await(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, bytes)
-	requireSameDB(t, "testdata/library.store.sqlite", *bytes)
+	requireSameDB(t, "testdata/library.store.sqlite", bytes)
 }
 
 func TestSQLStore_SerializeBig(t *testing.T) {
@@ -1713,7 +1713,7 @@ func TestSQLStore_SerializeBig(t *testing.T) {
 	bytes, err := s.Serialize(context.Background()).Await(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, bytes)
-	requireSameDB(t, "testdata/library.store.sqlite", *bytes)
+	requireSameDB(t, "testdata/library.store.sqlite", bytes)
 }
 
 func TestSQLStore_GetRoots(t *testing.T) {
@@ -1999,12 +1999,13 @@ func TestSQLStore_UnlockOperation_Simple(t *testing.T) {
 	defer s.Close()
 
 	size := 0
-	s.ExecuteQuery(context.Background(), "SELECT COUNT(*) from library_books", &sqlitex.ExecOptions{
+	err = s.ExecuteQuery(context.Background(), "SELECT COUNT(*) from library_books", &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			time.Sleep(50 * time.Millisecond)
 			size = stmt.ColumnInt(0)
 			return nil
 		},
 	})
+	require.NoError(t, err)
 	require.Equal(t, 2, size)
 }

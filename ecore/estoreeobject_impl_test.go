@@ -76,7 +76,7 @@ func TestEStoreEObjectImpl_GetAttribute_NoCaching(t *testing.T) {
 	o.SetEClass(mockClass)
 	o.SetEStore(mockStore)
 
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		mockAttribute.EXPECT().IsMany().Return(false).Once()
 		mockAttribute.EXPECT().IsTransient().Return(false).Once()
 		mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Twice()

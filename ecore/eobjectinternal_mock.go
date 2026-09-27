@@ -86,7 +86,7 @@ type MockEObjectInternal_EBasicInverseAdd_Call struct {
 //   - otherEnd EObject
 //   - featureID int
 //   - notifications ENotificationChain
-func (_e *MockEObjectInternal_Expecter_Methods) EBasicInverseAdd(otherEnd interface{}, featureID interface{}, notifications interface{}) *MockEObjectInternal_EBasicInverseAdd_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EBasicInverseAdd(otherEnd any, featureID any, notifications any) *MockEObjectInternal_EBasicInverseAdd_Call {
 	return &MockEObjectInternal_EBasicInverseAdd_Call{Call: _e.mock.On("EBasicInverseAdd", otherEnd, featureID, notifications)}
 }
 
@@ -127,7 +127,7 @@ type MockEObjectInternal_EBasicInverseRemove_Call struct {
 //   - otherEnd EObject
 //   - featureID int
 //   - notifications ENotificationChain
-func (_e *MockEObjectInternal_Expecter_Methods) EBasicInverseRemove(otherEnd interface{}, featureID interface{}, notifications interface{}) *MockEObjectInternal_EBasicInverseRemove_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EBasicInverseRemove(otherEnd any, featureID any, notifications any) *MockEObjectInternal_EBasicInverseRemove_Call {
 	return &MockEObjectInternal_EBasicInverseRemove_Call{Call: _e.mock.On("EBasicInverseRemove", otherEnd, featureID, notifications)}
 }
 
@@ -165,7 +165,7 @@ type MockEObjectInternal_EDerivedFeatureID_Call struct {
 // EDerivedFeatureID is a helper method to define mock.On call
 //   - container EObject
 //   - featureID int
-func (_e *MockEObjectInternal_Expecter_Methods) EDerivedFeatureID(container interface{}, featureID interface{}) *MockEObjectInternal_EDerivedFeatureID_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EDerivedFeatureID(container any, featureID any) *MockEObjectInternal_EDerivedFeatureID_Call {
 	return &MockEObjectInternal_EDerivedFeatureID_Call{Call: _e.mock.On("EDerivedFeatureID", container, featureID)}
 }
 
@@ -203,7 +203,7 @@ type MockEObjectInternal_EDerivedOperationID_Call struct {
 // EDerivedOperationID is a helper method to define mock.On call
 //   - container EObject
 //   - operationID int
-func (_e *MockEObjectInternal_Expecter_Methods) EDerivedOperationID(container interface{}, operationID interface{}) *MockEObjectInternal_EDerivedOperationID_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EDerivedOperationID(container any, operationID any) *MockEObjectInternal_EDerivedOperationID_Call {
 	return &MockEObjectInternal_EDerivedOperationID_Call{Call: _e.mock.On("EDerivedOperationID", container, operationID)}
 }
 
@@ -278,7 +278,7 @@ type MockEObjectInternal_EFeatureID_Call struct {
 
 // EFeatureID is a helper method to define mock.On call
 //   - feature EStructuralFeature
-func (_e *MockEObjectInternal_Expecter_Methods) EFeatureID(feature interface{}) *MockEObjectInternal_EFeatureID_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EFeatureID(feature any) *MockEObjectInternal_EFeatureID_Call {
 	return &MockEObjectInternal_EFeatureID_Call{Call: _e.mock.On("EFeatureID", feature)}
 }
 
@@ -295,11 +295,11 @@ func (_c *MockEObjectInternal_EFeatureID_Call) Return(_a0 int) *MockEObjectInter
 }
 
 // EGetFromID provides a mock function with given fields: featureID, resolve
-func (_m *MockEObjectInternal_Prototype_Methods) EGetFromID(featureID int, resolve bool) interface{} {
+func (_m *MockEObjectInternal_Prototype_Methods) EGetFromID(featureID int, resolve bool) any {
 	ret := _m.mock.Called(featureID, resolve)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(int, bool) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(int, bool) any); ok {
 		r0 = rf(featureID, resolve)
 	} else {
 		if ret.Get(0) != nil {
@@ -318,7 +318,7 @@ type MockEObjectInternal_EGetFromID_Call struct {
 // EGetFromID is a helper method to define mock.On call
 //   - featureID int
 //   - resolve bool
-func (_e *MockEObjectInternal_Expecter_Methods) EGetFromID(featureID interface{}, resolve interface{}) *MockEObjectInternal_EGetFromID_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EGetFromID(featureID any, resolve any) *MockEObjectInternal_EGetFromID_Call {
 	return &MockEObjectInternal_EGetFromID_Call{Call: _e.mock.On("EGetFromID", featureID, resolve)}
 }
 
@@ -329,7 +329,7 @@ func (_c *MockEObjectInternal_EGetFromID_Call) Run(run func(featureID int, resol
 	return _c
 }
 
-func (_c *MockEObjectInternal_EGetFromID_Call) Return(_a0 interface{}) *MockEObjectInternal_EGetFromID_Call {
+func (_c *MockEObjectInternal_EGetFromID_Call) Return(_a0 any) *MockEObjectInternal_EGetFromID_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
@@ -471,7 +471,7 @@ type MockEObjectInternal_EInverseAdd_Call struct {
 //   - otherEnd EObject
 //   - featureID int
 //   - notifications ENotificationChain
-func (_e *MockEObjectInternal_Expecter_Methods) EInverseAdd(otherEnd interface{}, featureID interface{}, notifications interface{}) *MockEObjectInternal_EInverseAdd_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EInverseAdd(otherEnd any, featureID any, notifications any) *MockEObjectInternal_EInverseAdd_Call {
 	return &MockEObjectInternal_EInverseAdd_Call{Call: _e.mock.On("EInverseAdd", otherEnd, featureID, notifications)}
 }
 
@@ -512,7 +512,7 @@ type MockEObjectInternal_EInverseRemove_Call struct {
 //   - otherEnd EObject
 //   - featureID int
 //   - notifications ENotificationChain
-func (_e *MockEObjectInternal_Expecter_Methods) EInverseRemove(otherEnd interface{}, featureID interface{}, notifications interface{}) *MockEObjectInternal_EInverseRemove_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EInverseRemove(otherEnd any, featureID any, notifications any) *MockEObjectInternal_EInverseRemove_Call {
 	return &MockEObjectInternal_EInverseRemove_Call{Call: _e.mock.On("EInverseRemove", otherEnd, featureID, notifications)}
 }
 
@@ -529,11 +529,11 @@ func (_c *MockEObjectInternal_EInverseRemove_Call) Return(_a0 ENotificationChain
 }
 
 // EInvokeFromID provides a mock function with given fields: operationID, arguments
-func (_m *MockEObjectInternal_Prototype_Methods) EInvokeFromID(operationID int, arguments EList) interface{} {
+func (_m *MockEObjectInternal_Prototype_Methods) EInvokeFromID(operationID int, arguments EList) any {
 	ret := _m.mock.Called(operationID, arguments)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(int, EList) interface{}); ok {
+	var r0 any
+	if rf, ok := ret.Get(0).(func(int, EList) any); ok {
 		r0 = rf(operationID, arguments)
 	} else {
 		if ret.Get(0) != nil {
@@ -552,7 +552,7 @@ type MockEObjectInternal_EInvokeFromID_Call struct {
 // EInvokeFromID is a helper method to define mock.On call
 //   - operationID int
 //   - arguments EList
-func (_e *MockEObjectInternal_Expecter_Methods) EInvokeFromID(operationID interface{}, arguments interface{}) *MockEObjectInternal_EInvokeFromID_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EInvokeFromID(operationID any, arguments any) *MockEObjectInternal_EInvokeFromID_Call {
 	return &MockEObjectInternal_EInvokeFromID_Call{Call: _e.mock.On("EInvokeFromID", operationID, arguments)}
 }
 
@@ -563,7 +563,7 @@ func (_c *MockEObjectInternal_EInvokeFromID_Call) Run(run func(operationID int, 
 	return _c
 }
 
-func (_c *MockEObjectInternal_EInvokeFromID_Call) Return(_a0 interface{}) *MockEObjectInternal_EInvokeFromID_Call {
+func (_c *MockEObjectInternal_EInvokeFromID_Call) Return(_a0 any) *MockEObjectInternal_EInvokeFromID_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
@@ -589,7 +589,7 @@ type MockEObjectInternal_EIsSetFromID_Call struct {
 
 // EIsSetFromID is a helper method to define mock.On call
 //   - featureID int
-func (_e *MockEObjectInternal_Expecter_Methods) EIsSetFromID(featureID interface{}) *MockEObjectInternal_EIsSetFromID_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EIsSetFromID(featureID any) *MockEObjectInternal_EIsSetFromID_Call {
 	return &MockEObjectInternal_EIsSetFromID_Call{Call: _e.mock.On("EIsSetFromID", featureID)}
 }
 
@@ -628,7 +628,7 @@ type MockEObjectInternal_EObjectForFragmentSegment_Call struct {
 
 // EObjectForFragmentSegment is a helper method to define mock.On call
 //   - _a0 string
-func (_e *MockEObjectInternal_Expecter_Methods) EObjectForFragmentSegment(_a0 interface{}) *MockEObjectInternal_EObjectForFragmentSegment_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EObjectForFragmentSegment(_a0 any) *MockEObjectInternal_EObjectForFragmentSegment_Call {
 	return &MockEObjectInternal_EObjectForFragmentSegment_Call{Call: _e.mock.On("EObjectForFragmentSegment", _a0)}
 }
 
@@ -665,7 +665,7 @@ type MockEObjectInternal_EOperationID_Call struct {
 
 // EOperationID is a helper method to define mock.On call
 //   - operation EOperation
-func (_e *MockEObjectInternal_Expecter_Methods) EOperationID(operation interface{}) *MockEObjectInternal_EOperationID_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EOperationID(operation any) *MockEObjectInternal_EOperationID_Call {
 	return &MockEObjectInternal_EOperationID_Call{Call: _e.mock.On("EOperationID", operation)}
 }
 
@@ -742,7 +742,7 @@ type MockEObjectInternal_EResolveProxy_Call struct {
 
 // EResolveProxy is a helper method to define mock.On call
 //   - proxy EObject
-func (_e *MockEObjectInternal_Expecter_Methods) EResolveProxy(proxy interface{}) *MockEObjectInternal_EResolveProxy_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EResolveProxy(proxy any) *MockEObjectInternal_EResolveProxy_Call {
 	return &MockEObjectInternal_EResolveProxy_Call{Call: _e.mock.On("EResolveProxy", proxy)}
 }
 
@@ -759,7 +759,7 @@ func (_c *MockEObjectInternal_EResolveProxy_Call) Return(_a0 EObject) *MockEObje
 }
 
 // ESetFromID provides a mock function with given fields: featureID, newValue
-func (_m *MockEObjectInternal_Prototype_Methods) ESetFromID(featureID int, newValue interface{}) {
+func (_m *MockEObjectInternal_Prototype_Methods) ESetFromID(featureID int, newValue any) {
 	_m.mock.Called(featureID, newValue)
 }
 
@@ -771,11 +771,11 @@ type MockEObjectInternal_ESetFromID_Call struct {
 // ESetFromID is a helper method to define mock.On call
 //   - featureID int
 //   - newValue interface{}
-func (_e *MockEObjectInternal_Expecter_Methods) ESetFromID(featureID interface{}, newValue interface{}) *MockEObjectInternal_ESetFromID_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) ESetFromID(featureID any, newValue any) *MockEObjectInternal_ESetFromID_Call {
 	return &MockEObjectInternal_ESetFromID_Call{Call: _e.mock.On("ESetFromID", featureID, newValue)}
 }
 
-func (_c *MockEObjectInternal_ESetFromID_Call) Run(run func(featureID int, newValue interface{})) *MockEObjectInternal_ESetFromID_Call {
+func (_c *MockEObjectInternal_ESetFromID_Call) Run(run func(featureID int, newValue any)) *MockEObjectInternal_ESetFromID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(int), args[1])
 	})
@@ -800,7 +800,7 @@ type MockEObjectInternal_ESetInternalContainer_Call struct {
 // ESetInternalContainer is a helper method to define mock.On call
 //   - container EObject
 //   - containerFeatureID int
-func (_e *MockEObjectInternal_Expecter_Methods) ESetInternalContainer(container interface{}, containerFeatureID interface{}) *MockEObjectInternal_ESetInternalContainer_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) ESetInternalContainer(container any, containerFeatureID any) *MockEObjectInternal_ESetInternalContainer_Call {
 	return &MockEObjectInternal_ESetInternalContainer_Call{Call: _e.mock.On("ESetInternalContainer", container, containerFeatureID)}
 }
 
@@ -828,7 +828,7 @@ type MockEObjectInternal_ESetInternalResource_Call struct {
 
 // ESetInternalResource is a helper method to define mock.On call
 //   - resource EResource
-func (_e *MockEObjectInternal_Expecter_Methods) ESetInternalResource(resource interface{}) *MockEObjectInternal_ESetInternalResource_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) ESetInternalResource(resource any) *MockEObjectInternal_ESetInternalResource_Call {
 	return &MockEObjectInternal_ESetInternalResource_Call{Call: _e.mock.On("ESetInternalResource", resource)}
 }
 
@@ -856,7 +856,7 @@ type MockEObjectInternal_ESetProxyURI_Call struct {
 
 // ESetProxyURI is a helper method to define mock.On call
 //   - uri *URI
-func (_e *MockEObjectInternal_Expecter_Methods) ESetProxyURI(uri interface{}) *MockEObjectInternal_ESetProxyURI_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) ESetProxyURI(uri any) *MockEObjectInternal_ESetProxyURI_Call {
 	return &MockEObjectInternal_ESetProxyURI_Call{Call: _e.mock.On("ESetProxyURI", uri)}
 }
 
@@ -896,7 +896,7 @@ type MockEObjectInternal_ESetResource_Call struct {
 // ESetResource is a helper method to define mock.On call
 //   - resource EResource
 //   - notifications ENotificationChain
-func (_e *MockEObjectInternal_Expecter_Methods) ESetResource(resource interface{}, notifications interface{}) *MockEObjectInternal_ESetResource_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) ESetResource(resource any, notifications any) *MockEObjectInternal_ESetResource_Call {
 	return &MockEObjectInternal_ESetResource_Call{Call: _e.mock.On("ESetResource", resource, notifications)}
 }
 
@@ -1008,7 +1008,7 @@ type MockEObjectInternal_EURIFragmentSegment_Call struct {
 // EURIFragmentSegment is a helper method to define mock.On call
 //   - _a0 EStructuralFeature
 //   - _a1 EObject
-func (_e *MockEObjectInternal_Expecter_Methods) EURIFragmentSegment(_a0 interface{}, _a1 interface{}) *MockEObjectInternal_EURIFragmentSegment_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EURIFragmentSegment(_a0 any, _a1 any) *MockEObjectInternal_EURIFragmentSegment_Call {
 	return &MockEObjectInternal_EURIFragmentSegment_Call{Call: _e.mock.On("EURIFragmentSegment", _a0, _a1)}
 }
 
@@ -1036,7 +1036,7 @@ type MockEObjectInternal_EUnsetFromID_Call struct {
 
 // EUnsetFromID is a helper method to define mock.On call
 //   - featureID int
-func (_e *MockEObjectInternal_Expecter_Methods) EUnsetFromID(featureID interface{}) *MockEObjectInternal_EUnsetFromID_Call {
+func (_e *MockEObjectInternal_Expecter_Methods) EUnsetFromID(featureID any) *MockEObjectInternal_EUnsetFromID_Call {
 	return &MockEObjectInternal_EUnsetFromID_Call{Call: _e.mock.On("EUnsetFromID", featureID)}
 }
 
@@ -1061,7 +1061,7 @@ type mockConstructorTestingTNewMockEObjectInternal interface {
 func NewMockEObjectInternal(t mockConstructorTestingTNewMockEObjectInternal) *MockEObjectInternal {
 	mock := &MockEObjectInternal{}
 	mock.SetMock(&mock.Mock)
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

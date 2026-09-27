@@ -36,7 +36,7 @@ func TestMockEObjectProperties_EDynamicSet(t *testing.T) {
 	obj := NewMockEObject(t)
 	m := NewMockRun(t, 1, obj)
 	o.EXPECT().EDynamicSet(1, obj).Return().Run(func(dynamicFeatureID int, newValue any) { m.Run(dynamicFeatureID, newValue) }).Once()
-	o.EXPECT().EDynamicSet(1, obj).RunAndReturn(func(i1 int, i2 interface{}) {}).Once()
+	o.EXPECT().EDynamicSet(1, obj).RunAndReturn(func(i1 int, i2 any) {}).Once()
 	o.EDynamicSet(1, obj)
 	o.EDynamicSet(1, obj)
 }

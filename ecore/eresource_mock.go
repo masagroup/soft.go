@@ -172,7 +172,7 @@ type MockEResource_GetEObject_Call struct {
 
 // GetEObject is a helper method to define mock.On call
 //   - _a0 string
-func (_e *MockEResource_Expecter_Methods) GetEObject(_a0 interface{}) *MockEResource_GetEObject_Call {
+func (_e *MockEResource_Expecter_Methods) GetEObject(_a0 any) *MockEResource_GetEObject_Call {
 	return &MockEResource_GetEObject_Call{Call: _e.mock.On("GetEObject", _a0)}
 }
 
@@ -399,7 +399,7 @@ type MockEResource_GetURIFragment_Call struct {
 
 // GetURIFragment is a helper method to define mock.On call
 //   - _a0 EObject
-func (_e *MockEResource_Expecter_Methods) GetURIFragment(_a0 interface{}) *MockEResource_GetURIFragment_Call {
+func (_e *MockEResource_Expecter_Methods) GetURIFragment(_a0 any) *MockEResource_GetURIFragment_Call {
 	return &MockEResource_GetURIFragment_Call{Call: _e.mock.On("GetURIFragment", _a0)}
 }
 
@@ -553,7 +553,7 @@ func (_c *MockEResource_Load_Call) Return() *MockEResource_Load_Call {
 }
 
 // LoadWithOptions provides a mock function with given fields: options
-func (_m *MockEResource_Prototype_Methods) LoadWithOptions(options map[string]interface{}) {
+func (_m *MockEResource_Prototype_Methods) LoadWithOptions(options map[string]any) {
 	_m.mock.Called(options)
 }
 
@@ -564,13 +564,13 @@ type MockEResource_LoadWithOptions_Call struct {
 
 // LoadWithOptions is a helper method to define mock.On call
 //   - options map[string]interface{}
-func (_e *MockEResource_Expecter_Methods) LoadWithOptions(options interface{}) *MockEResource_LoadWithOptions_Call {
+func (_e *MockEResource_Expecter_Methods) LoadWithOptions(options any) *MockEResource_LoadWithOptions_Call {
 	return &MockEResource_LoadWithOptions_Call{Call: _e.mock.On("LoadWithOptions", options)}
 }
 
-func (_c *MockEResource_LoadWithOptions_Call) Run(run func(options map[string]interface{})) *MockEResource_LoadWithOptions_Call {
+func (_c *MockEResource_LoadWithOptions_Call) Run(run func(options map[string]any)) *MockEResource_LoadWithOptions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(map[string]interface{}))
+		run(args[0].(map[string]any))
 	})
 	return _c
 }
@@ -581,7 +581,7 @@ func (_c *MockEResource_LoadWithOptions_Call) Return() *MockEResource_LoadWithOp
 }
 
 // LoadWithReader provides a mock function with given fields: r, options
-func (_m *MockEResource_Prototype_Methods) LoadWithReader(r io.Reader, options map[string]interface{}) {
+func (_m *MockEResource_Prototype_Methods) LoadWithReader(r io.Reader, options map[string]any) {
 	_m.mock.Called(r, options)
 }
 
@@ -593,13 +593,13 @@ type MockEResource_LoadWithReader_Call struct {
 // LoadWithReader is a helper method to define mock.On call
 //   - r io.Reader
 //   - options map[string]interface{}
-func (_e *MockEResource_Expecter_Methods) LoadWithReader(r interface{}, options interface{}) *MockEResource_LoadWithReader_Call {
+func (_e *MockEResource_Expecter_Methods) LoadWithReader(r any, options any) *MockEResource_LoadWithReader_Call {
 	return &MockEResource_LoadWithReader_Call{Call: _e.mock.On("LoadWithReader", r, options)}
 }
 
-func (_c *MockEResource_LoadWithReader_Call) Run(run func(r io.Reader, options map[string]interface{})) *MockEResource_LoadWithReader_Call {
+func (_c *MockEResource_LoadWithReader_Call) Run(run func(r io.Reader, options map[string]any)) *MockEResource_LoadWithReader_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(io.Reader), args[1].(map[string]interface{}))
+		run(args[0].(io.Reader), args[1].(map[string]any))
 	})
 	return _c
 }
@@ -637,7 +637,7 @@ func (_c *MockEResource_Save_Call) Return() *MockEResource_Save_Call {
 }
 
 // SaveWithOptions provides a mock function with given fields: options
-func (_m *MockEResource_Prototype_Methods) SaveWithOptions(options map[string]interface{}) {
+func (_m *MockEResource_Prototype_Methods) SaveWithOptions(options map[string]any) {
 	_m.mock.Called(options)
 }
 
@@ -648,13 +648,13 @@ type MockEResource_SaveWithOptions_Call struct {
 
 // SaveWithOptions is a helper method to define mock.On call
 //   - options map[string]interface{}
-func (_e *MockEResource_Expecter_Methods) SaveWithOptions(options interface{}) *MockEResource_SaveWithOptions_Call {
+func (_e *MockEResource_Expecter_Methods) SaveWithOptions(options any) *MockEResource_SaveWithOptions_Call {
 	return &MockEResource_SaveWithOptions_Call{Call: _e.mock.On("SaveWithOptions", options)}
 }
 
-func (_c *MockEResource_SaveWithOptions_Call) Run(run func(options map[string]interface{})) *MockEResource_SaveWithOptions_Call {
+func (_c *MockEResource_SaveWithOptions_Call) Run(run func(options map[string]any)) *MockEResource_SaveWithOptions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(map[string]interface{}))
+		run(args[0].(map[string]any))
 	})
 	return _c
 }
@@ -665,7 +665,7 @@ func (_c *MockEResource_SaveWithOptions_Call) Return() *MockEResource_SaveWithOp
 }
 
 // SaveWithWriter provides a mock function with given fields: w, options
-func (_m *MockEResource_Prototype_Methods) SaveWithWriter(w io.Writer, options map[string]interface{}) {
+func (_m *MockEResource_Prototype_Methods) SaveWithWriter(w io.Writer, options map[string]any) {
 	_m.mock.Called(w, options)
 }
 
@@ -677,13 +677,13 @@ type MockEResource_SaveWithWriter_Call struct {
 // SaveWithWriter is a helper method to define mock.On call
 //   - w io.Writer
 //   - options map[string]interface{}
-func (_e *MockEResource_Expecter_Methods) SaveWithWriter(w interface{}, options interface{}) *MockEResource_SaveWithWriter_Call {
+func (_e *MockEResource_Expecter_Methods) SaveWithWriter(w any, options any) *MockEResource_SaveWithWriter_Call {
 	return &MockEResource_SaveWithWriter_Call{Call: _e.mock.On("SaveWithWriter", w, options)}
 }
 
-func (_c *MockEResource_SaveWithWriter_Call) Run(run func(w io.Writer, options map[string]interface{})) *MockEResource_SaveWithWriter_Call {
+func (_c *MockEResource_SaveWithWriter_Call) Run(run func(w io.Writer, options map[string]any)) *MockEResource_SaveWithWriter_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(io.Writer), args[1].(map[string]interface{}))
+		run(args[0].(io.Writer), args[1].(map[string]any))
 	})
 	return _c
 }
@@ -705,7 +705,7 @@ type MockEResource_SetObjectIDManager_Call struct {
 
 // SetObjectIDManager is a helper method to define mock.On call
 //   - _a0 EObjectIDManager
-func (_e *MockEResource_Expecter_Methods) SetObjectIDManager(_a0 interface{}) *MockEResource_SetObjectIDManager_Call {
+func (_e *MockEResource_Expecter_Methods) SetObjectIDManager(_a0 any) *MockEResource_SetObjectIDManager_Call {
 	return &MockEResource_SetObjectIDManager_Call{Call: _e.mock.On("SetObjectIDManager", _a0)}
 }
 
@@ -733,7 +733,7 @@ type MockEResource_SetURI_Call struct {
 
 // SetURI is a helper method to define mock.On call
 //   - _a0 *URI
-func (_e *MockEResource_Expecter_Methods) SetURI(_a0 interface{}) *MockEResource_SetURI_Call {
+func (_e *MockEResource_Expecter_Methods) SetURI(_a0 any) *MockEResource_SetURI_Call {
 	return &MockEResource_SetURI_Call{Call: _e.mock.On("SetURI", _a0)}
 }
 
@@ -785,7 +785,7 @@ type mockConstructorTestingTNewMockEResource interface {
 func NewMockEResource(t mockConstructorTestingTNewMockEResource) *MockEResource {
 	mock := &MockEResource{}
 	mock.SetMock(&mock.Mock)
-	mock.Mock.Test(t)
+	mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock
 }

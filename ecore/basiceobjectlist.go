@@ -9,6 +9,8 @@
 
 package ecore
 
+import "slices"
+
 type basicEObjectList struct {
 	BasicENotifyingList
 	owner            EObjectInternal
@@ -79,14 +81,14 @@ func (list *basicEObjectList) IndexOf(elem any) int {
 	return -1
 }
 
-func (list *basicEObjectList) doGet(index int) any {
-	return list.resolve(index, list.BasicEList.doGet(index))
+func (list *basicEObjectList) DoGet(index int) any {
+	return list.resolve(index, list.BasicEList.DoGet(index))
 }
 
 func (list *basicEObjectList) ToArray() []any {
 	if list.proxies {
-		for i := len(list.data) - 1; i >= 0; i-- {
-			list.doGet(i)
+		for i := range slices.Backward(list.data) {
+			list.DoGet(i)
 		}
 	}
 	return list.data
@@ -96,12 +98,12 @@ func (list *basicEObjectList) resolve(index int, object any) any {
 	if eObject, _ := object.(EObject); eObject != nil {
 		resolved := list.resolveProxy(eObject)
 		if resolved != object {
-			list.BasicEList.doSet(index, resolved)
+			list.BasicEList.DoSet(index, resolved)
 			var notifications ENotificationChain
 			if list.containment {
-				notifications = list.interfaces.(abstractENotifyingList).inverseRemove(object, notifications)
+				notifications = list.interfaces.(internalENotifyingList).InverseRemove(object, notifications)
 				if resolvedInternal, _ := resolved.(EObjectInternal); resolvedInternal != nil && resolvedInternal.EInternalContainer() == nil {
-					notifications = list.interfaces.(abstractENotifyingList).inverseAdd(resolved, notifications)
+					notifications = list.interfaces.(internalENotifyingList).InverseAdd(resolved, notifications)
 				}
 			}
 			list.createAndDispatchNotification(notifications, RESOLVE, object, resolved, index)
@@ -118,7 +120,7 @@ func (list *basicEObjectList) resolveProxy(eObject EObject) EObject {
 	return eObject
 }
 
-func (list *basicEObjectList) inverseAdd(object any, notifications ENotificationChain) ENotificationChain {
+func (list *basicEObjectList) InverseAdd(object any, notifications ENotificationChain) ENotificationChain {
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {
@@ -130,7 +132,7 @@ func (list *basicEObjectList) inverseAdd(object any, notifications ENotification
 	return notifications
 }
 
-func (list *basicEObjectList) inverseRemove(object any, notifications ENotificationChain) ENotificationChain {
+func (list *basicEObjectList) InverseRemove(object any, notifications ENotificationChain) ENotificationChain {
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {
@@ -161,7 +163,7 @@ func (list *unResolvedBasicEObjectList) IndexOf(elem any) int {
 func (list *unResolvedBasicEObjectList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	index := list.IndexOf(object)
 	if index != -1 {
-		oldObject := list.delegate.BasicEList.doRemove(index)
+		oldObject := list.delegate.BasicEList.DoRemove(index)
 		return list.delegate.createAndAddNotification(notifications, REMOVE, oldObject, nil, index)
 	}
 	return notifications
@@ -173,7 +175,7 @@ func (list *unResolvedBasicEObjectList) RemoveAll(c Collection) bool {
 	})
 }
 
-func (list *unResolvedBasicEObjectList) doGet(index int) any {
+func (list *unResolvedBasicEObjectList) DoGet(index int) any {
 	return list.delegate.data[index]
 }
 

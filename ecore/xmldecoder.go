@@ -13,6 +13,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 
 	"golang.org/x/net/html/charset"
@@ -536,12 +537,7 @@ func (l *XMLDecoder) handleAttributes(eObject EObject) {
 }
 
 func (l *XMLDecoder) isUserAttribute(name xml.Name) bool {
-	for _, notFeature := range l.notFeatures {
-		if notFeature == name {
-			return false
-		}
-	}
-	return true
+	return !slices.Contains(l.notFeatures, name)
 }
 
 func (l *XMLDecoder) getFactoryForSpace(space string) EFactory {

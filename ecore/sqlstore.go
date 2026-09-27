@@ -518,7 +518,9 @@ func (m *operationMarshaler) MarshalLogObject(e zapcore.ObjectEncoder) error {
 		}
 	}
 	if m.withPrevious {
-		e.AddArray("previous", operationsMap(op.previous))
+		if err := e.AddArray("previous", operationsMap(op.previous)); err != nil {
+			return err
+		}
 	}
 	return nil
 }

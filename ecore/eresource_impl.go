@@ -431,7 +431,9 @@ func (r *EResourceImpl) LoadWithOptions(options map[string]any) {
 				errors.Add(NewEDiagnosticImpl("Unable to create reader for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
 			} else if rd != nil {
 				r.LoadWithReader(rd, options)
-				rd.Close()
+				if err := rd.Close(); err != nil {
+					r.GetErrors().Add(NewEDiagnosticImpl("Unable to close reader for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
+				}
 			}
 		}
 	}
@@ -516,7 +518,9 @@ func (r *EResourceImpl) SaveWithOptions(options map[string]any) {
 			errors.Add(NewEDiagnosticImpl("Unable to create writer for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
 		} else if w != nil {
 			r.SaveWithWriter(w, options)
-			w.Close()
+			if err := w.Close(); err != nil {
+				r.GetErrors().Add(NewEDiagnosticImpl("Unable to close writer for '"+r.uri.String()+"' :"+err.Error(), r.uri.String(), 0, 0))
+			}
 		}
 	}
 }

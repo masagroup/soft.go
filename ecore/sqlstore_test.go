@@ -1999,12 +1999,13 @@ func TestSQLStore_UnlockOperation_Simple(t *testing.T) {
 	defer s.Close()
 
 	size := 0
-	s.ExecuteQuery(context.Background(), "SELECT COUNT(*) from library_books", &sqlitex.ExecOptions{
+	err = s.ExecuteQuery(context.Background(), "SELECT COUNT(*) from library_books", &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			time.Sleep(50 * time.Millisecond)
 			size = stmt.ColumnInt(0)
 			return nil
 		},
 	})
+	require.NoError(t, err)
 	require.Equal(t, 2, size)
 }

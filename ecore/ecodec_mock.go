@@ -118,7 +118,7 @@ type mockConstructorTestingTNewMockECodec interface {
 // NewMockECodec creates a new instance of MockECodec. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockECodec(t mockConstructorTestingTNewMockECodec) *MockECodec {
 	mock := &MockECodec{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

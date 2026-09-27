@@ -36,7 +36,7 @@ type MockEClass_NotifyChanged_Call struct {
 }
 
 func (e *MockEContentAdapter_Expecter) NotifyChanged(notification any) *MockEClass_NotifyChanged_Call {
-	return &MockEClass_NotifyChanged_Call{Call: e.Mock.On("NotifyChanged", notification)}
+	return &MockEClass_NotifyChanged_Call{Call: e.On("NotifyChanged", notification)}
 }
 
 type mockConstructorTestingTNewMockEContentAdapter interface {
@@ -47,7 +47,7 @@ type mockConstructorTestingTNewMockEContentAdapter interface {
 func NewMockEContentAdapter(t mockConstructorTestingTNewMockEContentAdapter) *MockEContentAdapter {
 	mock := &MockEContentAdapter{}
 	mock.SetInterfaces(mock)
-	mock.Mock.Test(t)
+	mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock
 }

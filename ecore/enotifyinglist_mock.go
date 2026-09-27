@@ -266,7 +266,7 @@ type mockConstructorTestingTNewMockENotifyingList interface {
 // NewMockENotifyingList creates a new instance of MockENotifyingList. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockENotifyingList(t mockConstructorTestingTNewMockENotifyingList) *MockENotifyingList {
 	mock := &MockENotifyingList{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

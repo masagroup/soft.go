@@ -1061,7 +1061,7 @@ type mockConstructorTestingTNewMockEObjectInternal interface {
 func NewMockEObjectInternal(t mockConstructorTestingTNewMockEObjectInternal) *MockEObjectInternal {
 	mock := &MockEObjectInternal{}
 	mock.SetMock(&mock.Mock)
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

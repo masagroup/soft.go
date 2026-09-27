@@ -785,7 +785,7 @@ type mockConstructorTestingTNewMockEResource interface {
 func NewMockEResource(t mockConstructorTestingTNewMockEResource) *MockEResource {
 	mock := &MockEResource{}
 	mock.SetMock(&mock.Mock)
-	mock.Mock.Test(t)
+	mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock
 }

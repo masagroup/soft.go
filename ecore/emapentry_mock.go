@@ -177,7 +177,7 @@ type mockConstructorTestingTNewMockEMapEntry interface {
 func NewMockEMapEntry(t mockConstructorTestingTNewMockEMapEntry) *MockEMapEntry {
 	mock := &MockEMapEntry{}
 	mock.SetMock(&mock.Mock)
-	mock.Mock.Test(t)
+	mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock
 }

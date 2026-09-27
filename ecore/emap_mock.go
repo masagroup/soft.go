@@ -253,7 +253,7 @@ type mockConstructorTestingTNewMockEMap interface {
 // NewMockEMap creates a new instance of MockEMap. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEMap(t mockConstructorTestingTNewMockEMap) *MockEMap {
 	mock := &MockEMap{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

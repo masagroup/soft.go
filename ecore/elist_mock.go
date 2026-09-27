@@ -772,7 +772,7 @@ type mockConstructorTestingTNewMockEList interface {
 // NewMockEList creates a new instance of MockEList. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEList(t mockConstructorTestingTNewMockEList) *MockEList {
 	mock := &MockEList{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

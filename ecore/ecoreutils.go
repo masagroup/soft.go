@@ -74,10 +74,7 @@ func getRelativeURIFragmentPath(ancestor EObject, descendant EObject, _ bool) st
 	eContainer := eObject.EContainer()
 	visited := make(map[EObject]struct{})
 	fragmentPath := []string{}
-	for {
-		if eContainer == nil {
-			break
-		}
+	for eContainer != nil {
 		if _, isVisited := visited[eObject]; isVisited {
 			break
 		}

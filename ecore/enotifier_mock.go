@@ -186,7 +186,7 @@ type mockConstructorTestingTNewMockENotifier interface {
 func NewMockENotifier(t mockConstructorTestingTNewMockENotifier) *MockENotifier {
 	mock := &MockENotifier{}
 	mock.SetMock(&mock.Mock)
-	mock.Mock.Test(t)
+	mock.Test(t)
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 	return mock
 }

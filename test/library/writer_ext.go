@@ -31,9 +31,9 @@ func (writer *writerExt) GetName() string {
 
 // SetName set the value of name
 func (writer *writerExt) SetName(newName string) {
-	index := strings.Index(newName, "--")
-	if index != -1 {
-		writer.SetFirstName(newName[:index])
-		writer.SetLastName(newName[index+2:])
+	before, after, ok := strings.Cut(newName, "--")
+	if ok {
+		writer.SetFirstName(before)
+		writer.SetLastName(after)
 	}
 }

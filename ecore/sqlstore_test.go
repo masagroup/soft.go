@@ -1691,7 +1691,7 @@ func TestSQLStore_Serialize(t *testing.T) {
 	bytes, err := s.Serialize(context.Background()).Await(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, bytes)
-	requireSameDB(t, "testdata/library.store.sqlite", *bytes)
+	requireSameDB(t, "testdata/library.store.sqlite", bytes)
 }
 
 func TestSQLStore_SerializeBig(t *testing.T) {
@@ -1713,7 +1713,7 @@ func TestSQLStore_SerializeBig(t *testing.T) {
 	bytes, err := s.Serialize(context.Background()).Await(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, bytes)
-	requireSameDB(t, "testdata/library.store.sqlite", *bytes)
+	requireSameDB(t, "testdata/library.store.sqlite", bytes)
 }
 
 func TestSQLStore_GetRoots(t *testing.T) {

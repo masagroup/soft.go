@@ -1,17 +1,17 @@
 module github.com/masagroup/soft.go
 
-go 1.26.0
+go 1.27.0
 
 require (
 	github.com/KarpelesLab/weak v0.1.1
 	github.com/SokaDance/rmx v1.0.2
-	github.com/chebyrash/promise v0.0.0-20251208071724-43d9f274b0a8
+	github.com/chebyrash/promise v0.0.0-20260915144232-ce593674804a
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/uuid v1.6.0
 	github.com/karlseguin/jsonwriter v1.0.4-0.20170525085137-6f05566bac1c
 	github.com/oklog/ulid/v2 v2.1.2
 	github.com/panjf2000/ants/v2 v2.12.1
-	github.com/petermattis/goid v0.0.0-20260820044319-269ab09b5261
+	github.com/petermattis/goid v0.0.0-20260918085751-abfca077860b
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/rqlite/sql v0.0.0-20260224021119-1b2524a41372
 	github.com/stretchr/testify v1.12.1
@@ -23,7 +23,7 @@ require (
 )
 
 require (
-	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/karlseguin/expect v1.0.8 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
@@ -37,8 +37,8 @@ require (
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/tools v0.50.0 // indirect
-	modernc.org/libc v1.75.7 // indirect
+	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.58.0 // indirect
+	modernc.org/sqlite v1.59.0 // indirect
 )

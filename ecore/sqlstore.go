@@ -1355,7 +1355,7 @@ func awaitOperation[T any](ctx context.Context, op *operation) T {
 	var def T
 	if r, err := op.promise.Await(ctx); err != nil {
 		return def
-	} else if result, isResult := (*r).(T); isResult {
+	} else if result, isResult := r.(T); isResult {
 		return result
 	} else {
 		return def
@@ -2284,8 +2284,7 @@ func (s *SQLStore) Serialize(ctx context.Context) *promise.Promise[[]byte] {
 		return s.doSerialize(ctx)
 	})
 	op = s.scheduleOperation(ctx, op)
-	return promise.ThenWithPool(
-		op.promise,
+	return op.promise.ThenWithPool(
 		ctx,
 		func(a any) ([]byte, error) { return a.([]byte), nil },
 		s.promisePool,

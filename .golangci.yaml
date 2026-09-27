@@ -1,8 +1,13 @@
 version: "2"
 linters:
   exclusions:
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
     rules:
-        - text: "SA1019:"
-          linters:
+      - text: "SA1019:"
+        linters:
           - staticcheck
       

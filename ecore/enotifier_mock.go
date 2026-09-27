@@ -133,7 +133,7 @@ type MockENotifier_ENotify_Call struct {
 
 // ENotify is a helper method to define mock.On call
 //   - _a0 ENotification
-func (_e *MockENotifier_Expecter) ENotify(_a0 interface{}) *MockENotifier_ENotify_Call {
+func (_e *MockENotifier_Expecter) ENotify(_a0 any) *MockENotifier_ENotify_Call {
 	return &MockENotifier_ENotify_Call{Call: _e.mock.On("ENotify", _a0)}
 }
 
@@ -161,7 +161,7 @@ type MockENotifier_ESetDeliver_Call struct {
 
 // ESetDeliver is a helper method to define mock.On call
 //   - _a0 bool
-func (_e *MockENotifier_Expecter) ESetDeliver(_a0 interface{}) *MockENotifier_ESetDeliver_Call {
+func (_e *MockENotifier_Expecter) ESetDeliver(_a0 any) *MockENotifier_ESetDeliver_Call {
 	return &MockENotifier_ESetDeliver_Call{Call: _e.mock.On("ESetDeliver", _a0)}
 }
 

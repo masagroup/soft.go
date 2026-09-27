@@ -307,7 +307,7 @@ func (d *BinaryDecoder) decodeObjects(list EList) error {
 		for i := 0; i < size; i++ {
 			o := objects[i]
 			count := duplicateCount
-			for j := 0; j < existingSize; j++ {
+			for j := range existingSize {
 				existing := existingObjects[j]
 				if existing == o {
 					if duplicateCount != count {
@@ -326,7 +326,7 @@ func (d *BinaryDecoder) decodeObjects(list EList) error {
 
 		size -= existingSize
 		list.AddAll(NewImmutableEList(objects))
-		for i := 0; i < existingSize; i++ {
+		for i := range existingSize {
 			newPosition := indices[i]
 			oldPosition := size + i
 			if newPosition != oldPosition {
@@ -377,7 +377,7 @@ func (d *BinaryDecoder) decodeFeatureValue(eObject EObjectInternal, featureData 
 			return err
 		}
 		values := []any{}
-		for i := 0; i < size; i++ {
+		for range size {
 			decoded, err := d.decodeString()
 			if err != nil {
 				return err

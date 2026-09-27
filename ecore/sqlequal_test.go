@@ -15,7 +15,7 @@ func (t *MockT) FailNow() {
 	t.Failed = true
 }
 
-func (t *MockT) Errorf(format string, args ...interface{}) {
+func (t *MockT) Errorf(format string, args ...any) {
 	_, _ = format, args
 }
 

@@ -25,7 +25,7 @@ func TestEContentAdapter_SetTarget_EObject(t *testing.T) {
 	mockObjects := []*MockEObject{}
 	mockLists := []*MockEList{}
 	children := []any{}
-	for i := 0; i < nb; i++ {
+	for range nb {
 		mockObject := NewMockEObject(t)
 		mockAdapters := NewMockEList(t)
 		mockLists = append(mockLists, mockAdapters)
@@ -36,7 +36,7 @@ func TestEContentAdapter_SetTarget_EObject(t *testing.T) {
 	mockObject := NewMockEObject(t)
 
 	// set adapter target -> this should recursively register adapter on all object children
-	for i := 0; i < nb; i++ {
+	for i := range nb {
 		mockObject := mockObjects[i]
 		mockAdapters := mockLists[i]
 		if i%2 == 0 {
@@ -54,7 +54,7 @@ func TestEContentAdapter_SetTarget_EObject(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockObject)
 
 	// unset adapter target -> this should recursively unregister adapter on all object children
-	for i := 0; i < nb; i++ {
+	for i := range nb {
 		mockObject := mockObjects[i]
 		mockAdapters := mockLists[i]
 		mockObject.EXPECT().EAdapters().Return(mockAdapters).Once()
@@ -73,7 +73,7 @@ func TestEContentAdapter_SetTarget_EObject_ResolveProxies(t *testing.T) {
 	mockObjects := []*MockEObject{}
 	mockLists := []*MockEList{}
 	children := []any{}
-	for i := 0; i < nb; i++ {
+	for range nb {
 		mockObject := NewMockEObject(t)
 		mockAdapters := NewMockEList(t)
 		mockLists = append(mockLists, mockAdapters)
@@ -84,7 +84,7 @@ func TestEContentAdapter_SetTarget_EObject_ResolveProxies(t *testing.T) {
 	mockObject := NewMockEObject(t)
 
 	// set adapter target -> this should recursively register adapter on all object children
-	for i := 0; i < nb; i++ {
+	for i := range nb {
 		mockObject := mockObjects[i]
 		mockAdapters := mockLists[i]
 		mockObject.EXPECT().EIsProxy().Return(false).Once()
@@ -98,7 +98,7 @@ func TestEContentAdapter_SetTarget_EObject_ResolveProxies(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockObject)
 
 	// unset adapter target -> this should recursively unregister adapter on all object children
-	for i := 0; i < nb; i++ {
+	for i := range nb {
 		mockObject := mockObjects[i]
 		mockAdapters := mockLists[i]
 		mockObject.EXPECT().EAdapters().Return(mockAdapters).Once()
@@ -332,7 +332,7 @@ func TestEContentAdapterNotifyChanged_AddMany(t *testing.T) {
 	mockReference.EXPECT().IsContainment().Once().Return(true)
 	nb := rand.Intn(10) + 1
 	mockChildren := []any{}
-	for i := 0; i < nb; i++ {
+	for range nb {
 		mockObject := NewMockEObject(t)
 		mockAdapters := NewMockEList(t)
 
@@ -410,7 +410,7 @@ func TestEContentAdapterNotifyChanged_RemoveMany(t *testing.T) {
 
 	nb := rand.Intn(10) + 1
 	mockChildren := []any{}
-	for i := 0; i < nb; i++ {
+	for range nb {
 		mockObject := NewMockEObjectInternal(t)
 		mockAdapters := NewMockEList(t)
 

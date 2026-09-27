@@ -102,7 +102,7 @@ func (dE *deepEqual) equalsObjectList(l1 EList, l2 EList) bool {
 	if size != l2.Size() {
 		return false
 	}
-	for i := 0; i < size; i++ {
+	for i := range size {
 		eObj1 := l1.Get(i).(EObject)
 		eObj2 := l2.Get(i).(EObject)
 		if !dE.equals(eObj1, eObj2) {
@@ -117,7 +117,7 @@ func (dE *deepEqual) equalsPrimitiveList(l1 EList, l2 EList) bool {
 	if size != l2.Size() {
 		return false
 	}
-	for i := 0; i < size; i++ {
+	for i := range size {
 		p1 := l1.Get(i)
 		p2 := l2.Get(i)
 		if !reflect.DeepEqual(p1, p2) {

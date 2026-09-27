@@ -206,7 +206,7 @@ func (eClass *EClassExt) initOperationToOverrideMap() {
 	if eClass.operationToOverrideMap == nil {
 		eClass.operationToOverrideMap = make(map[EOperation]EOperation)
 		size := eClass.eAllOperations.Size()
-		for i := 0; i < size; i++ {
+		for i := range size {
 			for j := size - 1; j > i; j-- {
 				oi := eClass.eAllOperations.Get(i).(EOperation)
 				oj := eClass.eAllOperations.Get(j).(EOperation)

@@ -1281,8 +1281,8 @@ func (s *SQLStore) getLastOperation(type_ operationType, object EObject, feature
 	defer s.mutexOperations.Unlock()
 	if objectOperations := s.objectOperations[object]; objectOperations != nil {
 		if operations := objectOperations[feature]; operations != nil {
-			for i := len(operations) - 1; i >= 0; i-- {
-				if operation := operations[i]; operation.type_ == type_ && operation.index == index {
+			for _, operation := range slices.Backward(operations) {
+				if operation.type_ == type_ && operation.index == index {
 					return operation
 				}
 			}
@@ -1307,8 +1307,8 @@ func (s *SQLStore) registerOperation(object EObject, feature EStructuralFeature,
 	// compute previous operation
 	switch op.type_ {
 	case operationRead:
-		for i := len(operations) - 1; i >= 0; i-- {
-			operation := operations[i]
+		for _, operation := range slices.Backward(operations) {
+
 			if operation.type_ == operationWrite {
 				previous = operation
 				break

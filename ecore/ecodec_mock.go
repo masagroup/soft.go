@@ -29,11 +29,11 @@ func (_m *MockECodec) EXPECT() *MockECodec_Expecter {
 }
 
 // NewDecoder provides a mock function with given fields: resource, r, options
-func (_m *MockECodec) NewDecoder(resource EResource, r io.Reader, options map[string]interface{}) EDecoder {
+func (_m *MockECodec) NewDecoder(resource EResource, r io.Reader, options map[string]any) EDecoder {
 	ret := _m.Called(resource, r, options)
 
 	var r0 EDecoder
-	if rf, ok := ret.Get(0).(func(EResource, io.Reader, map[string]interface{}) EDecoder); ok {
+	if rf, ok := ret.Get(0).(func(EResource, io.Reader, map[string]any) EDecoder); ok {
 		r0 = rf(resource, r, options)
 	} else {
 		if ret.Get(0) != nil {
@@ -53,13 +53,13 @@ type MockECodec_NewDecoder_Call struct {
 //   - resource EResource
 //   - r io.Reader
 //   - options map[string]interface{}
-func (_e *MockECodec_Expecter) NewDecoder(resource interface{}, r interface{}, options interface{}) *MockECodec_NewDecoder_Call {
+func (_e *MockECodec_Expecter) NewDecoder(resource any, r any, options any) *MockECodec_NewDecoder_Call {
 	return &MockECodec_NewDecoder_Call{Call: _e.mock.On("NewDecoder", resource, r, options)}
 }
 
-func (_c *MockECodec_NewDecoder_Call) Run(run func(resource EResource, r io.Reader, options map[string]interface{})) *MockECodec_NewDecoder_Call {
+func (_c *MockECodec_NewDecoder_Call) Run(run func(resource EResource, r io.Reader, options map[string]any)) *MockECodec_NewDecoder_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(EResource), args[1].(io.Reader), args[2].(map[string]interface{}))
+		run(args[0].(EResource), args[1].(io.Reader), args[2].(map[string]any))
 	})
 	return _c
 }
@@ -70,11 +70,11 @@ func (_c *MockECodec_NewDecoder_Call) Return(_a0 EDecoder) *MockECodec_NewDecode
 }
 
 // NewEncoder provides a mock function with given fields: resource, w, options
-func (_m *MockECodec) NewEncoder(resource EResource, w io.Writer, options map[string]interface{}) EEncoder {
+func (_m *MockECodec) NewEncoder(resource EResource, w io.Writer, options map[string]any) EEncoder {
 	ret := _m.Called(resource, w, options)
 
 	var r0 EEncoder
-	if rf, ok := ret.Get(0).(func(EResource, io.Writer, map[string]interface{}) EEncoder); ok {
+	if rf, ok := ret.Get(0).(func(EResource, io.Writer, map[string]any) EEncoder); ok {
 		r0 = rf(resource, w, options)
 	} else {
 		if ret.Get(0) != nil {
@@ -94,13 +94,13 @@ type MockECodec_NewEncoder_Call struct {
 //   - resource EResource
 //   - w io.Writer
 //   - options map[string]interface{}
-func (_e *MockECodec_Expecter) NewEncoder(resource interface{}, w interface{}, options interface{}) *MockECodec_NewEncoder_Call {
+func (_e *MockECodec_Expecter) NewEncoder(resource any, w any, options any) *MockECodec_NewEncoder_Call {
 	return &MockECodec_NewEncoder_Call{Call: _e.mock.On("NewEncoder", resource, w, options)}
 }
 
-func (_c *MockECodec_NewEncoder_Call) Run(run func(resource EResource, w io.Writer, options map[string]interface{})) *MockECodec_NewEncoder_Call {
+func (_c *MockECodec_NewEncoder_Call) Run(run func(resource EResource, w io.Writer, options map[string]any)) *MockECodec_NewEncoder_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(EResource), args[1].(io.Writer), args[2].(map[string]interface{}))
+		run(args[0].(EResource), args[1].(io.Writer), args[2].(map[string]any))
 	})
 	return _c
 }

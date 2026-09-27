@@ -689,7 +689,7 @@ func join(path []rune, segs []int) int {
 		path[p] = '/'
 		p++
 	}
-	for i := 0; i < ns; i++ {
+	for i := range ns {
 		q := segs[i] // Current segment
 		if q == -1 {
 			// Ignore this segment

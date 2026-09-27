@@ -9,6 +9,8 @@
 
 package ecore
 
+import "slices"
+
 type basicEObjectList struct {
 	BasicENotifyingList
 	owner            EObjectInternal
@@ -85,7 +87,7 @@ func (list *basicEObjectList) DoGet(index int) any {
 
 func (list *basicEObjectList) ToArray() []any {
 	if list.proxies {
-		for i := len(list.data) - 1; i >= 0; i-- {
+		for i := range slices.Backward(list.data) {
 			list.DoGet(i)
 		}
 	}

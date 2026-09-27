@@ -55,8 +55,8 @@ func TestMockEObjectIDManagerSetID(t *testing.T) {
 	rm := NewMockEObjectIDManager(t)
 	o := NewMockEObject(t)
 	m := NewMockRun(t, o, "id1")
-	rm.EXPECT().SetID(o, "id1").Return(errors.New("error")).Run(func(_a0 EObject, _a1 interface{}) { m.Run(_a0, _a1) }).Once()
-	rm.EXPECT().SetID(o, "id2").Call.Return(func(EObject, interface{}) error { return errors.New("error") }).Once()
+	rm.EXPECT().SetID(o, "id1").Return(errors.New("error")).Run(func(_a0 EObject, _a1 any) { m.Run(_a0, _a1) }).Once()
+	rm.EXPECT().SetID(o, "id2").Call.Return(func(EObject, any) error { return errors.New("error") }).Once()
 	assert.NotNil(t, rm.SetID(o, "id1"))
 	assert.NotNil(t, rm.SetID(o, "id2"))
 }
@@ -77,8 +77,8 @@ func TestMockEObjectIDManagerGetEObject(t *testing.T) {
 	rm := NewMockEObjectIDManager(t)
 	o := NewMockEObject(t)
 	m := NewMockRun(t, "id1")
-	rm.EXPECT().GetEObject("id1").Return(o).Run(func(_a0 interface{}) { m.Run(_a0) }).Once()
-	rm.EXPECT().GetEObject("id2").Call.Return(func(interface{}) EObject {
+	rm.EXPECT().GetEObject("id1").Return(o).Run(func(_a0 any) { m.Run(_a0) }).Once()
+	rm.EXPECT().GetEObject("id2").Call.Return(func(any) EObject {
 		return o
 	}).Once()
 	assert.Equal(t, o, rm.GetEObject("id1"))

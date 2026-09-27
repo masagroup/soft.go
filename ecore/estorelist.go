@@ -453,7 +453,7 @@ func (list *EStoreList) ToArray() []any {
 	defer list.mutex.Unlock()
 	if list.data != nil {
 		if list.proxies {
-			for i := len(list.data) - 1; i >= 0; i-- {
+			for i := range slices.Backward(list.data) {
 				list.DoGet(i)
 			}
 		}

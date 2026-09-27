@@ -135,7 +135,7 @@ func TestMockEResourceLoadWithOptions(t *testing.T) {
 	r := NewMockEResource(t)
 	options := make(map[string]any)
 	m := NewMockRun(t, options)
-	r.EXPECT().LoadWithOptions(options).Return().Run(func(options map[string]interface{}) { m.Run(options) }).Once()
+	r.EXPECT().LoadWithOptions(options).Return().Run(func(options map[string]any) { m.Run(options) }).Once()
 	r.LoadWithOptions(options)
 }
 
@@ -145,7 +145,7 @@ func TestMockEResourceLoadWithReader(t *testing.T) {
 	reader := strings.NewReader("")
 	options := make(map[string]any)
 	m := NewMockRun(t, reader, options)
-	r.EXPECT().LoadWithReader(reader, options).Return().Run(func(r io.Reader, options map[string]interface{}) { m.Run(r, options) }).Once()
+	r.EXPECT().LoadWithReader(reader, options).Return().Run(func(r io.Reader, options map[string]any) { m.Run(r, options) }).Once()
 	r.LoadWithReader(reader, options)
 }
 
@@ -169,7 +169,7 @@ func TestMockEResourceSaveWithOptions(t *testing.T) {
 	r := NewMockEResource(t)
 	options := make(map[string]any)
 	m := NewMockRun(t, options)
-	r.EXPECT().SaveWithOptions(options).Return().Run(func(options map[string]interface{}) { m.Run(options) }).Once()
+	r.EXPECT().SaveWithOptions(options).Return().Run(func(options map[string]any) { m.Run(options) }).Once()
 	r.SaveWithOptions(options)
 }
 
@@ -179,7 +179,7 @@ func TestMockEResourceSaveWithWriter(t *testing.T) {
 	options := make(map[string]any)
 	writer := bytes.NewBufferString("")
 	m := NewMockRun(t, writer, options)
-	r.EXPECT().SaveWithWriter(writer, options).Return().Run(func(w io.Writer, options map[string]interface{}) { m.Run(w, options) }).Once()
+	r.EXPECT().SaveWithWriter(writer, options).Return().Run(func(w io.Writer, options map[string]any) { m.Run(w, options) }).Once()
 	r.SaveWithWriter(writer, options)
 }
 

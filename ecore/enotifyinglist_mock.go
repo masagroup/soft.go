@@ -26,11 +26,11 @@ func (_m *MockENotifyingList) EXPECT() *MockENotifyingList_Expecter {
 }
 
 // AddWithNotification provides a mock function with given fields: object, notifications
-func (_m *MockENotifyingList) AddWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (_m *MockENotifyingList) AddWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	ret := _m.Called(object, notifications)
 
 	var r0 ENotificationChain
-	if rf, ok := ret.Get(0).(func(interface{}, ENotificationChain) ENotificationChain); ok {
+	if rf, ok := ret.Get(0).(func(any, ENotificationChain) ENotificationChain); ok {
 		r0 = rf(object, notifications)
 	} else {
 		if ret.Get(0) != nil {
@@ -49,11 +49,11 @@ type MockENotifyingList_AddWithNotification_Call struct {
 // AddWithNotification is a helper method to define mock.On call
 //   - object interface{}
 //   - notifications ENotificationChain
-func (_e *MockENotifyingList_Expecter) AddWithNotification(object interface{}, notifications interface{}) *MockENotifyingList_AddWithNotification_Call {
+func (_e *MockENotifyingList_Expecter) AddWithNotification(object any, notifications any) *MockENotifyingList_AddWithNotification_Call {
 	return &MockENotifyingList_AddWithNotification_Call{Call: _e.Mock.On("AddWithNotification", object, notifications)}
 }
 
-func (_c *MockENotifyingList_AddWithNotification_Call) Run(run func(object interface{}, notifications ENotificationChain)) *MockENotifyingList_AddWithNotification_Call {
+func (_c *MockENotifyingList_AddWithNotification_Call) Run(run func(object any, notifications ENotificationChain)) *MockENotifyingList_AddWithNotification_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0], args[1].(ENotificationChain))
 	})
@@ -178,11 +178,11 @@ func (_c *MockENotifyingList_GetNotifier_Call) Return(_a0 ENotifier) *MockENotif
 }
 
 // RemoveWithNotification provides a mock function with given fields: object, notifications
-func (_m *MockENotifyingList) RemoveWithNotification(object interface{}, notifications ENotificationChain) ENotificationChain {
+func (_m *MockENotifyingList) RemoveWithNotification(object any, notifications ENotificationChain) ENotificationChain {
 	ret := _m.Called(object, notifications)
 
 	var r0 ENotificationChain
-	if rf, ok := ret.Get(0).(func(interface{}, ENotificationChain) ENotificationChain); ok {
+	if rf, ok := ret.Get(0).(func(any, ENotificationChain) ENotificationChain); ok {
 		r0 = rf(object, notifications)
 	} else {
 		if ret.Get(0) != nil {
@@ -201,11 +201,11 @@ type MockENotifyingList_RemoveWithNotification_Call struct {
 // RemoveWithNotification is a helper method to define mock.On call
 //   - object interface{}
 //   - notifications ENotificationChain
-func (_e *MockENotifyingList_Expecter) RemoveWithNotification(object interface{}, notifications interface{}) *MockENotifyingList_RemoveWithNotification_Call {
+func (_e *MockENotifyingList_Expecter) RemoveWithNotification(object any, notifications any) *MockENotifyingList_RemoveWithNotification_Call {
 	return &MockENotifyingList_RemoveWithNotification_Call{Call: _e.Mock.On("RemoveWithNotification", object, notifications)}
 }
 
-func (_c *MockENotifyingList_RemoveWithNotification_Call) Run(run func(object interface{}, notifications ENotificationChain)) *MockENotifyingList_RemoveWithNotification_Call {
+func (_c *MockENotifyingList_RemoveWithNotification_Call) Run(run func(object any, notifications ENotificationChain)) *MockENotifyingList_RemoveWithNotification_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0], args[1].(ENotificationChain))
 	})
@@ -218,11 +218,11 @@ func (_c *MockENotifyingList_RemoveWithNotification_Call) Return(_a0 ENotificati
 }
 
 // SetWithNotification provides a mock function with given fields: index, object, notifications
-func (_m *MockENotifyingList) SetWithNotification(index int, object interface{}, notifications ENotificationChain) ENotificationChain {
+func (_m *MockENotifyingList) SetWithNotification(index int, object any, notifications ENotificationChain) ENotificationChain {
 	ret := _m.Called(index, object, notifications)
 
 	var r0 ENotificationChain
-	if rf, ok := ret.Get(0).(func(int, interface{}, ENotificationChain) ENotificationChain); ok {
+	if rf, ok := ret.Get(0).(func(int, any, ENotificationChain) ENotificationChain); ok {
 		r0 = rf(index, object, notifications)
 	} else {
 		if ret.Get(0) != nil {
@@ -242,11 +242,11 @@ type MockENotifyingList_SetWithNotification_Call struct {
 //   - index int
 //   - object interface{}
 //   - notifications ENotificationChain
-func (_e *MockENotifyingList_Expecter) SetWithNotification(index interface{}, object interface{}, notifications interface{}) *MockENotifyingList_SetWithNotification_Call {
+func (_e *MockENotifyingList_Expecter) SetWithNotification(index any, object any, notifications any) *MockENotifyingList_SetWithNotification_Call {
 	return &MockENotifyingList_SetWithNotification_Call{Call: _e.Mock.On("SetWithNotification", index, object, notifications)}
 }
 
-func (_c *MockENotifyingList_SetWithNotification_Call) Run(run func(index int, object interface{}, notifications ENotificationChain)) *MockENotifyingList_SetWithNotification_Call {
+func (_c *MockENotifyingList_SetWithNotification_Call) Run(run func(index int, object any, notifications ENotificationChain)) *MockENotifyingList_SetWithNotification_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(int), args[1], args[2].(ENotificationChain))
 	})

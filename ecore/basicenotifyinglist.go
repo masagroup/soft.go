@@ -1,5 +1,7 @@
 package ecore
 
+import "slices"
+
 type internalENotifyingList interface {
 	ENotifyingList
 	internalAbstractEList
@@ -319,8 +321,8 @@ func (list *BasicENotifyingList) doRemoveAll(collection Collection, getAndCompar
 	}
 
 	// remove
-	for i := len(positions) - 1; i >= 0; i-- {
-		notifyingList.PerformRemove(positions[i].(int))
+	for _, position := range slices.Backward(positions) {
+		notifyingList.PerformRemove(position.(int))
 	}
 
 	// inverse remove

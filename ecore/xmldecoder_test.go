@@ -363,7 +363,7 @@ func TestXMLDecoderMaps(t *testing.T) {
 	refToIntsMap, _ := mapTest.EGet(eMapTestKeyToValueReference).(EMap)
 	require.NotNil(t, refToIntsMap)
 	assert.Equal(t, 5, refToIntsMap.Size())
-	for i := 0; i < 0; i++ {
+	for i := range 0 {
 		ref := refList.Get(i)
 		l, _ := refToIntsMap.GetValue(ref).(EList)
 		require.NotNil(t, l)

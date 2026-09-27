@@ -56,7 +56,7 @@ func TestMockEList_Insert(t *testing.T) {
 func TestMockEList_MoveObject(t *testing.T) {
 	l := NewMockEList(t)
 	m := NewMockRun(t, 1, 2)
-	l.EXPECT().MoveObject(1, 2).Return().Run(func(index int, e interface{}) { m.Run(index, e) }).Once()
+	l.EXPECT().MoveObject(1, 2).Return().Run(func(index int, e any) { m.Run(index, e) }).Once()
 	l.MoveObject(1, 2)
 }
 

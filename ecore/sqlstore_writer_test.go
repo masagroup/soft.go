@@ -95,8 +95,7 @@ func onWriter(t *testing.T, s *SQLStore, fn func()) <-chan struct{} {
 	op := newOperation("test", operationWrite, newLendable(t, nil, -1), nil, -1, nil, func() (any, error) {
 		fn()
 		return nil, nil
-	})
-	op.done = make(chan struct{})
+	}, withWait())
 	s.enqueue(op)
 	return op.done
 }
@@ -507,7 +506,7 @@ func TestSQLStore_Writer_CommitError(t *testing.T) {
 	// foreign keys are enabled outside of a transaction : a flush operation has none
 	_, err := s.execute(newOperation("foreign keys", operationWrite, nil, nil, -1, nil, func() (any, error) {
 		return nil, sqlitex.ExecuteTransient(s.writerConn, "PRAGMA foreign_keys=ON;", nil)
-	}, withFlush()), true)
+	}, withFlush(), withWait()))
 	require.NoError(t, err)
 	require.NoError(t, s.ExecuteQuery(context.Background(), "CREATE TABLE parent (id INTEGER PRIMARY KEY)", nil))
 	require.NoError(t, s.ExecuteQuery(context.Background(), "CREATE TABLE child (parentID INTEGER REFERENCES parent(id) DEFERRABLE INITIALLY DEFERRED)", nil))
@@ -1133,7 +1132,7 @@ func TestSQLStore_Writer_FlushReportsCommitError(t *testing.T) {
 	lendable := newLendable(t, eClass, 6)
 	_, err := s.execute(newOperation("foreign keys", operationWrite, nil, nil, -1, nil, func() (any, error) {
 		return nil, sqlitex.ExecuteTransient(s.writerConn, "PRAGMA foreign_keys=ON;", nil)
-	}, withFlush()), true)
+	}, withFlush(), withWait()))
 	require.NoError(t, err)
 	require.NoError(t, s.ExecuteQuery(context.Background(), "CREATE TABLE parent (id INTEGER PRIMARY KEY)", nil))
 	require.NoError(t, s.ExecuteQuery(context.Background(), "CREATE TABLE child (parentID INTEGER REFERENCES parent(id) DEFERRABLE INITIALLY DEFERRED)", nil))

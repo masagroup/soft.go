@@ -20,8 +20,10 @@ const (
 	SQL_OPTION_DECODER_WITH_OBJECTS  = "DECODER_WITH_OBJECTS"  // decoder with objects
 	SQL_OPTION_DECODER_DB_PATH       = "DECODER_DB_PATH"
 	SQL_OPTION_LOGGER                = "LOGGER"
-	SQL_OPTION_OPERATION_TIMEOUT     = "OPERATION_TIMEOUT"
+	SQL_OPTION_OPERATION_TIMEOUT     = "OPERATION_TIMEOUT" // store : duration an operation waits for the writer before a warning is logged ( time.Duration )
 	SQL_OPTION_MAX_ALLOC_SIZE        = "MAX_ALLOC_SIZE"
+	SQL_OPTION_COMMIT_MAX_OPERATIONS = "COMMIT_MAX_OPERATIONS" // store : operations after which the writer commits when its queue is never empty ( int )
+	SQL_OPTION_COMMIT_MAX_DURATION   = "COMMIT_MAX_DURATION"   // store : duration after which the writer commits when its queue is never empty ( time.Duration )
 )
 
 type SQLCodec struct {

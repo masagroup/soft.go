@@ -1305,3 +1305,47 @@ func TestSQLStore_DecodeObject_Concurrent(t *testing.T) {
 		require.Same(t, first, book)
 	}
 }
+
+// a reader holds an object while it waits for the writer : the writer must never need
+// the object, in particular to walk the contents it unregisters
+func TestSQLStore_Writer_UnRegisterContents_ReaderHoldingObject(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+	libraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, libraryClass)
+	booksFeature := libraryClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, booksFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.complex.sqlite")
+	require.NoError(t, copyFile("testdata/library.complex.sqlite", dbPath))
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	defer s.Close()
+
+	// a store object without cache : its features are read from the store
+	library := NewEStoreEObjectImpl(false)
+	library.SetEClass(libraryClass)
+	library.SetEStore(s)
+
+	// the writer is blocked, an unregistration of the library and its contents is pending
+	release := blockWriter(t, s)
+	unregistered := s.UnRegister(library, true)
+
+	// a reader holds the library while it waits for the writer, the library being dirty
+	read := make(chan struct{})
+	go func() {
+		defer close(read)
+		library.EGet(booksFeature)
+	}()
+	time.Sleep(20 * time.Millisecond)
+	release()
+
+	// both finish
+	_, err = unregistered.Await(context.Background())
+	require.NoError(t, err)
+	select {
+	case <-read:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "the reader holding the object and the writer unregistering it wait for each other")
+	}
+}

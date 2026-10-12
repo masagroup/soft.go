@@ -654,7 +654,6 @@ func newLibraryModel(t *testing.T) *libraryModel {
 	m.bookClass, _ = m.ePackage.GetEClassifier("Book").(EClass)
 	require.NotNil(t, m.bookClass)
 	m.bookCategory = m.bookClass.GetEStructuralFeatureFromName("category")
-	// the store reads a feature with the class declaring it
 	m.lendableClass, _ = m.ePackage.GetEClassifier("Lendable").(EClass)
 	require.NotNil(t, m.lendableClass)
 	m.copies = m.lendableClass.GetEStructuralFeatureFromName("copies")
@@ -803,8 +802,7 @@ func TestSQLStore_Writer_LookupEnumAndDate(t *testing.T) {
 	require.False(t, isEncoded)
 	require.Nil(t, encoded)
 
-	item := newLendable(t, m.itemClass, 6)
-	dateSchema, err := s.getFeatureSchema(item, m.publicationDate)
+	dateSchema, err := s.getFeatureSchema(book, m.publicationDate)
 	require.NoError(t, err)
 	date := time.Date(2015, time.September, 6, 4, 24, 46, 0, time.UTC)
 	encoded, isEncoded, err = s.encodeLookupValue(dateSchema, &date)
@@ -817,7 +815,7 @@ func TestSQLStore_Writer_UnRegister(t *testing.T) {
 	m := newLibraryModel(t)
 	s, _, _, _ := newWriterTestStore(t, nil)
 	defer s.Close()
-	book := newLendable(t, m.lendableClass, 6)
+	book := newLendable(t, m.bookClass, 6)
 	isRegistered := func() bool {
 		_, registered := s.sqlIDManager.GetObjectID(book)
 		return registered
@@ -892,7 +890,6 @@ func TestSQLStore_Writer_MissingTables(t *testing.T) {
 	defer s.Close()
 	library := newLendable(t, m.libraryClass, 2)
 	book6 := newLendable(t, m.bookClass, 6)
-	lendable6 := newLendable(t, m.lendableClass, 6)
 
 	for _, table := range []string{"lendable", "library_books", `".contents"`} {
 		require.NoError(t, s.ExecuteQuery(context.Background(), "DROP TABLE "+table, nil))
@@ -900,8 +897,8 @@ func TestSQLStore_Writer_MissingTables(t *testing.T) {
 	require.NoError(t, s.WaitOperations(context.Background(), nil))
 
 	// the reads return zero values
-	require.Nil(t, s.Get(lendable6, m.copies, -1))
-	require.False(t, s.IsSet(lendable6, m.copies))
+	require.Nil(t, s.Get(book6, m.copies, -1))
+	require.False(t, s.IsSet(book6, m.copies))
 	require.Equal(t, 0, s.Size(library, m.libraryBooks))
 	require.False(t, s.Contains(library, m.libraryBooks, book6))
 	require.Equal(t, -1, s.IndexOf(library, m.libraryBooks, book6))
@@ -909,7 +906,7 @@ func TestSQLStore_Writer_MissingTables(t *testing.T) {
 	require.Empty(t, s.GetRoots())
 
 	// the writes reading a missing table fail, the errors are reported by the next wait
-	s.Set(lendable6, m.copies, -1, 9, false)
+	s.Set(book6, m.copies, -1, 9, false)
 	require.ErrorContains(t, s.WaitOperations(context.Background(), nil), "no such table: lendable")
 	s.RemoveRoot(library)
 	require.ErrorContains(t, s.WaitOperations(context.Background(), nil), "no such table: .contents")
@@ -926,9 +923,8 @@ func TestSQLStore_Writer_MissingObjectsTable(t *testing.T) {
 	// objects unknown to the store can not be looked up : the reads return zero values
 	library := newLendable(t, m.libraryClass, 2)
 	book := newLendable(t, m.bookClass, 6)
-	lendable := newLendable(t, m.lendableClass, 6)
-	require.Nil(t, s.Get(lendable, m.copies, -1))
-	require.False(t, s.IsSet(lendable, m.copies))
+	require.Nil(t, s.Get(book, m.copies, -1))
+	require.False(t, s.IsSet(book, m.copies))
 	require.Equal(t, 0, s.Size(library, m.libraryBooks))
 	require.False(t, s.Contains(library, m.libraryBooks, book))
 	require.Equal(t, -1, s.IndexOf(library, m.libraryBooks, book))
@@ -955,7 +951,7 @@ func TestSQLStore_IndexResult(t *testing.T) {
 func TestSQLStore_Writer_PromisesAfterClose(t *testing.T) {
 	m := newLibraryModel(t)
 	s, _, _, _ := newWriterTestStore(t, nil)
-	book := newLendable(t, m.lendableClass, 6)
+	book := newLendable(t, m.bookClass, 6)
 	require.NoError(t, s.Close())
 
 	// the promises of a closed store are rejected, they don't block
@@ -985,4 +981,119 @@ func TestSQLBase_PromisePoolReleased(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.Fail(t, "the task was not run")
 	}
+}
+
+// inheritanceModel is a model with multiple inheritance : Derived extends Named and Parent,
+// so the id of the inherited children feature is 0 in Parent and 1 in Derived
+type inheritanceModel struct {
+	ePackage     EPackage
+	namedClass   EClass
+	name         EAttribute
+	parentClass  EClass
+	children     EReference
+	derivedClass EClass
+	childClass   EClass
+}
+
+func newInheritanceModel() *inheritanceModel {
+	m := &inheritanceModel{}
+	f := GetFactory()
+	m.ePackage = f.CreateEPackage()
+	m.ePackage.SetName("inheritance")
+	m.ePackage.SetNsPrefix("inheritance")
+	m.ePackage.SetNsURI("http:///inheritance.ecore")
+	m.ePackage.SetEFactoryInstance(f.CreateEFactory())
+
+	m.childClass = f.CreateEClass()
+	m.childClass.SetName("Child")
+
+	m.namedClass = f.CreateEClass()
+	m.namedClass.SetName("Named")
+	m.name = f.CreateEAttribute()
+	m.name.SetName("name")
+	m.name.SetEType(GetPackage().GetEString())
+	m.namedClass.GetEStructuralFeatures().Add(m.name)
+
+	m.parentClass = f.CreateEClass()
+	m.parentClass.SetName("Parent")
+	m.children = f.CreateEReference()
+	m.children.SetName("children")
+	m.children.SetEType(m.childClass)
+	m.children.SetUpperBound(UNBOUNDED_MULTIPLICITY)
+	m.children.SetContainment(true)
+	m.parentClass.GetEStructuralFeatures().Add(m.children)
+
+	m.derivedClass = f.CreateEClass()
+	m.derivedClass.SetName("Derived")
+	m.derivedClass.GetESuperTypes().AddAll(NewImmutableEList([]any{m.namedClass, m.parentClass}))
+
+	m.ePackage.GetEClassifiers().AddAll(NewImmutableEList([]any{m.childClass, m.namedClass, m.parentClass, m.derivedClass}))
+	return m
+}
+
+func TestSQLStore_InheritedFeatures(t *testing.T) {
+	m := newLibraryModel(t)
+	s, dbPath, _, _ := newWriterTestStore(t, nil)
+	defer s.Close()
+
+	// copies and borrowers are declared by Lendable, publicationDate by Item
+	book := newLendable(t, m.bookClass, 6)
+	borrowers := m.lendableClass.GetEStructuralFeatureFromName("borrowers")
+	require.Equal(t, 4, s.Get(book, m.copies, -1))
+	require.True(t, s.IsSet(book, m.copies))
+	require.Equal(t, 0, s.Size(book, borrowers))
+	require.True(t, s.IsEmpty(book, borrowers))
+	date, isDate := s.Get(book, m.publicationDate, -1).(*time.Time)
+	require.True(t, isDate)
+	require.Equal(t, time.Date(2015, time.September, 6, 4, 24, 46, 0, time.UTC), date.UTC())
+
+	// written in the table of the declaring class
+	s.Set(book, m.copies, -1, 9, false)
+	require.NoError(t, s.WaitOperations(context.Background(), nil))
+	require.Equal(t, 9, countCopies(t, dbPath, 6))
+	require.Equal(t, 9, s.Get(book, m.copies, -1))
+
+	// a feature neither declared nor inherited is unknown
+	require.Nil(t, s.Get(book, m.libraryBooks, -1))
+}
+
+func TestSQLStore_InheritedContainmentFeatureID(t *testing.T) {
+	m := newInheritanceModel()
+	require.Equal(t, 0, m.parentClass.GetFeatureID(m.children))
+	require.Equal(t, 1, m.derivedClass.GetFeatureID(m.children))
+
+	dbPath := filepath.Join(t.TempDir(), "inheritance.sqlite")
+	packageRegistry := NewMockEPackageRegistry(t)
+	packageRegistry.EXPECT().GetPackage(m.ePackage.GetNsURI()).Return(m.ePackage).Maybe()
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, packageRegistry, nil)
+	require.NoError(t, err)
+	defer s.Close()
+
+	eFactory := m.ePackage.GetEFactoryInstance()
+	derived := eFactory.Create(m.derivedClass)
+	derived.ESet(m.name, "derived")
+	child := eFactory.Create(m.childClass)
+	derived.EGet(m.children).(EList).Add(child)
+	s.AddRoot(derived)
+	require.NoError(t, s.WaitOperations(context.Background(), nil))
+
+	// the child is contained by the feature 1 of Derived, not by its feature 0 (name)
+	derivedID, isDerivedID := s.sqlIDManager.GetObjectID(derived)
+	require.True(t, isDerivedID)
+	childID, isChildID := s.sqlIDManager.GetObjectID(child)
+	require.True(t, isChildID)
+	containerID, featureID, err := containerOf(s, childID)
+	require.NoError(t, err)
+	require.Equal(t, derivedID, containerID)
+	require.Equal(t, int64(1), featureID)
+	container, feature := s.GetContainer(child)
+	require.Equal(t, derived, container)
+	require.Equal(t, m.children, feature)
+
+	// the inherited features are read and written through the derived object
+	require.Equal(t, "derived", s.Get(derived, m.name, -1))
+	require.Equal(t, 1, s.Size(derived, m.children))
+	s.Set(derived, m.name, -1, "renamed", false)
+	require.NoError(t, s.WaitOperations(context.Background(), nil))
+	require.Equal(t, "renamed", s.Get(derived, m.name, -1))
 }

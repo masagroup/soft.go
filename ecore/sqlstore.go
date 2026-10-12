@@ -1864,14 +1864,16 @@ func postOrderIterator(object EObject) iter.Seq[EObject] {
 // UnRegister forgets the ids of object, and of its contents if withContents, once the
 // operations before it are executed : the objects are encoded again when written again
 func (s *SQLStore) UnRegister(object EObject, withContents bool) *promise.Promise[any] {
+	// the objects are collected now, in the caller's goroutine : walking the contents locks
+	// the objects, and a reader may hold one while it waits for the writer
+	objects := []EObject{object}
+	if withContents {
+		// post order : a parent is cleared after its children, so that clearing a child
+		// never registers its parent again
+		objects = slices.Collect(postOrderIterator(object))
+	}
 	op := newOperation("UnRegister", operationWrite, object, nil, -1, nil, func() (any, error) {
-		if withContents {
-			// we use a post order iterator to avoid registering again
-			// parent
-			for object := range postOrderIterator(object) {
-				s.sqlIDManager.ClearObjectID(object)
-			}
-		} else {
+		for _, object := range objects {
 			s.sqlIDManager.ClearObjectID(object)
 		}
 		return nil, nil

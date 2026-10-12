@@ -280,8 +280,12 @@ func (t *sqlTable) selectQuery(columns []string, selection string, orderBy strin
 }
 
 type sqlClassSchema struct {
-	table    *sqlTable
+	table *sqlTable
+	// features declared by the class
 	features []*sqlFeatureSchema
+	// features inherited from the super types, with the schema of their declaring class :
+	// computed on demand, a super type schema may be incomplete while the class schema is computed
+	inherited map[EStructuralFeature]*sqlFeatureSchema
 }
 
 func (s *sqlClassSchema) getFeatureSchema(feature EStructuralFeature) *sqlFeatureSchema {
@@ -424,6 +428,32 @@ func (s *sqlSchema) getClassSchema(eClass EClass) *sqlClassSchema {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	return s.getOrComputeClassSchema(eClass)
+}
+
+// getFeatureSchema returns the schema of a feature declared by eClass or by one of its super
+// types : an inherited feature is in the table of its declaring class, with the object id as key
+func (s *sqlSchema) getFeatureSchema(eClass EClass, eFeature EStructuralFeature) *sqlFeatureSchema {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	classSchema := s.getOrComputeClassSchema(eClass)
+	if featureSchema := classSchema.getFeatureSchema(eFeature); featureSchema != nil {
+		return featureSchema
+	}
+	if featureSchema, isInherited := classSchema.inherited[eFeature]; isInherited {
+		return featureSchema
+	}
+	declaringClass := eFeature.GetEContainingClass()
+	if declaringClass == nil || !eClass.GetEAllSuperTypes().Contains(declaringClass) {
+		return nil
+	}
+	featureSchema := s.getOrComputeClassSchema(declaringClass).getFeatureSchema(eFeature)
+	if featureSchema != nil {
+		if classSchema.inherited == nil {
+			classSchema.inherited = map[EStructuralFeature]*sqlFeatureSchema{}
+		}
+		classSchema.inherited[eFeature] = featureSchema
+	}
+	return featureSchema
 }
 
 func (s *sqlSchema) getOrComputeClassSchema(eClass EClass) *sqlClassSchema {

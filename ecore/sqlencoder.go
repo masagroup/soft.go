@@ -12,7 +12,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/chebyrash/promise"
 	"github.com/panjf2000/ants/v2"
 	"github.com/ugurcsen/gods-generic/maps/linkedhashmap"
 	"go.uber.org/zap"
@@ -32,7 +31,20 @@ type sqlEncoderClassData struct {
 	id        int64
 	schema    *sqlClassSchema
 	hierarchy []EClass
-	features  *linkedhashmap.Map[EStructuralFeature, *sqlEncoderFeatureData]
+	// features declared by the class
+	features *linkedhashmap.Map[EStructuralFeature, *sqlEncoderFeatureData]
+	// features inherited from the super types : the data of their declaring class,
+	// with their feature id in this class
+	inherited map[EStructuralFeature]*sqlEncoderFeatureData
+}
+
+// getFeatureData returns the data of a feature declared or inherited by the class
+func (c *sqlEncoderClassData) getFeatureData(eFeature EStructuralFeature) (*sqlEncoderFeatureData, bool) {
+	if featureData, isFeatureData := c.features.Get(eFeature); isFeatureData {
+		return featureData, true
+	}
+	featureData, isFeatureData := c.inherited[eFeature]
+	return featureData, isFeatureData
 }
 
 type SQLEncoderIDManager interface {
@@ -352,19 +364,20 @@ func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, contain
 		}
 
 		// for all object hierarchy classes
-		for _, eClass := range classData.hierarchy {
-			classData, err := e.getEncoderClassData(eClass)
+		for _, eHierarchyClass := range classData.hierarchy {
+			hierarchyData, err := e.getEncoderClassData(eHierarchyClass)
 			if err != nil {
 				return -1, err
 			}
-			classTable := classData.schema.table
+			classTable := hierarchyData.schema.table
 
 			// encode features columnValues in table columns
 			columnValues := classTable.defaultValues()
 			columnValues[classTable.key.index] = sqlObjectID
-			for itFeature := classData.features.Iterator(); itFeature.Next(); {
+			for itFeature := hierarchyData.features.Iterator(); itFeature.Next(); {
 				eFeature := itFeature.Key()
-				featureData := itFeature.Value()
+				// the data of the feature in the object class : its id is the one of the object class
+				featureData, _ := classData.getFeatureData(eFeature)
 				if !featureData.isTransient && e.shouldEncodeFeature(eObject, eFeature) {
 					if featureColumn := featureData.schema.column; featureColumn != nil {
 						featureValue := eObject.EGetResolve(eFeature, false)
@@ -632,11 +645,28 @@ func (e *sqlEncoder) getEncoderClassData(eClass EClass) (*sqlEncoderClassData, e
 			classFeatures.Put(eFeature, featureData)
 		}
 
+		// computes inherited features data : the ids of the features of a super type
+		// may differ in this class (multiple inheritance)
+		inheritedFeatures := map[EStructuralFeature]*sqlEncoderFeatureData{}
+		for _, superClass := range classHierarchy[1:] {
+			superData, err := e.getEncoderClassData(superClass)
+			if err != nil {
+				return nil, err
+			}
+			for itFeature := superData.features.Iterator(); itFeature.Next(); {
+				eFeature := itFeature.Key()
+				featureData := *itFeature.Value()
+				featureData.featureID = int64(eClass.GetFeatureID(eFeature))
+				inheritedFeatures[eFeature] = &featureData
+			}
+		}
+
 		// create & register class data
 		classData = &sqlEncoderClassData{
 			id:        -1,
 			schema:    classSchema,
 			features:  classFeatures,
+			inherited: inheritedFeatures,
 			hierarchy: classHierarchy,
 		}
 		e.classDataMap[eClass] = classData
@@ -831,7 +861,7 @@ func newSQLEncoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 
 	// ants pool
 	antsPool, _ := ants.NewPool(-1, ants.WithLogger(&zapLogger{logger.Named("ants")}))
-	promisePool := promise.FromAntsPool(antsPool)
+	promisePool := newAntsPromisePool(antsPool)
 
 	// encoder structure
 	e := &SQLEncoder{

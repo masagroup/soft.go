@@ -816,7 +816,7 @@ func newSQLStore(
 
 	// ants promise pool
 	antsPool, _ := ants.NewPool(math.MaxInt32, ants.WithExpiryDuration(5*time.Second), ants.WithLogger(&zapLogger{logger.Named("ants")}))
-	promisePool := promise.FromAntsPool(antsPool)
+	promisePool := newAntsPromisePool(antsPool)
 
 	// create sql base
 	base := &sqlBase{

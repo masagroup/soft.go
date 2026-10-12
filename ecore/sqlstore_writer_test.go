@@ -152,7 +152,7 @@ func TestSQLStore_Writer_ReadPendingWrite(t *testing.T) {
 	require.Eventually(t, func() bool {
 		return s.pendingOperation(lendable, eFeature, -1) != nil && s.pendingOperation(lendable, eFeature, -1).cmd == "UnSet"
 	}, time.Second, time.Millisecond)
-	require.Nil(t, s.Get(lendable, eFeature, -1))
+	require.Equal(t, 0, s.Get(lendable, eFeature, -1)) // the default
 	require.False(t, s.IsSet(lendable, eFeature))
 }
 

@@ -1046,14 +1046,6 @@ func mapSet[S ~map[E]struct{}, E comparable, R any](m S, mapper func(E) R) []R {
 	return mappedSlice
 }
 
-func mapSlice[S ~[]E, E, R any](slice S, mapper func(int, E) R) []R {
-	mappedSlice := make([]R, len(slice))
-	for i, v := range slice {
-		mappedSlice[i] = mapper(i, v)
-	}
-	return mappedSlice
-}
-
 const (
 	// unlockOperationTimeout is the time an operation waits for the writer before a warning is logged
 	unlockOperationTimeout = 5 * time.Second

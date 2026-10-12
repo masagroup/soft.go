@@ -134,6 +134,9 @@ type sqlDecoder struct {
 	packageRegistry  EPackageRegistry
 	sqlIDManager     SQLDecoderIDManager
 	sqlObjectManager sqlObjectManager
+	// objectLocks serializes the decoding of an object id : two goroutines decoding
+	// the same id would create two objects
+	objectLocks *sqlEncoderLockManager
 }
 
 func (d *sqlDecoder) resolveURI(uri *URI) *URI {
@@ -278,6 +281,12 @@ func (d *sqlDecoder) getDecoderClassData(eClass EClass) *sqlDecoderClassData {
 func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 	eObject, isObject := d.sqlIDManager.GetObjectFromID(id)
 	if !isObject {
+		d.objectLocks.lock(id)
+		defer d.objectLocks.unlock(id)
+		// decoded meanwhile by another goroutine
+		if eObject, isObject = d.sqlIDManager.GetObjectFromID(id); isObject {
+			return eObject, nil
+		}
 		table := d.schema.objectsTable
 		var classID int64
 		var objectID string
@@ -793,6 +802,7 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: newSqlDecoderObjectManager(),
 			classDataMap:     map[EClass]*sqlDecoderClassData{},
+			objectLocks:      newSqlEncoderLockManager(),
 		},
 		resource:     resource,
 		withFeatures: withFeatures,

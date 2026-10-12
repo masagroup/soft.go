@@ -3,6 +3,7 @@ package ecore
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -900,6 +901,7 @@ func TestSQLStore_Writer_MissingTables(t *testing.T) {
 	require.Nil(t, s.Get(book6, m.copies, -1))
 	require.False(t, s.IsSet(book6, m.copies))
 	require.Equal(t, 0, s.Size(library, m.libraryBooks))
+	require.True(t, s.IsEmpty(library, m.libraryBooks))
 	require.False(t, s.Contains(library, m.libraryBooks, book6))
 	require.Equal(t, -1, s.IndexOf(library, m.libraryBooks, book6))
 	require.Empty(t, s.ToArray(library, m.libraryBooks))
@@ -1096,4 +1098,211 @@ func TestSQLStore_InheritedContainmentFeatureID(t *testing.T) {
 	s.Set(derived, m.name, -1, "renamed", false)
 	require.NoError(t, s.WaitOperations(context.Background(), nil))
 	require.Equal(t, "renamed", s.Get(derived, m.name, -1))
+}
+
+// newRegistryStore creates a store on a copy of testdata/library.store.sqlite with a registry
+// of the library package : the objects of the database can be decoded
+func newRegistryStore(t *testing.T, m *libraryModel) (*SQLStore, string) {
+	dbPath := filepath.Join(t.TempDir(), "library.store.sqlite")
+	require.NoError(t, copyFile("testdata/library.store.sqlite", dbPath))
+	registry := NewEPackageRegistryImpl()
+	registry.RegisterPackage(m.ePackage)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, registry, nil)
+	require.NoError(t, err)
+	return s, dbPath
+}
+
+func newDataListStore(t *testing.T) (s *SQLStore, book *MockSQLObject, contents EStructuralFeature) {
+	ePackage := loadPackage("library.datalist.ecore")
+	require.NotNil(t, ePackage)
+	eClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, eClass)
+	contents = eClass.GetEStructuralFeatureFromName("contents")
+	require.NotNil(t, contents)
+	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
+	require.NoError(t, copyFile("testdata/library.datalist.sqlite", dbPath))
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, NewMockEPackageRegistry(t), nil)
+	require.NoError(t, err)
+	book = newLendable(t, eClass, 4)
+	return
+}
+
+func TestSQLStore_Writer_FlushReportsCommitError(t *testing.T) {
+	s, dbPath, eClass, eFeature := newWriterTestStore(t, nil)
+	defer s.Close()
+	lendable := newLendable(t, eClass, 6)
+	_, err := s.execute(newOperation("foreign keys", operationWrite, nil, nil, -1, nil, func() (any, error) {
+		return nil, sqlitex.ExecuteTransient(s.writerConn, "PRAGMA foreign_keys=ON;", nil)
+	}, withFlush()), true)
+	require.NoError(t, err)
+	require.NoError(t, s.ExecuteQuery(context.Background(), "CREATE TABLE parent (id INTEGER PRIMARY KEY)", nil))
+	require.NoError(t, s.ExecuteQuery(context.Background(), "CREATE TABLE child (parentID INTEGER REFERENCES parent(id) DEFERRABLE INITIALLY DEFERRED)", nil))
+	require.NoError(t, s.WaitOperations(context.Background(), nil))
+
+	// a write, a deferred violation, and a flush queued before the commit : the flush
+	// commits first and reports the error of the commit
+	release := blockWriter(t, s)
+	s.Set(lendable, eFeature, -1, 9, false)
+	go func() { _ = s.ExecuteQuery(context.Background(), "INSERT INTO child VALUES (42)", nil) }()
+	require.Eventually(t, func() bool { return queueLen(s) == 2 }, time.Second, time.Millisecond)
+	flushErr := make(chan error, 1)
+	go func() { flushErr <- s.WaitOperations(context.Background(), nil) }()
+	require.Eventually(t, func() bool { return queueLen(s) == 3 }, time.Second, time.Millisecond)
+	release()
+	require.ErrorContains(t, <-flushErr, "FOREIGN KEY")
+	require.NoError(t, s.WaitOperations(context.Background(), nil))
+	require.Equal(t, 4, countCopies(t, dbPath, 6))
+}
+
+func TestSQLStore_AddAll_Order(t *testing.T) {
+	s, book, contents := newDataListStore(t)
+	defer s.Close()
+	wait := func() { require.NoError(t, s.WaitOperations(context.Background(), nil)) }
+
+	// between two elements, before the first, after the last
+	s.AddAll(book, contents, 1, NewImmutableEList([]any{"x", "y"}))
+	wait()
+	require.Equal(t, []any{"c21", "x", "y", "c22", "c23"}, s.ToArray(book, contents))
+	s.AddAll(book, contents, 1, NewImmutableEList([]any{"p", "q", "r"}))
+	wait()
+	require.Equal(t, []any{"c21", "p", "q", "r", "x", "y", "c22", "c23"}, s.ToArray(book, contents))
+	s.AddAll(book, contents, 0, NewImmutableEList([]any{"a", "b", "c"}))
+	wait()
+	require.Equal(t, []any{"a", "b", "c", "c21", "p", "q", "r", "x", "y", "c22", "c23"}, s.ToArray(book, contents))
+	s.AddAll(book, contents, 11, NewImmutableEList([]any{"z1", "z2"}))
+	wait()
+	require.Equal(t, []any{"a", "b", "c", "c21", "p", "q", "r", "x", "y", "c22", "c23", "z1", "z2"}, s.ToArray(book, contents))
+	s.AddAll(book, contents, 0, NewImmutableEList([]any{"first"}))
+	wait()
+	require.Equal(t, "first", s.Get(book, contents, 0))
+	require.Equal(t, "a", s.Get(book, contents, 1))
+
+	// out of bounds
+	s.AddAll(book, contents, 20, NewImmutableEList([]any{"out"}))
+	require.ErrorContains(t, s.WaitOperations(context.Background(), nil), "not in list bounds")
+
+	// repeated inserts at the same place keep the order
+	for i := range 20 {
+		s.Add(book, contents, 2, fmt.Sprintf("i%d", i))
+	}
+	wait()
+	values := s.ToArray(book, contents)
+	require.Equal(t, "first", values[0])
+	require.Equal(t, "a", values[1])
+	for i := range 20 {
+		require.Equal(t, fmt.Sprintf("i%d", 19-i), values[2+i])
+	}
+	require.Equal(t, "b", values[22])
+}
+
+func TestSQLStore_Add_NotAList(t *testing.T) {
+	s, _, eClass, eFeature := newWriterTestStore(t, nil)
+	defer s.Close()
+	lendable := newLendable(t, eClass, 6)
+
+	// a list operation on a single valued feature is an error, not a panic holding a lock
+	s.Add(lendable, eFeature, 0, 1)
+	require.ErrorContains(t, s.WaitOperations(context.Background(), nil), "is not a list")
+	s.Clear(lendable, eFeature)
+	require.ErrorContains(t, s.WaitOperations(context.Background(), nil), "is not a list")
+	require.Equal(t, 0, s.Size(lendable, eFeature))
+	require.True(t, s.IsEmpty(lendable, eFeature))
+	require.Equal(t, 4, s.Get(lendable, eFeature, -1))
+}
+
+func TestSQLStore_IsSet_Default(t *testing.T) {
+	m := newLibraryModel(t)
+	s, _ := newRegistryStore(t, m)
+	defer s.Close()
+	book := newLendable(t, m.bookClass, 6)
+	pages := m.bookClass.GetEStructuralFeatureFromName("pages")
+	wait := func() { require.NoError(t, s.WaitOperations(context.Background(), nil)) }
+
+	// a numeric feature holding its default is not set
+	require.True(t, s.IsSet(book, m.copies))
+	s.Set(book, m.copies, -1, 0, false)
+	wait()
+	require.False(t, s.IsSet(book, m.copies))
+	require.True(t, s.IsSet(book, pages))
+	s.Set(book, pages, -1, 100, false)
+	wait()
+	require.False(t, s.IsSet(book, pages))
+	s.Set(book, pages, -1, 101, false)
+	wait()
+	require.True(t, s.IsSet(book, pages))
+
+	// an enum holding its default is not set
+	require.True(t, s.IsSet(book, m.bookCategory))
+	s.UnSet(book, m.bookCategory)
+	wait()
+	require.False(t, s.IsSet(book, m.bookCategory))
+
+	// an object
+	library := newLendable(t, m.libraryClass, 2)
+	ownerPdg := m.libraryClass.GetEStructuralFeatureFromName("ownerPdg")
+	require.False(t, s.IsSet(library, ownerPdg))
+}
+
+func TestSQLStore_UnSet_Enum(t *testing.T) {
+	m := newLibraryModel(t)
+	s, _ := newRegistryStore(t, m)
+	defer s.Close()
+	book := newLendable(t, m.bookClass, 6)
+	require.Equal(t, 2, s.Get(book, m.bookCategory, -1)) // Biography
+
+	// the default literal is encoded : it is read back
+	s.UnSet(book, m.bookCategory)
+	require.NoError(t, s.WaitOperations(context.Background(), nil))
+	require.Equal(t, m.bookCategory.GetDefaultValue(), s.Get(book, m.bookCategory, -1))
+	require.Equal(t, 0, s.Get(book, m.bookCategory, -1)) // Mystery
+
+	// the date too
+	s.UnSet(book, m.publicationDate)
+	require.NoError(t, s.WaitOperations(context.Background(), nil))
+	require.Nil(t, s.Get(book, m.publicationDate, -1))
+}
+
+func TestSQLStore_Writer_NestedReadKeepsBinding(t *testing.T) {
+	m := newLibraryModel(t)
+	s, _ := newRegistryStore(t, m)
+	defer s.Close()
+	library := newLendable(t, m.libraryClass, 2)
+	book7 := newLendable(t, m.bookClass, 7)
+
+	// a read on a pool connection from a read on a pool connection : the connection of
+	// the outer read is bound again once the inner read is done
+	books := 0
+	for range s.All(library, m.libraryBooks) {
+		require.NotNil(t, s.boundConn())
+		require.Equal(t, 3, s.Get(book7, m.copies, -1))
+		require.NotNil(t, s.boundConn())
+		books++
+	}
+	require.Equal(t, 2, books)
+	require.Nil(t, s.boundConn())
+}
+
+func TestSQLStore_DecodeObject_Concurrent(t *testing.T) {
+	m := newLibraryModel(t)
+	s, _ := newRegistryStore(t, m)
+	defer s.Close()
+	library := newLendable(t, m.libraryClass, 2)
+
+	// the first book is decoded by many goroutines at once : one object
+	decoded := make(chan any, 50)
+	wg := sync.WaitGroup{}
+	for range cap(decoded) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			decoded <- s.Get(library, m.libraryBooks, 0)
+		}()
+	}
+	wg.Wait()
+	close(decoded)
+	first := <-decoded
+	require.NotNil(t, first)
+	for book := range decoded {
+		require.Same(t, first, book)
+	}
 }

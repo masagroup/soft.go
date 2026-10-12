@@ -1950,10 +1950,10 @@ func TestSQLStore_UnRegister(t *testing.T) {
 	mockObject2 := NewMockSQLObject(t)
 	mockObject.EXPECT().GetSQLID().Return(objectID)
 	mockObject2.EXPECT().GetSQLID().Return(2)
-	mockObject.EXPECT().EAllContents().Return(NewImmutableEList([]any{mockObject2}).Iterator()).Once()
 	mockObject.EXPECT().EContents().Return(NewImmutableEList([]any{mockObject2})).Once()
 	mockObject2.EXPECT().EContents().Return(NewImmutableEList([]any{})).Once()
-	s.UnRegister(mockObject, true)
+	_, err = s.UnRegister(mockObject, true).Await(context.Background())
+	require.NoError(t, err)
 }
 
 func TestSQLStore_Panics(t *testing.T) {
@@ -1972,13 +1972,34 @@ func TestSQLStore_Panics(t *testing.T) {
 	require.NotNil(t, s)
 	defer s.Close()
 
-	s.scheduleOperation(context.Background(), newOperation("test", operationRead, nil, nil, false, 0, nil, func() (any, error) {
+	// a panic in an operation executed by the writer is an error of the operation
+	_, err = s.execute(newOperation("test", operationWrite, nil, nil, 0, nil, func() (any, error) {
 		panic("invalid test")
-	}))
+	}), true)
+	require.EqualError(t, err, "invalid test")
 
-	s.scheduleOperation(context.Background(), newOperation("test", operationRead, nil, nil, false, 0, nil, func() (any, error) {
+	_, err = s.execute(newOperation("test", operationWrite, nil, nil, 0, nil, func() (any, error) {
 		panic(errors.New("invalid test"))
+	}), true)
+	require.EqualError(t, err, "invalid test")
+
+	// a panic in a read executed on a pool connection too
+	_, err = s.execute(newOperation("test", operationRead, nil, nil, 0, nil, func() (any, error) {
+		panic("invalid read")
+	}), true)
+	require.EqualError(t, err, "invalid read")
+
+	// the store still works : the errors are reported once by the flush
+	size := 0
+	require.NoError(t, s.ExecuteQuery(context.Background(), "SELECT COUNT(*) from library_books", &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			size = stmt.ColumnInt(0)
+			return nil
+		},
 	}))
+	require.Equal(t, 2, size)
+	require.Error(t, s.WaitOperations(context.Background(), nil))
+	require.NoError(t, s.WaitOperations(context.Background(), nil))
 }
 
 func TestSQLStore_UnlockOperation_Simple(t *testing.T) {

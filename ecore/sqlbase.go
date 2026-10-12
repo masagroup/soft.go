@@ -106,6 +106,14 @@ loop:
 	}
 }
 
+// boundConn is a connection bound to a goroutine : the queries of this goroutine
+// are executed directly on this connection, in the order they are made, without
+// the query scheduler
+type boundConn struct {
+	conn  *sqlite.Conn
+	depth int // number of queries of this goroutine being executed
+}
+
 type sqlBase struct {
 	codecVersion     int64
 	schema           *sqlSchema
@@ -116,6 +124,8 @@ type sqlBase struct {
 	isContainerID    bool
 	sqliteMutex      sync.Mutex
 	sqliteQueries    map[string][]*query
+	bindingsMutex    sync.Mutex
+	bindings         map[int64]*boundConn
 	logger           *zap.Logger
 	sqliteLogger     *zap.Logger
 	antsPool         *ants.Pool
@@ -130,8 +140,63 @@ func (s *sqlBase) setLogger(logger *zap.Logger) {
 	s.sqliteLogger = logger.Named("sqlite")
 }
 
+// bindConn binds conn to the current goroutine until the returned function is called
+func (s *sqlBase) bindConn(conn *sqlite.Conn) (unbind func()) {
+	id := goid.Get()
+	s.bindingsMutex.Lock()
+	if s.bindings == nil {
+		s.bindings = map[int64]*boundConn{}
+	}
+	s.bindings[id] = &boundConn{conn: conn}
+	s.bindingsMutex.Unlock()
+	return func() {
+		s.bindingsMutex.Lock()
+		delete(s.bindings, id)
+		s.bindingsMutex.Unlock()
+	}
+}
+
+// boundConn returns the connection bound to the current goroutine, or nil
+func (s *sqlBase) boundConn() *boundConn {
+	s.bindingsMutex.Lock()
+	defer s.bindingsMutex.Unlock()
+	return s.bindings[goid.Get()]
+}
+
 // execute sqlite cmd
-func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.ExecOptions) error {
+// fn executes the query with the prepared statements cached by the connection,
+// transientFn without : a query executed while another query of the same
+// goroutine is being executed on the same connection (from its ResultFunc)
+// must not reuse the cached statement, which may be the one being stepped
+func (s *sqlBase) executeSqlite(fn, transientFn executeQueryFn, cmd string, opts *sqlitex.ExecOptions) error {
+
+	// bound connection : execute directly
+	if bound := s.boundConn(); bound != nil {
+		loggerArgs := func() []zap.Field {
+			args := []zap.Field{zap.Int64("goid", goid.Get()), zap.String("query", cmd)}
+			if opts != nil {
+				args = append(args, zap.Any("args", opts.Args))
+			}
+			return args
+		}
+		if e := s.logger.Check(zap.DebugLevel, "executing"); e != nil {
+			e.Write(loggerArgs()...)
+		}
+		if bound.depth > 0 {
+			fn = transientFn
+		}
+		bound.depth++
+		err := fn(bound.conn, cmd, opts)
+		bound.depth--
+		if err != nil {
+			s.logger.Error("executed", append(loggerArgs(), zap.Error(err))...)
+			return err
+		}
+		if e := s.logger.Check(zap.DebugLevel, "executed"); e != nil {
+			e.Write(loggerArgs()...)
+		}
+		return nil
+	}
 
 	// create query
 	q := newQuery(cmd)
@@ -267,15 +332,15 @@ func (s *sqlBase) executeSqlite(fn executeQueryFn, cmd string, opts *sqlitex.Exe
 }
 
 func (d *sqlBase) executeQuery(query string, opts *sqlitex.ExecOptions) error {
-	return d.executeSqlite(sqlitex.Execute, query, opts)
+	return d.executeSqlite(sqlitex.Execute, sqlitex.ExecuteTransient, query, opts)
 }
 
 func (d *sqlBase) executeQueryTransient(query string, opts *sqlitex.ExecOptions) error {
-	return d.executeSqlite(sqlitex.ExecuteTransient, query, opts)
+	return d.executeSqlite(sqlitex.ExecuteTransient, sqlitex.ExecuteTransient, query, opts)
 }
 
 func (d *sqlBase) executeQueryScript(query string, opts *sqlitex.ExecOptions) error {
-	return d.executeSqlite(sqlitex.ExecuteScript, query, opts)
+	return d.executeSqlite(sqlitex.ExecuteScript, sqlitex.ExecuteScript, query, opts)
 }
 
 func (d *sqlBase) decodeProperties() (map[string]string, error) {

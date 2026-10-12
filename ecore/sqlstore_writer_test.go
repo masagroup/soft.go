@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/panjf2000/ants/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -949,4 +950,39 @@ func TestSQLStore_IndexResult(t *testing.T) {
 	require.Equal(t, -1, indexResult(nil, errors.New("error")))
 	require.Equal(t, -1, indexResult(0, errors.New("error")))
 	require.Equal(t, -1, indexResult(nil, nil))
+}
+
+func TestSQLStore_Writer_PromisesAfterClose(t *testing.T) {
+	m := newLibraryModel(t)
+	s, _, _, _ := newWriterTestStore(t, nil)
+	book := newLendable(t, m.lendableClass, 6)
+	require.NoError(t, s.Close())
+
+	// the promises of a closed store are rejected, they don't block
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err := s.UnRegister(book, false).Await(ctx)
+	require.ErrorContains(t, err, "closed")
+	_, err = s.Serialize(context.Background()).Await(ctx)
+	require.ErrorContains(t, err, "closed")
+}
+
+func TestSQLBase_PromisePoolReleased(t *testing.T) {
+	pool, err := ants.NewPool(1)
+	require.NoError(t, err)
+	promisePool := newAntsPromisePool(pool)
+
+	ran := make(chan struct{})
+	promisePool.Go(func() { close(ran) })
+	<-ran
+
+	// a released pool refuses the tasks : they run in a goroutine of their own
+	pool.Release()
+	ran = make(chan struct{})
+	promisePool.Go(func() { close(ran) })
+	select {
+	case <-ran:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "the task was not run")
+	}
 }

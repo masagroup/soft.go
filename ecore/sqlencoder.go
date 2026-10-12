@@ -12,7 +12,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/chebyrash/promise"
 	"github.com/panjf2000/ants/v2"
 	"github.com/ugurcsen/gods-generic/maps/linkedhashmap"
 	"go.uber.org/zap"
@@ -831,7 +830,7 @@ func newSQLEncoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 
 	// ants pool
 	antsPool, _ := ants.NewPool(-1, ants.WithLogger(&zapLogger{logger.Named("ants")}))
-	promisePool := promise.FromAntsPool(antsPool)
+	promisePool := newAntsPromisePool(antsPool)
 
 	// encoder structure
 	e := &SQLEncoder{

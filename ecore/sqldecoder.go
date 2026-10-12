@@ -774,7 +774,7 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 
 	// ants pool
 	antsPool, _ := ants.NewPool(-1, ants.WithLogger(&zapLogger{logger.Named("ants")}))
-	promisePool := promise.FromAntsPool(antsPool)
+	promisePool := newAntsPromisePool(antsPool)
 
 	// decoder
 	d := &SQLDecoder{

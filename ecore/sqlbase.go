@@ -384,3 +384,19 @@ func (d *sqlBase) decodeProperties() (map[string]string, error) {
 	}
 	return properties, nil
 }
+
+// antsPromisePool runs the promises on an ants pool, or in a goroutine of their own when the
+// pool refuses them (released by a close) : a promise always settles
+type antsPromisePool struct {
+	pool *ants.Pool
+}
+
+func newAntsPromisePool(pool *ants.Pool) promise.Pool {
+	return &antsPromisePool{pool: pool}
+}
+
+func (p *antsPromisePool) Go(f func()) {
+	if err := p.pool.Submit(f); err != nil {
+		go f()
+	}
+}

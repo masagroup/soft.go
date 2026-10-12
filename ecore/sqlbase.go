@@ -241,94 +241,104 @@ func (s *sqlBase) executeSqlite(fn, transientFn executeQueryFn, cmd string, opts
 	// create query promise
 	q.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
 		goid := goid.Get()
-		if len(previous) > 0 {
-			if e := s.sqliteLogger.Check(zap.DebugLevel, "waiting previous queries"); e != nil {
-				e.Write(
-					zap.Int64("id", q.id),
-					zap.Int64("goid", goid),
-					zap.Int64s("previous", mapSet(previous, func(query *query) int64 { return query.id })),
-				)
-			}
-			promises := mapSet(previous, func(query *query) *promise.Promise[any] { return query.promise })
-			if _, err := promise.AllWithPool(context.Background(), s.promisePool, promises...).Await(context.Background()); err != nil {
-				if e := s.sqliteLogger.Check(zap.DebugLevel, "error in previous query"); e != nil {
-					e.Write(
-						zap.Int64("id", q.id),
-						zap.Int64("goid", goid),
-						zap.Error(err),
-					)
-				}
-				reject(err)
-				return
-			}
+		err := s.runQuery(q, goid, previous, fn, opts)
+		// executed or failed : the next queries of its tables don't wait for it anymore
+		if errUnregister := s.unregisterQuery(q, goid); err == nil {
+			err = errUnregister
 		}
-
-		// execute query
-		conn, err := s.connPool.Take(context.Background())
 		if err != nil {
 			reject(err)
-			return
-		}
-		defer s.connPool.Put(conn)
-
-		loggerArgs := []zap.Field{zap.Int64("id", q.id), zap.Int64("goid", goid), zap.String("query", cmd)}
-		if opts != nil {
-			loggerArgs = append(loggerArgs, zap.Any("args", opts.Args))
-		}
-		s.logger.Log(zap.DebugLevel, "executing", loggerArgs...)
-		if err := fn(conn, cmd, opts); err != nil {
-			s.logger.Error("executed", append(loggerArgs, zap.Error(err))...)
-			reject(err)
-			return
 		} else {
-			s.logger.Log(zap.DebugLevel, "executed", loggerArgs...)
+			resolve(nil)
 		}
-
-		// clean query
-		if e := s.sqliteLogger.Check(zap.DebugLevel, "cleaning"); e != nil {
-			e.Write(
-				zap.Int64("id", q.id),
-				zap.Int64("goid", goid),
-			)
-		}
-		s.sqliteMutex.Lock()
-		defer s.sqliteMutex.Unlock()
-
-		// unregister query from all tables
-		for _, table := range q.tables {
-			queries := s.sqliteQueries[table]
-			index := slices.Index(queries, q)
-			if index == -1 {
-				reject(errors.New("unable to find query index"))
-				return
-			}
-			// remove query from queries
-			copy(queries[index:], queries[index+1:])
-			queries[len(queries)-1] = nil
-			queries = queries[:len(queries)-1]
-			if len(queries) > 0 {
-				s.sqliteQueries[table] = queries
-			} else {
-				delete(s.sqliteQueries, table)
-			}
-		}
-		if e := s.sqliteLogger.Check(zap.DebugLevel, "cleaned"); e != nil {
-			e.Write(
-				zap.Int64("id", q.id),
-				zap.Int64("goid", goid),
-			)
-		}
-		if len(s.sqliteQueries) == 0 {
-			s.sqliteLogger.Debug("no pending")
-		}
-		resolve(nil)
 	}, s.promisePool)
-
 	s.sqliteMutex.Unlock()
 
 	// wait for query to be finished
 	_, err := q.promise.Await(context.Background())
 	return err
+}
+
+// runQuery waits for the previous queries of a scheduled query, then executes it on a pool connection
+func (s *sqlBase) runQuery(q *query, goid int64, previous map[*query]struct{}, fn executeQueryFn, opts *sqlitex.ExecOptions) error {
+	if len(previous) > 0 {
+		if e := s.sqliteLogger.Check(zap.DebugLevel, "waiting previous queries"); e != nil {
+			e.Write(
+				zap.Int64("id", q.id),
+				zap.Int64("goid", goid),
+				zap.Int64s("previous", mapSet(previous, func(query *query) int64 { return query.id })),
+			)
+		}
+		promises := mapSet(previous, func(query *query) *promise.Promise[any] { return query.promise })
+		if _, err := promise.AllWithPool(context.Background(), s.promisePool, promises...).Await(context.Background()); err != nil {
+			if e := s.sqliteLogger.Check(zap.DebugLevel, "error in previous query"); e != nil {
+				e.Write(
+					zap.Int64("id", q.id),
+					zap.Int64("goid", goid),
+					zap.Error(err),
+				)
+			}
+			return err
+		}
+	}
+
+	// execute query
+	conn, err := s.connPool.Take(context.Background())
+	if err != nil {
+		return err
+	}
+	defer s.connPool.Put(conn)
+
+	loggerArgs := []zap.Field{zap.Int64("id", q.id), zap.Int64("goid", goid), zap.String("query", q.cmd)}
+	if opts != nil {
+		loggerArgs = append(loggerArgs, zap.Any("args", opts.Args))
+	}
+	s.logger.Log(zap.DebugLevel, "executing", loggerArgs...)
+	if err := fn(conn, q.cmd, opts); err != nil {
+		s.logger.Error("executed", append(loggerArgs, zap.Error(err))...)
+		return err
+	}
+	s.logger.Log(zap.DebugLevel, "executed", loggerArgs...)
+	return nil
+}
+
+// unregisterQuery removes a scheduled query from the queries of its tables
+func (s *sqlBase) unregisterQuery(q *query, goid int64) error {
+	if e := s.sqliteLogger.Check(zap.DebugLevel, "cleaning"); e != nil {
+		e.Write(
+			zap.Int64("id", q.id),
+			zap.Int64("goid", goid),
+		)
+	}
+	s.sqliteMutex.Lock()
+	defer s.sqliteMutex.Unlock()
+
+	for _, table := range q.tables {
+		queries := s.sqliteQueries[table]
+		index := slices.Index(queries, q)
+		if index == -1 {
+			return errors.New("unable to find query index")
+		}
+		// remove query from queries
+		copy(queries[index:], queries[index+1:])
+		queries[len(queries)-1] = nil
+		queries = queries[:len(queries)-1]
+		if len(queries) > 0 {
+			s.sqliteQueries[table] = queries
+		} else {
+			delete(s.sqliteQueries, table)
+		}
+	}
+	if e := s.sqliteLogger.Check(zap.DebugLevel, "cleaned"); e != nil {
+		e.Write(
+			zap.Int64("id", q.id),
+			zap.Int64("goid", goid),
+		)
+	}
+	if len(s.sqliteQueries) == 0 {
+		s.sqliteLogger.Debug("no pending")
+	}
+	return nil
 }
 
 func (d *sqlBase) executeQuery(query string, opts *sqlitex.ExecOptions) error {

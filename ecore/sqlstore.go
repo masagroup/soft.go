@@ -487,7 +487,8 @@ const (
 
 // operation is an operation of the store : a write, executed by the writer goroutine
 // inside the current transaction, or a read, executed by the writer when it depends
-// on a pending write and on a pool connection otherwise
+// on a pending write and on a pool connection otherwise. An operation without object
+// is on the whole store (roots, arbitrary queries, serialization)
 type operation struct {
 	id           int64
 	type_        operationType
@@ -498,13 +499,30 @@ type operation struct {
 	value        any
 	fn           func() (any, error)
 	ctx          context.Context // context of the caller, nil for background
-	global       bool            // read of the whole store : executed by the writer unless the store is idle
 	commitBefore bool            // commit the transaction before the operation
 	flush        bool            // commit the transaction after the operation
 	done         chan struct{}   // closed when the operation is executed, nil when nobody waits
 	result       any
 	err          error
 	enqueued     time.Time
+}
+
+type operationOption func(*operation)
+
+// withContext gives the operation the context of its caller : it is not executed once the
+// context is done
+func withContext(ctx context.Context) operationOption {
+	return func(op *operation) { op.ctx = ctx }
+}
+
+// withCommitBefore commits the transaction before the operation
+func withCommitBefore() operationOption {
+	return func(op *operation) { op.commitBefore = true }
+}
+
+// withFlush commits the transaction after the operation
+func withFlush() operationOption {
+	return func(op *operation) { op.flush = true }
 }
 
 func newOperation(
@@ -514,8 +532,9 @@ func newOperation(
 	feature EStructuralFeature,
 	index int,
 	value any,
-	fn func() (any, error)) *operation {
-	return &operation{
+	fn func() (any, error),
+	options ...operationOption) *operation {
+	op := &operation{
 		id:      operationID.Add(1),
 		type_:   type_,
 		cmd:     cmd,
@@ -525,6 +544,10 @@ func newOperation(
 		value:   value,
 		fn:      fn,
 	}
+	for _, option := range options {
+		option(op)
+	}
+	return op
 }
 
 type operationMarshaler struct {
@@ -1065,9 +1088,7 @@ func (s *SQLStore) Flush(ctx context.Context) error {
 		s.errs = nil
 		s.mutexWriter.Unlock()
 		return nil, errors.Join(errs...)
-	})
-	op.ctx = ctx
-	op.flush = true
+	}, withContext(ctx), withFlush())
 	op.done = make(chan struct{})
 	s.enqueue(op)
 	_, err := s.await(op)
@@ -1087,7 +1108,7 @@ func (s *SQLStore) markDirty(op *operation) {
 	if op.type_ != operationWrite {
 		return
 	}
-	if op.object == nil || op.global {
+	if op.object == nil {
 		s.dirtyGlobal = true
 	} else {
 		s.dirty[op.object] = struct{}{}
@@ -1179,7 +1200,7 @@ func (s *SQLStore) canReadConcurrently(op *operation) bool {
 	if s.closed || s.dirtyGlobal {
 		return false
 	}
-	if op.global || op.object == nil {
+	if op.object == nil {
 		// the whole store : only when idle
 		return !s.busy && !s.txOpen && len(s.queue) == 0
 	}
@@ -1907,11 +1928,10 @@ func (s *SQLStore) doRemoveRoot(object EObject) (any, error) {
 
 // GetRoot return root objects
 func (s *SQLStore) GetRoots() []EObject {
-	op := newOperation("GetRoots", operationRead, nil, nil, -1, nil, func() (any, error) {
-		return s.doGetRoots()
-	})
-	op.global = true
-	return resultAs[[]EObject](s.execute(op, true))
+	return resultAs[[]EObject](s.execute(
+		newOperation("GetRoots", operationRead, nil, nil, -1, nil, func() (any, error) {
+			return s.doGetRoots()
+		}), true))
 }
 
 func (s *SQLStore) doGetRoots() ([]EObject, error) {
@@ -2391,10 +2411,7 @@ func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 func (s *SQLStore) Serialize(ctx context.Context) *promise.Promise[[]byte] {
 	op := newOperation("Serialize", operationRead, nil, nil, -1, nil, func() (any, error) {
 		return s.doSerialize(ctx)
-	})
-	op.ctx = ctx
-	op.global = true
-	op.commitBefore = true
+	}, withContext(ctx), withCommitBefore())
 	return promise.NewWithPool(func(resolve func([]byte), reject func(error)) {
 		result, err := s.execute(op, true)
 		if err != nil {
@@ -2468,12 +2485,9 @@ func (s *SQLStore) ExecuteQuery(ctx context.Context, query string, opts *sqlitex
 	default:
 		operationType = operationWrite
 	}
-	op := newOperation("ExecuteQuery", operationType, nil, nil, -1, nil, func() (any, error) {
+	_, err := s.execute(newOperation("ExecuteQuery", operationType, nil, nil, -1, nil, func() (any, error) {
 		return nil, s.executeQuery(query, opts)
-	})
-	op.ctx = ctx
-	op.global = true
-	_, err := s.execute(op, true)
+	}, withContext(ctx)), true)
 	return err
 }
 

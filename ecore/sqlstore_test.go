@@ -1975,18 +1975,18 @@ func TestSQLStore_Panics(t *testing.T) {
 	// a panic in an operation executed by the writer is an error of the operation
 	_, err = s.execute(newOperation("test", operationWrite, nil, nil, 0, nil, func() (any, error) {
 		panic("invalid test")
-	}), true)
+	}, withWait()))
 	require.EqualError(t, err, "invalid test")
 
 	_, err = s.execute(newOperation("test", operationWrite, nil, nil, 0, nil, func() (any, error) {
 		panic(errors.New("invalid test"))
-	}), true)
+	}, withWait()))
 	require.EqualError(t, err, "invalid test")
 
 	// a panic in a read executed on a pool connection too
 	_, err = s.execute(newOperation("test", operationRead, nil, nil, 0, nil, func() (any, error) {
 		panic("invalid read")
-	}), true)
+	}, withWait()))
 	require.EqualError(t, err, "invalid read")
 
 	// the store still works : the errors are reported once by the flush

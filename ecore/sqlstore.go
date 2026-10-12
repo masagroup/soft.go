@@ -370,6 +370,12 @@ func withFlush() operationOption {
 	return func(op *operation) { op.flush = true }
 }
 
+// withWait makes the caller wait for the result of the operation : without it, a write is
+// executed in the background and its error reported by the next Flush
+func withWait() operationOption {
+	return func(op *operation) { op.done = make(chan struct{}) }
+}
+
 func newOperation(
 	cmd string,
 	type_ operationType,
@@ -924,10 +930,8 @@ func (s *SQLStore) Flush(ctx context.Context) error {
 		s.errs = nil
 		s.mutexWriter.Unlock()
 		return nil, errors.Join(errs...)
-	}, withContext(ctx), withFlush())
-	op.done = make(chan struct{})
-	s.enqueue(op)
-	_, err := s.await(op)
+	}, withContext(ctx), withFlush(), withWait())
+	_, err := s.execute(op)
 	return err
 }
 
@@ -1003,6 +1007,9 @@ func (s *SQLStore) pendingOperation(object EObject, feature EStructuralFeature, 
 
 // await waits for an enqueued operation to be executed
 func (s *SQLStore) await(op *operation) (any, error) {
+	if op.done == nil {
+		return nil, fmt.Errorf("operation %s was not created withWait", op.cmd)
+	}
 	ctx := op.ctx
 	if ctx == nil {
 		ctx = context.Background()
@@ -1054,19 +1061,16 @@ func (s *SQLStore) canReadConcurrently(op *operation) bool {
 // execute executes an operation :
 // - from the writer goroutine (an operation calling the store), now on the writer connection
 // - a read independent of the pending writes, now on a pool connection
-// - otherwise by the writer, waiting for its result if wait
-func (s *SQLStore) execute(op *operation, wait bool) (any, error) {
+// - otherwise by the writer, waiting for its result if the operation was created withWait
+func (s *SQLStore) execute(op *operation) (any, error) {
 	if goid.Get() == s.writerGoid.Load() {
 		return op.fn()
 	}
 	if op.type_ == operationRead && s.canReadConcurrently(op) {
 		return s.executeConcurrently(op)
 	}
-	if wait {
-		op.done = make(chan struct{})
-	}
 	s.enqueue(op)
-	if !wait {
+	if op.done == nil {
 		return nil, nil
 	}
 	return s.await(op)
@@ -1309,7 +1313,7 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 	return resultAs[any](s.execute(
 		newOperation("Get", operationRead, object, feature, index, nil, func() (any, error) {
 			return s.doGet(object, feature, index)
-		}), true))
+		}, withWait())))
 }
 
 func (s *SQLStore) doGet(object EObject, feature EStructuralFeature, index int) (any, error) {
@@ -1354,10 +1358,14 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 }
 
 func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any, needResult bool) (oldValue any) {
+	var options []operationOption
+	if needResult {
+		options = append(options, withWait())
+	}
 	result, err := s.execute(
 		newOperation("Set", operationWrite, object, feature, index, value, func() (any, error) {
 			return s.doSet(object, feature, index, value, needResult)
-		}), needResult)
+		}, options...))
 	if needResult {
 		oldValue = resultAs[any](result, err)
 	}
@@ -1417,7 +1425,7 @@ func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 	return resultAs[bool](s.execute(
 		newOperation("IsSet", operationRead, object, feature, -1, nil, func() (any, error) {
 			return s.doIsSet(object, feature)
-		}), true))
+		}, withWait())))
 }
 
 func (s *SQLStore) doIsSet(object EObject, feature EStructuralFeature) (bool, error) {
@@ -1478,7 +1486,7 @@ func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
 	_, _ = s.execute(
 		newOperation("UnSet", operationWrite, object, feature, -1, nil, func() (any, error) {
 			return s.doUnSet(object, feature)
-		}), true)
+		}, withWait()))
 }
 
 func (s *SQLStore) doUnSet(object EObject, feature EStructuralFeature) (any, error) {
@@ -1517,7 +1525,7 @@ func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
 	result, err := s.execute(
 		newOperation("IsEmpty", operationRead, object, feature, -1, nil, func() (any, error) {
 			return s.doIsEmpty(object, feature)
-		}), true)
+		}, withWait()))
 	if err != nil {
 		return true
 	}
@@ -1560,7 +1568,7 @@ func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
 	return resultAs[int](s.execute(
 		newOperation("Size", operationRead, object, feature, -1, nil, func() (any, error) {
 			return s.doSize(object, feature)
-		}), true))
+		}, withWait())))
 }
 
 func (s *SQLStore) doSize(object EObject, feature EStructuralFeature) (int, error) {
@@ -1594,7 +1602,7 @@ func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value an
 	return resultAs[bool](s.execute(
 		newOperation("Contains", operationRead, object, feature, -1, value, func() (any, error) {
 			return s.doContains(object, feature, value)
-		}), true))
+		}, withWait())))
 }
 
 // encodeLookupValue encodes a value to look it up in a feature table, without writing :
@@ -1759,7 +1767,7 @@ func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any
 			return s.doIndexOf(object, feature, value, func(sms *sqlManyQueries) string {
 				return sms.getIndexOfQuery()
 			})
-		}), true))
+		}, withWait())))
 }
 
 func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {
@@ -1768,14 +1776,14 @@ func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value
 			return s.doIndexOf(object, feature, value, func(sms *sqlManyQueries) string {
 				return sms.getLastIndexOfQuery()
 			})
-		}), true))
+		}, withWait())))
 }
 
 // AddRoot add object as store root
 func (s *SQLStore) AddRoot(object EObject) {
 	_, _ = s.execute(newOperation("AddRoot", operationWrite, nil, nil, -1, nil, func() (any, error) {
 		return s.doAddRoot(object)
-	}), false)
+	}))
 }
 
 func (s *SQLStore) doAddRoot(object EObject) (any, error) {
@@ -1786,7 +1794,7 @@ func (s *SQLStore) doAddRoot(object EObject) (any, error) {
 func (s *SQLStore) RemoveRoot(object EObject) {
 	_, _ = s.execute(newOperation("RemoveRoot", operationWrite, nil, nil, -1, nil, func() (any, error) {
 		return s.doRemoveRoot(object)
-	}), false)
+	}))
 }
 
 func (s *SQLStore) doRemoveRoot(object EObject) (any, error) {
@@ -1811,7 +1819,7 @@ func (s *SQLStore) GetRoots() []EObject {
 	return resultAs[[]EObject](s.execute(
 		newOperation("GetRoots", operationRead, nil, nil, -1, nil, func() (any, error) {
 			return s.doGetRoots()
-		}), true))
+		}, withWait())))
 }
 
 func (s *SQLStore) doGetRoots() ([]EObject, error) {
@@ -1867,7 +1875,7 @@ func (s *SQLStore) UnRegister(object EObject, withContents bool) *promise.Promis
 			s.sqlIDManager.ClearObjectID(object)
 		}
 		return nil, nil
-	})
+	}, withWait())
 	if goid.Get() == s.writerGoid.Load() {
 		// from an operation being executed
 		result, err := op.fn()
@@ -1879,14 +1887,13 @@ func (s *SQLStore) UnRegister(object EObject, withContents bool) *promise.Promis
 			}
 		}, s.promisePool)
 	}
-	op.done = make(chan struct{})
 	s.enqueue(op)
 	return promise.NewWithPool(func(resolve func(any), reject func(error)) {
-		<-op.done
-		if op.err != nil {
-			reject(op.err)
+		result, err := s.await(op)
+		if err != nil {
+			reject(err)
 		} else {
-			resolve(op.result)
+			resolve(result)
 		}
 	}, s.promisePool)
 }
@@ -1895,7 +1902,7 @@ func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, va
 	_, _ = s.execute(
 		newOperation("Add", operationWrite, object, feature, index, value, func() (any, error) {
 			return s.doAdd(object, feature, index, value)
-		}), false)
+		}))
 }
 
 func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, value any) (any, error) {
@@ -1932,7 +1939,7 @@ func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int,
 	_, _ = s.execute(
 		newOperation("AddAll", operationWrite, object, feature, index, c, func() (any, error) {
 			return s.doAddAll(object, feature, index, c)
-		}), false)
+		}))
 }
 
 func (s *SQLStore) doAddAll(object EObject, feature EStructuralFeature, index int, c Collection) (any, error) {
@@ -2013,10 +2020,14 @@ func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int, nb int)
 }
 
 func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int, needResult bool) any {
+	var options []operationOption
+	if needResult {
+		options = append(options, withWait())
+	}
 	result, err := s.execute(
 		newOperation("Remove", operationWrite, object, feature, index, nil, func() (any, error) {
 			return s.doRemove(object, feature, index, needResult)
-		}), needResult)
+		}, options...))
 	if needResult {
 		return resultAs[any](result, err)
 	}
@@ -2072,7 +2083,7 @@ func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex 
 	return resultAs[any](s.execute(
 		newOperation("Move", operationWrite, object, feature, -1, moveIndexes{sourceIndex, targetIndex}, func() (any, error) {
 			return s.doMove(object, feature, sourceIndex, targetIndex, needResult)
-		}), true))
+		}, withWait())))
 }
 
 func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) (decoded any, err error) {
@@ -2125,7 +2136,7 @@ func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceInde
 func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
 	_, _ = s.execute(newOperation("Clear", operationWrite, object, feature, -1, nil, func() (any, error) {
 		return s.doClear(object, feature)
-	}), false)
+	}))
 }
 
 func (s *SQLStore) doClear(object EObject, feature EStructuralFeature) (any, error) {
@@ -2156,7 +2167,7 @@ func (s *SQLStore) GetContainer(object EObject) (EObject, EStructuralFeature) {
 	if result := resultAs[*containerAndFeature](s.execute(
 		newOperation("GetContainer", operationRead, object, nil, -1, nil, func() (any, error) {
 			return s.doGetContainer(object)
-		}), true)); result != nil {
+		}, withWait()))); result != nil {
 		return result.container, result.feature
 	}
 	return nil, nil
@@ -2216,7 +2227,7 @@ func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStru
 	// store), execute runs doSetContainer in the writer goroutine
 	_, _ = s.execute(newOperation("SetContainer", operationWrite, object, feature, -1, container, func() (any, error) {
 		return s.doSetContainer(object, container, feature)
-	}), false)
+	}))
 }
 
 func (s *SQLStore) doSetContainer(object EObject, container EObject, feature EStructuralFeature) (any, error) {
@@ -2283,7 +2294,7 @@ func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any]
 					return nil, err
 				}
 				return nil, nil
-			}), true)
+			}, withWait()))
 	}
 }
 
@@ -2295,9 +2306,9 @@ func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 func (s *SQLStore) Serialize(ctx context.Context) *promise.Promise[[]byte] {
 	op := newOperation("Serialize", operationRead, nil, nil, -1, nil, func() (any, error) {
 		return s.doSerialize(ctx)
-	}, withContext(ctx), withCommitBefore())
+	}, withContext(ctx), withCommitBefore(), withWait())
 	return promise.NewWithPool(func(resolve func([]byte), reject func(error)) {
-		result, err := s.execute(op, true)
+		result, err := s.execute(op)
 		if err != nil {
 			reject(err)
 		} else {
@@ -2371,7 +2382,7 @@ func (s *SQLStore) ExecuteQuery(ctx context.Context, query string, opts *sqlitex
 	}
 	_, err := s.execute(newOperation("ExecuteQuery", operationType, nil, nil, -1, nil, func() (any, error) {
 		return nil, s.executeQuery(query, opts)
-	}, withContext(ctx)), true)
+	}, withContext(ctx), withWait()))
 	return err
 }
 

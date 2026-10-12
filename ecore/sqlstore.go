@@ -1277,6 +1277,14 @@ func resultAs[T any](result any, err error) T {
 	return def
 }
 
+// indexResult converts the result of an index operation, or returns -1 on error
+func indexResult(result any, err error) int {
+	if index, isIndex := result.(int); err == nil && isIndex {
+		return index
+	}
+	return -1
+}
+
 func (s *SQLStore) panicError(op *operation, recovered any) error {
 	var err error
 	switch v := recovered.(type) {
@@ -1351,6 +1359,8 @@ func (s *SQLStore) nextOperation() *operation {
 }
 
 func (s *SQLStore) executeOperation(op *operation) {
+	// executed, failed or skipped : the write is not pending anymore
+	defer s.clearPending(op)
 	if op.ctx != nil && op.ctx.Err() != nil {
 		// nobody waits for the result anymore
 		op.err = op.ctx.Err()
@@ -1383,13 +1393,6 @@ func (s *SQLStore) executeOperation(op *operation) {
 		}()
 		op.result, op.err = op.fn()
 	}()
-	if op.type_ == operationWrite && op.feature != nil {
-		s.mutexWriter.Lock()
-		if key := (objectFeature{op.object, op.feature}); s.pending[key] == op {
-			delete(s.pending, key)
-		}
-		s.mutexWriter.Unlock()
-	}
 	if op.err != nil {
 		s.loggerOperations.Error("error", zap.Object("operation", &operationMarshaler{op: op}), zap.Error(op.err))
 		s.addError(op.err)
@@ -1403,6 +1406,17 @@ func (s *SQLStore) executeOperation(op *operation) {
 			s.txOperations = 0
 			s.mutexWriter.Unlock()
 		}
+	}
+}
+
+// clearPending forgets op as the pending Set or UnSet of its object feature
+func (s *SQLStore) clearPending(op *operation) {
+	if op.type_ == operationWrite && op.feature != nil {
+		s.mutexWriter.Lock()
+		if key := (objectFeature{op.object, op.feature}); s.pending[key] == op {
+			delete(s.pending, key)
+		}
+		s.mutexWriter.Unlock()
 	}
 }
 
@@ -1468,7 +1482,7 @@ func (s *SQLStore) doGet(object EObject, feature EStructuralFeature, index int) 
 	}
 	featureSchema, err := s.getFeatureSchema(object, feature)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	return s.getValue(sqlObjectID, featureSchema, index)
 }
@@ -1493,7 +1507,7 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 				value = decodeAny(stmt, 0)
 				return nil
 			}}); err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	return s.decodeFeatureValue(featureSchema, value)
@@ -1874,7 +1888,7 @@ func (s *SQLStore) doIndexOf(object EObject, feature EStructuralFeature, value a
 }
 
 func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
-	return resultAs[int](s.execute(
+	return indexResult(s.execute(
 		newOperation("IndexOf", operationRead, object, feature, -1, value, func() (any, error) {
 			return s.doIndexOf(object, feature, value, func(sms *sqlManyQueries) string {
 				return sms.getIndexOfQuery()
@@ -1883,7 +1897,7 @@ func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any
 }
 
 func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {
-	return resultAs[int](s.execute(
+	return indexResult(s.execute(
 		newOperation("LastIndexOf", operationRead, object, feature, -1, value, func() (any, error) {
 			return s.doIndexOf(object, feature, value, func(sms *sqlManyQueries) string {
 				return sms.getLastIndexOfQuery()

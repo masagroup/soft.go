@@ -277,7 +277,7 @@ func TestSQLStore_Writer_SerializeCommitsPending(t *testing.T) {
 
 	// the serialized database holds the write
 	serializedPath := filepath.Join(t.TempDir(), "serialized.sqlite")
-	require.NoError(t, os.WriteFile(serializedPath, bytes, 0644))
+	require.NoError(t, os.WriteFile(serializedPath, *bytes, 0644))
 	require.Equal(t, 9, countCopies(t, serializedPath, 6))
 }
 

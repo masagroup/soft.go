@@ -945,14 +945,8 @@ func (s *SQLStore) getManyQueries(table *sqlTable) *sqlManyQueries {
 }
 
 func (s *SQLStore) getFeatureSchema(object EObject, feature EStructuralFeature) (*sqlFeatureSchema, error) {
-	// retrieve class schema
-	class := object.EClass()
-	classSchema := s.sqlDecoder.schema.getClassSchema(class)
-	if classSchema == nil {
-		return nil, fmt.Errorf("class %s is unknown", class.GetName())
-	}
-	// retrieve feature schema
-	featureSchema := classSchema.getFeatureSchema(feature)
+	// retrieve the schema of the feature, declared or inherited by the object class
+	featureSchema := s.sqlDecoder.schema.getFeatureSchema(object.EClass(), feature)
 	if featureSchema == nil {
 		return nil, fmt.Errorf("feature %s is unknown", feature.GetName())
 	}
@@ -977,8 +971,8 @@ func (s *SQLStore) getEncoderFeatureData(object EObject, feature EStructuralFeat
 		return nil, fmt.Errorf("class %s is unknown %w", class.GetName(), err)
 	}
 
-	// retrieve feature data
-	featureData, isFeatureData := classData.features.Get(feature)
+	// retrieve feature data, declared or inherited by the object class
+	featureData, isFeatureData := classData.getFeatureData(feature)
 	if !isFeatureData {
 		return nil, fmt.Errorf("feature %s is unknown", feature.GetName())
 	}

@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -24,7 +25,7 @@ import (
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
-// log queries
+// queries of the store, built once : they are shared by the writer and the pool connections
 
 type sqlSingleQueries struct {
 	column      *sqlColumn
@@ -33,52 +34,32 @@ type sqlSingleQueries struct {
 	removeQuery string
 }
 
-func (ss *sqlSingleQueries) getUpdateQuery() string {
-	if len(ss.updateQuery) == 0 {
-		// query
-		table := ss.column.table
-		var query strings.Builder
-		query.WriteString("UPDATE ")
-		query.WriteString(sqlEscapeIdentifier(table.name))
-		query.WriteString(" SET ")
-		query.WriteString(sqlEscapeIdentifier(ss.column.columnName))
-		query.WriteString("=? WHERE ")
-		query.WriteString(table.keyName())
-		query.WriteString("=?")
-		ss.updateQuery = query.String()
+func newSqlSingleQueries(column *sqlColumn) *sqlSingleQueries {
+	table := column.table
+	tableName := sqlEscapeIdentifier(table.name)
+	columnName := sqlEscapeIdentifier(column.columnName)
+	// a table without key (contents) is only removed from
+	keyName := ""
+	if table.key != nil {
+		keyName = table.keyName()
 	}
+	return &sqlSingleQueries{
+		column:      column,
+		updateQuery: "UPDATE " + tableName + " SET " + columnName + "=? WHERE " + keyName + "=?",
+		selectQuery: "SELECT " + columnName + " FROM " + tableName + " WHERE " + keyName + "=?",
+		removeQuery: "DELETE FROM " + tableName + " WHERE " + columnName + "=?",
+	}
+}
+
+func (ss *sqlSingleQueries) getUpdateQuery() string {
 	return ss.updateQuery
 }
 
 func (ss *sqlSingleQueries) getSelectQuery() string {
-	if len(ss.selectQuery) == 0 {
-		table := ss.column.table
-		// query
-		var query strings.Builder
-		query.WriteString("SELECT ")
-		query.WriteString(sqlEscapeIdentifier(ss.column.columnName))
-		query.WriteString(" FROM ")
-		query.WriteString(sqlEscapeIdentifier(table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(table.keyName())
-		query.WriteString("=?")
-		ss.selectQuery = query.String()
-	}
 	return ss.selectQuery
 }
 
 func (ss *sqlSingleQueries) getRemoveQuery() string {
-	if len(ss.removeQuery) == 0 {
-		// query
-		table := ss.column.table
-		var query strings.Builder
-		query.WriteString("DELETE FROM ")
-		query.WriteString(sqlEscapeIdentifier(table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(sqlEscapeIdentifier(ss.column.columnName))
-		query.WriteString("=?")
-		ss.removeQuery = query.String()
-	}
 	return ss.removeQuery
 }
 
@@ -100,220 +81,84 @@ type sqlManyQueries struct {
 	insertQuery      string
 }
 
-func (ss *sqlManyQueries) getInsertQuery() string {
-	if len(ss.insertQuery) == 0 {
-		ss.insertQuery = ss.table.insertQuery()
+func newSqlManyQueries(table *sqlTable) *sqlManyQueries {
+	tableName := sqlEscapeIdentifier(table.name)
+	keyName := table.keyName()
+	valueName := sqlEscapeIdentifier(table.columns[len(table.columns)-1].columnName)
+	// the rowid of the element at the list index given as parameter
+	rowAtIndex := "(SELECT rowid FROM " + tableName + " WHERE " + keyName + "=? ORDER BY " + keyName + " ASC, idx ASC LIMIT 1 OFFSET ?)"
+	return &sqlManyQueries{
+		table:            table,
+		insertQuery:      table.insertQuery(),
+		updateValueQuery: "UPDATE " + tableName + " SET " + valueName + "=? WHERE rowid IN " + rowAtIndex,
+		updateIdxQuery:   "UPDATE " + tableName + " SET idx=? WHERE rowid IN " + rowAtIndex + " RETURNING " + valueName,
+		removeQuery:      "DELETE FROM " + tableName + " WHERE rowid IN " + rowAtIndex + " RETURNING " + valueName,
+		selectOneQuery:   "SELECT " + valueName + " FROM " + tableName + " WHERE " + keyName + "=? ORDER BY " + keyName + " ASC, idx ASC LIMIT 1 OFFSET ?",
+		selectAllQuery:   "SELECT " + valueName + " FROM " + tableName + " WHERE " + keyName + "=? ORDER BY " + keyName + " ASC, idx ASC",
+		existsQuery:      "SELECT EXISTS(SELECT 1 FROM " + tableName + " WHERE " + keyName + "=?)",
+		clearQuery:       "DELETE FROM " + tableName + " WHERE " + keyName + "=?",
+		countQuery:       "SELECT COUNT(*) FROM " + tableName + " WHERE " + keyName + "=?",
+		containsQuery:    "SELECT rowid FROM " + tableName + " WHERE " + keyName + "=? AND " + valueName + "=?",
+		indexOfQuery:     "SELECT idx FROM " + tableName + " WHERE " + keyName + "=? AND " + valueName + "=? ORDER BY idx ASC LIMIT 1",
+		lastIndexOfQuery: "SELECT idx FROM " + tableName + " WHERE " + keyName + "=? AND " + valueName + "=? ORDER BY idx DESC LIMIT 1",
+		idxToListIndex:   "SELECT COUNT(*) FROM " + tableName + " WHERE " + keyName + "=? AND idx<?",
+		listIndexToIdx:   "SELECT idx FROM " + tableName + " WHERE " + keyName + "=? ORDER BY idx ASC LIMIT ? OFFSET ?",
 	}
+}
+
+func (ss *sqlManyQueries) getInsertQuery() string {
 	return ss.insertQuery
 }
 
 func (ss *sqlManyQueries) getUpdateValueQuery() string {
-	if len(ss.updateValueQuery) == 0 {
-		column := ss.table.columns[len(ss.table.columns)-1]
-		var query strings.Builder
-		query.WriteString("UPDATE ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" SET ")
-		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		query.WriteString("=? WHERE rowid IN (SELECT rowid FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=?")
-		query.WriteString(" ORDER BY ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?)")
-		ss.updateValueQuery = query.String()
-	}
 	return ss.updateValueQuery
 }
 
 func (ss *sqlManyQueries) getUpdateIdxQuery() string {
-	if len(ss.updateIdxQuery) == 0 {
-		column := ss.table.columns[len(ss.table.columns)-1]
-		var query strings.Builder
-		query.WriteString("UPDATE ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" SET idx=? WHERE rowid IN (SELECT rowid FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=?")
-		query.WriteString(" ORDER BY ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?) RETURNING ")
-		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		ss.updateIdxQuery = query.String()
-	}
 	return ss.updateIdxQuery
 }
 
 func (ss *sqlManyQueries) getSelectOneQuery() string {
-	if len(ss.selectOneQuery) == 0 {
-		column := ss.table.columns[len(ss.table.columns)-1]
-		var query strings.Builder
-		query.WriteString("SELECT ")
-		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		query.WriteString(" FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=? ORDER BY ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?")
-		ss.selectOneQuery = query.String()
-	}
 	return ss.selectOneQuery
 }
 
 func (ss *sqlManyQueries) getSelectAllQuery() string {
-	if len(ss.selectAllQuery) == 0 {
-		column := ss.table.columns[len(ss.table.columns)-1]
-		var query strings.Builder
-		query.WriteString("SELECT ")
-		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		query.WriteString(" FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=? ORDER BY ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString(" ASC, idx ASC")
-		ss.selectAllQuery = query.String()
-	}
 	return ss.selectAllQuery
 }
 
 func (ss *sqlManyQueries) getExistsQuery() string {
-	if len(ss.existsQuery) == 0 {
-		var query strings.Builder
-		query.WriteString("SELECT EXISTS(SELECT 1 FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=?)")
-		ss.existsQuery = query.String()
-	}
 	return ss.existsQuery
 }
 
 func (ss *sqlManyQueries) getClearQuery() string {
-	if len(ss.clearQuery) == 0 {
-		var query strings.Builder
-		query.WriteString("DELETE FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=?")
-		ss.clearQuery = query.String()
-	}
 	return ss.clearQuery
 }
 
 func (ss *sqlManyQueries) getCountQuery() string {
-	if len(ss.countQuery) == 0 {
-		var query strings.Builder
-		query.WriteString("SELECT COUNT(*) FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=?")
-		ss.countQuery = query.String()
-	}
 	return ss.countQuery
 }
 
 func (ss *sqlManyQueries) getContainsQuery() string {
-	if len(ss.containsQuery) == 0 {
-		column := ss.table.columns[len(ss.table.columns)-1]
-		var query strings.Builder
-		query.WriteString("SELECT rowid FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=? AND ")
-		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		query.WriteString("=?")
-		ss.containsQuery = query.String()
-	}
 	return ss.containsQuery
 }
 
 func (ss *sqlManyQueries) getIndexOfQuery() string {
-	if len(ss.indexOfQuery) == 0 {
-		column := ss.table.columns[len(ss.table.columns)-1]
-		var query strings.Builder
-		query.WriteString("SELECT idx FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=? AND ")
-		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		query.WriteString("=? ORDER BY idx ASC LIMIT 1")
-		ss.indexOfQuery = query.String()
-	}
 	return ss.indexOfQuery
 }
 
 func (ss *sqlManyQueries) getLastIndexOfQuery() string {
-	if len(ss.lastIndexOfQuery) == 0 {
-		column := ss.table.columns[len(ss.table.columns)-1]
-		var query strings.Builder
-		query.WriteString("SELECT idx FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=? AND ")
-		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		query.WriteString("=? ORDER BY idx DESC LIMIT 1")
-		ss.lastIndexOfQuery = query.String()
-	}
 	return ss.lastIndexOfQuery
 }
 
 func (ss *sqlManyQueries) getIdxToListIndexQuery() string {
-	if len(ss.idxToListIndex) == 0 {
-		var query strings.Builder
-		query.WriteString("SELECT COUNT(*) FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=? AND idx<?")
-		ss.idxToListIndex = query.String()
-	}
 	return ss.idxToListIndex
 }
 
 func (ss *sqlManyQueries) getListIndexToIdxQuery() string {
-	if len(ss.listIndexToIdx) == 0 {
-		var query strings.Builder
-		query.WriteString("SELECT idx FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=? ORDER BY idx ASC LIMIT ? OFFSET ?")
-		ss.listIndexToIdx = query.String()
-	}
 	return ss.listIndexToIdx
 }
 
 func (ss *sqlManyQueries) getRemoveQuery() string {
-	if len(ss.removeQuery) == 0 {
-		column := ss.table.columns[len(ss.table.columns)-1]
-		var query strings.Builder
-		query.WriteString("DELETE FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE rowid IN (SELECT rowid FROM ")
-		query.WriteString(sqlEscapeIdentifier(ss.table.name))
-		query.WriteString(" WHERE ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString("=?")
-		query.WriteString(" ORDER BY ")
-		query.WriteString(ss.table.keyName())
-		query.WriteString(" ASC, idx ASC LIMIT 1 OFFSET ?) RETURNING ")
-		query.WriteString(sqlEscapeIdentifier(column.columnName))
-		ss.removeQuery = query.String()
-	}
 	return ss.removeQuery
 }
 
@@ -843,6 +688,7 @@ func newSQLStore(
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: sqlObjectManager,
 			classDataMap:     map[EClass]*sqlDecoderClassData{},
+			objectLocks:      newSqlEncoderLockManager(),
 		},
 		sqlEncoder: sqlEncoder{
 			sqlBase:          base,
@@ -920,28 +766,32 @@ func (s *SQLStore) setLogger(logger *zap.Logger) {
 
 func (s *SQLStore) getSingleQueries(column *sqlColumn) *sqlSingleQueries {
 	s.mutexQueries.Lock()
+	defer s.mutexQueries.Unlock()
 	stmts := s.singleQueries[column]
 	if stmts == nil {
-		stmts = &sqlSingleQueries{
-			column: column,
-		}
+		stmts = newSqlSingleQueries(column)
 		s.singleQueries[column] = stmts
 	}
-	s.mutexQueries.Unlock()
 	return stmts
 }
 
 func (s *SQLStore) getManyQueries(table *sqlTable) *sqlManyQueries {
 	s.mutexQueries.Lock()
+	defer s.mutexQueries.Unlock()
 	stmts := s.manyQueries[table]
 	if stmts == nil {
-		stmts = &sqlManyQueries{
-			table: table,
-		}
+		stmts = newSqlManyQueries(table)
 		s.manyQueries[table] = stmts
 	}
-	s.mutexQueries.Unlock()
 	return stmts
+}
+
+// getManyFeatureTable returns the table of a many feature
+func (s *SQLStore) getManyFeatureTable(featureSchema *sqlFeatureSchema) (*sqlTable, error) {
+	if featureSchema.table == nil {
+		return nil, fmt.Errorf("feature %s is not a list", featureSchema.feature.GetName())
+	}
+	return featureSchema.table, nil
 }
 
 func (s *SQLStore) getFeatureSchema(object EObject, feature EStructuralFeature) (*sqlFeatureSchema, error) {
@@ -958,7 +808,7 @@ func (s *SQLStore) getFeatureTable(object EObject, feature EStructuralFeature) (
 	if err != nil {
 		return nil, err
 	}
-	return featureSchema.table, nil
+	return s.getManyFeatureTable(featureSchema)
 }
 
 func (s *SQLStore) getEncoderFeatureData(object EObject, feature EStructuralFeature) (*sqlEncoderFeatureData, error) {
@@ -1356,7 +1206,8 @@ func (s *SQLStore) executeOperation(op *operation) {
 		s.commit()
 	}
 	if op.flush {
-		// collects the errors : no transaction needed
+		// committed first : the errors collected include the ones of the commit
+		s.commit()
 		op.result, op.err = op.fn()
 		return
 	}
@@ -1449,6 +1300,9 @@ func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) an
 	// optimization : if we have a non many feature, check if we have a pending write operation
 	if !feature.IsMany() {
 		if op := s.pendingOperation(object, feature, index); op != nil {
+			if op.cmd == "UnSet" {
+				return feature.GetDefaultValue()
+			}
 			return op.value
 		}
 	}
@@ -1589,7 +1443,20 @@ func (s *SQLStore) doIsSet(object EObject, feature EStructuralFeature) (bool, er
 				}}); err != nil {
 			return false, err
 		}
-		return value != featureSchema.feature.GetDefaultValue(), nil
+		// a null column is not set; an object is set; otherwise the decoded value is compared
+		// with the default
+		if value == nil {
+			return false, nil
+		}
+		switch featureSchema.featureKind {
+		case sfkObject, sfkObjectReference:
+			return true, nil
+		}
+		decoded, err := s.decodeFeatureValue(featureSchema, value)
+		if err != nil {
+			return false, err
+		}
+		return !reflect.DeepEqual(decoded, featureSchema.feature.GetDefaultValue()), nil
 	} else if featureTable := featureSchema.table; featureTable != nil {
 		isSet := false
 		if err := s.executeQuery(
@@ -1628,8 +1495,13 @@ func (s *SQLStore) doUnSet(object EObject, feature EStructuralFeature) (any, err
 	var query string
 	var args []any
 	if featureColumn := featureData.schema.column; featureColumn != nil {
+		// the default is encoded as any value : an enum literal is its id, a data type its string
+		encoded, err := s.encodeFeatureValue(sqlObjectID, featureData, feature.GetDefaultValue())
+		if err != nil {
+			return nil, err
+		}
 		query = s.getSingleQueries(featureColumn).getUpdateQuery()
-		args = []any{feature.GetDefaultValue(), sqlObjectID}
+		args = []any{encoded, sqlObjectID}
 	} else if featureTable := featureData.schema.table; featureTable != nil {
 		query = s.getManyQueries(featureTable).getClearQuery()
 		args = []any{sqlObjectID}
@@ -1641,10 +1513,15 @@ func (s *SQLStore) doUnSet(object EObject, feature EStructuralFeature) (any, err
 }
 
 func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
-	return resultAs[bool](s.execute(
+	// empty on error
+	result, err := s.execute(
 		newOperation("IsEmpty", operationRead, object, feature, -1, nil, func() (any, error) {
 			return s.doIsEmpty(object, feature)
-		}), true))
+		}), true)
+	if err != nil {
+		return true
+	}
+	return resultAs[bool](result, nil)
 }
 
 func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, error) {
@@ -1670,7 +1547,10 @@ func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, 
 				isEmpty = !stmt.ColumnBool(0)
 				return nil
 			}}); err != nil {
-		return true, nil
+		if isNoSuchTable(err) {
+			return true, nil
+		}
+		return true, err
 	}
 	return isEmpty, nil
 
@@ -2027,7 +1907,10 @@ func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, 
 	if err != nil {
 		return nil, err
 	}
-	featureTable := featureData.schema.table
+	featureTable, err := s.getManyFeatureTable(featureData.schema)
+	if err != nil {
+		return nil, err
+	}
 	idx, _, err := s.getInsertIdx(featureTable, sqlObjectID, index, 1)
 	if err != nil {
 		return nil, err
@@ -2061,7 +1944,10 @@ func (s *SQLStore) doAddAll(object EObject, feature EStructuralFeature, index in
 	if err != nil {
 		return nil, err
 	}
-	featureTable := featureData.schema.table
+	featureTable, err := s.getManyFeatureTable(featureData.schema)
+	if err != nil {
+		return nil, err
+	}
 	idx, inc, err := s.getInsertIdx(featureTable, sqlObjectID, index, c.Size())
 	if err != nil {
 		return nil, err
@@ -2088,52 +1974,41 @@ func (s *SQLStore) doAddAll(object EObject, feature EStructuralFeature, index in
 // compute insert idx of element in the list whose index is index. nb is the number of elements to be inserted
 // return idx, increment (for each inserted element) and error if any
 func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int, nb int) (float64, float64, error) {
+	// idx of the elements at index-1 and index, if any
+	var neighbors []float64
+	limit, offset := 2, index-1
 	if index == 0 {
-		// first row in the list
-		idx := 1.0
-		withElements := false
-		if err := s.executeQuery(
-			s.getManyQueries(table).getListIndexToIdxQuery(),
-			&sqlitex.ExecOptions{
-				Args: []any{sqlID, 1, 0},
-				ResultFunc: func(stmt *sqlite.Stmt) error {
-					withElements = true
-					idx = stmt.ColumnFloat(0)
-					return nil
-				}}); err != nil {
-			return 0.0, 0.0, err
-		}
-		if withElements {
-			increment := 1.0 / (float64(nb) + 1)
-			return idx * increment, increment, nil
-		} else {
-			return 1.0, 1.0, nil
-		}
-	} else {
-		count := 0
-		idx := 0.0
-		if err := s.executeQuery(
-			s.getManyQueries(table).getListIndexToIdxQuery(),
-			&sqlitex.ExecOptions{
-				Args: []any{sqlID, 2, index - 1},
-				ResultFunc: func(stmt *sqlite.Stmt) error {
-					idx += stmt.ColumnFloat(0)
-					count++
-					return nil
-				}}); err != nil {
-			return 0.0, 0.0, err
-		}
-		switch count {
-		case 0:
-			return 0, 0, fmt.Errorf("invalid index in table %v for object %v : %v not in list bounds", table.name, sqlID, index)
-		case 1:
-			// at the end
-			return idx + 1, 1, nil
-		default:
-			// before
-			increment := 1.0 / (float64(nb) + 1)
-			return idx * increment, increment, nil
-		}
+		limit, offset = 1, 0
+	}
+	if err := s.executeQuery(
+		s.getManyQueries(table).getListIndexToIdxQuery(),
+		&sqlitex.ExecOptions{
+			Args: []any{sqlID, limit, offset},
+			ResultFunc: func(stmt *sqlite.Stmt) error {
+				neighbors = append(neighbors, stmt.ColumnFloat(0))
+				return nil
+			}}); err != nil {
+		return 0.0, 0.0, err
+	}
+	// the nb elements are spread evenly between the idx of their neighbors
+	// (0 before the first element, the previous idx + 1 after the last)
+	switch {
+	case index == 0 && len(neighbors) == 0:
+		// empty list
+		return 1.0, 1.0, nil
+	case index == 0:
+		// before the first element
+		increment := neighbors[0] / (float64(nb) + 1)
+		return increment, increment, nil
+	case len(neighbors) == 0:
+		return 0, 0, fmt.Errorf("invalid index in table %v for object %v : %v not in list bounds", table.name, sqlID, index)
+	case len(neighbors) == 1:
+		// after the last element
+		return neighbors[0] + 1, 1, nil
+	default:
+		// between two elements
+		increment := (neighbors[1] - neighbors[0]) / (float64(nb) + 1)
+		return neighbors[0] + increment, increment, nil
 	}
 }
 
@@ -2157,7 +2032,10 @@ func (s *SQLStore) doRemove(object EObject, feature EStructuralFeature, index in
 	if err != nil {
 		return nil, err
 	}
-	featureTable := featureData.schema.table
+	featureTable, err := s.getManyFeatureTable(featureData.schema)
+	if err != nil {
+		return nil, err
+	}
 
 	var value any
 	if err := s.executeQuery(
@@ -2206,7 +2084,10 @@ func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceInde
 	if err != nil {
 		return nil, err
 	}
-	featureTable := featureSchema.table
+	featureTable, err := s.getManyFeatureTable(featureSchema)
+	if err != nil {
+		return nil, err
+	}
 
 	// compute target index
 	if targetIndex > sourceIndex {
@@ -2380,7 +2261,10 @@ func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any]
 				if err != nil {
 					return nil, err
 				}
-				featureTable := featureSchema.table
+				featureTable, err := s.getManyFeatureTable(featureSchema)
+				if err != nil {
+					return nil, err
+				}
 				if err := s.executeQuery(
 					s.getManyQueries(featureTable).getSelectAllQuery(),
 					&sqlitex.ExecOptions{

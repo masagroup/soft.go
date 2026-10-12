@@ -140,18 +140,24 @@ func (s *sqlBase) setLogger(logger *zap.Logger) {
 	s.sqliteLogger = logger.Named("sqlite")
 }
 
-// bindConn binds conn to the current goroutine until the returned function is called
+// bindConn binds conn to the current goroutine until the returned function is called,
+// which restores the connection bound before, if any
 func (s *sqlBase) bindConn(conn *sqlite.Conn) (unbind func()) {
 	id := goid.Get()
 	s.bindingsMutex.Lock()
 	if s.bindings == nil {
 		s.bindings = map[int64]*boundConn{}
 	}
+	previous := s.bindings[id]
 	s.bindings[id] = &boundConn{conn: conn}
 	s.bindingsMutex.Unlock()
 	return func() {
 		s.bindingsMutex.Lock()
-		delete(s.bindings, id)
+		if previous != nil {
+			s.bindings[id] = previous
+		} else {
+			delete(s.bindings, id)
+		}
 		s.bindingsMutex.Unlock()
 	}
 }

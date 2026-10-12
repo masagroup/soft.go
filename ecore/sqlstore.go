@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"iter"
-	"maps"
 	"math"
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -318,7 +318,7 @@ func (ss *sqlManyQueries) getRemoveQuery() string {
 }
 
 type sqlStoreObjectManager struct {
-	store EStore
+	store *SQLStore
 }
 
 func newSQLStoreObjectManager() *sqlStoreObjectManager {
@@ -326,6 +326,8 @@ func newSQLStoreObjectManager() *sqlStoreObjectManager {
 }
 
 func (r *sqlStoreObjectManager) registerObject(o EObject) {
+	// an object encoded by the open transaction is read by the writer until the commit
+	r.store.registerDirty(o)
 	// set store object
 	if storeObject, _ := o.(EStoreProvider); storeObject != nil {
 		storeObject.SetEStore(r.store)
@@ -362,13 +364,41 @@ func newSQLStoreIDManager() SQLStoreIDManager {
 }
 
 func (r *sqlStoreIDManagerImpl) SetPackageID(p EPackage, id int64) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	r.sqlDecoderIDManagerImpl.packages[id] = p
 	r.sqlEncoderIDManagerImpl.packages[p] = id
 }
 
+func (r *sqlStoreIDManagerImpl) GetPackageID(p EPackage) (int64, bool) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	return r.sqlEncoderIDManagerImpl.GetPackageID(p)
+}
+
+func (r *sqlStoreIDManagerImpl) GetPackageFromID(id int64) (EPackage, bool) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	return r.sqlDecoderIDManagerImpl.GetPackageFromID(id)
+}
+
 func (r *sqlStoreIDManagerImpl) SetClassID(c EClass, id int64) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	r.sqlDecoderIDManagerImpl.classes[id] = c
 	r.sqlEncoderIDManagerImpl.classes[c] = id
+}
+
+func (r *sqlStoreIDManagerImpl) GetClassID(c EClass) (int64, bool) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	return r.sqlEncoderIDManagerImpl.GetClassID(c)
+}
+
+func (r *sqlStoreIDManagerImpl) GetClassFromID(id int64) (EClass, bool) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	return r.sqlDecoderIDManagerImpl.GetClassFromID(id)
 }
 
 func (r *sqlStoreIDManagerImpl) GetObjectFromID(id int64) (o EObject, b bool) {
@@ -418,8 +448,22 @@ func (r *sqlStoreIDManagerImpl) ClearObjectID(o EObject) {
 }
 
 func (r *sqlStoreIDManagerImpl) SetEnumLiteralID(e EEnumLiteral, id int64) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	r.sqlDecoderIDManagerImpl.enumLiterals[id] = e
 	r.sqlEncoderIDManagerImpl.enumLiterals[e] = id
+}
+
+func (r *sqlStoreIDManagerImpl) GetEnumLiteralID(e EEnumLiteral) (int64, bool) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	return r.sqlEncoderIDManagerImpl.GetEnumLiteralID(e)
+}
+
+func (r *sqlStoreIDManagerImpl) GetEnumLiteralFromID(id int64) (EEnumLiteral, bool) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	return r.sqlDecoderIDManagerImpl.GetEnumLiteralFromID(id)
 }
 
 var operationID atomic.Int64
@@ -441,19 +485,26 @@ const (
 	operationWrite operationType = 1 << 1
 )
 
+// operation is an operation of the store : a write, executed by the writer goroutine
+// inside the current transaction, or a read, executed by the writer when it depends
+// on a pending write and on a pool connection otherwise
 type operation struct {
-	id       int64
-	type_    operationType
-	cmd      string
-	object   EObject
-	feature  EStructuralFeature
-	contents bool
-	index    int
-	value    any
-	fn       func() (any, error)
-	previous map[*operation]struct{}
-	cancel   context.CancelFunc
-	promise  *promise.Promise[any]
+	id           int64
+	type_        operationType
+	cmd          string
+	object       EObject
+	feature      EStructuralFeature
+	index        int
+	value        any
+	fn           func() (any, error)
+	ctx          context.Context // context of the caller, nil for background
+	global       bool            // read of the whole store : executed by the writer unless the store is idle
+	commitBefore bool            // commit the transaction before the operation
+	flush        bool            // commit the transaction after the operation
+	done         chan struct{}   // closed when the operation is executed, nil when nobody waits
+	result       any
+	err          error
+	enqueued     time.Time
 }
 
 func newOperation(
@@ -461,35 +512,23 @@ func newOperation(
 	type_ operationType,
 	object EObject,
 	feature EStructuralFeature,
-	contents bool,
 	index int,
 	value any,
 	fn func() (any, error)) *operation {
 	return &operation{
-		id:       operationID.Add(1),
-		type_:    type_,
-		cmd:      cmd,
-		object:   object,
-		feature:  feature,
-		contents: contents,
-		index:    index,
-		value:    value,
-		fn:       fn,
+		id:      operationID.Add(1),
+		type_:   type_,
+		cmd:     cmd,
+		object:  object,
+		feature: feature,
+		index:   index,
+		value:   value,
+		fn:      fn,
 	}
-}
-
-type operationsMap map[*operation]struct{}
-
-func (ops operationsMap) MarshalLogArray(arr zapcore.ArrayEncoder) error {
-	for op := range ops {
-		arr.AppendInt64(op.id)
-	}
-	return nil
 }
 
 type operationMarshaler struct {
-	op           *operation
-	withPrevious bool
+	op *operation
 }
 
 func (m *operationMarshaler) MarshalLogObject(e zapcore.ObjectEncoder) error {
@@ -507,7 +546,6 @@ func (m *operationMarshaler) MarshalLogObject(e zapcore.ObjectEncoder) error {
 	e.AddString("type", op.type_.String())
 	e.AddString("object", objectString)
 	e.AddString("feature", featureString)
-	e.AddBool("contents", op.contents)
 	e.AddInt("index", op.index)
 	switch v := op.value.(type) {
 	case EObject:
@@ -517,77 +555,12 @@ func (m *operationMarshaler) MarshalLogObject(e zapcore.ObjectEncoder) error {
 			return err
 		}
 	}
-	if m.withPrevious {
-		if err := e.AddArray("previous", operationsMap(op.previous)); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
-type infiniteChannel[T any] struct {
-	in     chan T
-	out    chan T
-	closed atomic.Bool
-}
-
-func newInfiniteChannel[T any]() *infiniteChannel[T] {
-	in := make(chan T)
-	out := make(chan T)
-	go manage(in, out)
-	return &infiniteChannel[T]{
-		in:  in,
-		out: out,
-	}
-}
-
-func (q *infiniteChannel[T]) In() chan<- T {
-	return q.in
-}
-
-func (q *infiniteChannel[T]) Out() <-chan T {
-	return q.out
-}
-
-func (q *infiniteChannel[T]) Close() {
-	if !q.closed.Load() {
-		q.closed.Store(true)
-		close(q.in)
-	}
-}
-
-func (q *infiniteChannel[T]) IsClosed() bool {
-	return q.closed.Load()
-}
-
-func manage[T any](in <-chan T, out chan<- T) {
-	queue := []T{}
-	for {
-		if len(queue) == 0 {
-			if in == nil {
-				close(out)
-				return
-			}
-			value, ok := <-in
-			if !ok {
-				close(out)
-				return
-			}
-			queue = append(queue, value)
-		} else {
-			front := queue[0]
-			select {
-			case out <- front:
-				queue = queue[1:]
-			case value, ok := <-in:
-				if ok {
-					queue = append(queue, value)
-				} else {
-					in = nil
-				}
-			}
-		}
-	}
+type objectFeature struct {
+	object  EObject
+	feature EStructuralFeature
 }
 
 type SQLStore struct {
@@ -600,13 +573,31 @@ type SQLStore struct {
 	manyQueries      map[*sqlTable]*sqlManyQueries
 	mutexQueries     sync.Mutex
 	loggerOperations *zap.Logger
-	objectOperations map[EObject]map[EStructuralFeature][]*operation
-	chanOperations   *infiniteChannel[*operation]
-	mutexOperations  sync.Mutex
 	timeoutOperation time.Duration
-	goroutines       map[int64]map[EObject]struct{}
-	mutexGoRoutines  sync.Mutex
 	maxAllocSize     int64
+
+	// writer : one goroutine executes the write operations in order on its own connection,
+	// inside one transaction committed when the queue is empty or past commitMaxOperations
+	// or commitMaxDuration (group commit)
+	writerConn          *sqlite.Conn
+	writerConnClose     func(conn *sqlite.Conn) error
+	writerGoid          atomic.Int64
+	writerSignal        chan struct{}
+	writerDone          chan struct{}
+	commitMaxOperations int
+	commitMaxDuration   time.Duration
+	concurrentReads     bool // reads of objects untouched by the transaction run on pool connections
+	txOpen              bool
+	txStart             time.Time
+	txOperations        int
+	mutexWriter         sync.Mutex // guards the fields below
+	queue               []*operation
+	busy                bool                         // the writer is executing an operation
+	closed              bool                         // no operation is accepted anymore
+	dirty               map[EObject]struct{}         // objects of the pending operations and of the open transaction
+	dirtyGlobal         bool                         // the pending operations or the open transaction touch the roots or arbitrary tables
+	pending             map[objectFeature]*operation // last pending Set or UnSet by object and feature
+	errs                []error                      // errors of the operations since the last flush
 }
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
@@ -637,6 +628,9 @@ func NewSQLStore(
 		inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
 	}
 	if inMemoryDatabase {
+		// memory database shared by the connections of the pool and the writer
+		name := filepath.Base(databasePath)
+		dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
 		return newSQLStore(
 			func() (*sqlitex.Pool, error) {
 				connSrc, err := sqlite.OpenConn(databasePath)
@@ -646,8 +640,6 @@ func NewSQLStore(
 				defer connSrc.Close()
 
 				// create connection pool
-				name := filepath.Base(databasePath)
-				dbPath := fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
 				connPool, err := sqlitex.NewPool(dbPath, sqlitex.PoolOptions{Flags: sqlite.OpenCreate | sqlite.OpenReadWrite | sqlite.OpenURI})
 				if err != nil {
 					return nil, err
@@ -667,32 +659,25 @@ func NewSQLStore(
 
 				return connPool, nil
 			},
-			func(connPool *sqlitex.Pool) (err error) {
+			func(connPool *sqlitex.Pool) error {
+				return connPool.Close()
+			},
+			func() (*sqlite.Conn, error) {
+				return sqlite.OpenConn(dbPath, sqlite.OpenCreate|sqlite.OpenReadWrite|sqlite.OpenURI)
+			},
+			func(conn *sqlite.Conn) (err error) {
+				// the writer is closed last and committed : backup the memory db to the store db
 				defer func() {
-					// close pool
-					err = connPool.Close()
+					if err2 := conn.Close(); err == nil {
+						err = err2
+					}
 				}()
-
-				// destination connection is the store db
 				connDst, err := sqlite.OpenConn(databasePath)
 				if err != nil {
 					return err
 				}
 				defer connDst.Close()
-
-				// source connection is the memory db
-				connSrc, err := connPool.Take(context.Background())
-				if err != nil {
-					return err
-				}
-				defer connPool.Put(connSrc)
-
-				// backup src db to dst db
-				if err := backupDB(connDst, connSrc); err != nil {
-					return err
-				}
-
-				return nil
+				return backupDB(connDst, conn)
 			},
 			resourceURI, idManager, packageRegistry, options,
 		)
@@ -710,6 +695,20 @@ func NewSQLStore(
 			func(pool *sqlitex.Pool) error {
 				return pool.Close()
 			},
+			func() (*sqlite.Conn, error) {
+				conn, err := sqlite.OpenConn(databasePath, sqlite.OpenReadWrite|sqlite.OpenCreate|sqlite.OpenWAL)
+				if err != nil {
+					return nil, err
+				}
+				if err := sqlitex.ExecuteTransient(conn, "PRAGMA synchronous=normal", nil); err != nil {
+					conn.Close()
+					return nil, err
+				}
+				return conn, nil
+			},
+			func(conn *sqlite.Conn) error {
+				return conn.Close()
+			},
 			resourceURI,
 			idManager,
 			packageRegistry,
@@ -721,6 +720,8 @@ func NewSQLStore(
 func newSQLStore(
 	connectionPoolProvider func() (*sqlitex.Pool, error),
 	connectionPoolClose func(pool *sqlitex.Pool) error,
+	writerConnProvider func() (*sqlite.Conn, error),
+	writerConnClose func(conn *sqlite.Conn) error,
 	resourceURI *URI,
 	idManager EObjectIDManager,
 	packageRegistry EPackageRegistry,
@@ -734,6 +735,9 @@ func newSQLStore(
 	isKeepDefaults := false
 	timeoutOperation := unlockOperationTimeout
 	maxAllocSize := SQLITE_MAX_ALLOCATION_SIZE
+	commitMaxOperations := defaultCommitMaxOperations
+	commitMaxDuration := defaultCommitMaxDuration
+	inMemoryDatabase := false
 	if options != nil {
 		objectIDName, _ = options[SQL_OPTION_OBJECT_ID].(string)
 		if v, isVersion := options[SQL_OPTION_CODEC_VERSION].(int64); isVersion {
@@ -754,6 +758,13 @@ func newSQLStore(
 		if v, isMaxAllocSize := options[SQL_OPTION_MAX_ALLOC_SIZE].(int); isMaxAllocSize {
 			maxAllocSize = v
 		}
+		if v, isInt := options[SQL_OPTION_COMMIT_MAX_OPERATIONS].(int); isInt && v > 0 {
+			commitMaxOperations = v
+		}
+		if v, isDuration := options[SQL_OPTION_COMMIT_MAX_DURATION].(time.Duration); isDuration && v > 0 {
+			commitMaxDuration = v
+		}
+		inMemoryDatabase, _ = options[SQL_OPTION_IN_MEMORY_DATABASE].(bool)
 	}
 
 	// retrieve connection pool
@@ -766,6 +777,17 @@ func newSQLStore(
 	defer func() {
 		if err != nil {
 			_ = connectionPoolClose(connPool)
+		}
+	}()
+
+	// writer connection
+	writerConn, err := writerConnProvider()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			_ = writerConn.Close()
 		}
 	}()
 
@@ -808,14 +830,22 @@ func newSQLStore(
 			sqlObjectManager: sqlObjectManager,
 			sqlLockManager:   newSqlEncoderLockManager(),
 		},
-		sqlIDManager:     sqlIDManager,
-		singleQueries:    map[*sqlColumn]*sqlSingleQueries{},
-		manyQueries:      map[*sqlTable]*sqlManyQueries{},
-		objectOperations: map[EObject]map[EStructuralFeature][]*operation{},
-		chanOperations:   newInfiniteChannel[*operation](),
-		timeoutOperation: timeoutOperation,
-		goroutines:       map[int64]map[EObject]struct{}{},
-		maxAllocSize:     int64(maxAllocSize),
+		sqlIDManager:        sqlIDManager,
+		singleQueries:       map[*sqlColumn]*sqlSingleQueries{},
+		manyQueries:         map[*sqlTable]*sqlManyQueries{},
+		timeoutOperation:    timeoutOperation,
+		maxAllocSize:        int64(maxAllocSize),
+		writerConn:          writerConn,
+		writerConnClose:     writerConnClose,
+		writerSignal:        make(chan struct{}, 1),
+		writerDone:          make(chan struct{}),
+		commitMaxOperations: commitMaxOperations,
+		commitMaxDuration:   commitMaxDuration,
+		// in a memory database, the tables are locked, not versioned : a pool connection
+		// reading a table written by the open transaction would wait for its commit
+		concurrentReads: !inMemoryDatabase,
+		dirty:           map[EObject]struct{}{},
+		pending:         map[objectFeature]*operation{},
 	}
 
 	// set store logger
@@ -824,8 +854,9 @@ func newSQLStore(
 	// set store in sql object manager
 	sqlObjectManager.store = store
 
-	// launch unlock operation
-	go store.unlockOperation()
+	// initialize the db with the writer connection
+	unbind := store.bindConn(writerConn)
+	defer unbind()
 
 	// decode version
 	if err = store.decodeVersion(); err != nil {
@@ -851,6 +882,9 @@ func newSQLStore(
 	if err = store.encodeProperties(); err != nil {
 		return nil, err
 	}
+
+	// launch writer
+	go store.runWriter()
 
 	return store, nil
 }
@@ -997,385 +1031,410 @@ func mapSlice[S ~[]E, E, R any](slice S, mapper func(int, E) R) []R {
 	return mappedSlice
 }
 
-func (s *SQLStore) WaitOperations(context context.Context, object any) error {
-	for {
-		// compute operations to wait for
-		s.mutexOperations.Lock()
-		allOperations := []*operation{}
-		if object == nil {
-			allOperations = make([]*operation, 0)
-			for _, objectOperations := range s.objectOperations {
-				for _, operations := range objectOperations {
-					allOperations = append(allOperations, operations...)
-				}
-			}
-		} else {
-			for _, operations := range s.objectOperations[object.(EObject)] {
-				allOperations = append(allOperations, operations...)
-			}
-		}
-		s.mutexOperations.Unlock()
-		// wait for operations to be finished
-		if len(allOperations) > 0 {
-			// debug
-			if e := s.loggerOperations.Check(zap.DebugLevel, "waiting operations"); e != nil {
-				e.Write(zap.Int64s("operations", mapSlice(allOperations, func(index int, op *operation) int64 { return op.id })))
-			}
-			// compute promises
-			allPromises := mapSlice(allOperations, func(index int, op *operation) *promise.Promise[any] { return op.promise })
-			// wait for promises
-			_, err := promise.AllWithPool(context, s.promisePool, allPromises...).Await(context)
-			if err != nil {
-				return err
-			}
-		} else {
-			s.loggerOperations.Debug("waiting operations finished")
-			return nil
-		}
+const (
+	// unlockOperationTimeout is the time an operation waits for the writer before a warning is logged
+	unlockOperationTimeout = 5 * time.Second
+	// defaultCommitMaxOperations is the number of operations after which the writer commits
+	// when the queue is never empty
+	defaultCommitMaxOperations = 10000
+	// defaultCommitMaxDuration is the duration after which the writer commits when the queue
+	// is never empty
+	defaultCommitMaxDuration = time.Second
+	// maxOperationErrors is the number of errors kept for the next Flush
+	maxOperationErrors = 100
+)
+
+// WaitOperations waits for all the pending operations to be executed and committed.
+// object is ignored : the operations are executed in order, so waiting for the
+// operations of one object is waiting for all the operations before them.
+// It returns the errors of the operations since the last wait.
+func (s *SQLStore) WaitOperations(ctx context.Context, object any) error {
+	return s.Flush(ctx)
+}
+
+// Flush waits for all the pending operations to be executed and committed, and
+// returns the errors of the operations since the last flush
+func (s *SQLStore) Flush(ctx context.Context) error {
+	if goid.Get() == s.writerGoid.Load() {
+		// from an operation being executed : the operations before it are executed
+		return nil
+	}
+	op := newOperation("Flush", operationWrite, nil, nil, -1, nil, func() (any, error) {
+		s.mutexWriter.Lock()
+		errs := s.errs
+		s.errs = nil
+		s.mutexWriter.Unlock()
+		return nil, errors.Join(errs...)
+	})
+	op.ctx = ctx
+	op.flush = true
+	op.done = make(chan struct{})
+	s.enqueue(op)
+	_, err := s.await(op)
+	return err
+}
+
+// isTransactionOpen is true while the writer has a transaction open
+func (s *SQLStore) isTransactionOpen() bool {
+	s.mutexWriter.Lock()
+	defer s.mutexWriter.Unlock()
+	return s.txOpen
+}
+
+// markDirty registers the objects an operation writes : until the transaction
+// commits, their reads are executed by the writer. must be called with mutexWriter
+func (s *SQLStore) markDirty(op *operation) {
+	if op.type_ != operationWrite {
+		return
+	}
+	if op.object == nil || op.global {
+		s.dirtyGlobal = true
+	} else {
+		s.dirty[op.object] = struct{}{}
+	}
+	if value, isObject := op.value.(EObject); isObject {
+		s.dirty[value] = struct{}{}
 	}
 }
 
-type objectFeature struct {
-	object  EObject
-	feature EStructuralFeature
-}
-
-// of is {nil,nil} : return store object-feature iterator
-// of is {object,nil} : return object object-feature iterator
-// of is {object,feature} : return object-feature iterator
-func (s *SQLStore) objectFeaturesIterator(of objectFeature) iter.Seq[objectFeature] {
-	return func(yield func(objectFeature) bool) {
-		if of.object == nil {
-			if !yield(objectFeature{nil, nil}) {
-				return
-			}
-			for object, objectOperations := range s.objectOperations {
-				if object != nil {
-					if !yield(objectFeature{object, nil}) {
-						return
-					}
-					for feature := range objectOperations {
-						if feature != nil {
-							if !yield(objectFeature{object, feature}) {
-								return
-							}
-						}
-					}
-				}
-			}
-		} else if of.feature == nil {
-			if !yield(objectFeature{of.object, nil}) {
-				return
-			}
-			for feature := range s.objectOperations[of.object] {
-				if feature != nil {
-					if !yield(objectFeature{of.object, feature}) {
-						return
-					}
-				}
-			}
-		} else {
-			if !yield(objectFeature{of.object, of.feature}) {
-				return
-			}
-		}
+// registerDirty registers an object encoded or decoded by the open transaction
+func (s *SQLStore) registerDirty(object EObject) {
+	if goid.Get() == s.writerGoid.Load() {
+		s.mutexWriter.Lock()
+		s.dirty[object] = struct{}{}
+		s.mutexWriter.Unlock()
 	}
 }
 
-const unlockOperationTimeout = 5 * time.Second
-
-func (s *SQLStore) unlockOperation() {
-	for {
-		op, isOp := <-s.chanOperations.Out()
-		if !isOp {
-			return
+// enqueue gives an operation to the writer
+func (s *SQLStore) enqueue(op *operation) {
+	s.mutexWriter.Lock()
+	if s.closed {
+		s.mutexWriter.Unlock()
+		op.err = errors.New("store is closed")
+		s.loggerOperations.Error("rejected", zap.Object("operation", &operationMarshaler{op: op}), zap.Error(op.err))
+		if op.done != nil {
+			close(op.done)
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), s.timeoutOperation)
-		if _, err := op.promise.Await(ctx); err != nil && err == ctx.Err() {
-			// timeout => go to unlock op
-			go func() {
-				// async log
-				if e := s.loggerOperations.Check(zap.WarnLevel, "unlock"); e != nil {
-					logged := map[*operation]struct{}{}
-					logging := []*operation{op}
-					for len(logging) > 0 {
-						op := logging[0]
-						logging = logging[1:]
-						if _, isLogged := logged[op]; !isLogged {
-							logged[op] = struct{}{}
-							e.Write(zap.Object("operation", &operationMarshaler{op: op, withPrevious: true}))
-							for previous := range maps.Keys(op.previous) {
-								logging = append(logging, previous)
-							}
-						}
-					}
-				}
-			}()
-			op.cancel()
-		}
-		cancel()
+		return
 	}
-}
-
-// schedule operation in the store
-// s.objectOperations[nil][nil] all operations
-// s.objectOperations[object][nil] all operations for object
-// s.objectOperations[object][feature] all operations for object-feature
-func (s *SQLStore) scheduleOperation(ctx context.Context, op *operation) *operation {
-	if e := s.loggerOperations.Check(zap.DebugLevel, "schedule"); e != nil {
+	op.enqueued = time.Now()
+	s.queue = append(s.queue, op)
+	s.markDirty(op)
+	if op.type_ == operationWrite && op.feature != nil && (op.cmd == "Set" || op.cmd == "UnSet") {
+		s.pending[objectFeature{op.object, op.feature}] = op
+	}
+	s.mutexWriter.Unlock()
+	if e := s.loggerOperations.Check(zap.DebugLevel, "enqueue"); e != nil {
 		e.Write(zap.Int64("goid", goid.Get()), zap.Object("operation", &operationMarshaler{op: op}))
 	}
-
-	// create cancelable context
-	ctx, cancel := context.WithCancel(ctx)
-
-	// input objects features = { object feature operations [, value all operations] }
-	allObjectFeatures := []objectFeature{{op.object, op.feature}}
-	allObjects := map[EObject]struct{}{}
-	if op.object != nil {
-		allObjects[op.object] = struct{}{}
-		if op.contents {
-			for it := op.object.EAllContents(); it.HasNext(); {
-				object := it.Next().(EObject)
-				allObjectFeatures = append(allObjectFeatures, objectFeature{object, nil})
-				allObjects[object] = struct{}{}
-			}
-		}
-
+	select {
+	case s.writerSignal <- struct{}{}:
+	default:
 	}
-	if object, isObject := op.value.(EObject); isObject && object != op.object {
-		allObjects[object] = struct{}{}
-		allObjectFeatures = append(allObjectFeatures, objectFeature{object, nil})
-	}
-
-	// lock operations
-	s.mutexOperations.Lock()
-
-	// register operation for all objects and and compute previous operations to wait for
-	previous := map[*operation]struct{}{}
-	registeredObjectFeatures := []objectFeature{}
-	for _, lof := range allObjectFeatures {
-		for of := range s.objectFeaturesIterator(lof) {
-			registeredObjectFeatures = append(registeredObjectFeatures, of)
-			if po := s.registerOperation(of.object, of.feature, op); po != nil {
-				previous[po] = struct{}{}
-			}
-		}
-	}
-
-	// initialize op
-	op.cancel = cancel
-	op.previous = previous
-	op.promise = promise.NewWithPool(func(resolve func(any), reject func(error)) {
-		goid := goid.Get()
-		// handle error
-		handleError := func(err error) {
-			if err != ctx.Err() {
-				s.logger.Error("error",
-					zap.Object("operation", &operationMarshaler{op: op}),
-					zap.Error(err))
-			}
-			reject(err)
-		}
-		// handle panic
-		handlePanic := func() {
-			var err error
-			switch recover := recover(); v := recover.(type) {
-			case nil:
-				return
-			case error:
-				err = v
-			default:
-				err = fmt.Errorf("%+v", v)
-			}
-			s.logger.Error("error",
-				zap.Object("operation", &operationMarshaler{op: op}),
-				zap.Error(err),
-				zap.Stack("stack"))
-			reject(err)
-		}
-		defer handlePanic()
-
-		// associate all objets to this goroutine
-		s.mutexGoRoutines.Lock()
-		s.goroutines[goid] = allObjects
-		s.mutexGoRoutines.Unlock()
-		defer func() {
-			s.mutexGoRoutines.Lock()
-			delete(s.goroutines, goid)
-			s.mutexGoRoutines.Unlock()
-		}()
-
-		// wait for previous operations
-		if len(op.previous) > 0 {
-			if e := s.loggerOperations.Check(zap.DebugLevel, "waiting previous operations"); e != nil {
-				e.Write(
-					zap.Int64("goid", goid),
-					zap.Int64("id", op.id),
-					zap.Int64s("previous", mapSet(op.previous, func(o *operation) int64 { return o.id })),
-				)
-			}
-			promises := mapSet(op.previous, func(o *operation) *promise.Promise[any] { return o.promise })
-			if _, err := promise.AllWithPool(ctx, s.promisePool, promises...).Await(ctx); err != nil && err != ctx.Err() {
-				// unwrap error
-				if unwrapped := errors.Unwrap(err); unwrapped != nil {
-					err = unwrapped
-				}
-				// handle error
-				handleError(fmt.Errorf("error in previous operation: %w", err))
-				return
-			}
-		}
-
-		// execute operation
-		if e := s.loggerOperations.Check(zap.DebugLevel, "execute"); e != nil {
-			e.Write(
-				zap.Int64("goid", goid),
-				zap.Int64("id", op.id),
-			)
-		}
-		result, err := op.fn()
-
-		// clean operations
-		if e := s.loggerOperations.Check(zap.DebugLevel, "cleaning"); e != nil {
-			e.Write(
-				zap.Int64("goid", goid),
-				zap.Int64("id", op.id),
-			)
-		}
-		s.mutexOperations.Lock()
-		defer s.mutexOperations.Unlock()
-
-		for _, of := range registeredObjectFeatures {
-			if err := s.unregisterOperation(of.object, of.feature, op); err != nil {
-				handleError(err)
-				return
-			}
-		}
-		if e := s.loggerOperations.Check(zap.DebugLevel, "cleaned"); e != nil {
-			e.Write(
-				zap.Int64("goid", goid),
-				zap.Int64("id", op.id),
-			)
-		}
-
-		if len(s.objectOperations) == 0 {
-			s.loggerOperations.Debug("no pending")
-		}
-
-		// result or error
-		if err != nil {
-			handleError(err)
-		} else {
-			resolve(result)
-		}
-	}, s.promisePool)
-	s.mutexOperations.Unlock()
-	// add to channel operations
-	s.chanOperations.In() <- op
-	return op
 }
 
-func (s *SQLStore) getLastOperation(type_ operationType, object EObject, feature EStructuralFeature, index int) *operation {
-	s.mutexOperations.Lock()
-	defer s.mutexOperations.Unlock()
-	if objectOperations := s.objectOperations[object]; objectOperations != nil {
-		if operations := objectOperations[feature]; operations != nil {
-			for _, operation := range slices.Backward(operations) {
-				if operation.type_ == type_ && operation.index == index {
-					return operation
-				}
-			}
-		}
+// pendingOperation returns the pending Set or UnSet of an object feature at index, if any
+func (s *SQLStore) pendingOperation(object EObject, feature EStructuralFeature, index int) *operation {
+	s.mutexWriter.Lock()
+	defer s.mutexWriter.Unlock()
+	if op := s.pending[objectFeature{object, feature}]; op != nil && op.index == index {
+		return op
 	}
 	return nil
 }
 
-func (s *SQLStore) registerOperation(object EObject, feature EStructuralFeature, op *operation) (previous *operation) {
-	// get operations for object-feature
-	objectOperations := s.objectOperations[object]
-	if objectOperations == nil {
-		objectOperations = map[EStructuralFeature][]*operation{}
-		s.objectOperations[object] = objectOperations
+// await waits for an enqueued operation to be executed
+func (s *SQLStore) await(op *operation) (any, error) {
+	ctx := op.ctx
+	if ctx == nil {
+		ctx = context.Background()
 	}
-	operations := objectOperations[feature]
-	if operations == nil {
-		operations = []*operation{}
-		objectOperations[feature] = operations
+	timer := time.NewTimer(s.timeoutOperation)
+	defer timer.Stop()
+	select {
+	case <-op.done:
+		return op.result, op.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-timer.C:
+		s.loggerOperations.Warn("waiting", zap.Int64("goid", goid.Get()), zap.Object("operation", &operationMarshaler{op: op}), zap.Duration("timeout", s.timeoutOperation))
 	}
+	select {
+	case <-op.done:
+		return op.result, op.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+}
 
-	// compute previous operation
-	switch op.type_ {
-	case operationRead:
-		for _, operation := range slices.Backward(operations) {
-
-			if operation.type_ == operationWrite {
-				previous = operation
-				break
-			}
+// canReadConcurrently is true when a read doesn't depend on a pending or uncommitted
+// write : it can be executed on a pool connection, against the committed state
+func (s *SQLStore) canReadConcurrently(op *operation) bool {
+	if !s.concurrentReads {
+		return false
+	}
+	s.mutexWriter.Lock()
+	defer s.mutexWriter.Unlock()
+	if s.closed || s.dirtyGlobal {
+		return false
+	}
+	if op.global || op.object == nil {
+		// the whole store : only when idle
+		return !s.busy && !s.txOpen && len(s.queue) == 0
+	}
+	if _, isDirty := s.dirty[op.object]; isDirty {
+		return false
+	}
+	if value, isObject := op.value.(EObject); isObject {
+		if _, isDirty := s.dirty[value]; isDirty {
+			return false
 		}
-	case operationWrite:
-		if len(operations) > 0 {
-			previous = operations[len(operations)-1]
-		}
 	}
+	return true
+}
 
-	// add operation
-	objectOperations[feature] = append(operations, op)
+// execute executes an operation :
+// - from the writer goroutine (an operation calling the store), now on the writer connection
+// - a read independent of the pending writes, now on a pool connection
+// - otherwise by the writer, waiting for its result if wait
+func (s *SQLStore) execute(op *operation, wait bool) (any, error) {
+	if goid.Get() == s.writerGoid.Load() {
+		return op.fn()
+	}
+	if op.type_ == operationRead && s.canReadConcurrently(op) {
+		return s.executeConcurrently(op)
+	}
+	if wait {
+		op.done = make(chan struct{})
+	}
+	s.enqueue(op)
+	if !wait {
+		return nil, nil
+	}
+	return s.await(op)
+}
+
+// executeConcurrently executes a read on a pool connection, in the current goroutine
+func (s *SQLStore) executeConcurrently(op *operation) (result any, err error) {
+	ctx := op.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	conn, err := s.connPool.Take(ctx)
+	if err != nil {
+		return nil, err
+	}
+	unbind := s.bindConn(conn)
+	defer func() {
+		if r := recover(); r != nil {
+			result, err = nil, s.panicError(op, r)
+			// reset the statements left stepped by the panic
+			conn.SetInterrupt(nil)
+		}
+		unbind()
+		s.connPool.Put(conn)
+	}()
+	if e := s.loggerOperations.Check(zap.DebugLevel, "execute"); e != nil {
+		e.Write(zap.Int64("goid", goid.Get()), zap.Object("operation", &operationMarshaler{op: op}))
+	}
+	result, err = op.fn()
+	if err != nil {
+		s.loggerOperations.Error("error", zap.Object("operation", &operationMarshaler{op: op}), zap.Error(err))
+	}
 	return
 }
 
-func (s *SQLStore) unregisterOperation(object EObject, feature EStructuralFeature, op *operation) error {
-	objectOperations := s.objectOperations[object]
-	operations := objectOperations[feature]
-	// retrieve operation index
-	index := slices.Index(operations, op)
-	if index == -1 {
-		return errors.New("unable to find task index")
+// resultAs converts the result of an operation, or returns the zero value on error
+func resultAs[T any](result any, err error) T {
+	var def T
+	if err != nil {
+		return def
+	} else if r, isResult := result.(T); isResult {
+		return r
 	}
-	// remove operation from collection
-	copy(operations[index:], operations[index+1:])
-	operations[len(operations)-1] = nil
-	operations = operations[:len(operations)-1]
-	// set object operations for feature
-	if len(operations) == 0 {
-		delete(objectOperations, feature)
-		// cleanup object operations
-		if len(objectOperations) == 0 {
-			delete(s.objectOperations, object)
+	return def
+}
+
+func (s *SQLStore) panicError(op *operation, recovered any) error {
+	var err error
+	switch v := recovered.(type) {
+	case error:
+		err = v
+	default:
+		err = fmt.Errorf("%+v", v)
+	}
+	s.loggerOperations.Error("panic",
+		zap.Object("operation", &operationMarshaler{op: op}),
+		zap.Error(err),
+		zap.Stack("stack"))
+	return err
+}
+
+func (s *SQLStore) addError(err error) {
+	s.mutexWriter.Lock()
+	if len(s.errs) < maxOperationErrors {
+		s.errs = append(s.errs, err)
+	}
+	s.mutexWriter.Unlock()
+}
+
+// runWriter executes the operations of the queue in order on the writer connection
+func (s *SQLStore) runWriter() {
+	defer close(s.writerDone)
+	s.writerGoid.Store(goid.Get())
+	unbind := s.bindConn(s.writerConn)
+	defer unbind()
+	for {
+		op := s.nextOperation()
+		if op == nil {
+			// closed and drained
+			s.commit()
+			return
 		}
-	} else {
-		objectOperations[feature] = operations
+		s.executeOperation(op)
+		s.mutexWriter.Lock()
+		empty := len(s.queue) == 0
+		s.mutexWriter.Unlock()
+		if op.flush || empty || s.txOperations >= s.commitMaxOperations || time.Since(s.txStart) >= s.commitMaxDuration {
+			s.commit()
+		}
+		s.mutexWriter.Lock()
+		s.busy = false
+		s.mutexWriter.Unlock()
+		if op.done != nil {
+			close(op.done)
+		}
 	}
+}
+
+// nextOperation waits for the next operation of the queue; nil when the store is closed and the queue empty
+func (s *SQLStore) nextOperation() *operation {
+	for {
+		s.mutexWriter.Lock()
+		if len(s.queue) > 0 {
+			op := s.queue[0]
+			s.queue[0] = nil
+			s.queue = s.queue[1:]
+			s.busy = true
+			s.mutexWriter.Unlock()
+			return op
+		}
+		closed := s.closed
+		s.mutexWriter.Unlock()
+		if closed {
+			return nil
+		}
+		<-s.writerSignal
+	}
+}
+
+func (s *SQLStore) executeOperation(op *operation) {
+	if op.ctx != nil && op.ctx.Err() != nil {
+		// nobody waits for the result anymore
+		op.err = op.ctx.Err()
+		return
+	}
+	if op.commitBefore {
+		s.commit()
+	}
+	if op.flush {
+		// collects the errors : no transaction needed
+		op.result, op.err = op.fn()
+		return
+	}
+	if !s.txOpen {
+		if err := s.begin(); err != nil {
+			op.err = err
+			s.addError(err)
+			return
+		}
+	}
+	s.txOperations++
+	if e := s.loggerOperations.Check(zap.DebugLevel, "execute"); e != nil {
+		e.Write(zap.Int64("goid", goid.Get()), zap.Object("operation", &operationMarshaler{op: op}))
+	}
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				op.result, op.err = nil, s.panicError(op, r)
+			}
+		}()
+		op.result, op.err = op.fn()
+	}()
+	if op.type_ == operationWrite && op.feature != nil {
+		s.mutexWriter.Lock()
+		if key := (objectFeature{op.object, op.feature}); s.pending[key] == op {
+			delete(s.pending, key)
+		}
+		s.mutexWriter.Unlock()
+	}
+	if op.err != nil {
+		s.loggerOperations.Error("error", zap.Object("operation", &operationMarshaler{op: op}), zap.Error(op.err))
+		s.addError(op.err)
+		// reset the statements left stepped by a panic
+		s.writerConn.SetInterrupt(nil)
+		// some errors roll the transaction back
+		if s.txOpen && s.writerConn.AutocommitEnabled() {
+			s.loggerOperations.Error("transaction rolled back", zap.Object("operation", &operationMarshaler{op: op}), zap.Error(op.err))
+			s.mutexWriter.Lock()
+			s.txOpen = false
+			s.txOperations = 0
+			s.mutexWriter.Unlock()
+		}
+	}
+}
+
+func (s *SQLStore) begin() error {
+	if err := sqlitex.ExecuteTransient(s.writerConn, "BEGIN IMMEDIATE;", nil); err != nil {
+		s.loggerOperations.Error("begin", zap.Error(err))
+		return err
+	}
+	s.mutexWriter.Lock()
+	s.txOpen = true
+	s.txStart = time.Now()
+	s.txOperations = 0
+	s.mutexWriter.Unlock()
+	s.loggerOperations.Debug("begin")
 	return nil
 }
 
-// w8 for the result of the operation
-func awaitOperation[T any](ctx context.Context, op *operation) T {
-	var def T
-	if r, err := op.promise.Await(ctx); err != nil {
-		return def
-	} else if result, isResult := r.(T); isResult {
-		return result
-	} else {
-		return def
+// commit commits the open transaction. the objects of the operations still queued stay dirty
+func (s *SQLStore) commit() {
+	if !s.txOpen {
+		return
 	}
+	if err := sqlitex.ExecuteTransient(s.writerConn, "COMMIT;", nil); err != nil {
+		s.loggerOperations.Error("commit", zap.Error(err))
+		s.addError(err)
+		if !s.writerConn.AutocommitEnabled() {
+			_ = sqlitex.ExecuteTransient(s.writerConn, "ROLLBACK;", nil)
+		}
+	} else if e := s.loggerOperations.Check(zap.DebugLevel, "commit"); e != nil {
+		e.Write(zap.Int("operations", s.txOperations), zap.Duration("duration", time.Since(s.txStart)))
+	}
+	s.mutexWriter.Lock()
+	s.txOpen = false
+	s.txOperations = 0
+	s.dirty = map[EObject]struct{}{}
+	s.dirtyGlobal = false
+	for _, op := range s.queue {
+		s.markDirty(op)
+	}
+	s.mutexWriter.Unlock()
 }
 
 func (s *SQLStore) Get(object EObject, feature EStructuralFeature, index int) any {
 	// optimization : if we have a non many feature, check if we have a pending write operation
 	if !feature.IsMany() {
-		if operation := s.getLastOperation(operationWrite, object, feature, index); operation != nil {
-			return operation.value
+		if op := s.pendingOperation(object, feature, index); op != nil {
+			return op.value
 		}
 	}
-	return awaitOperation[any](
-		context.Background(),
-		s.scheduleOperation(
-			context.Background(),
-			newOperation("Get", operationRead, object, feature, false, index, nil, func() (any, error) {
-				return s.doGet(object, feature, index)
-			})))
+	return resultAs[any](s.execute(
+		newOperation("Get", operationRead, object, feature, index, nil, func() (any, error) {
+			return s.doGet(object, feature, index)
+		}), true))
 }
 
 func (s *SQLStore) doGet(object EObject, feature EStructuralFeature, index int) (any, error) {
@@ -1420,13 +1479,12 @@ func (s *SQLStore) getValue(sqlID int64, featureSchema *sqlFeatureSchema, index 
 }
 
 func (s *SQLStore) Set(object EObject, feature EStructuralFeature, index int, value any, needResult bool) (oldValue any) {
-	op := s.scheduleOperation(
-		context.Background(),
-		newOperation("Set", operationWrite, object, feature, false, index, value, func() (any, error) {
+	result, err := s.execute(
+		newOperation("Set", operationWrite, object, feature, index, value, func() (any, error) {
 			return s.doSet(object, feature, index, value, needResult)
-		}))
+		}), needResult)
 	if needResult {
-		oldValue = awaitOperation[any](context.Background(), op)
+		oldValue = resultAs[any](result, err)
 	}
 	return
 }
@@ -1477,17 +1535,14 @@ func (s *SQLStore) doSet(object EObject, feature EStructuralFeature, index int, 
 func (s *SQLStore) IsSet(object EObject, feature EStructuralFeature) bool {
 	// optimization : if we have a non many feature, check if we have a pending write operation
 	if !feature.IsMany() {
-		if operation := s.getLastOperation(operationWrite, object, feature, -1); operation != nil {
-			return operation.value != nil
+		if op := s.pendingOperation(object, feature, -1); op != nil {
+			return op.value != nil
 		}
 	}
-	return awaitOperation[bool](
-		context.Background(),
-		s.scheduleOperation(
-			context.Background(),
-			newOperation("IsSet", operationRead, object, feature, false, -1, nil, func() (any, error) {
-				return s.doIsSet(object, feature)
-			})))
+	return resultAs[bool](s.execute(
+		newOperation("IsSet", operationRead, object, feature, -1, nil, func() (any, error) {
+			return s.doIsSet(object, feature)
+		}), true))
 }
 
 func (s *SQLStore) doIsSet(object EObject, feature EStructuralFeature) (bool, error) {
@@ -1532,13 +1587,10 @@ func (s *SQLStore) doIsSet(object EObject, feature EStructuralFeature) (bool, er
 }
 
 func (s *SQLStore) UnSet(object EObject, feature EStructuralFeature) {
-	awaitOperation[any](
-		context.Background(),
-		s.scheduleOperation(
-			context.Background(),
-			newOperation("UnSet", operationWrite, object, feature, false, -1, nil, func() (any, error) {
-				return s.doUnSet(object, feature)
-			})))
+	_, _ = s.execute(
+		newOperation("UnSet", operationWrite, object, feature, -1, nil, func() (any, error) {
+			return s.doUnSet(object, feature)
+		}), true)
 }
 
 func (s *SQLStore) doUnSet(object EObject, feature EStructuralFeature) (any, error) {
@@ -1568,13 +1620,10 @@ func (s *SQLStore) doUnSet(object EObject, feature EStructuralFeature) (any, err
 }
 
 func (s *SQLStore) IsEmpty(object EObject, feature EStructuralFeature) bool {
-	return awaitOperation[bool](
-		context.Background(),
-		s.scheduleOperation(
-			context.Background(),
-			newOperation("IsEmpty", operationRead, object, feature, false, -1, nil, func() (any, error) {
-				return s.doIsEmpty(object, feature)
-			})))
+	return resultAs[bool](s.execute(
+		newOperation("IsEmpty", operationRead, object, feature, -1, nil, func() (any, error) {
+			return s.doIsEmpty(object, feature)
+		}), true))
 }
 
 func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, error) {
@@ -1607,13 +1656,10 @@ func (s *SQLStore) doIsEmpty(object EObject, feature EStructuralFeature) (bool, 
 }
 
 func (s *SQLStore) Size(object EObject, feature EStructuralFeature) int {
-	return awaitOperation[int](
-		context.Background(),
-		s.scheduleOperation(
-			context.Background(),
-			newOperation("Size", operationRead, object, feature, false, -1, nil, func() (any, error) {
-				return s.doSize(object, feature)
-			})))
+	return resultAs[int](s.execute(
+		newOperation("Size", operationRead, object, feature, -1, nil, func() (any, error) {
+			return s.doSize(object, feature)
+		}), true))
 }
 
 func (s *SQLStore) doSize(object EObject, feature EStructuralFeature) (int, error) {
@@ -1644,11 +1690,76 @@ func (s *SQLStore) doSize(object EObject, feature EStructuralFeature) (int, erro
 }
 
 func (s *SQLStore) Contains(object EObject, feature EStructuralFeature, value any) bool {
-	return awaitOperation[bool](
-		context.Background(),
-		s.scheduleOperation(context.Background(), newOperation("Contains", operationRead, object, feature, false, -1, value, func() (any, error) {
+	return resultAs[bool](s.execute(
+		newOperation("Contains", operationRead, object, feature, -1, value, func() (any, error) {
 			return s.doContains(object, feature, value)
-		})))
+		}), true))
+}
+
+// encodeLookupValue encodes a value to look it up in a feature table, without writing :
+// an object or an enum literal unknown to the store is not in the table, and isEncoded is false
+func (s *SQLStore) encodeLookupValue(featureSchema *sqlFeatureSchema, value any) (encoded any, isEncoded bool, err error) {
+	if value == nil {
+		return nil, true, nil
+	}
+	switch featureSchema.featureKind {
+	case sfkObject, sfkObjectList:
+		sqlID, isSQLID, err := s.getSQLID(value.(EObject))
+		if err != nil || !isSQLID {
+			return nil, false, err
+		}
+		return sqlID, true, nil
+	case sfkObjectReference, sfkObjectReferenceList:
+		eObject := value.(EObject)
+		if sqlID, _ := s.sqlIDManager.GetObjectID(eObject); sqlID != 0 {
+			return strconv.FormatInt(sqlID, 10), true, nil
+		}
+		return s.uri.Relativize(GetURI(eObject)).String(), true, nil
+	case sfkEnum:
+		eAttribute := featureSchema.feature.(EAttribute)
+		eEnum := eAttribute.GetEAttributeType().(EEnum)
+		literal := eEnum.GetEPackage().GetEFactoryInstance().ConvertToString(eEnum, value)
+		eEnumLiteral := eEnum.GetEEnumLiteralByLiteral(literal)
+		if eEnumLiteral == nil {
+			return nil, false, fmt.Errorf("unable to find enum literal in enum '%s' with value '%v'", eEnum.GetName(), literal)
+		}
+		if id, isID := s.sqlIDManager.GetEnumLiteralID(eEnumLiteral); isID {
+			return id, true, nil
+		}
+		// look for the literal in the db
+		table := s.schema.enumsTable
+		var id int64
+		isID := false
+		if err := s.executeQuery(
+			table.selectQuery(nil, sqlEscapeIdentifier(table.columns[2].columnName)+"=? AND "+sqlEscapeIdentifier(table.columns[3].columnName)+"=?", ""),
+			&sqlitex.ExecOptions{
+				Args: []any{eEnum.GetName(), eEnumLiteral.GetLiteral()},
+				ResultFunc: func(stmt *sqlite.Stmt) error {
+					id = stmt.ColumnInt64(0)
+					isID = true
+					return nil
+				}}); err != nil {
+			return nil, false, err
+		}
+		if !isID {
+			return nil, false, nil
+		}
+		s.sqlIDManager.SetEnumLiteralID(eEnumLiteral, id)
+		return id, true, nil
+	case sfkDate:
+		return value.(*time.Time).Format(time.RFC3339), true, nil
+	case sfkData, sfkDataList:
+		eDataType := featureSchema.feature.(EAttribute).GetEAttributeType()
+		return eDataType.GetEPackage().GetEFactoryInstance().ConvertToString(eDataType, value), true, nil
+	default:
+		return value, true, nil
+	}
+}
+
+// isNoSuchTable is true for the error of a query on a table not created yet : the feature
+// tables are created by the first write of their class
+func isNoSuchTable(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "no such table")
 }
 
 func (s *SQLStore) doContains(object EObject, feature EStructuralFeature, value any) (bool, error) {
@@ -1659,19 +1770,19 @@ func (s *SQLStore) doContains(object EObject, feature EStructuralFeature, value 
 		return false, nil
 	}
 	// retrieve table
-	featureData, err := s.getEncoderFeatureData(object, feature)
+	featureSchema, err := s.getFeatureSchema(object, feature)
 	if err != nil {
 		return false, err
 	}
 
 	// query statement
-	encoded, err := s.encodeFeatureValue(sqlObjectID, featureData, value)
-	if err != nil {
+	encoded, isEncoded, err := s.encodeLookupValue(featureSchema, value)
+	if err != nil || !isEncoded {
 		return false, err
 	}
 
 	var rowid int64
-	featureTable := featureData.schema.table
+	featureTable := featureSchema.table
 	if err := s.executeQuery(
 		s.getManyQueries(featureTable).getContainsQuery(),
 		&sqlitex.ExecOptions{
@@ -1680,6 +1791,9 @@ func (s *SQLStore) doContains(object EObject, feature EStructuralFeature, value 
 				rowid = stmt.ColumnInt64(0)
 				return nil
 			}}); err != nil {
+		if isNoSuchTable(err) {
+			return false, nil
+		}
 		return false, err
 	}
 	return rowid != 0, nil
@@ -1693,15 +1807,15 @@ func (s *SQLStore) doIndexOf(object EObject, feature EStructuralFeature, value a
 		return -1, nil
 	}
 	// retrieve table
-	featureData, err := s.getEncoderFeatureData(object, feature)
+	featureSchema, err := s.getFeatureSchema(object, feature)
 	if err != nil {
 		return -1, err
 	}
-	featureTable := featureData.schema.table
+	featureTable := featureSchema.table
 
 	// compute parameters
-	encoded, err := s.encodeFeatureValue(sqlObjectID, featureData, value)
-	if err != nil {
+	encoded, isEncoded, err := s.encodeLookupValue(featureSchema, value)
+	if err != nil || !isEncoded {
 		return -1, err
 	}
 	// retrieve row idx in table
@@ -1714,6 +1828,9 @@ func (s *SQLStore) doIndexOf(object EObject, feature EStructuralFeature, value a
 				idx = stmt.ColumnFloat(0)
 				return nil
 			}}); err != nil {
+		if isNoSuchTable(err) {
+			return -1, nil
+		}
 		return -1, err
 	}
 	if idx == -1.0 {
@@ -1736,34 +1853,28 @@ func (s *SQLStore) doIndexOf(object EObject, feature EStructuralFeature, value a
 }
 
 func (s *SQLStore) IndexOf(object EObject, feature EStructuralFeature, value any) int {
-	return awaitOperation[int](
-		context.Background(),
-		s.scheduleOperation(
-			context.Background(),
-			newOperation("IndexOf", operationRead, object, feature, false, -1, value, func() (any, error) {
-				return s.doIndexOf(object, feature, value, func(sms *sqlManyQueries) string {
-					return sms.getIndexOfQuery()
-				})
-			})))
+	return resultAs[int](s.execute(
+		newOperation("IndexOf", operationRead, object, feature, -1, value, func() (any, error) {
+			return s.doIndexOf(object, feature, value, func(sms *sqlManyQueries) string {
+				return sms.getIndexOfQuery()
+			})
+		}), true))
 }
 
 func (s *SQLStore) LastIndexOf(object EObject, feature EStructuralFeature, value any) int {
-	return awaitOperation[int](
-		context.Background(),
-		s.scheduleOperation(
-			context.Background(),
-			newOperation("LastIndexOf", operationRead, object, feature, false, -1, value, func() (any, error) {
-				return s.doIndexOf(object, feature, value, func(sms *sqlManyQueries) string {
-					return sms.getLastIndexOfQuery()
-				})
-			})))
+	return resultAs[int](s.execute(
+		newOperation("LastIndexOf", operationRead, object, feature, -1, value, func() (any, error) {
+			return s.doIndexOf(object, feature, value, func(sms *sqlManyQueries) string {
+				return sms.getLastIndexOfQuery()
+			})
+		}), true))
 }
 
 // AddRoot add object as store root
 func (s *SQLStore) AddRoot(object EObject) {
-	s.scheduleOperation(context.Background(), newOperation("AddRoot", operationWrite, nil, nil, false, -1, nil, func() (any, error) {
+	_, _ = s.execute(newOperation("AddRoot", operationWrite, nil, nil, -1, nil, func() (any, error) {
 		return s.doAddRoot(object)
-	}))
+	}), false)
 }
 
 func (s *SQLStore) doAddRoot(object EObject) (any, error) {
@@ -1772,9 +1883,9 @@ func (s *SQLStore) doAddRoot(object EObject) (any, error) {
 
 // RemoveRoot implements EStore.
 func (s *SQLStore) RemoveRoot(object EObject) {
-	s.scheduleOperation(context.Background(), newOperation("RemoveRoot", operationWrite, nil, nil, false, -1, nil, func() (any, error) {
+	_, _ = s.execute(newOperation("RemoveRoot", operationWrite, nil, nil, -1, nil, func() (any, error) {
 		return s.doRemoveRoot(object)
-	}))
+	}), false)
 }
 
 func (s *SQLStore) doRemoveRoot(object EObject) (any, error) {
@@ -1796,12 +1907,11 @@ func (s *SQLStore) doRemoveRoot(object EObject) (any, error) {
 
 // GetRoot return root objects
 func (s *SQLStore) GetRoots() []EObject {
-	return awaitOperation[[]EObject](
-		context.Background(),
-		s.scheduleOperation(
-			context.Background(), newOperation("GetRoots", operationRead, nil, nil, false, -1, nil, func() (any, error) {
-				return s.doGetRoots()
-			})))
+	op := newOperation("GetRoots", operationRead, nil, nil, -1, nil, func() (any, error) {
+		return s.doGetRoots()
+	})
+	op.global = true
+	return resultAs[[]EObject](s.execute(op, true))
 }
 
 func (s *SQLStore) doGetRoots() ([]EObject, error) {
@@ -1843,8 +1953,10 @@ func postOrderIterator(object EObject) iter.Seq[EObject] {
 	}
 }
 
+// UnRegister forgets the ids of object, and of its contents if withContents, once the
+// operations before it are executed : the objects are encoded again when written again
 func (s *SQLStore) UnRegister(object EObject, withContents bool) *promise.Promise[any] {
-	op := newOperation("UnRegister", operationWrite, object, nil, withContents, -1, nil, func() (any, error) {
+	op := newOperation("UnRegister", operationWrite, object, nil, -1, nil, func() (any, error) {
 		if withContents {
 			// we use a post order iterator to avoid registering again
 			// parent
@@ -1856,16 +1968,34 @@ func (s *SQLStore) UnRegister(object EObject, withContents bool) *promise.Promis
 		}
 		return nil, nil
 	})
-	op = s.scheduleOperation(context.Background(), op)
-	return op.promise
+	if goid.Get() == s.writerGoid.Load() {
+		// from an operation being executed
+		result, err := op.fn()
+		return promise.NewWithPool(func(resolve func(any), reject func(error)) {
+			if err != nil {
+				reject(err)
+			} else {
+				resolve(result)
+			}
+		}, s.promisePool)
+	}
+	op.done = make(chan struct{})
+	s.enqueue(op)
+	return promise.NewWithPool(func(resolve func(any), reject func(error)) {
+		<-op.done
+		if op.err != nil {
+			reject(op.err)
+		} else {
+			resolve(op.result)
+		}
+	}, s.promisePool)
 }
 
 func (s *SQLStore) Add(object EObject, feature EStructuralFeature, index int, value any) {
-	s.scheduleOperation(
-		context.Background(),
-		newOperation("Add", operationWrite, object, feature, false, index, value, func() (any, error) {
+	_, _ = s.execute(
+		newOperation("Add", operationWrite, object, feature, index, value, func() (any, error) {
 			return s.doAdd(object, feature, index, value)
-		}))
+		}), false)
 }
 
 func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, value any) (any, error) {
@@ -1896,11 +2026,10 @@ func (s *SQLStore) doAdd(object EObject, feature EStructuralFeature, index int, 
 }
 
 func (s *SQLStore) AddAll(object EObject, feature EStructuralFeature, index int, c Collection) {
-	s.scheduleOperation(
-		context.Background(),
-		newOperation("AddAll", operationWrite, object, feature, false, index, c, func() (any, error) {
+	_, _ = s.execute(
+		newOperation("AddAll", operationWrite, object, feature, index, c, func() (any, error) {
 			return s.doAddAll(object, feature, index, c)
-		}))
+		}), false)
 }
 
 func (s *SQLStore) doAddAll(object EObject, feature EStructuralFeature, index int, c Collection) (any, error) {
@@ -1989,13 +2118,12 @@ func (s *SQLStore) getInsertIdx(table *sqlTable, sqlID int64, index int, nb int)
 }
 
 func (s *SQLStore) Remove(object EObject, feature EStructuralFeature, index int, needResult bool) any {
-	op := s.scheduleOperation(
-		context.Background(),
-		newOperation("Remove", operationWrite, object, feature, false, index, nil, func() (any, error) {
+	result, err := s.execute(
+		newOperation("Remove", operationWrite, object, feature, index, nil, func() (any, error) {
 			return s.doRemove(object, feature, index, needResult)
-		}))
+		}), needResult)
 	if needResult {
-		return awaitOperation[any](context.Background(), op)
+		return resultAs[any](result, err)
 	}
 	return nil
 }
@@ -2043,13 +2171,10 @@ func (mi moveIndexes) String() string {
 }
 
 func (s *SQLStore) Move(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) any {
-	return awaitOperation[any](
-		context.Background(),
-		s.scheduleOperation(
-			context.Background(),
-			newOperation("Move", operationWrite, object, feature, false, -1, moveIndexes{sourceIndex, targetIndex}, func() (any, error) {
-				return s.doMove(object, feature, sourceIndex, targetIndex, needResult)
-			})))
+	return resultAs[any](s.execute(
+		newOperation("Move", operationWrite, object, feature, -1, moveIndexes{sourceIndex, targetIndex}, func() (any, error) {
+			return s.doMove(object, feature, sourceIndex, targetIndex, needResult)
+		}), true))
 }
 
 func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceIndex int, targetIndex int, needResult bool) (decoded any, err error) {
@@ -2097,9 +2222,9 @@ func (s *SQLStore) doMove(object EObject, feature EStructuralFeature, sourceInde
 }
 
 func (s *SQLStore) Clear(object EObject, feature EStructuralFeature) {
-	s.scheduleOperation(context.Background(), newOperation("Clear", operationWrite, object, feature, false, -1, nil, func() (any, error) {
+	_, _ = s.execute(newOperation("Clear", operationWrite, object, feature, -1, nil, func() (any, error) {
 		return s.doClear(object, feature)
-	}))
+	}), false)
 }
 
 func (s *SQLStore) doClear(object EObject, feature EStructuralFeature) (any, error) {
@@ -2127,13 +2252,10 @@ type containerAndFeature struct {
 }
 
 func (s *SQLStore) GetContainer(object EObject) (EObject, EStructuralFeature) {
-	if result := awaitOperation[*containerAndFeature](
-		context.Background(),
-		s.scheduleOperation(
-			context.Background(),
-			newOperation("GetContainer", operationRead, object, nil, false, -1, nil, func() (any, error) {
-				return s.doGetContainer(object)
-			}))); result != nil {
+	if result := resultAs[*containerAndFeature](s.execute(
+		newOperation("GetContainer", operationRead, object, nil, -1, nil, func() (any, error) {
+			return s.doGetContainer(object)
+		}), true)); result != nil {
 		return result.container, result.feature
 	}
 	return nil, nil
@@ -2189,22 +2311,11 @@ func (s *SQLStore) doGetContainer(object EObject) (*containerAndFeature, error) 
 }
 
 func (s *SQLStore) SetContainer(object EObject, container EObject, feature EStructuralFeature) {
-	// if this method is called from a scheduled operation, execute doSetContainer in the current goroutine
-	// otherwise schedule operation doSetContainer operation
-	goid := goid.Get()
-	sync := false
-	s.mutexGoRoutines.Lock()
-	if objects := s.goroutines[goid]; objects != nil {
-		_, sync = objects[object]
-	}
-	s.mutexGoRoutines.Unlock()
-	if sync {
-		_, _ = s.doSetContainer(object, container, feature)
-	} else {
-		s.scheduleOperation(context.Background(), newOperation("SetContainer", operationWrite, object, feature, false, -1, container, func() (any, error) {
-			return s.doSetContainer(object, container, feature)
-		}))
-	}
+	// called from an operation being executed (an object encoded by the writer is bound to the
+	// store), execute runs doSetContainer in the writer goroutine
+	_, _ = s.execute(newOperation("SetContainer", operationWrite, object, feature, -1, container, func() (any, error) {
+		return s.doSetContainer(object, container, feature)
+	}), false)
 }
 
 func (s *SQLStore) doSetContainer(object EObject, container EObject, feature EStructuralFeature) (any, error) {
@@ -2236,42 +2347,39 @@ func (s *SQLStore) doSetContainer(object EObject, container EObject, feature ESt
 
 func (s *SQLStore) All(object EObject, feature EStructuralFeature) iter.Seq[any] {
 	return func(yield func(any) bool) {
-		awaitOperation[any](
-			context.Background(),
-			s.scheduleOperation(
-				context.Background(),
-				newOperation("All", operationRead, object, feature, false, -1, nil, func() (any, error) {
-					interrupted := errors.New("interrupted")
-					sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
-					if err != nil {
-						return nil, err
-					} else if !isSQLObjectID {
-						return nil, nil
-					}
-					featureSchema, err := s.getFeatureSchema(object, feature)
-					if err != nil {
-						return nil, err
-					}
-					featureTable := featureSchema.table
-					if err := s.executeQuery(
-						s.getManyQueries(featureTable).getSelectAllQuery(),
-						&sqlitex.ExecOptions{
-							Args: []any{sqlObjectID},
-							ResultFunc: func(stmt *sqlite.Stmt) error {
-								value := decodeAny(stmt, 0)
-								decoded, err := s.decodeFeatureValue(featureSchema, value)
-								if err != nil {
-									return err
-								}
-								if !yield(decoded) {
-									return interrupted
-								}
-								return nil
-							}}); err != nil && err != interrupted {
-						return nil, err
-					}
+		_, _ = s.execute(
+			newOperation("All", operationRead, object, feature, -1, nil, func() (any, error) {
+				interrupted := errors.New("interrupted")
+				sqlObjectID, isSQLObjectID, err := s.getSQLID(object)
+				if err != nil {
+					return nil, err
+				} else if !isSQLObjectID {
 					return nil, nil
-				})))
+				}
+				featureSchema, err := s.getFeatureSchema(object, feature)
+				if err != nil {
+					return nil, err
+				}
+				featureTable := featureSchema.table
+				if err := s.executeQuery(
+					s.getManyQueries(featureTable).getSelectAllQuery(),
+					&sqlitex.ExecOptions{
+						Args: []any{sqlObjectID},
+						ResultFunc: func(stmt *sqlite.Stmt) error {
+							value := decodeAny(stmt, 0)
+							decoded, err := s.decodeFeatureValue(featureSchema, value)
+							if err != nil {
+								return err
+							}
+							if !yield(decoded) {
+								return interrupted
+							}
+							return nil
+						}}); err != nil && err != interrupted {
+					return nil, err
+				}
+				return nil, nil
+			}), true)
 	}
 }
 
@@ -2279,18 +2387,25 @@ func (s *SQLStore) ToArray(object EObject, feature EStructuralFeature) []any {
 	return slices.Collect(s.All(object, feature))
 }
 
+// Serialize returns the content of the database, with the pending operations committed
 func (s *SQLStore) Serialize(ctx context.Context) *promise.Promise[[]byte] {
-	op := newOperation("Serialize", operationRead, nil, nil, false, -1, nil, func() (any, error) {
+	op := newOperation("Serialize", operationRead, nil, nil, -1, nil, func() (any, error) {
 		return s.doSerialize(ctx)
 	})
-	op = s.scheduleOperation(ctx, op)
-	return op.promise.ThenWithPool(
-		ctx,
-		func(a any) ([]byte, error) { return a.([]byte), nil },
-		s.promisePool,
-	)
+	op.ctx = ctx
+	op.global = true
+	op.commitBefore = true
+	return promise.NewWithPool(func(resolve func([]byte), reject func(error)) {
+		result, err := s.execute(op, true)
+		if err != nil {
+			reject(err)
+		} else {
+			resolve(resultAs[[]byte](result, nil))
+		}
+	}, s.promisePool)
 }
 
+// doSerialize serializes the database with the connection bound to the goroutine
 func (s *SQLStore) doSerialize(ctx context.Context) ([]byte, error) {
 	// retrieve database size
 	var dbSize int64
@@ -2303,12 +2418,15 @@ func (s *SQLStore) doSerialize(ctx context.Context) ([]byte, error) {
 		return nil, err
 	}
 
-	// open connection to serialize
-	conn, err := s.connPool.Take(ctx)
-	if err != nil {
+	// connection to serialize
+	bound := s.boundConn()
+	if bound == nil {
+		return nil, errors.New("serialize: no connection bound to the goroutine")
+	}
+	conn := bound.conn
+	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	defer s.connPool.Put(conn)
 
 	// supports big databases
 	if dbSize > s.maxAllocSize {
@@ -2350,25 +2468,38 @@ func (s *SQLStore) ExecuteQuery(ctx context.Context, query string, opts *sqlitex
 	default:
 		operationType = operationWrite
 	}
-	op := s.scheduleOperation(ctx, newOperation("ExecuteQuery", operationType, nil, nil, false, -1, nil, func() (any, error) {
+	op := newOperation("ExecuteQuery", operationType, nil, nil, -1, nil, func() (any, error) {
 		return nil, s.executeQuery(query, opts)
-	}))
-	_, err := op.promise.Await(ctx)
+	})
+	op.ctx = ctx
+	op.global = true
+	_, err := s.execute(op, true)
 	return err
 }
 
+// Close executes and commits the pending operations, and closes the connections
 func (s *SQLStore) Close() error {
 	if !s.isClosed.Swap(true) {
-		s.logger.Named("ops").Debug("Close",
-			zap.Int64("goid", goid.Get()),
-		)
+		s.loggerOperations.Debug("Close", zap.Int64("goid", goid.Get()))
 
 		// error is an an operation error and is handled with the logger
 		// ignore it
-		_ = s.WaitOperations(context.Background(), nil)
+		_ = s.Flush(context.Background())
 
-		// close operations channel
-		s.chanOperations.Close()
+		// stop the writer once the operations enqueued meanwhile are executed
+		s.mutexWriter.Lock()
+		s.closed = true
+		s.mutexWriter.Unlock()
+		select {
+		case s.writerSignal <- struct{}{}:
+		default:
+		}
+		<-s.writerDone
+
+		// close the writer connection first : in memory mode, it backs the database up
+		if err := s.writerConnClose(s.writerConn); err != nil {
+			return err
+		}
 
 		if err := s.connPoolClose(s.connPool); err != nil {
 			return err

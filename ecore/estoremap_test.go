@@ -115,6 +115,27 @@ func TestEStoreMap_Put(t *testing.T) {
 	m.Put(1, 2)
 }
 
+func TestEStoreMap_Put_EntryWithoutCache(t *testing.T) {
+	// the entries of EStringToStringMapEntry, as in the maps of an XML DocumentRoot, are not
+	// cache providers
+	entryClass := GetPackage().GetEStringToStringMapEntry()
+	mockOwner := NewMockEObjectInternal(t)
+	mockFeature := NewMockEStructuralFeature(t)
+	mockStore := NewMockEStore(t)
+	mockFeature.EXPECT().IsUnique().Return(true).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(0).Once()
+	m := NewEStoreMap(entryClass, mockOwner, mockFeature, mockStore)
+	require.NotNil(t, m)
+
+	mockStore.EXPECT().All(mockOwner, mockFeature).Return(slices.Values([]any{})).Once()
+	mockStore.EXPECT().Contains(mockOwner, mockFeature, mock.Anything).Return(false).Once()
+	mockStore.EXPECT().Add(mockOwner, mockFeature, 0, mock.MatchedBy(func(e EMapEntry) bool {
+		return e.GetKey() == "key" && e.GetValue() == "value"
+	})).Return().Once()
+	mockOwner.EXPECT().EDeliver().Return(false).Once()
+	require.NotPanics(t, func() { m.Put("key", "value") })
+}
+
 func TestEStoreMap_Add(t *testing.T) {
 	mockClass := NewMockEClass(t)
 	mockOwner := NewMockEObjectInternal(t)

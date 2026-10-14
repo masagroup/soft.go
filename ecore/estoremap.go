@@ -83,8 +83,10 @@ func (m *EStoreMap) IsCache() bool {
 func (m *EStoreMap) newEntry(key any, value any) EMapEntry {
 	eFactory := m.entryClass.GetEPackage().GetEFactoryInstance()
 	newEntry := eFactory.Create(m.entryClass).(EMapEntry)
-	newCacheProvider := newEntry.(ECacheProvider)
-	newCacheProvider.SetCache(m.IsCache())
+	// an entry of a class without a store, such as EStringToStringMapEntry, has no cache
+	if newCacheProvider, isCacheProvider := newEntry.(ECacheProvider); isCacheProvider {
+		newCacheProvider.SetCache(m.IsCache())
+	}
 	newEntry.SetKey(key)
 	newEntry.SetValue(value)
 	return newEntry

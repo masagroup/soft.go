@@ -130,3 +130,45 @@ func TestCompactEStoreEObjectImpl_SetAndUnset(t *testing.T) {
 
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
 }
+
+func TestCompactEStoreEObjectImpl_Cache_FeatureIDsFrom64(t *testing.T) {
+	o := newTestCompactEStoreEObject(nil)
+	o.setCached(3, "a")
+	o.setCached(64, "b")
+	o.setCached(70, "c")
+	assert.True(t, o.isCached(3))
+	assert.True(t, o.isCached(64))
+	assert.True(t, o.isCached(70))
+	assert.False(t, o.isCached(65))
+	assert.Equal(t, "a", o.getCached(3))
+	assert.Equal(t, "b", o.getCached(64))
+	assert.Equal(t, "c", o.getCached(70))
+
+	o.setCached(70, "d")
+	assert.Equal(t, "d", o.getCached(70))
+
+	o.unsetCached(64)
+	assert.False(t, o.isCached(64))
+	assert.Nil(t, o.getCached(64))
+	assert.Equal(t, "d", o.getCached(70))
+
+	o.ClearCache()
+	assert.False(t, o.isCached(3))
+	assert.False(t, o.isCached(70))
+}
+
+func TestCompactEStoreEObjectImpl_SetAttribute_NoStore_FeatureIDFrom64(t *testing.T) {
+	// without a store, the cache keeps the values of the object: a feature ID from 64 is kept too
+	mockClass := NewMockEClass(t)
+	mockAttribute := NewMockEAttribute(t)
+	o := newTestCompactEStoreEObject(nil)
+	o.SetEClass(mockClass)
+
+	mockClass.EXPECT().GetEStructuralFeature(70).Return(mockAttribute)
+	mockAttribute.EXPECT().IsTransient().Return(false)
+	o.EDynamicSet(70, "value")
+	assert.Equal(t, "value", o.EDynamicGet(70))
+	assert.True(t, o.EDynamicIsSet(70))
+	o.EDynamicUnset(70)
+	assert.False(t, o.EDynamicIsSet(70))
+}

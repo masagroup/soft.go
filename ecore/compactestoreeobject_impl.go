@@ -29,7 +29,10 @@ type CompactEStoreEObjectImpl struct {
 	class        EClass
 	cachedValues any    // nil, single value, or []any
 	cacheMask    uint64 // bitmask of cached feature IDs (0..63)
-	mutex        rmx.RecursiveMutex
+	// cachedOverflow holds the cached values of the feature IDs from 64: without a store, the
+	// cache is the only place the values of the object are kept
+	cachedOverflow map[int]any
+	mutex          rmx.RecursiveMutex
 }
 
 func (o *CompactEStoreEObjectImpl) Initialize() {
@@ -78,13 +81,21 @@ func (o *CompactEStoreEObjectImpl) ClearCache() {
 	defer o.mutex.Unlock()
 	o.cachedValues = nil
 	o.cacheMask = 0
+	o.cachedOverflow = nil
 }
 
 func (o *CompactEStoreEObjectImpl) isCached(featureID int) bool {
-	return featureID < 64 && (o.cacheMask&(1<<featureID)) != 0
+	if featureID >= 64 {
+		_, cached := o.cachedOverflow[featureID]
+		return cached
+	}
+	return (o.cacheMask & (1 << featureID)) != 0
 }
 
 func (o *CompactEStoreEObjectImpl) getCached(featureID int) any {
+	if featureID >= 64 {
+		return o.cachedOverflow[featureID]
+	}
 	if !o.isCached(featureID) {
 		return nil
 	}
@@ -97,6 +108,10 @@ func (o *CompactEStoreEObjectImpl) getCached(featureID int) any {
 
 func (o *CompactEStoreEObjectImpl) setCached(featureID int, value any) {
 	if featureID >= 64 {
+		if o.cachedOverflow == nil {
+			o.cachedOverflow = map[int]any{}
+		}
+		o.cachedOverflow[featureID] = value
 		return
 	}
 	bit := uint64(1) << featureID
@@ -134,6 +149,10 @@ func (o *CompactEStoreEObjectImpl) setCached(featureID int, value any) {
 
 func (o *CompactEStoreEObjectImpl) unsetCached(featureID int) {
 	if !o.isCached(featureID) {
+		return
+	}
+	if featureID >= 64 {
+		delete(o.cachedOverflow, featureID)
 		return
 	}
 	bit := uint64(1) << featureID

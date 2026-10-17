@@ -296,6 +296,7 @@ func (s *Encoder) saveFeatures(eObject ecore.EObject, attributesOnly bool) bool 
 			case xsfkObjectContainSingle:
 			case xsfkObjectContainMany:
 			case xsfkDataTypeContentSingle:
+			case xsfkDataTypeElementSingle:
 			case xsfkObjectHrefSingleUnsettable:
 				if !s.isNil(eObject, eFeature) {
 					switch s.getSaveResourceKindSingle(eObject, eFeature) {
@@ -375,6 +376,8 @@ func (s *Encoder) saveFeatures(eObject ecore.EObject, attributesOnly bool) bool 
 			s.saveContainedSingle(eObject, eFeature)
 		case xsfkDataTypeContentSingle:
 			s.saveDataTypeContent(eObject, eFeature)
+		case xsfkDataTypeElementSingle:
+			s.saveDataTypeElementSingle(eObject, eFeature)
 		case xsfkObjectContainManyUnsettable:
 			fallthrough
 		case xsfkObjectContainMany:
@@ -403,6 +406,15 @@ func (s *Encoder) saveDataTypeSingle(eObject ecore.EObject, eFeature ecore.EStru
 	str, ok := s.getDataType(val, eFeature, true)
 	if ok {
 		s.str.addAttribute(s.getFeatureQName(eFeature), escapeAttribute(str))
+	}
+}
+
+// saveDataTypeElementSingle writes a kind="element" scalar attribute as a child element.
+func (s *Encoder) saveDataTypeElementSingle(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
+	val := eObject.EGetResolve(eFeature, false)
+	str, ok := s.getDataType(val, eFeature, true)
+	if ok {
+		s.str.addContent(s.getFeatureQName(eFeature), escapeContent(str))
 	}
 }
 
@@ -636,6 +648,10 @@ func (s *Encoder) getSaveFeatureKind(f ecore.EStructuralFeature) xmlSaveFeatureK
 		// A kind="simple" attribute is the element text, not an attribute.
 		if !isMany && s.extendedMetaData != nil && s.extendedMetaData.GetFeatureKind(f) == "simple" {
 			return xsfkDataTypeContentSingle
+		}
+		// A kind="element" scalar attribute is a child element, as the decoder reads it.
+		if !isMany && s.extendedMetaData != nil && s.extendedMetaData.GetFeatureKind(f) == "element" {
+			return xsfkDataTypeElementSingle
 		}
 		if isMany {
 			return xsfkDataTypeMany

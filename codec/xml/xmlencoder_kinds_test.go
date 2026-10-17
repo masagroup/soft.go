@@ -141,3 +141,15 @@ func TestXMLEncoderKindSimpleContentIsElementText(t *testing.T) {
 	assert.Contains(t, encoded, ">en g/m3 &amp; more</notes>")
 	assert.Equal(t, "en g/m3 & more", reloaded.EGet(m.notes).(ecore.EList).Get(0).(ecore.EObject).EGet(m.noteText))
 }
+
+// A scalar attribute declared kind="element" is written as a child element.
+func TestXMLEncoderKindElementAttributeIsAChildElement(t *testing.T) {
+	m := newKindsModel()
+	root := m.pkg.GetEFactoryInstance().Create(m.root)
+	root.ESet(m.category, "ANT & co")
+
+	encoded, reloaded := m.roundTrip(t, root)
+	assert.Contains(t, encoded, "<category>ANT &amp; co</category>")
+	assert.NotContains(t, encoded, ` category="`)
+	assert.Equal(t, "ANT & co", reloaded.EGet(m.category))
+}

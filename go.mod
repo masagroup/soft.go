@@ -3,7 +3,6 @@ module github.com/masagroup/soft.go
 go 1.27.0
 
 require (
-	github.com/KarpelesLab/weak v0.1.1
 	github.com/SokaDance/rmx v1.0.2
 	github.com/chebyrash/promise v0.0.0-20260915144232-ce593674804a
 	github.com/davecgh/go-spew v1.1.1

@@ -10,6 +10,7 @@
 package ecore
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,4 +28,33 @@ func TestResoureCodecRegistrySingletonGetCodec(t *testing.T) {
 	r := GetCodecRegistry()
 	assert.NotNil(t, r.GetCodec(NewURI("*.xml")))
 	assert.NotNil(t, r.GetCodec(NewURI("*.ecore")))
+}
+
+// Concurrent first callers must all get the one registry, built once.
+func TestGetCodecRegistryConcurrentInitialization(t *testing.T) {
+	previous := resourceCodecRegistryInstance
+	t.Cleanup(func() {
+		resourceCodecRegistryInstance = previous
+		resourceCodecRegistryOnce = sync.Once{}
+		resourceCodecRegistryOnce.Do(func() {})
+	})
+	resourceCodecRegistryInstance = nil
+	resourceCodecRegistryOnce = sync.Once{}
+	registries := make(chan ECodecRegistry, 100)
+	var group sync.WaitGroup
+	for range cap(registries) {
+		group.Add(1)
+		go func() {
+			defer group.Done()
+			registries <- GetCodecRegistry()
+		}()
+	}
+	group.Wait()
+	close(registries)
+
+	want := <-registries
+	assert.NotNil(t, want)
+	for registry := range registries {
+		assert.Same(t, want, registry)
+	}
 }

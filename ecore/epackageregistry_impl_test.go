@@ -10,6 +10,7 @@
 package ecore
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -106,5 +107,34 @@ func TestMockEPackageRegistryImpl_GetFactory(t *testing.T) {
 		delegate.EXPECT().GetFactory("uri").Return(f).Once()
 		assert.Equal(t, f, rp.GetFactory("uri"))
 		mock.AssertExpectationsForObjects(t, p, delegate)
+	}
+}
+
+// Concurrent first callers must all get the one registry, built once.
+func TestGetPackageRegistryConcurrentInitialization(t *testing.T) {
+	previous := packageRegistryInstance
+	t.Cleanup(func() {
+		packageRegistryInstance = previous
+		packageRegistryOnce = sync.Once{}
+		packageRegistryOnce.Do(func() {})
+	})
+	packageRegistryInstance = nil
+	packageRegistryOnce = sync.Once{}
+	registries := make(chan EPackageRegistry, 100)
+	var group sync.WaitGroup
+	for range cap(registries) {
+		group.Add(1)
+		go func() {
+			defer group.Done()
+			registries <- GetPackageRegistry()
+		}()
+	}
+	group.Wait()
+	close(registries)
+
+	want := <-registries
+	assert.NotNil(t, want)
+	for registry := range registries {
+		assert.Same(t, want, registry)
 	}
 }

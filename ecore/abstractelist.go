@@ -84,6 +84,12 @@ func (list *AbstractEList) Add(elem any) bool {
 	return true
 }
 
+// AddUnique appends elem without the duplicate scan Add performs on a unique list, as EMF's
+// addUnique does for a caller that knows elem is not there yet.
+func (list *AbstractEList) AddUnique(elem any) {
+	list.asInternal().DoAdd(elem)
+}
+
 func (list *AbstractEList) AddAll(collection Collection) bool {
 	if list.isUnique {
 		collection = list.getNonDuplicates(collection)

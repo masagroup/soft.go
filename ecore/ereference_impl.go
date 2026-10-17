@@ -76,8 +76,8 @@ func (e *EReferenceImpl) GetEOpposite() EReference {
 	if e.eOpposite != nil && e.eOpposite.EIsProxy() {
 		oldEOpposite := e.eOpposite
 		newEOpposite := e.EResolveProxy(oldEOpposite).(EReference)
-		e.eOpposite = newEOpposite
 		if newEOpposite != oldEOpposite {
+			e.eOpposite = newEOpposite
 			if e.ENotificationRequired() {
 				e.ENotify(NewNotificationByFeatureID(e, RESOLVE, EREFERENCE__EOPPOSITE, oldEOpposite, newEOpposite, NO_INDEX))
 			}

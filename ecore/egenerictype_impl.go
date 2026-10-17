@@ -75,8 +75,8 @@ func (e *EGenericTypeImpl) GetEClassifier() EClassifier {
 	if e.eClassifier != nil && e.eClassifier.EIsProxy() {
 		oldEClassifier := e.eClassifier
 		newEClassifier := e.EResolveProxy(oldEClassifier).(EClassifier)
-		e.eClassifier = newEClassifier
 		if newEClassifier != oldEClassifier {
+			e.eClassifier = newEClassifier
 			if e.ENotificationRequired() {
 				e.ENotify(NewNotificationByFeatureID(e, RESOLVE, EGENERIC_TYPE__ECLASSIFIER, oldEClassifier, newEClassifier, NO_INDEX))
 			}
@@ -140,8 +140,8 @@ func (e *EGenericTypeImpl) GetERawType() EClassifier {
 	if e.eRawType != nil && e.eRawType.EIsProxy() {
 		oldERawType := e.eRawType
 		newERawType := e.EResolveProxy(oldERawType).(EClassifier)
-		e.eRawType = newERawType
 		if newERawType != oldERawType {
+			e.eRawType = newERawType
 			if e.ENotificationRequired() {
 				e.ENotify(NewNotificationByFeatureID(e, RESOLVE, EGENERIC_TYPE__ERAW_TYPE, oldERawType, newERawType, NO_INDEX))
 			}

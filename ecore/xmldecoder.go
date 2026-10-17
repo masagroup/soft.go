@@ -436,10 +436,14 @@ func (l *XMLDecoder) handleFeature(space string, local string) {
 				}
 			}
 		} else {
+			// A placeholder, so endElement pops it and not a real ancestor.
+			l.types = append(l.types, load_error_type)
+			l.objects = append(l.objects, nil)
 			l.handleUnknownFeature(local)
 		}
 	} else {
 		l.types = append(l.types, load_error_type)
+		l.objects = append(l.objects, nil)
 		l.handleUnknownFeature(local)
 	}
 

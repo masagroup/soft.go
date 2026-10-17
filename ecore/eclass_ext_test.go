@@ -10,6 +10,8 @@
 package ecore
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -182,6 +184,49 @@ func TestEClassFeaturesGetFromName(t *testing.T) {
 	assert.Equal(t, eAttribute1, eClass.GetEStructuralFeatureFromName("MyAttribute1"))
 	assert.Equal(t, eAttribute2, eClass.GetEStructuralFeatureFromName("MyAttribute2"))
 	assert.Equal(t, nil, eClass.GetEStructuralFeatureFromName("MyAttributeUnknown"))
+}
+
+// Readers keep finding every feature while the class changes, and see a feature added meanwhile.
+func TestEClassFeaturesGetFromNameConcurrent(t *testing.T) {
+	eClass := newEClassExt()
+	eAttribute1 := newEAttributeExt()
+	eAttribute1.SetName("MyAttribute1")
+	eClass.GetEStructuralFeatures().Add(eAttribute1)
+	require.Equal(t, eAttribute1, eClass.GetEStructuralFeatureFromName("MyAttribute1"))
+
+	var group sync.WaitGroup
+	for range 8 {
+		group.Add(1)
+		go func() {
+			defer group.Done()
+			for range 1000 {
+				if eClass.GetEStructuralFeatureFromName("MyAttribute1") != eAttribute1 {
+					t.Error("an existing feature was not found")
+					return
+				}
+			}
+		}()
+	}
+	eAttribute2 := newEAttributeExt()
+	eAttribute2.SetName("MyAttribute2")
+	eClass.GetEStructuralFeatures().Add(eAttribute2)
+	group.Wait()
+	assert.Equal(t, eAttribute2, eClass.GetEStructuralFeatureFromName("MyAttribute2"))
+}
+
+func BenchmarkEClassGetEStructuralFeatureFromNameParallel(b *testing.B) {
+	eClass := newEClassExt()
+	for i := range 20 {
+		eAttribute := newEAttributeExt()
+		eAttribute.SetName(fmt.Sprintf("MyAttribute%d", i))
+		eClass.GetEStructuralFeatures().Add(eAttribute)
+	}
+	eClass.GetEStructuralFeatureFromName("MyAttribute0")
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			eClass.GetEStructuralFeatureFromName("MyAttribute10")
+		}
+	})
 }
 
 func TestEClassAttributeID(t *testing.T) {

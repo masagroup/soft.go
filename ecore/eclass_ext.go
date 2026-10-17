@@ -9,7 +9,10 @@
 
 package ecore
 
-import "sync"
+import (
+	"sync"
+	"sync/atomic"
+)
 
 // EClassExt is the extension of the model object 'EClass'
 type EClassExt struct {
@@ -19,6 +22,10 @@ type EClassExt struct {
 	operationToOverrideMap map[EOperation]EOperation
 	subClasses             []EClassInternal
 	mutex                  sync.Mutex
+
+	// nameToFeatureReady publishes the built name map for lock-free reads. The map is never
+	// mutated once built, and is unpublished under mutex wherever it can go stale.
+	nameToFeatureReady atomic.Pointer[map[string]EStructuralFeature]
 }
 
 type EClassInternal interface {
@@ -136,7 +143,14 @@ func (eClass *EClassExt) GetEStructuralFeature(featureID int) EStructuralFeature
 }
 
 func (eClass *EClassExt) GetEStructuralFeatureFromName(featureName string) EStructuralFeature {
+	if m := eClass.nameToFeatureReady.Load(); m != nil {
+		return (*m)[featureName]
+	}
 	eClass.initNameToFeatureMap()
+	if m := eClass.nameToFeatureReady.Load(); m != nil {
+		return (*m)[featureName]
+	}
+	// Invalidated between the build and the load: read under the lock.
 	eClass.mutex.Lock()
 	defer eClass.mutex.Unlock()
 	return eClass.nameToFeatureMap[featureName]
@@ -146,12 +160,17 @@ func (eClass *EClassExt) initNameToFeatureMap() {
 	eClass.initEAllStructuralFeatures()
 	eClass.mutex.Lock()
 	if eClass.nameToFeatureMap == nil {
-		eClass.nameToFeatureMap = make(map[string]EStructuralFeature)
+		nameToFeatureMap := make(map[string]EStructuralFeature)
 		for itFeature := eClass.eAllStructuralFeatures.Iterator(); itFeature.HasNext(); {
 			feature := itFeature.Next().(EStructuralFeature)
-			eClass.nameToFeatureMap[feature.GetName()] = feature
+			nameToFeatureMap[feature.GetName()] = feature
 		}
+		// Complete before it becomes reachable, so a lock-free reader never sees it partial.
+		eClass.nameToFeatureMap = nameToFeatureMap
 	}
+	// Publish a copy of the map header: the field itself is reassigned under the mutex.
+	published := eClass.nameToFeatureMap
+	eClass.nameToFeatureReady.Store(&published)
 	eClass.mutex.Unlock()
 }
 
@@ -384,6 +403,8 @@ func (eClass *EClassExt) initEAllStructuralFeatures() {
 		eClass.eCrossReferenceFeatures = nil
 		eClass.eContainmentFeatures = nil
 		eClass.nameToFeatureMap = nil
+		// The map is about to be rebuilt: stop lock-free reads of the old one.
+		eClass.nameToFeatureReady.Store(nil)
 
 		allFeatures := []any{}
 		for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
@@ -436,6 +457,8 @@ func (eClass *EClassExt) setSubClasses(subClasses []EClassInternal) {
 
 func (eClass *EClassExt) setModified(featureID int) {
 	eClass.mutex.Lock()
+	// Each case below discards a list the name map derives from.
+	eClass.nameToFeatureReady.Store(nil)
 	switch featureID {
 	case ECLASS__ESTRUCTURAL_FEATURES:
 		eClass.eAllAttributes = nil

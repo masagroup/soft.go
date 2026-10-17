@@ -343,6 +343,7 @@ type operation struct {
 	index        int
 	value        any
 	fn           func() (any, error)
+	abandoned    atomic.Bool     // the caller stopped waiting : a read not executed yet is skipped
 	ctx          context.Context // context of the caller, nil for background
 	commitBefore bool            // commit the transaction before the operation
 	flush        bool            // commit the transaction after the operation
@@ -472,7 +473,18 @@ type SQLStore struct {
 	dirtyGlobal         bool                         // the pending operations or the open transaction touch the roots or arbitrary tables
 	pending             map[objectFeature]*operation // last pending Set or UnSet by object and feature
 	errs                []error                      // errors of the operations since the last flush
+	failure             error                        // a transaction was lost : no operation is accepted anymore
 }
+
+// ErrSQLStoreFailed is the error of the operations of a store that lost a transaction (the
+// database aborted it or its commit failed) : the writes of the transaction, already accepted,
+// are not in the database and the ids the store registered for their objects are wrong, so the
+// store accepts no operation anymore. The database holds the transactions committed before.
+var ErrSQLStoreFailed = errors.New("sql store failed")
+
+// ErrSQLStoreOperationTimeout is the error of an operation not executed by the writer within
+// the operation timeout. A read is then not executed, a write is still executed
+var ErrSQLStoreOperationTimeout = errors.New("sql store operation timeout")
 
 func backupDB(dstConn, srcConn *sqlite.Conn) error {
 	backup, err := sqlite.NewBackup(dstConn, "main", srcConn, "main")
@@ -897,7 +909,8 @@ func mapSet[S ~map[E]struct{}, E comparable, R any](m S, mapper func(E) R) []R {
 }
 
 const (
-	// unlockOperationTimeout is the time an operation waits for the writer before a warning is logged
+	// unlockOperationTimeout is the time an operation waits for the writer before failing with
+	// ErrSQLStoreOperationTimeout
 	unlockOperationTimeout = 5 * time.Second
 	// defaultCommitMaxOperations is the number of operations after which the writer commits
 	// when the queue is never empty
@@ -918,7 +931,8 @@ func (s *SQLStore) WaitOperations(ctx context.Context, object any) error {
 }
 
 // Flush waits for all the pending operations to be executed and committed, and
-// returns the errors of the operations since the last flush
+// returns the errors of the operations since the last flush. Once the store has failed,
+// it returns ErrSQLStoreFailed
 func (s *SQLStore) Flush(ctx context.Context) error {
 	if goid.Get() == s.writerGoid.Load() {
 		// from an operation being executed : the operations before it are executed
@@ -933,6 +947,23 @@ func (s *SQLStore) Flush(ctx context.Context) error {
 	}, withContext(ctx), withFlush(), withWait())
 	_, err := s.execute(op)
 	return err
+}
+
+// Err returns ErrSQLStoreFailed, wrapping its cause, once the store has lost a transaction
+func (s *SQLStore) Err() error {
+	s.mutexWriter.Lock()
+	defer s.mutexWriter.Unlock()
+	return s.failure
+}
+
+// fail makes the store refuse every operation : the transaction is lost
+func (s *SQLStore) fail(cause error) {
+	s.mutexWriter.Lock()
+	if s.failure == nil {
+		s.failure = fmt.Errorf("%w: transaction lost: %w", ErrSQLStoreFailed, cause)
+	}
+	s.mutexWriter.Unlock()
+	s.loggerOperations.Error("store failed", zap.Error(cause))
 }
 
 // isTransactionOpen is true while the writer has a transaction open
@@ -970,9 +1001,14 @@ func (s *SQLStore) registerDirty(object EObject) {
 // enqueue gives an operation to the writer
 func (s *SQLStore) enqueue(op *operation) {
 	s.mutexWriter.Lock()
-	if s.closed {
+	if s.closed || s.failure != nil {
+		failure := s.failure
 		s.mutexWriter.Unlock()
-		op.err = errors.New("store is closed")
+		if failure != nil {
+			op.err = failure
+		} else {
+			op.err = errors.New("store is closed")
+		}
 		s.loggerOperations.Error("rejected", zap.Object("operation", &operationMarshaler{op: op}), zap.Error(op.err))
 		if op.done != nil {
 			close(op.done)
@@ -1022,13 +1058,12 @@ func (s *SQLStore) await(op *operation) (any, error) {
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	case <-timer.C:
-		s.loggerOperations.Warn("waiting", zap.Int64("goid", goid.Get()), zap.Object("operation", &operationMarshaler{op: op}), zap.Duration("timeout", s.timeoutOperation))
-	}
-	select {
-	case <-op.done:
-		return op.result, op.err
-	case <-ctx.Done():
-		return nil, ctx.Err()
+		// the caller may hold a lock the writer needs (a store list read while the writer
+		// encodes its owner) : it stops waiting and releases it. A read not executed yet is
+		// skipped, a write is executed anyway
+		op.abandoned.Store(true)
+		s.loggerOperations.Error("timeout", zap.Int64("goid", goid.Get()), zap.Object("operation", &operationMarshaler{op: op}), zap.Duration("timeout", s.timeoutOperation))
+		return nil, ErrSQLStoreOperationTimeout
 	}
 }
 
@@ -1040,7 +1075,7 @@ func (s *SQLStore) canReadConcurrently(op *operation) bool {
 	}
 	s.mutexWriter.Lock()
 	defer s.mutexWriter.Unlock()
-	if s.closed || s.dirtyGlobal {
+	if s.closed || s.failure != nil || s.dirtyGlobal {
 		return false
 	}
 	if op.object == nil {
@@ -1206,6 +1241,15 @@ func (s *SQLStore) executeOperation(op *operation) {
 		op.err = op.ctx.Err()
 		return
 	}
+	if op.type_ == operationRead && op.abandoned.Load() {
+		op.err = ErrSQLStoreOperationTimeout
+		return
+	}
+	if err := s.Err(); err != nil {
+		// enqueued before the failure
+		op.err = err
+		return
+	}
 	if op.commitBefore {
 		s.commit()
 	}
@@ -1239,13 +1283,14 @@ func (s *SQLStore) executeOperation(op *operation) {
 		s.addError(op.err)
 		// reset the statements left stepped by a panic
 		s.writerConn.SetInterrupt(nil)
-		// some errors roll the transaction back
+		// some errors roll the transaction back : its writes are lost
 		if s.txOpen && s.writerConn.AutocommitEnabled() {
 			s.loggerOperations.Error("transaction rolled back", zap.Object("operation", &operationMarshaler{op: op}), zap.Error(op.err))
 			s.mutexWriter.Lock()
 			s.txOpen = false
 			s.txOperations = 0
 			s.mutexWriter.Unlock()
+			s.fail(op.err)
 		}
 	}
 }
@@ -1286,6 +1331,7 @@ func (s *SQLStore) commit() {
 		if !s.writerConn.AutocommitEnabled() {
 			_ = sqlitex.ExecuteTransient(s.writerConn, "ROLLBACK;", nil)
 		}
+		s.fail(err)
 	} else if e := s.loggerOperations.Check(zap.DebugLevel, "commit"); e != nil {
 		e.Write(zap.Int("operations", s.txOperations), zap.Duration("duration", time.Since(s.txStart)))
 	}
@@ -2388,14 +2434,14 @@ func (s *SQLStore) ExecuteQuery(ctx context.Context, query string, opts *sqlitex
 	return err
 }
 
-// Close executes and commits the pending operations, and closes the connections
+// Close executes and commits the pending operations, and closes the connections.
+// It returns the errors of the operations since the last flush, ErrSQLStoreFailed if the
+// store has failed, and the errors of closing the connections
 func (s *SQLStore) Close() error {
 	if !s.isClosed.Swap(true) {
 		s.loggerOperations.Debug("Close", zap.Int64("goid", goid.Get()))
 
-		// error is an an operation error and is handled with the logger
-		// ignore it
-		_ = s.Flush(context.Background())
+		flushErr := s.Flush(context.Background())
 
 		// stop the writer once the operations enqueued meanwhile are executed
 		s.mutexWriter.Lock()
@@ -2407,16 +2453,16 @@ func (s *SQLStore) Close() error {
 		}
 		<-s.writerDone
 
+		// the last commit of the writer may have failed the store
+		if failure := s.Err(); failure != nil && !errors.Is(flushErr, ErrSQLStoreFailed) {
+			flushErr = errors.Join(flushErr, failure)
+		}
+
 		// close the writer connection first : in memory mode, it backs the database up
-		if err := s.writerConnClose(s.writerConn); err != nil {
-			return err
-		}
-
-		if err := s.connPoolClose(s.connPool); err != nil {
-			return err
-		}
-
+		writerErr := s.writerConnClose(s.writerConn)
+		poolErr := s.connPoolClose(s.connPool)
 		s.antsPool.Release()
+		return errors.Join(flushErr, writerErr, poolErr)
 	}
 	return nil
 }

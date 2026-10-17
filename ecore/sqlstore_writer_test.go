@@ -444,9 +444,9 @@ func TestSQLStore_Writer_CommitMaxDuration(t *testing.T) {
 
 func TestSQLStore_Writer_ErrorRollsTransactionBack(t *testing.T) {
 	s, dbPath, eClass, eFeature := newWriterTestStore(t, nil)
-	defer s.Close()
 	lendable6 := newLendable(t, eClass, 6)
 	lendable7 := newLendable(t, eClass, 7)
+	copies7 := countCopies(t, dbPath, 7)
 
 	// a write, then an error rolling the transaction back, then a write
 	release := blockWriter(t, s)
@@ -460,14 +460,79 @@ func TestSQLStore_Writer_ErrorRollsTransactionBack(t *testing.T) {
 	release()
 
 	require.ErrorContains(t, <-errCh, "constraint")
-	require.Error(t, s.WaitOperations(context.Background(), nil))
+	err := s.WaitOperations(context.Background(), nil)
+	require.ErrorIs(t, err, ErrSQLStoreFailed)
+	require.ErrorContains(t, err, "constraint")
 	require.False(t, s.isTransactionOpen())
 
-	// the write before the error is lost with the transaction
+	// the write before the error is lost with the transaction : the store has failed
+	require.ErrorIs(t, s.Err(), ErrSQLStoreFailed)
 	require.Equal(t, 4, countCopies(t, dbPath, 6))
-	require.Equal(t, 4, s.Get(lendable6, eFeature, -1))
-	// the writer began a new transaction for the next write
-	require.Equal(t, 8, countCopies(t, dbPath, 7))
+	// the write after the error is not executed
+	require.Equal(t, copies7, countCopies(t, dbPath, 7))
+
+	// no operation is accepted anymore
+	require.Nil(t, s.Get(lendable6, eFeature, -1))
+	s.Set(lendable6, eFeature, -1, 10, false)
+	require.ErrorIs(t, s.WaitOperations(context.Background(), nil), ErrSQLStoreFailed)
+	require.Equal(t, 4, countCopies(t, dbPath, 6))
+	require.ErrorIs(t, s.ExecuteQuery(context.Background(), "UPDATE lendable SET copies=5 WHERE lendableID=6", nil), ErrSQLStoreFailed)
+	_, err = s.Serialize(context.Background()).Await(context.Background())
+	require.ErrorIs(t, err, ErrSQLStoreFailed)
+
+	// close reports the failure and closes the connections
+	require.ErrorIs(t, s.Close(), ErrSQLStoreFailed)
+	require.Equal(t, 4, countCopies(t, dbPath, 6))
+}
+
+// the ids registered by a lost transaction are wrong : the store fails instead of writing
+// references to objects that are not in the database
+func TestSQLStore_Writer_ErrorRollsTransactionBack_NewObjects(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+	libraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, libraryClass)
+	booksFeature := libraryClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, booksFeature)
+	bookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, bookClass)
+	titleFeature := bookClass.GetEStructuralFeatureFromName("title")
+	require.NotNil(t, titleFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.sqlite")
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	library := NewEStoreEObjectImpl(false)
+	library.SetEClass(libraryClass)
+	library.SetEStore(s)
+	s.AddRoot(library)
+	require.NoError(t, s.Flush(context.Background()))
+
+	// a new book encoded in a transaction rolled back by an error
+	book := NewEStoreEObjectImpl(false)
+	book.SetEClass(bookClass)
+	book.SetEStore(s)
+	release := blockWriter(t, s)
+	s.Add(library, booksFeature, 0, book)
+	go func() {
+		_ = s.ExecuteQuery(context.Background(), `INSERT OR ROLLBACK INTO ".objects" (objectID, classID) VALUES (1, 1)`, nil)
+	}()
+	require.Eventually(t, func() bool { return queueLen(s) == 2 }, time.Second, time.Millisecond)
+	release()
+	require.ErrorIs(t, s.Flush(context.Background()), ErrSQLStoreFailed)
+
+	// the book has an id but no row : the store refuses to write it
+	s.Set(book, titleFeature, -1, "title", false)
+	require.ErrorIs(t, s.Flush(context.Background()), ErrSQLStoreFailed)
+	require.ErrorIs(t, s.Close(), ErrSQLStoreFailed)
+
+	// the database holds the library without book
+	conn, err := sqlite.OpenConn(dbPath, sqlite.OpenReadOnly)
+	require.NoError(t, err)
+	defer conn.Close()
+	objects, err := sqlitex.ResultInt(conn.Prep(`SELECT count(*) FROM ".objects"`))
+	require.NoError(t, err)
+	require.Equal(t, 1, objects)
 }
 
 func TestSQLStore_Writer_BeginError(t *testing.T) {
@@ -523,15 +588,18 @@ func TestSQLStore_Writer_CommitError(t *testing.T) {
 	release()
 	require.NoError(t, <-errCh)
 
-	// the commit error is reported by the next wait, and the transaction is rolled back
-	require.ErrorContains(t, s.WaitOperations(context.Background(), nil), "FOREIGN KEY")
+	// the commit error is reported by the next wait, the transaction is rolled back and
+	// the store has failed
+	err = s.WaitOperations(context.Background(), nil)
+	require.ErrorIs(t, err, ErrSQLStoreFailed)
+	require.ErrorContains(t, err, "FOREIGN KEY")
 	require.False(t, s.isTransactionOpen())
 	require.Equal(t, 4, countCopies(t, dbPath, 6))
 
-	// the next write begins a transaction
+	// the next write is refused
 	s.Set(lendable, eFeature, -1, 10, false)
-	require.NoError(t, s.WaitOperations(context.Background(), nil))
-	require.Equal(t, 10, countCopies(t, dbPath, 6))
+	require.ErrorIs(t, s.WaitOperations(context.Background(), nil), ErrSQLStoreFailed)
+	require.Equal(t, 4, countCopies(t, dbPath, 6))
 }
 
 func TestSQLStore_Writer_OperationTimeout(t *testing.T) {
@@ -542,21 +610,77 @@ func TestSQLStore_Writer_OperationTimeout(t *testing.T) {
 	})
 	defer s.Close()
 
-	// the writer is blocked longer than the timeout : the wait is logged and goes on
+	// the writer is blocked longer than the timeout : the wait fails, the write is executed anyway
 	release := blockWriter(t, s)
-	time.AfterFunc(100*time.Millisecond, release)
-	require.NoError(t, s.ExecuteQuery(context.Background(), "UPDATE lendable SET copies=5 WHERE lendableID=6", nil))
+	require.ErrorIs(t, s.ExecuteQuery(context.Background(), "UPDATE lendable SET copies=5 WHERE lendableID=6", nil), ErrSQLStoreOperationTimeout)
+	require.Equal(t, 1, logs.FilterMessage("timeout").Len())
+	release()
 	require.NoError(t, s.WaitOperations(context.Background(), nil))
 	require.Equal(t, 5, countCopies(t, dbPath, 6))
-	require.Equal(t, 1, logs.FilterMessage("waiting").Len())
 
-	// a context done after the warning stops the wait
+	// a read timing out is not executed
+	release = blockWriter(t, s)
+	read := false
+	require.ErrorIs(t, s.ExecuteQuery(context.Background(), "SELECT copies FROM lendable WHERE lendableID=6", &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			read = true
+			return nil
+		},
+	}), ErrSQLStoreOperationTimeout)
+	require.Equal(t, 2, logs.FilterMessage("timeout").Len())
+	release()
+	require.NoError(t, s.WaitOperations(context.Background(), nil))
+	require.False(t, read)
+
+	// a context done before the timeout stops the wait
 	release = blockWriter(t, s)
 	defer release()
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Millisecond)
 	defer cancel()
 	require.ErrorIs(t, s.ExecuteQuery(ctx, "UPDATE lendable SET copies=6 WHERE lendableID=6", nil), context.DeadlineExceeded)
-	require.Equal(t, 2, logs.FilterMessage("waiting").Len())
+	require.Equal(t, 2, logs.FilterMessage("timeout").Len())
+}
+
+// a reader holds a store list while it waits for the writer, and the writer needs the list
+// to encode its owner : the reader times out and releases the list
+func TestSQLStore_Writer_OperationTimeout_ReaderHoldingList(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+	libraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, libraryClass)
+	booksFeature := libraryClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, booksFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.sqlite")
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, map[string]any{SQL_OPTION_OPERATION_TIMEOUT: 100 * time.Millisecond})
+	require.NoError(t, err)
+	defer s.Close()
+
+	// a new library : the writer encodes it, locking its books list
+	library := NewEStoreEObjectImpl(false)
+	library.SetEClass(libraryClass)
+	library.SetEStore(s)
+	books := library.EGet(booksFeature).(*EStoreList)
+
+	release := blockWriter(t, s)
+	s.AddRoot(library)
+
+	// a reader holds the books list while it waits for the writer, the library being dirty
+	read := make(chan struct{})
+	go func() {
+		defer close(read)
+		books.ToArray()
+	}()
+	time.Sleep(20 * time.Millisecond)
+	release()
+
+	select {
+	case <-read:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "the reader holding the list and the writer encoding its owner wait for each other")
+	}
+	require.NoError(t, s.Flush(context.Background()))
+	require.Len(t, s.GetRoots(), 1)
 }
 
 func TestSQLStore_Writer_ReadDirtyValueOrdered(t *testing.T) {
@@ -1149,7 +1273,7 @@ func TestSQLStore_Writer_FlushReportsCommitError(t *testing.T) {
 	require.Eventually(t, func() bool { return queueLen(s) == 3 }, time.Second, time.Millisecond)
 	release()
 	require.ErrorContains(t, <-flushErr, "FOREIGN KEY")
-	require.NoError(t, s.WaitOperations(context.Background(), nil))
+	require.ErrorIs(t, s.WaitOperations(context.Background(), nil), ErrSQLStoreFailed)
 	require.Equal(t, 4, countCopies(t, dbPath, 6))
 }
 

@@ -63,8 +63,8 @@ func (e *ETypedElementImpl) GetEType() EClassifier {
 	if e.eType != nil && e.eType.EIsProxy() {
 		oldEType := e.eType
 		newEType := e.EResolveProxy(oldEType).(EClassifier)
-		e.eType = newEType
 		if newEType != oldEType {
+			e.eType = newEType
 			if e.ENotificationRequired() {
 				e.ENotify(NewNotificationByFeatureID(e, RESOLVE, ETYPED_ELEMENT__ETYPE, oldEType, newEType, NO_INDEX))
 			}

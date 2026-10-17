@@ -170,43 +170,51 @@ func (o *CompactEStoreEObjectImpl) unsetCached(featureID int) {
 	o.cacheMask &= ^bit
 }
 
+// the store is read without holding the object : the store may wait for another goroutine
+// that needs the object, as the store writer encoding it
+
 func (o *CompactEStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
-
 	// 1. Cache hit
+	o.mutex.Lock()
 	result := o.getCached(dynamicFeatureID)
-
-	// 2. Cache miss
-	if result == nil {
-		shouldCache := false
-		feature := o.EClass().GetEStructuralFeature(dynamicFeatureID)
-		if !feature.IsTransient() {
-			if feature.IsMany() {
-				if IsMapType(feature) {
-					result = o.asInternal().CreateMap(feature, o.getStore())
-				} else {
-					result = o.asInternal().CreateList(feature, o.getStore())
-				}
-				shouldCache = true
-			} else if store := o.getStore(); store != nil {
-				result = store.Get(o.AsEObject(), feature, NO_INDEX)
-				shouldCache = true
-			}
-		} else if feature.IsMany() {
-			if IsMapType(feature) {
-				result = o.asInternal().CreateMap(feature, nil)
-			} else {
-				result = o.asInternal().CreateList(feature, nil)
-			}
-			shouldCache = true
-		}
-
-		if shouldCache && result != nil {
-			o.setCached(dynamicFeatureID, result)
-		}
+	o.mutex.Unlock()
+	if result != nil {
+		return result
 	}
 
+	// 2. Cache miss
+	shouldCache := false
+	feature := o.EClass().GetEStructuralFeature(dynamicFeatureID)
+	if !feature.IsTransient() {
+		if feature.IsMany() {
+			if IsMapType(feature) {
+				result = o.asInternal().CreateMap(feature, o.getStore())
+			} else {
+				result = o.asInternal().CreateList(feature, o.getStore())
+			}
+			shouldCache = true
+		} else if store := o.getStore(); store != nil {
+			result = store.Get(o.AsEObject(), feature, NO_INDEX)
+			shouldCache = true
+		}
+	} else if feature.IsMany() {
+		if IsMapType(feature) {
+			result = o.asInternal().CreateMap(feature, nil)
+		} else {
+			result = o.asInternal().CreateList(feature, nil)
+		}
+		shouldCache = true
+	}
+
+	if shouldCache && result != nil {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+		// unless set meanwhile
+		if current := o.getCached(dynamicFeatureID); current != nil {
+			return current
+		}
+		o.setCached(dynamicFeatureID, result)
+	}
 	return result
 }
 
@@ -227,9 +235,9 @@ func (o *CompactEStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) 
 
 func (o *CompactEStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 	o.mutex.Lock()
-	defer o.mutex.Unlock()
-
-	if o.getCached(dynamicFeatureID) != nil {
+	cached := o.getCached(dynamicFeatureID) != nil
+	o.mutex.Unlock()
+	if cached {
 		return true
 	}
 

@@ -1349,3 +1349,52 @@ func TestSQLStore_Writer_UnRegisterContents_ReaderHoldingObject(t *testing.T) {
 		require.Fail(t, "the reader holding the object and the writer unregistering it wait for each other")
 	}
 }
+
+// a reader holds an object while it waits for the writer : the writer must never need
+// the object, in particular to encode it when it is the value of a pending write
+func TestSQLStore_Writer_EncodeObject_ReaderHoldingObject(t *testing.T) {
+	ePackage := loadPackage("library.complex.ecore")
+	require.NotNil(t, ePackage)
+	libraryClass, _ := ePackage.GetEClassifier("Library").(EClass)
+	require.NotNil(t, libraryClass)
+	booksFeature := libraryClass.GetEStructuralFeatureFromName("books")
+	require.NotNil(t, booksFeature)
+	bookClass, _ := ePackage.GetEClassifier("Book").(EClass)
+	require.NotNil(t, bookClass)
+	titleFeature := bookClass.GetEStructuralFeatureFromName("title")
+	require.NotNil(t, titleFeature)
+
+	dbPath := filepath.Join(t.TempDir(), "library.sqlite")
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, nil, nil)
+	require.NoError(t, err)
+	defer s.Close()
+
+	library := NewEStoreEObjectImpl(false)
+	library.SetEClass(libraryClass)
+	library.SetEStore(s)
+
+	// a new store object without cache : its features are read from the store
+	book := NewEStoreEObjectImpl(false)
+	book.SetEClass(bookClass)
+	book.SetEStore(s)
+
+	// the writer is blocked, an addition of the book is pending : the writer encodes the book
+	release := blockWriter(t, s)
+	s.Add(library, booksFeature, 0, book)
+
+	// a reader holds the book while it waits for the writer, the book being dirty
+	read := make(chan struct{})
+	go func() {
+		defer close(read)
+		book.EGet(titleFeature)
+	}()
+	time.Sleep(20 * time.Millisecond)
+	release()
+
+	select {
+	case <-read:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "the reader holding the object and the writer encoding it wait for each other")
+	}
+	require.NoError(t, s.Flush(context.Background()))
+}

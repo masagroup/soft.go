@@ -14,11 +14,16 @@ type CompactEObjectContainer struct {
 	container EObject
 }
 
+// The feature id lives in the packed flags word, so this write takes the object mutex.
 func (o *CompactEObjectContainer) ESetInternalContainer(newContainer EObject, newContainerFeatureID int) {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
 	o.container = newContainer
 	o.flags = newContainerFeatureID<<16 | (o.flags & 0x00FF)
 }
 
 func (o *CompactEObjectContainer) EInternalContainer() EObject {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
 	return o.container
 }

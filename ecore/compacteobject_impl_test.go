@@ -10,9 +10,11 @@
 package ecore
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCompactEObjectConstructor(t *testing.T) {
@@ -205,4 +207,32 @@ func TestCompactEObject_ECrossReferences(t *testing.T) {
 	o.SetInterfaces(o)
 	o.Initialize()
 	assert.NotNil(t, o.ECrossReferences())
+}
+
+// A lazily built list and the proxy URI share one packed slot: concurrent first readers must
+// all get the same list, and never see the slot half promoted.
+func TestCompactEObject_ConcurrentFirstReads(t *testing.T) {
+	for range 200 {
+		o := &CompactEObjectImpl{}
+		o.Initialize()
+		uri := NewURI("other.xml#//target")
+		o.ESetProxyURI(uri)
+		adapters := make([]EList, 8)
+		var group sync.WaitGroup
+		for i := range adapters {
+			group.Add(2)
+			go func() {
+				defer group.Done()
+				adapters[i] = o.EAdapters()
+			}()
+			go func() {
+				defer group.Done()
+				assert.Same(t, uri, o.EProxyURI())
+			}()
+		}
+		group.Wait()
+		for _, list := range adapters {
+			require.Same(t, adapters[0], list)
+		}
+	}
 }

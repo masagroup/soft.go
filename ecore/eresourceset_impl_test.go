@@ -10,6 +10,7 @@
 package ecore
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -102,4 +103,29 @@ func TestEResourceSet_GetURIResourceMap(t *testing.T) {
 	mockURIResourceMap := map[*URI]EResource{}
 	rs.SetURIResourceMap(mockURIResourceMap)
 	assert.Equal(t, mockURIResourceMap, rs.GetURIResourceMap())
+}
+
+// Concurrent first readers of a resource set's lazily built registries must all get one instance.
+func TestEResourceSetImpl_ConcurrentLazyRegistries(t *testing.T) {
+	r := NewEResourceSetImpl()
+	type got struct {
+		packages  EPackageRegistry
+		codecs    ECodecRegistry
+		converter EURIConverter
+	}
+	results := make([]got, 8)
+	var group sync.WaitGroup
+	for i := range results {
+		group.Add(1)
+		go func() {
+			defer group.Done()
+			results[i] = got{r.GetPackageRegistry(), r.GetCodecRegistry(), r.GetURIConverter()}
+		}()
+	}
+	group.Wait()
+	for _, g := range results {
+		assert.Same(t, results[0].packages, g.packages)
+		assert.Same(t, results[0].codecs, g.codecs)
+		assert.Same(t, results[0].converter, g.converter)
+	}
 }

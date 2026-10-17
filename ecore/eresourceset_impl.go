@@ -40,6 +40,35 @@ func (l *resourcesList) InverseRemove(object any, notifications ENotificationCha
 	return notifications
 }
 
+func (l *resourcesList) DidAdd(index int, elem any) {
+	l.BasicENotifyingList.DidAdd(index, elem)
+	if eResource, _ := elem.(EResource); eResource != nil {
+		l.resourceSet.indexResource(eResource, eResource.GetURI())
+	}
+}
+
+func (l *resourcesList) DidRemove(index int, old any) {
+	l.BasicENotifyingList.DidRemove(index, old)
+	if eResource, _ := old.(EResource); eResource != nil {
+		l.resourceSet.unindexResource(eResource)
+	}
+}
+
+func (l *resourcesList) DidSet(index int, newElem any, oldElem any) {
+	l.BasicENotifyingList.DidSet(index, newElem, oldElem)
+	if eResource, _ := oldElem.(EResource); eResource != nil {
+		l.resourceSet.unindexResource(eResource)
+	}
+	if eResource, _ := newElem.(EResource); eResource != nil {
+		l.resourceSet.indexResource(eResource, eResource.GetURI())
+	}
+}
+
+func (l *resourcesList) DidClear(oldObjects []any) {
+	l.BasicENotifyingList.DidClear(oldObjects)
+	l.resourceSet.resourceIndex = nil
+}
+
 // EResourceSetImpl ...
 // lazyMutex guards the lazily built registries and URI converter, never a resource load.
 type EResourceSetImpl struct {
@@ -48,6 +77,7 @@ type EResourceSetImpl struct {
 	resources             EList
 	uriConverter          EURIConverter
 	uriResourceMap        map[*URI]EResource
+	resourceIndex         map[string]EResource
 	resourceCodecRegistry ECodecRegistry
 	packageRegistry       EPackageRegistry
 }
@@ -94,19 +124,15 @@ func (r *EResourceSetImpl) GetResource(uri *URI, loadOnDemand bool) EResource {
 		}
 	}
 
-	normalizedURI := r.GetURIConverter().Normalize(uri)
-	for it := r.resources.Iterator(); it.HasNext(); {
-		resource := it.Next().(EResource)
-		resourceURI := r.GetURIConverter().Normalize(resource.GetURI())
-		if resourceURI.Equals(normalizedURI) {
-			if loadOnDemand && !resource.IsLoaded() {
-				resource.Load()
-			}
-			if r.uriResourceMap != nil {
-				r.uriResourceMap[uri] = resource
-			}
-			return resource
+	resource := r.getIndexedResource(uri)
+	if resource != nil {
+		if loadOnDemand && !resource.IsLoaded() {
+			resource.Load()
 		}
+		if r.uriResourceMap != nil {
+			r.uriResourceMap[uri] = resource
+		}
+		return resource
 	}
 
 	if loadOnDemand {
@@ -123,6 +149,75 @@ func (r *EResourceSetImpl) GetResource(uri *URI, loadOnDemand bool) EResource {
 	return nil
 }
 
+// getIndexedResource returns the resource of the set whose uri, once normalized
+// by the uri converter, is uri normalized, or nil. The resources are indexed by
+// uri and by normalized uri, and the list of the resources is only scanned when
+// the index cannot answer.
+func (r *EResourceSetImpl) getIndexedResource(uri *URI) EResource {
+	// same uri : no normalization needed
+	if resource := r.resourceIndex[uri.String()]; resource != nil && uri.Equals(resource.GetURI()) {
+		return resource
+	}
+	uriConverter := r.GetURIConverter()
+	normalizedURI := uriConverter.Normalize(uri)
+	if resource := r.resourceIndex[normalizedURI.String()]; resource != nil {
+		// the uri map of the converter may have changed since the resource was indexed
+		if resourceURI := resource.GetURI(); resourceURI != nil && (resourceURI.Equals(uri) || uriConverter.Normalize(resourceURI).Equals(normalizedURI)) {
+			return resource
+		}
+	}
+	// a uri the index can not answer : scan the resources
+	for it := r.resources.Iterator(); it.HasNext(); {
+		resource := it.Next().(EResource)
+		if resourceURI := resource.GetURI(); resourceURI != nil && uriConverter.Normalize(resourceURI).Equals(normalizedURI) {
+			r.setIndexedResource(normalizedURI.String(), resource)
+			return resource
+		}
+	}
+	return nil
+}
+
+// indexResource registers resource, whose uri is uri, in the index of the
+// resources of the set, by uri and by normalized uri. The first resource
+// indexed for a uri is kept, as the first resource of the list is the one
+// GetResource returns.
+func (r *EResourceSetImpl) indexResource(resource EResource, uri *URI) {
+	if uri == nil {
+		return
+	}
+	if r.resourceIndex[uri.String()] == nil {
+		r.setIndexedResource(uri.String(), resource)
+	}
+	normalizedURI := r.GetURIConverter().Normalize(uri)
+	if r.resourceIndex[normalizedURI.String()] == nil {
+		r.setIndexedResource(normalizedURI.String(), resource)
+	}
+}
+
+func (r *EResourceSetImpl) setIndexedResource(key string, resource EResource) {
+	if r.resourceIndex == nil {
+		r.resourceIndex = map[string]EResource{}
+	}
+	r.resourceIndex[key] = resource
+}
+
+// unindexResource removes resource from the index of the resources of the set.
+// Another resource of the set with the same uri, if any, is indexed again by the
+// next GetResource that scans the list.
+func (r *EResourceSetImpl) unindexResource(resource EResource) {
+	for key, indexed := range r.resourceIndex {
+		if indexed == resource {
+			delete(r.resourceIndex, key)
+		}
+	}
+}
+
+// resourceURIChanged is called by a resource of the set when its uri changes.
+func (r *EResourceSetImpl) resourceURIChanged(resource EResource, newURI *URI) {
+	r.unindexResource(resource)
+	r.indexResource(resource, newURI)
+}
+
 func (r *EResourceSetImpl) CreateResource(uri *URI) EResource {
 	resource := NewEResourceImpl()
 	resource.SetURI(uri)
@@ -131,7 +226,10 @@ func (r *EResourceSetImpl) CreateResource(uri *URI) EResource {
 }
 
 func (r *EResourceSetImpl) GetEObject(uri *URI, loadOnDemand bool) EObject {
-	trim := uri.TrimFragment()
+	trim := uri
+	if uri.Fragment() != "" {
+		trim = uri.TrimFragment()
+	}
 	resource := r.GetResource(trim, loadOnDemand)
 	if resource != nil {
 		return resource.GetEObject(uri.Fragment())
@@ -152,6 +250,12 @@ func (r *EResourceSetImpl) SetURIConverter(uriConverter EURIConverter) {
 	r.lazyMutex.Lock()
 	defer r.lazyMutex.Unlock()
 	r.uriConverter = uriConverter
+	// the index is keyed by normalized uri : rebuild it with the new converter
+	r.resourceIndex = nil
+	for it := r.resources.Iterator(); it.HasNext(); {
+		resource := it.Next().(EResource)
+		r.indexResource(resource, resource.GetURI())
+	}
 }
 
 func (r *EResourceSetImpl) GetPackageRegistry() EPackageRegistry {

@@ -9,6 +9,8 @@
 
 package ecore
 
+import "sync"
+
 type EPackageRegistry interface {
 	PutPackage(nsURI string, pack EPackage)
 	PutSupplier(nsURI string, supplier func() EPackage)
@@ -21,12 +23,13 @@ type EPackageRegistry interface {
 	GetFactory(nsURI string) EFactory
 }
 
+var packageRegistryOnce sync.Once
 var packageRegistryInstance EPackageRegistry
 
 func GetPackageRegistry() EPackageRegistry {
-	if packageRegistryInstance == nil {
+	packageRegistryOnce.Do(func() {
 		packageRegistryInstance = NewEPackageRegistryImpl()
 		packageRegistryInstance.RegisterPackage(GetPackage())
-	}
+	})
 	return packageRegistryInstance
 }

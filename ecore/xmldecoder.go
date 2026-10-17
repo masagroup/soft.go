@@ -436,13 +436,27 @@ func (l *XMLDecoder) handleFeature(space string, local string) {
 				}
 			}
 		} else {
+			// A placeholder, so endElement pops it and not a real ancestor.
+			l.types = append(l.types, load_error_type)
+			l.objects = append(l.objects, nil)
 			l.handleUnknownFeature(local)
 		}
 	} else {
 		l.types = append(l.types, load_error_type)
+		l.objects = append(l.objects, nil)
 		l.handleUnknownFeature(local)
 	}
 
+}
+
+// appendLoaded adds a decoded value to a many-valued feature without the duplicate scan, which
+// made loading a long list quadratic. A list without AddUnique falls back to Add.
+func appendLoaded(eList EList, value any) {
+	if unique, ok := eList.(interface{ AddUnique(any) }); ok {
+		unique.AddUnique(value)
+	} else {
+		eList.Add(value)
+	}
 }
 
 func (l *XMLDecoder) setFeatureValue(eObject EObject,
@@ -452,24 +466,20 @@ func (l *XMLDecoder) setFeatureValue(eObject EObject,
 	kind := l.getLoadFeatureKind(eFeature)
 	switch kind {
 	case xlfkSingle:
-		eClassifier := eFeature.GetEType()
-		eDataType := eClassifier.(EDataType)
-		eFactory := eDataType.GetEPackage().GetEFactoryInstance()
+		eDataType := eFeature.GetEType().(EDataType)
 		if value == nil {
 			eObject.ESet(eFeature, nil)
-		} else {
+		} else if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
 			eObject.ESet(eFeature, eFactory.CreateFromString(eDataType, value.(string)))
 		}
 
 	case xlfkMany:
-		eClassifier := eFeature.GetEType()
-		eDataType := eClassifier.(EDataType)
-		eFactory := eDataType.GetEPackage().GetEFactoryInstance()
+		eDataType := eFeature.GetEType().(EDataType)
 		eList := eObject.EGetResolve(eFeature, false).(EList)
 		if position == -2 {
 		} else if value == nil {
 			eList.Add(nil)
-		} else {
+		} else if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
 			eList.Add(eFactory.CreateFromString(eDataType, value.(string)))
 		}
 	case xlfkManyAdd:
@@ -477,7 +487,7 @@ func (l *XMLDecoder) setFeatureValue(eObject EObject,
 	case xlfkManyMove:
 		eList := eObject.EGetResolve(eFeature, false).(EList)
 		if position == -1 {
-			eList.Add(value)
+			appendLoaded(eList, value)
 		} else if position == -2 {
 			eList.Clear()
 		} else if eObject == value {
@@ -488,13 +498,32 @@ func (l *XMLDecoder) setFeatureValue(eObject EObject,
 				eList.Move(position, index)
 			}
 		} else if kind == xlfkManyAdd {
-			eList.Add(value)
+			appendLoaded(eList, value)
 		} else {
 			eList.MoveObject(position, value)
 		}
 	default:
 		eObject.ESet(eFeature, value)
 	}
+}
+
+// factoryFor is the factory that builds values of eDataType, or nil once a load diagnostic
+// reports why: a data type contained by no package has no factory to reach.
+func (l *XMLDecoder) factoryFor(eFeature EStructuralFeature, eDataType EDataType) EFactory {
+	ePackage := eDataType.GetEPackage()
+	if ePackage == nil {
+		l.decodeError("Data type " + eDataType.GetName() + " of feature " + eFeature.GetName() + " belongs to no package")
+		return nil
+	}
+	eFactory := ePackage.GetEFactoryInstance()
+	if eFactory == nil {
+		l.decodeError("Package " + ePackage.GetNsURI() + " has no factory to build " + eDataType.GetName() + " for feature " + eFeature.GetName())
+	}
+	return eFactory
+}
+
+func (l *XMLDecoder) decodeError(message string) {
+	l.error(NewEDiagnosticImpl(message, l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
 }
 
 func (l *XMLDecoder) getLoadFeatureKind(eFeature EStructuralFeature) xmlLoadFeatureKind {

@@ -235,4 +235,60 @@ func TestCompactEObject_ConcurrentFirstReads(t *testing.T) {
 			require.Same(t, adapters[0], list)
 		}
 	}
+// EClassExt is a compact object : eAnnotations is a containment inherited from EModelElement,
+// EContents and EAllContents must visit it like BasicEObjectImpl does
+func TestCompactEObject_EContents_Inherited(t *testing.T) {
+	eClass := GetFactory().CreateEClass()
+	eAnnotation := GetFactory().CreateEAnnotation()
+	eClass.GetEAnnotations().Add(eAnnotation)
+	assert.Equal(t, []any{eAnnotation}, eClass.EContents().ToArray())
+
+	ePackage := GetFactory().CreateEPackage()
+	ePackage.GetEClassifiers().Add(eClass)
+	visited := []any{}
+	for it := ePackage.EAllContents(); it.HasNext(); {
+		visited = append(visited, it.Next())
+	}
+	assert.Equal(t, []any{ePackage.GetEFactoryInstance(), eClass, eAnnotation}, visited)
+}
+
+// EReferenceExt is a compact object : eType is a cross reference inherited from ETypedElement,
+// ECrossReferences must contain it so that ResolveAll resolves it
+func TestCompactEObject_ECrossReferences_Inherited(t *testing.T) {
+	eFactory := GetFactory()
+	eResourceSet := NewEResourceSetImpl()
+
+	// the referenced class in its own resource
+	eTargetPackage := eFactory.CreateEPackage()
+	eTargetPackage.SetName("target")
+	eTargetPackage.SetNsURI("http://target")
+	eTargetClass := eFactory.CreateEClass()
+	eTargetClass.SetName("Target")
+	eTargetPackage.GetEClassifiers().Add(eTargetClass)
+	eTargetResource := eResourceSet.CreateResource(NewURI("memory://target.ecore"))
+	eTargetResource.GetContents().Add(eTargetPackage)
+
+	// the referencing class with a proxy as eType in another resource
+	ePackage := eFactory.CreateEPackage()
+	ePackage.SetName("source")
+	ePackage.SetNsURI("http://source")
+	eClass := eFactory.CreateEClass()
+	eClass.SetName("Source")
+	ePackage.GetEClassifiers().Add(eClass)
+	eReference := eFactory.CreateEReference()
+	eReference.SetName("target")
+	eProxy := eFactory.CreateEClass()
+	eProxy.(EObjectInternal).ESetProxyURI(NewURI("memory://target.ecore#//Target"))
+	eReference.SetEType(eProxy)
+	eClass.GetEStructuralFeatures().Add(eReference)
+	eResource := eResourceSet.CreateResource(NewURI("memory://source.ecore"))
+	eResource.GetContents().Add(ePackage)
+
+	// the proxy is not resolved until the cross references are visited
+	eTypeFeature := GetPackage().GetETypedElement_EType()
+	assert.Equal(t, eProxy, eReference.EGetResolve(eTypeFeature, false))
+
+	ResolveAll(ePackage)
+	assert.Equal(t, eTargetClass, eReference.EGetResolve(eTypeFeature, false))
+	assert.True(t, eReference.ECrossReferences().Contains(eTargetClass))
 }

@@ -5,6 +5,7 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type EResourceInternal interface {
@@ -169,6 +170,11 @@ type EResourceImpl struct {
 	isLoaded        bool
 	isLoading       bool
 	listeners       EList
+
+	// idIndex maps intrinsic ids to objects when no EObjectIDManager is set: filled by a scan,
+	// kept on attach and detach, and rebuilt by the next scan when a lookup misses.
+	idMutex sync.Mutex
+	idIndex map[string]EObject
 }
 
 // NewBasicEObject is BasicEObject constructor
@@ -195,9 +201,17 @@ func (r *EResourceImpl) GetURI() *URI {
 	return r.uri
 }
 
+// resourceSetIndex is the resource set that indexes its resources by uri
+type resourceSetIndex interface {
+	resourceURIChanged(resource EResource, newURI *URI)
+}
+
 func (r *EResourceImpl) SetURI(uri *URI) {
 	oldURI := r.uri
 	r.uri = uri
+	if resourceSet, _ := r.resourceSet.(resourceSetIndex); resourceSet != nil {
+		resourceSet.resourceURIChanged(r.AsEResource(), uri)
+	}
 	if r.ENotificationRequired() {
 		r.ENotify(newResourceNotification(r.AsENotifier(), RESOURCE__URI, SET, oldURI, uri, -1))
 	}
@@ -312,14 +326,24 @@ func (r *EResourceImpl) getObjectByID(id string) EObject {
 	if r.objectIDManager != nil {
 		return r.objectIDManager.GetEObject(id)
 	}
+	r.idMutex.Lock()
+	defer r.idMutex.Unlock()
+	if eObject := r.idIndex[id]; eObject != nil && GetEObjectID(eObject) == id {
+		return eObject
+	}
+	// A miss or a stale entry: rescan, keeping the first object of the tree for each id. The
+	// walk does not resolve proxies, so it cannot re-enter this lock.
+	index := map[string]EObject{}
 	for it := r.getAllContentsResolve(r.GetInterfaces(), false); it.HasNext(); {
 		eObject := it.Next().(EObject)
-		objectID := GetEObjectID(eObject)
-		if id == objectID {
-			return eObject
+		if objectID := GetEObjectID(eObject); objectID != "" {
+			if _, known := index[objectID]; !known {
+				index[objectID] = eObject
+			}
 		}
 	}
-	return nil
+	r.idIndex = index
+	return index[id]
 }
 
 func (r *EResourceImpl) getObjectByPath(uriFragmentPath []string) EObject {
@@ -351,7 +375,7 @@ func (r *EResourceImpl) getObjectForRootSegment(rootSegment string) EObject {
 }
 
 func (r *EResourceImpl) IsAttachedDetachedRequired() bool {
-	return r.objectIDManager != nil || (r.listeners != nil && !r.listeners.Empty())
+	return r.objectIDManager != nil || r.hasIDIndex() || (r.listeners != nil && !r.listeners.Empty())
 }
 
 func (r *EResourceImpl) Attached(object EObject) {
@@ -369,6 +393,7 @@ func (r *EResourceImpl) DoAttached(object EObject) {
 	if r.objectIDManager != nil {
 		r.objectIDManager.Register(object)
 	}
+	r.indexAttached(object)
 	if r.listeners != nil {
 		for itListener := r.listeners.Iterator(); itListener.HasNext(); {
 			listener := itListener.Next().(EResourceListener)
@@ -392,6 +417,7 @@ func (r *EResourceImpl) DoDetached(object EObject) {
 	if r.objectIDManager != nil {
 		r.objectIDManager.UnRegister(object)
 	}
+	r.indexDetached(object)
 	if r.listeners != nil {
 		for itListener := r.listeners.Iterator(); itListener.HasNext(); {
 			listener := itListener.Next().(EResourceListener)
@@ -490,6 +516,37 @@ func (r *EResourceImpl) DoUnload() {
 	if r.objectIDManager != nil {
 		r.objectIDManager.Clear()
 	}
+	r.idMutex.Lock()
+	r.idIndex = nil
+	r.idMutex.Unlock()
+}
+
+func (r *EResourceImpl) indexAttached(object EObject) {
+	r.idMutex.Lock()
+	defer r.idMutex.Unlock()
+	if r.idIndex != nil {
+		if id := GetEObjectID(object); id != "" {
+			if _, known := r.idIndex[id]; !known {
+				r.idIndex[id] = object
+			}
+		}
+	}
+}
+
+func (r *EResourceImpl) indexDetached(object EObject) {
+	r.idMutex.Lock()
+	defer r.idMutex.Unlock()
+	if r.idIndex != nil {
+		if id := GetEObjectID(object); id != "" && r.idIndex[id] == object {
+			delete(r.idIndex, id)
+		}
+	}
+}
+
+func (r *EResourceImpl) hasIDIndex() bool {
+	r.idMutex.Lock()
+	defer r.idMutex.Unlock()
+	return r.idIndex != nil
 }
 
 func (r *EResourceImpl) IsLoaded() bool {

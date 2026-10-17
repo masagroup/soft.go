@@ -10,6 +10,8 @@
 package ecore
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -184,6 +186,49 @@ func TestEClassFeaturesGetFromName(t *testing.T) {
 	assert.Equal(t, nil, eClass.GetEStructuralFeatureFromName("MyAttributeUnknown"))
 }
 
+// Readers keep finding every feature while the class changes, and see a feature added meanwhile.
+func TestEClassFeaturesGetFromNameConcurrent(t *testing.T) {
+	eClass := newEClassExt()
+	eAttribute1 := newEAttributeExt()
+	eAttribute1.SetName("MyAttribute1")
+	eClass.GetEStructuralFeatures().Add(eAttribute1)
+	require.Equal(t, eAttribute1, eClass.GetEStructuralFeatureFromName("MyAttribute1"))
+
+	var group sync.WaitGroup
+	for range 8 {
+		group.Add(1)
+		go func() {
+			defer group.Done()
+			for range 1000 {
+				if eClass.GetEStructuralFeatureFromName("MyAttribute1") != eAttribute1 {
+					t.Error("an existing feature was not found")
+					return
+				}
+			}
+		}()
+	}
+	eAttribute2 := newEAttributeExt()
+	eAttribute2.SetName("MyAttribute2")
+	eClass.GetEStructuralFeatures().Add(eAttribute2)
+	group.Wait()
+	assert.Equal(t, eAttribute2, eClass.GetEStructuralFeatureFromName("MyAttribute2"))
+}
+
+func BenchmarkEClassGetEStructuralFeatureFromNameParallel(b *testing.B) {
+	eClass := newEClassExt()
+	for i := range 20 {
+		eAttribute := newEAttributeExt()
+		eAttribute.SetName(fmt.Sprintf("MyAttribute%d", i))
+		eClass.GetEStructuralFeatures().Add(eAttribute)
+	}
+	eClass.GetEStructuralFeatureFromName("MyAttribute0")
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			eClass.GetEStructuralFeatureFromName("MyAttribute10")
+		}
+	})
+}
+
 func TestEClassAttributeID(t *testing.T) {
 	eClass := newEClassExt()
 	eAttribute := newEAttributeExt()
@@ -340,4 +385,78 @@ func TestEClass_GetOperationID(t *testing.T) {
 	mockOperation := NewMockEOperation(t)
 	mockOperation.EXPECT().GetOperationID().Return(-1).Once()
 	require.Equal(t, -1, eClass.GetOperationID(mockOperation))
+}
+
+func TestEClassContainmentsInherited(t *testing.T) {
+	eSuperClass := newEClassExt()
+	// containment ref of the super class
+	eSuperContainment := newEReferenceExt()
+	eSuperContainment.SetContainment(true)
+	// cross ref of the super class
+	eSuperCrossRef := newEReferenceExt()
+	// container ref of the super class : neither containment nor cross reference
+	eSuperContainer := newEReferenceExt()
+	eSuperContainment.SetEOpposite(eSuperContainer)
+	eSuperContainer.SetEOpposite(eSuperContainment)
+	eSuperClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{eSuperContainment, eSuperCrossRef, eSuperContainer}))
+
+	eClass := newEClassExt()
+	eClass.GetESuperTypes().Add(eSuperClass)
+	eContainment := newEReferenceExt()
+	eContainment.SetContainment(true)
+	eCrossRef := newEReferenceExt()
+	eClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{eCrossRef, eContainment}))
+
+	// like EMF , the subsets are computed from all structural features , inherited ones included
+	assert.Equal(t, []any{eSuperContainment, eContainment}, eClass.GetEContainmentFeatures().ToArray())
+	assert.Equal(t, []any{eSuperCrossRef, eCrossRef}, eClass.GetECrossReferenceFeatures().ToArray())
+	assert.Equal(t, []any{eSuperContainment}, eSuperClass.GetEContainmentFeatures().ToArray())
+	assert.Equal(t, []any{eSuperCrossRef}, eSuperClass.GetECrossReferenceFeatures().ToArray())
+	// the subsets are consistent with the all lists
+	assert.Equal(t, eClass.GetEAllContainments().ToArray(), eClass.GetEContainmentFeatures().ToArray())
+	assert.Equal(t, eClass.GetEAllCrossReferences().ToArray(), eClass.GetECrossReferenceFeatures().ToArray())
+}
+
+func TestEClassContainmentsInvalidation(t *testing.T) {
+	eSuperClass := newEClassExt()
+	eSuperContainment := newEReferenceExt()
+	eSuperContainment.SetContainment(true)
+	eSuperCrossRef := newEReferenceExt()
+	eSuperClass.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{eSuperContainment, eSuperCrossRef}))
+
+	eClass := newEClassExt()
+	eContainment := newEReferenceExt()
+	eContainment.SetContainment(true)
+	eClass.GetEStructuralFeatures().Add(eContainment)
+
+	// compute the subsets before the super type is set
+	assert.Equal(t, []any{eContainment}, eClass.GetEContainmentFeatures().ToArray())
+	assert.Equal(t, []any{}, eClass.GetECrossReferenceFeatures().ToArray())
+	assert.Equal(t, []any{}, eClass.GetEAllCrossReferences().ToArray())
+
+	// add the super type : caches must be invalidated
+	eClass.GetESuperTypes().Add(eSuperClass)
+	assert.Equal(t, []any{eSuperContainment, eContainment}, eClass.GetEContainmentFeatures().ToArray())
+	assert.Equal(t, []any{eSuperCrossRef}, eClass.GetECrossReferenceFeatures().ToArray())
+	assert.Equal(t, []any{eSuperContainment, eContainment}, eClass.GetEAllContainments().ToArray())
+	assert.Equal(t, []any{eSuperCrossRef}, eClass.GetEAllCrossReferences().ToArray())
+
+	// add a feature to the super type : sub class caches must be invalidated
+	eOtherSuperCrossRef := newEReferenceExt()
+	eSuperClass.GetEStructuralFeatures().Add(eOtherSuperCrossRef)
+	assert.Equal(t, []any{eSuperCrossRef, eOtherSuperCrossRef}, eClass.GetECrossReferenceFeatures().ToArray())
+	assert.Equal(t, []any{eSuperCrossRef, eOtherSuperCrossRef}, eClass.GetEAllCrossReferences().ToArray())
+
+	// add a cross reference to the class itself
+	eCrossRef := newEReferenceExt()
+	eClass.GetEStructuralFeatures().Add(eCrossRef)
+	assert.Equal(t, []any{eSuperCrossRef, eOtherSuperCrossRef, eCrossRef}, eClass.GetECrossReferenceFeatures().ToArray())
+	assert.Equal(t, []any{eSuperCrossRef, eOtherSuperCrossRef, eCrossRef}, eClass.GetEAllCrossReferences().ToArray())
+
+	// remove the super type
+	eClass.GetESuperTypes().Remove(eSuperClass)
+	assert.Equal(t, []any{eContainment}, eClass.GetEContainmentFeatures().ToArray())
+	assert.Equal(t, []any{eCrossRef}, eClass.GetECrossReferenceFeatures().ToArray())
+	assert.Equal(t, []any{eContainment}, eClass.GetEAllContainments().ToArray())
+	assert.Equal(t, []any{eCrossRef}, eClass.GetEAllCrossReferences().ToArray())
 }

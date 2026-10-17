@@ -12,6 +12,7 @@ package ecore
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -124,6 +125,10 @@ func TestSerializationTree(t *testing.T) {
 	f := newNodeFactory(ePackage)
 	eNode := f.newNode("0", 5)
 
+	xmlPath := filepath.Join(t.TempDir(), "tree.xml")
 	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
-	xmlProcessor.SaveObject(NewURI("testdata/tree.xml"), eNode)
+	eResource := xmlProcessor.SaveObject(CreateFileURI(xmlPath), eNode)
+	require.NotNil(t, eResource)
+	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
+	assert.FileExists(t, xmlPath)
 }

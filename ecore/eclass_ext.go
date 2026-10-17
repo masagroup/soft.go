@@ -239,9 +239,11 @@ func (eClass *EClassExt) initFeaturesSubSet() {
 	eClass.initEAllStructuralFeatures()
 	eClass.mutex.Lock()
 	if eClass.eContainmentFeatures == nil {
+		// like EMF , the subsets are computed from all structural features ( inherited ones included )
+		// so that EContents & ECrossReferences of an object visit the features of its super classes
 		containments := []any{}
 		crossReferences := []any{}
-		for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
+		for itFeature := eClass.eAllStructuralFeatures.Iterator(); itFeature.HasNext(); {
 			ref, isRef := itFeature.Next().(EReference)
 			if isRef {
 				if ref.IsContainment() {
@@ -442,17 +444,21 @@ func (eClass *EClassExt) setModified(featureID int) {
 		eClass.eAllStructuralFeatures = nil
 		eClass.eAllReferences = nil
 		eClass.eAllContainments = nil
+		eClass.eAllCrossReferences = nil
 	case ECLASS__EATTRIBUTES:
 		eClass.eAllAttributes = nil
 		eClass.eAllStructuralFeatures = nil
 		eClass.eAllContainments = nil
+		eClass.eAllCrossReferences = nil
 	case ECLASS__EREFERENCES:
 		eClass.eAllReferences = nil
 		eClass.eAllStructuralFeatures = nil
 		eClass.eAllContainments = nil
+		eClass.eAllCrossReferences = nil
 	case ECLASS__EOPERATIONS:
 		eClass.eAllOperations = nil
 		eClass.eAllContainments = nil
+		eClass.eAllCrossReferences = nil
 	case ECLASS__ESUPER_TYPES:
 		eClass.eAllSuperTypes = nil
 		eClass.eAllAttributes = nil
@@ -460,6 +466,7 @@ func (eClass *EClassExt) setModified(featureID int) {
 		eClass.eAllStructuralFeatures = nil
 		eClass.eAllReferences = nil
 		eClass.eAllContainments = nil
+		eClass.eAllCrossReferences = nil
 	}
 	for _, s := range eClass.subClasses {
 		s.setModified(featureID)

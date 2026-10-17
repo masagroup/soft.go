@@ -195,9 +195,17 @@ func (r *EResourceImpl) GetURI() *URI {
 	return r.uri
 }
 
+// resourceSetIndex is the resource set that indexes its resources by uri
+type resourceSetIndex interface {
+	resourceURIChanged(resource EResource, newURI *URI)
+}
+
 func (r *EResourceImpl) SetURI(uri *URI) {
 	oldURI := r.uri
 	r.uri = uri
+	if resourceSet, _ := r.resourceSet.(resourceSetIndex); resourceSet != nil {
+		resourceSet.resourceURIChanged(r.AsEResource(), uri)
+	}
 	if r.ENotificationRequired() {
 		r.ENotify(newResourceNotification(r.AsENotifier(), RESOURCE__URI, SET, oldURI, uri, -1))
 	}

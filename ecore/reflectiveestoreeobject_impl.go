@@ -56,45 +56,54 @@ func (o *ReflectiveEStoreEObjectImpl) Unlock() {
 	o.mutex.Unlock()
 }
 
-func (o *ReflectiveEStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
+// the store is read without holding the object : the store may wait for another goroutine
+// that needs the object, as the store writer encoding it
 
+func (o *ReflectiveEStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 	// 1. Cache hit
-	var result any
+	o.mutex.Lock()
 	if o.properties != nil {
-		result = o.properties[dynamicFeatureID]
+		if result := o.properties[dynamicFeatureID]; result != nil {
+			o.mutex.Unlock()
+			return result
+		}
 	}
+	o.mutex.Unlock()
 
 	// 2. Cache miss
-	if result == nil {
-		var properties []any
-		if feature := o.eDynamicFeature(dynamicFeatureID); !feature.IsTransient() {
-			if feature.IsMany() {
-				if IsMapType(feature) {
-					result = o.createMap(feature, o.getStore())
-				} else {
-					result = o.createList(feature, o.getStore())
-				}
-				properties = o.getProperties()
-			} else if store := o.getStore(); store != nil {
-				result = store.Get(o.AsEObject(), feature, NO_INDEX)
-				properties = o.getProperties()
-			}
-		} else if feature.IsMany() {
+	var result any
+	cache := false
+	if feature := o.eDynamicFeature(dynamicFeatureID); !feature.IsTransient() {
+		if feature.IsMany() {
 			if IsMapType(feature) {
-				result = o.createMap(feature, nil)
+				result = o.createMap(feature, o.getStore())
 			} else {
-				result = o.createList(feature, nil)
+				result = o.createList(feature, o.getStore())
 			}
-			properties = o.getProperties()
+			cache = true
+		} else if store := o.getStore(); store != nil {
+			result = store.Get(o.AsEObject(), feature, NO_INDEX)
+			cache = true
 		}
-
-		if properties != nil {
-			properties[dynamicFeatureID] = result
+	} else if feature.IsMany() {
+		if IsMapType(feature) {
+			result = o.createMap(feature, nil)
+		} else {
+			result = o.createList(feature, nil)
 		}
+		cache = true
 	}
 
+	if cache {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+		properties := o.getProperties()
+		// unless set meanwhile
+		if current := properties[dynamicFeatureID]; current != nil {
+			return current
+		}
+		properties[dynamicFeatureID] = result
+	}
 	return result
 }
 
@@ -115,9 +124,9 @@ func (o *ReflectiveEStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value an
 
 func (o *ReflectiveEStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 	o.mutex.Lock()
-	defer o.mutex.Unlock()
-
-	if o.properties != nil && o.properties[dynamicFeatureID] != nil {
+	cached := o.properties != nil && o.properties[dynamicFeatureID] != nil
+	o.mutex.Unlock()
+	if cached {
 		return true
 	}
 

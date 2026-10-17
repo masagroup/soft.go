@@ -237,11 +237,13 @@ func (eClass *EClassExt) initECrossReferenceFeatures() {
 
 func (eClass *EClassExt) initFeaturesSubSet() {
 	eClass.initEAllStructuralFeatures()
+	// Own and inherited features, read before the lock since the getter takes it.
+	allFeatures := eClass.GetEAllStructuralFeatures()
 	eClass.mutex.Lock()
 	if eClass.eContainmentFeatures == nil {
 		containments := []any{}
 		crossReferences := []any{}
-		for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
+		for itFeature := allFeatures.Iterator(); itFeature.HasNext(); {
 			ref, isRef := itFeature.Next().(EReference)
 			if isRef {
 				if ref.IsContainment() {

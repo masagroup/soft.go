@@ -9,14 +9,8 @@
 
 package ecore
 
-import "sync"
-
 // AbstractEAdapter is a abstract implementation of EAdapter interface
 type AbstractEAdapter struct {
-	// mutex guards target: one adapter is attached to many notifiers, so concurrent
-	// loads write this field from several goroutines. Never held across an attach
-	// walk, which re-enters SetTarget for every child.
-	mutex  sync.Mutex
 	target ENotifier
 }
 
@@ -26,23 +20,16 @@ func NewAbstractAdapter() *AbstractEAdapter {
 
 // GetTarget Returns the target from which the AbstractEAdapter receives notification.
 func (a *AbstractEAdapter) GetTarget() ENotifier {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
 	return a.target
 }
 
 // SetTarget Sets the target from which the AbstractEAdapter will receive notification.
 func (a *AbstractEAdapter) SetTarget(notifier ENotifier) {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
 	a.target = notifier
 }
 
 func (a *AbstractEAdapter) UnSetTarget(notifier ENotifier) {
-	// Compare and clear under one acquisition; SetTarget would re-enter the lock.
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
 	if notifier == a.target {
-		a.target = nil
+		a.SetTarget(nil)
 	}
 }

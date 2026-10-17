@@ -12,7 +12,6 @@ package ecore
 // EReferenceExt is the extension of the model object 'EReference'
 type EReferenceExt struct {
 	EReferenceImpl
-	eReferenceType EClass
 }
 
 func newEReferenceExt() *EReferenceExt {
@@ -28,23 +27,11 @@ func (eReference *EReferenceExt) IsContainer() bool {
 }
 
 func (eReference *EReferenceExt) GetEReferenceType() EClass {
-	if eReference.eReferenceType == nil || eReference.eReferenceType.EIsProxy() {
-		eType := eReference.GetEType()
-		eReferenceType, _ := eType.(EClass)
-		if eReferenceType != nil {
-			eReference.eReferenceType = eReferenceType
-		}
-	}
-	return eReference.eReferenceType
+	eReferenceType, _ := eReference.GetEType().(EClass)
+	return eReferenceType
 }
 
 func (eReference *EReferenceExt) basicGetEReferenceType() EClass {
-	if eReference.eReferenceType == nil {
-		eType := eReference.basicGetEType()
-		eReferenceType, _ := eType.(EClass)
-		if eReferenceType != nil {
-			eReference.eReferenceType = eReferenceType
-		}
-	}
-	return eReference.eReferenceType
+	eReferenceType, _ := eReference.basicGetEType().(EClass)
+	return eReferenceType
 }

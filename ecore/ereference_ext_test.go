@@ -10,6 +10,7 @@
 package ecore
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,4 +32,20 @@ func TestEReferenceExt_basicGetEReferenceType(t *testing.T) {
 	r.SetEType(mockType)
 	assert.Equal(t, mockType, r.basicGetEReferenceType())
 	mock.AssertExpectationsForObjects(t, mockType)
+}
+
+func TestEReferenceExt_GetEReferenceTypeConcurrent(t *testing.T) {
+	r := newEReferenceExt()
+	want := newEClassExt()
+	r.SetEType(want)
+
+	var group sync.WaitGroup
+	for range 100 {
+		group.Add(1)
+		go func() {
+			defer group.Done()
+			assert.Same(t, want, r.GetEReferenceType())
+		}()
+	}
+	group.Wait()
 }

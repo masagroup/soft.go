@@ -12,9 +12,10 @@ package ecore
 import (
 	"net/url"
 	"path/filepath"
+	"runtime"
 	"strings"
-
-	"github.com/KarpelesLab/weak"
+	"sync"
+	"weak"
 )
 
 type URIBuilder struct {
@@ -130,13 +131,39 @@ const (
 	fragmentComponent
 )
 
-var uriCache *weak.Map[string, URI]
+// uriWeakCache shares one *URI per raw uri without keeping it alive:
+// an entry is removed once its uri has been garbage collected
+type uriWeakCache struct {
+	m sync.Map // string -> weak.Pointer[URI]
+}
 
-func getURICache() *weak.Map[string, URI] {
-	if uriCache == nil {
-		uriCache = weak.NewMap[string, URI]()
+var uriCache uriWeakCache
+
+func (c *uriWeakCache) Get(rawURI string) *URI {
+	if p, ok := c.m.Load(rawURI); ok {
+		return p.(weak.Pointer[URI]).Value()
 	}
-	return uriCache
+	return nil
+}
+
+// GetOrSet registers uri for rawURI and returns it, unless a live uri is already
+// registered for rawURI, in which case that one is returned
+func (c *uriWeakCache) GetOrSet(rawURI string, uri *URI) *URI {
+	p := weak.Make(uri)
+	for {
+		actual, loaded := c.m.LoadOrStore(rawURI, p)
+		if loaded {
+			if existing := actual.(weak.Pointer[URI]).Value(); existing != nil {
+				return existing
+			}
+			// entry of a collected uri whose cleanup hasn't run yet
+			if !c.m.CompareAndSwap(rawURI, actual, p) {
+				continue
+			}
+		}
+		runtime.AddCleanup(uri, func(rawURI string) { c.m.CompareAndDelete(rawURI, p) }, rawURI)
+		return uri
+	}
 }
 
 func NewURIFromComponents(scheme string, username string, password string, host string, port string, path string, query string, fragment string) *URI {
@@ -179,8 +206,7 @@ func NewURIFromComponents(scheme string, username string, password string, host 
 	rawURI := s.String()
 
 	// retrieve uri from cache
-	cache := getURICache()
-	uri := cache.Get(rawURI)
+	uri := uriCache.Get(rawURI)
 	if uri == nil {
 		// uri doesn't exists - build & register it
 		getComponent := func(c int) string {
@@ -197,7 +223,7 @@ func NewURIFromComponents(scheme string, username string, password string, host 
 			fragment: getComponent(fragmentComponent),
 			rawURI:   rawURI,
 		}
-		cache.Set(rawURI, uri)
+		uri = uriCache.GetOrSet(rawURI, uri)
 	}
 	return uri
 }
@@ -208,8 +234,7 @@ func NewURI(rawURI string) *URI {
 }
 
 func ParseURI(rawURI string) (*URI, error) {
-	cache := getURICache()
-	uri := cache.Get(rawURI)
+	uri := uriCache.Get(rawURI)
 	if uri == nil {
 		if url, err := url.Parse(rawURI); err != nil {
 			return nil, err
@@ -228,7 +253,7 @@ func ParseURI(rawURI string) (*URI, error) {
 			if len(url.Opaque) > 0 {
 				uri.path = url.Opaque
 			}
-			cache.Set(rawURI, uri)
+			uri = uriCache.GetOrSet(rawURI, uri)
 		}
 	}
 	return uri, nil

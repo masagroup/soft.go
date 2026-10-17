@@ -11,7 +11,10 @@ package ecore
 
 import (
 	"runtime"
+	"sync"
 	"testing"
+	"time"
+	"weak"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -145,18 +148,42 @@ func TestURI_Authority(t *testing.T) {
 	assert.Equal(t, "userinfo@host:10", NewURI("http://userinfo@host:10/file.text").Authority())
 }
 
-// func TestURI_Cache(t *testing.T) {
-// 	var p1, p2 uintptr
-// 	{
-// 		uri1 := NewURI("http://toto")
-// 		uri2 := NewURI("http://toto")
-// 		assert.Same(t, uri1, uri2)
-// 		p1 = uintptr(unsafe.Pointer(uri1))
-// 	}
-// 	runtime.GC()
-// 	{
-// 		uri1 := NewURI("http://toto")
-// 		p2 = uintptr(unsafe.Pointer(uri1))
-// 	}
-// 	assert.NotEqual(t, p1, p2)
-// }
+func TestURI_Cache(t *testing.T) {
+	uri1 := NewURI("http://cache")
+	uri2 := NewURI("http://cache")
+	assert.Same(t, uri1, uri2)
+	assert.Same(t, uri1, NewURIBuilder(nil).SetScheme("http").SetHost("cache").URI())
+}
+
+func TestURI_CacheConcurrent(t *testing.T) {
+	const n = 16
+	uris := make([]*URI, n)
+	var wg sync.WaitGroup
+	for i := range n {
+		wg.Go(func() {
+			if i%2 == 0 {
+				uris[i] = NewURI("http://concurrent")
+			} else {
+				uris[i] = NewURIBuilder(nil).SetScheme("http").SetHost("concurrent").URI()
+			}
+		})
+	}
+	wg.Wait()
+	for _, uri := range uris {
+		assert.Same(t, uris[0], uri)
+	}
+}
+
+func TestURI_CacheCollected(t *testing.T) {
+	p := weak.Make(NewURI("http://collected"))
+	require.Eventually(t, func() bool {
+		runtime.GC()
+		_, ok := uriCache.m.Load("http://collected")
+		return p.Value() == nil && !ok
+	}, time.Second, 10*time.Millisecond)
+
+	// a new uri is created and cached
+	uri := NewURI("http://collected")
+	assert.Equal(t, "http://collected", uri.String())
+	assert.Same(t, uri, NewURI("http://collected"))
+}

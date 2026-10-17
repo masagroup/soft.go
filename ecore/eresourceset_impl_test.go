@@ -24,6 +24,7 @@ func TestEResourceSetConstructor(t *testing.T) {
 func TestEResourceSetResourcesWithMock(t *testing.T) {
 	rs := NewEResourceSetImpl()
 	r := NewMockEResourceInternal(t)
+	r.EXPECT().GetURI().Return(nil).Once()
 	r.EXPECT().BasicSetResourceSet(rs, nil).Return(nil).Once()
 	rs.GetResources().Add(r)
 }
@@ -54,15 +55,14 @@ func TestEResourceSetGetRegisteredResource(t *testing.T) {
 
 	// register resource
 	mockResource := NewMockEResourceInternal(t)
+	mockResource.EXPECT().GetURI().Return(uri)
 	mockResource.EXPECT().BasicSetResourceSet(rs, nil).Return(nil).Once()
 	rs.GetResources().Add(mockResource)
 
 	// get registered resource - no loading
-	mockResource.EXPECT().GetURI().Return(uri).Once()
 	assert.Equal(t, mockResource, rs.GetResource(uri, false))
 
 	// get registered resource - loading
-	mockResource.EXPECT().GetURI().Return(uri).Once()
 	mockResource.EXPECT().IsLoaded().Once().Return(false)
 	mockResource.EXPECT().Load().Once()
 	assert.Equal(t, mockResource, rs.GetResource(uri, true))

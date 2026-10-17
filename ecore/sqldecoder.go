@@ -134,6 +134,9 @@ type sqlDecoder struct {
 	packageRegistry  EPackageRegistry
 	sqlIDManager     SQLDecoderIDManager
 	sqlObjectManager sqlObjectManager
+	// objectLocks serializes the decoding of an object id : two goroutines decoding
+	// the same id would create two objects
+	objectLocks *sqlEncoderLockManager
 }
 
 func (d *sqlDecoder) resolveURI(uri *URI) *URI {
@@ -278,6 +281,12 @@ func (d *sqlDecoder) getDecoderClassData(eClass EClass) *sqlDecoderClassData {
 func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 	eObject, isObject := d.sqlIDManager.GetObjectFromID(id)
 	if !isObject {
+		d.objectLocks.lock(id)
+		defer d.objectLocks.unlock(id)
+		// decoded meanwhile by another goroutine
+		if eObject, isObject = d.sqlIDManager.GetObjectFromID(id); isObject {
+			return eObject, nil
+		}
 		table := d.schema.objectsTable
 		var classID int64
 		var objectID string
@@ -774,7 +783,7 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 
 	// ants pool
 	antsPool, _ := ants.NewPool(-1, ants.WithLogger(&zapLogger{logger.Named("ants")}))
-	promisePool := promise.FromAntsPool(antsPool)
+	promisePool := newAntsPromisePool(antsPool)
 
 	// decoder
 	d := &SQLDecoder{
@@ -793,6 +802,7 @@ func newSQLDecoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 			sqlIDManager:     sqlIDManager,
 			sqlObjectManager: newSqlDecoderObjectManager(),
 			classDataMap:     map[EClass]*sqlDecoderClassData{},
+			objectLocks:      newSqlEncoderLockManager(),
 		},
 		resource:     resource,
 		withFeatures: withFeatures,
@@ -1003,27 +1013,21 @@ func (d *SQLDecoder) decodeObjects() error {
 		})
 }
 
+// decodeFeatures decodes the features of the objects : the tables are read and the values
+// decoded in parallel, one task per class, and the objects are set serially once every
+// task is done, since setting a feature modifies other objects (containers, opposites)
 func (d *SQLDecoder) decodeFeatures() error {
+	// the classes to decode : each leaf class and its super types, once
 	decoded := map[EClass]struct{}{}
-	decoding := []*promise.Promise[any]{}
-	// for each leaf class
+	classes := []EClass{}
 	for _, classData := range d.classDataMap {
 		eClass := classData.eClass
 		itSuper := eClass.GetEAllSuperTypes().Iterator()
 		for eClass != nil {
-			// decode class features
-			decodingClass := eClass
-			if _, isDecoded := decoded[decodingClass]; !isDecoded {
-				decoded[decodingClass] = struct{}{}
-				decoding = append(decoding, promise.NewWithPool(func(resolve func(any), reject func(error)) {
-					if err := d.decodeClassFeatures(decodingClass); err != nil {
-						reject(err)
-					} else {
-						resolve(nil)
-					}
-				}, d.promisePool))
+			if _, isDecoded := decoded[eClass]; !isDecoded {
+				decoded[eClass] = struct{}{}
+				classes = append(classes, eClass)
 			}
-
 			// next super class
 			if itSuper.HasNext() {
 				eClass = itSuper.Next().(EClass)
@@ -1032,36 +1036,56 @@ func (d *SQLDecoder) decodeFeatures() error {
 			}
 		}
 	}
+	// one task per class, writing its setters in its own slot
+	setters := make([][]func(), len(classes))
+	decoding := make([]*promise.Promise[any], 0, len(classes))
+	for task, eClass := range classes {
+		decoding = append(decoding, promise.NewWithPool(func(resolve func(any), reject func(error)) {
+			classSetters, err := d.decodeClassFeatures(eClass)
+			if err != nil {
+				reject(err)
+			} else {
+				setters[task] = classSetters
+				resolve(nil)
+			}
+		}, d.promisePool))
+	}
 	if len(decoding) > 0 {
 		_, err := promise.AllWithPool(context.Background(), d.promisePool, decoding...).Await(context.Background())
 		if err != nil {
 			return err
 		}
 	}
+	// set the features
+	for _, classSetters := range setters {
+		for _, set := range classSetters {
+			set()
+		}
+	}
 	return nil
 }
 
-func (d *SQLDecoder) decodeClassFeatures(eClass EClass) error {
+// decodeClassFeatures decodes the features of a class : it returns the functions setting them
+func (d *SQLDecoder) decodeClassFeatures(eClass EClass) (setters []func(), err error) {
 	classSchema := d.schema.getClassSchema(eClass)
 	columnFeatures := []*sqlFeatureSchema{}
 	for _, featureData := range classSchema.features {
 		if featureData.column != nil {
 			columnFeatures = append(columnFeatures, featureData)
 		} else if featureData.table != nil {
-			if err := d.decodeTableFeature(featureData.table, featureData); err != nil {
-				return err
+			if setters, err = d.decodeTableFeature(featureData.table, featureData, setters); err != nil {
+				return nil, err
 			}
 		}
 	}
-
-	return d.decodeColumnFeatures(classSchema.table, columnFeatures)
+	return d.decodeColumnFeatures(classSchema.table, columnFeatures, setters)
 }
 
-func (d *SQLDecoder) decodeColumnFeatures(table *sqlTable, columnFeatures []*sqlFeatureSchema) error {
+func (d *SQLDecoder) decodeColumnFeatures(table *sqlTable, columnFeatures []*sqlFeatureSchema, setters []func()) ([]func(), error) {
 	if len(columnFeatures) == 0 {
-		return nil
+		return setters, nil
 	}
-	return d.executeQuery(
+	if err := d.executeQuery(
 		table.selectQuery(nil, "", ""),
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
@@ -1081,15 +1105,19 @@ func (d *SQLDecoder) decodeColumnFeatures(table *sqlTable, columnFeatures []*sql
 					// column value is nil, if column is not set
 					// so use default value
 					if columnValue != nil {
-						eObject.ESet(columnData.feature, columnValue)
+						feature := columnData.feature
+						setters = append(setters, func() { eObject.ESet(feature, columnValue) })
 					}
 				}
 				return nil
 			},
-		})
+		}); err != nil {
+		return nil, err
+	}
+	return setters, nil
 }
 
-func (d *SQLDecoder) decodeTableFeature(table *sqlTable, tableFeature *sqlFeatureSchema) error {
+func (d *SQLDecoder) decodeTableFeature(table *sqlTable, tableFeature *sqlFeatureSchema, setters []func()) ([]func(), error) {
 	column := sqlEscapeIdentifier(table.columns[len(table.columns)-1].columnName)
 	query := table.selectQuery([]string{table.keyName(), column}, "", table.keyName()+" ASC, idx ASC")
 	feature := tableFeature.feature
@@ -1110,9 +1138,11 @@ func (d *SQLDecoder) decodeTableFeature(table *sqlTable, tableFeature *sqlFeatur
 				if id == -1 {
 					id = objectID
 				} else if id != objectID {
-					if err := d.decodeFeatureList(id, feature, values); err != nil {
+					setter, err := d.decodeFeatureList(id, feature, values)
+					if err != nil {
 						return err
 					}
+					setters = append(setters, setter)
 					values = nil
 				}
 				id = objectID
@@ -1120,27 +1150,30 @@ func (d *SQLDecoder) decodeTableFeature(table *sqlTable, tableFeature *sqlFeatur
 				return nil
 			},
 		}); err != nil {
-		return err
+		return nil, err
 	}
 	if id != -1 {
-		if err := d.decodeFeatureList(id, feature, values); err != nil {
-			return err
+		setter, err := d.decodeFeatureList(id, feature, values)
+		if err != nil {
+			return nil, err
 		}
+		setters = append(setters, setter)
 	}
-	return nil
+	return setters, nil
 }
 
-func (d *SQLDecoder) decodeFeatureList(objectID int64, feature EStructuralFeature, values []any) error {
-	if len(values) == 0 {
-		return nil
-	}
+// decodeFeatureList returns the function adding values to the list feature of an object
+func (d *SQLDecoder) decodeFeatureList(objectID int64, feature EStructuralFeature, values []any) (func(), error) {
 	eObject, _ := d.sqlIDManager.GetObjectFromID(objectID)
 	if eObject == nil {
-		return fmt.Errorf("unable to find object with id '%v'", objectID)
+		return nil, fmt.Errorf("unable to find object with id '%v'", objectID)
 	}
-	eList := eObject.EGetResolve(feature, false).(EList)
-	eList.AddAll(NewImmutableEList(values))
-	return nil
+	return func() {
+		if len(values) > 0 {
+			eList := eObject.EGetResolve(feature, false).(EList)
+			eList.AddAll(NewImmutableEList(values))
+		}
+	}, nil
 }
 
 func (d *SQLDecoder) addError(err error) {

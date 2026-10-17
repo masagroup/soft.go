@@ -176,13 +176,17 @@ func (o *EStoreEObjectImpl) setContainerInStore() {
 	}
 }
 
+// the store is read without holding the object : the store may wait for another goroutine
+// that needs the object, as the store writer encoding it
+
 func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 	o.mutex.Lock()
-	defer o.mutex.Unlock()
-
 	if o.properties != nil && o.properties[dynamicFeatureID] != nil {
+		o.mutex.Unlock()
 		return true
 	}
+	o.mutex.Unlock()
+
 	if store := o.AsEStoreEObject().GetEStore(); store != nil {
 		eFeature := o.eDynamicFeature(dynamicFeatureID)
 		return store.IsSet(o.AsEObject(), eFeature)
@@ -191,39 +195,54 @@ func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 }
 
 func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
-
 	// retrieve value
-	var result any
+	o.mutex.Lock()
 	if o.properties != nil {
-		result = o.properties[dynamicFeatureID]
+		if result := o.properties[dynamicFeatureID]; result != nil {
+			o.mutex.Unlock()
+			return result
+		}
 	}
+	o.mutex.Unlock()
+
 	// compute value
-	if result == nil {
-		var properties []any
-		if eFeature := o.eDynamicFeature(dynamicFeatureID); !eFeature.IsTransient() {
-			if eFeature.IsMany() {
-				if IsMapType(eFeature) {
-					result = o.createMap(eFeature)
-				} else {
-					result = o.createList(eFeature)
-				}
-				// feature is a container : create corresponding container type and cache it
-				// in properties to avoid multiple allocation of the same container
-				properties = o.getProperties()
-			} else if store := o.AsEStoreEObject().GetEStore(); store != nil {
-				// feature is not transient and we have a store
-				result = store.Get(o.AsEObject(), eFeature, NO_INDEX)
-				if o.cache {
-					properties = o.getProperties()
-				}
+	var result any
+	cache := false
+	objectCache := o.IsCache()
+	if eFeature := o.eDynamicFeature(dynamicFeatureID); !eFeature.IsTransient() {
+		if eFeature.IsMany() {
+			if IsMapType(eFeature) {
+				result = o.createMap(eFeature, objectCache)
+			} else {
+				result = o.createList(eFeature, objectCache)
+			}
+			// feature is a container : create corresponding container type and cache it
+			// in properties to avoid multiple allocation of the same container
+			cache = true
+		} else if store := o.AsEStoreEObject().GetEStore(); store != nil {
+			// feature is not transient and we have a store
+			result = store.Get(o.AsEObject(), eFeature, NO_INDEX)
+			cache = objectCache
+		}
+	}
+
+	// store value in properties, unless set meanwhile
+	if cache {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+		properties := o.getProperties()
+		if current := properties[dynamicFeatureID]; current != nil {
+			return current
+		}
+		if o.cache != objectCache {
+			// cache changed meanwhile
+			if cacheProvider, _ := result.(ECacheProvider); cacheProvider != nil {
+				cacheProvider.SetCache(o.cache)
+			} else if !o.cache {
+				return result
 			}
 		}
-		// store value in properties
-		if properties != nil {
-			properties[dynamicFeatureID] = result
-		}
+		properties[dynamicFeatureID] = result
 	}
 	return result
 }
@@ -270,15 +289,15 @@ func (o *EStoreEObjectImpl) eDynamicFeature(dynamicFeatureID int) EStructuralFea
 	return o.EClass().GetEStructuralFeature(o.EStaticFeatureCount() + dynamicFeatureID)
 }
 
-func (o *EStoreEObjectImpl) createList(eFeature EStructuralFeature) EList {
+func (o *EStoreEObjectImpl) createList(eFeature EStructuralFeature, cache bool) EList {
 	l := NewEStoreList(o.AsEObject(), eFeature, o.AsEStoreEObject().GetEStore())
-	l.SetCache(o.cache)
+	l.SetCache(cache)
 	return l
 }
 
-func (o *EStoreEObjectImpl) createMap(eFeature EStructuralFeature) EMap {
+func (o *EStoreEObjectImpl) createMap(eFeature EStructuralFeature, cache bool) EMap {
 	eClass := eFeature.GetEType().(EClass)
 	m := NewEStoreMap(eClass, o.AsEObject(), eFeature, o.AsEStoreEObject().GetEStore())
-	m.SetCache(o.cache)
+	m.SetCache(cache)
 	return m
 }

@@ -263,6 +263,23 @@ func (s *Encoder) saveFeatures(eObject ecore.EObject, attributesOnly bool) bool 
 			case xsfkDataTypeSingle:
 				s.saveDataTypeSingle(eObject, eFeature)
 				continue
+			case xsfkObjectAttributeSingle:
+				// An attribute reference: a full href across resources, an IDREF otherwise.
+				switch s.getSaveResourceKindSingle(eObject, eFeature) {
+				case cross:
+					s.saveEObjectSingle(eObject, eFeature)
+				case same:
+					s.saveIDRefSingle(eObject, eFeature)
+				}
+				continue
+			case xsfkObjectAttributeMany:
+				switch s.getSaveResourceKindMany(eObject, eFeature) {
+				case cross:
+					s.saveEObjectMany(eObject, eFeature)
+				case same:
+					s.saveIDRefMany(eObject, eFeature)
+				}
+				continue
 			case xsfkDataTypeSingleNillable:
 				if !s.isNil(eObject, eFeature) {
 					s.saveDataTypeSingle(eObject, eFeature)
@@ -411,7 +428,6 @@ func (s *Encoder) saveManyEmpty(_ ecore.EObject, eFeature ecore.EStructuralFeatu
 	s.str.addAttribute(s.getFeatureQName(eFeature), "")
 }
 
-//lint:ignore U1000 func (*Encoder).saveEObjectSingle is unused
 func (s *Encoder) saveEObjectSingle(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
 	value, _ := eObject.EGetResolve(eFeature, false).(ecore.EObject)
 	if value != nil {
@@ -420,7 +436,6 @@ func (s *Encoder) saveEObjectSingle(eObject ecore.EObject, eFeature ecore.EStruc
 	}
 }
 
-//lint:ignore U1000 func (*Encoder).saveEObjectMany is unused
 func (s *Encoder) saveEObjectMany(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
 	s.saveRefsAttribute(eObject, eFeature, s.getHRef)
 }
@@ -579,6 +594,13 @@ func (s *Encoder) getSaveFeatureKind(f ecore.EStructuralFeature) xmlSaveFeatureK
 		opposite := r.GetEOpposite()
 		if opposite != nil && opposite.IsContainment() {
 			return xsfkTransient
+		}
+		// A kind="attribute" reference is an attribute, as the decoder reads it.
+		if s.extendedMetaData != nil && s.extendedMetaData.GetFeatureKind(f) == "attribute" {
+			if isMany {
+				return xsfkObjectAttributeMany
+			}
+			return xsfkObjectAttributeSingle
 		}
 		if isMany {
 			if isUnsettable {

@@ -439,7 +439,7 @@ func (ecoreFactoryImpl *EcoreFactoryImpl) createEBigDecimalFromString(eDataType 
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) convertEBigDecimalToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float64)
-	return strconv.FormatFloat(v, 'f', -1, 64)
+	return FormatFloatXSD(v, 64)
 }
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) createEBigIntegerFromString(eDataType EDataType, literalValue string) any {
@@ -554,7 +554,7 @@ func (ecoreFactoryImpl *EcoreFactoryImpl) createEDoubleFromString(eDataType EDat
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) convertEDoubleToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float64)
-	return strconv.FormatFloat(v, 'f', -1, 64)
+	return FormatFloatXSD(v, 64)
 }
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) createEDoubleObjectFromString(eDataType EDataType, literalValue string) any {
@@ -564,7 +564,7 @@ func (ecoreFactoryImpl *EcoreFactoryImpl) createEDoubleObjectFromString(eDataTyp
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) convertEDoubleObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float64)
-	return strconv.FormatFloat(v, 'f', -1, 64)
+	return FormatFloatXSD(v, 64)
 }
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) createEFloatFromString(eDataType EDataType, literalValue string) any {
@@ -574,7 +574,7 @@ func (ecoreFactoryImpl *EcoreFactoryImpl) createEFloatFromString(eDataType EData
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) convertEFloatToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float32)
-	return strconv.FormatFloat(float64(v), 'f', -1, 32)
+	return FormatFloatXSD(float64(v), 32)
 }
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) createEFloatObjectFromString(eDataType EDataType, literalValue string) any {
@@ -584,7 +584,7 @@ func (ecoreFactoryImpl *EcoreFactoryImpl) createEFloatObjectFromString(eDataType
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) convertEFloatObjectToString(eDataType EDataType, instanceValue any) string {
 	v, _ := instanceValue.(float32)
-	return strconv.FormatFloat(float64(v), 'f', -1, 32)
+	return FormatFloatXSD(float64(v), 32)
 }
 
 func (ecoreFactoryImpl *EcoreFactoryImpl) createEIntFromString(eDataType EDataType, literalValue string) any {

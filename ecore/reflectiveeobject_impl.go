@@ -9,11 +9,14 @@
 
 package ecore
 
-// ReflectiveEObjectImpl ...
+// ReflectiveEObjectImpl is a reflective EObject implementation: all its features are dynamic, and
+// their values are kept in a slice by feature ID. Like EMF MinimalEObjectImpl.Container used
+// with reflective feature delegation, it is compact: its container is a field, and its adapters,
+// resource, proxy URI and values share one packed storage.
 type ReflectiveEObjectImpl struct {
-	EObjectImpl
-	class      EClass
-	properties []any
+	CompactEObjectContainer
+	// class is a field, not in the packed storage: it is read at each access to a feature.
+	class EClass
 }
 
 // NewReflectiveEObjectImpl is the constructor of a ReflectiveEObjectImpl
@@ -40,6 +43,13 @@ func (o *ReflectiveEObjectImpl) EStaticFeatureCount() int {
 	return 0
 }
 
+// EInvokeFromID invokes the operations of EObject, as EObjectImpl.
+func (o *ReflectiveEObjectImpl) EInvokeFromID(operationID int, arguments EList) any {
+	var eObject EObjectImpl
+	eObject.SetInterfaces(o.GetInterfaces())
+	return eObject.EInvokeFromID(operationID, arguments)
+}
+
 func (o *ReflectiveEObjectImpl) EDynamicProperties() EDynamicProperties {
 	return o.GetInterfaces().(EDynamicProperties)
 }
@@ -60,9 +70,12 @@ func (o *ReflectiveEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 	return o.getProperties()[dynamicFeatureID] != nil
 }
 
+// getProperties returns the values of the features, created at the first access.
 func (o *ReflectiveEObjectImpl) getProperties() []any {
-	if o.properties == nil {
-		o.properties = make([]any, o.EClass().GetFeatureCount())
+	if properties, _ := o.getField(properties_flag).([]any); properties != nil {
+		return properties
 	}
-	return o.properties
+	properties := make([]any, o.EClass().GetFeatureCount())
+	o.setField(properties_flag, properties)
+	return properties
 }

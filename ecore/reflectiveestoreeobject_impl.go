@@ -21,8 +21,8 @@ type internalReflectiveEStoreEObjectImpl interface {
 // It defines no store fields; concrete structs must implement GetEStore() EStore.
 // All values (persistent cache and transient values) are held as strong references.
 //
-// Deprecated: use CompactEStoreEObjectImpl, which behaves the same with half the memory
-// (80 bytes instead of 168, and only the cached values instead of a slot per feature) and lets
+// Deprecated: use CompactEStoreEObjectImpl, which behaves the same with less memory
+// (80 bytes instead of 112, and only the cached values instead of a slot per feature) and lets
 // the concrete type create its lists and maps (CreateList, CreateMap). A concrete type that needs
 // ELockProvider for the SQL encoder provides Lock and Unlock. ReflectiveEStoreEObjectImpl will be
 // removed in the next major version.

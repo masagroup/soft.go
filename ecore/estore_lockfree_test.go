@@ -158,8 +158,6 @@ func TestEStoreList_ReadsWhileLocked(t *testing.T) {
 // from the store or created on a miss included.
 func TestEStoreObjects_ReadsWhileLocked(t *testing.T) {
 	m := newReadBenchModel()
-	compact := newTestCompactEStoreEObject(nil)
-	compact.SetEClass(m.class)
 	reflective := newTestReflectiveEStoreEObject(nil)
 	reflective.SetEClass(m.class)
 	store := NewEStoreEObjectImpl(true)
@@ -167,7 +165,7 @@ func TestEStoreObjects_ReadsWhileLocked(t *testing.T) {
 	for _, o := range []interface {
 		EObject
 		ELockProvider
-	}{compact, reflective, store} {
+	}{reflective, store} {
 		o.ESet(m.attributes[0], "a")
 		o.Lock()
 		runWithin(t, func() {

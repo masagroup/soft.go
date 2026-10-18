@@ -13,7 +13,6 @@ import (
 	"maps"
 	"math/bits"
 	"slices"
-	"sync"
 	"sync/atomic"
 )
 
@@ -31,11 +30,9 @@ type CompactEStoreEObjectImpl struct {
 	class EClass
 	// cache holds the cached values. It is never changed, but replaced with a compare-and-swap:
 	// a value is read from it without lock, at each access to a feature, and a value read from
-	// the store is cached without lock.
+	// the store is cached without lock. The object takes no lock: a concrete type that needs one
+	// (ELockProvider for the SQL encoder, ordered writes) provides it.
 	cache atomic.Pointer[compactCache]
-	// mutex serializes the writers of the object (set, unset, clear), and is held by Lock while
-	// the object is encoded. Readers never take it.
-	mutex sync.Mutex
 }
 
 // compactCache is the cached values of a CompactEStoreEObjectImpl.
@@ -79,20 +76,8 @@ func (o *CompactEStoreEObjectImpl) EDynamicProperties() EDynamicProperties {
 	return o.GetInterfaces().(EDynamicProperties)
 }
 
-// Lock prevents the writes to the object until Unlock. The object can be read meanwhile, by the
-// goroutine holding the lock too.
-func (o *CompactEStoreEObjectImpl) Lock() {
-	o.mutex.Lock()
-}
-
-func (o *CompactEStoreEObjectImpl) Unlock() {
-	o.mutex.Unlock()
-}
-
 // ClearCache clears all cached feature values from the dynamic compact cache.
 func (o *CompactEStoreEObjectImpl) ClearCache() {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
 	o.cache.Store(nil)
 }
 
@@ -257,10 +242,10 @@ func (o *CompactEStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 	return result
 }
 
+// EDynamicSet writes the value to the store, then caches it. It takes no lock: two goroutines
+// setting the same feature concurrently may leave the cache with the value the store got first.
+// A concrete type that needs writes ordered serializes them itself.
 func (o *CompactEStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
-
 	feature := o.EClass().GetEStructuralFeature(dynamicFeatureID)
 
 	if !feature.IsTransient() {
@@ -287,18 +272,17 @@ func (o *CompactEStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 	return false
 }
 
+// EDynamicUnset unsets the value in the store, then removes it from the cache. It takes no lock,
+// as EDynamicSet.
 func (o *CompactEStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
-
-	o.unsetCached(dynamicFeatureID)
-
 	feature := o.EClass().GetEStructuralFeature(dynamicFeatureID)
 	if !feature.IsTransient() {
 		if store := o.getStore(); store != nil {
 			store.UnSet(o.AsEObject(), feature)
 		}
 	}
+
+	o.unsetCached(dynamicFeatureID)
 }
 
 func (o *CompactEStoreEObjectImpl) CreateList(feature EStructuralFeature, store EStore) EList {

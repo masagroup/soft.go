@@ -178,9 +178,7 @@ func TestCompactEStoreEObjectImpl_SetAttribute_NoStore_FeatureIDFrom64(t *testin
 // before or after, never a partial cache.
 func TestCompactEStoreEObjectImpl_Cache_ConcurrentReads(t *testing.T) {
 	o := newTestCompactEStoreEObject(nil)
-	o.mutex.Lock()
 	o.setCached(1, "a")
-	o.mutex.Unlock()
 
 	var group sync.WaitGroup
 	for range 8 {
@@ -195,12 +193,10 @@ func TestCompactEStoreEObjectImpl_Cache_ConcurrentReads(t *testing.T) {
 		})
 	}
 	for i := range 1000 {
-		o.mutex.Lock()
 		o.setCached(2+i%10, i)
 		if i%3 == 0 {
 			o.unsetCached(2 + i%10)
 		}
-		o.mutex.Unlock()
 	}
 	group.Wait()
 	assert.Equal(t, "a", o.cachedValue(1))

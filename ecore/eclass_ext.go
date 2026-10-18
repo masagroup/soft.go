@@ -221,6 +221,11 @@ func (eClass *EClassExt) Initialize() {
 	eClass.EClassImpl.Initialize()
 	eClass.adapter = &eSuperAdapter{class: eClass}
 	eClass.EAdapters().Add(eClass.adapter)
+	// created now, not at the first access: the lists the derived values are built from are read
+	// without lock, and a lazy creation would race between readers. The operations stay lazy: they
+	// are read under the build mutex of the class, and most models have none.
+	eClass.GetESuperTypes()
+	eClass.GetEStructuralFeatures()
 }
 
 func (eClass *EClassExt) IsSuperTypeOf(someClass EClass) bool {

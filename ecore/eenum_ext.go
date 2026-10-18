@@ -20,6 +20,13 @@ func newEEnumExt() *EEnumExt {
 	return eEnum
 }
 
+func (eEnum *EEnumExt) Initialize() {
+	eEnum.EEnumImpl.Initialize()
+	// created now, not at the first access: the literals are read without lock, at each literal
+	// lookup, and a lazy creation would race between readers
+	eEnum.GetELiterals()
+}
+
 func (eEnum *EEnumExt) GetDefaultValue() any {
 	if eLiterals := eEnum.GetELiterals(); !eLiterals.Empty() {
 		eLiteral := eLiterals.Get(0).(EEnumLiteral)

@@ -268,3 +268,27 @@ func TestEClassDerivedReadsConcurrentNotStale(t *testing.T) {
 	}
 	group.Wait()
 }
+
+// The lists of new metamodel elements are read concurrently: they exist from the construction of
+// the elements, none is created by a reader.
+func TestMetamodelListsConcurrentReadsOfNewElements(t *testing.T) {
+	factory := GetFactory()
+	for range 100 {
+		eClass := factory.CreateEClass()
+		eOperation := factory.CreateEOperation()
+		eEnum := factory.CreateEEnum()
+		ePackage := factory.CreateEPackage()
+		var group sync.WaitGroup
+		for range 4 {
+			group.Go(func() {
+				if eClass.GetEStructuralFeatures() == nil || eClass.GetESuperTypes() == nil {
+					t.Error("a list of a class is missing")
+				}
+				if eOperation.GetEParameters() == nil || eEnum.GetELiterals() == nil || ePackage.GetEClassifiers() == nil {
+					t.Error("a list of an operation, an enum or a package is missing")
+				}
+			})
+		}
+		group.Wait()
+	}
+}

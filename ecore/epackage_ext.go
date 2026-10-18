@@ -48,6 +48,9 @@ func (pack *EPackageExt) Initialize() {
 	pack.SetEFactoryInstance(newEFactoryExt())
 	pack.adapter = &ePackageExtAdapter{pack: pack}
 	pack.EAdapters().Add(pack.adapter)
+	// created now, not at the first access: the classifiers are read without lock, and a lazy
+	// creation would race between readers
+	pack.GetEClassifiers()
 }
 
 func (pack *EPackageExt) GetEClassifier(classifier string) EClassifier {

@@ -10,6 +10,7 @@
 package ecore
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -171,4 +172,36 @@ func TestCompactEStoreEObjectImpl_SetAttribute_NoStore_FeatureIDFrom64(t *testin
 	assert.True(t, o.EDynamicIsSet(70))
 	o.EDynamicUnset(70)
 	assert.False(t, o.EDynamicIsSet(70))
+}
+
+// The cached values are read without lock while others are set: a reader sees a value set
+// before or after, never a partial cache.
+func TestCompactEStoreEObjectImpl_Cache_ConcurrentReads(t *testing.T) {
+	o := newTestCompactEStoreEObject(nil)
+	o.mutex.Lock()
+	o.setCached(1, "a")
+	o.mutex.Unlock()
+
+	var group sync.WaitGroup
+	for range 8 {
+		group.Go(func() {
+			for range 1000 {
+				if o.cachedValue(1) != "a" {
+					t.Error("a cached value was not found")
+					return
+				}
+				o.cachedValue(2)
+			}
+		})
+	}
+	for i := range 1000 {
+		o.mutex.Lock()
+		o.setCached(2+i%10, i)
+		if i%3 == 0 {
+			o.unsetCached(2 + i%10)
+		}
+		o.mutex.Unlock()
+	}
+	group.Wait()
+	assert.Equal(t, "a", o.cachedValue(1))
 }

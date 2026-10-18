@@ -26,6 +26,11 @@ type EClassExt struct {
 	// nameToFeatureReady publishes the built name map for lock-free reads. The map is never
 	// mutated once built, and is unpublished under mutex wherever it can go stale.
 	nameToFeatureReady atomic.Pointer[map[string]EStructuralFeature]
+
+	// eAllStructuralFeaturesReady publishes the built list of all the structural features for
+	// lock-free reads, as nameToFeatureReady publishes the name map: an object reads it at each
+	// access to a feature by ID. It is unpublished under mutex wherever the list can go stale.
+	eAllStructuralFeaturesReady atomic.Pointer[EList]
 }
 
 type EClassInternal interface {
@@ -128,6 +133,22 @@ func (eClass *EClassExt) Initialize() {
 
 func (eClass *EClassExt) IsSuperTypeOf(someClass EClass) bool {
 	return someClass == eClass || (someClass != nil && someClass.GetEAllSuperTypes().Contains(eClass))
+}
+
+// GetEAllStructuralFeatures returns all the structural features of the class, its own and inherited
+// ones, without lock once they are built.
+func (eClass *EClassExt) GetEAllStructuralFeatures() EList {
+	if l := eClass.eAllStructuralFeaturesReady.Load(); l != nil {
+		return *l
+	}
+	eClass.initEAllStructuralFeatures()
+	if l := eClass.eAllStructuralFeaturesReady.Load(); l != nil {
+		return *l
+	}
+	// Invalidated between the build and the load: read under the lock.
+	eClass.mutex.Lock()
+	defer eClass.mutex.Unlock()
+	return eClass.eAllStructuralFeatures
 }
 
 func (eClass *EClassExt) GetFeatureCount() int {
@@ -423,6 +444,11 @@ func (eClass *EClassExt) initEAllStructuralFeatures() {
 		}
 		eClass.eAllStructuralFeatures = NewImmutableEList(allFeatures)
 	}
+	if eClass.eAllStructuralFeaturesReady.Load() == nil {
+		// Publish a copy of the list: the field itself is reassigned under the mutex.
+		published := eClass.eAllStructuralFeatures
+		eClass.eAllStructuralFeaturesReady.Store(&published)
+	}
 	eClass.mutex.Unlock()
 }
 
@@ -461,6 +487,9 @@ func (eClass *EClassExt) setModified(featureID int) {
 	eClass.mutex.Lock()
 	// Each case below discards a list the name map derives from.
 	eClass.nameToFeatureReady.Store(nil)
+	// They may discard the list of all the structural features too: it is published again by
+	// the next build.
+	eClass.eAllStructuralFeaturesReady.Store(nil)
 	switch featureID {
 	case ECLASS__ESTRUCTURAL_FEATURES:
 		eClass.eAllAttributes = nil

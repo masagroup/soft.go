@@ -214,6 +214,31 @@ func TestEClassFeaturesGetFromNameConcurrent(t *testing.T) {
 	assert.Equal(t, eAttribute2, eClass.GetEStructuralFeatureFromName("MyAttribute2"))
 }
 
+// Readers keep finding the features of a class, without lock, while it changes, and see a feature
+// added meanwhile.
+func TestEClassGetEAllStructuralFeaturesConcurrent(t *testing.T) {
+	eClass := newEClassExt()
+	eAttribute1 := newEAttributeExt()
+	eClass.GetEStructuralFeatures().Add(eAttribute1)
+	require.Equal(t, eAttribute1, eClass.GetEStructuralFeature(0))
+
+	var group sync.WaitGroup
+	for range 8 {
+		group.Go(func() {
+			for range 1000 {
+				if features := eClass.GetEAllStructuralFeatures(); features == nil || features.Get(0) != eAttribute1 {
+					t.Error("an existing feature was not found")
+					return
+				}
+			}
+		})
+	}
+	eAttribute2 := newEAttributeExt()
+	eClass.GetEStructuralFeatures().Add(eAttribute2)
+	group.Wait()
+	assert.Equal(t, []any{eAttribute1, eAttribute2}, eClass.GetEAllStructuralFeatures().ToArray())
+}
+
 func BenchmarkEClassGetEStructuralFeatureFromNameParallel(b *testing.B) {
 	eClass := newEClassExt()
 	for i := range 20 {

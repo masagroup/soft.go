@@ -17,83 +17,54 @@ import (
 
 var unitializedContainer EObject = newEObjectImpl()
 
+// EStoreEObjectImpl is an EObject whose values are kept in a store set on it (SetEStore), and
+// cached when it caches (SetCache). Its values and the store lists of its many-valued features
+// are kept in the compact cache of CompactEStoreEObjectImpl, read without lock.
 type EStoreEObjectImpl struct {
-	ReflectiveEObjectImpl
-	// state is the store, the cache flag and the values of the object. It is never changed but
-	// replaced with a compare-and-swap: it is read without lock, and a value read from the store
-	// is kept without lock, unless the store or the cache flag changed meanwhile.
-	state atomic.Pointer[eStoreEObjectState]
+	CompactEStoreEObjectImpl
+	// config is the store and the cache flag of the object. It is never changed but replaced
+	// under mutex, after the cache: a value read with a configuration is cached only while the
+	// cache has its epoch.
+	config atomic.Pointer[eStoreEObjectConfig]
 	// mutex serializes the writers of the object, and is held by Lock while the object is
 	// encoded. Readers never take it.
 	mutex sync.Mutex
-	// lockedLists are the store lists locked by Lock, guarded by mutex
-	lockedLists []*EStoreList
+	// lockedLists are the store lists locked by Lock, guarded by mutex: a pointer, as it is
+	// set only while the object is locked
+	lockedLists *[]*EStoreList
 }
 
-type eStoreEObjectState struct {
-	store      EStore
-	cache      bool
-	properties []any
+// eStoreEObjectConfig is a configuration of an EStoreEObjectImpl. It is never changed.
+type eStoreEObjectConfig struct {
+	store EStore
+	cache bool
+	epoch uint64
 }
 
-func (s *eStoreEObjectState) getStore() EStore {
-	if s == nil {
+func (c *eStoreEObjectConfig) getStore() EStore {
+	if c == nil {
 		return nil
 	}
-	return s.store
+	return c.store
 }
 
-func (s *eStoreEObjectState) isCache() bool {
-	return s != nil && s.cache
+func (c *eStoreEObjectConfig) isCache() bool {
+	return c != nil && c.cache
 }
 
-func (s *eStoreEObjectState) getProperties() []any {
-	if s == nil {
-		return nil
+func (c *eStoreEObjectConfig) getEpoch() uint64 {
+	if c == nil {
+		return 0
 	}
-	return s.properties
-}
-
-func (s *eStoreEObjectState) getProperty(featureID int) any {
-	if s == nil || s.properties == nil {
-		return nil
-	}
-	return s.properties[featureID]
-}
-
-// clone returns a copy of s to change: it is read meanwhile.
-func (s *eStoreEObjectState) clone() *eStoreEObjectState {
-	if s == nil {
-		return &eStoreEObjectState{}
-	}
-	result := *s
-	return &result
-}
-
-// withProperty returns a copy of s with the value of featureID of class.
-func (s *eStoreEObjectState) withProperty(featureID int, value any, class EClass) *eStoreEObjectState {
-	result := s.clone()
-	if result.properties != nil {
-		result.properties = slices.Clone(result.properties)
-	} else {
-		result.properties = make([]any, class.GetFeatureCount())
-	}
-	result.properties[featureID] = value
-	return result
+	return c.epoch
 }
 
 func NewEStoreEObjectImpl(cache bool) *EStoreEObjectImpl {
 	o := new(EStoreEObjectImpl)
-	o.state.Store(&eStoreEObjectState{cache: cache})
+	o.config.Store(&eStoreEObjectConfig{cache: cache})
 	o.SetInterfaces(o)
 	o.Initialize()
-	o.ESetInternalContainer(unitializedContainer, -1)
 	return o
-}
-
-func (o *EStoreEObjectImpl) Initialize() {
-	o.ReflectiveEObjectImpl.Initialize()
-	o.ESetInternalContainer(unitializedContainer, -1)
 }
 
 func (o *EStoreEObjectImpl) AsEStoreEObject() EStoreEObject {
@@ -104,17 +75,42 @@ func (o *EStoreEObjectImpl) AsEStoreEObject() EStoreEObject {
 // read meanwhile, by the goroutine holding the lock too.
 func (o *EStoreEObjectImpl) Lock() {
 	o.mutex.Lock()
-	o.lockedLists = lockStoreLists(o.state.Load().getProperties())
+	if lists := lockStoreLists(o.cachedValues()); lists != nil {
+		o.lockedLists = &lists
+	}
 }
 
 func (o *EStoreEObjectImpl) Unlock() {
-	unlockStoreLists(o.lockedLists)
+	if o.lockedLists != nil {
+		unlockStoreLists(*o.lockedLists)
+	}
 	o.lockedLists = nil
 	o.mutex.Unlock()
 }
 
 func (o *EStoreEObjectImpl) GetEStore() EStore {
-	return o.state.Load().getStore()
+	return o.config.Load().getStore()
+}
+
+// reconfigure sets the store and the cache flag of the object, and replaces its cached values
+// with the ones values returns from the current ones, which it returns. mutex must be held.
+func (o *EStoreEObjectImpl) reconfigure(store EStore, cache bool, values func(current []cachedFeatureValue) []cachedFeatureValue) []cachedFeatureValue {
+	next := &eStoreEObjectConfig{store: store, cache: cache, epoch: o.config.Load().getEpoch() + 1}
+	for {
+		c := o.cache.Load()
+		current := c.featureValues()
+		replaced := emptyCache(next.epoch)
+		for _, v := range values(current) {
+			replaced = replaced.with(v.featureID, v.value)
+		}
+		// unless a value read from the store was cached meanwhile
+		if o.cache.CompareAndSwap(c, replaced) {
+			// the cache of the new epoch first: from now on, a value read with the previous
+			// configuration fails to be cached
+			o.config.Store(next)
+			return current
+		}
+	}
 }
 
 func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
@@ -125,151 +121,90 @@ func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 
 // setEStoreLocked sets the store of the object: mutex must be held, by Lock or SetEStore.
 func (o *EStoreEObjectImpl) setEStoreLocked(newStore EStore) {
-	for {
-		current := o.state.Load()
-		oldStore := current.getStore()
-		if oldStore == newStore {
-			return
-		}
-		// set store to object and its children
-		state := current.clone()
-		state.store = newStore
-		if newStore == nil {
-			// build cache with previous store
-			if !state.cache {
-				properties := slices.Clone(state.properties)
-				if properties == nil {
-					properties = make([]any, o.EClass().GetFeatureCount())
-				}
-				for featureID := range properties {
-					if eFeature := o.eDynamicFeature(featureID); !eFeature.IsTransient() && !eFeature.IsMany() {
-						properties[featureID] = oldStore.Get(o.AsEObject(), eFeature, NO_INDEX)
-					}
-				}
-				state.properties = properties
-			}
-		} else if !state.cache {
-			// clear properties because we are not caching
-			state.properties = nil
-		}
-		if !o.state.CompareAndSwap(current, state) {
-			// a value read from the store was kept meanwhile
-			continue
-		}
-		if newStore != nil {
-			// set container in store
-			o.setContainerInStore()
-
-			// set children collection store
-			for _, v := range current.getProperties() {
-				if storeList, isStoreList := v.(*EStoreList); isStoreList {
-					if slices.Contains(o.lockedLists, storeList) {
-						// locked with the object by Lock
-						storeList.setEStoreLocked(newStore)
-					} else {
-						storeList.SetEStore(newStore)
-					}
-				}
-			}
-		}
+	current := o.config.Load()
+	oldStore := current.getStore()
+	if oldStore == newStore {
 		return
+	}
+	cache := current.isCache()
+	old := o.reconfigure(newStore, cache, func(values []cachedFeatureValue) []cachedFeatureValue {
+		if newStore == nil {
+			if !cache {
+				// build cache with previous store
+				values = slices.Clone(values)
+				for featureID := range o.EClass().GetFeatureCount() {
+					if eFeature := o.eDynamicFeature(featureID); !eFeature.IsTransient() && !eFeature.IsMany() {
+						values = setFeatureValue(values, featureID, oldStore.Get(o.AsEObject(), eFeature, NO_INDEX))
+					}
+				}
+			}
+			return values
+		}
+		if !cache {
+			// clear properties because we are not caching
+			return nil
+		}
+		return values
+	})
+	if newStore != nil {
+		// set container in store
+		o.setContainerInStore()
+
+		// set children collection store
+		for _, v := range old {
+			if storeList, isStoreList := v.value.(*EStoreList); isStoreList {
+				if o.lockedLists != nil && slices.Contains(*o.lockedLists, storeList) {
+					// locked with the object by Lock
+					storeList.setEStoreLocked(newStore)
+				} else {
+					storeList.SetEStore(newStore)
+				}
+			}
+		}
 	}
 }
 
 func (o *EStoreEObjectImpl) SetCache(cache bool) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
-	for {
-		current := o.state.Load()
-		if current.isCache() == cache {
-			return
-		}
-		state := current.clone()
-		state.cache = cache
-		if state.store != nil {
-			state.properties = nil
-		}
-		if !o.state.CompareAndSwap(current, state) {
-			// a value read from the store was kept meanwhile
-			continue
-		}
-		// set cache for all properties
-		for _, v := range current.getProperties() {
-			if sc, _ := v.(ECacheProvider); sc != nil {
-				sc.SetCache(cache)
-			}
-		}
+	current := o.config.Load()
+	if current.isCache() == cache {
 		return
+	}
+	store := current.getStore()
+	old := o.reconfigure(store, cache, func(values []cachedFeatureValue) []cachedFeatureValue {
+		if store != nil {
+			return nil
+		}
+		return values
+	})
+	// set cache for all properties
+	for _, v := range old {
+		if sc, _ := v.value.(ECacheProvider); sc != nil {
+			sc.SetCache(cache)
+		}
 	}
 }
 
 func (o *EStoreEObjectImpl) IsCache() bool {
-	return o.state.Load().isCache()
+	return o.config.Load().isCache()
 }
 
-func (o *EStoreEObjectImpl) ESetInternalContainer(newContainer EObject, newContainerFeatureID int) {
-	o.ReflectiveEObjectImpl.ESetInternalContainer(newContainer, newContainerFeatureID)
-	o.setContainerInStore()
-}
-
-func (o *EStoreEObjectImpl) EInternalContainer() EObject {
-	o.initializeContainerFromStore()
-	return o.ReflectiveEObjectImpl.EInternalContainer()
-}
-
-func (o *EStoreEObjectImpl) EInternalContainerFeatureID() int {
-	o.initializeContainerFromStore()
-	return o.ReflectiveEObjectImpl.EInternalContainerFeatureID()
-}
-
-func (o *EStoreEObjectImpl) initializeContainerFromStore() {
-	if o.ReflectiveEObjectImpl.EInternalContainer() == unitializedContainer {
-		if store := o.state.Load().getStore(); store != nil {
-			container, feature := store.GetContainer(o.AsEObject())
-			if container != nil && feature != nil {
-				featureID := EOPPOSITE_FEATURE_BASE - container.EClass().GetFeatureID(feature)
-				if reference, _ := feature.(EReference); reference != nil {
-					if opposite := reference.GetEOpposite(); opposite != nil {
-						featureID = o.AsEObject().EClass().GetFeatureID(opposite)
-					}
-				}
-				o.ReflectiveEObjectImpl.ESetInternalContainer(container, featureID)
-			} else {
-				o.ReflectiveEObjectImpl.ESetInternalContainer(nil, -1)
-			}
-		} else {
-			o.ReflectiveEObjectImpl.ESetInternalContainer(nil, -1)
-		}
-	}
-}
-
-func (o *EStoreEObjectImpl) setContainerInStore() {
-	if store := o.state.Load().getStore(); store != nil {
-		container := o.ReflectiveEObjectImpl.EInternalContainer()
-		containerFeatureID := o.ReflectiveEObjectImpl.EInternalContainerFeatureID()
-		if container != unitializedContainer {
-			var containerFeature EStructuralFeature
-			if container != nil {
-				if containerFeatureID <= EOPPOSITE_FEATURE_BASE {
-					containerFeature = container.EClass().GetEStructuralFeature(EOPPOSITE_FEATURE_BASE - containerFeatureID)
-				} else {
-					containerFeature = o.AsEObject().EClass().GetEStructuralFeature(containerFeatureID).(EReference).GetEOpposite()
-				}
-			}
-			store.SetContainer(o.AsEObject(), container, containerFeature)
-		}
-	}
+// ClearCache clears the cached values.
+func (o *EStoreEObjectImpl) ClearCache() {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
+	o.CompactEStoreEObjectImpl.ClearCache()
 }
 
 // the store is read without holding the object : the store may wait for another goroutine
 // that needs the object, as the store writer encoding it
 
 func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
-	state := o.state.Load()
-	if state.getProperty(dynamicFeatureID) != nil {
+	if o.getCached(dynamicFeatureID) != nil {
 		return true
 	}
-	if store := state.getStore(); store != nil {
+	if store := o.config.Load().getStore(); store != nil {
 		eFeature := o.eDynamicFeature(dynamicFeatureID)
 		return store.IsSet(o.AsEObject(), eFeature)
 	}
@@ -278,17 +213,16 @@ func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 
 func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 	// retrieve value
-	state := o.state.Load()
-	if result := state.getProperty(dynamicFeatureID); result != nil {
+	if result := o.getCached(dynamicFeatureID); result != nil {
 		return result
 	}
-
 	for {
+		config := o.config.Load()
 		// compute value
 		var result any
 		cache := false
-		store := state.getStore()
-		objectCache := state.isCache()
+		store := config.getStore()
+		objectCache := config.isCache()
 		if eFeature := o.eDynamicFeature(dynamicFeatureID); !eFeature.IsTransient() {
 			if eFeature.IsMany() {
 				if IsMapType(eFeature) {
@@ -308,22 +242,11 @@ func (o *EStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 		if !cache || result == nil {
 			return result
 		}
-
 		// store value in properties, unless set meanwhile
-		for {
-			current := o.state.Load()
-			if value := current.getProperty(dynamicFeatureID); value != nil {
-				return value
-			}
-			if current.getStore() != store || current.isCache() != objectCache {
-				// store or cache changed meanwhile: compute again
-				state = current
-				break
-			}
-			if o.state.CompareAndSwap(current, current.withProperty(dynamicFeatureID, result, o.EClass())) {
-				return result
-			}
+		if value, cached := o.cacheIfAbsentAt(config.getEpoch(), dynamicFeatureID, result); cached {
+			return value
 		}
+		// store or cache changed meanwhile: compute again
 	}
 }
 
@@ -331,41 +254,26 @@ func (o *EStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 	eFeature := o.eDynamicFeature(dynamicFeatureID)
-	store := o.state.Load().getStore()
-	persistent := store != nil && !eFeature.IsTransient()
-	if persistent {
+	config := o.config.Load()
+	if store := config.getStore(); store != nil && !eFeature.IsTransient() {
 		// store and feature is not transient
 		store.Set(o.AsEObject(), eFeature, NO_INDEX, value, false)
-	}
-	for {
-		current := o.state.Load()
-		if persistent && !current.isCache() {
+		if !config.isCache() {
 			// no cache : the value is in the store only
 			return
 		}
-		// no store or feature is transient: cache value in properties even if there is no cache
-		if o.state.CompareAndSwap(current, current.withProperty(dynamicFeatureID, value, o.EClass())) {
-			return
-		}
 	}
+	// cached, or no store or transient feature: the cache is the only place of the value
+	o.setCached(dynamicFeatureID, value)
 }
 
 func (o *EStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 	// retrieve previous value and unset properties
-	for {
-		current := o.state.Load()
-		if current.getProperty(dynamicFeatureID) == nil {
-			break
-		}
-		if o.state.CompareAndSwap(current, current.withProperty(dynamicFeatureID, nil, nil)) {
-			break
-		}
-	}
+	o.unsetCached(dynamicFeatureID)
 	eFeature := o.eDynamicFeature(dynamicFeatureID)
-	store := o.state.Load().getStore()
-	if store != nil && !eFeature.IsTransient() {
+	if store := o.config.Load().getStore(); store != nil && !eFeature.IsTransient() {
 		store.UnSet(o.AsEObject(), eFeature)
 	}
 }

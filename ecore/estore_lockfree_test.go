@@ -271,3 +271,60 @@ func TestEStoreEObjectImpl_MissRacingSetCache(t *testing.T) {
 		assert.Equal(t, o.IsCache(), list.IsCache())
 	}
 }
+
+// A value read from the store while the store of the object changes is not cached: the reader
+// reads it again from the new store.
+func TestEStoreEObjectImpl_MissRacingSetEStore(t *testing.T) {
+	m := newReadBenchModel()
+	attribute := m.attributes[0]
+	o := NewEStoreEObjectImpl(true)
+	o.SetEClass(m.class)
+	oldStore := NewMockEStore(t)
+	newStore := NewMockEStore(t)
+	o.SetEStore(oldStore)
+
+	reading := make(chan struct{})
+	release := make(chan struct{})
+	oldStore.EXPECT().Get(o, attribute, NO_INDEX).RunAndReturn(func(EObject, EStructuralFeature, int) any {
+		close(reading)
+		<-release
+		return "old"
+	}).Once()
+	newStore.EXPECT().Get(o, attribute, NO_INDEX).Return("new").Once()
+
+	var value any
+	var group sync.WaitGroup
+	group.Go(func() {
+		value = o.EGet(attribute)
+	})
+	<-reading
+	o.SetEStore(newStore)
+	close(release)
+	group.Wait()
+	assert.Equal(t, "new", value)
+	assert.Equal(t, "new", o.EGet(attribute))
+}
+
+// The epoch of the cache: a value read with a configuration replaced meanwhile fails to be
+// cached, and ClearCache keeps the epoch.
+func TestEStoreEObjectImpl_CacheEpoch(t *testing.T) {
+	m := newReadBenchModel()
+	o := NewEStoreEObjectImpl(true)
+	o.SetEClass(m.class)
+	epoch := o.config.Load().getEpoch()
+	o.SetCache(false)
+	_, cached := o.cacheIfAbsentAt(epoch, 1, "stale")
+	assert.False(t, cached)
+	assert.Nil(t, o.getCached(1))
+
+	current := o.config.Load().getEpoch()
+	assert.Equal(t, epoch+1, current)
+	value, cached := o.cacheIfAbsentAt(current, 1, "fresh")
+	assert.True(t, cached)
+	assert.Equal(t, "fresh", value)
+	o.ClearCache()
+	assert.Nil(t, o.getCached(1))
+	assert.Equal(t, current, o.cache.Load().epochOf())
+	_, cached = o.cacheIfAbsentAt(current, 1, "again")
+	assert.True(t, cached)
+}

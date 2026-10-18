@@ -42,6 +42,27 @@ type compactCache struct {
 	// overflow holds the cached values of the feature IDs from 64: without a store, the cache is
 	// the only place the values of the object are kept.
 	overflow map[int]any
+	// epoch is the configuration of the object the values were cached with: a concrete type
+	// that changes how its values are read (EStoreEObjectImpl: store, cache flag) replaces the
+	// cache with a new epoch, so that a value read with the previous configuration fails to be
+	// cached (cacheIfAbsentAt). It is 0 for the other types.
+	epoch uint64
+}
+
+// epochOf returns the epoch of c, 0 for none.
+func (c *compactCache) epochOf() uint64 {
+	if c == nil {
+		return 0
+	}
+	return c.epoch
+}
+
+// emptyCache returns an empty cache of epoch: nil for 0.
+func emptyCache(epoch uint64) *compactCache {
+	if epoch == 0 {
+		return nil
+	}
+	return &compactCache{epoch: epoch}
 }
 
 func (o *CompactEStoreEObjectImpl) Initialize() {
@@ -78,7 +99,12 @@ func (o *CompactEStoreEObjectImpl) EDynamicProperties() EDynamicProperties {
 
 // ClearCache clears all cached feature values from the dynamic compact cache.
 func (o *CompactEStoreEObjectImpl) ClearCache() {
-	o.cache.Store(nil)
+	for {
+		c := o.cache.Load()
+		if c == nil || o.cache.CompareAndSwap(c, emptyCache(c.epoch)) {
+			return
+		}
+	}
 }
 
 // get returns the value of featureID in c, and whether it is cached.
@@ -143,9 +169,57 @@ func (c *compactCache) without(featureID int) *compactCache {
 		result.mask &^= bit
 	}
 	if result.mask == 0 && result.overflow == nil {
-		return nil
+		return emptyCache(result.epoch)
 	}
 	return &result
+}
+
+// cachedFeatureValue is a value of a cache and its feature ID.
+type cachedFeatureValue struct {
+	featureID int
+	value     any
+}
+
+// featureValues returns the values of c by ascending feature ID.
+func (c *compactCache) featureValues() []cachedFeatureValue {
+	if c == nil {
+		return nil
+	}
+	values := make([]cachedFeatureValue, 0, len(c.values)+len(c.overflow))
+	for mask, i := c.mask, 0; mask != 0; i++ {
+		featureID := bits.TrailingZeros64(mask)
+		values = append(values, cachedFeatureValue{featureID, c.values[i]})
+		mask &= mask - 1
+	}
+	for _, featureID := range slices.Sorted(maps.Keys(c.overflow)) {
+		values = append(values, cachedFeatureValue{featureID, c.overflow[featureID]})
+	}
+	return values
+}
+
+// setFeatureValue returns values with the value of featureID, without it if nil.
+func setFeatureValue(values []cachedFeatureValue, featureID int, value any) []cachedFeatureValue {
+	index := slices.IndexFunc(values, func(v cachedFeatureValue) bool { return v.featureID == featureID })
+	switch {
+	case index >= 0 && value == nil:
+		return slices.Delete(values, index, index+1)
+	case index >= 0:
+		values[index].value = value
+		return values
+	case value != nil:
+		return append(values, cachedFeatureValue{featureID, value})
+	}
+	return values
+}
+
+// cachedValues returns the cached values.
+func (o *CompactEStoreEObjectImpl) cachedValues() []any {
+	featureValues := o.cache.Load().featureValues()
+	values := make([]any, len(featureValues))
+	for i, v := range featureValues {
+		values[i] = v.value
+	}
+	return values
 }
 
 // isCached reports whether the value of featureID is cached.
@@ -184,6 +258,23 @@ func (o *CompactEStoreEObjectImpl) cacheIfAbsent(featureID int, value any) any {
 		}
 		if o.cache.CompareAndSwap(c, c.with(featureID, value)) {
 			return value
+		}
+	}
+}
+
+// cacheIfAbsentAt caches the value of featureID unless one is cached, while the cache has epoch:
+// it returns the cached value, and false if the cache has another epoch.
+func (o *CompactEStoreEObjectImpl) cacheIfAbsentAt(epoch uint64, featureID int, value any) (any, bool) {
+	for {
+		c := o.cache.Load()
+		if c.epochOf() != epoch {
+			return nil, false
+		}
+		if current, _ := c.get(featureID); current != nil {
+			return current, true
+		}
+		if o.cache.CompareAndSwap(c, c.with(featureID, value)) {
+			return value, true
 		}
 	}
 }

@@ -10,7 +10,7 @@
 package ecore
 
 import (
-	"github.com/SokaDance/rmx"
+	"sync"
 )
 
 type internalReflectiveEStoreEObjectImpl interface {
@@ -22,7 +22,13 @@ type internalReflectiveEStoreEObjectImpl interface {
 // All values (persistent cache and transient values) are held as strong references.
 type ReflectiveEStoreEObjectImpl struct {
 	ReflectiveEObjectImpl
-	mutex rmx.RecursiveMutex
+	// values are the cached and transient values, read without lock
+	values eStoreProperties
+	// mutex serializes the writers of the object, and is held by Lock while the object is
+	// encoded. Readers never take it.
+	mutex sync.Mutex
+	// lockedLists are the store lists locked by Lock, guarded by mutex
+	lockedLists []*EStoreList
 }
 
 func (o *ReflectiveEStoreEObjectImpl) Initialize() {
@@ -38,21 +44,16 @@ func (o *ReflectiveEStoreEObjectImpl) getStore() EStore {
 	return o.asInternal().GetEStore()
 }
 
+// Lock prevents the writes to the object and to its store lists until Unlock. The object can be
+// read meanwhile, by the goroutine holding the lock too.
 func (o *ReflectiveEStoreEObjectImpl) Lock() {
 	o.mutex.Lock()
-	for _, v := range o.properties {
-		if storeList, isStoreList := v.(*EStoreList); isStoreList {
-			storeList.Lock()
-		}
-	}
+	o.lockedLists = lockStoreLists(o.values.all())
 }
 
 func (o *ReflectiveEStoreEObjectImpl) Unlock() {
-	for _, v := range o.properties {
-		if storeList, isStoreList := v.(*EStoreList); isStoreList {
-			storeList.Unlock()
-		}
-	}
+	unlockStoreLists(o.lockedLists)
+	o.lockedLists = nil
 	o.mutex.Unlock()
 }
 
@@ -61,14 +62,9 @@ func (o *ReflectiveEStoreEObjectImpl) Unlock() {
 
 func (o *ReflectiveEStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 	// 1. Cache hit
-	o.mutex.Lock()
-	if o.properties != nil {
-		if result := o.properties[dynamicFeatureID]; result != nil {
-			o.mutex.Unlock()
-			return result
-		}
+	if result := o.values.get(dynamicFeatureID); result != nil {
+		return result
 	}
-	o.mutex.Unlock()
 
 	// 2. Cache miss
 	var result any
@@ -94,15 +90,9 @@ func (o *ReflectiveEStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 		cache = true
 	}
 
-	if cache {
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
-		properties := o.getProperties()
+	if cache && result != nil {
 		// unless set meanwhile
-		if current := properties[dynamicFeatureID]; current != nil {
-			return current
-		}
-		properties[dynamicFeatureID] = result
+		return o.values.setIfAbsent(dynamicFeatureID, result, o.EClass())
 	}
 	return result
 }
@@ -119,14 +109,11 @@ func (o *ReflectiveEStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value an
 		}
 	}
 
-	o.getProperties()[dynamicFeatureID] = value
+	o.values.set(dynamicFeatureID, value, o.EClass())
 }
 
 func (o *ReflectiveEStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
-	o.mutex.Lock()
-	cached := o.properties != nil && o.properties[dynamicFeatureID] != nil
-	o.mutex.Unlock()
-	if cached {
+	if o.values.get(dynamicFeatureID) != nil {
 		return true
 	}
 
@@ -143,9 +130,7 @@ func (o *ReflectiveEStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 
-	if o.properties != nil {
-		o.properties[dynamicFeatureID] = nil
-	}
+	o.values.unset(dynamicFeatureID)
 
 	feature := o.eDynamicFeature(dynamicFeatureID)
 	if !feature.IsTransient() {

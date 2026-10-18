@@ -37,7 +37,9 @@ func decodeAny(stmt *sqlite.Stmt, i int) any {
 }
 
 type sqlObjectManager interface {
-	registerObject(EObject)
+	// registerObject registers an object decoded or encoded. locked is true when the caller holds
+	// the lock of the object (ELockProvider).
+	registerObject(object EObject, locked bool)
 }
 
 type SQLDecoderIDManager interface {
@@ -125,7 +127,7 @@ func newSqlDecoderObjectManager() *sqlDecoderObjectManager {
 	return &sqlDecoderObjectManager{}
 }
 
-func (r *sqlDecoderObjectManager) registerObject(EObject) {
+func (r *sqlDecoderObjectManager) registerObject(EObject, bool) {
 }
 
 type sqlDecoder struct {
@@ -343,7 +345,7 @@ func (d *sqlDecoder) decodeObject(id int64) (EObject, error) {
 		d.sqlIDManager.SetObjectID(eObject, id)
 
 		// register in sql object maneger
-		d.sqlObjectManager.registerObject(eObject)
+		d.sqlObjectManager.registerObject(eObject, false)
 	}
 	return eObject, nil
 }

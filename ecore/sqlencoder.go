@@ -127,7 +127,7 @@ func newSqlEncoderObjectManager() *sqlEncoderObjectManager {
 	return &sqlEncoderObjectManager{}
 }
 
-func (r *sqlEncoderObjectManager) registerObject(EObject) {
+func (r *sqlEncoderObjectManager) registerObject(EObject, bool) {
 }
 
 type sqlEncoderLock struct {
@@ -357,8 +357,10 @@ func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, contain
 		e.sqlIDManager.SetObjectID(eObject, sqlObjectID)
 
 		// lock object to ensure its object features values are not modified
-		// while encoding
-		if lockProvider, isLockProvider := eObject.(ELockProvider); isLockProvider {
+		// while encoding, until it is registered with its store. The lock is not reentrant:
+		// the object is only read meanwhile, and registered as locked
+		lockProvider, locked := eObject.(ELockProvider)
+		if locked {
 			lockProvider.Lock()
 			defer lockProvider.Unlock()
 		}
@@ -424,7 +426,7 @@ func (e *sqlEncoder) encodeObject(eObject EObject, sqlContainerID int64, contain
 
 		// register in sql object manager
 		// (must be done at the end otherwise internal data of eObject may disappear if its a EStoreEObject)
-		e.sqlObjectManager.registerObject(eObject)
+		e.sqlObjectManager.registerObject(eObject, locked)
 	}
 	logger.Debug("object encoded", zap.Int64("id", sqlObjectID))
 	return sqlObjectID, nil

@@ -7,6 +7,12 @@
 #
 # *****************************************************************************
 
+# the tournament model: one package shared by two implementations (typed fields and reflective
+# delegation), with the interfaces and the mocks in test/tournament
+TOURNAMENT = github.com/masagroup/soft.go/test/tournament
+TOURNAMENT_TYPED = $(TOURNAMENT)/tournament\#$(TOURNAMENT)/typed/typed\#$(TOURNAMENT)/tournament
+TOURNAMENT_REFLECTIVE = $(TOURNAMENT)/tournament\#$(TOURNAMENT)/reflective/reflective\#$(TOURNAMENT)/tournament
+
 GENERATE = docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/$(2) -o /pwd/$(1) -P /pwd/generator.properties $(3)
 
 # os detection
@@ -40,11 +46,22 @@ generate:
 	@$(call GENERATE,,ecore.ecore,)
 	@$(call GENERATE,test,empty.ecore,)
 	@$(call GENERATE,test,library.ecore,)
-	@$(call GENERATE,test,tournament.ecore,)
 	@$(call GENERATE,,tournament.ecore, \
+		-t generateInterfaces -t generateMocks -t generateMocksTests \
+		-p packageInstance=interfaces \
+		-p module=github.com/masagroup/soft.go \
+		-p packages=$(TOURNAMENT_TYPED))
+	@$(call GENERATE,,tournament.ecore, \
+		-t generateImplementations -t generateTests \
+		-p packageInstance=interfaces \
+		-p module=github.com/masagroup/soft.go \
+		-p packages=$(TOURNAMENT_TYPED))
+	@$(call GENERATE,,tournament.ecore, \
+		-t generateImplementations -t generateTests \
+		-p packageInstance=interfaces \
 		-p featureDelegation=Reflective \
 		-p module=github.com/masagroup/soft.go \
-		-p packages=github.com/masagroup/soft.go/test/tournament-reflective/tournament#github.com/masagroup/soft.go/test/tournament-reflective/impls/impls#github.com/masagroup/soft.go/test/tournament-reflective/mocks/mocks)
+		-p packages=$(TOURNAMENT_REFLECTIVE))
 
 .PHONY: fmt
 fmt:

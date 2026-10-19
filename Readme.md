@@ -51,6 +51,22 @@ What works within one implementation and across two implementations of the same 
 | `Copy` | works, same implementation | not a cross copy |
 | `Equals`, `IsSuperTypeOf`, `IsInstance`, proxies across resource sets | works | false / unsupported |
 
+## One shared package, several implementations ##
+Generated with the property `packageInstance=interfaces` of soft.generator.go, the package of a metamodel (`GetPackage`) is generated once, with its interfaces, and shared by its implementations: each implementation (`generateImplementations`, one run each) holds its classes and a factory of its own (`GetFactory`), whose package is the shared one. The objects of all implementations have the same `EClass`. The factory instance of the shared package only converts data types: its `Create` panics.
+
+The implementation a resource set creates its objects with (load, XML, binary and SQL) is the factory registered for the nsURI in its package registry:
+
+```Golang
+typedSet := ecore.CreateEResourceSet([]ecore.EPackage{model.GetPackage()})
+typedSet.GetPackageRegistry().PutFactory(model.NS_URI, typed.GetFactory())
+reflectiveSet := ecore.CreateEResourceSet([]ecore.EPackage{model.GetPackage()})
+reflectiveSet.GetPackageRegistry().PutFactory(model.NS_URI, reflective.GetFactory())
+```
+
+An implementation can be made the default implementation of the package with its generated `SetDefault()` (`ecore.SetDefaultFactory(pack, factory)`): the factory instance of the package then creates its objects with it, as do the resource sets without a factory registered for the nsURI.
+
+`ecore.GetObjectFactory(obj)` returns the factory of the implementation of an object: `Copy` and the entries of maps are of the implementation of the object they come from. The objects of different implementations of a shared package do not mix: containing, referencing (lists, single references, `ESet`) or adding as a root of the same resource an object of another implementation panics (`ecore.CheckSameImplementation`) when the program is built with the tag `ecore_check` (`ecore.Checks`). Without it, the checks are compiled out and cost nothing. The same tag enables the other checks of programming errors, such as setting an element of a unique list to an element it holds at another index. The property `checkImplementation=false` of soft.generator.go also leaves them out of the generated setters. Within one implementation, everything works as with a complete package, including `EGet` / `ESet` with the features of `GetPackage()`, `Equals` and `IsSuperTypeOf`.
+
 # Supported go versions #
 We support Go v1.12
 

@@ -80,6 +80,7 @@ func (rc *resourceContents) GetFeatureID() int {
 func (rc *resourceContents) InverseAdd(object any, notifications ENotificationChain) ENotificationChain {
 	n := notifications
 	if eObject, _ := object.(EObjectInternal); eObject != nil {
+		rc.checkSameImplementation(eObject)
 		eResource := rc.resource.AsEResource()
 		n = eObject.ESetResource(eResource, n)
 		eResource.Attached(eObject)

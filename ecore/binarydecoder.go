@@ -21,6 +21,7 @@ import (
 
 type binaryDecoderPackageData struct {
 	ePackage   EPackage
+	eFactory   EFactory
 	eClassData []*binaryDecoderClassData
 }
 
@@ -526,6 +527,7 @@ func (d *BinaryDecoder) decodePackage() (*binaryDecoderPackageData, error) {
 		}
 		// create new package data
 		ePackageData := d.newPackageData(ePackage)
+		ePackageData.eFactory = getRegistryFactory(packageRegistry, ePackage)
 		d.packageData = append(d.packageData, ePackageData)
 		return ePackageData, nil
 
@@ -575,6 +577,13 @@ func (d *BinaryDecoder) resolveURI(uri *URI) *URI {
 	return uri
 }
 
+func (p *binaryDecoderPackageData) getFactory() EFactory {
+	if p.eFactory != nil {
+		return p.eFactory
+	}
+	return p.ePackage.GetEFactoryInstance()
+}
+
 func (d *BinaryDecoder) newPackageData(ePackage EPackage) *binaryDecoderPackageData {
 	return &binaryDecoderPackageData{
 		ePackage:   ePackage,
@@ -594,7 +603,7 @@ func (d *BinaryDecoder) newClassData(ePackageData *binaryDecoderPackageData) (*b
 	}
 	return &binaryDecoderClassData{
 		eClass:      eClass,
-		eFactory:    ePackage.GetEFactoryInstance(),
+		eFactory:    ePackageData.getFactory(),
 		featureData: make([]*binaryDecoderFeatureData, eClass.GetFeatureCount()),
 	}, nil
 }

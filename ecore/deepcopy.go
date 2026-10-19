@@ -57,7 +57,8 @@ func (dC *deepCopy) copyAll(eObjects EList) EList {
 
 func (dC *deepCopy) createCopy(eObject EObject) EObject {
 	eClass := eObject.EClass()
-	eFactory := eClass.GetEPackage().GetEFactoryInstance()
+	// the copy is of the implementation of eObject
+	eFactory := getClassFactory(eObject, eClass)
 	return eFactory.Create(eClass)
 }
 

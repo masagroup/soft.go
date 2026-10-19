@@ -10,8 +10,9 @@
 package ecore
 
 type EPackageRegistryImpl struct {
-	packages map[string]any
-	delegate EPackageRegistry
+	packages  map[string]any
+	factories map[string]EFactory
+	delegate  EPackageRegistry
 }
 
 func NewEPackageRegistryImpl() *EPackageRegistryImpl {
@@ -69,8 +70,23 @@ func (r *EPackageRegistryImpl) GetPackage(nsURI string) EPackage {
 	return nil
 }
 
+func (r *EPackageRegistryImpl) PutFactory(nsURI string, factory EFactory) {
+	if r.factories == nil {
+		r.factories = map[string]EFactory{}
+	}
+	r.factories[nsURI] = factory
+}
+
+func (r *EPackageRegistryImpl) RemoveFactory(nsURI string) {
+	delete(r.factories, nsURI)
+}
+
+// GetFactory returns the factory registered for nsURI (PutFactory), else the factory instance of
+// the package of nsURI, else the factory of the delegate registry.
 func (r *EPackageRegistryImpl) GetFactory(nsURI string) EFactory {
-	if p := r.doGetPackage(nsURI); p != nil {
+	if f := r.factories[nsURI]; f != nil {
+		return f
+	} else if p := r.doGetPackage(nsURI); p != nil {
 		return p.GetEFactoryInstance()
 	} else if r.delegate != nil {
 		return r.delegate.GetFactory(nsURI)

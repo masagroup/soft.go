@@ -183,7 +183,9 @@ func TestEStoreMap_Set(t *testing.T) {
 
 	oldEntry := NewMockEObjectEMapEntryWithCache(t)
 	newEntry := NewMockEObjectEMapEntryWithCache(t)
-	mockStore.EXPECT().IndexOf(mockOwner, mockFeature, newEntry).Return(-1).Once()
+	if Checks {
+		mockStore.EXPECT().IndexOf(mockOwner, mockFeature, newEntry).Return(-1).Once()
+	}
 	mockStore.EXPECT().Set(mockOwner, mockFeature, 0, newEntry, true).Return(oldEntry).Once()
 	mockOwner.EXPECT().EDeliver().Return(false).Once()
 	oldEntry.EXPECT().GetKey().Return("key").Once()

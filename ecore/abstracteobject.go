@@ -417,6 +417,7 @@ func (o *AbstractEObject) ESetFromID(featureID int, newValue any) {
 }
 
 func (o *AbstractEObject) eDynamicPropertiesSet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, newValue any) {
+	checkSameImplementation(o.interfaces, newValue)
 	if IsContainer(dynamicFeature) {
 		// container
 		objInternal := o.AsEObjectInternal()
@@ -780,6 +781,7 @@ func (o *AbstractEObject) eDynamicPropertiesInverseRemove(properties EDynamicPro
 
 // EBasicSetContainer ...
 func (o *AbstractEObject) EBasicSetContainer(newContainer EObject, newContainerFeatureID int, n ENotificationChain) ENotificationChain {
+	checkSameImplementation(newContainer, o.interfaces)
 	notifications := n
 	objInternal := o.AsEObjectInternal()
 	oldResource := objInternal.EInternalResource()

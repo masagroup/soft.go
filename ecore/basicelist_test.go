@@ -280,8 +280,15 @@ func TestBasicEListInsertAllUnique(t *testing.T) {
 }
 
 func TestBasicEListSetUnique(t *testing.T) {
-	arr := NewUniqueBasicEList([]any{1, 2})
-	assert.Panics(t, func() {
-		arr.Set(0, 2)
-	})
+	arr := NewUniqueBasicEList([]any{3, 5, 7})
+	// the same element at its own index
+	arr.Set(1, 5)
+	assert.Equal(t, []any{3, 5, 7}, arr.ToArray())
+	if Checks {
+		assert.PanicsWithValue(t, "element already in list", func() { arr.Set(0, 7) })
+	} else {
+		// not checked without the build tag ecore_check
+		arr.Set(0, 7)
+		assert.Equal(t, []any{7, 5, 7}, arr.ToArray())
+	}
 }

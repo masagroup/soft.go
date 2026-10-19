@@ -623,6 +623,7 @@ func (list *EStoreList) Contains(element any) bool {
 }
 
 func (list *EStoreList) InverseAdd(object any, notifications ENotificationChain) ENotificationChain {
+	checkSameImplementation(list.owner, object)
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {

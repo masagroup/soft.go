@@ -12,12 +12,24 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 const libraryNSURI = "http:///org/eclipse/emf/examples/library/library.ecore/1.0.0"
+
+// newSQLMockEPackageRegistry returns a mock package registry without factory registered by nsURI:
+// the decoder creates the objects with the factory instances of the packages.
+func newSQLMockEPackageRegistry(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *MockEPackageRegistry {
+	r := NewMockEPackageRegistry(t)
+	r.EXPECT().GetFactory(mock.Anything).Return(nil).Maybe()
+	return r
+}
 
 type dynamicSQLEObjectImpl struct {
 	DynamicEObjectImpl
@@ -191,7 +203,7 @@ func TestSQLStore_Get_Enum(t *testing.T) {
 	require.Nil(t, err)
 
 	// store
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
@@ -298,7 +310,7 @@ func TestSQLStore_Get_Object(t *testing.T) {
 	require.Nil(t, err)
 
 	mockObject := NewMockSQLObject(t)
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
@@ -331,7 +343,7 @@ func TestSQLStore_Get_Reference_WithFragment(t *testing.T) {
 	eFeature := eClass.GetEStructuralFeatureFromName("author")
 	require.NotNil(t, eFeature)
 
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	mockObject := NewMockSQLObject(t)
 
 	// database
@@ -369,7 +381,7 @@ func TestSQLStore_Get_Reference_WithSQLID(t *testing.T) {
 	eFeature := eBookClass.GetEStructuralFeatureFromName("author")
 	require.NotNil(t, eFeature)
 
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	mockObject := NewMockSQLObject(t)
 
 	// database
@@ -1183,7 +1195,7 @@ func TestSQLStore_Remove_Object(t *testing.T) {
 	require.Nil(t, err)
 
 	// create store
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
@@ -1618,7 +1630,7 @@ func TestSQLStore_ToArray_Objects(t *testing.T) {
 	err := copyFile("testdata/library.complex.sqlite", dbPath)
 	require.Nil(t, err)
 
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
@@ -1652,7 +1664,7 @@ func TestSQLStore_GetContainer(t *testing.T) {
 	err := copyFile("testdata/library.store.sqlite", dbPath)
 	require.Nil(t, err)
 
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.Nil(t, err)
 	require.NotNil(t, s)
@@ -1726,7 +1738,7 @@ func TestSQLStore_GetRoots(t *testing.T) {
 	require.Nil(t, err)
 
 	// store
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	mockPackageRegitry.EXPECT().GetPackage(libraryNSURI).Return(ePackage).Once()
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
@@ -1744,7 +1756,7 @@ func TestSQLStore_RemoveRoot(t *testing.T) {
 	require.Nil(t, err)
 
 	// store
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
@@ -1779,7 +1791,7 @@ func TestSQLStore_AddRoot(t *testing.T) {
 	dbPath := filepath.Join(t.TempDir(), "library.add.sqlite")
 
 	// store
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
@@ -1907,7 +1919,7 @@ func TestSQLStore_Parallel_AddSize(t *testing.T) {
 	require.Nil(t, err)
 
 	// create store
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, map[string]any{SQL_OPTION_LOGGER: logger})
 	require.Nil(t, err)
 	require.NotNil(t, s)
@@ -1939,7 +1951,7 @@ func TestSQLStore_UnRegister(t *testing.T) {
 	require.Nil(t, err)
 
 	// store
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, nil)
 	require.NoError(t, err)
 	require.NotNil(t, s)
@@ -1965,7 +1977,7 @@ func TestSQLStore_Panics(t *testing.T) {
 	require.Nil(t, err)
 
 	// store
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	options := map[string]any{SQL_OPTION_LOGGER: logger}
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, options)
 	require.NoError(t, err)
@@ -2012,7 +2024,7 @@ func TestSQLStore_UnlockOperation_Simple(t *testing.T) {
 	require.Nil(t, err)
 
 	// store
-	mockPackageRegitry := NewMockEPackageRegistry(t)
+	mockPackageRegitry := newSQLMockEPackageRegistry(t)
 	options := map[string]any{SQL_OPTION_LOGGER: logger, SQL_OPTION_OPERATION_TIMEOUT: 25 * time.Millisecond}
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, mockPackageRegitry, options)
 	require.NoError(t, err)

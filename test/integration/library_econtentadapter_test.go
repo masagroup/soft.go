@@ -1,26 +1,27 @@
-package library
+package integration
 
 import (
 	"testing"
 
 	"github.com/masagroup/soft.go/ecore"
+	"github.com/masagroup/soft.go/test/library"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestEContentAdapterEObjectTopChanged(t *testing.T) {
 
-	library := GetFactory().CreateLibrary()
-	employee := GetFactory().CreateEmployee()
+	lib := library.GetFactory().CreateLibrary()
+	employee := library.GetFactory().CreateEmployee()
 
 	// create and add a new content adapter
 	adapter := ecore.NewMockEContentAdapter(t)
-	library.EAdapters().Add(adapter)
+	lib.EAdapters().Add(adapter)
 
 	// check that a notification is raised when employee is added
 	adapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ecore.ENotification) bool {
-		return n.GetNotifier() == library &&
-			n.GetFeatureID() == LIBRARY__EMPLOYEES &&
+		return n.GetNotifier() == lib &&
+			n.GetFeatureID() == library.LIBRARY__EMPLOYEES &&
 			n.GetNewValue() == employee &&
 			n.GetOldValue() == nil &&
 			n.GetEventType() == ecore.ADD &&
@@ -28,7 +29,7 @@ func TestEContentAdapterEObjectTopChanged(t *testing.T) {
 	})).Once()
 
 	// add employee
-	library.GetEmployees().Add(employee)
+	lib.GetEmployees().Add(employee)
 
 	// check expectations
 	adapter.AssertExpectations(t)
@@ -36,19 +37,19 @@ func TestEContentAdapterEObjectTopChanged(t *testing.T) {
 
 func TestEContentAdapterEObjectChildChanged(t *testing.T) {
 
-	library := GetFactory().CreateLibrary()
-	employee := GetFactory().CreateEmployee()
+	lib := library.GetFactory().CreateLibrary()
+	employee := library.GetFactory().CreateEmployee()
 	employee.SetFirstName("oldName")
-	library.GetEmployees().Add(employee)
+	lib.GetEmployees().Add(employee)
 
 	// create and add a new content adapter
 	adapter := ecore.NewMockEContentAdapter(t)
-	library.EAdapters().Add(adapter)
+	lib.EAdapters().Add(adapter)
 
 	// check that a notification is raised when employee is added
 	adapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ecore.ENotification) bool {
 		return n.GetNotifier() == employee &&
-			n.GetFeatureID() == EMPLOYEE__FIRST_NAME &&
+			n.GetFeatureID() == library.EMPLOYEE__FIRST_NAME &&
 			n.GetNewValue() == "newName" &&
 			n.GetOldValue() == "oldName" &&
 			n.GetEventType() == ecore.SET &&
@@ -63,9 +64,9 @@ func TestEContentAdapterEObjectChildChanged(t *testing.T) {
 }
 
 func TestEContentAdapterResource(t *testing.T) {
-	ecore.GetPackageRegistry().RegisterPackage(GetPackage())
+	ecore.GetPackageRegistry().RegisterPackage(library.GetPackage())
 
-	fileURI := ecore.CreateFileURI("testdata/library.complex.xml")
+	fileURI := ecore.CreateFileURI("testdata/library/library.complex.xml")
 	resource := ecore.NewEResourceImpl()
 	resource.SetURI(fileURI)
 	resource.Load()

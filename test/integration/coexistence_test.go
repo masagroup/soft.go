@@ -7,10 +7,11 @@
 //
 // *****************************************************************************
 
-// Package coexistence checks that two complete generated implementations of the
+// The tests of coexistence_test.go check that two complete generated implementations of the
 // same metamodel (typed fields in test/tournament, reflective delegation in
-// test/tournament-reflective/internal/impls) coexist, chosen per resource set.
-package coexistence
+// test/tournament-reflective/impls) coexist, chosen per resource set.
+
+package integration
 
 import (
 	"bytes"
@@ -21,12 +22,12 @@ import (
 	"github.com/masagroup/soft.go/ecore"
 	"github.com/masagroup/soft.go/test/tournament"
 	reflective "github.com/masagroup/soft.go/test/tournament-reflective"
-	"github.com/masagroup/soft.go/test/tournament-reflective/internal/impls"
+	"github.com/masagroup/soft.go/test/tournament-reflective/impls"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-const tournamentXML = "../../../tournament/testdata/tournament.xml"
+const tournamentXML = "testdata/tournament/tournament.xml"
 
 func typedPackage() ecore.EPackage {
 	return tournament.GetPackage()
@@ -34,13 +35,6 @@ func typedPackage() ecore.EPackage {
 
 func reflectivePackage() ecore.EPackage {
 	return impls.GetPackage()
-}
-
-func diagnosticError(errors ecore.EList) string {
-	if errors.Empty() {
-		return ""
-	}
-	return errors.Get(0).(ecore.EDiagnostic).GetMessage()
 }
 
 func loadXML(t *testing.T, ePackage ecore.EPackage) (ecore.EResourceSet, ecore.EResource) {

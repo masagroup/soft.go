@@ -1,2 +1,1 @@
 **/*.go
-!internal/coexistence/*_test.go

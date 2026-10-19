@@ -81,6 +81,24 @@ func (r *EPackageRegistryImpl) RemoveFactory(nsURI string) {
 	delete(r.factories, nsURI)
 }
 
+func (r *EPackageRegistryImpl) RegisterFactory(factory EFactory) {
+	r.PutFactory(getFactoryNsURI(factory), factory)
+}
+
+func (r *EPackageRegistryImpl) UnregisterFactory(factory EFactory) {
+	r.RemoveFactory(getFactoryNsURI(factory))
+}
+
+// getFactoryNsURI returns the nsURI of the package of factory: a factory registered by its package
+// has one.
+func getFactoryNsURI(factory EFactory) string {
+	pack := factory.GetEPackage()
+	if pack == nil {
+		panic("the factory has no package")
+	}
+	return pack.GetNsURI()
+}
+
 // GetFactory returns the factory registered for nsURI (PutFactory), else the factory instance of
 // the package of nsURI, else the factory of the delegate registry.
 func (r *EPackageRegistryImpl) GetFactory(nsURI string) EFactory {

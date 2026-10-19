@@ -110,6 +110,57 @@ func TestMockEPackageRegistryImpl_GetFactory(t *testing.T) {
 	}
 }
 
+func TestEPackageRegistryImpl_PutRemoveFactory(t *testing.T) {
+	p := NewMockEPackage(t)
+	packageFactory := NewMockEFactory(t)
+	f := NewMockEFactory(t)
+	rp := NewEPackageRegistryImpl()
+	rp.PutPackage("uri", p)
+
+	// the registered factory, before the factory instance of the package
+	rp.PutFactory("uri", f)
+	assert.Equal(t, f, rp.GetFactory("uri"))
+
+	// removed: the factory instance of the package
+	rp.RemoveFactory("uri")
+	p.EXPECT().GetEFactoryInstance().Return(packageFactory).Once()
+	assert.Equal(t, packageFactory, rp.GetFactory("uri"))
+
+	// a factory without its package registered
+	rp.PutFactory("other", f)
+	assert.Equal(t, f, rp.GetFactory("other"))
+	assert.Nil(t, rp.GetPackage("other"))
+}
+
+func TestEPackageRegistryImpl_RegisterUnregisterFactory(t *testing.T) {
+	p := NewMockEPackage(t)
+	f := NewMockEFactory(t)
+	f.EXPECT().GetEPackage().Return(p).Twice()
+	p.EXPECT().GetNsURI().Return("uri").Twice()
+	rp := NewEPackageRegistryImpl()
+
+	// keyed by the nsURI of the package of the factory
+	rp.RegisterFactory(f)
+	assert.Equal(t, f, rp.GetFactory("uri"))
+
+	rp.UnregisterFactory(f)
+	assert.Nil(t, rp.GetFactory("uri"))
+
+	// a factory without package
+	noPackage := NewMockEFactory(t)
+	noPackage.EXPECT().GetEPackage().Return(nil).Once()
+	assert.PanicsWithValue(t, "the factory has no package", func() { rp.RegisterFactory(noPackage) })
+}
+
+func TestEPackageRegistryImpl_GetFactoryDelegate(t *testing.T) {
+	f := NewMockEFactory(t)
+	delegate := NewEPackageRegistryImpl()
+	delegate.PutFactory("uri", f)
+	// a factory of the delegate, without package nor factory in the registry
+	rp := NewEPackageRegistryImplWithDelegate(delegate)
+	assert.Equal(t, f, rp.GetFactory("uri"))
+}
+
 // Concurrent first callers must all get the one registry, built once.
 func TestGetPackageRegistryConcurrentInitialization(t *testing.T) {
 	previous := packageRegistryInstance

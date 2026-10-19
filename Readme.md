@@ -58,12 +58,12 @@ The implementation a resource set creates its objects with (load, XML, binary an
 
 ```Golang
 typedSet := ecore.CreateEResourceSet([]ecore.EPackage{model.GetPackage()})
-typedSet.GetPackageRegistry().PutFactory(model.NS_URI, typed.GetFactory())
+typedSet.GetPackageRegistry().RegisterFactory(typed.GetFactory())
 reflectiveSet := ecore.CreateEResourceSet([]ecore.EPackage{model.GetPackage()})
-reflectiveSet.GetPackageRegistry().PutFactory(model.NS_URI, reflective.GetFactory())
+reflectiveSet.GetPackageRegistry().RegisterFactory(reflective.GetFactory())
 ```
 
-An implementation can be made the default implementation of the package with its generated `SetDefault()` (`ecore.SetDefaultFactory(pack, factory)`): the factory instance of the package then creates its objects with it, as do the resource sets without a factory registered for the nsURI.
+There is no global default implementation: each resource set chooses its implementation in its registry. The generated `Register(registry)` of an implementation registers the shared package and the factory of the implementation (`typed.Register(resourceSet.GetPackageRegistry())`).
 
 `ecore.GetObjectFactory(obj)` returns the factory of the implementation of an object: `Copy` and the entries of maps are of the implementation of the object they come from. The objects of different implementations of a shared package do not mix: containing, referencing (lists, single references, `ESet`) or adding as a root of the same resource an object of another implementation panics (`ecore.CheckSameImplementation`) when the program is built with the tag `ecore_check` (`ecore.Checks`). Without it, the checks are compiled out and cost nothing. The same tag enables the other checks of programming errors, such as setting an element of a unique list to an element it holds at another index. The property `checkImplementation=false` of soft.generator.go also leaves them out of the generated setters. Within one implementation, everything works as with a complete package, including `EGet` / `ESet` with the features of `GetPackage()`, `Equals` and `IsSuperTypeOf`.
 

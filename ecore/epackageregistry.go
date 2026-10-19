@@ -41,6 +41,10 @@ type EPackageRegistry interface {
 	PutFactory(nsURI string, factory EFactory)
 	RemoveFactory(nsURI string)
 
+	// RegisterFactory registers factory as the factory of the nsURI of its package (PutFactory).
+	RegisterFactory(factory EFactory)
+	UnregisterFactory(factory EFactory)
+
 	GetPackage(nsURI string) EPackage
 	GetFactory(nsURI string) EFactory
 }

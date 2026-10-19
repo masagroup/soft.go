@@ -9,8 +9,6 @@
 
 package ecore
 
-import "fmt"
-
 // EObjectFactory is implemented by the objects of an implementation of a shared package: a
 // package generated once, with the interfaces of its model (soft.generator.go property
 // packageInstance=interfaces), and implemented by several implementations, each with a factory of
@@ -59,27 +57,4 @@ func getRegistryFactory(packageRegistry EPackageRegistry, ePackage EPackage) EFa
 		}
 	}
 	return ePackage.GetEFactoryInstance()
-}
-
-// EDefaultFactoryHolder is implemented by the factory instance of a shared package: it converts
-// the data types of the package and creates its objects with its default factory, the factory of
-// the default implementation of the package.
-type EDefaultFactoryHolder interface {
-	SetDefaultFactory(defaultFactory EFactory)
-	GetDefaultFactory() EFactory
-}
-
-// SetDefaultFactory makes factory, the factory of an implementation of the shared package ePackage,
-// the default implementation of ePackage: the factory instance of ePackage creates its objects with
-// it, as do the resource sets without a factory registered for its nsURI (PutFactory). A nil factory
-// removes the default implementation.
-func SetDefaultFactory(ePackage EPackage, factory EFactory) {
-	holder, _ := ePackage.GetEFactoryInstance().(EDefaultFactoryHolder)
-	if holder == nil {
-		panic(fmt.Sprintf("the package '%s' is not a shared package", ePackage.GetNsURI()))
-	}
-	if factory != nil && factory.GetEPackage() != ePackage {
-		panic(fmt.Sprintf("the factory is not a factory of the package '%s'", ePackage.GetNsURI()))
-	}
-	holder.SetDefaultFactory(factory)
 }

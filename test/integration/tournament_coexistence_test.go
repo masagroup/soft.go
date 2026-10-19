@@ -33,7 +33,7 @@ const tournamentXML = "testdata/tournament/tournament.xml"
 // newTournamentResourceSet returns a resource set creating the objects of the tournament model with factory.
 func newTournamentResourceSet(factory ecore.EFactory) ecore.EResourceSet {
 	resourceSet := ecore.CreateEResourceSet([]ecore.EPackage{tournament.GetPackage()})
-	resourceSet.GetPackageRegistry().PutFactory(tournament.NS_URI, factory)
+	resourceSet.GetPackageRegistry().RegisterFactory(factory)
 	return resourceSet
 }
 
@@ -151,27 +151,29 @@ func TestSharedPackageLoadWithoutFactory(t *testing.T) {
 	assert.Panics(t, func() { xmlProcessor.Load(ecore.CreateFileURI(tournamentXML)) })
 }
 
-func TestSharedPackageDefaultFactory(t *testing.T) {
-	pack := tournament.GetPackage()
-	defer ecore.SetDefaultFactory(pack, nil)
+func TestSharedPackageRegister(t *testing.T) {
+	// Register of an implementation registers the shared package and the factory of the implementation
+	for _, test := range []struct {
+		register func(ecore.EPackageRegistry)
+		factory  ecore.EFactory
+	}{
+		{typed.Register, typed.GetFactory()},
+		{reflective.Register, reflective.GetFactory()},
+	} {
+		resourceSet := ecore.NewEResourceSetImpl()
+		test.register(resourceSet.GetPackageRegistry())
+		assert.Same(t, tournament.GetPackage(), resourceSet.GetPackageRegistry().GetPackage(tournament.NS_URI))
+		assert.Same(t, test.factory, resourceSet.GetPackageRegistry().GetFactory(tournament.NS_URI))
 
-	typed.SetDefault()
-	assert.Equal(t, "*typed.teamImpl", fmt.Sprintf("%T", pack.GetEFactoryInstance().Create(pack.GetTeam())))
-	// a resource set without factory loads with the default implementation
-	xmlProcessor := ecore.NewXMLProcessor(ecore.XMLProcessorPackages([]ecore.EPackage{pack}))
-	resource := xmlProcessor.Load(ecore.CreateFileURI(tournamentXML))
-	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
-	requireImplementation(t, typed.GetFactory(), resource, resource)
-	// a resource set with a factory overrides the default implementation
-	requireImplementation(t, reflective.GetFactory(), resource, loadXML(t, reflective.GetFactory()))
-
-	reflective.SetDefault()
-	assert.Equal(t, "*reflective.teamImpl", fmt.Sprintf("%T", pack.GetEFactoryInstance().Create(pack.GetTeam())))
-
-	ecore.SetDefaultFactory(pack, nil)
-	assert.Panics(t, func() { pack.GetEFactoryInstance().Create(pack.GetTeam()) })
-	// the factory of an implementation of another package is not a default factory
-	assert.Panics(t, func() { ecore.SetDefaultFactory(pack, ecore.GetFactory()) })
+		xmlProcessor := ecore.NewXMLProcessor(ecore.XMLProcessorResourceSet(resourceSet))
+		resource := xmlProcessor.Load(ecore.CreateFileURI(tournamentXML))
+		require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
+		requireImplementation(t, test.factory, resource, resource)
+	}
+	// no global default: the factory instance of the package creates no object
+	assert.Panics(t, func() { tournament.GetPackage().GetEFactoryInstance().Create(tournament.GetPackage().GetTeam()) })
+	// the global registry stays neutral
+	assert.Nil(t, ecore.GetPackageRegistry().GetPackage(tournament.NS_URI))
 }
 
 func TestSharedPackageCopy(t *testing.T) {

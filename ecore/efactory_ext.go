@@ -12,14 +12,12 @@ package ecore
 import (
 	"fmt"
 	"strconv"
-	"sync/atomic"
 )
 
 // EFactoryExt is the extension of the model object 'EFactory'
 type EFactoryExt struct {
 	EFactoryImpl
-	sharedPackage  EPackage
-	defaultFactory atomic.Pointer[EFactory]
+	sharedPackage EPackage
 }
 
 // newEFactoryExt ...
@@ -161,23 +159,4 @@ func (eFactory *EFactoryExt) ConvertToString(eDataType EDataType, instanceValue 
 	}
 
 	panic("ConvertToString not implemented")
-}
-
-// SetDefaultFactory sets the factory the factory instance of a shared package delegates the
-// creation of objects to (see SetDefaultFactory of the package).
-func (eFactory *EFactoryExt) SetDefaultFactory(defaultFactory EFactory) {
-	if defaultFactory == nil {
-		eFactory.defaultFactory.Store(nil)
-	} else {
-		eFactory.defaultFactory.Store(&defaultFactory)
-	}
-}
-
-// GetDefaultFactory returns the factory the factory instance of a shared package delegates the
-// creation of objects to, nil if none.
-func (eFactory *EFactoryExt) GetDefaultFactory() EFactory {
-	if defaultFactory := eFactory.defaultFactory.Load(); defaultFactory != nil {
-		return *defaultFactory
-	}
-	return nil
 }

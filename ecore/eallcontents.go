@@ -1,5 +1,7 @@
 package ecore
 
+import "slices"
+
 type eAllContentIterator = treeIterator
 
 func newEAllContentsIterator(object EObject) *eAllContentIterator {
@@ -38,6 +40,9 @@ func (ts transitions) removeTransition(transition *transition) transitions {
 type EClassTransitionsTable struct {
 	transitionsMap map[EClass]transitions
 	endSet         map[EClass]struct{}
+	// endClass is the class of the objects searched, nil for an empty table: an object is an end
+	// when it is an instance of it, whatever the type of the reference holding it
+	endClass EClass
 }
 
 func newEClassTransitionsTable() *EClassTransitionsTable {
@@ -90,12 +95,35 @@ func (table *EClassTransitionsTable) isEnd(eClass EClass) bool {
 	return isEnd
 }
 
+// isInstanceEnd returns true if an object of class eClass is searched: its class is the end class or
+// one of its sub classes
+func (table *EClassTransitionsTable) isInstanceEnd(eClass EClass) bool {
+	return table.isEnd(eClass) || (table.endClass != nil && table.endClass.IsSuperTypeOf(eClass))
+}
+
 func NewEClassTransitionsTable(startClass EClass, endClass EClass) *EClassTransitionsTable {
 	resultTable := newEClassTransitionsTable()
 	if startClass != endClass {
+		resultTable.endClass = endClass
 		computeTransitionTableForState(startClass, endClass, newEClassTransitionsTable(), resultTable)
 	}
 	return resultTable
+}
+
+// classesOf returns eClass and its sub classes, recursively: the classes of the objects a reference
+// typed eClass may hold
+func classesOf(eClass EClass) []EClass {
+	classes := []EClass{eClass}
+	for i := 0; i < len(classes); i++ {
+		if internal, _ := classes[i].(EClassInternal); internal != nil {
+			for _, subClass := range internal.getSubClasses() {
+				if subEClass, _ := subClass.(EClass); subEClass != nil && !slices.Contains(classes, subEClass) {
+					classes = append(classes, subEClass)
+				}
+			}
+		}
+	}
+	return classes
 }
 
 func computeTransitionTableForState(eClass EClass, endClass EClass, currentTable *EClassTransitionsTable, resultTable *EClassTransitionsTable) {
@@ -111,29 +139,35 @@ func computeTransitionTableForReference(sourceClass EClass, reference EReference
 	targetClass := reference.GetEReferenceType()
 	transition := &transition{source: sourceClass, target: targetClass, reference: reference}
 
-	if targetClass == endClass {
-		// end
-		// add current to result table
-		resultTable.setIsEnd(targetClass)
-		resultTable.union(currentTable)
-		resultTable.addTransition(transition)
-	}
-
-	if currentTable.contains(targetClass) {
-		// cycle
-		// check if target is in result and add the current
-		// transition table to keep track of this cycle
-		if resultTable.contains(targetClass) {
+	// the reference may hold instances of the sub classes of its type: each one may be an end, or
+	// lead to one through its own containments
+	targetClasses := classesOf(targetClass)
+	for _, eClass := range targetClasses {
+		if endClass.IsSuperTypeOf(eClass) {
+			// end
+			// add current to result table
+			resultTable.setIsEnd(eClass)
 			resultTable.union(currentTable)
 			resultTable.addTransition(transition)
 		}
-		return
 	}
 
-	currentTable.addTransition(transition)
-	computeTransitionTableForState(targetClass, endClass, currentTable, resultTable)
-	currentTable.removeTransition(transition)
+	for _, eClass := range targetClasses {
+		if currentTable.contains(eClass) {
+			// cycle
+			// check if target is in result and add the current
+			// transition table to keep track of this cycle
+			if resultTable.contains(eClass) {
+				resultTable.union(currentTable)
+				resultTable.addTransition(transition)
+			}
+			continue
+		}
 
+		currentTable.addTransition(transition)
+		computeTransitionTableForState(eClass, endClass, currentTable, resultTable)
+		currentTable.removeTransition(transition)
+	}
 }
 
 type data struct {
@@ -212,35 +246,35 @@ func (it *eAllContentsWithClassIterator) findNext() any {
 					d.transitions = notransitions
 				}
 			}
-			// compute current and remaining transition
-			if len(d.transitions) != 0 {
+			// the next transition with values: an unset or empty feature does not end the
+			// exploration of the object, its other transitions are tried
+			d.iterator = nil
+			for (d.iterator == nil || !d.iterator.HasNext()) && len(d.transitions) != 0 {
 				last := len(d.transitions) - 1
 				d.transition = d.transitions[last]
 				d.transitions = d.transitions[:last]
-			} else {
-				d.transition = nil
-			}
-
-			// compute iterator
-			if d.transition != nil && d.eObject.EIsSet(d.transition.reference) {
-				value := d.eObject.EGet(d.transition.reference)
-				switch v := value.(type) {
-				case EList:
-					d.iterator = v.Iterator()
-				case EObject:
-					d.iterator = newEObjectIterator(v)
+				d.iterator = nil
+				if d.eObject.EIsSet(d.transition.reference) {
+					value := d.eObject.EGet(d.transition.reference)
+					switch v := value.(type) {
+					case EList:
+						d.iterator = v.Iterator()
+					case EObject:
+						d.iterator = newEObjectIterator(v)
+					}
 				}
 			}
 		}
 
 		if d.iterator != nil && d.iterator.HasNext() {
 			eObject := d.iterator.Next().(EObject)
-			eClass := d.transition.target
+			// the class of the object, not the type of the reference: it may be a sub class
+			eClass := eObject.EClass()
 			// push data to the stack before returning to look for children next iteration
 			it.data = append(it.data, &data{eObject: eObject, eClass: eClass})
 
 			// a leaf is found
-			if it.table.isEnd(eClass) {
+			if it.table.isInstanceEnd(eClass) {
 				return eObject
 			}
 

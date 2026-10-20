@@ -119,6 +119,7 @@ func TestReflectiveEStoreEObjectImpl_SetAndUnset(t *testing.T) {
 
 	// IsSet
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Once()
+	mockAttribute.EXPECT().IsMany().Return(false).Maybe() // a set many feature is checked for emptiness
 	assert.True(t, o.EIsSetFromID(0))
 
 	// Unset

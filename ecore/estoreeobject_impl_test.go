@@ -283,6 +283,7 @@ func TestEStoreEObjectImpl_IsSet_NoCache(t *testing.T) {
 	o.SetEStore(mockStore)
 	mockStore.EXPECT().IsSet(o, mockAttribute).Return(true).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Twice()
+	mockAttribute.EXPECT().IsMany().Return(false).Maybe() // a set many feature is checked for emptiness
 	require.True(t, o.EIsSetFromID(0))
 }
 
@@ -295,6 +296,7 @@ func TestEStoreEObjectImpl_IsSet_WithCache(t *testing.T) {
 	mockAttribute.EXPECT().IsTransient().Return(false).Once()
 	mockAttribute.EXPECT().IsMany().Return(false).Once()
 	o.ESetFromID(0, 2)
+	mockAttribute.EXPECT().IsMany().Return(false).Maybe() // a set many feature is checked for emptiness
 	require.True(t, o.EIsSetFromID(0))
 }
 

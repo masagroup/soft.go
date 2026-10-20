@@ -275,6 +275,7 @@ func TestReflectiveEObjectImpl_SetAttribute(t *testing.T) {
 
 	// check that value is well set
 	assert.Equal(t, mockObject, o.EGetFromID(0, true))
+	mockAttribute.EXPECT().IsMany().Return(false).Maybe() // a set many feature is checked for emptiness
 	assert.True(t, o.EIsSetFromID(0))
 
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute)

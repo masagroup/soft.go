@@ -1,6 +1,7 @@
 package ecore
 
 import (
+	"errors"
 	"io"
 	"os"
 	"runtime"
@@ -14,12 +15,25 @@ func (fuh *FileURIHandler) CanHandle(uri *URI) bool {
 	return uri.scheme == "file" || (len(uri.scheme) == 0 && len(uri.host) == 0 && len(uri.query) == 0)
 }
 
-func (fuh *FileURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {
-	fileName := uri.Path()
-	if runtime.GOOS == "windows" && fileName[0] == '/' {
-		fileName = fileName[1:]
+// fileName returns the file of uri: on windows, "/C:/dir/file" is "C:/dir/file", and a path
+// without drive keeps its leading '/'
+func fileName(uri *URI) (string, error) {
+	name := uri.Path()
+	if len(name) == 0 {
+		return "", errors.New("the uri '" + uri.String() + "' has no file path")
 	}
-	f, err := os.Open(fileName)
+	if runtime.GOOS == "windows" && len(name) >= 3 && name[0] == '/' && name[2] == ':' {
+		name = name[1:]
+	}
+	return name, nil
+}
+
+func (fuh *FileURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {
+	name, err := fileName(uri)
+	if err != nil {
+		return nil, err
+	}
+	f, err := os.Open(name)
 	if err != nil {
 		return nil, err
 	}
@@ -27,11 +41,11 @@ func (fuh *FileURIHandler) CreateReader(uri *URI) (io.ReadCloser, error) {
 }
 
 func (fuh *FileURIHandler) CreateWriter(uri *URI) (io.WriteCloser, error) {
-	fileName := uri.Path()
-	if runtime.GOOS == "windows" && fileName[0] == '/' {
-		fileName = fileName[1:]
+	name, err := fileName(uri)
+	if err != nil {
+		return nil, err
 	}
-	f, err := os.Create(fileName)
+	f, err := os.Create(name)
 	if err != nil {
 		return nil, err
 	}

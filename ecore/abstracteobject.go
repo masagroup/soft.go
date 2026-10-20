@@ -672,9 +672,16 @@ func (o *AbstractEObject) eDynamicPropertiesIsSet(properties EDynamicProperties,
 		objInternal := o.AsEObjectInternal()
 		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
 		return objInternal.EInternalContainerFeatureID() == featureID && objInternal.EInternalContainer() != nil
-	} else {
-		return properties.EDynamicIsSet(dynamicFeatureID)
+	} else if !properties.EDynamicIsSet(dynamicFeatureID) {
+		return false
+	} else if dynamicFeature.IsMany() && !dynamicFeature.IsUnsettable() {
+		// the list of a many feature is created by its first read: as in EMF, it is set when not
+		// empty, not when it exists
+		if list, _ := properties.EDynamicGet(dynamicFeatureID).(EList); list != nil {
+			return !list.Empty()
+		}
 	}
+	return true
 }
 
 // EUnset unsets feature (EUnsetFromID). It panics when the class of the object has no such feature.

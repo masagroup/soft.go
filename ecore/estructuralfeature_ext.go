@@ -9,11 +9,21 @@
 
 package ecore
 
+import "sync/atomic"
+
 // EStructuralFeatureExt is the extension of the model object 'EStructuralFeature'
 type EStructuralFeatureExt struct {
 	EStructuralFeatureImpl
-	defaultValue        any
-	defaultValueFactory EFactory
+	// defaultValue is the default value created from the literal by a factory: published in one
+	// atomic pointer, as GetDefaultValue is read by concurrent goroutines
+	defaultValue atomic.Pointer[structuralFeatureDefaultValue]
+}
+
+// structuralFeatureDefaultValue is a default value and the factory that created it. It is never
+// changed once published.
+type structuralFeatureDefaultValue struct {
+	factory EFactory
+	value   any
 }
 
 func newEStructuralFeatureExt() *EStructuralFeatureExt {
@@ -34,17 +44,34 @@ func (eStructuralFeature *EStructuralFeatureExt) GetDefaultValue() any {
 			return eType.GetDefaultValue()
 		}
 	} else if eDataType, _ := eType.(EDataType); eDataType != nil {
+		current := eStructuralFeature.defaultValue.Load()
 		if ePackage := eType.GetEPackage(); ePackage != nil {
-			if factory := ePackage.GetEFactoryInstance(); factory != eStructuralFeature.defaultValueFactory {
+			if factory := ePackage.GetEFactoryInstance(); current == nil || factory != current.factory {
+				next := &structuralFeatureDefaultValue{factory: factory}
 				if eDataType.IsSerializable() {
-					eStructuralFeature.defaultValue = factory.CreateFromString(eDataType, defaultValueLiteral)
+					next.value = createDefaultValue(factory, eDataType, defaultValueLiteral)
 				}
-				eStructuralFeature.defaultValueFactory = factory
+				eStructuralFeature.defaultValue.Store(next)
+				return next.value
 			}
 		}
-		return eStructuralFeature.defaultValue
+		if current != nil {
+			return current.value
+		}
 	}
 	return nil
+}
+
+// createDefaultValue creates the default value of eDataType from its literal: an invalid literal,
+// on which the factory panics, gives the default value of the data type, as the default value is
+// read at each access to an unset feature.
+func createDefaultValue(factory EFactory, eDataType EDataType, literal string) (value any) {
+	defer func() {
+		if r := recover(); r != nil {
+			value = eDataType.GetDefaultValue()
+		}
+	}()
+	return factory.CreateFromString(eDataType, literal)
 }
 
 // SetDefaultValue set the value of defaultValue
@@ -54,7 +81,7 @@ func (eStructuralFeature *EStructuralFeatureExt) SetDefaultValue(newDefaultValue
 		factory := eDataType.GetEPackage().GetEFactoryInstance()
 		literal := factory.ConvertToString(eDataType, newDefaultValue)
 		eStructuralFeature.EStructuralFeatureImpl.SetDefaultValueLiteral(literal)
-		eStructuralFeature.defaultValueFactory = nil // reset default value
+		eStructuralFeature.defaultValue.Store(nil) // reset default value
 	} else {
 		panic("Cannot serialize value to object without an EDataType eType")
 	}
@@ -62,7 +89,7 @@ func (eStructuralFeature *EStructuralFeatureExt) SetDefaultValue(newDefaultValue
 
 // SetDefaultValueLiteral set the value of defaultValueLiteral
 func (eStructuralFeature *EStructuralFeatureExt) SetDefaultValueLiteral(newDefaultValueLiteral string) {
-	eStructuralFeature.defaultValueFactory = nil // reset default value
+	eStructuralFeature.defaultValue.Store(nil) // reset default value
 	eStructuralFeature.EStructuralFeatureImpl.SetDefaultValueLiteral(newDefaultValueLiteral)
 }
 

@@ -67,4 +67,3 @@ func loadTestModel(t *testing.T, resourceSet ecore.EResourceSet, modelURI *ecore
 	// retrieve root object
 	return r, r.GetContents().Get(0).(ecore.EObject)
 }
-

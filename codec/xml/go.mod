@@ -16,12 +16,3 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/text v0.43.0 // indirect
 )
-
-replace (
-	github.com/masagroup/soft.go => ../..
-	github.com/masagroup/soft.go/codec/binary => ../../codec/binary
-	github.com/masagroup/soft.go/codec/defaults => ../../codec/defaults
-	github.com/masagroup/soft.go/codec/json => ../../codec/json
-	github.com/masagroup/soft.go/codec/sqlite => ../../codec/sqlite
-	github.com/masagroup/soft.go/codec/xmi => ../../codec/xmi
-)

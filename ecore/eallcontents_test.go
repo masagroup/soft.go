@@ -27,7 +27,7 @@ type eAllContentsPackage struct {
 
 func loadEAllContentsPackage(t *testing.T) *eAllContentsPackage {
 	// load package
-	ePackage := loadPackage("eallcontents.ecore")
+	ePackage := newEAllContentsPackage()
 	require.NotNil(t, ePackage)
 	eRootClass, _ := ePackage.GetEClassifier("Root").(EClass)
 	require.NotNil(t, eRootClass)
@@ -167,10 +167,8 @@ type eAllContentsModel struct {
 
 func loadEAllContentsModel(t *testing.T, ePackage EPackage) *eAllContentsModel {
 	// load resource
-	xmlProcessor := NewXMLProcessor(XMLProcessorPackages([]EPackage{ePackage}))
-	eResource := xmlProcessor.Load(NewURI("testdata/eallcontents.xml"))
+	eResource := newEAllContentsResource(ePackage)
 	require.NotNil(t, eResource)
-	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 	require.Equal(t, 1, eResource.GetContents().Size())

@@ -47,10 +47,10 @@ func getClassFactory(owner EObject, eClass EClass) EFactory {
 	return ePackage.GetEFactoryInstance()
 }
 
-// getRegistryFactory returns the factory creating the objects of the classes of ePackage in the
+// GetRegistryFactory returns the factory creating the objects of the classes of ePackage in the
 // resource set of packageRegistry: the factory registered for its nsURI (PutFactory), else the
 // factory instance of ePackage.
-func getRegistryFactory(packageRegistry EPackageRegistry, ePackage EPackage) EFactory {
+func GetRegistryFactory(packageRegistry EPackageRegistry, ePackage EPackage) EFactory {
 	if packageRegistry != nil {
 		if factory := packageRegistry.GetFactory(ePackage.GetNsURI()); factory != nil {
 			return factory

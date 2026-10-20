@@ -420,14 +420,12 @@ func TestEcoreUtils_IsAncestor(t *testing.T) {
 
 func TestEcoreUtils_Delete(t *testing.T) {
 	// load package
-	ePackage := loadPackage("delete.ecore")
+	ePackage := newDeletePackage()
 	assert.NotNil(t, ePackage)
 
 	// load resource
-	xmiProcessor := NewXMIProcessor(XMIProcessorPackages([]EPackage{ePackage}))
-	eResource := xmiProcessor.Load(NewURI("testdata/delete.xmi"))
+	eResource := newDeleteResource(ePackage)
 	require.NotNil(t, eResource)
-	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
@@ -494,14 +492,12 @@ func TestEcoreUtils_Delete(t *testing.T) {
 
 func TestEcoreUtils_DeleteRecursive(t *testing.T) {
 	// load package
-	ePackage := loadPackage("delete.ecore")
+	ePackage := newDeletePackage()
 	assert.NotNil(t, ePackage)
 
 	// load resource
-	xmiProcessor := NewXMIProcessor(XMIProcessorPackages([]EPackage{ePackage}))
-	eResource := xmiProcessor.Load(NewURI("testdata/delete.xmi"))
+	eResource := newDeleteResource(ePackage)
 	require.NotNil(t, eResource)
-	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	require.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
@@ -560,13 +556,11 @@ func TestEcoreUtils_DeleteRecursive(t *testing.T) {
 }
 
 func TestEcoreUtils_DeleteRecursive_False(t *testing.T) {
-	ePackage := loadPackage("delete.ecore")
+	ePackage := newDeletePackage()
 	require.NotNil(t, ePackage)
 
-	xmiProcessor := NewXMIProcessor(XMIProcessorPackages([]EPackage{ePackage}))
-	eResource := xmiProcessor.Load(NewURI("testdata/delete.xmi"))
+	eResource := newDeleteResource(ePackage)
 	require.NotNil(t, eResource)
-	require.True(t, eResource.IsLoaded())
 
 	root := eResource.GetContents().Get(0).(EObject)
 	classRoot := ePackage.GetEClassifier("Root").(EClass)
@@ -613,7 +607,7 @@ func TestEcoreUtils_DeleteRecursive_False(t *testing.T) {
 }
 
 func TestEcoreUtils_DeleteRecursive_NoResource(t *testing.T) {
-	ePackage := loadPackage("delete.ecore")
+	ePackage := newDeletePackage()
 	require.NotNil(t, ePackage)
 
 	eFactory := ePackage.GetEFactoryInstance()
@@ -654,7 +648,7 @@ func TestEcoreUtils_DeleteRecursive_NoResource(t *testing.T) {
 }
 
 func TestEcoreUtils_DeleteRecursive_ResourceSet(t *testing.T) {
-	ePackage := loadPackage("delete.ecore")
+	ePackage := newDeletePackage()
 	require.NotNil(t, ePackage)
 
 	eFactory := ePackage.GetEFactoryInstance()
@@ -698,7 +692,7 @@ func TestEcoreUtils_DeleteRecursive_ResourceSet(t *testing.T) {
 }
 
 func TestEcoreUtils_DeleteRecursive_DirectResourceChild(t *testing.T) {
-	ePackage := loadPackage("delete.ecore")
+	ePackage := newDeletePackage()
 	require.NotNil(t, ePackage)
 
 	eFactory := ePackage.GetEFactoryInstance()
@@ -735,13 +729,11 @@ func TestEcoreUtils_DeleteRecursive_DirectResourceChild(t *testing.T) {
 }
 
 func TestEcoreUtils_DeleteRecursive_Root(t *testing.T) {
-	ePackage := loadPackage("delete.ecore")
+	ePackage := newDeletePackage()
 	require.NotNil(t, ePackage)
 
-	xmiProcessor := NewXMIProcessor(XMIProcessorPackages([]EPackage{ePackage}))
-	eResource := xmiProcessor.Load(NewURI("testdata/delete.xmi"))
+	eResource := newDeleteResource(ePackage)
 	require.NotNil(t, eResource)
-	require.True(t, eResource.IsLoaded())
 
 	root := eResource.GetContents().Get(0).(EObject)
 	require.Equal(t, 1, eResource.GetContents().Size())

@@ -28,10 +28,33 @@ import (
 )
 ```
 
+# Codecs #
+The `ecore` module only holds the codec abstraction (`ECodec`, `ECodecRegistry`) and maps the `memory` protocol to `NoCodec`. The codecs are separate modules, so a program only depends on the libraries of the codecs it uses:
+
+| Module | Codecs | Extensions registered on import |
+|---|---|---|
+| `github.com/masagroup/soft.go/codec/xmlcodec` | XMI, XML | `ecore`, `xmi`, `xml` |
+| `github.com/masagroup/soft.go/codec/binarycodec` | binary (msgpack) | `bin` |
+| `github.com/masagroup/soft.go/codec/sqlcodec` | SQLite codec and `SQLStore` | `sqlite` |
+| `github.com/masagroup/soft.go/codec/jsoncodec` | JSON (encoder only) | `json` |
+| `github.com/masagroup/soft.go/codec/defaults` | XMI, XML, binary and SQLite | `ecore`, `xmi`, `xml`, `bin`, `sqlite` |
+
+A codec module registers its codecs in the default codec registry when it is imported. To load and save resources by extension as before, import the defaults for their side effects:
+```Golang
+import (
+  _ "github.com/masagroup/soft.go/codec/defaults"
+)
+```
+
+Without a codec for the extension of a resource, `Load` and `Save` fail with an error naming the module to import. Codecs can also be registered with `ecore.RegisterCodec(extension, codec)`, or per resource set in `resourceSet.GetCodecRegistry()`.
+
+## Migration from v1.12 ##
+The codec types and functions keep their names in their new packages: `ecore.NewXMLProcessor` is `xmlcodec.NewXMLProcessor`, `ecore.XMICodec` is `xmlcodec.XMICodec`, `ecore.NewBinaryEncoder` is `binarycodec.NewBinaryEncoder`, `ecore.NewSQLStore` and `ecore.SQL_OPTION_*` are in `sqlcodec`, `ecore.NewJSONEncoder` is in `jsoncodec`.
+
 # Several implementations of a metamodel #
 A program may link several complete generated implementations of the same metamodel (for instance one with typed fields and one with reflective delegation). They share the nsURI and the classifier and feature IDs, but each has its own `EPackage` instance and its own `EFactory`.
 
-A package registry holds one package per nsURI, so the implementation is chosen per resource set: register the package of the implementation a resource set uses in that resource set's registry, with `ecore.CreateEResourceSet(packages)`, `ecore.XMLProcessorPackages(packages)` or `resourceSet.GetPackageRegistry().RegisterPackage(pack)`. The global registry (`ecore.GetPackageRegistry()`) holds `ecore` only and stays neutral: generated packages never register themselves in it.
+A package registry holds one package per nsURI, so the implementation is chosen per resource set: register the package of the implementation a resource set uses in that resource set's registry, with `ecore.CreateEResourceSet(packages)`, `xmlcodec.XMLProcessorPackages(packages)` or `resourceSet.GetPackageRegistry().RegisterPackage(pack)`. The global registry (`ecore.GetPackageRegistry()`) holds `ecore` only and stays neutral: generated packages never register themselves in it.
 
 ```Golang
 fieldsSet := ecore.CreateEResourceSet([]ecore.EPackage{fields.GetPackage()})

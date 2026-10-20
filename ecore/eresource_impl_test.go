@@ -1,10 +1,12 @@
 package ecore
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResourceURI(t *testing.T) {
@@ -42,12 +44,19 @@ func TestResourceContents(t *testing.T) {
 	r.GetContents().Remove(mockEObjectInternal)
 }
 
-func TestResourceLoadInvalid(t *testing.T) {
+func TestResourceLoadNoCodec(t *testing.T) {
+	// no codec is registered for xml in the core: the error names the package registering it
 	r := NewEResourceImpl()
-	r.SetURI(NewURI("testdata/invalid.xml"))
-	r.Load()
+	r.SetURI(NewURI("model.xml"))
+	r.LoadWithReader(strings.NewReader(""), nil)
 	assert.False(t, r.IsLoaded())
-	assert.False(t, r.GetErrors().Empty())
+	require.Equal(t, 1, r.GetErrors().Size())
+	assert.Equal(t, "Unable to find codec for 'model.xml': import \"github.com/masagroup/soft.go/codec/xmlcodec\"", diagnosticError(r.GetErrors()))
+
+	r = NewEResourceImpl()
+	r.SetURI(NewURI("model.unknown"))
+	r.SaveWithWriter(&strings.Builder{}, nil)
+	assert.Equal(t, "Unable to find codec for 'model.unknown'", diagnosticError(r.GetErrors()))
 }
 
 func TestResourceGetURIFragment(t *testing.T) {
@@ -154,7 +163,7 @@ func TestResourceGetEObject(t *testing.T) {
 
 func TestResourceIDManager(t *testing.T) {
 	// load libray simple ecore	package
-	ePackage := loadPackage("library.simple.ecore")
+	ePackage := newLibrarySimplePackage()
 	assert.NotNil(t, ePackage)
 
 	// create a resource with an id manager

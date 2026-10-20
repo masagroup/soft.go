@@ -116,11 +116,11 @@ func (o *EStoreEObjectImpl) reconfigure(store EStore, cache bool, values func(cu
 func (o *EStoreEObjectImpl) SetEStore(newStore EStore) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
-	o.setEStoreLocked(newStore)
+	o.SetEStoreLocked(newStore)
 }
 
-// setEStoreLocked sets the store of the object: mutex must be held, by Lock or SetEStore.
-func (o *EStoreEObjectImpl) setEStoreLocked(newStore EStore) {
+// SetEStoreLocked sets the store of the object: mutex must be held, by Lock or SetEStore.
+func (o *EStoreEObjectImpl) SetEStoreLocked(newStore EStore) {
 	current := o.config.Load()
 	oldStore := current.getStore()
 	if oldStore == newStore {
@@ -155,7 +155,7 @@ func (o *EStoreEObjectImpl) setEStoreLocked(newStore EStore) {
 			if storeList, isStoreList := v.value.(*EStoreList); isStoreList {
 				if o.lockedLists != nil && slices.Contains(*o.lockedLists, storeList) {
 					// locked with the object by Lock
-					storeList.setEStoreLocked(newStore)
+					storeList.SetEStoreLocked(newStore)
 				} else {
 					storeList.SetEStore(newStore)
 				}

@@ -1,0 +1,11 @@
+go 1.27.0
+
+use (
+	.
+	./codec/binarycodec
+	./codec/defaults
+	./codec/jsoncodec
+	./codec/sqlcodec
+	./codec/xmlcodec
+	./test/integration
+)

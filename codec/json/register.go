@@ -7,8 +7,9 @@
 //
 // *****************************************************************************
 
-// Package json implements the JSON codec of soft.go/ecore. Importing it registers the codec
-// for the "json" extension in the default codec registry.
+// Package json implements the JSON codec of soft.go/ecore, with the standard library only: Encoder
+// writes a resource as JSON and Decoder reads it back. Importing it registers the codec for the
+// "json" extension in the default codec registry.
 package json
 
 import "github.com/masagroup/soft.go/ecore"

@@ -25,7 +25,7 @@ func (jc *Codec) NewEncoder(resource ecore.EResource, w io.Writer, options map[s
 	return NewEncoder(resource, w, options)
 }
 func (jc *Codec) NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) ecore.EDecoder {
-	panic("not implemented")
+	return NewDecoder(resource, r, options)
 }
 
 type jsonFeatureKind int
@@ -55,17 +55,12 @@ func getJSONCodecFeatureKind(eFeature ecore.EStructuralFeature) jsonFeatureKind 
 		if opposite != nil && opposite.IsContainment() {
 			return jfkTransient
 		}
-		if eReference.IsResolveProxies() {
-			if eReference.IsMany() {
-				return jfkObjectReferenceList
-			} else {
-				return jfkObjectReference
-			}
-		}
+		// a cross reference is written as a reference, whether it resolves proxies or not: a
+		// copy of the referenced object could not be decoded back to the same object
 		if eReference.IsMany() {
-			return jfkObjectList
+			return jfkObjectReferenceList
 		} else {
-			return jfkObject
+			return jfkObjectReference
 		}
 	} else if eAttribute, _ := eFeature.(ecore.EAttribute); eAttribute != nil {
 		if eAttribute.IsMany() {

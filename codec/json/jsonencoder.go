@@ -1,18 +1,15 @@
 package json
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 
-	"github.com/karlseguin/jsonwriter"
 	"github.com/masagroup/soft.go/ecore"
 )
 
 type Encoder struct {
 	resource        ecore.EResource
-	w               *jsonwriter.Writer
+	w               *jsonWriter
 	featureKinds    map[ecore.EStructuralFeature]jsonFeatureKind
 	errorFn         func(diagnostic ecore.EDiagnostic)
 	idAttributeName string
@@ -21,7 +18,7 @@ type Encoder struct {
 
 func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *Encoder {
 	e := &Encoder{
-		w:            jsonwriter.New(w),
+		w:            newJSONWriter(w),
 		resource:     resource,
 		featureKinds: map[ecore.EStructuralFeature]jsonFeatureKind{},
 	}
@@ -52,19 +49,28 @@ func (e *Encoder) EncodeObject(object ecore.EObject) (err error) {
 }
 
 func (e *Encoder) encodeTopObject(eObject ecore.EObject) {
-	e.w.RootObject(func() {
-		e.encodeObject(eObject)
-	})
+	e.w.beginObject()
+	e.encodeObject(eObject)
+	e.w.endObject()
+	if err := e.w.flush(); err != nil {
+		location := ""
+		if uri := e.resource.GetURI(); uri != nil {
+			location = uri.String()
+		}
+		e.errorFn(ecore.NewEDiagnosticImpl(err.Error(), location, 0, 0))
+	}
 }
 
 func (e *Encoder) encodeObject(eObject ecore.EObject) {
 	eClass := eObject.EClass()
 	// class
-	e.w.KeyString("eClass", e.getClassName(eClass))
+	e.w.key("eClass")
+	e.w.stringValue(e.getClassName(eClass))
 	// id
 	if idManager := e.resource.GetObjectIDManager(); len(e.idAttributeName) > 0 && idManager != nil {
 		if id := idManager.GetID(eObject); id != nil {
-			e.w.KeyValue(e.idAttributeName, fmt.Sprintf("%v", id))
+			e.w.key(e.idAttributeName)
+			e.w.stringValue(fmt.Sprintf("%v", id))
 		}
 	}
 	// features
@@ -75,20 +81,10 @@ func (e *Encoder) encodeObject(eObject ecore.EObject) {
 }
 
 func (e *Encoder) encodeObjectReference(eObject ecore.EObject) {
-	e.w.KeyString("eClass", e.getClassName(eObject.EClass()))
-	e.w.KeyString("eRef", e.getReference(eObject))
-}
-
-func jsonEscape(i string) string {
-	w := &bytes.Buffer{}
-	e := json.NewEncoder(w)
-	e.SetEscapeHTML(false)
-	if err := e.Encode(i); err != nil {
-		panic(err)
-	}
-	// last \n
-	b := w.Bytes()
-	return string(b[:len(b)-1])
+	e.w.key("eClass")
+	e.w.stringValue(e.getClassName(eObject.EClass()))
+	e.w.key("eRef")
+	e.w.stringValue(e.getReference(eObject))
 }
 
 func (e *Encoder) encodeFeatureValue(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
@@ -107,49 +103,50 @@ func (e *Encoder) encodeFeatureValue(eObject ecore.EObject, eFeature ecore.EStru
 	switch kind {
 	case jfkTransient:
 	case jfkData:
-		str, ok := e.getData(value, eFeature)
-		if ok {
-			// don't use e.w.KeyString because json escaping is bugged
-			// in jsonencoder
-			e.w.Key(eFeature.GetName())
-			e.w.Raw([]byte(jsonEscape(str)))
+		if str, ok := e.getData(value, eFeature); ok {
+			e.w.key(eFeature.GetName())
+			e.w.stringValue(str)
 		}
 	case jfkDataList:
 		l := value.(ecore.EList)
-		e.w.Array(eFeature.GetName(), func() {
-			for it := l.Iterator(); it.HasNext(); {
-				str, ok := e.getData(it.Next(), eFeature)
-				if ok {
-					e.w.Value(str)
-				}
+		e.w.key(eFeature.GetName())
+		e.w.beginArray()
+		for it := l.Iterator(); it.HasNext(); {
+			if str, ok := e.getData(it.Next(), eFeature); ok {
+				e.w.stringValue(str)
 			}
-		})
+		}
+		e.w.endArray()
 	case jfkObject:
-		e.w.Object(eFeature.GetName(), func() {
-			e.encodeObject(value.(ecore.EObject))
-		})
+		e.w.key(eFeature.GetName())
+		e.w.beginObject()
+		e.encodeObject(value.(ecore.EObject))
+		e.w.endObject()
 	case jfkObjectList:
 		l := value.(ecore.EList)
-		e.w.Array(eFeature.GetName(), func() {
-			for it := l.Iterator(); it.HasNext(); {
-				e.w.ArrayObject(func() {
-					e.encodeObject(it.Next().(ecore.EObject))
-				})
-			}
-		})
+		e.w.key(eFeature.GetName())
+		e.w.beginArray()
+		for it := l.Iterator(); it.HasNext(); {
+			e.w.beginObject()
+			e.encodeObject(it.Next().(ecore.EObject))
+			e.w.endObject()
+		}
+		e.w.endArray()
 	case jfkObjectReference:
-		e.w.Object(eFeature.GetName(), func() {
-			e.encodeObjectReference(value.(ecore.EObject))
-		})
+		e.w.key(eFeature.GetName())
+		e.w.beginObject()
+		e.encodeObjectReference(value.(ecore.EObject))
+		e.w.endObject()
 	case jfkObjectReferenceList:
 		l := value.(ecore.EList)
-		e.w.Array(eFeature.GetName(), func() {
-			for it := l.Iterator(); it.HasNext(); {
-				e.w.ArrayObject(func() {
-					e.encodeObjectReference(it.Next().(ecore.EObject))
-				})
-			}
-		})
+		e.w.key(eFeature.GetName())
+		e.w.beginArray()
+		for it := l.Iterator(); it.HasNext(); {
+			e.w.beginObject()
+			e.encodeObjectReference(it.Next().(ecore.EObject))
+			e.w.endObject()
+		}
+		e.w.endArray()
 	}
 }
 

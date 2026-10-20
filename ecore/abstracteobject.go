@@ -302,7 +302,8 @@ func (o *AbstractEObject) EAllContents() EIterator {
 // EFeatureID returns the ID of feature in the class of the object (EDerivedFeatureID). It panics
 // when the class has no such feature.
 func (o *AbstractEObject) EFeatureID(feature EStructuralFeature) int {
-	if !o.AsEObject().EClass().GetEAllStructuralFeatures().Contains(feature) {
+	// GetFeatureID searches from the ID of the feature: not a scan of all the features
+	if o.AsEObject().EClass().GetFeatureID(feature) == -1 {
 		panic("The feature '" + feature.GetName() + "' is not a valid feature")
 	}
 	return o.AsEObjectInternal().EDerivedFeatureID(feature.EContainer(), feature.GetFeatureID())
@@ -487,7 +488,7 @@ func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeatur
 				opposite = false
 			}
 		}
-		return NewBasicEObjectList(o.AsEObjectInternal(), ref.GetFeatureID(), reverseFeatureID, containment, inverse, opposite, ref.EIsProxy(), ref.IsUnsettable())
+		return NewBasicEObjectList(o.AsEObjectInternal(), ref.GetFeatureID(), reverseFeatureID, containment, inverse, opposite, ref.IsResolveProxies(), ref.IsUnsettable())
 	}
 	return nil
 }

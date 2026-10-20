@@ -230,7 +230,7 @@ func TestReflectiveEObjectImpl_GetReference_Many(t *testing.T) {
 	mockReference.EXPECT().GetEOpposite().Return(nil).Twice()
 	mockReference.EXPECT().IsContainment().Return(false).Once()
 	mockReference.EXPECT().GetFeatureID().Return(0).Once()
-	mockReference.EXPECT().EIsProxy().Return(false).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(false).Once()
 	mockReference.EXPECT().IsUnsettable().Return(false).Once()
 	val := o.EGetFromID(0, false)
 	assert.NotNil(t, val)

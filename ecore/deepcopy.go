@@ -83,7 +83,8 @@ func (dC *deepCopy) copyContainment(eReference EReference, eObject EObject, copy
 			list := value.(EList)
 			copyEObject.ESet(eReference, dC.copyAll(list))
 		} else {
-			object := value.(EObject)
+			// nil for an unsettable containment set to nil
+			object, _ := value.(EObject)
 			copyEObject.ESet(eReference, dC.copy(object))
 		}
 	}
@@ -91,7 +92,8 @@ func (dC *deepCopy) copyContainment(eReference EReference, eObject EObject, copy
 
 func (dC *deepCopy) copyReferences() {
 	for eObject, copyEObject := range dC.objects {
-		for it := eObject.EClass().GetEReferences().Iterator(); it.HasNext(); {
+		// all the references: the inherited ones too
+		for it := eObject.EClass().GetEAllReferences().Iterator(); it.HasNext(); {
 			eReference := it.Next().(EReference)
 			if eReference.IsChangeable() && !eReference.IsDerived() && !eReference.IsContainment() && !eReference.IsContainer() {
 				dC.copyReference(eReference, eObject, copyEObject)

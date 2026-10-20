@@ -329,9 +329,11 @@ func (d *sqlDecoder) decodeObject(id int64) (ecore.EObject, error) {
 		// register its id
 		if d.objectIDManager != nil {
 			if d.isObjectID {
-				// object id is column id
-				if err := d.objectIDManager.SetID(eObject, objectID); err != nil {
-					return nil, err
+				// object id is column id, NULL for an object saved without id
+				if len(objectID) > 0 {
+					if err := d.objectIDManager.SetID(eObject, objectID); err != nil {
+						return nil, err
+					}
 				}
 			} else if d.objectIDName == table.key.columnName {
 				// object id is sql id
@@ -364,6 +366,7 @@ func (d *sqlDecoder) decodeEnumLiteral(id int64) (ecore.EEnumLiteral, error) {
 			&sqlitex.ExecOptions{
 				Args: []any{id},
 				ResultFunc: func(stmt *sqlite.Stmt) error {
+					isEnumLiteral = true
 					enumID = stmt.ColumnInt64(0)
 					packageID = stmt.ColumnInt64(1)
 					enumName = stmt.ColumnText(2)
@@ -372,6 +375,10 @@ func (d *sqlDecoder) decodeEnumLiteral(id int64) (ecore.EEnumLiteral, error) {
 				},
 			}); err != nil {
 			return nil, err
+		}
+
+		if !isEnumLiteral {
+			return nil, fmt.Errorf("enum literal with id '%v' doesn't exists", id)
 		}
 
 		// package
@@ -696,7 +703,10 @@ func NewReaderDecoder(r io.Reader, resource ecore.EResource, options map[string]
 	return newSQLDecoder(
 		func() (*sqlitex.Pool, error) {
 			// db name
-			dbName := filepath.Base(resource.GetURI().Path())
+			dbName := "resource"
+			if uri := resource.GetURI(); uri != nil {
+				dbName = filepath.Base(uri.Path())
+			}
 			inMemoryDatabase := false
 			if options != nil {
 				inMemoryDatabase, _ = options[OPTION_IN_MEMORY_DATABASE].(bool)
@@ -1180,5 +1190,9 @@ func (d *Decoder) decodeFeatureList(objectID int64, feature ecore.EStructuralFea
 }
 
 func (d *Decoder) addError(err error) {
-	d.resource.GetErrors().Add(ecore.NewEDiagnosticImpl(err.Error(), d.resource.GetURI().String(), 0, 0))
+	location := ""
+	if uri := d.resource.GetURI(); uri != nil {
+		location = uri.String()
+	}
+	d.resource.GetErrors().Add(ecore.NewEDiagnosticImpl(err.Error(), location, 0, 0))
 }

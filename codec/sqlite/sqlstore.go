@@ -80,6 +80,7 @@ type sqlManyQueries struct {
 	listIndexToIdx   string
 	removeQuery      string
 	insertQuery      string
+	renumberQuery    string
 }
 
 func newSqlManyQueries(table *sqlTable) *sqlManyQueries {
@@ -104,7 +105,14 @@ func newSqlManyQueries(table *sqlTable) *sqlManyQueries {
 		lastIndexOfQuery: "SELECT idx FROM " + tableName + " WHERE " + keyName + "=? AND " + valueName + "=? ORDER BY idx DESC LIMIT 1",
 		idxToListIndex:   "SELECT COUNT(*) FROM " + tableName + " WHERE " + keyName + "=? AND idx<?",
 		listIndexToIdx:   "SELECT idx FROM " + tableName + " WHERE " + keyName + "=? ORDER BY idx ASC LIMIT ? OFFSET ?",
+		// the idx of the elements of a list set to their position, from 1, in the same order
+		renumberQuery: "UPDATE " + tableName + " SET idx=r.n FROM (SELECT rowid AS id, ROW_NUMBER() OVER (ORDER BY idx ASC, rowid ASC) AS n FROM " +
+			tableName + " WHERE " + keyName + "=?) AS r WHERE " + tableName + ".rowid=r.id",
 	}
+}
+
+func (ss *sqlManyQueries) getRenumberQuery() string {
+	return ss.renumberQuery
 }
 
 func (ss *sqlManyQueries) getInsertQuery() string {
@@ -1672,7 +1680,7 @@ func (s *Store) encodeLookupValue(featureSchema *sqlFeatureSchema, value any) (e
 		if sqlID, _ := s.sqlIDManager.GetObjectID(eObject); sqlID != 0 {
 			return strconv.FormatInt(sqlID, 10), true, nil
 		}
-		return s.uri.Relativize(ecore.GetURI(eObject)).String(), true, nil
+		return s.relativizeURI(ecore.GetURI(eObject)).String(), true, nil
 	case sfkEnum:
 		eAttribute := featureSchema.feature.(ecore.EAttribute)
 		eEnum := eAttribute.GetEAttributeType().(ecore.EEnum)
@@ -2032,6 +2040,25 @@ func (s *Store) doAddAll(object ecore.EObject, feature ecore.EStructuralFeature,
 // compute insert idx of element in the list whose index is index. nb is the number of elements to be inserted
 // return idx, increment (for each inserted element) and error if any
 func (s *Store) getInsertIdx(table *sqlTable, sqlID int64, index int, nb int) (float64, float64, error) {
+	idx, increment, separate, err := s.computeInsertIdx(table, sqlID, index, nb)
+	if err != nil || separate {
+		return idx, increment, err
+	}
+	// the gap between the neighbors is too small for distinct idx : renumber the list, its idx
+	// are then 1 apart
+	if err := s.executeQuery(s.getManyQueries(table).getRenumberQuery(), &sqlitex.ExecOptions{Args: []any{sqlID}}); err != nil {
+		return 0.0, 0.0, err
+	}
+	idx, increment, separate, err = s.computeInsertIdx(table, sqlID, index, nb)
+	if err == nil && !separate {
+		err = fmt.Errorf("unable to compute distinct idx in table %v for object %v at %v", table.name, sqlID, index)
+	}
+	return idx, increment, err
+}
+
+// computeInsertIdx computes the idx of nb elements inserted at index and their increment, and
+// whether these idx are distinct from each other and from the idx of their neighbors
+func (s *Store) computeInsertIdx(table *sqlTable, sqlID int64, index int, nb int) (float64, float64, bool, error) {
 	// idx of the elements at index-1 and index, if any
 	var neighbors []float64
 	limit, offset := 2, index-1
@@ -2046,27 +2073,30 @@ func (s *Store) getInsertIdx(table *sqlTable, sqlID int64, index int, nb int) (f
 				neighbors = append(neighbors, stmt.ColumnFloat(0))
 				return nil
 			}}); err != nil {
-		return 0.0, 0.0, err
+		return 0.0, 0.0, false, err
 	}
 	// the nb elements are spread evenly between the idx of their neighbors
 	// (0 before the first element, the previous idx + 1 after the last)
+	last := func(idx, increment float64) float64 { return idx + increment*float64(nb-1) }
 	switch {
 	case index == 0 && len(neighbors) == 0:
 		// empty list
-		return 1.0, 1.0, nil
+		return 1.0, 1.0, true, nil
 	case index == 0:
 		// before the first element
 		increment := neighbors[0] / (float64(nb) + 1)
-		return increment, increment, nil
+		return increment, increment, increment > 0 && last(increment, increment) < neighbors[0], nil
 	case len(neighbors) == 0:
-		return 0, 0, fmt.Errorf("invalid index in table %v for object %v : %v not in list bounds", table.name, sqlID, index)
+		return 0, 0, false, fmt.Errorf("invalid index in table %v for object %v : %v not in list bounds", table.name, sqlID, index)
 	case len(neighbors) == 1:
 		// after the last element
-		return neighbors[0] + 1, 1, nil
+		idx := neighbors[0] + 1
+		return idx, 1, idx > neighbors[0], nil
 	default:
 		// between two elements
 		increment := (neighbors[1] - neighbors[0]) / (float64(nb) + 1)
-		return neighbors[0] + increment, increment, nil
+		idx := neighbors[0] + increment
+		return idx, increment, idx > neighbors[0] && last(idx, increment) < neighbors[1], nil
 	}
 }
 

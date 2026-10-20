@@ -136,6 +136,14 @@ type sqlBase struct {
 	connPoolClose    func(conn *sqlitex.Pool) error
 }
 
+// relativizeURI returns uri relative to the uri of the resource, uri itself for a resource without uri
+func (s *sqlBase) relativizeURI(uri *ecore.URI) *ecore.URI {
+	if s.uri != nil {
+		return s.uri.Relativize(uri)
+	}
+	return uri
+}
+
 func (s *sqlBase) setLogger(logger *zap.Logger) {
 	s.logger = logger
 	s.sqliteLogger = logger.Named("sqlite")

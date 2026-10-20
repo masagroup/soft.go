@@ -28,7 +28,13 @@ type EDynamicProperties interface {
 	EDynamicIsSet(dynamicFeatureID int) bool
 }
 
-// EObjectInternal ...
+// EObjectInternal is the implementation protocol of an EObject: its container and resource, the
+// inverse references, the access to its features and operations by ID, and its proxy URI.
+//
+// It is used by the generated code, the lists and the resources of the objects, and the
+// implementations of EResource or EList outside this package. It is not meant for application
+// code, which uses EObject. It is exported because the generated classes, in other packages,
+// implement its methods.
 type EObjectInternal interface {
 	EObject
 

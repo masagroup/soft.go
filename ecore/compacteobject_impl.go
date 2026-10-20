@@ -205,26 +205,18 @@ func (o *CompactEObjectImpl) ESetProxyURI(uri *URI) {
 	o.setField(proxy_flag, uri)
 }
 
-// EContents ...
+// EContents returns a view of the contents: created at each call, not kept in the packed storage,
+// as a read storing it would race with the concurrent readers of the object. The view is small,
+// and the containment features it iterates are built once by the class.
 func (o *CompactEObjectImpl) EContents() EList {
-	contents := o.getField(contents_flag)
-	if contents == nil {
-		eObject := o.AsEObject()
-		contents = newEContentsList(eObject, eObject.EClass().GetEContainmentFeatures(), true)
-		o.setField(contents_flag, contents)
-	}
-	return contents.(EList)
+	eObject := o.AsEObject()
+	return newEContentsList(eObject, eObject.EClass().GetEContainmentFeatures(), true)
 }
 
-// ECrossReferences ...
+// ECrossReferences returns a view of the cross references, created at each call as EContents.
 func (o *CompactEObjectImpl) ECrossReferences() EList {
-	crossReferences := o.getField(cross_flag)
-	if crossReferences == nil {
-		eObject := o.AsEObject()
-		crossReferences = newEContentsList(eObject, eObject.EClass().GetECrossReferenceFeatures(), true)
-		o.setField(cross_flag, crossReferences)
-	}
-	return crossReferences.(EList)
+	eObject := o.AsEObject()
+	return newEContentsList(eObject, eObject.EClass().GetECrossReferenceFeatures(), true)
 }
 
 // ESetContainer ...

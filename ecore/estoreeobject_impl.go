@@ -201,8 +201,8 @@ func (o *EStoreEObjectImpl) ClearCache() {
 // that needs the object, as the store writer encoding it
 
 func (o *EStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
-	if o.getCached(dynamicFeatureID) != nil {
-		return true
+	if cached := o.getCached(dynamicFeatureID); cached != nil {
+		return isSetValue(o.eDynamicFeature(dynamicFeatureID), cached)
 	}
 	if store := o.config.Load().getStore(); store != nil {
 		eFeature := o.eDynamicFeature(dynamicFeatureID)

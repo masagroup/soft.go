@@ -284,9 +284,10 @@ func (list *EStoreList) PerformInsertAll(index int, c Collection) bool {
 	if state.data != nil {
 		state.data = insertData(state.data, index, elements...)
 	}
-	// add to store
+	// add to store: a copy of the elements, as a store may write them later (the SQL store queues
+	// its writes), after the caller changed its collection
 	if state.store != nil {
-		state.store.AddAll(list.owner, list.feature, index, c)
+		state.store.AddAll(list.owner, list.feature, index, NewImmutableEList(slices.Clone(elements)))
 	}
 	// size
 	state.size += len(elements)

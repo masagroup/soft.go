@@ -297,6 +297,10 @@ func TestEStoreEObjectImpl_IsSet_WithCache(t *testing.T) {
 	mockAttribute.EXPECT().IsMany().Return(false).Once()
 	o.ESetFromID(0, 2)
 	mockAttribute.EXPECT().IsMany().Return(false).Maybe() // a set many feature is checked for emptiness
+	// a cached value is set when it is not the default of the attribute
+	mockAttribute.EXPECT().IsMany().Return(false).Maybe()
+	mockAttribute.EXPECT().IsUnsettable().Return(false).Maybe()
+	mockAttribute.EXPECT().GetDefaultValue().Return(nil).Maybe()
 	require.True(t, o.EIsSetFromID(0))
 }
 

@@ -12,6 +12,7 @@ package ecore
 import (
 	"maps"
 	"math/bits"
+	"reflect"
 	"slices"
 	"sync/atomic"
 )
@@ -24,16 +25,29 @@ type internalCompactEStoreEObjectImpl interface {
 
 // CompactEStoreEObjectImpl is an abstract compact reflective EObject implementation.
 // It defines no store fields; concrete structs must implement GetEStore() EStore.
-// It uses CompactEObjectContainer and a dynamic compact strong cache.
+// It uses CompactEObjectImpl, a container published atomically and a dynamic compact strong cache.
 type CompactEStoreEObjectImpl struct {
-	CompactEObjectContainer
+	CompactEObjectImpl
 	class EClass
 	// cache holds the cached values. It is never changed, but replaced with a compare-and-swap:
 	// a value is read from it without lock, at each access to a feature, and a value read from
 	// the store is cached without lock. The object takes no lock: a concrete type that needs one
 	// (ELockProvider for the SQL encoder, ordered writes) provides it.
 	cache atomic.Pointer[compactCache]
+	// container is the container of the object and its feature ID, nil while not known: it is
+	// then read from the store by the first reader, and published with a compare-and-swap, as
+	// readers do not take a lock. An object without store keeps it unknown until its container
+	// is set, so that a later store is asked, and not given a nil container.
+	container atomic.Pointer[compactContainer]
 }
+
+// compactContainer is a container of a CompactEStoreEObjectImpl. It is never changed.
+type compactContainer struct {
+	container EObject
+	featureID int
+}
+
+var noContainer = &compactContainer{featureID: -1}
 
 // compactCache is the cached values of a CompactEStoreEObjectImpl.
 type compactCache struct {
@@ -66,8 +80,9 @@ func emptyCache(epoch uint64) *compactCache {
 }
 
 func (o *CompactEStoreEObjectImpl) Initialize() {
-	o.CompactEObjectContainer.Initialize()
-	o.ESetInternalContainer(unitializedContainer, -1)
+	o.CompactEObjectImpl.Initialize()
+	// the container is not known yet (nil)
+	o.container.Store(nil)
 }
 
 func (o *CompactEStoreEObjectImpl) asInternal() internalCompactEStoreEObjectImpl {
@@ -349,9 +364,8 @@ func (o *CompactEStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) 
 }
 
 func (o *CompactEStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
-	cached := o.cachedValue(dynamicFeatureID) != nil
-	if cached {
-		return true
+	if cached := o.cachedValue(dynamicFeatureID); cached != nil {
+		return isSetValue(o.EClass().GetEStructuralFeature(dynamicFeatureID), cached)
 	}
 
 	feature := o.EClass().GetEStructuralFeature(dynamicFeatureID)
@@ -361,6 +375,19 @@ func (o *CompactEStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 		}
 	}
 	return false
+}
+
+// isSetValue reports whether the cached value of a feature is set, as a store reports it once
+// written: a value of an attribute, not unsettable, equal to its default is not set. A value read
+// from the store and cached is so not set by its read.
+func isSetValue(feature EStructuralFeature, value any) bool {
+	if value == nil {
+		return false
+	}
+	if _, isAttribute := feature.(EAttribute); !isAttribute || feature.IsMany() || feature.IsUnsettable() {
+		return true
+	}
+	return !reflect.DeepEqual(value, feature.GetDefaultValue())
 }
 
 // EDynamicUnset unsets the value in the store, then removes it from the cache. It takes no lock,
@@ -388,55 +415,62 @@ func (o *CompactEStoreEObjectImpl) CreateMap(feature EStructuralFeature, store E
 }
 
 func (o *CompactEStoreEObjectImpl) ESetInternalContainer(newContainer EObject, newContainerFeatureID int) {
-	o.CompactEObjectContainer.ESetInternalContainer(newContainer, newContainerFeatureID)
+	o.container.Store(&compactContainer{container: newContainer, featureID: newContainerFeatureID})
 	o.setContainerInStore()
 }
 
 func (o *CompactEStoreEObjectImpl) EInternalContainer() EObject {
-	o.initializeContainerFromStore()
-	return o.CompactEObjectContainer.EInternalContainer()
+	return o.loadContainer().container
 }
 
 func (o *CompactEStoreEObjectImpl) EInternalContainerFeatureID() int {
-	o.initializeContainerFromStore()
-	return o.CompactEObjectContainer.EInternalContainerFeatureID()
+	return o.loadContainer().featureID
 }
 
-func (o *CompactEStoreEObjectImpl) initializeContainerFromStore() {
-	if o.CompactEObjectContainer.EInternalContainer() == unitializedContainer {
-		if store := o.getStore(); store != nil {
-			container, feature := store.GetContainer(o.AsEObject())
-			if container != nil && feature != nil {
-				featureID := EOPPOSITE_FEATURE_BASE - container.EClass().GetFeatureID(feature)
-				if reference, _ := feature.(EReference); reference != nil {
-					if opposite := reference.GetEOpposite(); opposite != nil {
-						featureID = o.AsEObject().EClass().GetFeatureID(opposite)
-					}
-				}
-				o.CompactEObjectContainer.ESetInternalContainer(container, featureID)
-			} else {
-				o.CompactEObjectContainer.ESetInternalContainer(nil, -1)
-			}
-		} else {
-			o.CompactEObjectContainer.ESetInternalContainer(nil, -1)
-		}
+// loadContainer returns the container of the object, read from the store while not known. It
+// writes nothing but the published container, with a compare-and-swap: a container set
+// meanwhile wins.
+func (o *CompactEStoreEObjectImpl) loadContainer() *compactContainer {
+	if c := o.container.Load(); c != nil {
+		return c
 	}
+	store := o.getStore()
+	if store == nil {
+		// unknown until set, or until a store knows it
+		return noContainer
+	}
+	loaded := noContainer
+	if container, feature := store.GetContainer(o.AsEObject()); container != nil && feature != nil {
+		featureID := EOPPOSITE_FEATURE_BASE - container.EClass().GetFeatureID(feature)
+		if reference, _ := feature.(EReference); reference != nil {
+			if opposite := reference.GetEOpposite(); opposite != nil {
+				featureID = o.AsEObject().EClass().GetFeatureID(opposite)
+			}
+		}
+		loaded = &compactContainer{container: container, featureID: featureID}
+	}
+	if o.container.CompareAndSwap(nil, loaded) {
+		return loaded
+	}
+	return o.container.Load()
 }
 
+// setContainerInStore writes the container of the object in its store, when it is known: an
+// unknown container is the one the store has.
 func (o *CompactEStoreEObjectImpl) setContainerInStore() {
 	if store := o.getStore(); store != nil {
-		container := o.CompactEObjectContainer.EInternalContainer()
-		containerFeatureID := o.CompactEObjectContainer.EInternalContainerFeatureID()
-		if container != unitializedContainer {
-			var containerFeature EStructuralFeature
-			if container != nil {
-				if containerFeatureID <= EOPPOSITE_FEATURE_BASE {
-					containerFeature = container.EClass().GetEStructuralFeature(EOPPOSITE_FEATURE_BASE - containerFeatureID)
-				} else {
-					containerFeature = o.AsEObject().EClass().GetEStructuralFeature(containerFeatureID).(EReference).GetEOpposite()
-				}
-			}
-			store.SetContainer(o.AsEObject(), container, containerFeature)
+		c := o.container.Load()
+		if c == nil {
+			return
 		}
+		var containerFeature EStructuralFeature
+		if container := c.container; container != nil {
+			if c.featureID <= EOPPOSITE_FEATURE_BASE {
+				containerFeature = container.EClass().GetEStructuralFeature(EOPPOSITE_FEATURE_BASE - c.featureID)
+			} else {
+				containerFeature = o.AsEObject().EClass().GetEStructuralFeature(c.featureID).(EReference).GetEOpposite()
+			}
+		}
+		store.SetContainer(o.AsEObject(), c.container, containerFeature)
 	}
 }

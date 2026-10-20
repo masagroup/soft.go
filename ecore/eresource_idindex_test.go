@@ -11,6 +11,7 @@ package ecore
 
 import (
 	"fmt"
+	"reflect"
 	"sync"
 	"testing"
 
@@ -90,6 +91,58 @@ func BenchmarkEResourceGetObjectByID(b *testing.B) {
 	for b.Loop() {
 		for i := range 5000 {
 			m.resource.GetEObject(fmt.Sprintf("id%d", i))
+		}
+	}
+}
+
+// A tree whose classes declare no id attribute is scanned once: a document referring by name
+// misses on every lookup, and rescanning for each made resolving it quadratic. An object with an
+// id attached later is still found, and so is its new id after a rename.
+func TestEResourceGetObjectByIDScansAnIDlessTreeOnce(t *testing.T) {
+	m := newIDModel(0)
+	f := GetFactory()
+	named := f.CreateEClass()
+	named.SetName("Named")
+	name := f.CreateEAttribute()
+	name.SetName("name")
+	name.SetEType(GetPackage().GetEString())
+	named.GetEStructuralFeatures().Add(name)
+	m.pkg.GetEClassifiers().Add(named)
+	for i := range 3 {
+		o := m.pkg.GetEFactoryInstance().Create(named)
+		o.ESet(name, fmt.Sprintf("n%d", i))
+		m.resource.GetContents().Add(o)
+	}
+	resource := m.resource.(*EResourceImpl)
+
+	assert.Nil(t, m.resource.GetEObject("n1"))
+	assert.True(t, resource.idless, "a scan meeting no id attribute marks the tree")
+	scanned := reflect.ValueOf(resource.idIndex).Pointer()
+	assert.Nil(t, m.resource.GetEObject("n2"))
+	assert.Equal(t, scanned, reflect.ValueOf(resource.idIndex).Pointer(), "a miss did not rescan")
+
+	late := m.add("late")
+	assert.False(t, resource.idless, "attaching an object with an id attribute clears the mark")
+	assert.Same(t, late, m.resource.GetEObject("late"))
+	late.ESet(m.id, "renamed")
+	assert.Same(t, late, m.resource.GetEObject("renamed"))
+}
+
+func BenchmarkEResourceGetObjectByIDMissOnIDlessTree(b *testing.B) {
+	f := GetFactory()
+	pkg := f.CreateEPackage()
+	pkg.SetName("names")
+	pkg.SetNsURI("urn:names")
+	named := f.CreateEClass()
+	named.SetName("Named")
+	pkg.GetEClassifiers().Add(named)
+	resource := NewEResourceImpl()
+	for range 5000 {
+		resource.GetContents().Add(pkg.GetEFactoryInstance().Create(named))
+	}
+	for b.Loop() {
+		for i := range 1000 {
+			resource.GetEObject(fmt.Sprintf("n%d", i))
 		}
 	}
 }

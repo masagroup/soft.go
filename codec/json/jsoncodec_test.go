@@ -14,11 +14,9 @@ func TestJSONCodec_NewEncoder(t *testing.T) {
 }
 
 func TestJSONCodec_NewDecoder(t *testing.T) {
-	require.Panics(t, func() {
-		mockResource := ecore.NewMockEResource(t)
-		codec := &Codec{}
-		codec.NewDecoder(mockResource, nil, nil)
-	})
+	mockResource := ecore.NewMockEResource(t)
+	codec := &Codec{}
+	require.NotNil(t, codec.NewDecoder(mockResource, nil, nil))
 }
 
 func TestGetJSONCodecFeatureKind_Transient(t *testing.T) {
@@ -62,28 +60,24 @@ func TestGetJSONCodecFeatureKind_Reference(t *testing.T) {
 	mockReference.EXPECT().IsTransient().Return(false).Once()
 	mockReference.EXPECT().IsContainment().Return(false).Once()
 	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
-	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
 	mockReference.EXPECT().IsMany().Return(true).Once()
 	require.Equal(t, jfkObjectReferenceList, getJSONCodecFeatureKind(mockReference))
 
 	mockReference.EXPECT().IsTransient().Return(false).Once()
 	mockReference.EXPECT().IsContainment().Return(false).Once()
 	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
-	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
 	mockReference.EXPECT().IsMany().Return(false).Once()
 	require.Equal(t, jfkObjectReference, getJSONCodecFeatureKind(mockReference))
 
 	mockReference.EXPECT().IsTransient().Return(false).Once()
 	mockReference.EXPECT().IsContainment().Return(false).Once()
 	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
-	mockReference.EXPECT().IsResolveProxies().Return(false).Once()
 	mockReference.EXPECT().IsMany().Return(false).Once()
-	require.Equal(t, jfkObject, getJSONCodecFeatureKind(mockReference))
+	require.Equal(t, jfkObjectReference, getJSONCodecFeatureKind(mockReference))
 
 	mockReference.EXPECT().IsTransient().Return(false).Once()
 	mockReference.EXPECT().IsContainment().Return(false).Once()
 	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
-	mockReference.EXPECT().IsResolveProxies().Return(false).Once()
 	mockReference.EXPECT().IsMany().Return(true).Once()
-	require.Equal(t, jfkObjectList, getJSONCodecFeatureKind(mockReference))
+	require.Equal(t, jfkObjectReferenceList, getJSONCodecFeatureKind(mockReference))
 }

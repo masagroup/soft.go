@@ -37,7 +37,7 @@ The `ecore` module only holds the codec abstraction (`ECodec`, `ECodecRegistry`)
 | `github.com/masagroup/soft.go/codec/xml` | same as the package | XML | `xml` |
 | `github.com/masagroup/soft.go/codec/binary` | same as the package | binary (msgpack) | `bin` |
 | `github.com/masagroup/soft.go/codec/sqlite` | same as the package | SQLite codec and `Store` | `sqlite` |
-| `github.com/masagroup/soft.go/codec/json` | same as the package | JSON (encoder only) | `json` |
+| `github.com/masagroup/soft.go/codec/json` | same as the package | JSON (encoder and decoder, standard library only) | `json` |
 | `github.com/masagroup/soft.go/codec/defaults` | same as the package | XMI, XML, binary and SQLite | `ecore`, `xmi`, `xml`, `bin`, `sqlite` |
 
 A codec package registers its codecs in the default codec registry when it is imported. To load and save resources by extension as before, import the defaults for their side effects:

@@ -124,6 +124,63 @@ func (_c *MockEPackageRegistry_PutPackage_Call) Return() *MockEPackageRegistry_P
 	return _c
 }
 
+// PutFactory provides a mock function with given fields: nsURI, factory
+func (_m *MockEPackageRegistry) PutFactory(nsURI string, factory EFactory) {
+	_m.Called(nsURI, factory)
+}
+
+// MockEPackageRegistry_PutFactory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutFactory'
+type MockEPackageRegistry_PutFactory_Call struct {
+	*mock.Call
+}
+
+// PutFactory is a helper method to define mock.On call
+//   - nsURI string
+//   - factory EFactory
+func (_e *MockEPackageRegistry_Expecter) PutFactory(nsURI interface{}, factory interface{}) *MockEPackageRegistry_PutFactory_Call {
+	return &MockEPackageRegistry_PutFactory_Call{Call: _e.mock.On("PutFactory", nsURI, factory)}
+}
+
+func (_c *MockEPackageRegistry_PutFactory_Call) Run(run func(nsURI string, factory EFactory)) *MockEPackageRegistry_PutFactory_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(EFactory))
+	})
+	return _c
+}
+
+func (_c *MockEPackageRegistry_PutFactory_Call) Return() *MockEPackageRegistry_PutFactory_Call {
+	_c.Call.Return()
+	return _c
+}
+
+// RemoveFactory provides a mock function with given fields: nsURI
+func (_m *MockEPackageRegistry) RemoveFactory(nsURI string) {
+	_m.Called(nsURI)
+}
+
+// MockEPackageRegistry_RemoveFactory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveFactory'
+type MockEPackageRegistry_RemoveFactory_Call struct {
+	*mock.Call
+}
+
+// RemoveFactory is a helper method to define mock.On call
+//   - nsURI string
+func (_e *MockEPackageRegistry_Expecter) RemoveFactory(nsURI interface{}) *MockEPackageRegistry_RemoveFactory_Call {
+	return &MockEPackageRegistry_RemoveFactory_Call{Call: _e.mock.On("RemoveFactory", nsURI)}
+}
+
+func (_c *MockEPackageRegistry_RemoveFactory_Call) Run(run func(nsURI string)) *MockEPackageRegistry_RemoveFactory_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *MockEPackageRegistry_RemoveFactory_Call) Return() *MockEPackageRegistry_RemoveFactory_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // PutSupplier provides a mock function with given fields: nsURI, supplier
 func (_m *MockEPackageRegistry) PutSupplier(nsURI string, supplier func() EPackage) {
 	_m.Called(nsURI, supplier)
@@ -181,30 +238,86 @@ func (_c *MockEPackageRegistry_RegisterPackage_Call) Return() *MockEPackageRegis
 	return _c
 }
 
-// Remove provides a mock function with given fields: nsURI
-func (_m *MockEPackageRegistry) Remove(nsURI string) {
-	_m.Called(nsURI)
+// RegisterFactory provides a mock function with given fields: factory
+func (_m *MockEPackageRegistry) RegisterFactory(factory EFactory) {
+	_m.Called(factory)
 }
 
-// MockEPackageRegistry_Remove_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Remove'
-type MockEPackageRegistry_Remove_Call struct {
+// MockEPackageRegistry_RegisterFactory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterFactory'
+type MockEPackageRegistry_RegisterFactory_Call struct {
 	*mock.Call
 }
 
-// Remove is a helper method to define mock.On call
-//   - nsURI string
-func (_e *MockEPackageRegistry_Expecter) Remove(nsURI interface{}) *MockEPackageRegistry_Remove_Call {
-	return &MockEPackageRegistry_Remove_Call{Call: _e.mock.On("Remove", nsURI)}
+// RegisterFactory is a helper method to define mock.On call
+//   - factory EFactory
+func (_e *MockEPackageRegistry_Expecter) RegisterFactory(factory interface{}) *MockEPackageRegistry_RegisterFactory_Call {
+	return &MockEPackageRegistry_RegisterFactory_Call{Call: _e.mock.On("RegisterFactory", factory)}
 }
 
-func (_c *MockEPackageRegistry_Remove_Call) Run(run func(nsURI string)) *MockEPackageRegistry_Remove_Call {
+func (_c *MockEPackageRegistry_RegisterFactory_Call) Run(run func(factory EFactory)) *MockEPackageRegistry_RegisterFactory_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(EFactory))
+	})
+	return _c
+}
+
+func (_c *MockEPackageRegistry_RegisterFactory_Call) Return() *MockEPackageRegistry_RegisterFactory_Call {
+	_c.Call.Return()
+	return _c
+}
+
+// UnregisterFactory provides a mock function with given fields: factory
+func (_m *MockEPackageRegistry) UnregisterFactory(factory EFactory) {
+	_m.Called(factory)
+}
+
+// MockEPackageRegistry_UnregisterFactory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UnregisterFactory'
+type MockEPackageRegistry_UnregisterFactory_Call struct {
+	*mock.Call
+}
+
+// UnregisterFactory is a helper method to define mock.On call
+//   - factory EFactory
+func (_e *MockEPackageRegistry_Expecter) UnregisterFactory(factory interface{}) *MockEPackageRegistry_UnregisterFactory_Call {
+	return &MockEPackageRegistry_UnregisterFactory_Call{Call: _e.mock.On("UnregisterFactory", factory)}
+}
+
+func (_c *MockEPackageRegistry_UnregisterFactory_Call) Run(run func(factory EFactory)) *MockEPackageRegistry_UnregisterFactory_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(EFactory))
+	})
+	return _c
+}
+
+func (_c *MockEPackageRegistry_UnregisterFactory_Call) Return() *MockEPackageRegistry_UnregisterFactory_Call {
+	_c.Call.Return()
+	return _c
+}
+
+// RemovePackage provides a mock function with given fields: nsURI
+func (_m *MockEPackageRegistry) RemovePackage(nsURI string) {
+	_m.Called(nsURI)
+}
+
+// MockEPackageRegistry_RemovePackage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemovePackage'
+type MockEPackageRegistry_RemovePackage_Call struct {
+	*mock.Call
+}
+
+// RemovePackage is a helper method to define mock.On call
+//   - nsURI string
+func (_e *MockEPackageRegistry_Expecter) RemovePackage(nsURI interface{}) *MockEPackageRegistry_RemovePackage_Call {
+	return &MockEPackageRegistry_RemovePackage_Call{Call: _e.mock.On("RemovePackage", nsURI)}
+}
+
+func (_c *MockEPackageRegistry_RemovePackage_Call) Run(run func(nsURI string)) *MockEPackageRegistry_RemovePackage_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(string))
 	})
 	return _c
 }
 
-func (_c *MockEPackageRegistry_Remove_Call) Return() *MockEPackageRegistry_Remove_Call {
+func (_c *MockEPackageRegistry_RemovePackage_Call) Return() *MockEPackageRegistry_RemovePackage_Call {
 	_c.Call.Return()
 	return _c
 }

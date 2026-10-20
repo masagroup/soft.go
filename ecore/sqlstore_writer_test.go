@@ -255,7 +255,7 @@ func TestSQLStore_Writer_FlushReentrant(t *testing.T) {
 
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
 	require.NoError(t, copyFile("testdata/library.datalist.sqlite", dbPath))
-	s, err := NewSQLStore(dbPath, NewURI(""), nil, NewMockEPackageRegistry(t), nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, newSQLMockEPackageRegistry(t), nil)
 	require.NoError(t, err)
 	defer s.Close()
 
@@ -890,7 +890,7 @@ func TestSQLStore_Writer_LookupData(t *testing.T) {
 
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
 	require.NoError(t, copyFile("testdata/library.datalist.sqlite", dbPath))
-	s, err := NewSQLStore(dbPath, NewURI(""), nil, NewMockEPackageRegistry(t), nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, newSQLMockEPackageRegistry(t), nil)
 	require.NoError(t, err)
 	defer s.Close()
 	book := newLendable(t, eClass, 4)
@@ -979,7 +979,7 @@ func TestSQLStore_Writer_AllInterrupted(t *testing.T) {
 
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
 	require.NoError(t, copyFile("testdata/library.datalist.sqlite", dbPath))
-	s, err := NewSQLStore(dbPath, NewURI(""), nil, NewMockEPackageRegistry(t), nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, newSQLMockEPackageRegistry(t), nil)
 	require.NoError(t, err)
 	defer s.Close()
 	book := newLendable(t, eClass, 4)
@@ -1188,7 +1188,7 @@ func TestSQLStore_InheritedContainmentFeatureID(t *testing.T) {
 	require.Equal(t, 1, m.derivedClass.GetFeatureID(m.children))
 
 	dbPath := filepath.Join(t.TempDir(), "inheritance.sqlite")
-	packageRegistry := NewMockEPackageRegistry(t)
+	packageRegistry := newSQLMockEPackageRegistry(t)
 	packageRegistry.EXPECT().GetPackage(m.ePackage.GetNsURI()).Return(m.ePackage).Maybe()
 	s, err := NewSQLStore(dbPath, NewURI(""), nil, packageRegistry, nil)
 	require.NoError(t, err)
@@ -1244,7 +1244,7 @@ func newDataListStore(t *testing.T) (s *SQLStore, book *MockSQLObject, contents 
 	require.NotNil(t, contents)
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
 	require.NoError(t, copyFile("testdata/library.datalist.sqlite", dbPath))
-	s, err := NewSQLStore(dbPath, NewURI(""), nil, NewMockEPackageRegistry(t), nil)
+	s, err := NewSQLStore(dbPath, NewURI(""), nil, newSQLMockEPackageRegistry(t), nil)
 	require.NoError(t, err)
 	book = newLendable(t, eClass, 4)
 	return

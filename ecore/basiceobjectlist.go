@@ -121,6 +121,7 @@ func (list *basicEObjectList) resolveProxy(eObject EObject) EObject {
 }
 
 func (list *basicEObjectList) InverseAdd(object any, notifications ENotificationChain) ENotificationChain {
+	checkSameImplementation(list.owner, object)
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {

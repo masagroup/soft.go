@@ -10,30 +10,33 @@
 package ecore
 
 const (
-	// NO_INDEX constant indicating that no position information is applicable..
+	// NO_INDEX constant indicating that no position information is applicable.
 	NO_INDEX = -1
 	// NO_FEATURE_ID constant indicating that no feature ID information is applicable.
 	NO_FEATURE_ID = -1
 )
 
+// EventType is the type of change a notification describes (ENotification.GetEventType).
 type EventType int
 
 const (
 	// SET An event type indicating that a feature of the notifier has been set.
 	SET EventType = iota
-	// UNSET An event type indicating that a feature of the notifier has been set.
+	// UNSET An event type indicating that a feature of the notifier has been unset.
 	UNSET
-	// ADD An event type indicating that a feature of the notifier has been unset.
+	// ADD An event type indicating that a value has been added into a list-based feature of the notifier.
 	ADD
-	// REMOVE An event type indicating that a feature of the notifier has been set.
+	// REMOVE An event type indicating that a value has been removed from a list-based feature of the notifier.
 	REMOVE
-	// ADD_MANY An event type indicating that a several values have been added into a list-based feature of the notifier..
+	// ADD_MANY An event type indicating that several values have been added into a list-based feature of the notifier.
 	ADD_MANY
-	// REMOVE_MANY An event type indicating that a several values have been removed from a list-based feature of the notifier..
+	// REMOVE_MANY An event type indicating that several values have been removed from a list-based feature of the notifier.
 	REMOVE_MANY
 	// MOVE An event type indicating that a value has been moved within a list-based feature of the notifier.
 	MOVE
-	// REMOVING_ADAPTER An event type indicating that an adapter is being removed from the notifier.
+	// REMOVING_ADAPTER An event type indicating that an adapter is being removed from the notifier:
+	// the adapter being removed is the old value, and it receives the notification, when the notifier
+	// delivers notifications (EDeliver), before its target is unset.
 	REMOVING_ADAPTER
 	// RESOLVE An event type indicating that a feature of the notifier has been resolved from a proxy.
 	RESOLVE
@@ -53,6 +56,7 @@ var eventTypeToString = map[EventType]string{
 	RESOLVE:          "RESOLVE",
 }
 
+// String returns the name of the event type ("SET", "ADD"...), "" for a user defined event type.
 func (e EventType) String() string {
 	return eventTypeToString[e]
 }
@@ -87,6 +91,8 @@ type ENotification interface {
 	// It returns NO_INDEX when not applicable.
 	GetPosition() int
 
-	// Merge Returns whether the notification can be and has been merged with this one.
+	// Merge merges the given notification into this one when they can be combined (for example two
+	// SET of the same feature of the same notifier) and returns true when it has been merged: the
+	// given notification then needs no dispatch of its own.
 	Merge(ENotification) bool
 }

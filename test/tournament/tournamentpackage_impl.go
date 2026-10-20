@@ -13,7 +13,19 @@ package tournament
 
 import (
 	"github.com/masagroup/soft.go/ecore"
+	"sync"
 )
+
+var packageOnce sync.Once
+var packageInstance TournamentPackage
+
+// GetFactory returns the factory for the model tournament
+func GetPackage() TournamentPackage {
+	packageOnce.Do(func() {
+		packageInstance = newTournamentPackageImpl()
+	})
+	return packageInstance
+}
 
 // tournamentPackageImpl is the TournamentPackage implementation
 type tournamentPackageImpl struct {
@@ -30,11 +42,11 @@ type tournamentPackageImpl struct {
 func newTournamentPackageImpl() *tournamentPackageImpl {
 	p := new(tournamentPackageImpl)
 	p.SetInterfaces(p)
-	p.Initialize(GetFactory(), ecore.GetFactory())
+	p.Initialize(newTournamentFactoryImpl(), ecore.GetFactory())
 	return p
 }
 
-func (p *tournamentPackageImpl) Initialize(packageFactory TournamentFactory, ecoreFactory ecore.EcoreFactory) {
+func (p *tournamentPackageImpl) Initialize(packageFactory ecore.EFactory, ecoreFactory ecore.EcoreFactory) {
 	p.EPackageExt.Initialize()
 	p.SetName(NAME)
 	p.SetNsPrefix(NS_PREFIX)
@@ -175,10 +187,10 @@ func (p *tournamentPackageImpl) initializePackageContents(ecoreFactory ecore.Eco
 	p.team.GetESuperTypes().Add(p.GetNamedElement())
 	p.tournament.GetESuperTypes().Add(p.GetNamedElement())
 
-	p.InitEClass(p.group, "Group", "tournament/tournament.Group", false, false)
+	p.InitEClass(p.group, "Group", "github.com/masagroup/soft.go/test/tournament/tournament.Group", false, false)
 	p.InitEReference(p.GetGroup_Teams(), p.GetTeam(), p.GetTeam_Group(), "teams", "", 1, -1, false, false, true, false, true, false, true, false, true)
 
-	p.InitEClass(p.match, "Match", "tournament/tournament.Match", false, false)
+	p.InitEClass(p.match, "Match", "github.com/masagroup/soft.go/test/tournament/tournament.Match", false, false)
 	p.InitEAttribute(p.GetMatch_Date(), ecore.GetPackage().GetEDate(), "date", "", 1, 1, false, false, true, false, true, false, true, false)
 	p.InitEAttribute(p.GetMatch_Location(), ecore.GetPackage().GetEString(), "location", "", 0, 1, false, false, true, false, true, false, true, false)
 	p.InitEAttribute(p.GetMatch_Kind(), p.GetMatchKind(), "kind", "", 1, 1, false, false, true, false, true, false, true, false)
@@ -187,13 +199,13 @@ func (p *tournamentPackageImpl) initializePackageContents(ecoreFactory ecore.Eco
 	p.InitEReference(p.GetMatch_HomeTeam(), p.GetTeam(), nil, "homeTeam", "", 1, 1, false, false, true, false, true, false, true, false, true)
 	p.InitEReference(p.GetMatch_GuestTeam(), p.GetTeam(), nil, "guestTeam", "", 1, 1, false, false, true, false, true, false, true, false, true)
 
-	p.InitEClass(p.namedElement, "NamedElement", "tournament/tournament.NamedElement", true, false)
+	p.InitEClass(p.namedElement, "NamedElement", "github.com/masagroup/soft.go/test/tournament/tournament.NamedElement", true, false)
 	p.InitEAttribute(p.GetNamedElement_Name(), ecore.GetPackage().GetEString(), "name", "", 1, 1, false, false, true, false, true, false, true, false)
 
-	p.InitEClass(p.team, "Team", "tournament/tournament.Team", false, false)
+	p.InitEClass(p.team, "Team", "github.com/masagroup/soft.go/test/tournament/tournament.Team", false, false)
 	p.InitEReference(p.GetTeam_Group(), p.GetGroup(), p.GetGroup_Teams(), "group", "", 1, 1, false, false, true, false, true, false, true, false, true)
 
-	p.InitEClass(p.tournament, "Tournament", "tournament/tournament.Tournament", false, false)
+	p.InitEClass(p.tournament, "Tournament", "github.com/masagroup/soft.go/test/tournament/tournament.Tournament", false, false)
 	p.InitEReference(p.GetTournament_Groups(), p.GetGroup(), nil, "groups", "", 1, -1, false, false, true, true, true, false, true, false, true)
 	p.InitEReference(p.GetTournament_Teams(), p.GetTeam(), nil, "teams", "", 1, -1, false, false, true, true, true, false, true, false, true)
 	p.InitEReference(p.GetTournament_Matches(), p.GetMatch(), nil, "matches", "", 1, -1, false, false, true, true, true, false, true, false, true)

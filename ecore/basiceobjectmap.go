@@ -12,6 +12,7 @@ package ecore
 type BasicEObjectMap struct {
 	BasicEMap
 	entryClass EClass
+	owner      EObject
 }
 
 type basicEObjectMapList struct {
@@ -62,11 +63,12 @@ func NewBasicEObjectMap(entryClass EClass, owner EObjectInternal, featureID int,
 	basicEObjectMap.EList = newBasicEObjectMapList(basicEObjectMap, owner, featureID, inverseFeatureID, unset)
 	basicEObjectMap.interfaces = basicEObjectMap
 	basicEObjectMap.entryClass = entryClass
+	basicEObjectMap.owner = owner
 	return basicEObjectMap
 }
 
 func (m *BasicEObjectMap) newEntry(key any, value any) EMapEntry {
-	eFactory := m.entryClass.GetEPackage().GetEFactoryInstance()
+	eFactory := getClassFactory(m.owner, m.entryClass)
 	eEntry := eFactory.Create(m.entryClass).(EMapEntry)
 	eEntry.SetKey(key)
 	eEntry.SetValue(value)

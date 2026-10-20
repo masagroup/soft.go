@@ -273,7 +273,7 @@ func (d *sqlDecoder) getDecoderClassData(eClass EClass) *sqlDecoderClassData {
 	if !isClassData {
 		classData = &sqlDecoderClassData{
 			eClass:   eClass,
-			eFactory: eClass.GetEPackage().GetEFactoryInstance(),
+			eFactory: getRegistryFactory(d.packageRegistry, eClass.GetEPackage()),
 		}
 		d.classDataMap[eClass] = classData
 	}
@@ -428,7 +428,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 					// create proxy
 					eFeature := featureData.feature
 					eClass := eFeature.GetEType().(EClass)
-					eFactory := eClass.GetEPackage().GetEFactoryInstance()
+					eFactory := getRegistryFactory(d.packageRegistry, eClass.GetEPackage())
 					eObject := eFactory.Create(eClass)
 					eObjectInternal := eObject.(EObjectInternal)
 					eObjectInternal.ESetProxyURI(resolvedURI)
@@ -963,7 +963,7 @@ func (d *SQLDecoder) decodeClasses() error {
 
 				d.classDataMap[eClass] = &sqlDecoderClassData{
 					eClass:   eClass,
-					eFactory: ePackage.GetEFactoryInstance(),
+					eFactory: getRegistryFactory(d.packageRegistry, ePackage),
 				}
 				return nil
 			},

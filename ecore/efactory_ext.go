@@ -17,6 +17,7 @@ import (
 // EFactoryExt is the extension of the model object 'EFactory'
 type EFactoryExt struct {
 	EFactoryImpl
+	sharedPackage EPackage
 }
 
 // newEFactoryExt ...
@@ -25,6 +26,23 @@ func newEFactoryExt() *EFactoryExt {
 	eFactory.SetInterfaces(eFactory)
 	eFactory.Initialize()
 	return eFactory
+}
+
+// SetSharedEPackage makes ePackage the package of the factory without making the factory the
+// factory instance of ePackage: ePackage is shared by several implementations of its model, each
+// with a factory of its own, and its factory instance only converts its data types. The objects a
+// factory of a shared package creates are of the classes of that package (EClass is shared) and
+// do not mix with the objects of the other implementations (see CheckSameImplementation).
+func (eFactory *EFactoryExt) SetSharedEPackage(ePackage EPackage) {
+	eFactory.sharedPackage = ePackage
+}
+
+// GetEPackage returns the package the factory is the factory instance of, or its shared package.
+func (eFactory *EFactoryExt) GetEPackage() EPackage {
+	if eFactory.sharedPackage != nil {
+		return eFactory.sharedPackage
+	}
+	return eFactory.EFactoryImpl.GetEPackage()
 }
 
 // Create ...

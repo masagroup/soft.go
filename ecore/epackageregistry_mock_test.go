@@ -49,11 +49,11 @@ func TestMockEPackageRegistryPutSupplier(t *testing.T) {
 	})
 }
 
-func TestMockEPackageRegistryRemove(t *testing.T) {
+func TestMockEPackageRegistryRemovePackage(t *testing.T) {
 	rp := NewMockEPackageRegistry(t)
 	m := NewMockRun(t, "nsURI")
-	rp.EXPECT().Remove("nsURI").Return().Run(func(nsURI string) { m.Run(nsURI) }).Once()
-	rp.Remove("nsURI")
+	rp.EXPECT().RemovePackage("nsURI").Return().Run(func(nsURI string) { m.Run(nsURI) }).Once()
+	rp.RemovePackage("nsURI")
 }
 
 func TestMockEPackageRegistryGetPackage(t *testing.T) {

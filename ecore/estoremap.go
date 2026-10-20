@@ -51,6 +51,7 @@ func NewEStoreMap(entryClass EClass, owner EObject, feature EStructuralFeature, 
 	m := &EStoreMap{store: store}
 	m.EList = newEStoreEMapList(m, owner, feature, store)
 	m.entryClass = entryClass
+	m.owner = owner
 	m.interfaces = m
 	return m
 }
@@ -81,7 +82,7 @@ func (m *EStoreMap) IsCache() bool {
 }
 
 func (m *EStoreMap) newEntry(key any, value any) EMapEntry {
-	eFactory := m.entryClass.GetEPackage().GetEFactoryInstance()
+	eFactory := getClassFactory(m.owner, m.entryClass)
 	newEntry := eFactory.Create(m.entryClass).(EMapEntry)
 	// an entry of a class without a store, such as EStringToStringMapEntry, has no cache
 	if newCacheProvider, isCacheProvider := newEntry.(ECacheProvider); isCacheProvider {

@@ -380,7 +380,13 @@ func (l *XMLDecoder) createObjectFromFeatureType(eObject EObject, eFeature EStru
 	var eResult EObject
 	if eFeature != nil {
 		if eType := eFeature.GetEType(); eType != nil {
-			eFactory := eType.GetEPackage().GetEFactoryInstance()
+			// the factory of the resource set when it is a factory of the package of eType
+			// (an implementation of a shared package), the factory instance of the package otherwise
+			ePackage := eType.GetEPackage()
+			eFactory := l.getFactoryForSpace(ePackage.GetNsURI())
+			if eFactory == nil || eFactory.GetEPackage() != ePackage {
+				eFactory = ePackage.GetEFactoryInstance()
+			}
 			eResult = l.createObjectWithFactory(eFactory, eType, true)
 		}
 	}

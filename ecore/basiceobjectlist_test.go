@@ -308,6 +308,9 @@ func TestBasicEObjectListUnResolvedSet(t *testing.T) {
 }
 
 func TestBasicEObjectListUnResolvedSetAlreadyPresent(t *testing.T) {
+	if !Checks {
+		t.Skip("a unique list set to an element it holds at another index is checked with the build tag ecore_check")
+	}
 	mockOwner := NewMockEObjectInternal(t)
 	mockObject1 := NewMockEObjectInternal(t)
 	mockObject2 := NewMockEObjectInternal(t)

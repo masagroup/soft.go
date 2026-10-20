@@ -208,7 +208,8 @@ func (list *AbstractEList) Set(index int, elem any) any {
 	if size := l.Size(); index < 0 || index >= size {
 		panic("Index out of bounds: index=" + strconv.Itoa(index) + " size=" + strconv.Itoa(size))
 	}
-	if list.isUnique {
+	// an O(n) check of a programming error: with the build tag ecore_check only (see Checks)
+	if Checks && list.isUnique {
 		currIndex := l.IndexOf(elem)
 		if currIndex >= 0 && currIndex != index {
 			panic("element already in list")

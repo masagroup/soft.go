@@ -564,13 +564,16 @@ func TestEStoreList_Set(t *testing.T) {
 	})
 	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockNewObject)
 
-	mockStore.EXPECT().IndexOf(list.owner, list.feature, mockNewObject).Return(1).Once()
-	assert.Panics(t, func() {
-		list.Set(0, mockNewObject)
-	})
-	mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockNewObject)
+	// the element at another index: checked with the build tag ecore_check only
+	if Checks {
+		mockStore.EXPECT().IndexOf(list.owner, list.feature, mockNewObject).Return(1).Once()
+		assert.Panics(t, func() {
+			list.Set(0, mockNewObject)
+		})
+		mock.AssertExpectationsForObjects(t, mockOwner, mockReference, mockStore, mockNewObject)
 
-	mockStore.EXPECT().IndexOf(list.owner, list.feature, mockNewObject).Return(-1).Once()
+		mockStore.EXPECT().IndexOf(list.owner, list.feature, mockNewObject).Return(-1).Once()
+	}
 	mockStore.EXPECT().Set(list.owner, list.feature, 0, mockNewObject, true).Return(mockOldObject).Once()
 	mockReference.EXPECT().GetFeatureID().Return(0).Once()
 	mockOldObject.EXPECT().EInverseRemove(mockOwner, EOPPOSITE_FEATURE_BASE-0, nil).Return(nil).Once()

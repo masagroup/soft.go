@@ -53,7 +53,8 @@ func (n *xmlNamespaces) declarePrefix(prefix string, uri string) bool {
 	if n.namespacesSize > len(n.namespaces) {
 		n.namespaces = append(n.namespaces, pair{prefix, uri})
 	} else {
-		n.namespaces[n.namespacesSize] = pair{prefix, uri}
+		// a slot freed by popContext: the new last one
+		n.namespaces[n.namespacesSize-1] = pair{prefix, uri}
 	}
 	return false
 }

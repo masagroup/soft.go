@@ -40,20 +40,47 @@ func (r *EURIConverterImpl) GetURIMap() map[URI]URI {
 }
 
 func (r *EURIConverterImpl) Normalize(uri *URI) *URI {
-	normalized := r.getURIFromMap(uri)
-	if uri.Equals(normalized) {
-		return normalized
+	// the uri is mapped until it does not change, or until a uri already met: a cycle of mappings
+	var visited map[string]struct{}
+	current := uri
+	for {
+		normalized := r.getURIFromMap(current)
+		if current.Equals(normalized) {
+			return normalized
+		}
+		if visited == nil {
+			visited = map[string]struct{}{}
+		}
+		visited[current.String()] = struct{}{}
+		if _, isVisited := visited[normalized.String()]; isVisited {
+			return current
+		}
+		current = normalized
 	}
-	return r.Normalize(normalized)
 }
 
+// getURIFromMap maps uri with the longest prefix of the uri map matching it, as EMF does: the map
+// iteration order does not choose between overlapping prefixes. A prefix matches whole path
+// segments: it ends with '/', or the path of uri is the prefix or continues with '/'.
 func (r *EURIConverterImpl) getURIFromMap(uri *URI) *URI {
+	var result *URI
+	bestLength := -1
+	bestKey := ""
 	for oldPrefix, newPrefix := range r.uriMap {
-		if r := uri.ReplacePrefix(&oldPrefix, &newPrefix); r != nil {
-			return r
+		oldPath := oldPrefix.Path()
+		if len(oldPath) > 0 && oldPath[len(oldPath)-1] != '/' && len(uri.Path()) > len(oldPath) && uri.Path()[len(oldPath)] != '/' {
+			continue
+		}
+		if mapped := uri.ReplacePrefix(&oldPrefix, &newPrefix); mapped != nil {
+			if key := oldPrefix.String(); len(oldPath) > bestLength || (len(oldPath) == bestLength && key < bestKey) {
+				result, bestLength, bestKey = mapped, len(oldPath), key
+			}
 		}
 	}
-	return uri
+	if result == nil {
+		return uri
+	}
+	return result
 }
 
 func (r *EURIConverterImpl) GetURIHandler(uri *URI) EURIHandler {

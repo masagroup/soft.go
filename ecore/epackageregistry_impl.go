@@ -55,7 +55,11 @@ func (r *EPackageRegistryImpl) doGetPackage(nsURI string) EPackage {
 		if pack, _ := p.(EPackage); pack != nil {
 			return pack
 		} else if f, _ := p.(func() EPackage); f != nil {
-			return f()
+			// the supplied package replaces its supplier: the next lookups return the same package
+			if pack := f(); pack != nil {
+				r.packages[nsURI] = pack
+				return pack
+			}
 		}
 	}
 	return nil

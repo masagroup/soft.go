@@ -51,7 +51,8 @@ func (eModelElement *EModelElementExt) EObjectForFragmentSegment(uriFragmentSegm
 				index := strings.LastIndex(uriFragmentSegment, "%")
 				hasCount := false
 				if index != 0 {
-					hasCount = uriFragmentSegment[index+1] == '.'
+					// the closing '%' ends the segment, or is followed by a count
+					hasCount = index+1 < len(uriFragmentSegment) && uriFragmentSegment[index+1] == '.'
 					if index == len(uriFragmentSegment)-1 || hasCount {
 
 						// DecodeResource all encoded characters.
@@ -105,8 +106,9 @@ func (eModelElement *EModelElementExt) EObjectForFragmentSegment(uriFragmentSegm
 
 			if name == "%" {
 				name = ""
-			} else {
-				name = url.PathEscape(name)
+			} else if unescaped, err := url.PathUnescape(name); err == nil {
+				// EURIFragmentSegment escapes the name: the segment is unescaped to compare it
+				name = unescaped
 			}
 
 			for it := eModelElement.AsEObject().EContents().Iterator(); it.HasNext(); {

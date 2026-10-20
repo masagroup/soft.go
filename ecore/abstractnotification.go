@@ -113,7 +113,8 @@ func (notif *AbstractNotification) Merge(eOther ENotification) bool {
 
 				newPositions = append(newPositions, notificationPosition)
 				index++
-				for index < len(positions) {
+				// the positions after the inserted one: newPositions has one more element
+				for index <= len(positions) {
 					newPositions = append(newPositions, positions[index-1])
 					index++
 				}

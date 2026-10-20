@@ -151,17 +151,17 @@ func TestSharedPackageLoadWithoutFactory(t *testing.T) {
 	assert.Panics(t, func() { xmlProcessor.Load(ecore.CreateFileURI(tournamentXML)) })
 }
 
-func TestSharedPackageRegister(t *testing.T) {
-	// Register of an implementation registers the shared package and the factory of the implementation
+func TestSharedPackageInstall(t *testing.T) {
+	// Install of an implementation registers the shared package and the factory of the implementation
 	for _, test := range []struct {
-		register func(ecore.EPackageRegistry)
-		factory  ecore.EFactory
+		install func(ecore.EPackageRegistry)
+		factory ecore.EFactory
 	}{
-		{typed.Register, typed.GetFactory()},
-		{reflective.Register, reflective.GetFactory()},
+		{typed.Install, typed.GetFactory()},
+		{reflective.Install, reflective.GetFactory()},
 	} {
 		resourceSet := ecore.NewEResourceSetImpl()
-		test.register(resourceSet.GetPackageRegistry())
+		test.install(resourceSet.GetPackageRegistry())
 		assert.Same(t, tournament.GetPackage(), resourceSet.GetPackageRegistry().GetPackage(tournament.NS_URI))
 		assert.Same(t, test.factory, resourceSet.GetPackageRegistry().GetFactory(tournament.NS_URI))
 

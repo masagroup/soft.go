@@ -82,7 +82,10 @@ type Decoder struct {
 	deferred               []ecore.EObject
 	elements               []string
 	isSuppressDocumentRoot bool
-	isResolveDeferred      bool
+	// ids are the ids of the objects of the document set by SetObjectID (xmi:id): its references by id
+	// resolve with them, without an object id manager
+	ids               map[string]ecore.EObject
+	isResolveDeferred bool
 }
 
 func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *Decoder {
@@ -680,7 +683,7 @@ func (l *Decoder) setValueFromId(eObject ecore.EObject, eReference ecore.ERefere
 			}
 
 			if mustAddOrNotOppositeIsMany {
-				resolved := l.resource.GetEObject(id)
+				resolved := l.getEObject(id)
 				if resolved != nil {
 					l.setFeatureValue(eObject, eReference, resolved, -1)
 					qName = ""
@@ -730,7 +733,7 @@ func (l *Decoder) handleReferences() {
 			eReference := itRef.Next().(ecore.EReference)
 			eOpposite := eReference.GetEOpposite()
 			if eOpposite != nil && eOpposite.IsChangeable() && eProxy.EIsSet(eReference) {
-				resolvedObject := l.resource.GetEObject(eProxy.(ecore.EObjectInternal).EProxyURI().Fragment())
+				resolvedObject := l.getEObject(eProxy.(ecore.EObjectInternal).EProxyURI().Fragment())
 				if resolvedObject != nil {
 					var proxyHolder ecore.EObject
 					if eReference.IsMany() {
@@ -787,7 +790,7 @@ func (l *Decoder) handleReferences() {
 	}
 
 	for _, reference := range l.references {
-		eObject := l.resource.GetEObject(reference.id)
+		eObject := l.getEObject(reference.id)
 		if eObject != nil {
 			l.setFeatureValue(reference.object, reference.feature, eObject, reference.pos)
 		} else {
@@ -895,6 +898,29 @@ func (l *Decoder) procInst(param, s string) string {
 }
 
 func (l *Decoder) directive(directive string) {
+}
+
+// SetObjectID gives id to eObject, an object of the document: the references of the document
+// resolve it, and the object id manager of the resource, if any, registers it.
+func (l *Decoder) SetObjectID(eObject ecore.EObject, id string) {
+	if l.ids == nil {
+		l.ids = map[string]ecore.EObject{}
+	}
+	l.ids[id] = eObject
+	if idManager := l.resource.GetObjectIDManager(); idManager != nil {
+		if err := idManager.SetID(eObject, id); err != nil {
+			l.decodeError(err.Error())
+		}
+	}
+}
+
+// getEObject returns the object of the document with id or fragment: an id set by SetObjectID,
+// else the object of the resource.
+func (l *Decoder) getEObject(id string) ecore.EObject {
+	if eObject := l.ids[id]; eObject != nil {
+		return eObject
+	}
+	return l.resource.GetEObject(id)
 }
 
 // SetInterfaces sets the object whose DecoderHooks the decoder calls: a decoder embedding

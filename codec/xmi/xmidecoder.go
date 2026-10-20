@@ -24,6 +24,7 @@ const (
 	typeAttrib    = "type"
 	versionAttrib = "version"
 	uuidAttrib    = "uuid"
+	idAttrib      = "id"
 )
 
 // Decoder is the XMI decoder: an XML decoder reading the xmi:type, xmi:version and xmi:uuid
@@ -40,8 +41,12 @@ func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *
 		encodingxml.Name{Space: xmiURI, Local: typeAttrib},
 		encodingxml.Name{Space: xmiURI, Local: versionAttrib},
 		encodingxml.Name{Space: xmiURI, Local: uuidAttrib},
+		encodingxml.Name{Space: xmiURI, Local: idAttrib},
 	)
-	l.SetExtendedMetaData(nil)
+	// no extended metadata, unless the options give one (as xmi.Processor does)
+	if options == nil || options[xml.OPTION_EXTENDED_META_DATA] == nil {
+		l.SetExtendedMetaData(nil)
+	}
 	l.SetInterfaces(l)
 	return l
 }
@@ -62,6 +67,10 @@ func (l *Decoder) HandleAttributes(object ecore.EObject) {
 	version := l.GetAttributeValue(xmiURI, versionAttrib)
 	if len(version) > 0 {
 		l.xmiVersion = version
+	}
+	// the id of an object in an xmi resource (EMF's xmi:id): the references by id resolve it
+	if id := l.GetAttributeValue(xmiURI, idAttrib); len(id) > 0 {
+		l.SetObjectID(object, id)
 	}
 	l.Decoder.HandleAttributes(object)
 }

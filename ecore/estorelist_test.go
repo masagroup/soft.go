@@ -392,13 +392,16 @@ func TestEStoreList_Move(t *testing.T) {
 	mockObject := NewMockEObjectInternal(t)
 	mockAdapter := NewMockEAdapter(t)
 	mockFeature.EXPECT().IsUnique().Return(true).Once()
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(2).Once()
 	list := NewEStoreList(mockOwner, mockFeature, mockStore)
 	require.NotNil(t, list)
-	assert.Equal(t, 1, list.Size())
+	assert.Equal(t, 2, list.Size())
 
 	assert.Panics(t, func() {
 		list.Move(-1, 1)
+	})
+	assert.Panics(t, func() {
+		list.Move(0, 2)
 	})
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
 

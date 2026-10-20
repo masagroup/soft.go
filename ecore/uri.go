@@ -309,18 +309,22 @@ func (uri *URI) Authority() string {
 	if len(uri.host) == 0 {
 		return ""
 	}
-	hostIndex := strings.Index(uri.rawURI, uri.host)
-	var first int
+	// built from the components : searching them in the raw uri may match the scheme
+	var s strings.Builder
 	if len(uri.username) > 0 {
-		first = strings.Index(uri.rawURI, uri.username)
-	} else {
-		first = hostIndex
+		s.WriteString(uri.username)
+		if len(uri.password) > 0 {
+			s.WriteByte(':')
+			s.WriteString(uri.password)
+		}
+		s.WriteByte('@')
 	}
-	last := hostIndex + len(uri.host)
+	s.WriteString(uri.host)
 	if len(uri.port) > 0 {
-		last += len(uri.port) + 1
+		s.WriteByte(':')
+		s.WriteString(uri.port)
 	}
-	return uri.rawURI[first:last]
+	return s.String()
 }
 
 func (uri *URI) String() string {
@@ -350,18 +354,18 @@ func (uri *URI) Normalize() *URI {
 }
 
 func (uri *URI) Resolve(ref *URI) *URI {
-	// check if opaque first
-	if ref.IsOpaque() || uri.IsOpaque() {
-		return ref
-	}
-
-	// Reference to current document (lone fragment)
+	// Reference to current document (lone fragment) : its empty path makes it opaque
 	refAuthority := ref.Authority()
 	if len(ref.scheme) == 0 && len(refAuthority) == 0 && len(ref.path) == 0 && len(ref.fragment) != 0 && len(ref.query) == 0 {
-		if len(uri.fragment) == 0 && ref.fragment == uri.fragment {
+		if ref.fragment == uri.fragment {
 			return uri
 		}
 		return NewURIFromComponents(uri.scheme, uri.username, uri.password, uri.host, uri.port, uri.path, uri.query, ref.fragment)
+	}
+
+	// check if opaque
+	if ref.IsOpaque() || uri.IsOpaque() {
+		return ref
 	}
 
 	// ref is absolute

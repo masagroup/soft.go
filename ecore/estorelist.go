@@ -277,11 +277,11 @@ func (list *EStoreList) PerformInsertAll(index int, c Collection) bool {
 	defer list.mutex.Unlock()
 	state := list.state.Load().clone()
 	elements := c.ToArray()
+	if len(elements) == 0 {
+		return false
+	}
 	// add to cache
 	if state.data != nil {
-		if len(elements) == 0 {
-			return false
-		}
 		state.data = insertData(state.data, index, elements...)
 	}
 	// add to store
@@ -389,7 +389,7 @@ func (list *EStoreList) PerformRemoveRange(fromIndex int, toIndex int) []any {
 		for i := fromIndex; i < toIndex; i++ {
 			object := state.store.Remove(list.owner, list.feature, fromIndex, true)
 			result = append(result, object)
-			listCallbacks.DidRemove(fromIndex, result)
+			listCallbacks.DidRemove(fromIndex, object)
 		}
 		state.size -= len(result)
 		list.state.Store(state)

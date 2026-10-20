@@ -61,8 +61,8 @@ func (list *AbstractEList) getNonDuplicates(collection Collection) Collection {
 			hashSet.Remove(it.Next())
 		}
 	} else {
-		for it := hashSet.Iterator(); it.Next(); {
-			v := it.Value()
+		// iterate a copy : removing from the set while iterating it skips elements
+		for _, v := range hashSet.Values() {
 			if collection.Contains(v) {
 				hashSet.Remove(v)
 			}
@@ -140,7 +140,7 @@ func (list *AbstractEList) MoveObject(newIndex int, elem any) {
 // Swap move an element from oldIndex to newIndex
 func (list *AbstractEList) Move(oldIndex, newIndex int) any {
 	l := list.asInternal()
-	if size := l.Size(); oldIndex < 0 || oldIndex >= size || newIndex < 0 || newIndex > size {
+	if size := l.Size(); oldIndex < 0 || oldIndex >= size || newIndex < 0 || newIndex >= size {
 		panic("Index out of bounds: oldIndex=" + strconv.Itoa(oldIndex) + " newIndex=" + strconv.Itoa(newIndex) + " size=" + strconv.Itoa(size))
 	}
 	return l.DoMove(oldIndex, newIndex)

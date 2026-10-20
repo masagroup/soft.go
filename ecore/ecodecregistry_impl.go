@@ -33,15 +33,18 @@ func NewECodecRegistryImplWithDelegate(delegate ECodecRegistry) *ECodecRegistryI
 }
 
 func (r *ECodecRegistryImpl) GetCodec(uri *URI) ECodec {
-	if factory, ok := r.protocolToCodec[uri.scheme]; ok {
-		return factory
-	}
-	p := uri.Path()
-	ndx := strings.LastIndex(p, ".")
-	if ndx != -1 {
-		extension := p[ndx+1:]
-		if factory, ok := r.extensionToCodec[extension]; ok {
+	// a resource without uri has neither protocol nor extension: only the default codec applies
+	if uri != nil {
+		if factory, ok := r.protocolToCodec[uri.scheme]; ok {
 			return factory
+		}
+		p := uri.Path()
+		ndx := strings.LastIndex(p, ".")
+		if ndx != -1 {
+			extension := p[ndx+1:]
+			if factory, ok := r.extensionToCodec[extension]; ok {
+				return factory
+			}
 		}
 	}
 	if factory, ok := r.extensionToCodec[DEFAULT_EXTENSION]; ok {

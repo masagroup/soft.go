@@ -43,7 +43,8 @@ func (notif *notification) GetFeatureID() int {
 		return notif.featureID
 	}
 	if notif.feature != nil {
-		return notif.feature.GetFeatureID()
+		// the ID in the class of the notifier, not in the class declaring the feature
+		return notif.object.EClass().GetFeatureID(notif.feature)
 	}
 	return -1
 }

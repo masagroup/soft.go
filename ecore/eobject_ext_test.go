@@ -39,6 +39,7 @@ func TestEObjectEInvokeFromID(t *testing.T) {
 	})
 	assert.Panics(t, func() {
 		mockOperation := NewMockEOperation(t)
+		mockOperation.EXPECT().GetOperationID().Return(-1).Maybe()
 		mockOperation.EXPECT().GetName().Return("name")
 		o.EInvokeFromID(EOBJECT__EINVOKE_EOPERATION_EELIST, NewImmutableEList([]any{mockOperation, NewEmptyBasicEList()}))
 	})

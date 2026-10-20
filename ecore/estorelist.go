@@ -631,7 +631,8 @@ func (list *EStoreList) InverseAdd(object any, notifications ENotificationChain)
 			inverseFeatureID := internal.EClass().GetFeatureID(inverseReference)
 			return internal.EInverseAdd(list.owner, inverseFeatureID, notifications)
 		} else {
-			featureID := list.feature.GetFeatureID()
+			// the ID of the containment in the class of the owner
+			featureID := list.owner.EClass().GetFeatureID(list.feature)
 			return internal.EInverseAdd(list.owner, EOPPOSITE_FEATURE_BASE-featureID, notifications)
 		}
 	}
@@ -646,7 +647,7 @@ func (list *EStoreList) InverseRemove(object any, notifications ENotificationCha
 			inverseFeatureID := internal.EClass().GetFeatureID(inverseReference)
 			return internal.EInverseRemove(list.owner, inverseFeatureID, notifications)
 		} else {
-			featureID := list.feature.GetFeatureID()
+			featureID := list.owner.EClass().GetFeatureID(list.feature)
 			return internal.EInverseRemove(list.owner, EOPPOSITE_FEATURE_BASE-featureID, notifications)
 		}
 	}

@@ -473,10 +473,16 @@ func (eClass *EClassExt) buildEAllAttributes() *eClassAttributes {
 	attributes := []any{}
 	allAttributes := []any{}
 	var eIDAttribute EAttribute = nil
+	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superAttributes := itClass.Next().(EClass).GetEAllAttributes()
 		for itAttribute := superAttributes.Iterator(); itAttribute.HasNext(); {
 			attribute := itAttribute.Next().(EAttribute)
+			if _, isSeen := seen[attribute]; isSeen {
+				// inherited through another super type
+				continue
+			}
+			seen[attribute] = struct{}{}
 			allAttributes = append(allAttributes, attribute)
 			if attribute.IsID() && eIDAttribute == nil {
 				eIDAttribute = attribute
@@ -506,9 +512,10 @@ func (eClass *EClassExt) buildEAllReferences() *eClassReferences {
 	defer eClass.buildMutex.Unlock()
 	allReferences := []any{}
 	references := []any{}
+	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superReferences := itClass.Next().(EClass).GetEAllReferences()
-		allReferences = append(allReferences, superReferences.ToArray()...)
+		allReferences = appendUnique(allReferences, seen, superReferences.ToArray())
 	}
 
 	for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
@@ -550,9 +557,10 @@ func (eClass *EClassExt) buildEAllOperations() EList {
 	eClass.buildMutex.Lock()
 	defer eClass.buildMutex.Unlock()
 	allOperations := []any{}
+	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superOperations := itClass.Next().(EClass).GetEAllOperations()
-		allOperations = append(allOperations, superOperations.ToArray()...)
+		allOperations = appendUnique(allOperations, seen, superOperations.ToArray())
 	}
 
 	operationID := len(allOperations)
@@ -574,9 +582,10 @@ func (eClass *EClassExt) buildEAllStructuralFeatures() EList {
 	eClass.buildMutex.Lock()
 	defer eClass.buildMutex.Unlock()
 	allFeatures := []any{}
+	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superFeatures := itClass.Next().(EClass).GetEAllStructuralFeatures()
-		allFeatures = append(allFeatures, superFeatures.ToArray()...)
+		allFeatures = appendUnique(allFeatures, seen, superFeatures.ToArray())
 	}
 
 	featureID := len(allFeatures)
@@ -596,13 +605,26 @@ func (eClass *EClassExt) buildEAllSuperTypes() EList {
 	eClass.buildMutex.Lock()
 	defer eClass.buildMutex.Unlock()
 	allSuperTypes := []any{}
+	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superClass := itClass.Next().(EClass)
 		superTypes := superClass.GetEAllSuperTypes()
-		allSuperTypes = append(allSuperTypes, superTypes.ToArray()...)
-		allSuperTypes = append(allSuperTypes, superClass)
+		allSuperTypes = appendUnique(allSuperTypes, seen, superTypes.ToArray())
+		allSuperTypes = appendUnique(allSuperTypes, seen, []any{superClass})
 	}
 	return NewImmutableEList(allSuperTypes)
+}
+
+// appendUnique appends the elements not seen yet: a class inheriting a super type through several
+// of its super types (a diamond) has its features, operations and super types once, as in EMF.
+func appendUnique(dst []any, seen map[any]struct{}, elements []any) []any {
+	for _, element := range elements {
+		if _, isSeen := seen[element]; !isSeen {
+			seen[element] = struct{}{}
+			dst = append(dst, element)
+		}
+	}
+	return dst
 }
 
 func (eClass *EClassExt) getSubClasses() []EClassInternal {

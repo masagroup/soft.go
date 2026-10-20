@@ -6,8 +6,8 @@ require (
 	github.com/chebyrash/promise v0.0.0-20260915144232-ce593674804a
 	github.com/davecgh/go-spew v1.1.1
 	github.com/masagroup/soft.go v1.13.0
-	github.com/masagroup/soft.go/codec/xmi v0.0.0-00010101000000-000000000000
-	github.com/masagroup/soft.go/codec/xml v0.0.0-00010101000000-000000000000
+	github.com/masagroup/soft.go/codec/xmi v1.0.0
+	github.com/masagroup/soft.go/codec/xml v1.0.0
 	github.com/oklog/ulid/v2 v2.1.2
 	github.com/panjf2000/ants/v2 v2.12.1
 	github.com/petermattis/goid v0.0.0-20260918085751-abfca077860b

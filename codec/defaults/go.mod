@@ -3,10 +3,10 @@ module github.com/masagroup/soft.go/codec/defaults
 go 1.27.0
 
 require (
-	github.com/masagroup/soft.go/codec/binary v0.0.0-00010101000000-000000000000
-	github.com/masagroup/soft.go/codec/sqlite v0.0.0-00010101000000-000000000000
-	github.com/masagroup/soft.go/codec/xmi v0.0.0-00010101000000-000000000000
-	github.com/masagroup/soft.go/codec/xml v0.0.0-00010101000000-000000000000
+	github.com/masagroup/soft.go/codec/binary v1.0.0
+	github.com/masagroup/soft.go/codec/sqlite v1.0.0
+	github.com/masagroup/soft.go/codec/xmi v1.0.0
+	github.com/masagroup/soft.go/codec/xml v1.0.0
 )
 
 require (

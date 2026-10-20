@@ -5,8 +5,8 @@ go 1.27.0
 require (
 	github.com/karlseguin/jsonwriter v1.0.4-0.20170525085137-6f05566bac1c
 	github.com/masagroup/soft.go v1.13.0
-	github.com/masagroup/soft.go/codec/xmi v0.0.0-00010101000000-000000000000
-	github.com/masagroup/soft.go/codec/xml v0.0.0-00010101000000-000000000000
+	github.com/masagroup/soft.go/codec/xmi v1.0.0
+	github.com/masagroup/soft.go/codec/xml v1.0.0
 	github.com/stretchr/testify v1.12.1
 )
 

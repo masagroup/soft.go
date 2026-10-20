@@ -4,10 +4,10 @@ go 1.27.0
 
 require (
 	github.com/masagroup/soft.go v1.13.0
-	github.com/masagroup/soft.go/codec/binary v0.0.0-00010101000000-000000000000
-	github.com/masagroup/soft.go/codec/defaults v0.0.0-00010101000000-000000000000
-	github.com/masagroup/soft.go/codec/xmi v0.0.0-00010101000000-000000000000
-	github.com/masagroup/soft.go/codec/xml v0.0.0-00010101000000-000000000000
+	github.com/masagroup/soft.go/codec/binary v1.0.0
+	github.com/masagroup/soft.go/codec/defaults v1.0.0
+	github.com/masagroup/soft.go/codec/xmi v1.0.0
+	github.com/masagroup/soft.go/codec/xml v1.0.0
 	github.com/stretchr/testify v1.12.1
 )
 
@@ -16,7 +16,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/masagroup/soft.go/codec/sqlite v0.0.0-00010101000000-000000000000 // indirect
+	github.com/masagroup/soft.go/codec/sqlite v1.0.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect

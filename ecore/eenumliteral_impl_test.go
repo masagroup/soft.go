@@ -194,6 +194,7 @@ func TestEEnumLiteralEBasicInverseAdd(t *testing.T) {
 		mockOther.EXPECT().EResource().Return(nil).Once()
 		mockOther.EXPECT().EIsProxy().Return(false).Once()
 		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EClass().Return(GetPackage().GetEEnum()).Once()
 		mockObject.EXPECT().EInverseRemove(o, EENUM__ELITERALS, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, EENUM_LITERAL__EENUM, nil)
 		assert.Equal(t, mockOther, o.GetEEnum())

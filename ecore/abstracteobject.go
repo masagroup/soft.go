@@ -312,9 +312,16 @@ func (o *AbstractEObject) EFeatureID(feature EStructuralFeature) int {
 	return featureID
 }
 
-// EDerivedFeatureID returns featureID: the generated classes override it for the features of
-// their mixins.
+// EDerivedFeatureID converts the ID of a feature in container, a super type of the class of the
+// object, into its ID in the class of the object: they differ when container is not its first
+// super type. The generated classes override it for the features of their mixins.
 func (o *AbstractEObject) EDerivedFeatureID(container EObject, featureID int) int {
+	eClass := o.AsEObject().EClass()
+	if containerClass, _ := container.(EClass); containerClass != nil && containerClass != eClass && eClass.GetEAllSuperTypes().Contains(containerClass) {
+		if feature := containerClass.GetEStructuralFeature(featureID); feature != nil {
+			return eClass.GetFeatureID(feature)
+		}
+	}
 	return featureID
 }
 
@@ -1032,7 +1039,12 @@ func (o *AbstractEObject) EBasicRemoveFromContainerFeature(notifications ENotifi
 	if isReference {
 		inverseFeature := reference.GetEOpposite()
 		if containerInternal, _ := objInternal.EInternalContainer().(EObjectInternal); containerInternal != nil && inverseFeature != nil {
-			return containerInternal.EInverseRemove(o.AsEObject(), inverseFeature.GetFeatureID(), notifications)
+			// the ID of the opposite in the class of the container, not in the class declaring it
+			featureID := containerInternal.EClass().GetFeatureID(inverseFeature)
+			if featureID == -1 {
+				featureID = inverseFeature.GetFeatureID()
+			}
+			return containerInternal.EInverseRemove(o.AsEObject(), featureID, notifications)
 		}
 	}
 	return notifications

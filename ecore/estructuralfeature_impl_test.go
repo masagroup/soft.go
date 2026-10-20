@@ -355,6 +355,7 @@ func TestEStructuralFeatureEBasicInverseAdd(t *testing.T) {
 		mockOther.EXPECT().EResource().Return(nil).Once()
 		mockOther.EXPECT().EIsProxy().Return(false).Once()
 		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EClass().Return(GetPackage().GetEClass()).Once()
 		mockObject.EXPECT().EInverseRemove(o, ECLASS__ESTRUCTURAL_FEATURES, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, ESTRUCTURAL_FEATURE__ECONTAINING_CLASS, nil)
 		assert.Equal(t, mockOther, o.GetEContainingClass())

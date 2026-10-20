@@ -84,6 +84,7 @@ func TestEParameterEBasicInverseAdd(t *testing.T) {
 		mockOther.EXPECT().EResource().Return(nil).Once()
 		mockOther.EXPECT().EIsProxy().Return(false).Once()
 		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EClass().Return(GetPackage().GetEOperation()).Once()
 		mockObject.EXPECT().EInverseRemove(o, EOPERATION__EPARAMETERS, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, EPARAMETER__EOPERATION, nil)
 		assert.Equal(t, mockOther, o.GetEOperation())

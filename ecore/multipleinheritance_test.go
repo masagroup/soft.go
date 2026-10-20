@@ -18,6 +18,8 @@ type multipleInheritanceModel struct {
 	children EReference // B, many containment without opposite
 	links    EReference // B, many, opposite of Item.owners
 	owners   EReference // Item, many, opposite of B.links
+	parts    EReference // B, many containment, opposite of Item.whole
+	whole    EReference // Item, container, opposite of B.parts
 	cLinksID int
 	bLinksID int
 }
@@ -56,6 +58,12 @@ func newMultipleInheritanceModel(t *testing.T) *multipleInheritanceModel {
 	m.owners = newReference(m.item, "owners", m.b)
 	m.links.SetEOpposite(m.owners)
 	m.owners.SetEOpposite(m.links)
+	m.parts = newReference(m.b, "parts", m.item)
+	m.parts.SetContainment(true)
+	m.whole = newReference(m.item, "whole", m.b)
+	m.whole.SetUpperBound(1)
+	m.parts.SetEOpposite(m.whole)
+	m.whole.SetEOpposite(m.parts)
 	m.c.GetESuperTypes().Add(m.a)
 	m.c.GetESuperTypes().Add(m.b)
 	m.bLinksID = m.b.GetFeatureID(m.links)
@@ -98,4 +106,38 @@ func TestMultipleInheritance_ReflectiveObject(t *testing.T) {
 	o.ESet(m.fa, "a")
 	assert.Equal(t, "b", o.EGet(m.fb))
 	assert.Equal(t, "a", o.EGet(m.fa))
+}
+
+func TestMultipleInheritance_DerivedFeatureID(t *testing.T) {
+	m := newMultipleInheritanceModel(t)
+	o := m.eFactory.Create(m.c).(EObjectInternal)
+	// the ID in a super type other than the first one is converted into the ID in C
+	assert.Equal(t, m.cLinksID, o.EDerivedFeatureID(m.b, m.bLinksID))
+	assert.Equal(t, m.c.GetFeatureID(m.fa), o.EDerivedFeatureID(m.a, m.a.GetFeatureID(m.fa)))
+	assert.Equal(t, m.cLinksID, o.EDerivedFeatureID(m.c, m.cLinksID))
+	// a class which is not a super type: unchanged
+	assert.Equal(t, 0, o.EDerivedFeatureID(m.item, 0))
+}
+
+func TestMultipleInheritance_ContainerWithOpposite(t *testing.T) {
+	m := newMultipleInheritanceModel(t)
+	o := m.eFactory.Create(m.c)
+	part := m.eFactory.Create(m.item)
+	o.EGet(m.parts).(EList).Add(part)
+	assert.Equal(t, o, part.EContainer())
+	assert.Equal(t, o, part.EGet(m.whole))
+
+	// moving the part removes it from the containment of its container, through the opposite of
+	// its container feature: the ID of parts in C is not its ID in B
+	other := m.eFactory.Create(m.c)
+	other.EGet(m.parts).(EList).Add(part)
+	assert.Equal(t, other, part.EContainer())
+	assert.False(t, o.EGet(m.parts).(EList).Contains(part))
+	assert.True(t, other.EGet(m.parts).(EList).Contains(part))
+
+	// from the side of the part
+	part.ESet(m.whole, o)
+	assert.Equal(t, o, part.EContainer())
+	assert.False(t, other.EGet(m.parts).(EList).Contains(part))
+	assert.True(t, o.EGet(m.parts).(EList).Contains(part))
 }

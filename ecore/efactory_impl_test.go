@@ -81,6 +81,7 @@ func TestEFactoryEPackageSet(t *testing.T) {
 	// another value - in a different resource
 	mockValue2 := NewMockEPackage(t)
 	mockResource2 := NewMockEResource(t)
+	mockValue.EXPECT().EClass().Return(GetPackage().GetEPackage()).Once()
 	mockValue.EXPECT().EInverseRemove(o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
 	mockValue.EXPECT().EResource().Return(mockResource).Once()
 	mockValue2.EXPECT().EInverseAdd(o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
@@ -187,6 +188,7 @@ func TestEFactoryEBasicInverseAdd(t *testing.T) {
 		mockOther.EXPECT().EResource().Return(nil).Once()
 		mockOther.EXPECT().EIsProxy().Return(false).Once()
 		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EClass().Return(GetPackage().GetEPackage()).Once()
 		mockObject.EXPECT().EInverseRemove(o, EPACKAGE__EFACTORY_INSTANCE, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, EFACTORY__EPACKAGE, nil)
 		assert.Equal(t, mockOther, o.GetEPackage())

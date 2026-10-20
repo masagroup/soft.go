@@ -16,7 +16,7 @@ type CompactEObjectContainer struct {
 
 func (o *CompactEObjectContainer) ESetInternalContainer(newContainer EObject, newContainerFeatureID int) {
 	o.container = newContainer
-	o.flags = newContainerFeatureID<<16 | (o.flags & 0x00FF)
+	o.flags = newContainerFeatureID<<16 | (o.flags & 0xFFFF)
 }
 
 func (o *CompactEObjectContainer) EInternalContainer() EObject {

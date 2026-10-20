@@ -10,9 +10,10 @@
 package ecore
 
 import (
+	"maps"
 	"math/bits"
-
-	"github.com/SokaDance/rmx"
+	"slices"
+	"sync/atomic"
 )
 
 type internalCompactEStoreEObjectImpl interface {
@@ -26,13 +27,42 @@ type internalCompactEStoreEObjectImpl interface {
 // It uses CompactEObjectContainer and a dynamic compact strong cache.
 type CompactEStoreEObjectImpl struct {
 	CompactEObjectContainer
-	class        EClass
-	cachedValues any    // nil, single value, or []any
-	cacheMask    uint64 // bitmask of cached feature IDs (0..63)
-	// cachedOverflow holds the cached values of the feature IDs from 64: without a store, the
-	// cache is the only place the values of the object are kept
-	cachedOverflow map[int]any
-	mutex          rmx.RecursiveMutex
+	class EClass
+	// cache holds the cached values. It is never changed, but replaced with a compare-and-swap:
+	// a value is read from it without lock, at each access to a feature, and a value read from
+	// the store is cached without lock. The object takes no lock: a concrete type that needs one
+	// (ELockProvider for the SQL encoder, ordered writes) provides it.
+	cache atomic.Pointer[compactCache]
+}
+
+// compactCache is the cached values of a CompactEStoreEObjectImpl.
+type compactCache struct {
+	mask   uint64 // bitmask of cached feature IDs (0..63)
+	values []any  // the values of the IDs of mask, in ascending ID order
+	// overflow holds the cached values of the feature IDs from 64: without a store, the cache is
+	// the only place the values of the object are kept.
+	overflow map[int]any
+	// epoch is the configuration of the object the values were cached with: a concrete type
+	// that changes how its values are read (EStoreEObjectImpl: store, cache flag) replaces the
+	// cache with a new epoch, so that a value read with the previous configuration fails to be
+	// cached (cacheIfAbsentAt). It is 0 for the other types.
+	epoch uint64
+}
+
+// epochOf returns the epoch of c, 0 for none.
+func (c *compactCache) epochOf() uint64 {
+	if c == nil {
+		return 0
+	}
+	return c.epoch
+}
+
+// emptyCache returns an empty cache of epoch: nil for 0.
+func emptyCache(epoch uint64) *compactCache {
+	if epoch == 0 {
+		return nil
+	}
+	return &compactCache{epoch: epoch}
 }
 
 func (o *CompactEStoreEObjectImpl) Initialize() {
@@ -67,107 +97,199 @@ func (o *CompactEStoreEObjectImpl) EDynamicProperties() EDynamicProperties {
 	return o.GetInterfaces().(EDynamicProperties)
 }
 
-func (o *CompactEStoreEObjectImpl) Lock() {
-	o.mutex.Lock()
-}
-
-func (o *CompactEStoreEObjectImpl) Unlock() {
-	o.mutex.Unlock()
-}
-
 // ClearCache clears all cached feature values from the dynamic compact cache.
 func (o *CompactEStoreEObjectImpl) ClearCache() {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
-	o.cachedValues = nil
-	o.cacheMask = 0
-	o.cachedOverflow = nil
+	for {
+		c := o.cache.Load()
+		if c == nil || o.cache.CompareAndSwap(c, emptyCache(c.epoch)) {
+			return
+		}
+	}
 }
 
-func (o *CompactEStoreEObjectImpl) isCached(featureID int) bool {
-	if featureID >= 64 {
-		_, cached := o.cachedOverflow[featureID]
-		return cached
+// get returns the value of featureID in c, and whether it is cached.
+func (c *compactCache) get(featureID int) (any, bool) {
+	if c == nil {
+		return nil, false
 	}
-	return (o.cacheMask & (1 << featureID)) != 0
+	if featureID >= 64 {
+		value, cached := c.overflow[featureID]
+		return value, cached
+	}
+	bit := uint64(1) << featureID
+	if (c.mask & bit) == 0 {
+		return nil, false
+	}
+	return c.values[bits.OnesCount64(c.mask&(bit-1))], true
 }
 
-func (o *CompactEStoreEObjectImpl) getCached(featureID int) any {
-	if featureID >= 64 {
-		return o.cachedOverflow[featureID]
+// with returns a copy of c with the value of featureID: c is read meanwhile.
+func (c *compactCache) with(featureID int, value any) *compactCache {
+	result := &compactCache{}
+	if c != nil {
+		*result = *c
 	}
-	if !o.isCached(featureID) {
+	if featureID >= 64 {
+		result.overflow = maps.Clone(result.overflow)
+		if result.overflow == nil {
+			result.overflow = map[int]any{}
+		}
+		result.overflow[featureID] = value
+		return result
+	}
+	bit := uint64(1) << featureID
+	idx := bits.OnesCount64(result.mask & (bit - 1))
+	if (result.mask & bit) == 0 {
+		values := make([]any, len(result.values)+1)
+		copy(values[:idx], result.values[:idx])
+		values[idx] = value
+		copy(values[idx+1:], result.values[idx:])
+		result.values = values
+		result.mask |= bit
+	} else {
+		result.values = slices.Clone(result.values)
+		result.values[idx] = value
+	}
+	return result
+}
+
+// without returns a copy of c without the value of featureID, nil if empty: c is read meanwhile.
+func (c *compactCache) without(featureID int) *compactCache {
+	result := *c
+	if featureID >= 64 {
+		result.overflow = maps.Clone(result.overflow)
+		delete(result.overflow, featureID)
+		if len(result.overflow) == 0 {
+			result.overflow = nil
+		}
+	} else {
+		bit := uint64(1) << featureID
+		idx := bits.OnesCount64(result.mask & (bit - 1))
+		result.values = slices.Delete(slices.Clone(result.values), idx, idx+1)
+		result.mask &^= bit
+	}
+	if result.mask == 0 && result.overflow == nil {
+		return emptyCache(result.epoch)
+	}
+	return &result
+}
+
+// cachedFeatureValue is a value of a cache and its feature ID.
+type cachedFeatureValue struct {
+	featureID int
+	value     any
+}
+
+// featureValues returns the values of c by ascending feature ID.
+func (c *compactCache) featureValues() []cachedFeatureValue {
+	if c == nil {
 		return nil
 	}
-	if bits.OnesCount64(o.cacheMask) == 1 {
-		return o.cachedValues
+	values := make([]cachedFeatureValue, 0, len(c.values)+len(c.overflow))
+	for mask, i := c.mask, 0; mask != 0; i++ {
+		featureID := bits.TrailingZeros64(mask)
+		values = append(values, cachedFeatureValue{featureID, c.values[i]})
+		mask &= mask - 1
 	}
-	idx := bits.OnesCount64(o.cacheMask & ((1 << featureID) - 1))
-	return o.cachedValues.([]any)[idx]
+	for _, featureID := range slices.Sorted(maps.Keys(c.overflow)) {
+		values = append(values, cachedFeatureValue{featureID, c.overflow[featureID]})
+	}
+	return values
 }
 
+// setFeatureValue returns values with the value of featureID, without it if nil.
+func setFeatureValue(values []cachedFeatureValue, featureID int, value any) []cachedFeatureValue {
+	index := slices.IndexFunc(values, func(v cachedFeatureValue) bool { return v.featureID == featureID })
+	switch {
+	case index >= 0 && value == nil:
+		return slices.Delete(values, index, index+1)
+	case index >= 0:
+		values[index].value = value
+		return values
+	case value != nil:
+		return append(values, cachedFeatureValue{featureID, value})
+	}
+	return values
+}
+
+// cachedValues returns the cached values.
+func (o *CompactEStoreEObjectImpl) cachedValues() []any {
+	featureValues := o.cache.Load().featureValues()
+	values := make([]any, len(featureValues))
+	for i, v := range featureValues {
+		values[i] = v.value
+	}
+	return values
+}
+
+// isCached reports whether the value of featureID is cached.
+func (o *CompactEStoreEObjectImpl) isCached(featureID int) bool {
+	_, cached := o.cache.Load().get(featureID)
+	return cached
+}
+
+// getCached returns the cached value of featureID, nil if none. It reads without lock.
+func (o *CompactEStoreEObjectImpl) getCached(featureID int) any {
+	value, _ := o.cache.Load().get(featureID)
+	return value
+}
+
+// cachedValue returns the cached value of featureID, nil if none.
+func (o *CompactEStoreEObjectImpl) cachedValue(featureID int) any {
+	return o.getCached(featureID)
+}
+
+// setCached caches the value of featureID.
 func (o *CompactEStoreEObjectImpl) setCached(featureID int, value any) {
-	if featureID >= 64 {
-		if o.cachedOverflow == nil {
-			o.cachedOverflow = map[int]any{}
-		}
-		o.cachedOverflow[featureID] = value
-		return
-	}
-	bit := uint64(1) << featureID
-	if (o.cacheMask & bit) == 0 {
-		switch count := bits.OnesCount64(o.cacheMask); count {
-		case 0:
-			o.cachedValues = value
-		case 1:
-			idx := bits.OnesCount64(o.cacheMask & (bit - 1))
-			if idx == 0 {
-				o.cachedValues = []any{value, o.cachedValues}
-			} else {
-				o.cachedValues = []any{o.cachedValues, value}
-			}
-		default:
-			oldSlice := o.cachedValues.([]any)
-			idx := bits.OnesCount64(o.cacheMask & (bit - 1))
-			newSlice := make([]any, count+1)
-			copy(newSlice[:idx], oldSlice[:idx])
-			newSlice[idx] = value
-			copy(newSlice[idx+1:], oldSlice[idx:])
-			o.cachedValues = newSlice
-		}
-		o.cacheMask |= bit
-	} else {
-		switch count := bits.OnesCount64(o.cacheMask); count {
-		case 1:
-			o.cachedValues = value
-		default:
-			idx := bits.OnesCount64(o.cacheMask & (bit - 1))
-			o.cachedValues.([]any)[idx] = value
+	for {
+		c := o.cache.Load()
+		if o.cache.CompareAndSwap(c, c.with(featureID, value)) {
+			return
 		}
 	}
 }
 
+// cacheIfAbsent caches the value of featureID unless one is cached, and returns the cached one.
+func (o *CompactEStoreEObjectImpl) cacheIfAbsent(featureID int, value any) any {
+	for {
+		c := o.cache.Load()
+		if current, _ := c.get(featureID); current != nil {
+			return current
+		}
+		if o.cache.CompareAndSwap(c, c.with(featureID, value)) {
+			return value
+		}
+	}
+}
+
+// cacheIfAbsentAt caches the value of featureID unless one is cached, while the cache has epoch:
+// it returns the cached value, and false if the cache has another epoch.
+func (o *CompactEStoreEObjectImpl) cacheIfAbsentAt(epoch uint64, featureID int, value any) (any, bool) {
+	for {
+		c := o.cache.Load()
+		if c.epochOf() != epoch {
+			return nil, false
+		}
+		if current, _ := c.get(featureID); current != nil {
+			return current, true
+		}
+		if o.cache.CompareAndSwap(c, c.with(featureID, value)) {
+			return value, true
+		}
+	}
+}
+
+// unsetCached removes the cached value of featureID.
 func (o *CompactEStoreEObjectImpl) unsetCached(featureID int) {
-	if !o.isCached(featureID) {
-		return
+	for {
+		c := o.cache.Load()
+		if _, cached := c.get(featureID); !cached {
+			return
+		}
+		if o.cache.CompareAndSwap(c, c.without(featureID)) {
+			return
+		}
 	}
-	if featureID >= 64 {
-		delete(o.cachedOverflow, featureID)
-		return
-	}
-	bit := uint64(1) << featureID
-	switch count := bits.OnesCount64(o.cacheMask); count {
-	case 1:
-		o.cachedValues = nil
-	case 2:
-		idx := bits.OnesCount64(o.cacheMask & (bit - 1))
-		o.cachedValues = o.cachedValues.([]any)[1-idx]
-	default:
-		idx := bits.OnesCount64(o.cacheMask & (bit - 1))
-		s := o.cachedValues.([]any)
-		o.cachedValues = append(s[:idx], s[idx+1:]...)
-	}
-	o.cacheMask &= ^bit
 }
 
 // the store is read without holding the object : the store may wait for another goroutine
@@ -175,9 +297,7 @@ func (o *CompactEStoreEObjectImpl) unsetCached(featureID int) {
 
 func (o *CompactEStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 	// 1. Cache hit
-	o.mutex.Lock()
-	result := o.getCached(dynamicFeatureID)
-	o.mutex.Unlock()
+	result := o.cachedValue(dynamicFeatureID)
 	if result != nil {
 		return result
 	}
@@ -207,21 +327,16 @@ func (o *CompactEStoreEObjectImpl) EDynamicGet(dynamicFeatureID int) any {
 	}
 
 	if shouldCache && result != nil {
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
 		// unless set meanwhile
-		if current := o.getCached(dynamicFeatureID); current != nil {
-			return current
-		}
-		o.setCached(dynamicFeatureID, result)
+		return o.cacheIfAbsent(dynamicFeatureID, result)
 	}
 	return result
 }
 
+// EDynamicSet writes the value to the store, then caches it. It takes no lock: two goroutines
+// setting the same feature concurrently may leave the cache with the value the store got first.
+// A concrete type that needs writes ordered serializes them itself.
 func (o *CompactEStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
-
 	feature := o.EClass().GetEStructuralFeature(dynamicFeatureID)
 
 	if !feature.IsTransient() {
@@ -234,9 +349,7 @@ func (o *CompactEStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value any) 
 }
 
 func (o *CompactEStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
-	o.mutex.Lock()
-	cached := o.getCached(dynamicFeatureID) != nil
-	o.mutex.Unlock()
+	cached := o.cachedValue(dynamicFeatureID) != nil
 	if cached {
 		return true
 	}
@@ -250,18 +363,17 @@ func (o *CompactEStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
 	return false
 }
 
+// EDynamicUnset unsets the value in the store, then removes it from the cache. It takes no lock,
+// as EDynamicSet.
 func (o *CompactEStoreEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
-
-	o.unsetCached(dynamicFeatureID)
-
 	feature := o.EClass().GetEStructuralFeature(dynamicFeatureID)
 	if !feature.IsTransient() {
 		if store := o.getStore(); store != nil {
 			store.UnSet(o.AsEObject(), feature)
 		}
 	}
+
+	o.unsetCached(dynamicFeatureID)
 }
 
 func (o *CompactEStoreEObjectImpl) CreateList(feature EStructuralFeature, store EStore) EList {

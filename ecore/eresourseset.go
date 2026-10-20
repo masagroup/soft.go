@@ -36,6 +36,15 @@ type EResourceSet interface {
 	GetURIResourceMap() map[*URI]EResource
 }
 
+// CreateEResourceSet creates a resource set whose package registry holds the
+// ecore package and the given packages (one package per nsURI).
+//
+// This is how a resource set chooses an implementation when several generated
+// implementations of the same metamodel (same nsURI, same IDs) are linked in a
+// program: pass the package of the implementation this resource set uses.
+// Resource sets created with different implementations of the same metamodel
+// coexist; each resolves the nsURI to its own package and factory, and the
+// global registry is left untouched.
 func CreateEResourceSet(packages []EPackage) EResourceSet {
 	rs := NewEResourceSetImpl()
 	// packages

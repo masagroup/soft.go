@@ -575,3 +575,55 @@ func TestReflectiveEObjectImpl_ECrossReferences(t *testing.T) {
 	o := NewReflectiveEObjectImpl()
 	assert.NotNil(t, o.ECrossReferences())
 }
+
+// The values share the packed storage with the adapters, the resource and the proxy URI: each
+// keeps its value while the others are added and removed.
+func TestReflectiveEObjectImpl_PackedStorage(t *testing.T) {
+	m := newReadBenchModel()
+	o := NewReflectiveEObjectImpl()
+	o.SetEClass(m.class)
+	o.ESet(m.attributes[0], "a")
+
+	adapter := NewMockEAdapter(t)
+	adapter.EXPECT().SetTarget(o).Once()
+	adapter.EXPECT().NotifyChanged(mock.Anything).Maybe()
+	o.EAdapters().Add(adapter)
+	resource := NewEResourceImpl()
+	o.ESetInternalResource(resource)
+	uri := NewURI("test://proxy#//a")
+	o.ESetProxyURI(uri)
+	container := NewReflectiveEObjectImpl()
+	o.ESetInternalContainer(container, 3)
+	o.ESet(m.attributes[1], "b")
+
+	assert.Equal(t, "a", o.EGet(m.attributes[0]))
+	assert.Equal(t, "b", o.EGet(m.attributes[1]))
+	assert.Equal(t, resource, o.EInternalResource())
+	assert.Equal(t, uri, o.EProxyURI())
+	assert.Equal(t, container, o.EInternalContainer())
+	assert.Equal(t, 3, o.EInternalContainerFeatureID())
+	assert.Equal(t, []any{adapter}, o.EAdapters().ToArray())
+
+	o.ESetProxyURI(nil)
+	adapter.EXPECT().UnSetTarget(o).Once()
+	o.EAdapters().Remove(adapter)
+	o.ESetInternalResource(nil)
+	assert.Equal(t, "a", o.EGet(m.attributes[0]))
+	assert.Equal(t, "b", o.EGet(m.attributes[1]))
+	o.EUnset(m.attributes[0])
+	assert.False(t, o.EIsSet(m.attributes[0]))
+	assert.Equal(t, "b", o.EGet(m.attributes[1]))
+	assert.Nil(t, o.EProxyURI())
+	assert.Nil(t, o.EInternalResource())
+}
+
+// The operations of EObject are invoked as on EObjectImpl.
+func TestReflectiveEObjectImpl_EInvokeEObjectOperations(t *testing.T) {
+	m := newReadBenchModel()
+	o := NewReflectiveEObjectImpl()
+	o.SetEClass(m.class)
+	o.ESet(m.attributes[0], "a")
+	assert.Equal(t, m.class, o.EInvokeFromID(EOBJECT__ECLASS, nil))
+	assert.Equal(t, "a", o.EInvokeFromID(EOBJECT__EGET_ESTRUCTURALFEATURE, NewImmutableEList([]any{m.attributes[0]})))
+	assert.Equal(t, false, o.EInvokeFromID(EOBJECT__EIS_PROXY, nil))
+}

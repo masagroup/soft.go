@@ -53,7 +53,6 @@ func TestEStoreEObjectImpl_GetAttribute_Caching(t *testing.T) {
 	// first get
 	mockAttribute.EXPECT().IsMany().Return(false).Once()
 	mockAttribute.EXPECT().IsTransient().Return(false).Once()
-	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Twice()
 	mockStore.EXPECT().Get(o, mockAttribute, NO_INDEX).Return(2).Once()
 	assert.Equal(t, 2, o.EGetFromID(0, false))
@@ -99,7 +98,6 @@ func TestEStoreEObjectImpl_SetAttribute_Transient(t *testing.T) {
 
 	// set
 	mockAttribute.EXPECT().IsTransient().Return(true).Twice()
-	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(3)
 	o.ESetFromID(0, 2)
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute, mockStore)
@@ -143,7 +141,6 @@ func TestEStoreEObjectImpl_SetAttribute_Caching(t *testing.T) {
 
 	mockAttribute.EXPECT().IsMany().Return(false).Once()
 	mockAttribute.EXPECT().IsTransient().Return(false).Twice()
-	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(3)
 	mockStore.EXPECT().Get(o, mockAttribute, NO_INDEX).Return(nil).Once()
 	mockStore.EXPECT().Set(o, mockAttribute, NO_INDEX, 2, false).Return(nil).Once()
@@ -166,7 +163,6 @@ func TestEStoreEObjectImpl_GetAttribute_Many_List(t *testing.T) {
 	mockAttribute.EXPECT().IsMany().Return(true).Once()
 	mockAttribute.EXPECT().IsTransient().Return(false).Once()
 	mockAttribute.EXPECT().GetEType().Return(nil).Once()
-	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Twice()
 	mockStore.EXPECT().Size(o, mockAttribute).Return(0).Once()
 	list := o.EGetFromID(0, true)
@@ -199,7 +195,6 @@ func TestEStoreEObjectImpl_GetAttribute_Many_Map(t *testing.T) {
 	mockType.EXPECT().GetInstanceTypeName().Return("java.util.Map.Entry").Once()
 	mockType.EXPECT().GetEStructuralFeatureFromName("key").Return(mockFeature).Once()
 	mockType.EXPECT().GetEStructuralFeatureFromName("value").Return(mockFeature).Once()
-	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Twice()
 	mockStore.EXPECT().Size(o, mockAttribute).Return(0).Once()
 	m := o.EGetFromID(0, true)
@@ -237,10 +232,6 @@ func TestEStoreEObjectImpl_UnSetAttribute(t *testing.T) {
 	o := NewEStoreEObjectImpl(false)
 	o.SetEClass(mockClass)
 	o.SetEStore(mockStore)
-
-	// create cache
-	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
-	o.getProperties()
 
 	mockAttribute.EXPECT().IsMany().Return(false).Once()
 	mockAttribute.EXPECT().IsTransient().Return(false).Twice()
@@ -303,7 +294,6 @@ func TestEStoreEObjectImpl_IsSet_WithCache(t *testing.T) {
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute)
 	mockAttribute.EXPECT().IsTransient().Return(false).Once()
 	mockAttribute.EXPECT().IsMany().Return(false).Once()
-	mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	o.ESetFromID(0, 2)
 	require.True(t, o.EIsSetFromID(0))
 }
@@ -327,7 +317,6 @@ func (suite *EStoreEObjectImplWithCacheTestSuite) SetupTest() {
 	suite.mockFeature.EXPECT().IsMany().Return(true).Once()
 	suite.mockFeature.EXPECT().IsTransient().Return(false).Once()
 	suite.mockFeature.EXPECT().GetEType().Return(nil).Once()
-	suite.mockClass.EXPECT().GetFeatureCount().Return(1).Once()
 	suite.mockClass.EXPECT().GetEStructuralFeature(0).Return(suite.mockFeature).Twice()
 	list := suite.o.EGetFromID(0, true)
 	require.NotNil(t, list)
@@ -383,7 +372,6 @@ func (suite *EStoreEObjectImplNoCacheTestSuite) SetupTest() {
 	suite.mockFeatureList.EXPECT().IsMany().Return(true).Once()
 	suite.mockFeatureList.EXPECT().IsTransient().Return(false).Once()
 	suite.mockFeatureList.EXPECT().GetEType().Return(nil).Once()
-	suite.mockClass.EXPECT().GetFeatureCount().Return(2).Once()
 	suite.mockClass.EXPECT().GetEStructuralFeature(0).Return(suite.mockFeatureList).Twice()
 	list := suite.o.EGetFromID(0, true)
 	require.NotNil(t, list)
@@ -396,7 +384,6 @@ func (suite *EStoreEObjectImplNoCacheTestSuite) TestSetStore() {
 	suite.o.SetEStore(mockStore)
 	require.Equal(t, mockStore, suite.o.GetEStore())
 
-	suite.mockClass.EXPECT().GetFeatureCount().Return(2).Once()
 	suite.mockClass.EXPECT().GetEStructuralFeature(0).Return(suite.mockFeatureList).Once()
 	suite.mockFeatureList.EXPECT().IsTransient().Return(false).Once()
 	suite.mockFeatureList.EXPECT().IsMany().Return(true).Once()
@@ -404,6 +391,7 @@ func (suite *EStoreEObjectImplNoCacheTestSuite) TestSetStore() {
 	suite.mockAttribute.EXPECT().IsTransient().Return(false).Once()
 	suite.mockAttribute.EXPECT().IsMany().Return(false).Once()
 	mockStore.EXPECT().Get(suite.o, suite.mockAttribute, NO_INDEX).Return(2).Once()
+	suite.mockClass.EXPECT().GetFeatureCount().Return(2).Once()
 	suite.o.SetEStore(nil)
 	require.Equal(t, nil, suite.o.GetEStore())
 }

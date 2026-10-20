@@ -1,5 +1,3 @@
-github.com/SokaDance/rmx v1.0.2 h1:AscveeZqFGzWCPJqO89xFsEByp11gsF3jKE2S88TwqM=
-github.com/SokaDance/rmx v1.0.2/go.mod h1:65ITAMlDddqjMOmq+lTqqUQTor1seoNsdqp4Bf7jSuU=
 github.com/chebyrash/promise v0.0.0-20260915144232-ce593674804a h1:DVYZETQKAKPXqu6y4lmP16A2SMxufHleKI8y8yYvGsM=
 github.com/chebyrash/promise v0.0.0-20260915144232-ce593674804a/go.mod h1:uDK19PK4XPf86VXvswPDwVejeu9LXPXrLqizEsXhM9I=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

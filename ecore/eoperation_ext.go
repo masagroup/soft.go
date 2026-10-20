@@ -21,6 +21,13 @@ func newEOperationExt() *EOperationExt {
 	return eOperation
 }
 
+func (eOperation *EOperationExt) Initialize() {
+	eOperation.EOperationImpl.Initialize()
+	// created now, not at the first access: the parameters are read without lock (IsOverrideOf,
+	// in the build of the overrides of a class), and a lazy creation would race between readers
+	eOperation.GetEParameters()
+}
+
 func (eOperation *EOperationExt) IsOverrideOf(otherOperation EOperation) bool {
 	otherContainingClass := otherOperation.GetEContainingClass()
 	if otherContainingClass != nil && otherContainingClass.IsSuperTypeOf(eOperation.GetEContainingClass()) && otherOperation.GetName() == eOperation.GetName() {

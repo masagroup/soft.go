@@ -11,6 +11,16 @@ package ecore
 
 import "sync"
 
+// EPackageRegistry maps a namespace URI to an EPackage (one package per nsURI).
+//
+// A program may link several complete generated implementations of the same
+// metamodel: same nsURI, same classifier and feature IDs, but distinct EPackage
+// instances, each with its own EFactory. The implementation a resource set uses
+// is the package registered in that resource set's own registry, either with
+// CreateEResourceSet(packages), XMLProcessorPackages(packages) or
+// resourceSet.GetPackageRegistry().RegisterPackage(pack). Objects loaded in that
+// resource set then all belong to that implementation; resources mixing
+// implementations are not supported.
 type EPackageRegistry interface {
 	PutPackage(nsURI string, pack EPackage)
 	PutSupplier(nsURI string, supplier func() EPackage)
@@ -26,6 +36,13 @@ type EPackageRegistry interface {
 var packageRegistryOnce sync.Once
 var packageRegistryInstance EPackageRegistry
 
+// GetPackageRegistry returns the global package registry.
+//
+// The global registry holds the ecore package only and stays neutral: generated
+// packages never register themselves in it. When several implementations of a
+// metamodel coexist, register the one a resource set uses in that resource
+// set's registry (resourceSet.GetPackageRegistry().RegisterPackage(pack)), not
+// in the global one.
 func GetPackageRegistry() EPackageRegistry {
 	packageRegistryOnce.Do(func() {
 		packageRegistryInstance = NewEPackageRegistryImpl()

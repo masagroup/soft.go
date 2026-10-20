@@ -230,7 +230,7 @@ func (o *CompactEObjectImpl) ECrossReferences() EList {
 // ESetContainer ...
 func (o *CompactEObjectImpl) ESetInternalContainer(newContainer EObject, newContainerFeatureID int) {
 	o.setField(container_flag, newContainer)
-	o.flags = newContainerFeatureID<<16 | (o.flags & 0x00FF)
+	o.flags = newContainerFeatureID<<16 | (o.flags & 0xFFFF)
 }
 
 func (o *CompactEObjectImpl) EInternalContainer() EObject {

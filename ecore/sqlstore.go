@@ -170,11 +170,13 @@ func newSQLStoreObjectManager() *sqlStoreObjectManager {
 	return &sqlStoreObjectManager{}
 }
 
-func (r *sqlStoreObjectManager) registerObject(o EObject) {
+func (r *sqlStoreObjectManager) registerObject(o EObject, locked bool) {
 	// an object encoded by the open transaction is read by the writer until the commit
 	r.store.registerDirty(o)
 	// set store object
-	if storeObject, _ := o.(EStoreProvider); storeObject != nil {
+	if lockedObject, _ := o.(eLockedStoreProvider); locked && lockedObject != nil {
+		lockedObject.setEStoreLocked(r.store)
+	} else if storeObject, _ := o.(EStoreProvider); storeObject != nil {
 		storeObject.SetEStore(r.store)
 	}
 }

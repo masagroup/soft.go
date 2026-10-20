@@ -103,3 +103,55 @@ func TestEResourceSet_GetURIResourceMap(t *testing.T) {
 	rs.SetURIResourceMap(mockURIResourceMap)
 	assert.Equal(t, mockURIResourceMap, rs.GetURIResourceMap())
 }
+
+func newCoexistingDynamicPackage(nsURI string) EPackage {
+	ePackage := GetFactory().CreateEPackage()
+	ePackage.SetName("coexisting")
+	ePackage.SetNsPrefix("coexisting")
+	ePackage.SetNsURI(nsURI)
+	ePackage.SetEFactoryInstance(GetFactory().CreateEFactory())
+	eClass := GetFactory().CreateEClass()
+	eClass.SetName("Element")
+	eAttribute := GetFactory().CreateEAttribute()
+	eAttribute.SetName("name")
+	eAttribute.SetEType(GetPackage().GetEString())
+	eClass.GetEStructuralFeatures().Add(eAttribute)
+	ePackage.GetEClassifiers().Add(eClass)
+	eResource := NewEResourceImpl()
+	eResource.SetURI(NewURI(nsURI))
+	eResource.GetContents().Add(ePackage)
+	return ePackage
+}
+
+func TestEResourceSet_CoexistingImplementations(t *testing.T) {
+	nsURI := "http://masagroup.net/soft/test/coexisting"
+	uri := NewURI(nsURI)
+	package1 := newCoexistingDynamicPackage(nsURI)
+	package2 := newCoexistingDynamicPackage(nsURI)
+	require.NotSame(t, package1, package2)
+	require.NotSame(t, package1.GetEFactoryInstance(), package2.GetEFactoryInstance())
+
+	rs1 := CreateEResourceSet([]EPackage{package1})
+	rs2 := NewEResourceSetImpl()
+	rs2.GetPackageRegistry().RegisterPackage(GetPackage())
+	rs2.GetPackageRegistry().RegisterPackage(package2)
+
+	// each resource set resolves the nsURI to its own package
+	assert.Same(t, package1, rs1.GetPackageRegistry().GetPackage(nsURI))
+	assert.Same(t, package2, rs2.GetPackageRegistry().GetPackage(nsURI))
+	assert.Same(t, package1.EResource(), rs1.GetResource(uri, false))
+	assert.Same(t, package2.EResource(), rs2.GetResource(uri, false))
+	assert.NotSame(t, rs1.GetResource(uri, false), rs2.GetResource(uri, false))
+
+	// each resource set gets its own factory
+	assert.Same(t, package1.GetEFactoryInstance(), rs1.GetPackageRegistry().GetFactory(nsURI))
+	assert.Same(t, package2.GetEFactoryInstance(), rs2.GetPackageRegistry().GetFactory(nsURI))
+
+	// both resource sets share ecore
+	assert.Same(t, GetPackage(), rs1.GetPackageRegistry().GetPackage(NS_URI))
+	assert.Same(t, GetPackage(), rs2.GetPackageRegistry().GetPackage(NS_URI))
+
+	// global registry untouched
+	assert.Nil(t, GetPackageRegistry().GetPackage(nsURI))
+	assert.Nil(t, GetPackageRegistry().GetFactory(nsURI))
+}

@@ -1,4 +1,4 @@
-package sql
+package sqlite
 
 import (
 	"github.com/masagroup/soft.go/ecore"

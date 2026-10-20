@@ -1,4 +1,4 @@
-module github.com/masagroup/soft.go/codec/sql
+module github.com/masagroup/soft.go/codec/sqlite
 
 go 1.27.0
 

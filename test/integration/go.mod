@@ -16,7 +16,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/masagroup/soft.go/codec/sql v0.0.0-00010101000000-000000000000 // indirect
+	github.com/masagroup/soft.go/codec/sqlite v0.0.0-00010101000000-000000000000 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
@@ -49,7 +49,7 @@ replace (
 	github.com/masagroup/soft.go/codec/binary => ../../codec/binary
 	github.com/masagroup/soft.go/codec/defaults => ../../codec/defaults
 	github.com/masagroup/soft.go/codec/json => ../../codec/json
-	github.com/masagroup/soft.go/codec/sql => ../../codec/sql
+	github.com/masagroup/soft.go/codec/sqlite => ../../codec/sqlite
 	github.com/masagroup/soft.go/codec/xmi => ../../codec/xmi
 	github.com/masagroup/soft.go/codec/xml => ../../codec/xml
 )

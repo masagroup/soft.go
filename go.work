@@ -5,7 +5,7 @@ use (
 	./codec/binary
 	./codec/defaults
 	./codec/json
-	./codec/sql
+	./codec/sqlite
 	./codec/xmi
 	./codec/xml
 	./test/integration

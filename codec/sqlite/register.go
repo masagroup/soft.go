@@ -7,9 +7,9 @@
 //
 // *****************************************************************************
 
-// Package sql implements the SQLite codec and store of soft.go/ecore. Importing it registers
+// Package sqlite implements the SQLite codec and store of soft.go/ecore. Importing it registers
 // the codec for the "sqlite" extension in the default codec registry.
-package sql
+package sqlite
 
 import "github.com/masagroup/soft.go/ecore"
 

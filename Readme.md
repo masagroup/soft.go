@@ -36,7 +36,7 @@ The `ecore` module only holds the codec abstraction (`ECodec`, `ECodecRegistry`)
 | `github.com/masagroup/soft.go/codec/xmi` | same as the package (requires `codec/xml`) | XMI | `ecore`, `xmi` |
 | `github.com/masagroup/soft.go/codec/xml` | same as the package | XML | `xml` |
 | `github.com/masagroup/soft.go/codec/binary` | same as the package | binary (msgpack) | `bin` |
-| `github.com/masagroup/soft.go/codec/sql` | same as the package | SQLite codec and `Store` | `sqlite` |
+| `github.com/masagroup/soft.go/codec/sqlite` | same as the package | SQLite codec and `Store` | `sqlite` |
 | `github.com/masagroup/soft.go/codec/json` | same as the package | JSON (encoder only) | `json` |
 | `github.com/masagroup/soft.go/codec/defaults` | same as the package | XMI, XML, binary and SQLite | `ecore`, `xmi`, `xml`, `bin`, `sqlite` |
 
@@ -49,7 +49,7 @@ import (
 
 Without a codec for the extension of a resource, `Load` and `Save` fail with an error naming the package to import. Codecs can also be registered with `ecore.RegisterCodec(extension, codec)`, or per resource set in `resourceSet.GetCodecRegistry()`.
 
-The packages are named like `encoding/xml`, `encoding/binary`, `database/sql` and `encoding/json`: a file importing both names one of them, for instance `xmlcodec "github.com/masagroup/soft.go/codec/xml"`.
+The packages are named like `encoding/xml`, `encoding/binary`, `zombiezen.com/go/sqlite` and `encoding/json`: a file importing both names one of them, for instance `xmlcodec "github.com/masagroup/soft.go/codec/xml"`.
 
 ## Migration from v1.12 ##
 The package name replaces the prefix of the names:
@@ -60,7 +60,7 @@ The package name replaces the prefix of the names:
 | `XMLCodec`, `NewXMLProcessor`, `XMLProcessorPackages`, `XMLProcessorResourceSet`, `XML_OPTION_*` | `xml.Codec`, `xml.NewProcessor`, `xml.ProcessorPackages`, `xml.ProcessorResourceSet`, `xml.OPTION_*` |
 | `XMIProcessorPackages`, `XMIProcessorResourceSet` | `xml.ProcessorPackages`, `xml.ProcessorResourceSet` |
 | `BinaryCodec`, `NewBinaryEncoder`, `NewBinaryDecoder`, `BINARY_OPTION_*` | `binary.Codec`, `binary.NewEncoder`, `binary.NewDecoder`, `binary.OPTION_*` |
-| `SQLCodec`, `SQLStore`, `NewSQLStore`, `SQLObject`, `SQL_OPTION_*`, `ErrSQLStoreFailed` | `sql.Codec`, `sql.Store`, `sql.NewStore`, `sql.Object`, `sql.OPTION_*`, `sql.ErrStoreFailed` |
+| `SQLCodec`, `SQLStore`, `NewSQLStore`, `SQLObject`, `SQL_OPTION_*`, `ErrSQLStoreFailed` | `sqlite.Codec`, `sqlite.Store`, `sqlite.NewStore`, `sqlite.Object`, `sqlite.OPTION_*`, `sqlite.ErrStoreFailed` |
 | `JSONCodec`, `NewJSONEncoder`, `JSON_OPTION_ID_ATTRIBUTE_NAME` | `json.Codec`, `json.NewEncoder`, `json.OPTION_ID_ATTRIBUTE_NAME` |
 
 # Several implementations of a metamodel #

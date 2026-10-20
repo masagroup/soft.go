@@ -29,7 +29,7 @@ var resourceCodecRegistryInstance ECodecRegistry
 
 // GetCodecRegistry returns the process-wide default codec registry, built once on first use.
 // It only maps the memory protocol: the codec packages (codec/xml, codec/xmi, codec/binary,
-// codec/sql, codec/json) register their extensions when they are imported, and codec/defaults
+// codec/sqlite, codec/json) register their extensions when they are imported, and codec/defaults
 // imports the default ones.
 func GetCodecRegistry() ECodecRegistry {
 	resourceCodecRegistryOnce.Do(func() {
@@ -58,7 +58,7 @@ var codecPackages = map[string]string{
 	"xmi":    "github.com/masagroup/soft.go/codec/xmi",
 	"xml":    "github.com/masagroup/soft.go/codec/xml",
 	"bin":    "github.com/masagroup/soft.go/codec/binary",
-	"sqlite": "github.com/masagroup/soft.go/codec/sql",
+	"sqlite": "github.com/masagroup/soft.go/codec/sqlite",
 	"json":   "github.com/masagroup/soft.go/codec/json",
 }
 

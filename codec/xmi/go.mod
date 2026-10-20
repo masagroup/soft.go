@@ -23,6 +23,6 @@ replace (
 	github.com/masagroup/soft.go/codec/binary => ../../codec/binary
 	github.com/masagroup/soft.go/codec/defaults => ../../codec/defaults
 	github.com/masagroup/soft.go/codec/json => ../../codec/json
-	github.com/masagroup/soft.go/codec/sql => ../../codec/sql
+	github.com/masagroup/soft.go/codec/sqlite => ../../codec/sqlite
 	github.com/masagroup/soft.go/codec/xml => ../../codec/xml
 )

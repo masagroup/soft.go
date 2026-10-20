@@ -16,7 +16,7 @@ package defaults
 
 import (
 	_ "github.com/masagroup/soft.go/codec/binary"
-	_ "github.com/masagroup/soft.go/codec/sql"
+	_ "github.com/masagroup/soft.go/codec/sqlite"
 	_ "github.com/masagroup/soft.go/codec/xmi"
 	_ "github.com/masagroup/soft.go/codec/xml"
 )

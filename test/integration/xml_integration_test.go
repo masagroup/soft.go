@@ -7,7 +7,7 @@
 //
 // *****************************************************************************
 
-package xml_test
+package integration
 
 import (
 	"testing"
@@ -29,17 +29,17 @@ func assertResource(t *testing.T, resource ecore.EResource) {
 
 func TestEAllContents(t *testing.T) {
 	xmiProcessor := xmi.NewProcessor()
-	shopEcoreResource := xmiProcessor.Load(ecore.CreateFileURI("testdata/shop.ecore"))
+	shopEcoreResource := xmiProcessor.Load(ecore.CreateFileURI("testdata/xml/shop.ecore"))
 	assertResource(t, shopEcoreResource)
 	shopPackage, _ := shopEcoreResource.GetContents().Get(0).(ecore.EPackage)
 	require.NotNil(t, shopPackage)
-	ordersEcoreResource := xmiProcessor.Load(ecore.CreateFileURI("testdata/orders.ecore"))
+	ordersEcoreResource := xmiProcessor.Load(ecore.CreateFileURI("testdata/xml/orders.ecore"))
 	assertResource(t, ordersEcoreResource)
 	ordersPackage, _ := ordersEcoreResource.GetContents().Get(0).(ecore.EPackage)
 	require.NotNil(t, ordersPackage)
 
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{shopPackage, ordersPackage}))
-	ordersResource := xmlProcessor.Load(ecore.CreateFileURI("testdata/orders.xml"))
+	ordersResource := xmlProcessor.Load(ecore.CreateFileURI("testdata/xml/orders.xml"))
 	assertResource(t, ordersResource)
 	ordersRoot, _ := ordersResource.GetContents().Get(0).(ecore.EObject)
 	require.NotNil(t, ordersRoot)
@@ -55,7 +55,7 @@ func TestEAllContents(t *testing.T) {
 
 func TestGetEObjectInResource(t *testing.T) {
 	xmiProcessor := xmi.NewProcessor()
-	shopEcoreResource := xmiProcessor.Load(ecore.CreateFileURI("testdata/shop.ecore"))
+	shopEcoreResource := xmiProcessor.Load(ecore.CreateFileURI("testdata/xml/shop.ecore"))
 	assertResource(t, shopEcoreResource)
 	eProductClass := shopEcoreResource.GetEObject("//Product")
 	require.NotNil(t, eProductClass)
@@ -63,7 +63,7 @@ func TestGetEObjectInResource(t *testing.T) {
 
 func TestResourceLoadInvalid(t *testing.T) {
 	r := ecore.NewEResourceImpl()
-	r.SetURI(ecore.NewURI("testdata/invalid.xml"))
+	r.SetURI(ecore.NewURI("testdata/xml/invalid.xml"))
 	r.Load()
 	assert.False(t, r.IsLoaded())
 	assert.False(t, r.GetErrors().Empty())
@@ -74,7 +74,7 @@ func TestResourceLoadInvalid(t *testing.T) {
 func TestLoadCoreTestModels(t *testing.T) {
 	deletePackage := loadPackage("delete.ecore")
 	require.NotNil(t, deletePackage)
-	deleteResource := xmi.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{deletePackage})).Load(ecore.NewURI("testdata/delete.xmi"))
+	deleteResource := xmi.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{deletePackage})).Load(ecore.NewURI("testdata/xml/delete.xmi"))
 	assertResource(t, deleteResource)
 	deleteRoot := deleteResource.GetContents().Get(0).(ecore.EObject)
 	deleteRootClass := deletePackage.GetEClassifier("Root").(ecore.EClass)
@@ -84,7 +84,7 @@ func TestLoadCoreTestModels(t *testing.T) {
 
 	eAllContentsPackage := loadPackage("eallcontents.ecore")
 	require.NotNil(t, eAllContentsPackage)
-	eAllContentsResource := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{eAllContentsPackage})).Load(ecore.NewURI("testdata/eallcontents.xml"))
+	eAllContentsResource := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{eAllContentsPackage})).Load(ecore.NewURI("testdata/xml/eallcontents.xml"))
 	assertResource(t, eAllContentsResource)
 	i := 0
 	for it := eAllContentsResource.GetAllContents(); it.HasNext(); it.Next() {

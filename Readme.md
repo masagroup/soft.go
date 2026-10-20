@@ -33,8 +33,8 @@ The `ecore` module only holds the codec abstraction (`ECodec`, `ECodecRegistry`)
 
 | Package | Module | Codec | Extensions registered on import |
 |---|---|---|---|
-| `github.com/masagroup/soft.go/codec/xmi` | `github.com/masagroup/soft.go/codec` | XMI | `ecore`, `xmi` |
-| `github.com/masagroup/soft.go/codec/xml` | `github.com/masagroup/soft.go/codec` | XML | `xml` |
+| `github.com/masagroup/soft.go/codec/xmi` | same as the package (requires `codec/xml`) | XMI | `ecore`, `xmi` |
+| `github.com/masagroup/soft.go/codec/xml` | same as the package | XML | `xml` |
 | `github.com/masagroup/soft.go/codec/binary` | same as the package | binary (msgpack) | `bin` |
 | `github.com/masagroup/soft.go/codec/sql` | same as the package | SQLite codec and `Store` | `sqlite` |
 | `github.com/masagroup/soft.go/codec/json` | same as the package | JSON (encoder only) | `json` |

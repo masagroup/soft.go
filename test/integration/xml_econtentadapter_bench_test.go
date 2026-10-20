@@ -7,7 +7,7 @@
 //
 // *****************************************************************************
 
-package xml_test
+package integration
 
 import (
 	"testing"
@@ -30,7 +30,7 @@ func BenchmarkEContentAdapterWithBigModel(b *testing.B) {
 
 		// load resource
 		xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-		eResource := xmlProcessor.Load(ecore.NewURI("testdata/library.complex.big.xml"))
+		eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/library.complex.big.xml"))
 		require.NotNil(b, eResource)
 		assert.True(b, eResource.IsLoaded())
 		assert.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -52,7 +52,7 @@ func BenchmarkEContentAdapterWithTreeModel(b *testing.B) {
 
 		// load resource
 		xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-		eResource := xmlProcessor.Load(ecore.NewURI("testdata/tree.xml"))
+		eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/tree.xml"))
 		require.NotNil(b, eResource)
 		assert.True(b, eResource.IsLoaded())
 		assert.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))

@@ -6,7 +6,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
 // *****************************************************************************
-package xml_test
+package integration
 
 import (
 	"bytes"
@@ -25,7 +25,7 @@ import (
 
 func loadPackage(packageFileName string) ecore.EPackage {
 	xmiProcessor := xmi.NewProcessor()
-	eResource := xmiProcessor.Load(ecore.NewURI("testdata/" + packageFileName))
+	eResource := xmiProcessor.Load(ecore.NewURI("testdata/xml/" + packageFileName))
 	if eResource.IsLoaded() && eResource.GetContents().Size() > 0 {
 		ePackage, _ := eResource.GetContents().Get(0).(ecore.EPackage)
 		return ePackage
@@ -41,7 +41,7 @@ func TestXMLDecoderLibraryNoRoot(t *testing.T) {
 
 	// load resource
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.Load(ecore.NewURI("testdata/library.noroot.xml"))
+	eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/library.noroot.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -65,7 +65,7 @@ func TestXMLDecoderLibraryComplex(t *testing.T) {
 
 	// load resource
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.Load(ecore.NewURI("testdata/library.complex.xml"))
+	eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/library.complex.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -122,7 +122,7 @@ func TestXMLDecoderLibraryComplexWithOptions(t *testing.T) {
 	// load resource
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
 	eResource := xmlProcessor.LoadWithOptions(
-		ecore.NewURI("testdata/library.complex.noroot.xml"),
+		ecore.NewURI("testdata/xml/library.complex.noroot.xml"),
 		map[string]any{
 			xml.OPTION_SUPPRESS_DOCUMENT_ROOT: true,
 			xml.OPTION_EXTENDED_META_DATA:     xml.NewExtendedMetaData()})
@@ -148,7 +148,7 @@ func TestXMLDecoderSimpleInvalidXML(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.Load(ecore.NewURI("testdata/library.simple.invalid.xml"))
+	eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/library.simple.invalid.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.False(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -160,7 +160,7 @@ func TestXMLDecoderSimpleEscapeXML(t *testing.T) {
 	require.NotNil(t, ePackage)
 
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.Load(ecore.NewURI("testdata/library.simple.escape.xml"))
+	eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/library.simple.escape.xml"))
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -185,7 +185,7 @@ func TestXMLDecoderSimpleXMLWithIDs(t *testing.T) {
 
 	eResourceSet := ecore.NewEResourceSetImpl()
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-	eResource := eResourceSet.CreateResource(ecore.NewURI("testdata/library.simple.ids.xml"))
+	eResource := eResourceSet.CreateResource(ecore.NewURI("testdata/xml/library.simple.ids.xml"))
 	require.NotNil(t, eResource)
 	eResource.SetObjectIDManager(idManager)
 	eResource.LoadWithOptions(map[string]any{xml.OPTION_ID_ATTRIBUTE_NAME: "id"})
@@ -219,7 +219,7 @@ func TestXMLDecoderSimpleXMLWithEDataTypeList(t *testing.T) {
 
 	eResourceSet := ecore.NewEResourceSetImpl()
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-	eResource := eResourceSet.CreateResource(ecore.NewURI("testdata/library.datalist.xml"))
+	eResource := eResourceSet.CreateResource(ecore.NewURI("testdata/xml/library.datalist.xml"))
 	require.NotNil(t, eResource)
 	eResource.Load()
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -258,7 +258,7 @@ func TestXMLDecoderLibraryComplexBig(t *testing.T) {
 
 	// load resource
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.LoadWithOptions(ecore.NewURI("testdata/library.complex.big.xml"), nil)
+	eResource := xmlProcessor.LoadWithOptions(ecore.NewURI("testdata/xml/library.complex.big.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -279,7 +279,7 @@ func TestXMLDecoderSimpleObject(t *testing.T) {
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
 	eResource := eResourceSet.CreateResource(ecore.NewURI("$tmp.xml"))
 
-	f, err := os.Open("testdata/book.simple.xml")
+	f, err := os.Open("testdata/xml/book.simple.xml")
 	require.NotNil(t, f)
 	require.Nil(t, err)
 
@@ -297,7 +297,7 @@ func TestXMLDecoderMaps(t *testing.T) {
 
 	// load resource
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.LoadWithOptions(ecore.NewURI("testdata/emap.xml"), nil)
+	eResource := xmlProcessor.LoadWithOptions(ecore.NewURI("testdata/xml/emap.xml"), nil)
 	require.NotNil(t, eResource)
 	require.True(t, eResource.IsLoaded())
 	require.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -375,13 +375,13 @@ func TestXMLDecoderMaps(t *testing.T) {
 
 }
 
-func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
+func BenchmarkXMLDecoderDynamicLibraryComplexBig(b *testing.B) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(b, ePackage)
 
 	// create resource
-	uri := ecore.NewURI("testdata/library.complex.big.xml")
+	uri := ecore.NewURI("testdata/xml/library.complex.big.xml")
 	eResource := ecore.NewEResourceImpl()
 	eResource.SetURI(uri)
 	eResourceSet := ecore.NewEResourceSetImpl()

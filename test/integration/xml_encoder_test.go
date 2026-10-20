@@ -7,7 +7,7 @@
 //
 // *****************************************************************************
 
-package xml_test
+package integration
 
 import (
 	"os"
@@ -28,21 +28,21 @@ func TestXMLEncoderLibraryNoRootWithOptions(t *testing.T) {
 	// load resource
 	options := map[string]any{xml.OPTION_SUPPRESS_DOCUMENT_ROOT: true, xml.OPTION_EXTENDED_META_DATA: xml.NewExtendedMetaData()}
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.LoadWithOptions(ecore.NewURI("testdata/library.noroot.xml"), options)
+	eResource := xmlProcessor.LoadWithOptions(ecore.NewURI("testdata/xml/library.noroot.xml"), options)
 	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
 	// save
-	eResource.SetURI(ecore.NewURI("testdata/library.noroot.result.xml"))
+	eResource.SetURI(ecore.NewURI("testdata/xml/library.noroot.result.xml"))
 	xmlProcessor.SaveWithOptions(eResource, options)
 
 	// result
-	src, err := os.ReadFile("testdata/library.noroot.xml")
+	src, err := os.ReadFile("testdata/xml/library.noroot.xml")
 	assert.Nil(t, err)
 
-	result, err := os.ReadFile("testdata/library.noroot.xml")
+	result, err := os.ReadFile("testdata/xml/library.noroot.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(src), "\r\n", "\n"), strings.ReplaceAll(string(result), "\r\n", "\n"))
 }
@@ -57,7 +57,7 @@ func TestXMLEncoderLibraryNoRootWithReaderWriter(t *testing.T) {
 	options := map[string]any{xml.OPTION_SUPPRESS_DOCUMENT_ROOT: true, xml.OPTION_EXTENDED_META_DATA: xml.NewExtendedMetaData()}
 
 	// load resource
-	reader, error := os.Open("testdata/library.noroot.xml")
+	reader, error := os.Open("testdata/xml/library.noroot.xml")
 	require.Nil(t, error)
 	eResource := xmlProcessor.LoadWithReader(reader, options)
 	require.NotNil(t, eResource)
@@ -66,15 +66,15 @@ func TestXMLEncoderLibraryNoRootWithReaderWriter(t *testing.T) {
 	assert.True(t, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
 	// save
-	writer, error := os.Create("testdata/library.noroot.result.xml")
+	writer, error := os.Create("testdata/xml/library.noroot.result.xml")
 	require.Nil(t, error)
 	xmlProcessor.SaveWithWriter(writer, eResource, options)
 
 	// result
-	src, err := os.ReadFile("testdata/library.noroot.xml")
+	src, err := os.ReadFile("testdata/xml/library.noroot.xml")
 	assert.Nil(t, err)
 
-	result, err := os.ReadFile("testdata/library.noroot.xml")
+	result, err := os.ReadFile("testdata/xml/library.noroot.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(src), "\r\n", "\n"), strings.ReplaceAll(string(result), "\r\n", "\n"))
 }
@@ -86,7 +86,7 @@ func TestXMLEncoderLibraryComplex(t *testing.T) {
 
 	// load resource
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.Load(ecore.NewURI("testdata/library.complex.xml"))
+	eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/library.complex.xml"))
 	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -94,7 +94,7 @@ func TestXMLEncoderLibraryComplex(t *testing.T) {
 	// save resource
 	result := xmlProcessor.SaveToString(eResource, nil)
 
-	bytes, err := os.ReadFile("testdata/library.complex.xml")
+	bytes, err := os.ReadFile("testdata/xml/library.complex.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
@@ -106,7 +106,7 @@ func TestXMLEncoderEMaps(t *testing.T) {
 
 	// load resource
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.Load(ecore.NewURI("testdata/emap.xml"))
+	eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/emap.xml"))
 	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -114,7 +114,7 @@ func TestXMLEncoderEMaps(t *testing.T) {
 	// save resource
 	result := xmlProcessor.SaveToString(eResource, nil)
 
-	bytes, err := os.ReadFile("testdata/emap.xml")
+	bytes, err := os.ReadFile("testdata/xml/emap.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
@@ -126,7 +126,7 @@ func TestXMLEncoderLibraryComplexSubElement(t *testing.T) {
 
 	// load resource
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.Load(ecore.NewURI("testdata/library.complex.xml"))
+	eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/library.complex.xml"))
 	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -138,14 +138,14 @@ func TestXMLEncoderLibraryComplexSubElement(t *testing.T) {
 	require.NotNil(t, eContainer)
 
 	// create a new resource
-	eNewResource := eResource.GetResourceSet().CreateResource(ecore.NewURI("testdata/library.complex.sub.xml"))
+	eNewResource := eResource.GetResourceSet().CreateResource(ecore.NewURI("testdata/xml/library.complex.sub.xml"))
 	// add object to new resource
 	eNewResource.GetContents().Add(eObject)
 	// save it
 	result := xmlProcessor.SaveToString(eNewResource, nil)
 
 	// check result
-	bytes, err := os.ReadFile("testdata/library.complex.sub.xml")
+	bytes, err := os.ReadFile("testdata/xml/library.complex.sub.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 
@@ -168,7 +168,7 @@ func TestXMLEncoderLibraryComplexWithOptions(t *testing.T) {
 
 	// load resource
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.LoadWithOptions(ecore.NewURI("testdata/library.complex.noroot.xml"), options)
+	eResource := xmlProcessor.LoadWithOptions(ecore.NewURI("testdata/xml/library.complex.noroot.xml"), options)
 	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -177,7 +177,7 @@ func TestXMLEncoderLibraryComplexWithOptions(t *testing.T) {
 	// save resource
 	result := xmlProcessor.SaveToString(eResource, options)
 
-	bytes, err := os.ReadFile("testdata/library.complex.noroot.xml")
+	bytes, err := os.ReadFile("testdata/xml/library.complex.noroot.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
@@ -198,11 +198,11 @@ func TestXMLEncoderSimpleEscapeXML(t *testing.T) {
 	eLibrary.ESet(eLibraryLocationAttribute, "a<b")
 
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.GetResourceSet().CreateResource(ecore.NewURI("testdata/library.simple.escape.output.xml"))
+	eResource := xmlProcessor.GetResourceSet().CreateResource(ecore.NewURI("testdata/xml/library.simple.escape.output.xml"))
 	eResource.GetContents().Add(eLibrary)
 	result := xmlProcessor.SaveToString(eResource, nil)
 
-	bytes, err := os.ReadFile("testdata/library.simple.escape.xml")
+	bytes, err := os.ReadFile("testdata/xml/library.simple.escape.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
@@ -215,7 +215,7 @@ func TestXMLEncoderSimpleXMLWithIDs(t *testing.T) {
 
 	eResourceSet := ecore.NewEResourceSetImpl()
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-	eResource := eResourceSet.CreateResource(ecore.NewURI("testdata/library.simple.xml"))
+	eResource := eResourceSet.CreateResource(ecore.NewURI("testdata/xml/library.simple.xml"))
 	require.NotNil(t, eResource)
 	eResource.SetObjectIDManager(ecore.NewIncrementalIDManager())
 	eResource.Load()
@@ -225,7 +225,7 @@ func TestXMLEncoderSimpleXMLWithIDs(t *testing.T) {
 	var strbuff strings.Builder
 	eResource.SaveWithWriter(&strbuff, map[string]any{xml.OPTION_ID_ATTRIBUTE_NAME: "id"})
 
-	bytes, err := os.ReadFile("testdata/library.simple.ids.xml")
+	bytes, err := os.ReadFile("testdata/xml/library.simple.ids.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
@@ -237,7 +237,7 @@ func TestXMLEncoderSimpleXMLWithEDataTypeList(t *testing.T) {
 	assert.NotNil(t, ePackage)
 
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.Load(ecore.NewURI("testdata/library.datalist.xml"))
+	eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/library.datalist.xml"))
 	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -245,7 +245,7 @@ func TestXMLEncoderSimpleXMLWithEDataTypeList(t *testing.T) {
 	// save resource
 	result := xmlProcessor.SaveToString(eResource, nil)
 
-	bytes, err := os.ReadFile("testdata/library.datalist.xml")
+	bytes, err := os.ReadFile("testdata/xml/library.datalist.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
 }
@@ -257,7 +257,7 @@ func TestXMLEncoderSimpleXMLRootObjects(t *testing.T) {
 
 	// load model file
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.Load(ecore.NewURI("testdata/library.simple.xml"))
+	eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/library.simple.xml"))
 	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -281,7 +281,7 @@ func TestXMLEncoderSimpleXMLRootObjects(t *testing.T) {
 	var strbuff strings.Builder
 	eResource.SaveWithWriter(&strbuff, map[string]any{xml.OPTION_ROOT_OBJECTS: ecore.NewImmutableEList([]any{eBook})})
 
-	bytes, err := os.ReadFile("testdata/book.simple.xml")
+	bytes, err := os.ReadFile("testdata/xml/book.simple.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
@@ -293,7 +293,7 @@ func TestXMLEncoderSimpleObject(t *testing.T) {
 
 	// load model file
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.Load(ecore.NewURI("testdata/library.simple.xml"))
+	eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/library.simple.xml"))
 	require.NotNil(t, eResource)
 	assert.True(t, eResource.IsLoaded())
 	assert.True(t, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
@@ -318,17 +318,17 @@ func TestXMLEncoderSimpleObject(t *testing.T) {
 	err := encoder.EncodeObject(eBook)
 	assert.Nil(t, err)
 
-	bytes, err := os.ReadFile("testdata/book.simple.xml")
+	bytes, err := os.ReadFile("testdata/xml/book.simple.xml")
 	assert.Nil(t, err)
 	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(strbuff.String(), "\r\n", "\n"))
 }
 
-func BenchmarkXMLEncoderLibraryComplexBig(b *testing.B) {
+func BenchmarkXMLEncoderDynamicLibraryComplexBig(b *testing.B) {
 	// load package
 	ePackage := loadPackage("library.complex.ecore")
 	require.NotNil(b, ePackage)
 	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{ePackage}))
-	eResource := xmlProcessor.Load(ecore.NewURI("testdata/library.complex.big.xml"))
+	eResource := xmlProcessor.Load(ecore.NewURI("testdata/xml/library.complex.big.xml"))
 	require.NotNil(b, eResource)
 	for b.Loop() {
 		var strbuff strings.Builder
@@ -343,7 +343,7 @@ func BenchmarkXMLEncoderAllTypes(b *testing.B) {
 
 	eResourceSet := ecore.NewEResourceSetImpl()
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
-	eResource := eResourceSet.CreateResource(ecore.NewURI("testdata/alltypes.xml"))
+	eResource := eResourceSet.CreateResource(ecore.NewURI("testdata/xml/alltypes.xml"))
 	require.NotNil(b, eResource)
 
 	// retrive library class & library name attribute

@@ -7,7 +7,7 @@
 //
 // *****************************************************************************
 
-package xml_test
+package integration
 
 import (
 	"fmt"
@@ -60,17 +60,17 @@ func TestSaveObject(t *testing.T) {
 	xmlProcessor := xml.NewProcessor(xml.ProcessorResourceSet(resourceSet))
 	for _, testCase := range testsCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			ePackage, _ := xmlProcessorLoad(t, xmlProcessor, "testdata/"+testCase.meta).(ecore.EPackage)
+			ePackage, _ := xmlProcessorLoad(t, xmlProcessor, "testdata/xml/"+testCase.meta).(ecore.EPackage)
 			require.NotNil(t, ePackage)
 			packageRegistry.RegisterPackage(ePackage)
-			eModel := xmlProcessorLoad(t, xmlProcessor, "testdata/"+testCase.model)
+			eModel := xmlProcessorLoad(t, xmlProcessor, "testdata/xml/"+testCase.model)
 			require.NotNil(t, eModel)
 
-			resultName := "testdata/" + testCase.name + ".result.xml"
+			resultName := "testdata/xml/" + testCase.name + ".result.xml"
 			xmlProcessor.SaveObject(ecore.NewURI(resultName), eModel)
 
 			// src
-			src, err := os.ReadFile("testdata/" + testCase.model)
+			src, err := os.ReadFile("testdata/xml/" + testCase.model)
 			assert.Nil(t, err)
 
 			// result

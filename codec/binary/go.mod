@@ -5,7 +5,8 @@ go 1.27.0
 require (
 	github.com/google/uuid v1.6.0
 	github.com/masagroup/soft.go v1.13.0
-	github.com/masagroup/soft.go/codec v0.0.0-00010101000000-000000000000
+	github.com/masagroup/soft.go/codec/xmi v0.0.0-00010101000000-000000000000
+	github.com/masagroup/soft.go/codec/xml v0.0.0-00010101000000-000000000000
 	github.com/oklog/ulid/v2 v2.1.2
 	github.com/stretchr/testify v1.12.1
 	github.com/vmihailenco/msgpack/v5 v5.4.1
@@ -22,8 +23,9 @@ require (
 
 replace (
 	github.com/masagroup/soft.go => ../..
-	github.com/masagroup/soft.go/codec => ../../codec
 	github.com/masagroup/soft.go/codec/defaults => ../../codec/defaults
 	github.com/masagroup/soft.go/codec/json => ../../codec/json
 	github.com/masagroup/soft.go/codec/sql => ../../codec/sql
+	github.com/masagroup/soft.go/codec/xmi => ../../codec/xmi
+	github.com/masagroup/soft.go/codec/xml => ../../codec/xml
 )

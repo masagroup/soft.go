@@ -38,12 +38,3 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.60.1 // indirect
 )
-
-replace (
-	github.com/masagroup/soft.go => ../..
-	github.com/masagroup/soft.go/codec/binary => ../../codec/binary
-	github.com/masagroup/soft.go/codec/defaults => ../../codec/defaults
-	github.com/masagroup/soft.go/codec/json => ../../codec/json
-	github.com/masagroup/soft.go/codec/xmi => ../../codec/xmi
-	github.com/masagroup/soft.go/codec/xml => ../../codec/xml
-)

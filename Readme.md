@@ -63,7 +63,7 @@ reflectiveSet := ecore.CreateEResourceSet([]ecore.EPackage{model.GetPackage()})
 reflectiveSet.GetPackageRegistry().RegisterFactory(reflective.GetFactory())
 ```
 
-There is no global default implementation: each resource set chooses its implementation in its registry. The generated `Register(registry)` of an implementation registers the shared package and the factory of the implementation (`typed.Register(resourceSet.GetPackageRegistry())`).
+There is no global default implementation: each resource set chooses its implementation in its registry. The generated `Install(registry)` of an implementation registers the shared package and the factory of the implementation (`typed.Install(resourceSet.GetPackageRegistry())`).
 
 `ecore.GetObjectFactory(obj)` returns the factory of the implementation of an object: `Copy` and the entries of maps are of the implementation of the object they come from. The objects of different implementations of a shared package do not mix: containing, referencing (lists, single references, `ESet`) or adding as a root of the same resource an object of another implementation panics (`ecore.CheckSameImplementation`) when the program is built with the tag `ecore_check` (`ecore.Checks`). Without it, the checks are compiled out and cost nothing. The same tag enables the other checks of programming errors, such as setting an element of a unique list to an element it holds at another index. The property `checkImplementation=false` of soft.generator.go also leaves them out of the generated setters. Within one implementation, everything works as with a complete package, including `EGet` / `ESet` with the features of `GetPackage()`, `Equals` and `IsSuperTypeOf`.
 

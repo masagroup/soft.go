@@ -479,7 +479,9 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 		if value == nil {
 			eObject.ESet(eFeature, nil)
 		} else if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
-			eObject.ESet(eFeature, eFactory.CreateFromString(eDataType, value.(string)))
+			if data, ok := l.createFromString(eFactory, eDataType, value.(string)); ok {
+				eObject.ESet(eFeature, data)
+			}
 		}
 
 	case xlfkMany:
@@ -489,7 +491,9 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 		} else if value == nil {
 			eList.Add(nil)
 		} else if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
-			eList.Add(eFactory.CreateFromString(eDataType, value.(string)))
+			if data, ok := l.createFromString(eFactory, eDataType, value.(string)); ok {
+				eList.Add(data)
+			}
 		}
 	case xlfkManyAdd:
 		fallthrough
@@ -530,6 +534,18 @@ func (l *Decoder) factoryFor(eFeature ecore.EStructuralFeature, eDataType ecore.
 		l.decodeError("Package " + ePackage.GetNsURI() + " has no factory to build " + eDataType.GetName() + " for feature " + eFeature.GetName())
 	}
 	return eFactory
+}
+
+// createFromString creates the value of eDataType from str: a factory panics on an invalid
+// literal, which is reported as a diagnostic and not set (ok is false), as EMF's loader does.
+func (l *Decoder) createFromString(eFactory ecore.EFactory, eDataType ecore.EDataType, str string) (value any, ok bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			l.decodeError(fmt.Sprintf("%v", r))
+			value, ok = nil, false
+		}
+	}()
+	return eFactory.CreateFromString(eDataType, str), true
 }
 
 func (l *Decoder) decodeError(message string) {

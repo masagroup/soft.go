@@ -371,7 +371,10 @@ func (d *Decoder) decodeFeatureValue(eObject ecore.EObjectInternal, featureData 
 		if err != nil {
 			return err
 		}
-		value := featureData.eFactory.CreateFromString(featureData.eDataType, decoded)
+		value, err := createFromString(featureData.eFactory, featureData.eDataType, decoded)
+		if err != nil {
+			return err
+		}
 		eObject.ESetFromID(featureData.featureID, value)
 	case bfkDataList:
 		size, err := d.decodeInt()
@@ -384,7 +387,10 @@ func (d *Decoder) decodeFeatureValue(eObject ecore.EObjectInternal, featureData 
 			if err != nil {
 				return err
 			}
-			value := featureData.eFactory.CreateFromString(featureData.eDataType, decoded)
+			value, err := createFromString(featureData.eFactory, featureData.eDataType, decoded)
+			if err != nil {
+				return err
+			}
 			values = append(values, value)
 		}
 		l := eObject.EGetResolve(featureData.eFeature, false).(ecore.EList)
@@ -408,7 +414,10 @@ func (d *Decoder) decodeFeatureValue(eObject ecore.EObjectInternal, featureData 
 		} else {
 			valueStr = d.enumLiterals[id]
 		}
-		value := featureData.eFactory.CreateFromString(featureData.eDataType, valueStr)
+		value, err := createFromString(featureData.eFactory, featureData.eDataType, valueStr)
+		if err != nil {
+			return err
+		}
 		eObject.ESetFromID(featureData.featureID, value)
 	case bfkDate:
 		decoded, err := d.decodeDate()
@@ -636,4 +645,15 @@ func (d *Decoder) newFeatureData(eClassData *binaryDecoderClassData) (*binaryDec
 		eFeatureData.eFactory = eFeatureData.eDataType.GetEPackage().GetEFactoryInstance()
 	}
 	return eFeatureData, nil
+}
+
+// createFromString creates the value of eDataType from str: a factory panics on an invalid literal,
+// which is returned as an error.
+func createFromString(eFactory ecore.EFactory, eDataType ecore.EDataType, str string) (value any, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			value, err = nil, fmt.Errorf("%v", r)
+		}
+	}()
+	return eFactory.CreateFromString(eDataType, str), nil
 }

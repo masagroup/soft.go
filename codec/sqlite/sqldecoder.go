@@ -511,7 +511,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 			}
 			instance := enumLiteral.GetInstance()
 			if instance == nil {
-				instance = d.decodeFeatureData(featureData, enumLiteral.GetLiteral())
+				return d.decodeFeatureData(featureData, enumLiteral.GetLiteral())
 			}
 			return instance, nil
 		default:
@@ -573,9 +573,9 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		case nil:
 			return nil, nil
 		case []byte:
-			return d.decodeFeatureData(featureData, string(v)), nil
+			return d.decodeFeatureData(featureData, string(v))
 		case string:
-			return d.decodeFeatureData(featureData, v), nil
+			return d.decodeFeatureData(featureData, v)
 		default:
 			return nil, fmt.Errorf("%v is not a data value", value)
 		}
@@ -584,11 +584,18 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	return nil, nil
 }
 
-func (d *sqlDecoder) decodeFeatureData(featureSchema *sqlFeatureSchema, v string) any {
+// decodeFeatureData creates the value of a data feature from v: a factory panics on an invalid
+// literal, which is returned as an error.
+func (d *sqlDecoder) decodeFeatureData(featureSchema *sqlFeatureSchema, v string) (value any, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			value, err = nil, fmt.Errorf("%v", r)
+		}
+	}()
 	eFeature := featureSchema.feature
 	eDataType := eFeature.GetEType().(ecore.EDataType)
 	eFactory := eDataType.GetEPackage().GetEFactoryInstance()
-	return eFactory.CreateFromString(eDataType, v)
+	return eFactory.CreateFromString(eDataType, v), nil
 }
 
 type Decoder struct {

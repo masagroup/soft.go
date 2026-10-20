@@ -17,7 +17,7 @@ func TestImmutableEMap_GetValue(t *testing.T) {
 	mockEntry.EXPECT().GetKey().Return(1)
 	mockEntry.EXPECT().GetValue().Return(2)
 	im := NewImmutableEMap([]any{mockEntry})
-	require.NotNil(t, m)
+	require.NotNil(t, im)
 	require.Equal(t, 2, im.GetValue(1))
 	require.Equal(t, nil, im.GetValue(3))
 }
@@ -43,8 +43,7 @@ func TestImmutableEMap_ContainsValue(t *testing.T) {
 	mockEntry.EXPECT().GetKey().Return(1)
 	mockEntry.EXPECT().GetValue().Return(2)
 	im := NewImmutableEMap([]any{mockEntry})
-	require.NotNil(t, m)
-	require.NotNil(t, m)
+	require.NotNil(t, im)
 	require.True(t, im.ContainsValue(2))
 	require.False(t, im.ContainsValue(3))
 }
@@ -54,7 +53,7 @@ func TestImmutableEMap_ContainsKey(t *testing.T) {
 	mockEntry.EXPECT().GetKey().Return(1)
 	mockEntry.EXPECT().GetValue().Return(2)
 	im := NewImmutableEMap([]any{mockEntry})
-	require.NotNil(t, m)
+	require.NotNil(t, im)
 	require.True(t, im.ContainsKey(1))
 	require.False(t, im.ContainsKey(2))
 }
@@ -64,6 +63,6 @@ func TestImmutableEMap_ToMap(t *testing.T) {
 	mockEntry.EXPECT().GetKey().Return(1)
 	mockEntry.EXPECT().GetValue().Return(2)
 	im := NewImmutableEMap([]any{mockEntry})
-	require.NotNil(t, m)
+	require.NotNil(t, im)
 	require.Equal(t, map[any]any{1: 2}, im.ToMap())
 }

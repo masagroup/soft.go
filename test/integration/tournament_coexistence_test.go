@@ -20,6 +20,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/masagroup/soft.go/codec/binary"
+	"github.com/masagroup/soft.go/codec/xml"
 	"github.com/masagroup/soft.go/ecore"
 	"github.com/masagroup/soft.go/test/tournament"
 	"github.com/masagroup/soft.go/test/tournament/reflective"
@@ -39,7 +41,7 @@ func newTournamentResourceSet(factory ecore.EFactory) ecore.EResourceSet {
 
 func loadXML(t *testing.T, factory ecore.EFactory) ecore.EResource {
 	t.Helper()
-	xmlProcessor := ecore.NewXMLProcessor(ecore.XMLProcessorResourceSet(newTournamentResourceSet(factory)))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorResourceSet(newTournamentResourceSet(factory)))
 	resource := xmlProcessor.Load(ecore.CreateFileURI(tournamentXML))
 	require.True(t, resource.IsLoaded())
 	require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
@@ -147,7 +149,7 @@ func TestSharedPackageLoad(t *testing.T) {
 
 func TestSharedPackageLoadWithoutFactory(t *testing.T) {
 	// a resource set with the shared package and no factory has no implementation to create objects with
-	xmlProcessor := ecore.NewXMLProcessor(ecore.XMLProcessorPackages([]ecore.EPackage{tournament.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{tournament.GetPackage()}))
 	assert.Panics(t, func() { xmlProcessor.Load(ecore.CreateFileURI(tournamentXML)) })
 }
 
@@ -165,7 +167,7 @@ func TestSharedPackageInstall(t *testing.T) {
 		assert.Same(t, tournament.GetPackage(), resourceSet.GetPackageRegistry().GetPackage(tournament.NS_URI))
 		assert.Same(t, test.factory, resourceSet.GetPackageRegistry().GetFactory(tournament.NS_URI))
 
-		xmlProcessor := ecore.NewXMLProcessor(ecore.XMLProcessorResourceSet(resourceSet))
+		xmlProcessor := xml.NewProcessor(xml.ProcessorResourceSet(resourceSet))
 		resource := xmlProcessor.Load(ecore.CreateFileURI(tournamentXML))
 		require.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 		requireImplementation(t, test.factory, resource, resource)
@@ -204,11 +206,11 @@ func roundTrips(t *testing.T) []roundTrip {
 func TestSharedPackageXMLRoundTrip(t *testing.T) {
 	for _, test := range roundTrips(t) {
 		t.Run(test.name, func(t *testing.T) {
-			sourceProcessor := ecore.NewXMLProcessor(ecore.XMLProcessorResourceSet(test.source.GetResourceSet()))
+			sourceProcessor := xml.NewProcessor(xml.ProcessorResourceSet(test.source.GetResourceSet()))
 			saved := sourceProcessor.SaveToString(test.source, nil)
 			require.NotEmpty(t, saved)
 
-			targetProcessor := ecore.NewXMLProcessor(ecore.XMLProcessorResourceSet(newTournamentResourceSet(test.target)))
+			targetProcessor := xml.NewProcessor(xml.ProcessorResourceSet(newTournamentResourceSet(test.target)))
 			loaded := targetProcessor.LoadWithReader(strings.NewReader(saved), nil)
 			require.True(t, loaded.IsLoaded())
 			require.True(t, loaded.GetErrors().Empty(), diagnosticError(loaded.GetErrors()))
@@ -222,7 +224,7 @@ func TestSharedPackageBinaryRoundTrip(t *testing.T) {
 	for _, test := range roundTrips(t) {
 		t.Run(test.name, func(t *testing.T) {
 			var saved bytes.Buffer
-			ecore.NewBinaryEncoder(test.source, &saved, nil).EncodeResource()
+			binary.NewEncoder(test.source, &saved, nil).EncodeResource()
 			require.True(t, test.source.GetErrors().Empty(), diagnosticError(test.source.GetErrors()))
 			require.NotZero(t, saved.Len())
 
@@ -233,7 +235,7 @@ func TestSharedPackageBinaryRoundTrip(t *testing.T) {
 			requireImplementation(t, test.target, test.source, loaded)
 
 			var resaved bytes.Buffer
-			ecore.NewBinaryEncoder(loaded, &resaved, nil).EncodeResource()
+			binary.NewEncoder(loaded, &resaved, nil).EncodeResource()
 			assert.Equal(t, saved.Bytes(), resaved.Bytes())
 		})
 	}

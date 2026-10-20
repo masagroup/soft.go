@@ -7,8 +7,8 @@ type ELockProvider interface {
 	Unlock()
 }
 
-// eLockedStoreProvider is a store object whose store can be set by the goroutine holding its
+// ELockedStoreProvider is a store object whose store can be set by the goroutine holding its
 // lock (ELockProvider).
-type eLockedStoreProvider interface {
-	setEStoreLocked(store EStore)
+type ELockedStoreProvider interface {
+	SetEStoreLocked(store EStore)
 }

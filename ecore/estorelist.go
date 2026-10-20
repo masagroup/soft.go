@@ -137,11 +137,11 @@ func (list *EStoreList) GetEStore() EStore {
 func (list *EStoreList) SetEStore(newStore EStore) {
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
-	list.setEStoreLocked(newStore)
+	list.SetEStoreLocked(newStore)
 }
 
-// setEStoreLocked sets the store of the list: mutex must be held.
-func (list *EStoreList) setEStoreLocked(newStore EStore) {
+// SetEStoreLocked sets the store of the list: mutex must be held.
+func (list *EStoreList) SetEStoreLocked(newStore EStore) {
 	current := list.state.Load()
 	if oldStore := current.store; oldStore != newStore {
 		state := current.clone()

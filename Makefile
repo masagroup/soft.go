@@ -13,6 +13,9 @@ TOURNAMENT = github.com/masagroup/soft.go/test/tournament
 TOURNAMENT_TYPED = $(TOURNAMENT)/tournament\#$(TOURNAMENT)/typed/typed\#$(TOURNAMENT)/tournament
 TOURNAMENT_REFLECTIVE = $(TOURNAMENT)/tournament\#$(TOURNAMENT)/reflective/reflective\#$(TOURNAMENT)/tournament
 
+# the modules of the go.work: the core and the codecs, each with its own dependencies
+MODULES = . codec/xml codec/xmi codec/json codec/binary codec/sqlite codec/defaults test/integration
+
 GENERATE = docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/$(2) -o /pwd/$(1) -P /pwd/generator.properties $(3)
 
 # os detection
@@ -66,7 +69,7 @@ generate:
 .PHONY: fmt
 fmt:
 	@echo "[fmt]"
-	@$(GO) fmt ./...
+	@$(foreach m,$(MODULES),$(GO) -C $(m) fmt ./... &&) echo done
 
 .PHONY: lint
 lint:
@@ -76,12 +79,12 @@ lint:
 .PHONY: build
 build:
 	@echo "[build]"
-	@$(GO) build ./...
+	@$(foreach m,$(MODULES),$(GO) -C $(m) build ./... &&) echo done
 
 .PHONY: test
 test:
 	@echo "[test]"
-	@$(GO) test -covermode=atomic ./...
+	@$(foreach m,$(MODULES),$(GO) -C $(m) test -covermode=atomic ./... &&) echo done
 
 .PHONY: coverage.console
 coverage.console:

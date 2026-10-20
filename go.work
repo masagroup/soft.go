@@ -1,0 +1,12 @@
+go 1.27.0
+
+use (
+	.
+	./codec/binary
+	./codec/defaults
+	./codec/json
+	./codec/sqlite
+	./codec/xmi
+	./codec/xml
+	./test/integration
+)

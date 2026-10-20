@@ -153,10 +153,13 @@ func NewUUIDManager() *UUIDManager {
 type ULIDManager = UniqueIDManager[ulid.ULID]
 
 func NewULIDManager() *ULIDManager {
+	return NewULIDManagerWithGenerator(ulid.Make)
+}
+
+// NewULIDManagerWithGenerator returns a ULID manager creating the ids of the objects with newID.
+func NewULIDManagerWithGenerator(newID func() ulid.ULID) *ULIDManager {
 	return NewUniqueIDManager(
-		func() ulid.ULID {
-			return ulid.Make()
-		},
+		newID,
 		func(u ulid.ULID) bool {
 			return true
 		},

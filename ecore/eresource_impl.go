@@ -472,7 +472,7 @@ func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]any) {
 		if codec := codecs.GetCodec(r.uri); codec == nil {
 			errors := r.GetErrors()
 			errors.Clear()
-			errors.Add(NewEDiagnosticImpl("Unable to find codec for '"+r.uri.String()+"'", r.uri.String(), 0, 0))
+			errors.Add(NewEDiagnosticImpl(codecNotFoundMessage(r.uri), r.uri.String(), 0, 0))
 		} else if decoder := codec.NewDecoder(r.AsEResource(), rd, options); decoder == nil {
 			errors := r.GetErrors()
 			errors.Clear()
@@ -588,7 +588,7 @@ func (r *EResourceImpl) SaveWithWriter(w io.Writer, options map[string]any) {
 	if codec := codecs.GetCodec(r.uri); codec == nil {
 		errors := r.GetErrors()
 		errors.Clear()
-		errors.Add(NewEDiagnosticImpl("Unable to find codec for '"+r.uri.String()+"'", r.uri.String(), 0, 0))
+		errors.Add(NewEDiagnosticImpl(codecNotFoundMessage(r.uri), r.uri.String(), 0, 0))
 	} else if encoder := codec.NewEncoder(r.AsEResource(), w, options); encoder == nil {
 		errors := r.GetErrors()
 		errors.Clear()

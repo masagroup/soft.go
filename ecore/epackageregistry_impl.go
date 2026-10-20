@@ -46,7 +46,7 @@ func (r *EPackageRegistryImpl) PutSupplier(nsURI string, supplier func() EPackag
 	r.packages[nsURI] = supplier
 }
 
-func (r *EPackageRegistryImpl) Remove(nsURI string) {
+func (r *EPackageRegistryImpl) RemovePackage(nsURI string) {
 	delete(r.packages, nsURI)
 }
 

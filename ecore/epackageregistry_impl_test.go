@@ -50,12 +50,12 @@ func TestMockEPackageRegistryImpl_RegisterPutSupplier(t *testing.T) {
 	assert.Equal(t, p, rp.GetPackage("nsURI"))
 }
 
-func TestMockEPackageRegistryImpl_Remove(t *testing.T) {
+func TestMockEPackageRegistryImpl_RemovePackage(t *testing.T) {
 	rp := NewEPackageRegistryImpl()
 	p := NewMockEPackage(t)
 	rp.PutPackage("nsURI", p)
 	assert.Equal(t, p, rp.GetPackage("nsURI"))
-	rp.Remove("nsURI")
+	rp.RemovePackage("nsURI")
 	assert.Nil(t, rp.GetPackage("nsURI"))
 }
 

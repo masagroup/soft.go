@@ -30,7 +30,7 @@ import "sync"
 type EPackageRegistry interface {
 	PutPackage(nsURI string, pack EPackage)
 	PutSupplier(nsURI string, supplier func() EPackage)
-	Remove(nsURI string)
+	RemovePackage(nsURI string)
 
 	RegisterPackage(pack EPackage)
 	UnregisterPackage(pack EPackage)

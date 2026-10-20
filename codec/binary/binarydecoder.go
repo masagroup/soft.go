@@ -20,16 +20,18 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
+// the class and feature data are indexed by the ids of the encoder, which may not be the ones of
+// the decoder model: a feature is found by its name
 type binaryDecoderPackageData struct {
 	ePackage   ecore.EPackage
 	eFactory   ecore.EFactory
-	eClassData []*binaryDecoderClassData
+	eClassData map[int]*binaryDecoderClassData
 }
 
 type binaryDecoderClassData struct {
 	eClass      ecore.EClass
 	eFactory    ecore.EFactory
-	featureData []*binaryDecoderFeatureData
+	featureData map[int]*binaryDecoderFeatureData
 }
 
 type binaryDecoderFeatureData struct {
@@ -41,15 +43,14 @@ type binaryDecoderFeatureData struct {
 }
 
 type Decoder struct {
-	resource         ecore.EResource
-	r                io.Reader
-	decoder          *msgpack.Decoder
-	baseURI          *ecore.URI
-	objects          []ecore.EObject
-	uris             []*ecore.URI
-	packageData      []*binaryDecoderPackageData
-	enumLiterals     []string
-	isResolveProxies bool
+	resource     ecore.EResource
+	r            io.Reader
+	decoder      *msgpack.Decoder
+	baseURI      *ecore.URI
+	objects      []ecore.EObject
+	uris         []*ecore.URI
+	packageData  []*binaryDecoderPackageData
+	enumLiterals []string
 }
 
 func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *Decoder {
@@ -195,18 +196,19 @@ func (d *Decoder) decodeObject() (ecore.EObject, error) {
 	if err != nil {
 		return nil, err
 	}
-	switch id {
-	case -1:
+	switch {
+	case id == -1:
 		return nil, nil
+	case id < -1 || id > len(d.objects):
+		// the objects are numbered in the order they are encoded
+		return nil, fmt.Errorf("invalid object id %d", id)
 	default:
-		if len(d.objects) <= int(id) {
-			var eResult ecore.EObject
+		if len(d.objects) == id {
 			eClassData, err := d.decodeClass()
 			if err != nil {
 				return nil, err
 			}
 			eObject := eClassData.eFactory.Create(eClassData.eClass).(ecore.EObjectInternal)
-			eResult = eObject
 			decodedInt, err := d.decodeInt()
 			if err != nil {
 				return nil, err
@@ -220,12 +222,7 @@ func (d *Decoder) decodeObject() (ecore.EObject, error) {
 					return nil, err
 				}
 				eObject.ESetProxyURI(eProxyURI)
-				if d.isResolveProxies {
-					eResult = ecore.ResolveInResource(eObject, d.resource)
-					d.objects = append(d.objects, eResult)
-				} else {
-					d.objects = append(d.objects, eObject)
-				}
+				d.objects = append(d.objects, eObject)
 				decodedInt, err := d.decodeInt()
 				if err != nil {
 					return nil, err
@@ -255,9 +252,12 @@ func (d *Decoder) decodeObject() (ecore.EObject, error) {
 			}
 
 			for featureID != -1 {
+				if featureID < 0 {
+					return nil, fmt.Errorf("invalid feature id %d", featureID)
+				}
 				eFeatureData := eClassData.featureData[featureID]
 				if eFeatureData == nil {
-					eFeatureData, err = d.newFeatureData(eClassData, featureID)
+					eFeatureData, err = d.newFeatureData(eClassData)
 					if err != nil {
 						return nil, err
 					}
@@ -273,7 +273,7 @@ func (d *Decoder) decodeObject() (ecore.EObject, error) {
 				}
 				featureID = decodedInt - 1
 			}
-			return eResult, nil
+			return eObject, nil
 
 		} else {
 			return d.objects[id], nil
@@ -395,7 +395,10 @@ func (d *Decoder) decodeFeatureValue(eObject ecore.EObjectInternal, featureData 
 		if err != nil {
 			return err
 		}
-		if len(d.enumLiterals) <= id {
+		if id < 0 || id > len(d.enumLiterals) {
+			return fmt.Errorf("invalid enum literal id %d", id)
+		}
+		if len(d.enumLiterals) == id {
 			decoded, err := d.decodeString()
 			if err != nil {
 				return err
@@ -502,7 +505,10 @@ func (d *Decoder) decodePackage() (*binaryDecoderPackageData, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(d.packageData) <= id {
+	if id < 0 || id > len(d.packageData) {
+		return nil, fmt.Errorf("invalid package id %d", id)
+	}
+	if len(d.packageData) == id {
 		// decode package parameters
 		nsURI, err := d.decodeString()
 		if err != nil {
@@ -542,12 +548,14 @@ func (d *Decoder) decodeURI() (*ecore.URI, error) {
 	if err != nil {
 		return nil, err
 	}
-	switch id {
-	case -1:
+	switch {
+	case id == -1:
 		return nil, nil
+	case id < -1 || id > len(d.uris):
+		return nil, fmt.Errorf("invalid uri id %d", id)
 	default:
 		var uri *ecore.URI
-		if len(d.uris) <= int(id) {
+		if len(d.uris) == id {
 			// build uri
 			uriStr, err := d.decodeString()
 			if err != nil {
@@ -588,7 +596,7 @@ func (p *binaryDecoderPackageData) getFactory() ecore.EFactory {
 func (d *Decoder) newPackageData(ePackage ecore.EPackage) *binaryDecoderPackageData {
 	return &binaryDecoderPackageData{
 		ePackage:   ePackage,
-		eClassData: make([]*binaryDecoderClassData, ePackage.GetEClassifiers().Size()),
+		eClassData: map[int]*binaryDecoderClassData{},
 	}
 }
 
@@ -605,11 +613,11 @@ func (d *Decoder) newClassData(ePackageData *binaryDecoderPackageData) (*binaryD
 	return &binaryDecoderClassData{
 		eClass:      eClass,
 		eFactory:    ePackageData.getFactory(),
-		featureData: make([]*binaryDecoderFeatureData, eClass.GetFeatureCount()),
+		featureData: map[int]*binaryDecoderFeatureData{},
 	}, nil
 }
 
-func (d *Decoder) newFeatureData(eClassData *binaryDecoderClassData, featureID int) (*binaryDecoderFeatureData, error) {
+func (d *Decoder) newFeatureData(eClassData *binaryDecoderClassData) (*binaryDecoderFeatureData, error) {
 	eFeatureName, err := d.decodeString()
 	if err != nil {
 		return nil, err
@@ -620,7 +628,7 @@ func (d *Decoder) newFeatureData(eClassData *binaryDecoderClassData, featureID i
 	}
 	eFeatureData := &binaryDecoderFeatureData{
 		eFeature:    eFeature,
-		featureID:   featureID,
+		featureID:   eClassData.eClass.GetFeatureID(eFeature),
 		featureKind: getBinaryCodecFeatureKind(eFeature),
 	}
 	if eAttribute, _ := eFeature.(ecore.EAttribute); eAttribute != nil {

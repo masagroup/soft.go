@@ -28,24 +28,42 @@ import "sync"
 // PutFactory(nsURI, factory), GetFactory returning it before the factory
 // instance of the package.
 type EPackageRegistry interface {
+	// PutPackage registers pack as the package of nsURI, replacing the package or the supplier
+	// registered for nsURI.
 	PutPackage(nsURI string, pack EPackage)
+	// PutSupplier registers supplier as the package of nsURI: GetPackage calls it, each time, to
+	// return the package of nsURI. It replaces the package or the supplier registered for nsURI.
 	PutSupplier(nsURI string, supplier func() EPackage)
+	// RemovePackage removes the package, or the supplier, registered for nsURI. The factory
+	// registered for nsURI (PutFactory) is kept.
 	RemovePackage(nsURI string)
 
+	// RegisterPackage registers pack as the package of its nsURI (PutPackage).
 	RegisterPackage(pack EPackage)
+	// UnregisterPackage removes the package registered for the nsURI of pack (RemovePackage),
+	// whether it is pack or not.
 	UnregisterPackage(pack EPackage)
 
 	// PutFactory registers factory as the factory of nsURI: GetFactory returns it instead of the
 	// factory instance of the package of nsURI. It chooses the implementation of a shared package
 	// (see EObjectFactory) the objects of a resource set are created with.
 	PutFactory(nsURI string, factory EFactory)
+	// RemoveFactory removes the factory registered for nsURI (PutFactory): GetFactory returns the
+	// factory instance of the package of nsURI again.
 	RemoveFactory(nsURI string)
 
 	// RegisterFactory registers factory as the factory of the nsURI of its package (PutFactory).
+	// It panics when factory has no package.
 	RegisterFactory(factory EFactory)
+	// UnregisterFactory removes the factory registered for the nsURI of the package of factory
+	// (RemoveFactory), whether it is factory or not. It panics when factory has no package.
 	UnregisterFactory(factory EFactory)
 
+	// GetPackage returns the package registered for nsURI (PutPackage, or the result of the
+	// supplier of PutSupplier), else the package of the delegate registry, else nil.
 	GetPackage(nsURI string) EPackage
+	// GetFactory returns the factory registered for nsURI (PutFactory), else the factory instance
+	// of the package registered for nsURI, else the factory of the delegate registry, else nil.
 	GetFactory(nsURI string) EFactory
 }
 

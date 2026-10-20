@@ -1476,7 +1476,15 @@ func (s *Store) IsSet(object ecore.EObject, feature ecore.EStructuralFeature) bo
 	// optimization : if we have a non many feature, check if we have a pending write operation
 	if !feature.IsMany() {
 		if op := s.pendingOperation(object, feature, -1); op != nil {
-			return op.value != nil
+			// as doIsSet reports it once written: a reference is set when not nil, an attribute
+			// when not nil and not its default
+			if op.value == nil {
+				return false
+			}
+			if _, isReference := feature.(ecore.EReference); isReference {
+				return true
+			}
+			return !reflect.DeepEqual(op.value, feature.GetDefaultValue())
 		}
 	}
 	return resultAs[bool](s.execute(

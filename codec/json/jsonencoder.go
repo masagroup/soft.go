@@ -118,10 +118,13 @@ func (e *Encoder) encodeFeatureValue(eObject ecore.EObject, eFeature ecore.EStru
 		}
 		e.w.endArray()
 	case jfkObject:
-		e.w.key(eFeature.GetName())
-		e.w.beginObject()
-		e.encodeObject(value.(ecore.EObject))
-		e.w.endObject()
+		// an unsettable feature can be set to nil : it is not written
+		if eValue, _ := value.(ecore.EObject); eValue != nil {
+			e.w.key(eFeature.GetName())
+			e.w.beginObject()
+			e.encodeObject(eValue)
+			e.w.endObject()
+		}
 	case jfkObjectList:
 		l := value.(ecore.EList)
 		e.w.key(eFeature.GetName())
@@ -133,10 +136,12 @@ func (e *Encoder) encodeFeatureValue(eObject ecore.EObject, eFeature ecore.EStru
 		}
 		e.w.endArray()
 	case jfkObjectReference:
-		e.w.key(eFeature.GetName())
-		e.w.beginObject()
-		e.encodeObjectReference(value.(ecore.EObject))
-		e.w.endObject()
+		if eValue, _ := value.(ecore.EObject); eValue != nil {
+			e.w.key(eFeature.GetName())
+			e.w.beginObject()
+			e.encodeObjectReference(eValue)
+			e.w.endObject()
+		}
 	case jfkObjectReferenceList:
 		l := value.(ecore.EList)
 		e.w.key(eFeature.GetName())
@@ -187,7 +192,9 @@ func (e *Encoder) getReference(eObject ecore.EObject) string {
 				objectURI = e.getResourceReference(eOtherResource, eObject)
 			}
 		}
-		objectURI = e.resource.GetURI().Relativize(objectURI)
+		if resourceURI := e.resource.GetURI(); resourceURI != nil {
+			objectURI = resourceURI.Relativize(objectURI)
+		}
 		return objectURI.String()
 	}
 	return ""

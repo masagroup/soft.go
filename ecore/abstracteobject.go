@@ -284,9 +284,10 @@ func eContainmentFeature(o EObject, container EObject, containerFeatureID int) E
 			}
 		} else {
 			feature := o.EClass().GetEStructuralFeature(containerFeatureID)
-			reference, isReference := feature.(EReference)
-			if isReference {
-				return reference
+			if reference, isReference := feature.(EReference); isReference {
+				if opposite := reference.GetEOpposite(); opposite != nil {
+					return opposite
+				}
 			}
 		}
 		panic("The containment feature could not be located")

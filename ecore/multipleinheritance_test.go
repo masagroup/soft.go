@@ -141,3 +141,20 @@ func TestMultipleInheritance_ContainerWithOpposite(t *testing.T) {
 	assert.False(t, other.EGet(m.parts).(EList).Contains(part))
 	assert.True(t, o.EGet(m.parts).(EList).Contains(part))
 }
+
+func TestContainmentFeature_ContainerWithOpposite(t *testing.T) {
+	m := newMultipleInheritanceModel(t)
+	for _, eClass := range []EClass{m.b, m.c} {
+		o := m.eFactory.Create(eClass)
+		part := m.eFactory.Create(m.item)
+		o.EGet(m.parts).(EList).Add(part)
+		// the containment feature is on the side of the container, the containing feature too
+		assert.Equal(t, m.parts, part.EContainmentFeature())
+		assert.Equal(t, m.parts, part.EContainingFeature())
+
+		other := m.eFactory.Create(eClass)
+		part.ESet(m.whole, other)
+		assert.Equal(t, m.parts, part.EContainmentFeature())
+		assert.Equal(t, m.parts, part.EContainingFeature())
+	}
+}

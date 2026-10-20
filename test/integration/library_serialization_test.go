@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	_ "github.com/masagroup/soft.go/codec/defaults"
-	"github.com/masagroup/soft.go/codec/binarycodec"
-	"github.com/masagroup/soft.go/codec/xmlcodec"
+	"github.com/masagroup/soft.go/codec/binary"
+	"github.com/masagroup/soft.go/codec/xml"
 	"github.com/masagroup/soft.go/ecore"
 	"github.com/masagroup/soft.go/test/library"
 	"github.com/stretchr/testify/assert"
@@ -26,7 +26,7 @@ func diagnosticError(errors ecore.EList) string {
 }
 
 func TestSerializationLoadSimpleDefaultXML(t *testing.T) {
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	resource := xmlProcessor.Load(ecore.CreateFileURI("testdata/library/library.simple.default.xml"))
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
@@ -34,7 +34,7 @@ func TestSerializationLoadSimpleDefaultXML(t *testing.T) {
 }
 
 func TestSerializationLoadSimplePrefixXML(t *testing.T) {
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	resource := xmlProcessor.Load(ecore.CreateFileURI("testdata/library/library.simple.prefix.xml"))
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
@@ -42,7 +42,7 @@ func TestSerializationLoadSimplePrefixXML(t *testing.T) {
 }
 
 func TestSerializationLoadProprietaryXML(t *testing.T) {
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	resource := xmlProcessor.Load(ecore.CreateFileURI("testdata/library/library.proprietary.xml"))
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
@@ -50,7 +50,7 @@ func TestSerializationLoadProprietaryXML(t *testing.T) {
 }
 
 func TestSerializationLoadComplexXML(t *testing.T) {
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	resource := xmlProcessor.Load(ecore.CreateFileURI("testdata/library/library.complex.xml"))
 	assert.True(t, resource.IsLoaded())
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
@@ -73,7 +73,7 @@ func TestSerializationSaveSimpleXml(t *testing.T) {
 	lib.GetEmployees().Add(employee)
 
 	// save library model with a resource
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	xmlProcessor.SaveObject(ecore.CreateFileURI("testdata/library/dynamic.simple.output.xml"), root)
 
 	bytesInput, errInput := os.ReadFile("testdata/library/dynamic.simple.result.xml")
@@ -85,7 +85,7 @@ func TestSerializationSaveSimpleXml(t *testing.T) {
 }
 
 func TestSerializationLoadSaveSimpleXML(t *testing.T) {
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	resource := xmlProcessor.Load(ecore.CreateFileURI("testdata/library/library.simple.default.xml"))
 
 	var strbuff strings.Builder
@@ -97,7 +97,7 @@ func TestSerializationLoadSaveSimpleXML(t *testing.T) {
 }
 
 func TestSerializationLoadSavePrefixXML(t *testing.T) {
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	resource := xmlProcessor.Load(ecore.CreateFileURI("testdata/library/library.simple.prefix.xml"))
 
 	var strbuff strings.Builder
@@ -109,7 +109,7 @@ func TestSerializationLoadSavePrefixXML(t *testing.T) {
 }
 
 func TestSerializationLoadSaveComplexXML(t *testing.T) {
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	resource := xmlProcessor.Load(ecore.CreateFileURI("testdata/library/library.complex.xml"))
 
 	var strbuff strings.Builder
@@ -123,7 +123,7 @@ func TestSerializationLoadSaveComplexXML(t *testing.T) {
 func TestSerializationSaveComplexSqlite(t *testing.T) {
 	srcURI := ecore.CreateFileURI("testdata/library/library.complex.xml")
 	destURI := ecore.CreateFileURI("testdata/library/library.output.sqlite")
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	resource := xmlProcessor.Load(srcURI)
 	resource.SetURI(destURI)
 	resource.Save()
@@ -133,14 +133,14 @@ func TestSerializationSaveComplexSqlite(t *testing.T) {
 
 func TestSerializationLoadComplexSqlite(t *testing.T) {
 	srcURI := ecore.CreateFileURI("testdata/library/library.complex.sqlite")
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	resource := xmlProcessor.Load(srcURI)
 	assert.True(t, resource.GetErrors().Empty(), diagnosticError(resource.GetErrors()))
 	assert.True(t, resource.GetWarnings().Empty(), diagnosticError(resource.GetWarnings()))
 }
 
 func TestDeepOperations(t *testing.T) {
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	resource := xmlProcessor.Load(ecore.CreateFileURI("testdata/library/library.complex.xml"))
 
 	eObject := resource.GetContents().Get(0).(ecore.EObject)
@@ -165,7 +165,7 @@ func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 	for b.Loop() {
 		_, err := r.Seek(0, io.SeekStart)
 		require.Nil(b, err)
-		xmlDecoder := xmlcodec.NewXMLDecoder(eResource, r, nil)
+		xmlDecoder := xml.NewDecoder(eResource, r, nil)
 		xmlDecoder.DecodeResource()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}
@@ -173,14 +173,14 @@ func BenchmarkXMLDecoderLibraryComplexBig(b *testing.B) {
 
 func BenchmarkXMLEncoderLibraryComplexBig(b *testing.B) {
 	// load resource
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	eResource := xmlProcessor.LoadWithOptions(ecore.CreateFileURI("testdata/library/library.complex.xml"), nil)
 	require.NotNil(b, eResource)
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
 	for b.Loop() {
 		var strbuff strings.Builder
-		binaryEncoder := xmlcodec.NewXMLEncoder(eResource, &strbuff, nil)
+		binaryEncoder := xml.NewEncoder(eResource, &strbuff, nil)
 		binaryEncoder.EncodeResource()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}
@@ -203,7 +203,7 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 	for b.Loop() {
 		_, err := r.Seek(0, io.SeekStart)
 		require.Nil(b, err)
-		xmlDecoder := binarycodec.NewBinaryDecoder(eResource, r, nil)
+		xmlDecoder := binary.NewDecoder(eResource, r, nil)
 		xmlDecoder.DecodeResource()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}
@@ -211,14 +211,14 @@ func BenchmarkBinaryDecoderLibraryComplexBig(b *testing.B) {
 
 func BenchmarkBinaryEncoderLibraryComplexBig(b *testing.B) {
 	// load resource
-	xmlProcessor := xmlcodec.NewXMLProcessor(xmlcodec.XMLProcessorPackages([]ecore.EPackage{library.GetPackage()}))
+	xmlProcessor := xml.NewProcessor(xml.ProcessorPackages([]ecore.EPackage{library.GetPackage()}))
 	eResource := xmlProcessor.LoadWithOptions(ecore.CreateFileURI("testdata/library/library.complex.xml"), nil)
 	require.NotNil(b, eResource)
 	require.True(b, eResource.GetWarnings().Empty(), diagnosticError(eResource.GetWarnings()))
 
 	for b.Loop() {
 		var strbuff strings.Builder
-		binaryEncoder := binarycodec.NewBinaryEncoder(eResource, &strbuff, nil)
+		binaryEncoder := binary.NewEncoder(eResource, &strbuff, nil)
 		binaryEncoder.EncodeResource()
 		require.True(b, eResource.GetErrors().Empty(), diagnosticError(eResource.GetErrors()))
 	}

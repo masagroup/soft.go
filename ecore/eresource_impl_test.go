@@ -51,7 +51,7 @@ func TestResourceLoadNoCodec(t *testing.T) {
 	r.LoadWithReader(strings.NewReader(""), nil)
 	assert.False(t, r.IsLoaded())
 	require.Equal(t, 1, r.GetErrors().Size())
-	assert.Equal(t, "Unable to find codec for 'model.xml': import \"github.com/masagroup/soft.go/codec/xmlcodec\"", diagnosticError(r.GetErrors()))
+	assert.Equal(t, "Unable to find codec for 'model.xml': import \"github.com/masagroup/soft.go/codec/xml\"", diagnosticError(r.GetErrors()))
 
 	r = NewEResourceImpl()
 	r.SetURI(NewURI("model.unknown"))

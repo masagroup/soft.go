@@ -10,7 +10,7 @@
 package ecore
 
 // The packages and models of the core tests are built in code: the codecs reading .ecore, .xmi
-// and .xml files are in other modules (codec/xmlcodec).
+// and .xml files are in other modules (codec/xml, codec/xmi).
 
 func newTestPackage(name string, nsURI string, nsPrefix string) EPackage {
 	ePackage := GetFactory().CreateEPackage()
@@ -64,7 +64,7 @@ func addTestValue(eObject EObject, featureName string, value EObject) {
 	eObject.EGet(eObject.EClass().GetEStructuralFeatureFromName(featureName)).(EList).Add(value)
 }
 
-// newDeletePackage is the package of testdata/delete.ecore in soft.go/codec/xmlcodec.
+// newDeletePackage is the package of testdata/delete.ecore in soft.go/codec/xml.
 func newDeletePackage() EPackage {
 	ePackage := newTestPackage("delete", "http:///org/eclipse/emf/examples/delete/delete.ecore/1.0.0", "delete")
 	eRoot := newTestClass(ePackage, "Root")
@@ -87,7 +87,7 @@ func newDeletePackage() EPackage {
 	return ePackage
 }
 
-// newDeleteResource is the resource of testdata/delete.xmi in soft.go/codec/xmlcodec.
+// newDeleteResource is the resource of testdata/delete.xmi in soft.go/codec/xml.
 func newDeleteResource(ePackage EPackage) EResource {
 	root := newTestObject(ePackage, "Root", "")
 	as := []EObject{}
@@ -122,7 +122,7 @@ func newDeleteResource(ePackage EPackage) EResource {
 	return eResource
 }
 
-// newEAllContentsPackage is the package of testdata/eallcontents.ecore in soft.go/codec/xmlcodec.
+// newEAllContentsPackage is the package of testdata/eallcontents.ecore in soft.go/codec/xml.
 func newEAllContentsPackage() EPackage {
 	ePackage := newTestPackage("eallcontents", "http:///org/eclipse/emf/examples/eallcontents/eallcontents.ecore/1.0.0", "eac")
 	eRoot := newTestClass(ePackage, "Root")
@@ -145,7 +145,7 @@ func newEAllContentsPackage() EPackage {
 	return ePackage
 }
 
-// newEAllContentsResource is the resource of testdata/eallcontents.xml in soft.go/codec/xmlcodec.
+// newEAllContentsResource is the resource of testdata/eallcontents.xml in soft.go/codec/xml.
 func newEAllContentsResource(ePackage EPackage) EResource {
 	automat := func(name string, units ...string) EObject {
 		a := newTestObject(ePackage, "Automat", name)
@@ -191,7 +191,7 @@ func newEAllContentsResource(ePackage EPackage) EResource {
 }
 
 // newLibrarySimplePackage is the package of testdata/library.simple.ecore in
-// soft.go/codec/xmlcodec.
+// soft.go/codec/xml.
 func newLibrarySimplePackage() EPackage {
 	ePackage := newTestPackage("library", "http:///org/eclipse/emf/examples/library/library.simple.ecore/1.0.0", "lib")
 	eLibrary := newTestClass(ePackage, "Library")

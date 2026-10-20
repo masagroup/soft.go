@@ -17,7 +17,7 @@ import "sync"
 // metamodel: same nsURI, same classifier and feature IDs, but distinct EPackage
 // instances, each with its own EFactory. The implementation a resource set uses
 // is the package registered in that resource set's own registry, either with
-// CreateEResourceSet(packages), XMLProcessorPackages(packages) or
+// CreateEResourceSet(packages), xml.ProcessorPackages(packages) or
 // resourceSet.GetPackageRegistry().RegisterPackage(pack). Objects loaded in that
 // resource set then all belong to that implementation; resources mixing
 // implementations are not supported.

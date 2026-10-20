@@ -14,7 +14,7 @@ TOURNAMENT_TYPED = $(TOURNAMENT)/tournament\#$(TOURNAMENT)/typed/typed\#$(TOURNA
 TOURNAMENT_REFLECTIVE = $(TOURNAMENT)/tournament\#$(TOURNAMENT)/reflective/reflective\#$(TOURNAMENT)/tournament
 
 # the modules of the go.work: the core and the codecs, each with its own dependencies
-MODULES = . codec/xmlcodec codec/jsoncodec codec/binarycodec codec/sqlcodec codec/defaults test/integration
+MODULES = . codec codec/json codec/binary codec/sql codec/defaults test/integration
 
 GENERATE = docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/$(2) -o /pwd/$(1) -P /pwd/generator.properties $(3)
 

@@ -28,9 +28,9 @@ var resourceCodecRegistryOnce sync.Once
 var resourceCodecRegistryInstance ECodecRegistry
 
 // GetCodecRegistry returns the process-wide default codec registry, built once on first use.
-// It only maps the memory protocol: the codec packages (codec/xmlcodec, codec/binarycodec,
-// codec/sqlcodec, codec/jsoncodec) register their extensions when they are imported, and
-// codec/defaults imports the default ones.
+// It only maps the memory protocol: the codec packages (codec/xml, codec/xmi, codec/binary,
+// codec/sql, codec/json) register their extensions when they are imported, and codec/defaults
+// imports the default ones.
 func GetCodecRegistry() ECodecRegistry {
 	resourceCodecRegistryOnce.Do(func() {
 		resourceCodecRegistryInstance = NewECodecRegistryImpl()
@@ -54,12 +54,12 @@ func RegisterProtocolCodec(protocol string, codec ECodec) {
 
 // codecPackages are the packages registering the codecs of the well-known extensions.
 var codecPackages = map[string]string{
-	"ecore":  "github.com/masagroup/soft.go/codec/xmlcodec",
-	"xmi":    "github.com/masagroup/soft.go/codec/xmlcodec",
-	"xml":    "github.com/masagroup/soft.go/codec/xmlcodec",
-	"bin":    "github.com/masagroup/soft.go/codec/binarycodec",
-	"sqlite": "github.com/masagroup/soft.go/codec/sqlcodec",
-	"json":   "github.com/masagroup/soft.go/codec/jsoncodec",
+	"ecore":  "github.com/masagroup/soft.go/codec/xmi",
+	"xmi":    "github.com/masagroup/soft.go/codec/xmi",
+	"xml":    "github.com/masagroup/soft.go/codec/xml",
+	"bin":    "github.com/masagroup/soft.go/codec/binary",
+	"sqlite": "github.com/masagroup/soft.go/codec/sql",
+	"json":   "github.com/masagroup/soft.go/codec/json",
 }
 
 // codecNotFoundMessage is the error of a resource without codec: for a well-known extension, it

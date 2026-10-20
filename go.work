@@ -2,10 +2,10 @@ go 1.27.0
 
 use (
 	.
-	./codec/binarycodec
+	./codec
+	./codec/binary
 	./codec/defaults
-	./codec/jsoncodec
-	./codec/sqlcodec
-	./codec/xmlcodec
+	./codec/json
+	./codec/sql
 	./test/integration
 )

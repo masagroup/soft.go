@@ -3,9 +3,9 @@ module github.com/masagroup/soft.go/codec/defaults
 go 1.27.0
 
 require (
-	github.com/masagroup/soft.go/codec/binarycodec v0.0.0-00010101000000-000000000000
-	github.com/masagroup/soft.go/codec/sqlcodec v0.0.0-00010101000000-000000000000
-	github.com/masagroup/soft.go/codec/xmlcodec v0.0.0-00010101000000-000000000000
+	github.com/masagroup/soft.go/codec v0.0.0-00010101000000-000000000000
+	github.com/masagroup/soft.go/codec/binary v0.0.0-00010101000000-000000000000
+	github.com/masagroup/soft.go/codec/sql v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -44,8 +44,8 @@ require (
 
 replace (
 	github.com/masagroup/soft.go => ../..
-	github.com/masagroup/soft.go/codec/binarycodec => ../../codec/binarycodec
-	github.com/masagroup/soft.go/codec/jsoncodec => ../../codec/jsoncodec
-	github.com/masagroup/soft.go/codec/sqlcodec => ../../codec/sqlcodec
-	github.com/masagroup/soft.go/codec/xmlcodec => ../../codec/xmlcodec
+	github.com/masagroup/soft.go/codec => ../../codec
+	github.com/masagroup/soft.go/codec/binary => ../../codec/binary
+	github.com/masagroup/soft.go/codec/json => ../../codec/json
+	github.com/masagroup/soft.go/codec/sql => ../../codec/sql
 )

@@ -16,9 +16,11 @@ TOURNAMENT_REFLECTIVE = $(TOURNAMENT)/tournament\#$(TOURNAMENT)/reflective/refle
 # the modules of the go.work: the core and the codecs, each with its own dependencies
 MODULES = . codec/xml codec/xmi codec/json codec/binary codec/sqlite codec/defaults test/integration
 
+# the golang image soft-gen runs in when go is not installed: its Go must support the go directive of soft.gen
+SOFT_GEN_GOLANG_IMAGE ?= golang:1.27.3-alpine
 # the generator: soft-gen of soft.gen v2, run from its module at a fixed version
 SOFT_GEN_VERSION = v2.0.0-alpha.2
-SOFT_GEN = $(GO) run github.com/masagroup/soft.gen/v2/cmd/soft-gen@$(SOFT_GEN_VERSION)
+SOFT_GEN = $(SOFT_GEN_GO) run github.com/masagroup/soft.gen/v2/cmd/soft-gen@$(SOFT_GEN_VERSION)
 GENERATE = $(SOFT_GEN) go -m ../models/$(2) -o ./$(1) -P generator.properties $(3)
 
 # os detection
@@ -32,15 +34,21 @@ WHICH := which
 DEVNULL := /dev/null
 endif
 
-# detect go
+# detect go: go, else go.exe (the Windows Go, from wsl)
 ifneq ($(shell $(WHICH) go 2>$(DEVNULL)),)
 	GO := go
-else 
-	ifneq ($(shell $(WHICH) go.exe 2>$(DEVNULL)),)
-		GO := go.exe
-	else
-		$(error "go is not in your system PATH")
-	endif
+else ifneq ($(shell $(WHICH) go.exe 2>$(DEVNULL)),)
+	GO := go.exe
+endif
+
+# the go that runs soft-gen: the go found, else go in a golang container, the
+# folder of the models mounted where ../models points (the go modules are kept
+# in the soft-gen-gomod volume); without go, only generate works
+ifdef GO
+	SOFT_GEN_GO := $(GO)
+else
+	SOFT_GEN_GO := docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -v soft-gen-gomod:/go/pkg/mod -w /pwd $(SOFT_GEN_GOLANG_IMAGE) go
+	GO = $(error "go is not in your system PATH")
 endif
 
 .PHONY: all

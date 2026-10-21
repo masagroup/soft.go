@@ -77,7 +77,9 @@ func (o *ReflectiveEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 }
 
 func (o *ReflectiveEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
-	return o.getProperties()[dynamicFeatureID] != nil
+	// as in EMF, an attribute (not unsettable) set to its default value is not set
+	value := o.getProperties()[dynamicFeatureID]
+	return value != nil && isSetValue(o.EClass().GetEStructuralFeature(dynamicFeatureID), value)
 }
 
 // getProperties returns the values of the features, created at the first access.

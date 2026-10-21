@@ -70,7 +70,9 @@ func (o *DynamicEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 }
 
 func (o *DynamicEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
-	return o.properties[dynamicFeatureID] != nil
+	// as in EMF, an attribute (not unsettable) set to its default value is not set
+	value := o.properties[dynamicFeatureID]
+	return value != nil && isSetValue(o.EClass().GetEStructuralFeature(dynamicFeatureID), value)
 }
 
 func (o *DynamicEObjectImpl) EFeatureID(feature EStructuralFeature) int {

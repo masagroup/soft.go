@@ -258,7 +258,8 @@ func (r *EResourceImpl) GetEObject(uriFragment string) EObject {
 			path = path[1:]
 			return r.getObjectByPath(path)
 		} else if uriFragment[size-1] == '?' {
-			if index := strings.LastIndex(uriFragment[:size-2], "?"); index != -1 {
+			// "id?query?": the id ends at the '?' before the last one, as EMF's lastIndexOf('?', size-2)
+			if index := strings.LastIndex(uriFragment[:size-1], "?"); index > 0 {
 				id = uriFragment[:index]
 			}
 		}
@@ -329,8 +330,14 @@ func (r *EResourceImpl) getObjectByID(id string) EObject {
 	}
 	r.idMutex.Lock()
 	defer r.idMutex.Unlock()
-	if eObject := r.idIndex[id]; eObject != nil && GetEObjectID(eObject) == id {
+	eObject := r.idIndex[id]
+	if eObject != nil && GetEObjectID(eObject) == id {
 		return eObject
+	}
+	// while loading, the attached objects are indexed as they come: a miss is an object not
+	// decoded yet (a forward reference), a rescan of the partial contents would find nothing
+	if eObject == nil && r.idIndex != nil && r.isLoading {
+		return nil
 	}
 	// A miss or a stale entry: rescan, keeping the first object of the tree for each id. The
 	// walk does not resolve proxies, so it cannot re-enter this lock.
@@ -365,8 +372,11 @@ func (r *EResourceImpl) getObjectForRootSegment(rootSegment string) EObject {
 	if len(rootSegment) > 0 {
 		if rootSegment[0] == '?' {
 			return r.getObjectByID(rootSegment[1:])
+		} else if p, err := strconv.Atoi(rootSegment); err != nil {
+			// not a root index: no object, not the first root
+			return nil
 		} else {
-			position, _ = strconv.Atoi(rootSegment)
+			position = p
 		}
 	}
 	if position >= 0 && position < r.GetContents().Size() {
@@ -436,6 +446,14 @@ func (r *EResourceImpl) getURIConverter() EURIConverter {
 	return defaultURIConverter
 }
 
+// uriString is the uri of the resource in the diagnostics, empty for a resource without uri
+func (r *EResourceImpl) uriString() string {
+	if r.uri != nil {
+		return r.uri.String()
+	}
+	return ""
+}
+
 func (r *EResourceImpl) GetCodecRegistry() ECodecRegistry {
 	if r.resourceSet != nil {
 		return r.resourceSet.GetCodecRegistry()
@@ -472,11 +490,11 @@ func (r *EResourceImpl) LoadWithReader(rd io.Reader, options map[string]any) {
 		if codec := codecs.GetCodec(r.uri); codec == nil {
 			errors := r.GetErrors()
 			errors.Clear()
-			errors.Add(NewEDiagnosticImpl(codecNotFoundMessage(r.uri), r.uri.String(), 0, 0))
+			errors.Add(NewEDiagnosticImpl(codecNotFoundMessage(r.uri), r.uriString(), 0, 0))
 		} else if decoder := codec.NewDecoder(r.AsEResource(), rd, options); decoder == nil {
 			errors := r.GetErrors()
 			errors.Clear()
-			errors.Add(NewEDiagnosticImpl("Unable to create decoder for '"+r.uri.String()+"'", r.uri.String(), 0, 0))
+			errors.Add(NewEDiagnosticImpl("Unable to create decoder for '"+r.uriString()+"'", r.uriString(), 0, 0))
 		} else {
 			r.isLoading = true
 			ri := r.AsEResourceInternal()
@@ -588,11 +606,11 @@ func (r *EResourceImpl) SaveWithWriter(w io.Writer, options map[string]any) {
 	if codec := codecs.GetCodec(r.uri); codec == nil {
 		errors := r.GetErrors()
 		errors.Clear()
-		errors.Add(NewEDiagnosticImpl(codecNotFoundMessage(r.uri), r.uri.String(), 0, 0))
+		errors.Add(NewEDiagnosticImpl(codecNotFoundMessage(r.uri), r.uriString(), 0, 0))
 	} else if encoder := codec.NewEncoder(r.AsEResource(), w, options); encoder == nil {
 		errors := r.GetErrors()
 		errors.Clear()
-		errors.Add(NewEDiagnosticImpl("Unable to create encoder for '"+r.uri.String()+"'", r.uri.String(), 0, 0))
+		errors.Add(NewEDiagnosticImpl("Unable to create encoder for '"+r.uriString()+"'", r.uriString(), 0, 0))
 	} else {
 		if r.errors != nil {
 			r.errors.Clear()

@@ -84,8 +84,10 @@ func (dE *deepEqual) equals(eObj1 EObject, eObj2 EObject) bool {
 	dE.objects[eObj1] = eObj2
 	dE.objects[eObj2] = eObj1
 
-	for it := eClass.GetEStructuralFeatures().Iterator(); it.HasNext(); {
-		if eFeature := it.Next().(EStructuralFeature); !eFeature.IsDerived() && !dE.equalsFeature(eObj1, eObj2, eFeature) {
+	// all the features, the inherited ones too, but the container: the objects are compared with
+	// their contents, as Copy copies them, not with their containers
+	for it := eClass.GetEAllStructuralFeatures().Iterator(); it.HasNext(); {
+		if eFeature := it.Next().(EStructuralFeature); !eFeature.IsDerived() && !IsContainer(eFeature) && !dE.equalsFeature(eObj1, eObj2, eFeature) {
 			delete(dE.objects, eObj1)
 			delete(dE.objects, eObj2)
 			return false
@@ -166,6 +168,9 @@ func (dE *deepEqual) equalsReference(eObj1 EObject, eObj2 EObject, eReference ER
 	if eReference.IsMany() {
 		return dE.equalsObjectList(value1.(EList), value2.(EList))
 	} else {
-		return dE.equals(value1.(EObject), value2.(EObject))
+		// nil for an unsettable reference set to nil
+		eObj1, _ := value1.(EObject)
+		eObj2, _ := value2.(EObject)
+		return dE.equals(eObj1, eObj2)
 	}
 }

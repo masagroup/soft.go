@@ -187,7 +187,15 @@ func (d *sqlDecoder) decodeSchema(schemaOptions []sqlSchemaOption) error {
 		}
 	}
 
+	// qualified tables : a database written without the property has the tables named by class
+	if properties["qualifiedTables"] == "true" {
+		d.isQualifiedTables = true
+	}
+
 	// create schema
+	if d.isQualifiedTables {
+		schemaOptions = append(schemaOptions, withQualifiedTables(true))
+	}
 	if d.isObjectID {
 		schemaOptions = append(schemaOptions, withObjectIDName(d.objectIDName))
 	}
@@ -329,9 +337,11 @@ func (d *sqlDecoder) decodeObject(id int64) (ecore.EObject, error) {
 		// register its id
 		if d.objectIDManager != nil {
 			if d.isObjectID {
-				// object id is column id
-				if err := d.objectIDManager.SetID(eObject, objectID); err != nil {
-					return nil, err
+				// object id is column id, NULL for an object saved without id
+				if len(objectID) > 0 {
+					if err := d.objectIDManager.SetID(eObject, objectID); err != nil {
+						return nil, err
+					}
 				}
 			} else if d.objectIDName == table.key.columnName {
 				// object id is sql id
@@ -364,6 +374,7 @@ func (d *sqlDecoder) decodeEnumLiteral(id int64) (ecore.EEnumLiteral, error) {
 			&sqlitex.ExecOptions{
 				Args: []any{id},
 				ResultFunc: func(stmt *sqlite.Stmt) error {
+					isEnumLiteral = true
 					enumID = stmt.ColumnInt64(0)
 					packageID = stmt.ColumnInt64(1)
 					enumName = stmt.ColumnText(2)
@@ -372,6 +383,10 @@ func (d *sqlDecoder) decodeEnumLiteral(id int64) (ecore.EEnumLiteral, error) {
 				},
 			}); err != nil {
 			return nil, err
+		}
+
+		if !isEnumLiteral {
+			return nil, fmt.Errorf("enum literal with id '%v' doesn't exists", id)
 		}
 
 		// package
@@ -504,7 +519,7 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 			}
 			instance := enumLiteral.GetInstance()
 			if instance == nil {
-				instance = d.decodeFeatureData(featureData, enumLiteral.GetLiteral())
+				return d.decodeFeatureData(featureData, enumLiteral.GetLiteral())
 			}
 			return instance, nil
 		default:
@@ -566,9 +581,9 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 		case nil:
 			return nil, nil
 		case []byte:
-			return d.decodeFeatureData(featureData, string(v)), nil
+			return d.decodeFeatureData(featureData, string(v))
 		case string:
-			return d.decodeFeatureData(featureData, v), nil
+			return d.decodeFeatureData(featureData, v)
 		default:
 			return nil, fmt.Errorf("%v is not a data value", value)
 		}
@@ -577,11 +592,18 @@ func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any
 	return nil, nil
 }
 
-func (d *sqlDecoder) decodeFeatureData(featureSchema *sqlFeatureSchema, v string) any {
+// decodeFeatureData creates the value of a data feature from v: a factory panics on an invalid
+// literal, which is returned as an error.
+func (d *sqlDecoder) decodeFeatureData(featureSchema *sqlFeatureSchema, v string) (value any, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			value, err = nil, fmt.Errorf("%v", r)
+		}
+	}()
 	eFeature := featureSchema.feature
 	eDataType := eFeature.GetEType().(ecore.EDataType)
 	eFactory := eDataType.GetEPackage().GetEFactoryInstance()
-	return eFactory.CreateFromString(eDataType, v)
+	return eFactory.CreateFromString(eDataType, v), nil
 }
 
 type Decoder struct {
@@ -696,7 +718,10 @@ func NewReaderDecoder(r io.Reader, resource ecore.EResource, options map[string]
 	return newSQLDecoder(
 		func() (*sqlitex.Pool, error) {
 			// db name
-			dbName := filepath.Base(resource.GetURI().Path())
+			dbName := "resource"
+			if uri := resource.GetURI(); uri != nil {
+				dbName = filepath.Base(uri.Path())
+			}
 			inMemoryDatabase := false
 			if options != nil {
 				inMemoryDatabase, _ = options[OPTION_IN_MEMORY_DATABASE].(bool)
@@ -1180,5 +1205,9 @@ func (d *Decoder) decodeFeatureList(objectID int64, feature ecore.EStructuralFea
 }
 
 func (d *Decoder) addError(err error) {
-	d.resource.GetErrors().Add(ecore.NewEDiagnosticImpl(err.Error(), d.resource.GetURI().String(), 0, 0))
+	location := ""
+	if uri := d.resource.GetURI(); uri != nil {
+		location = uri.String()
+	}
+	d.resource.GetErrors().Add(ecore.NewEDiagnosticImpl(err.Error(), location, 0, 0))
 }

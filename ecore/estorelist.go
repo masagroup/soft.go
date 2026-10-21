@@ -277,16 +277,17 @@ func (list *EStoreList) PerformInsertAll(index int, c Collection) bool {
 	defer list.mutex.Unlock()
 	state := list.state.Load().clone()
 	elements := c.ToArray()
+	if len(elements) == 0 {
+		return false
+	}
 	// add to cache
 	if state.data != nil {
-		if len(elements) == 0 {
-			return false
-		}
 		state.data = insertData(state.data, index, elements...)
 	}
-	// add to store
+	// add to store: a copy of the elements, as a store may write them later (the SQL store queues
+	// its writes), after the caller changed its collection
 	if state.store != nil {
-		state.store.AddAll(list.owner, list.feature, index, c)
+		state.store.AddAll(list.owner, list.feature, index, NewImmutableEList(slices.Clone(elements)))
 	}
 	// size
 	state.size += len(elements)
@@ -389,7 +390,7 @@ func (list *EStoreList) PerformRemoveRange(fromIndex int, toIndex int) []any {
 		for i := fromIndex; i < toIndex; i++ {
 			object := state.store.Remove(list.owner, list.feature, fromIndex, true)
 			result = append(result, object)
-			listCallbacks.DidRemove(fromIndex, result)
+			listCallbacks.DidRemove(fromIndex, object)
 		}
 		state.size -= len(result)
 		list.state.Store(state)
@@ -631,7 +632,8 @@ func (list *EStoreList) InverseAdd(object any, notifications ENotificationChain)
 			inverseFeatureID := internal.EClass().GetFeatureID(inverseReference)
 			return internal.EInverseAdd(list.owner, inverseFeatureID, notifications)
 		} else {
-			featureID := list.feature.GetFeatureID()
+			// the ID of the containment in the class of the owner
+			featureID := list.owner.EClass().GetFeatureID(list.feature)
 			return internal.EInverseAdd(list.owner, EOPPOSITE_FEATURE_BASE-featureID, notifications)
 		}
 	}
@@ -646,7 +648,7 @@ func (list *EStoreList) InverseRemove(object any, notifications ENotificationCha
 			inverseFeatureID := internal.EClass().GetFeatureID(inverseReference)
 			return internal.EInverseRemove(list.owner, inverseFeatureID, notifications)
 		} else {
-			featureID := list.feature.GetFeatureID()
+			featureID := list.owner.EClass().GetFeatureID(list.feature)
 			return internal.EInverseRemove(list.owner, EOPPOSITE_FEATURE_BASE-featureID, notifications)
 		}
 	}

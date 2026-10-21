@@ -119,8 +119,8 @@ func (o *ReflectiveEStoreEObjectImpl) EDynamicSet(dynamicFeatureID int, value an
 }
 
 func (o *ReflectiveEStoreEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
-	if o.values.get(dynamicFeatureID) != nil {
-		return true
+	if cached := o.values.get(dynamicFeatureID); cached != nil {
+		return isSetValue(o.eDynamicFeature(dynamicFeatureID), cached)
 	}
 
 	feature := o.eDynamicFeature(dynamicFeatureID)

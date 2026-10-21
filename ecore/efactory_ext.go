@@ -76,33 +76,48 @@ func (eFactory *EFactoryExt) CreateFromString(eDataType EDataType, literalValue 
 		return result.GetValue()
 	}
 
+	// an invalid literal panics, as EMF throws: it does not become a zero value silently
+	check := func(err error) {
+		if err != nil {
+			panic(fmt.Errorf("the value '%v' is not a valid literal of '%v': %w", literalValue, eDataType.GetName(), err))
+		}
+	}
 	switch getInstanceTypeName(eDataType) {
 	case "float64", "java.lang.Double", "double":
-		value, _ := strconv.ParseFloat(literalValue, 64)
+		value, err := strconv.ParseFloat(literalValue, 64)
+		check(err)
 		return value
 	case "float32", "java.lang.Float", "float":
-		value, _ := strconv.ParseFloat(literalValue, 32)
+		value, err := strconv.ParseFloat(literalValue, 32)
+		check(err)
 		return float32(value)
 	case "int", "java.lang.Integer":
-		value, _ := strconv.Atoi(literalValue)
+		value, err := strconv.Atoi(literalValue)
+		check(err)
 		return value
 	case "uint64", "com.google.common.primitives.UnsignedLong":
-		value, _ := strconv.ParseUint(literalValue, 10, 64)
+		value, err := strconv.ParseUint(literalValue, 10, 64)
+		check(err)
 		return value
 	case "int64", "java.lang.Long", "java.math.BigInteger", "long":
-		value, _ := strconv.ParseInt(literalValue, 10, 64)
+		value, err := strconv.ParseInt(literalValue, 10, 64)
+		check(err)
 		return value
 	case "int32":
-		value, _ := strconv.ParseInt(literalValue, 10, 32)
+		value, err := strconv.ParseInt(literalValue, 10, 32)
+		check(err)
 		return int32(value)
 	case "int16", "java.lang.Short", "short":
-		value, _ := strconv.ParseInt(literalValue, 10, 16)
+		value, err := strconv.ParseInt(literalValue, 10, 16)
+		check(err)
 		return int16(value)
 	case "int8":
-		value, _ := strconv.ParseInt(literalValue, 10, 8)
+		value, err := strconv.ParseInt(literalValue, 10, 8)
+		check(err)
 		return int8(value)
 	case "bool", "java.lang.Boolean", "boolean":
-		value, _ := strconv.ParseBool(literalValue)
+		value, err := strconv.ParseBool(literalValue)
+		check(err)
 		return value
 	case "string", "java.lang.String":
 		return literalValue
@@ -156,6 +171,10 @@ func (eFactory *EFactoryExt) ConvertToString(eDataType EDataType, instanceValue 
 		return strconv.FormatBool(v)
 	case "string", "java.lang.String":
 		return instanceValue.(string)
+	case "byte[]", "[]byte":
+		// the reverse of CreateFromString
+		v, _ := instanceValue.([]byte)
+		return string(v)
 	}
 
 	panic("ConvertToString not implemented")

@@ -97,7 +97,11 @@ func GetEObject(rootEObject EObject, relativeFragmentPath string) EObject {
 	segments := strings.Split(relativeFragmentPath, "/")
 	eObject := rootEObject.(EObjectInternal)
 	for i := 0; i < len(segments) && eObject != nil; i++ {
-		eObject = eObject.EObjectForFragmentSegment(segments[i]).(EObjectInternal)
+		// nil for a segment designating no object: the path designates none either
+		eObject, _ = eObject.EObjectForFragmentSegment(segments[i]).(EObjectInternal)
+	}
+	if eObject == nil {
+		return nil
 	}
 	return eObject
 }
@@ -124,7 +128,15 @@ func ResolveInResource(proxy EObject, resource EResource) EObject {
 }
 
 func ResolveInResourceSet(proxy EObject, resourceSet EResourceSet) EObject {
-	if proxyInternal, _ := proxy.(EObjectInternal); proxyInternal != nil && proxyInternal.EProxyURI() != nil {
+	// a resolved object may be a proxy too: it is resolved in turn, until a proxy already met,
+	// which would loop forever
+	var visited map[EObject]struct{}
+	current := proxy
+	for {
+		proxyInternal, _ := current.(EObjectInternal)
+		if proxyInternal == nil || proxyInternal.EProxyURI() == nil {
+			return current
+		}
 		proxyURI := proxyInternal.EProxyURI()
 		var resolved EObject
 		if resourceSet != nil {
@@ -139,11 +151,19 @@ func ResolveInResourceSet(proxy EObject, resourceSet EResourceSet) EObject {
 				}
 			}
 		}
-		if resolved != nil && resolved != proxy {
-			return ResolveInResourceSet(resolved, resourceSet)
+		if resolved == nil || resolved == current {
+			return current
 		}
+		if visited == nil {
+			visited = map[EObject]struct{}{}
+		}
+		visited[current] = struct{}{}
+		if _, isVisited := visited[resolved]; isVisited {
+			// a cycle of proxies: none resolves
+			return proxy
+		}
+		current = resolved
 	}
-	return proxy
 }
 
 func Copy(eObject EObject) EObject {

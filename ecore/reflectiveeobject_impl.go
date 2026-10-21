@@ -36,7 +36,17 @@ func (o *ReflectiveEObjectImpl) EClass() EClass {
 
 // SetEClass ...
 func (o *ReflectiveEObjectImpl) SetEClass(class EClass) {
+	if class == o.class {
+		return
+	}
 	o.class = class
+	// the values are by feature ID: resized to the features of the new class, as
+	// DynamicEObjectImpl.SetEClass does
+	if properties, _ := o.getField(properties_flag).([]any); properties != nil {
+		newProperties := make([]any, o.EClass().GetFeatureCount())
+		copy(newProperties, properties)
+		o.setField(properties_flag, newProperties)
+	}
 }
 
 func (o *ReflectiveEObjectImpl) EStaticFeatureCount() int {
@@ -67,7 +77,9 @@ func (o *ReflectiveEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 }
 
 func (o *ReflectiveEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
-	return o.getProperties()[dynamicFeatureID] != nil
+	// as in EMF, an attribute (not unsettable) set to its default value is not set
+	value := o.getProperties()[dynamicFeatureID]
+	return value != nil && isSetValue(o.EClass().GetEStructuralFeature(dynamicFeatureID), value)
 }
 
 // getProperties returns the values of the features, created at the first access.

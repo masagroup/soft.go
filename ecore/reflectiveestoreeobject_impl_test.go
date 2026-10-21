@@ -119,6 +119,12 @@ func TestReflectiveEStoreEObjectImpl_SetAndUnset(t *testing.T) {
 
 	// IsSet
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Once()
+	mockAttribute.EXPECT().IsMany().Return(false).Maybe() // a set many feature is checked for emptiness
+	// a cached value is set when it is not the default of the attribute
+	mockAttribute.EXPECT().IsMany().Return(false).Maybe()
+	mockAttribute.EXPECT().IsUnsettable().Return(false).Maybe()
+	mockAttribute.EXPECT().GetDefaultValue().Return(nil).Maybe()
+	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Once()
 	assert.True(t, o.EIsSetFromID(0))
 
 	// Unset

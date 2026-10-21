@@ -116,24 +116,35 @@ type boundConn struct {
 }
 
 type sqlBase struct {
-	codecVersion     int64
-	schema           *sqlSchema
-	uri              *ecore.URI
-	objectIDName     string
-	objectIDManager  ecore.EObjectIDManager
-	isObjectID       bool
-	isContainerID    bool
-	sqliteMutex      sync.Mutex
-	sqliteQueries    map[string][]*query
-	bindingsMutex    sync.Mutex
-	bindings         map[int64]*boundConn
-	logger           *zap.Logger
-	sqliteLogger     *zap.Logger
-	antsPool         *ants.Pool
-	promisePool      promise.Pool
-	connPool         *sqlitex.Pool
-	connPoolProvider func() (*sqlitex.Pool, error)
-	connPoolClose    func(conn *sqlitex.Pool) error
+	codecVersion    int64
+	schema          *sqlSchema
+	uri             *ecore.URI
+	objectIDName    string
+	objectIDManager ecore.EObjectIDManager
+	isObjectID      bool
+	isContainerID   bool
+	// isQualifiedTables names the class tables with their package: set for a new database, and
+	// read from the "qualifiedTables" property of an existing one
+	isQualifiedTables bool
+	sqliteMutex       sync.Mutex
+	sqliteQueries     map[string][]*query
+	bindingsMutex     sync.Mutex
+	bindings          map[int64]*boundConn
+	logger            *zap.Logger
+	sqliteLogger      *zap.Logger
+	antsPool          *ants.Pool
+	promisePool       promise.Pool
+	connPool          *sqlitex.Pool
+	connPoolProvider  func() (*sqlitex.Pool, error)
+	connPoolClose     func(conn *sqlitex.Pool) error
+}
+
+// relativizeURI returns uri relative to the uri of the resource, uri itself for a resource without uri
+func (s *sqlBase) relativizeURI(uri *ecore.URI) *ecore.URI {
+	if s.uri != nil {
+		return s.uri.Relativize(uri)
+	}
+	return uri
 }
 
 func (s *sqlBase) setLogger(logger *zap.Logger) {
@@ -358,6 +369,19 @@ func (d *sqlBase) executeQueryTransient(query string, opts *sqlitex.ExecOptions)
 
 func (d *sqlBase) executeQueryScript(query string, opts *sqlitex.ExecOptions) error {
 	return d.executeSqlite(sqlitex.ExecuteScript, sqlitex.ExecuteScript, query, opts)
+}
+
+// hasTable returns true if the database has the table name
+func (d *sqlBase) hasTable(name string) (bool, error) {
+	exists := false
+	err := d.executeQuery(`SELECT name FROM sqlite_master WHERE type='table' AND name=?;`, &sqlitex.ExecOptions{
+		Args: []any{name},
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			exists = true
+			return nil
+		},
+	})
+	return exists, err
 }
 
 func (d *sqlBase) decodeProperties() (map[string]string, error) {

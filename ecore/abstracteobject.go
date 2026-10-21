@@ -284,9 +284,10 @@ func eContainmentFeature(o EObject, container EObject, containerFeatureID int) E
 			}
 		} else {
 			feature := o.EClass().GetEStructuralFeature(containerFeatureID)
-			reference, isReference := feature.(EReference)
-			if isReference {
-				return reference
+			if reference, isReference := feature.(EReference); isReference {
+				if opposite := reference.GetEOpposite(); opposite != nil {
+					return opposite
+				}
 			}
 		}
 		panic("The containment feature could not be located")
@@ -299,28 +300,41 @@ func (o *AbstractEObject) EAllContents() EIterator {
 	return newEAllContentsIterator(o.AsEObject())
 }
 
-// EFeatureID returns the ID of feature in the class of the object (EDerivedFeatureID). It panics
-// when the class has no such feature.
+// EFeatureID returns the ID of feature in the class of the object. It panics when the class has no
+// such feature.
 func (o *AbstractEObject) EFeatureID(feature EStructuralFeature) int {
-	if !o.AsEObject().EClass().GetEAllStructuralFeatures().Contains(feature) {
+	// the ID in the class of the object: under multiple inheritance, the ID of a feature of a super
+	// type other than the first one differs from its ID in the class declaring it. GetFeatureID
+	// searches from that ID: not a scan of all the features.
+	featureID := o.AsEObject().EClass().GetFeatureID(feature)
+	if featureID == -1 {
 		panic("The feature '" + feature.GetName() + "' is not a valid feature")
 	}
-	return o.AsEObjectInternal().EDerivedFeatureID(feature.EContainer(), feature.GetFeatureID())
-}
-
-// EDerivedFeatureID returns featureID: the generated classes override it for the features of
-// their mixins.
-func (o *AbstractEObject) EDerivedFeatureID(container EObject, featureID int) int {
 	return featureID
 }
 
-// EOperationID returns the ID of operation in the class of the object (EDerivedOperationID). It
-// panics when the class has no such operation.
+// EDerivedFeatureID converts the ID of a feature in container, a super type of the class of the
+// object, into its ID in the class of the object: they differ when container is not its first
+// super type. The generated classes override it for the features of their mixins.
+func (o *AbstractEObject) EDerivedFeatureID(container EObject, featureID int) int {
+	eClass := o.AsEObject().EClass()
+	if containerClass, _ := container.(EClass); containerClass != nil && containerClass != eClass && eClass.GetEAllSuperTypes().Contains(containerClass) {
+		if feature := containerClass.GetEStructuralFeature(featureID); feature != nil {
+			return eClass.GetFeatureID(feature)
+		}
+	}
+	return featureID
+}
+
+// EOperationID returns the ID of operation in the class of the object. It panics when the class
+// has no such operation.
 func (o *AbstractEObject) EOperationID(operation EOperation) int {
-	if !o.AsEObject().EClass().GetEAllOperations().Contains(operation) {
+	// the ID in the class of the object, as for the features (EFeatureID)
+	operationID := o.AsEObject().EClass().GetOperationID(operation)
+	if operationID == -1 {
 		panic("The operation '" + operation.GetName() + "' is not a valid operation")
 	}
-	return o.AsEObjectInternal().EDerivedOperationID(operation.EContainer(), operation.GetOperationID())
+	return operationID
 }
 
 // EDerivedOperationID returns operationID: the generated classes override it for the operations
@@ -449,19 +463,25 @@ func (o *AbstractEObject) eDynamicPropertiesGet(properties EDynamicProperties, d
 func (o *AbstractEObject) eDynamicPropertiesCreateMap(feature EStructuralFeature) EMap {
 	eClass := feature.GetEType().(EClass)
 	reverseFeatureID := -1
+	var reverseFeature EReference
 	if ref, isRef := feature.(EReference); isRef {
-		if reverseFeature := ref.GetEOpposite(); reverseFeature != nil {
+		if reverseFeature = ref.GetEOpposite(); reverseFeature != nil {
 			reverseFeatureID = reverseFeature.GetFeatureID()
 		}
 	}
-	return NewBasicEObjectMap(eClass, o.AsEObjectInternal(), feature.GetFeatureID(), reverseFeatureID, feature.IsUnsettable())
+	m := NewBasicEObjectMap(eClass, o.AsEObjectInternal(), o.AsEObject().EClass().GetFeatureID(feature), reverseFeatureID, feature.IsUnsettable())
+	// the list maps the ID of the opposite in the class of each entry
+	m.EList.(*basicEObjectMapList).oppositeReference = reverseFeature
+	return m
 }
 
 // eDynamicPropertiesCreateList returns the list of a dynamic many feature: a list of data values
 // for an attribute, a list of objects for a reference, with its containment and opposite.
 func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeature) EList {
+	// the ID of the feature in the class of the object, not in the class declaring it
+	featureID := o.AsEObject().EClass().GetFeatureID(feature)
 	if attribute, isAttribute := feature.(EAttribute); isAttribute {
-		return NewBasicEDataTypeList(o.AsEObjectInternal(), attribute.GetFeatureID(), attribute.IsUnique())
+		return NewBasicEDataTypeList(o.AsEObjectInternal(), featureID, attribute.IsUnique())
 	} else if ref, isRef := feature.(EReference); isRef {
 		inverse := false
 		opposite := false
@@ -487,7 +507,11 @@ func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeatur
 				opposite = false
 			}
 		}
-		return NewBasicEObjectList(o.AsEObjectInternal(), ref.GetFeatureID(), reverseFeatureID, containment, inverse, opposite, ref.EIsProxy(), ref.IsUnsettable())
+		l := NewBasicEObjectList(o.AsEObjectInternal(), featureID, reverseFeatureID, containment, inverse, opposite, ref.IsResolveProxies(), ref.IsUnsettable())
+		// reverseFeatureID is the ID in the class declaring the opposite: the list maps it in the
+		// class of each element
+		l.oppositeReference = reverseFeature
+		return l
 	}
 	return nil
 }
@@ -648,9 +672,16 @@ func (o *AbstractEObject) eDynamicPropertiesIsSet(properties EDynamicProperties,
 		objInternal := o.AsEObjectInternal()
 		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
 		return objInternal.EInternalContainerFeatureID() == featureID && objInternal.EInternalContainer() != nil
-	} else {
-		return properties.EDynamicIsSet(dynamicFeatureID)
+	} else if !properties.EDynamicIsSet(dynamicFeatureID) {
+		return false
+	} else if dynamicFeature.IsMany() && !dynamicFeature.IsUnsettable() {
+		// the list of a many feature is created by its first read: as in EMF, it is set when not
+		// empty, not when it exists
+		if list, _ := properties.EDynamicGet(dynamicFeatureID).(EList); list != nil {
+			return !list.Empty()
+		}
 	}
+	return true
 }
 
 // EUnset unsets feature (EUnsetFromID). It panics when the class of the object has no such feature.
@@ -1016,7 +1047,12 @@ func (o *AbstractEObject) EBasicRemoveFromContainerFeature(notifications ENotifi
 	if isReference {
 		inverseFeature := reference.GetEOpposite()
 		if containerInternal, _ := objInternal.EInternalContainer().(EObjectInternal); containerInternal != nil && inverseFeature != nil {
-			return containerInternal.EInverseRemove(o.AsEObject(), inverseFeature.GetFeatureID(), notifications)
+			// the ID of the opposite in the class of the container, not in the class declaring it
+			featureID := containerInternal.EClass().GetFeatureID(inverseFeature)
+			if featureID == -1 {
+				featureID = inverseFeature.GetFeatureID()
+			}
+			return containerInternal.EInverseRemove(o.AsEObject(), featureID, notifications)
 		}
 	}
 	return notifications

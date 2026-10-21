@@ -1305,18 +1305,20 @@ func TestSQLStore_AddAll_Order(t *testing.T) {
 	s.AddAll(book, contents, 20, ecore.NewImmutableEList([]any{"out"}))
 	require.ErrorContains(t, s.WaitOperations(context.Background(), nil), "not in list bounds")
 
-	// repeated inserts at the same place keep the order
-	for i := range 20 {
+	// repeated inserts at the same place keep the order : beyond the precision of the float idx
+	// (about 50 halvings), the list is renumbered
+	const n = 100
+	for i := range n {
 		s.Add(book, contents, 2, fmt.Sprintf("i%d", i))
 	}
 	wait()
 	values := s.ToArray(book, contents)
 	require.Equal(t, "first", values[0])
 	require.Equal(t, "a", values[1])
-	for i := range 20 {
-		require.Equal(t, fmt.Sprintf("i%d", 19-i), values[2+i])
+	for i := range n {
+		require.Equal(t, fmt.Sprintf("i%d", n-1-i), values[2+i])
 	}
-	require.Equal(t, "b", values[22])
+	require.Equal(t, "b", values[n+2])
 }
 
 func TestSQLStore_Add_NotAList(t *testing.T) {

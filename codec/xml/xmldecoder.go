@@ -82,7 +82,10 @@ type Decoder struct {
 	deferred               []ecore.EObject
 	elements               []string
 	isSuppressDocumentRoot bool
-	isResolveDeferred      bool
+	// ids are the ids of the objects of the document set by SetObjectID (xmi:id): its references by id
+	// resolve with them, without an object id manager
+	ids               map[string]ecore.EObject
+	isResolveDeferred bool
 }
 
 func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *Decoder {
@@ -150,7 +153,7 @@ func (l *Decoder) decodeTopObject() {
 		t, tokenErr := l.decoder.Token()
 		if tokenErr != nil {
 			if tokenErr != io.EOF {
-				l.error(ecore.NewEDiagnosticImpl(tokenErr.Error(), l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
+				l.error(ecore.NewEDiagnosticImpl(tokenErr.Error(), l.location(), int(l.decoder.InputOffset()), 0))
 			}
 			break
 		}
@@ -287,7 +290,7 @@ func (l *Decoder) startPrefixMapping(prefix string, uri string) {
 	l.namespaces.declarePrefix(prefix, uri)
 	if _, exists := l.prefixesToURI[prefix]; exists {
 		index := 1
-		for _, exists = l.prefixesToURI[prefix+"_"+fmt.Sprintf("%d", index)]; exists; {
+		for _, exists = l.prefixesToURI[prefix+"_"+fmt.Sprintf("%d", index)]; exists; _, exists = l.prefixesToURI[prefix+"_"+fmt.Sprintf("%d", index)] {
 			index++
 		}
 		prefix += "_" + fmt.Sprintf("%d", index)
@@ -313,7 +316,7 @@ func (l *Decoder) processElement(space string, local string) {
 
 func (l *Decoder) validateObject(eObject ecore.EObject, space, typeName string) {
 	if eObject == nil {
-		l.error(ecore.NewEDiagnosticImpl("Class {'"+space+"':'"+typeName+"'} not found", l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
+		l.error(ecore.NewEDiagnosticImpl("Class {'"+space+"':'"+typeName+"'} not found", l.location(), int(l.decoder.InputOffset()), 0))
 	}
 }
 
@@ -479,7 +482,9 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 		if value == nil {
 			eObject.ESet(eFeature, nil)
 		} else if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
-			eObject.ESet(eFeature, eFactory.CreateFromString(eDataType, value.(string)))
+			if data, ok := l.createFromString(eFactory, eDataType, value.(string)); ok {
+				eObject.ESet(eFeature, data)
+			}
 		}
 
 	case xlfkMany:
@@ -489,7 +494,9 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 		} else if value == nil {
 			eList.Add(nil)
 		} else if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
-			eList.Add(eFactory.CreateFromString(eDataType, value.(string)))
+			if data, ok := l.createFromString(eFactory, eDataType, value.(string)); ok {
+				eList.Add(data)
+			}
 		}
 	case xlfkManyAdd:
 		fallthrough
@@ -504,7 +511,8 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 			if index == -1 {
 				eList.Insert(position, value)
 			} else {
-				eList.Move(position, index)
+				// EMF's move(position, index) : the value moves from index to position
+				eList.Move(index, position)
 			}
 		} else if kind == xlfkManyAdd {
 			appendLoaded(eList, value)
@@ -531,8 +539,20 @@ func (l *Decoder) factoryFor(eFeature ecore.EStructuralFeature, eDataType ecore.
 	return eFactory
 }
 
+// createFromString creates the value of eDataType from str: a factory panics on an invalid
+// literal, which is reported as a diagnostic and not set (ok is false), as EMF's loader does.
+func (l *Decoder) createFromString(eFactory ecore.EFactory, eDataType ecore.EDataType, str string) (value any, ok bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			l.decodeError(fmt.Sprintf("%v", r))
+			value, ok = nil, false
+		}
+	}()
+	return eFactory.CreateFromString(eDataType, str), true
+}
+
 func (l *Decoder) decodeError(message string) {
-	l.error(ecore.NewEDiagnosticImpl(message, l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
+	l.error(ecore.NewEDiagnosticImpl(message, l.location(), int(l.decoder.InputOffset()), 0))
 }
 
 func (l *Decoder) getLoadFeatureKind(eFeature ecore.EStructuralFeature) xmlLoadFeatureKind {
@@ -562,7 +582,7 @@ func (l *Decoder) HandleAttributes(eObject ecore.EObject) {
 			if name == l.idAttributeName {
 				if idManager := l.resource.GetObjectIDManager(); idManager != nil {
 					if err := idManager.SetID(eObject, value); err != nil {
-						l.error(ecore.NewEDiagnosticImpl(err.Error(), l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
+						l.error(ecore.NewEDiagnosticImpl(err.Error(), l.location(), int(l.decoder.InputOffset()), 0))
 					}
 				}
 			} else if name == href {
@@ -598,7 +618,7 @@ func (l *Decoder) setAttributeValue(eObject ecore.EObject, qname string, value s
 	prefix := ""
 	if index := strings.Index(qname, ":"); index > 0 {
 		local = qname[index+1:]
-		prefix = qname[:index-1]
+		prefix = qname[:index]
 	}
 	space, _ := l.namespaces.getURI(prefix)
 	eFeature := l.getFeature(eObject, space, local)
@@ -663,7 +683,7 @@ func (l *Decoder) setValueFromId(eObject ecore.EObject, eReference ecore.ERefere
 			}
 
 			if mustAddOrNotOppositeIsMany {
-				resolved := l.resource.GetEObject(id)
+				resolved := l.getEObject(id)
 				if resolved != nil {
 					l.setFeatureValue(eObject, eReference, resolved, -1)
 					qName = ""
@@ -713,7 +733,7 @@ func (l *Decoder) handleReferences() {
 			eReference := itRef.Next().(ecore.EReference)
 			eOpposite := eReference.GetEOpposite()
 			if eOpposite != nil && eOpposite.IsChangeable() && eProxy.EIsSet(eReference) {
-				resolvedObject := l.resource.GetEObject(eProxy.(ecore.EObjectInternal).EProxyURI().Fragment())
+				resolvedObject := l.getEObject(eProxy.(ecore.EObjectInternal).EProxyURI().Fragment())
 				if resolvedObject != nil {
 					var proxyHolder ecore.EObject
 					if eReference.IsMany() {
@@ -731,11 +751,12 @@ func (l *Decoder) handleReferences() {
 						resolvedIndex := holderContents.IndexOf(resolvedObject)
 						if resolvedIndex != -1 {
 							proxyIndex := holderContents.IndexOf(eProxy)
-							holderContents.Move(proxyIndex, resolvedIndex)
+							// the resolved object takes the place of the proxy, which is then removed
+							holderContents.Move(resolvedIndex, proxyIndex)
 							if proxyIndex > resolvedIndex {
-								holderContents.Remove(proxyIndex - 1)
+								holderContents.RemoveAt(proxyIndex - 1)
 							} else {
-								holderContents.Remove(proxyIndex + 1)
+								holderContents.RemoveAt(proxyIndex + 1)
 							}
 							break
 						}
@@ -769,12 +790,12 @@ func (l *Decoder) handleReferences() {
 	}
 
 	for _, reference := range l.references {
-		eObject := l.resource.GetEObject(reference.id)
+		eObject := l.getEObject(reference.id)
 		if eObject != nil {
 			l.setFeatureValue(reference.object, reference.feature, eObject, reference.pos)
 		} else {
 			l.error(ecore.NewEDiagnosticImpl(
-				"Unresolved reference '"+reference.id+"'", l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
+				"Unresolved reference '"+reference.id+"'", l.location(), int(l.decoder.InputOffset()), 0))
 		}
 	}
 }
@@ -814,15 +835,23 @@ func (l *Decoder) getType(ePackage ecore.EPackage, name string) ecore.EClassifie
 }
 
 func (l *Decoder) handleUnknownFeature(name string) {
-	l.error(ecore.NewEDiagnosticImpl("Feature "+name+" not found", l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
+	l.error(ecore.NewEDiagnosticImpl("Feature "+name+" not found", l.location(), int(l.decoder.InputOffset()), 0))
 }
 
 func (l *Decoder) handleUnknownPackage(name, space string) {
-	l.error(ecore.NewEDiagnosticImpl("Package {'"+name+"'='"+space+"'} not found", l.resource.GetURI().String(), int(l.decoder.InputOffset()), 0))
+	l.error(ecore.NewEDiagnosticImpl("Package {'"+name+"'='"+space+"'} not found", l.location(), int(l.decoder.InputOffset()), 0))
 }
 
 func (l *Decoder) error(diagnostic ecore.EDiagnostic) {
 	l.errorFn(diagnostic)
+}
+
+// location is the uri of the resource in the diagnostics, empty for a resource without uri.
+func (l *Decoder) location() string {
+	if uri := l.resource.GetURI(); uri != nil {
+		return uri.String()
+	}
+	return ""
 }
 
 func (l *Decoder) text(data string) {
@@ -869,6 +898,29 @@ func (l *Decoder) procInst(param, s string) string {
 }
 
 func (l *Decoder) directive(directive string) {
+}
+
+// SetObjectID gives id to eObject, an object of the document: the references of the document
+// resolve it, and the object id manager of the resource, if any, registers it.
+func (l *Decoder) SetObjectID(eObject ecore.EObject, id string) {
+	if l.ids == nil {
+		l.ids = map[string]ecore.EObject{}
+	}
+	l.ids[id] = eObject
+	if idManager := l.resource.GetObjectIDManager(); idManager != nil {
+		if err := idManager.SetID(eObject, id); err != nil {
+			l.decodeError(err.Error())
+		}
+	}
+}
+
+// getEObject returns the object of the document with id or fragment: an id set by SetObjectID,
+// else the object of the resource.
+func (l *Decoder) getEObject(id string) ecore.EObject {
+	if eObject := l.ids[id]; eObject != nil {
+		return eObject
+	}
+	return l.resource.GetEObject(id)
 }
 
 // SetInterfaces sets the object whose DecoderHooks the decoder calls: a decoder embedding

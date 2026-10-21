@@ -500,7 +500,7 @@ func TestSQLStore_Set_List_Primitive(t *testing.T) {
 
 	// database
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -539,7 +539,7 @@ func TestSQLStore_Get_List_String(t *testing.T) {
 
 	// database
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -722,7 +722,7 @@ func TestSQLStore_UnSet_Many(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -761,7 +761,7 @@ func TestSQLStore_IsEmpty_False(t *testing.T) {
 
 	// database
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -817,7 +817,7 @@ func TestSQLStore_IsEmpty_NonExisting(t *testing.T) {
 
 	// database
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -845,7 +845,7 @@ func TestSQLStore_Size(t *testing.T) {
 
 	// database
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -901,7 +901,7 @@ func TestSQLStore_Size_NonExisting(t *testing.T) {
 
 	// database
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -929,7 +929,7 @@ func TestSQLStore_Contains_Primitive(t *testing.T) {
 
 	// database
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -987,7 +987,7 @@ func TestSQLStore_Contains_NoTable(t *testing.T) {
 
 	// database
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -1256,7 +1256,7 @@ func TestSQLStore_Clear(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -1342,7 +1342,7 @@ func TestSQLStore_Add_First_NonEmpty(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -1379,7 +1379,7 @@ func TestSQLStore_Add_Last(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -1416,7 +1416,7 @@ func TestSQLStore_Add_Middle(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -1453,7 +1453,7 @@ func TestSQLStore_Add_Invalid(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -1482,7 +1482,7 @@ func TestSQLStore_AddAll(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -1520,7 +1520,7 @@ func TestSQLStore_Move_End(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -1558,7 +1558,7 @@ func TestSQLStore_Move_Begin(t *testing.T) {
 	require.NotNil(t, eFeature)
 
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store
@@ -1597,7 +1597,7 @@ func TestSQLStore_ToArray_Primitive(t *testing.T) {
 
 	// create store
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	s, err := NewStore(dbPath, ecore.NewURI(""), nil, nil, nil)
@@ -1916,7 +1916,7 @@ func TestSQLStore_Parallel_AddSize(t *testing.T) {
 
 	// database
 	dbPath := filepath.Join(t.TempDir(), "library.datalist.sqlite")
-	err := copyFile("testdata/library.datalist.sqlite", dbPath)
+	err := copyFile("testdata/legacy/library.datalist.sqlite", dbPath)
 	require.Nil(t, err)
 
 	// create store

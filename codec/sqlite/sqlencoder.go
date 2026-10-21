@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -200,6 +202,65 @@ type sqlEncoder struct {
 	sqlObjectManager sqlObjectManager
 	sqlLockManager   *sqlEncoderLockManager
 	encoderLogger    *zap.Logger
+	deferred         *sqlDeferredReferences
+}
+
+// sqlDeferredTarget is the encoded value of a reference to an object of the encoded resource not
+// encoded yet: its id is written once all the objects are encoded.
+type sqlDeferredTarget struct {
+	object ecore.EObject
+}
+
+// sqlDeferredReference is the cell of a reference whose target was not encoded yet: the column of
+// the row of objectID, at idx in a list table
+type sqlDeferredReference struct {
+	table    *sqlTable
+	column   *sqlColumn
+	objectID int64
+	idx      float64
+	isList   bool
+	target   ecore.EObject
+}
+
+// sqlDeferredReferences are the references to the objects of resource encoded after them
+type sqlDeferredReferences struct {
+	resource   ecore.EResource
+	mutex      sync.Mutex
+	references []sqlDeferredReference
+}
+
+// isDeferred returns true if a reference to eObject, not encoded yet, is written once it is
+func (e *sqlEncoder) isDeferred(eObject ecore.EObject) bool {
+	return e.deferred != nil && !eObject.EIsProxy() && eObject.EResource() == e.deferred.resource
+}
+
+func (e *sqlEncoder) deferReference(reference sqlDeferredReference) {
+	e.deferred.mutex.Lock()
+	e.deferred.references = append(e.deferred.references, reference)
+	e.deferred.mutex.Unlock()
+}
+
+// encodeDeferredReferences writes the references to the objects encoded after them
+func (e *sqlEncoder) encodeDeferredReferences() error {
+	for _, reference := range e.deferred.references {
+		var value string
+		if sqlID, _ := e.sqlIDManager.GetObjectID(reference.target); sqlID != 0 {
+			value = strconv.FormatInt(sqlID, 10)
+		} else {
+			// not encoded : not in the contents of the resource
+			value = e.relativizeURI(ecore.GetURI(reference.target)).String()
+		}
+		query := "UPDATE " + sqlEscapeIdentifier(reference.table.name) + " SET " + sqlEscapeIdentifier(reference.column.columnName) + "=? WHERE " + reference.table.keyName() + "=?"
+		args := []any{value, reference.objectID}
+		if reference.isList {
+			query += " AND idx=?"
+			args = append(args, reference.idx)
+		}
+		if err := e.executeQuery(query, &sqlitex.ExecOptions{Args: args}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (e *sqlEncoder) setLogger(logger *zap.Logger) {
@@ -259,10 +320,14 @@ func (e *sqlEncoder) encodeProperties() (err error) {
 	if e.isContainerID {
 		properties["containerID"] = "true"
 	}
+	if e.isQualifiedTables {
+		properties["qualifiedTables"] = "true"
+	}
 
 	query := e.schema.propertiesTable.insertOrReplaceQuery()
-	for k, v := range properties {
-		if previous[k] != v {
+	// by key: the rows are in the same order at each encoding
+	for _, k := range slices.Sorted(maps.Keys(properties)) {
+		if v := properties[k]; previous[k] != v {
 			if err := e.executeQuery(query, &sqlitex.ExecOptions{
 				Args: []any{k, v},
 			}); err != nil {
@@ -336,7 +401,12 @@ func (e *sqlEncoder) encodeObject(eObject ecore.EObject, sqlContainerID int64, c
 		// object id is serialized only if we have an id manager and
 		// a corresponding column in objects table
 		if e.isObjectID {
-			args = append(args, fmt.Sprintf("%v", e.objectIDManager.GetID(eObject)))
+			// NULL for an object without id, not "<nil>"
+			if objectID := e.objectIDManager.GetID(eObject); objectID != nil {
+				args = append(args, fmt.Sprintf("%v", objectID))
+			} else {
+				args = append(args, nil)
+			}
 		}
 
 		// query
@@ -388,6 +458,10 @@ func (e *sqlEncoder) encodeObject(eObject ecore.EObject, sqlContainerID int64, c
 						if err != nil {
 							return -1, err
 						}
+						if target, isDeferred := columnValue.(sqlDeferredTarget); isDeferred {
+							e.deferReference(sqlDeferredReference{table: classTable, column: featureColumn, objectID: sqlObjectID, target: target.object})
+							columnValue = ""
+						}
 						columnValues[featureColumn.index] = columnValue
 					} else if featureTable := featureData.schema.table; featureTable != nil {
 						// feature is encoded in a external table
@@ -402,6 +476,11 @@ func (e *sqlEncoder) encodeObject(eObject ecore.EObject, sqlContainerID int64, c
 							converted, err := e.encodeFeatureValue(sqlObjectID, featureData, value)
 							if err != nil {
 								return -1, err
+							}
+							if target, isDeferred := converted.(sqlDeferredTarget); isDeferred {
+								valueColumn := featureTable.columns[len(featureTable.columns)-1]
+								e.deferReference(sqlDeferredReference{table: featureTable, column: valueColumn, objectID: sqlObjectID, idx: index, isList: true, target: target.object})
+								converted = ""
 							}
 							if err := e.executeQuery(
 								featureTable.insertQuery(),
@@ -444,10 +523,11 @@ func (e *sqlEncoder) encodeFeatureValue(containerID int64, featureData *sqlEncod
 			sqlID, _ := e.sqlIDManager.GetObjectID(eObject)
 			if sqlID != 0 {
 				return strconv.FormatInt(sqlID, 10), nil
+			} else if e.isDeferred(eObject) {
+				// encoded later in the resource : its id is written then
+				return sqlDeferredTarget{object: eObject}, nil
 			} else {
-				ref := ecore.GetURI(eObject)
-				uri := e.uri.Relativize(ref)
-				return uri.String(), nil
+				return e.relativizeURI(ecore.GetURI(eObject)).String(), nil
 			}
 		case sfkEnum:
 			eEnum := featureData.dataType.(ecore.EEnum)
@@ -764,10 +844,19 @@ func NewWriterEncoder(w io.Writer, resource ecore.EResource, options map[string]
 		)
 	} else {
 		// create a temp file for the database file
-		fileName := filepath.Base(resource.GetURI().Path())
+		fileName := "resource"
+		if uri := resource.GetURI(); uri != nil {
+			fileName = filepath.Base(uri.Path())
+		}
 		dbPath, err := sqlTmpDB(fileName)
 		if err != nil {
-			return nil
+			// reported by EncodeResource : a nil encoder would be a non nil EEncoder
+			return newSQLEncoder(
+				func() (*sqlitex.Pool, error) { return nil, err },
+				func(*sqlitex.Pool) error { return nil },
+				resource,
+				options,
+			)
 		}
 		return newSQLEncoder(
 			func() (*sqlitex.Pool, error) {
@@ -870,18 +959,20 @@ func newSQLEncoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 	e := &Encoder{
 		sqlEncoder: sqlEncoder{
 			sqlBase: &sqlBase{
-				codecVersion:     codecVersion,
-				uri:              resource.GetURI(),
-				objectIDManager:  objectIDManager,
-				objectIDName:     objectIDName,
-				isContainerID:    isContainerID,
-				isObjectID:       isObjectID,
-				schema:           newSqlSchema(schemaOptions...),
-				sqliteQueries:    map[string][]*query{},
-				antsPool:         antsPool,
-				promisePool:      promisePool,
-				connPoolProvider: connectionPoolProvider,
-				connPoolClose:    connectionPoolClose,
+				codecVersion:    codecVersion,
+				uri:             resource.GetURI(),
+				objectIDManager: objectIDManager,
+				objectIDName:    objectIDName,
+				isContainerID:   isContainerID,
+				isObjectID:      isObjectID,
+				// a written database has the tables of its classes named with their package
+				isQualifiedTables: true,
+				schema:            newSqlSchema(append(schemaOptions, withQualifiedTables(true))...),
+				sqliteQueries:     map[string][]*query{},
+				antsPool:          antsPool,
+				promisePool:       promisePool,
+				connPoolProvider:  connectionPoolProvider,
+				connPoolClose:     connectionPoolClose,
 			},
 			isForced:         true,
 			isKeepDefaults:   isKeepDefaults,
@@ -925,10 +1016,17 @@ func (e *Encoder) EncodeResource() {
 		return
 	}
 
-	// encode contents into db
+	// encode all the contents into db, then the references to the objects encoded after them
 	if contents := e.resource.GetContents(); !contents.Empty() {
-		object := contents.Get(0).(ecore.EObject)
-		if err := e.encodeContent(object); err != nil {
+		e.deferred = &sqlDeferredReferences{resource: e.resource}
+		defer func() { e.deferred = nil }()
+		for it := contents.Iterator(); it.HasNext(); {
+			if err := e.encodeContent(it.Next().(ecore.EObject)); err != nil {
+				e.addError(err)
+				return
+			}
+		}
+		if err := e.encodeDeferredReferences(); err != nil {
 			e.addError(err)
 			return
 		}
@@ -936,7 +1034,11 @@ func (e *Encoder) EncodeResource() {
 }
 
 func (e *Encoder) addError(err error) {
-	e.resource.GetErrors().Add(ecore.NewEDiagnosticImpl(err.Error(), e.resource.GetURI().String(), 0, 0))
+	location := ""
+	if uri := e.resource.GetURI(); uri != nil {
+		location = uri.String()
+	}
+	e.resource.GetErrors().Add(ecore.NewEDiagnosticImpl(err.Error(), location, 0, 0))
 }
 
 func (e *Encoder) EncodeObject(object ecore.EObject) error {

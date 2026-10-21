@@ -19,6 +19,20 @@ import (
 	"golang.org/x/net/html"
 )
 
+// whitespaceEscaper escapes the whitespaces an XML parser normalizes to spaces in an attribute value
+// (html.EscapeString escapes \r already)
+var whitespaceEscaper = strings.NewReplacer("\n", "&#xA;", "\t", "&#x9;")
+
+// escapeAttribute escapes s as the value of an attribute
+func escapeAttribute(s string) string {
+	return whitespaceEscaper.Replace(html.EscapeString(s))
+}
+
+// escapeContent escapes s as the content of an element
+func escapeContent(s string) string {
+	return html.EscapeString(s)
+}
+
 type xmlSaveFeatureKind int
 
 const (
@@ -152,7 +166,7 @@ func (s *Encoder) encodeTopObject(eObject ecore.EObject) {
 
 	// write result
 	if err := s.str.write(s.w); err != nil {
-		s.error(ecore.NewEDiagnosticImpl(err.Error(), s.resource.GetURI().String(), 0, 0))
+		s.error(ecore.NewEDiagnosticImpl(err.Error(), s.location(), 0, 0))
 	}
 }
 
@@ -216,14 +230,14 @@ func (s *Encoder) SaveNamespaces() {
 		if len(prefix) > 0 {
 			attribute += ":" + prefix
 		}
-		s.str.addAttribute(attribute, s.prefixesToURI[prefix])
+		s.str.addAttribute(attribute, escapeAttribute(s.prefixesToURI[prefix]))
 	}
 }
 
 func (s *Encoder) saveElementID(eObject ecore.EObject) {
 	if idManager := s.resource.GetObjectIDManager(); len(s.idAttributeName) > 0 && idManager != nil {
 		if id := idManager.GetID(eObject); id != nil {
-			s.str.addAttribute(s.idAttributeName, fmt.Sprintf("%v", id))
+			s.str.addAttribute(s.idAttributeName, escapeAttribute(fmt.Sprintf("%v", id)))
 		}
 	}
 }
@@ -368,7 +382,7 @@ func (s *Encoder) saveDataTypeSingle(eObject ecore.EObject, eFeature ecore.EStru
 	val := eObject.EGetResolve(eFeature, false)
 	str, ok := s.getDataType(val, eFeature, true)
 	if ok {
-		s.str.addAttribute(s.getFeatureQName(eFeature), html.EscapeString(str))
+		s.str.addAttribute(s.getFeatureQName(eFeature), escapeAttribute(str))
 	}
 }
 
@@ -388,7 +402,7 @@ func (s *Encoder) saveDataTypeMany(eObject ecore.EObject, eFeature ecore.EStruct
 			s.prefixesToURI[xsiNS] = xsiURI
 		} else {
 			str := f.ConvertToString(d, value)
-			s.str.addContent(name, str)
+			s.str.addContent(name, escapeContent(str))
 		}
 	}
 }
@@ -402,37 +416,13 @@ func (s *Encoder) saveEObjectSingle(eObject ecore.EObject, eFeature ecore.EStruc
 	value, _ := eObject.EGetResolve(eFeature, false).(ecore.EObject)
 	if value != nil {
 		id := s.getHRef(value)
-		s.str.addAttribute(s.getFeatureQName(eFeature), id)
+		s.str.addAttribute(s.getFeatureQName(eFeature), escapeAttribute(id))
 	}
 }
 
 //lint:ignore U1000 func (*Encoder).saveEObjectMany is unused
 func (s *Encoder) saveEObjectMany(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
-	l := eObject.EGetResolve(eFeature, false).(ecore.EList)
-	failure := false
-	var buffer strings.Builder
-	for it := l.Iterator(); ; {
-		value, _ := it.Next().(ecore.EObject)
-		if value != nil {
-			id := s.getHRef(value)
-			if id == "" {
-				failure = true
-				if !it.HasNext() {
-					break
-				}
-			} else {
-				buffer.WriteString(id)
-				if it.HasNext() {
-					buffer.WriteString(" ")
-				} else {
-					break
-				}
-			}
-		}
-	}
-	if !failure && buffer.Len() > 0 {
-		s.str.addAttribute(s.getFeatureQName(eFeature), buffer.String())
-	}
+	s.saveRefsAttribute(eObject, eFeature, s.getHRef)
 }
 
 func (s *Encoder) saveNil(_ ecore.EObject, eFeature ecore.EStructuralFeature) {
@@ -507,7 +497,7 @@ func (s *Encoder) saveHRef(eObject ecore.EObject, eFeature ecore.EStructuralFeat
 		if eType != eClass && eType != nil && eType.IsAbstract() {
 			s.saveTypeAttribute(eClass)
 		}
-		s.str.addAttribute("href", href)
+		s.str.addAttribute("href", escapeAttribute(href))
 		s.str.endEmptyElement()
 	}
 }
@@ -517,36 +507,36 @@ func (s *Encoder) saveIDRefSingle(eObject ecore.EObject, eFeature ecore.EStructu
 	if value != nil {
 		id := s.getIDRef(value)
 		if id != "" {
-			s.str.addAttribute(s.getFeatureQName(eFeature), id)
+			s.str.addAttribute(s.getFeatureQName(eFeature), escapeAttribute(id))
 		}
 	}
 }
 
 func (s *Encoder) saveIDRefMany(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
+	s.saveRefsAttribute(eObject, eFeature, s.getIDRef)
+}
+
+// saveRefsAttribute saves the references of a many feature as an attribute of their space
+// separated ids, nothing if an id is missing. The nil elements are skipped.
+func (s *Encoder) saveRefsAttribute(eObject ecore.EObject, eFeature ecore.EStructuralFeature, getID func(ecore.EObject) string) {
 	l := eObject.EGetResolve(eFeature, false).(ecore.EList)
-	failure := false
 	var buffer strings.Builder
-	for it := l.Iterator(); ; {
+	for it := l.Iterator(); it.HasNext(); {
 		value, _ := it.Next().(ecore.EObject)
-		if value != nil {
-			id := s.getIDRef(value)
-			if id == "" {
-				failure = true
-				if !it.HasNext() {
-					break
-				}
-			} else {
-				buffer.WriteString(id)
-				if it.HasNext() {
-					buffer.WriteString(" ")
-				} else {
-					break
-				}
-			}
+		if value == nil {
+			continue
 		}
+		id := getID(value)
+		if id == "" {
+			return
+		}
+		if buffer.Len() > 0 {
+			buffer.WriteString(" ")
+		}
+		buffer.WriteString(id)
 	}
-	if !failure && buffer.Len() > 0 {
-		s.str.addAttribute(s.getFeatureQName(eFeature), buffer.String())
+	if buffer.Len() > 0 {
+		s.str.addAttribute(s.getFeatureQName(eFeature), escapeAttribute(buffer.String()))
 	}
 }
 
@@ -804,11 +794,19 @@ func (s *Encoder) getIDRef(eObject ecore.EObject) string {
 }
 
 func (s *Encoder) handleDanglingHREF(eObject ecore.EObject) {
-	s.error(ecore.NewEDiagnosticImpl(fmt.Sprintf("Object '%p' is not contained in a resource.", eObject), s.resource.GetURI().String(), 0, 0))
+	s.error(ecore.NewEDiagnosticImpl(fmt.Sprintf("Object '%p' is not contained in a resource.", eObject), s.location(), 0, 0))
 }
 
 func (s *Encoder) error(diagnostic ecore.EDiagnostic) {
 	s.errorFn(diagnostic)
+}
+
+// location is the uri of the resource in the diagnostics, empty for a resource without uri.
+func (s *Encoder) location() string {
+	if uri := s.resource.GetURI(); uri != nil {
+		return uri.String()
+	}
+	return ""
 }
 
 // SetInterfaces sets the object whose EncoderHooks the encoder calls: an encoder embedding

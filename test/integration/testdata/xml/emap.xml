@@ -20,7 +20,7 @@
     <key name="key 4"/>
     <value name="value 4"/>
   </keyToValue>
-  <keyToInt value="0">
+  <keyToInt>
     <key name="key 0"/>
   </keyToInt>
   <keyToInt value="1">

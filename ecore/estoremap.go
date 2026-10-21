@@ -68,8 +68,10 @@ func (m *EStoreMap) SetEStore(store EStore) {
 
 // Set object with a cache for its feature values
 func (m *EStoreMap) SetCache(cache bool) {
-	// reset map data
+	// reset map data, under the mutex guarding it
+	m.mapMutex.Lock()
 	m.mapData = nil
+	m.mapMutex.Unlock()
 	// set internal list cache
 	cacheProvider := m.EList.(ECacheProvider)
 	cacheProvider.SetCache(cache)

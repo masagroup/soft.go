@@ -65,6 +65,10 @@ var codecPackages = map[string]string{
 // codecNotFoundMessage is the error of a resource without codec: for a well-known extension, it
 // names the package to import.
 func codecNotFoundMessage(uri *URI) string {
+	if uri == nil {
+		// the codec is chosen by the uri of the resource
+		return "Unable to find codec for a resource without uri"
+	}
 	message := "Unable to find codec for '" + uri.String() + "'"
 	p := uri.Path()
 	if ndx := strings.LastIndex(p, "."); ndx != -1 {

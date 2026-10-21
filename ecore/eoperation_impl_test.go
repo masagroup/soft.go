@@ -204,6 +204,7 @@ func TestEOperationEBasicInverseAdd(t *testing.T) {
 		mockOther.EXPECT().EResource().Return(nil).Once()
 		mockOther.EXPECT().EIsProxy().Return(false).Once()
 		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EClass().Return(GetPackage().GetEClass()).Once()
 		mockObject.EXPECT().EInverseRemove(o, ECLASS__EOPERATIONS, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, EOPERATION__ECONTAINING_CLASS, nil)
 		assert.Equal(t, mockOther, o.GetEContainingClass())

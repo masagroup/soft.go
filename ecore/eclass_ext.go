@@ -10,6 +10,7 @@
 package ecore
 
 import (
+	"slices"
 	"sync"
 	"sync/atomic"
 )
@@ -127,7 +128,8 @@ func (d *derivedValue[T]) invalidate() {
 
 type EClassInternal interface {
 	getSubClasses() []EClassInternal
-	setSubClasses([]EClassInternal)
+	addSubClass(EClassInternal)
+	removeSubClass(EClassInternal)
 	setModified(featureID int)
 }
 
@@ -146,62 +148,30 @@ func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 			case SET:
 				fallthrough
 			case RESOLVE:
-				oldValue := notification.GetOldValue()
-				if oldValue != nil {
-					class := oldValue.(EClassInternal)
-					subClasses := class.getSubClasses()
-					for i, s := range subClasses {
-						if s == eNotifier {
-							class.setSubClasses(append(subClasses[:i], subClasses[i+1:]...))
-							break
-						}
-					}
+				if oldValue := notification.GetOldValue(); oldValue != nil {
+					oldValue.(EClassInternal).removeSubClass(eNotifier)
 				}
-				newValue := notification.GetNewValue()
-				if newValue != nil {
-					class := newValue.(EClassInternal)
-					class.setSubClasses(append(class.getSubClasses(), eNotifier))
+				if newValue := notification.GetNewValue(); newValue != nil {
+					newValue.(EClassInternal).addSubClass(eNotifier)
 				}
 			case ADD:
-				newValue := notification.GetNewValue()
-				if newValue != nil {
-					class := newValue.(EClassInternal)
-					class.setSubClasses(append(class.getSubClasses(), eNotifier))
+				if newValue := notification.GetNewValue(); newValue != nil {
+					newValue.(EClassInternal).addSubClass(eNotifier)
 				}
 			case ADD_MANY:
-				newValue := notification.GetNewValue()
-				if newValue != nil {
-					collection := newValue.([]any)
-					for _, s := range collection {
-						class := s.(EClassInternal)
-						class.setSubClasses(append(class.getSubClasses(), eNotifier))
+				if newValue := notification.GetNewValue(); newValue != nil {
+					for _, s := range newValue.([]any) {
+						s.(EClassInternal).addSubClass(eNotifier)
 					}
 				}
 			case REMOVE:
-				oldValue := notification.GetOldValue()
-				if oldValue != nil {
-					class := oldValue.(EClassInternal)
-					subClasses := class.getSubClasses()
-					for i, s := range subClasses {
-						if s == eNotifier {
-							class.setSubClasses(append(subClasses[:i], subClasses[i+1:]...))
-							break
-						}
-					}
+				if oldValue := notification.GetOldValue(); oldValue != nil {
+					oldValue.(EClassInternal).removeSubClass(eNotifier)
 				}
 			case REMOVE_MANY:
-				oldValue := notification.GetOldValue()
-				if oldValue != nil {
-					collection := oldValue.([]any)
-					for _, s := range collection {
-						class := s.(EClassInternal)
-						subClasses := class.getSubClasses()
-						for i, s := range subClasses {
-							if s == eNotifier {
-								class.setSubClasses(append(subClasses[:i], subClasses[i+1:]...))
-								break
-							}
-						}
+				if oldValue := notification.GetOldValue(); oldValue != nil {
+					for _, s := range oldValue.([]any) {
+						s.(EClassInternal).removeSubClass(eNotifier)
 					}
 				}
 			}
@@ -503,10 +473,16 @@ func (eClass *EClassExt) buildEAllAttributes() *eClassAttributes {
 	attributes := []any{}
 	allAttributes := []any{}
 	var eIDAttribute EAttribute = nil
+	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superAttributes := itClass.Next().(EClass).GetEAllAttributes()
 		for itAttribute := superAttributes.Iterator(); itAttribute.HasNext(); {
 			attribute := itAttribute.Next().(EAttribute)
+			if _, isSeen := seen[attribute]; isSeen {
+				// inherited through another super type
+				continue
+			}
+			seen[attribute] = struct{}{}
 			allAttributes = append(allAttributes, attribute)
 			if attribute.IsID() && eIDAttribute == nil {
 				eIDAttribute = attribute
@@ -536,9 +512,10 @@ func (eClass *EClassExt) buildEAllReferences() *eClassReferences {
 	defer eClass.buildMutex.Unlock()
 	allReferences := []any{}
 	references := []any{}
+	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superReferences := itClass.Next().(EClass).GetEAllReferences()
-		allReferences = append(allReferences, superReferences.ToArray()...)
+		allReferences = appendUnique(allReferences, seen, superReferences.ToArray())
 	}
 
 	for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
@@ -580,9 +557,10 @@ func (eClass *EClassExt) buildEAllOperations() EList {
 	eClass.buildMutex.Lock()
 	defer eClass.buildMutex.Unlock()
 	allOperations := []any{}
+	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superOperations := itClass.Next().(EClass).GetEAllOperations()
-		allOperations = append(allOperations, superOperations.ToArray()...)
+		allOperations = appendUnique(allOperations, seen, superOperations.ToArray())
 	}
 
 	operationID := len(allOperations)
@@ -604,9 +582,10 @@ func (eClass *EClassExt) buildEAllStructuralFeatures() EList {
 	eClass.buildMutex.Lock()
 	defer eClass.buildMutex.Unlock()
 	allFeatures := []any{}
+	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superFeatures := itClass.Next().(EClass).GetEAllStructuralFeatures()
-		allFeatures = append(allFeatures, superFeatures.ToArray()...)
+		allFeatures = appendUnique(allFeatures, seen, superFeatures.ToArray())
 	}
 
 	featureID := len(allFeatures)
@@ -626,13 +605,26 @@ func (eClass *EClassExt) buildEAllSuperTypes() EList {
 	eClass.buildMutex.Lock()
 	defer eClass.buildMutex.Unlock()
 	allSuperTypes := []any{}
+	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superClass := itClass.Next().(EClass)
 		superTypes := superClass.GetEAllSuperTypes()
-		allSuperTypes = append(allSuperTypes, superTypes.ToArray()...)
-		allSuperTypes = append(allSuperTypes, superClass)
+		allSuperTypes = appendUnique(allSuperTypes, seen, superTypes.ToArray())
+		allSuperTypes = appendUnique(allSuperTypes, seen, []any{superClass})
 	}
 	return NewImmutableEList(allSuperTypes)
+}
+
+// appendUnique appends the elements not seen yet: a class inheriting a super type through several
+// of its super types (a diamond) has its features, operations and super types once, as in EMF.
+func appendUnique(dst []any, seen map[any]struct{}, elements []any) []any {
+	for _, element := range elements {
+		if _, isSeen := seen[element]; !isSeen {
+			seen[element] = struct{}{}
+			dst = append(dst, element)
+		}
+	}
+	return dst
 }
 
 func (eClass *EClassExt) getSubClasses() []EClassInternal {
@@ -641,9 +633,19 @@ func (eClass *EClassExt) getSubClasses() []EClassInternal {
 	return eClass.subClasses
 }
 
-func (eClass *EClassExt) setSubClasses(subClasses []EClassInternal) {
+// addSubClass and removeSubClass update the sub classes under the mutex, in a new slice: the
+// slice returned by getSubClasses is never changed, setModified iterates it without lock.
+func (eClass *EClassExt) addSubClass(subClass EClassInternal) {
 	eClass.subClassesMutex.Lock()
-	eClass.subClasses = subClasses
+	eClass.subClasses = append(slices.Clip(eClass.subClasses), subClass)
+	eClass.subClassesMutex.Unlock()
+}
+
+func (eClass *EClassExt) removeSubClass(subClass EClassInternal) {
+	eClass.subClassesMutex.Lock()
+	if i := slices.Index(eClass.subClasses, subClass); i != -1 {
+		eClass.subClasses = slices.Delete(slices.Clone(eClass.subClasses), i, i+1)
+	}
 	eClass.subClassesMutex.Unlock()
 }
 

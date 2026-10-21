@@ -3,6 +3,7 @@ package json
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -168,13 +169,17 @@ func (d *Decoder) decodeKey(eObject ecore.EObject, eClass ecore.EClass, key stri
 	switch kind {
 	case jfkData:
 		if str, ok := d.readString(); ok {
-			eObject.ESet(eFeature, d.createData(eFeature, str))
+			if data, ok := d.createData(eFeature, str); ok {
+				eObject.ESet(eFeature, data)
+			}
 		}
 	case jfkDataList:
 		list := eObject.EGetResolve(eFeature, false).(ecore.EList)
 		d.decodeArray(func(int) {
 			if str, ok := d.readString(); ok {
-				list.Add(d.createData(eFeature, str))
+				if data, ok := d.createData(eFeature, str); ok {
+					list.Add(data)
+				}
 			}
 		})
 	case jfkObject:
@@ -337,9 +342,17 @@ func (d *Decoder) createObject(eClass ecore.EClass) ecore.EObject {
 	return ecore.GetRegistryFactory(d.packageRegistry, eClass.GetEPackage()).Create(eClass)
 }
 
-func (d *Decoder) createData(eFeature ecore.EStructuralFeature, str string) any {
+// createData creates the value of a data feature from str: a factory panics on an invalid literal,
+// which is reported as an error and not set (ok is false).
+func (d *Decoder) createData(eFeature ecore.EStructuralFeature, str string) (value any, ok bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			d.error(fmt.Sprintf("%v", r))
+			value, ok = nil, false
+		}
+	}()
 	eDataType := eFeature.GetEType().(ecore.EDataType)
-	return eDataType.GetEPackage().GetEFactoryInstance().CreateFromString(eDataType, str)
+	return eDataType.GetEPackage().GetEFactoryInstance().CreateFromString(eDataType, str), true
 }
 
 func featureClass(eFeature ecore.EStructuralFeature) ecore.EClass {

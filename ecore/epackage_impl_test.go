@@ -329,6 +329,7 @@ func TestEPackageEBasicInverseAdd(t *testing.T) {
 		mockOther.EXPECT().EResource().Return(nil).Once()
 		mockOther.EXPECT().EIsProxy().Return(false).Once()
 		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EClass().Return(GetPackage().GetEPackage()).Once()
 		mockObject.EXPECT().EInverseRemove(o, EPACKAGE__ESUB_PACKAGES, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, EPACKAGE__ESUPER_PACKAGE, nil)
 		assert.Equal(t, mockOther, o.GetESuperPackage())

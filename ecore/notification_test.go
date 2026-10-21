@@ -65,7 +65,8 @@ func TestNotificationGetFeatureID(t *testing.T) {
 	}
 	{
 		notification := NewNotificationByFeature(mockObject, ADD, mockFeature, 1, 2, NO_INDEX)
-		mockFeature.EXPECT().GetFeatureID().Return(5)
+		// the ID in the class of the notifier
+		mockObject.EXPECT().EClass().Return(newFeatureIDClass(t, mockFeature, 5)).Once()
 		assert.Equal(t, 5, notification.GetFeatureID())
 		mockFeature.AssertExpectations(t)
 	}
@@ -105,7 +106,7 @@ func TestNotificationDispatch(t *testing.T) {
 func TestNotificationMerge(t *testing.T) {
 	mockObject := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
-	mockFeature.EXPECT().GetFeatureID().Return(1)
+	mockObject.EXPECT().EClass().Return(newFeatureIDClass(t, mockFeature, 1))
 	{
 		notification := NewNotificationByFeatureID(mockObject, SET, 1, 1, 2, NO_INDEX)
 		other := NewNotificationByFeatureID(mockObject, SET, 1, 2, 3, NO_INDEX)
@@ -157,7 +158,7 @@ func TestNotificationMerge(t *testing.T) {
 func TestNotificationAdd(t *testing.T) {
 	mockObject := NewMockEObject(t)
 	mockFeature := NewMockEStructuralFeature(t)
-	mockFeature.EXPECT().GetFeatureID().Return(1)
+	mockObject.EXPECT().EClass().Return(newFeatureIDClass(t, mockFeature, 1)).Maybe()
 	{
 		notification := NewNotificationByFeature(mockObject, SET, mockFeature, 1, 2, NO_INDEX)
 		assert.False(t, notification.Add(nil))
@@ -194,4 +195,12 @@ func TestNotificationAdd(t *testing.T) {
 		mockNotifier.AssertExpectations(t)
 	}
 	mockFeature.AssertExpectations(t)
+}
+
+// newFeatureIDClass returns a class whose ID of feature is featureID: the ID of a feature in the
+// class of an object, which differs from its ID in the class declaring it under multiple inheritance
+func newFeatureIDClass(t *testing.T, feature EStructuralFeature, featureID int) *MockEClass {
+	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureID(feature).Return(featureID)
+	return mockClass
 }

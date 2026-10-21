@@ -307,17 +307,19 @@ func (e *Encoder) encodeFeatureValue(eObject ecore.EObjectInternal, featureID in
 			featureData.name = ""
 		}
 		value := eObject.EGetFromID(featureID, false)
+		// nil for an unsettable reference set to nil : encodeObject writes it as -1
+		eValue, _ := value.(ecore.EObject)
 		switch featureData.featureKind {
 		case bfkObject:
 			fallthrough
 		case bfkObjectContainment:
-			return e.encodeObject(value.(ecore.EObject), checkNothing)
+			return e.encodeObject(eValue, checkNothing)
 		case bfkObjectContainerProxy:
-			return e.encodeObject(value.(ecore.EObject), checkResource)
+			return e.encodeObject(eValue, checkResource)
 		case bfkObjectContainmentProxy:
-			return e.encodeObject(value.(ecore.EObject), checkDirectResource)
+			return e.encodeObject(eValue, checkDirectResource)
 		case bfkObjectProxy:
-			return e.encodeObject(value.(ecore.EObject), checkResource)
+			return e.encodeObject(eValue, checkResource)
 		case bfkObjectList:
 			fallthrough
 		case bfkObjectContainmentList:

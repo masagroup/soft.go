@@ -92,6 +92,7 @@ func TestEAnnotationEModelElementSet(t *testing.T) {
 	// another value - in a different resource
 	mockValue2 := NewMockEModelElement(t)
 	mockResource2 := NewMockEResource(t)
+	mockValue.EXPECT().EClass().Return(GetPackage().GetEModelElement()).Once()
 	mockValue.EXPECT().EInverseRemove(o, EMODEL_ELEMENT__EANNOTATIONS, nil).Return(nil).Once()
 	mockValue.EXPECT().EResource().Return(mockResource).Once()
 	mockValue2.EXPECT().EInverseAdd(o, EMODEL_ELEMENT__EANNOTATIONS, nil).Return(nil).Once()
@@ -290,6 +291,7 @@ func TestEAnnotationEBasicInverseAdd(t *testing.T) {
 		mockOther.EXPECT().EResource().Return(nil).Once()
 		mockOther.EXPECT().EIsProxy().Return(false).Once()
 		mockObject.EXPECT().EResource().Return(nil).Once()
+		mockObject.EXPECT().EClass().Return(GetPackage().GetEModelElement()).Once()
 		mockObject.EXPECT().EInverseRemove(o, EMODEL_ELEMENT__EANNOTATIONS, nil).Return(nil).Once()
 		o.EBasicInverseAdd(mockOther, EANNOTATION__EMODEL_ELEMENT, nil)
 		assert.Equal(t, mockOther, o.GetEModelElement())

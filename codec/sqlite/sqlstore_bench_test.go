@@ -20,7 +20,7 @@ func BenchmarkSQLStore_Add(b *testing.B) {
 	require.NotNil(b, eFeature)
 
 	dbPath := filepath.Join(b.TempDir(), "library.datalist.sqlite")
-	require.NoError(b, copyFile("testdata/library.datalist.sqlite", dbPath))
+	require.NoError(b, copyFile("testdata/legacy/library.datalist.sqlite", dbPath))
 	s, err := NewStore(dbPath, ecore.NewURI(""), nil, newSQLMockEPackageRegistry(b), nil)
 	require.NoError(b, err)
 	defer s.Close()

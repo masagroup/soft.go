@@ -47,6 +47,10 @@ func (m *UniqueIDManager[ID]) setObjectID(eObject EObject, newID ID) {
 	}
 
 	if m.isValidID(newID) {
+		// an id has one object : its previous one loses it
+		if previous, isPrevious := m.idToObject[newID]; isPrevious && previous != eObject {
+			delete(m.objectToID, previous)
+		}
 		m.setID(newID)
 		m.objectToID[eObject] = newID
 		m.idToObject[newID] = eObject

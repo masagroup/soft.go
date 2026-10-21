@@ -27,7 +27,10 @@ func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *
 	s := new(Encoder)
 	s.Encoder = xml.NewEncoder(resource, w, options)
 	s.SetInterfaces(s)
-	s.SetExtendedMetaData(nil)
+	// no extended metadata, unless the options give one, as the decoder
+	if options == nil || options[xml.OPTION_EXTENDED_META_DATA] == nil {
+		s.SetExtendedMetaData(nil)
+	}
 	s.xmiVersion = "2.0"
 	return s
 }

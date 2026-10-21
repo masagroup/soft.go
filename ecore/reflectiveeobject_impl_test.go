@@ -77,11 +77,19 @@ func TestReflectiveEObjectImpl_EContainmentFeature(t *testing.T) {
 	assert.Equal(t, mockReference, o.EContainmentFeature())
 	mock.AssertExpectationsForObjects(t, mockClass, mockContainer, mockReference)
 
-	//
+	// container reference of the object: its opposite
+	mockContainerReference := NewMockEReference(t)
 	o.ESetInternalContainer(mockContainer, 1)
-	mockClass.EXPECT().GetEStructuralFeature(1).Return(mockReference).Once()
+	mockClass.EXPECT().GetEStructuralFeature(1).Return(mockContainerReference).Once()
+	mockContainerReference.EXPECT().GetEOpposite().Return(mockReference).Once()
 	assert.Equal(t, mockReference, o.EContainmentFeature())
-	mock.AssertExpectationsForObjects(t, mockClass, mockContainer, mockReference)
+	mock.AssertExpectationsForObjects(t, mockClass, mockContainer, mockReference, mockContainerReference)
+
+	// container reference without opposite
+	o.ESetInternalContainer(mockContainer, 1)
+	mockClass.EXPECT().GetEStructuralFeature(1).Return(mockContainerReference).Once()
+	mockContainerReference.EXPECT().GetEOpposite().Return(nil).Once()
+	assert.Panics(t, func() { o.EContainmentFeature() })
 
 	//
 	o.ESetInternalContainer(mockContainer, 1)
@@ -94,38 +102,45 @@ func TestReflectiveEObjectImpl_EContainmentFeature(t *testing.T) {
 
 func TestReflectiveEObjectImpl_ESetResource(t *testing.T) {
 	mockClass := NewMockEClass(t)
+	mockContainerClass := NewMockEClass(t)
 	mockContainer := NewMockEObjectInternal(t)
 	mockResource := NewMockEResource(t)
 	mockNotifications := NewMockENotificationChain(t)
 	mockReference := NewMockEReference(t)
+	mockContainerReference := NewMockEReference(t)
 	o := NewReflectiveEObjectImpl()
 	o.SetEClass(mockClass)
 	o.ESetInternalContainer(mockContainer, 0)
 
 	// set resource with container feature which is a reference proxy
-	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockReference).Once()
+	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockContainerReference).Once()
+	mockContainerReference.EXPECT().GetEOpposite().Return(mockReference).Once()
 	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
 	mockContainer.EXPECT().EResource().Return(mockResource).Once()
 	mockResource.EXPECT().Detached(o).Once()
 	assert.Equal(t, mockNotifications, o.ESetResource(mockResource, mockNotifications))
-	mock.AssertExpectationsForObjects(t, mockResource, mockContainer, mockReference, mockClass, mockNotifications)
+	mock.AssertExpectationsForObjects(t, mockResource, mockContainer, mockReference, mockContainerReference, mockClass, mockNotifications)
 
 	// reset resource with container feature as a reference proxy
-	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockReference).Once()
+	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockContainerReference).Once()
+	mockContainerReference.EXPECT().GetEOpposite().Return(mockReference).Once()
 	mockReference.EXPECT().IsResolveProxies().Return(true).Once()
 	mockContainer.EXPECT().EResource().Return(mockResource).Once()
 	mockResource.EXPECT().Attached(o).Once()
 	assert.Equal(t, mockNotifications, o.ESetResource(nil, mockNotifications))
-	mock.AssertExpectationsForObjects(t, mockResource, mockContainer, mockReference, mockClass, mockNotifications)
+	mock.AssertExpectationsForObjects(t, mockResource, mockContainer, mockReference, mockContainerReference, mockClass, mockNotifications)
 
 	// set new resource with a container as a non proxy reference
-	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockReference).Twice()
+	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockContainerReference).Twice()
+	mockContainerReference.EXPECT().GetEOpposite().Return(mockReference).Twice()
 	mockReference.EXPECT().IsResolveProxies().Return(false).Once()
-	mockReference.EXPECT().GetEOpposite().Return(nil).Once()
+	mockContainer.EXPECT().EClass().Return(mockContainerClass).Once()
+	mockContainerClass.EXPECT().GetFeatureID(mockReference).Return(1).Once()
+	mockContainer.EXPECT().EInverseRemove(o, 1, mockNotifications).Return(mockNotifications).Once()
 	mockContainer.EXPECT().EResource().Return(mockResource).Once()
 	mockResource.EXPECT().Detached(o).Once()
 	assert.Equal(t, mockNotifications, o.ESetResource(mockResource, mockNotifications))
-	mock.AssertExpectationsForObjects(t, mockResource, mockContainer, mockReference, mockClass, mockNotifications)
+	mock.AssertExpectationsForObjects(t, mockResource, mockContainer, mockContainerClass, mockReference, mockContainerReference, mockClass, mockNotifications)
 }
 
 func TestReflectiveEObjectImpl_EGetFromID(t *testing.T) {
@@ -205,7 +220,7 @@ func TestReflectiveEObjectImpl_GetAttribute_Many(t *testing.T) {
 	mockClass.EXPECT().GetFeatureCount().Return(2).Once()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Once()
 	mockAttribute.EXPECT().IsMany().Return(true).Once()
-	mockAttribute.EXPECT().GetFeatureID().Return(2).Once()
+	mockClass.EXPECT().GetFeatureID(mockAttribute).Return(2).Once()
 	mockAttribute.EXPECT().IsUnique().Return(true).Once()
 	mockAttribute.EXPECT().GetEType().Return(nil).Once()
 	val := o.EGetFromID(0, false)
@@ -229,8 +244,8 @@ func TestReflectiveEObjectImpl_GetReference_Many(t *testing.T) {
 	mockReference.EXPECT().GetEType().Return(nil).Once()
 	mockReference.EXPECT().GetEOpposite().Return(nil).Twice()
 	mockReference.EXPECT().IsContainment().Return(false).Once()
-	mockReference.EXPECT().GetFeatureID().Return(0).Once()
-	mockReference.EXPECT().EIsProxy().Return(false).Once()
+	mockClass.EXPECT().GetFeatureID(mockReference).Return(0).Once()
+	mockReference.EXPECT().IsResolveProxies().Return(false).Once()
 	mockReference.EXPECT().IsUnsettable().Return(false).Once()
 	val := o.EGetFromID(0, false)
 	assert.NotNil(t, val)
@@ -247,7 +262,7 @@ func TestReflectiveEObjectImpl_SetAttribute(t *testing.T) {
 
 	mockClass := NewMockEClass(t)
 	mockClass.EXPECT().GetFeatureCount().Return(2).Once()
-	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(4)
+	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(5)
 
 	mockObject := NewMockEObject(t)
 
@@ -260,6 +275,10 @@ func TestReflectiveEObjectImpl_SetAttribute(t *testing.T) {
 
 	// check that value is well set
 	assert.Equal(t, mockObject, o.EGetFromID(0, true))
+	mockAttribute.EXPECT().IsMany().Return(false).Maybe() // a set many feature is checked for emptiness
+	// a set value is set when it is not the default of the attribute
+	mockAttribute.EXPECT().IsUnsettable().Return(false).Maybe()
+	mockAttribute.EXPECT().GetDefaultValue().Return(nil).Maybe()
 	assert.True(t, o.EIsSetFromID(0))
 
 	mock.AssertExpectationsForObjects(t, mockClass, mockAttribute)
@@ -343,18 +362,19 @@ func TestReflectiveEObjectImpl_SetContainer(t *testing.T) {
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockReference).Once()
 	mockClass.EXPECT().GetFeatureID(mockReference).Return(0).Once()
 	assert.Equal(t, mockObject, o.EGetFromID(0, true))
-	mock.AssertExpectationsForObjects(t, mockClass, mockReference, mockOpposite, mockObject)
+	mock.AssertExpectationsForObjects(t, mockClass, mockReference, mockOpposite, mockObject, mockObjectClass)
 
 	// set reference as nil
 	mockObject.EXPECT().EInverseRemove(o.GetInterfaces(), 0, nil).Return(nil).Once()
 	mockObject.EXPECT().EResource().Return(nil).Once()
 	mockOpposite.EXPECT().IsContainment().Return(true).Once()
-	mockOpposite.EXPECT().GetFeatureID().Return(0).Once()
+	mockObject.EXPECT().EClass().Return(mockObjectClass).Once()
+	mockObjectClass.EXPECT().GetFeatureID(mockOpposite).Return(0).Once()
 	mockReference.EXPECT().GetEOpposite().Return(mockOpposite).Twice()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockReference).Twice()
 	mockClass.EXPECT().GetFeatureID(mockReference).Return(0).Once()
 	o.ESetFromID(0, nil)
-	mock.AssertExpectationsForObjects(t, mockClass, mockReference, mockOpposite, mockObject)
+	mock.AssertExpectationsForObjects(t, mockClass, mockReference, mockOpposite, mockObject, mockObjectClass)
 
 	// get unresolved
 	mockOpposite.EXPECT().IsContainment().Return(true).Once()
@@ -362,7 +382,7 @@ func TestReflectiveEObjectImpl_SetContainer(t *testing.T) {
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockReference).Once()
 	mockClass.EXPECT().GetFeatureID(mockReference).Return(0).Once()
 	assert.Nil(t, o.EGetFromID(0, false))
-	mock.AssertExpectationsForObjects(t, mockClass, mockReference, mockOpposite, mockObject)
+	mock.AssertExpectationsForObjects(t, mockClass, mockReference, mockOpposite, mockObject, mockObjectClass)
 }
 
 func TestReflectiveEObjectImpl_UnSetContainer(t *testing.T) {
@@ -392,7 +412,8 @@ func TestReflectiveEObjectImpl_UnSetContainer(t *testing.T) {
 	mockObject.EXPECT().EInverseRemove(o.GetInterfaces(), 0, nil).Return(nil).Once()
 	mockObject.EXPECT().EResource().Return(nil).Once()
 	mockOpposite.EXPECT().IsContainment().Return(true).Once()
-	mockOpposite.EXPECT().GetFeatureID().Return(0).Once()
+	mockObject.EXPECT().EClass().Return(mockObjectClass).Once()
+	mockObjectClass.EXPECT().GetFeatureID(mockOpposite).Return(0).Once()
 	mockReference.EXPECT().GetEOpposite().Return(mockOpposite).Twice()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockReference).Twice()
 	mockClass.EXPECT().GetFeatureID(mockReference).Return(0).Once()

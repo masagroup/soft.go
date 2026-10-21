@@ -58,13 +58,19 @@ func (pack *EPackageExt) GetEClassifier(classifier string) EClassifier {
 	pack.classifierMutex.Lock()
 	defer pack.classifierMutex.Unlock()
 
-	// initialize map if needed
-	if pack.classifierCache == nil {
-		pack.classifierCache = map[string]EClassifier{}
-		for itClassifier := pack.GetEClassifiers().Iterator(); itClassifier.HasNext(); {
-			classifier := itClassifier.Next().(EClassifier)
-			pack.classifierCache[classifier.GetName()] = classifier
+	// a cached classifier still of that name: a classifier renamed after the cache was built is
+	// in it under its old name, which a miss or a mismatch rebuilds
+	if pack.classifierCache != nil {
+		if eClassifier := pack.classifierCache[classifier]; eClassifier != nil && eClassifier.GetName() == classifier {
+			return eClassifier
 		}
+	}
+
+	// build the map
+	pack.classifierCache = map[string]EClassifier{}
+	for itClassifier := pack.GetEClassifiers().Iterator(); itClassifier.HasNext(); {
+		eClassifier := itClassifier.Next().(EClassifier)
+		pack.classifierCache[eClassifier.GetName()] = eClassifier
 	}
 
 	// read map value

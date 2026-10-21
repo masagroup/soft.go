@@ -72,11 +72,12 @@ func (list *BasicEList) DoAdd(e any) {
 
 func (list *BasicEList) DoAddAll(collection Collection) bool {
 	data := collection.ToArray()
+	size := len(list.data)
 	list.data = append(list.data, data...)
 	// events
 	listCallbacks := list.asEListCallbacks()
 	for i, element := range data {
-		listCallbacks.DidAdd(i, element)
+		listCallbacks.DidAdd(size+i, element)
 	}
 	listCallbacks.DidChange()
 	return len(data) != 0

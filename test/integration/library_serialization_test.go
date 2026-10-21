@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	_ "github.com/masagroup/soft.go/codec/defaults"
 	"github.com/masagroup/soft.go/codec/binary"
+	_ "github.com/masagroup/soft.go/codec/defaults"
 	"github.com/masagroup/soft.go/codec/xml"
 	"github.com/masagroup/soft.go/ecore"
 	"github.com/masagroup/soft.go/test/library"

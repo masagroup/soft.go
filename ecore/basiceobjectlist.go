@@ -16,11 +16,13 @@ type basicEObjectList struct {
 	owner            EObjectInternal
 	featureID        int
 	inverseFeatureID int
-	containment      bool
-	inverse          bool
-	opposite         bool
-	proxies          bool
-	unset            bool
+	// the opposite of a dynamic feature, nil for a generated list (see inverseFeatureIDOf)
+	oppositeReference EReference
+	containment       bool
+	inverse           bool
+	opposite          bool
+	proxies           bool
+	unset             bool
 }
 
 func NewBasicEObjectList(owner EObjectInternal, featureID int, inverseFeatureID int, containment, inverse, opposite, proxies, unset bool) *basicEObjectList {
@@ -120,12 +122,25 @@ func (list *basicEObjectList) resolveProxy(eObject EObject) EObject {
 	return eObject
 }
 
+// inverseFeatureIDOf returns the ID of the opposite in the class of internal. inverseFeatureID is
+// its ID in the class declaring it, which differs in a class inheriting it from a super type other
+// than its first one. The list of a dynamic feature knows its opposite and maps it; a generated
+// list has its IDs only (and its classes may not be built yet, while their package initializes).
+func (list *basicEObjectList) inverseFeatureIDOf(internal EObjectInternal) int {
+	if list.oppositeReference != nil {
+		if featureID := internal.EClass().GetFeatureID(list.oppositeReference); featureID != -1 {
+			return featureID
+		}
+	}
+	return list.inverseFeatureID
+}
+
 func (list *basicEObjectList) InverseAdd(object any, notifications ENotificationChain) ENotificationChain {
 	checkSameImplementation(list.owner, object)
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {
-			return internal.EInverseAdd(list.owner, list.inverseFeatureID, notifications)
+			return internal.EInverseAdd(list.owner, list.inverseFeatureIDOf(internal), notifications)
 		} else {
 			return internal.EInverseAdd(list.owner, EOPPOSITE_FEATURE_BASE-list.featureID, notifications)
 		}
@@ -137,7 +152,7 @@ func (list *basicEObjectList) InverseRemove(object any, notifications ENotificat
 	internal, _ := object.(EObjectInternal)
 	if internal != nil && list.inverse {
 		if list.opposite {
-			return internal.EInverseRemove(list.owner, list.inverseFeatureID, notifications)
+			return internal.EInverseRemove(list.owner, list.inverseFeatureIDOf(internal), notifications)
 		} else {
 			return internal.EInverseRemove(list.owner, EOPPOSITE_FEATURE_BASE-list.featureID, notifications)
 		}

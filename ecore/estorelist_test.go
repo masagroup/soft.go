@@ -185,7 +185,7 @@ func TestEStoreList_AddReferenceContainmentNoOpposite(t *testing.T) {
 	mockObject := NewMockEObjectInternal(t)
 	mockStore.EXPECT().Contains(mockOwner, mockReference, mockObject).Return(false).Once()
 	mockStore.EXPECT().Add(mockOwner, mockReference, 0, mockObject).Once()
-	mockReference.EXPECT().GetFeatureID().Return(0).Once()
+	mockOwner.EXPECT().EClass().Return(newFeatureIDClass(t, mockReference, 0)).Once()
 	mockObject.EXPECT().EInverseAdd(mockOwner, EOPPOSITE_FEATURE_BASE-0, nil).Return(nil).Once()
 	mockOwner.EXPECT().EDeliver().Return(false).Once()
 	assert.True(t, list.Add(mockObject))
@@ -392,13 +392,16 @@ func TestEStoreList_Move(t *testing.T) {
 	mockObject := NewMockEObjectInternal(t)
 	mockAdapter := NewMockEAdapter(t)
 	mockFeature.EXPECT().IsUnique().Return(true).Once()
-	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(1).Once()
+	mockStore.EXPECT().Size(mockOwner, mockFeature).Return(2).Once()
 	list := NewEStoreList(mockOwner, mockFeature, mockStore)
 	require.NotNil(t, list)
-	assert.Equal(t, 1, list.Size())
+	assert.Equal(t, 2, list.Size())
 
 	assert.Panics(t, func() {
 		list.Move(-1, 1)
+	})
+	assert.Panics(t, func() {
+		list.Move(0, 2)
 	})
 	mock.AssertExpectationsForObjects(t, mockOwner, mockFeature, mockStore, mockObject)
 
@@ -575,9 +578,9 @@ func TestEStoreList_Set(t *testing.T) {
 		mockStore.EXPECT().IndexOf(list.owner, list.feature, mockNewObject).Return(-1).Once()
 	}
 	mockStore.EXPECT().Set(list.owner, list.feature, 0, mockNewObject, true).Return(mockOldObject).Once()
-	mockReference.EXPECT().GetFeatureID().Return(0).Once()
+	mockOwner.EXPECT().EClass().Return(newFeatureIDClass(t, mockReference, 0)).Once()
 	mockOldObject.EXPECT().EInverseRemove(mockOwner, EOPPOSITE_FEATURE_BASE-0, nil).Return(nil).Once()
-	mockReference.EXPECT().GetFeatureID().Return(0).Once()
+	mockOwner.EXPECT().EClass().Return(newFeatureIDClass(t, mockReference, 0)).Once()
 	mockNewObject.EXPECT().EInverseAdd(mockOwner, EOPPOSITE_FEATURE_BASE-0, nil).Return(nil).Once()
 	mockOwner.EXPECT().EDeliver().Return(false).Once()
 	assert.Equal(t, mockOldObject, list.Set(0, mockNewObject))

@@ -453,6 +453,11 @@ func (o *AbstractEObject) eDynamicPropertiesGet(properties EDynamicProperties, d
 					}
 				}
 			}
+		} else if !resolve {
+			// as the generated getters and EMF's basicList : a list that does not resolve its proxies
+			if objects, _ := result.(EObjectList); objects != nil {
+				return objects.GetUnResolvedList()
+			}
 		}
 		return result
 	}
@@ -553,7 +558,13 @@ func (o *AbstractEObject) ESetFromID(featureID int, newValue any) {
 // reference, updating the opposite or the containment of the old and the new value, and notifies.
 func (o *AbstractEObject) eDynamicPropertiesSet(properties EDynamicProperties, dynamicFeature EStructuralFeature, dynamicFeatureID int, newValue any) {
 	checkSameImplementation(o.interfaces, newValue)
-	if IsContainer(dynamicFeature) {
+	if newList, _ := newValue.(EList); newList != nil && dynamicFeature.IsMany() {
+		// as the generated setters: the elements of the list of the feature are replaced, which keeps
+		// its containment and opposites
+		list := o.eDynamicPropertiesGet(properties, dynamicFeature, dynamicFeatureID, true).(EList)
+		list.Clear()
+		list.AddAll(newList)
+	} else if IsContainer(dynamicFeature) {
 		// container
 		objInternal := o.AsEObjectInternal()
 		featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)

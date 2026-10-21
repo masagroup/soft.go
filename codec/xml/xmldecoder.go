@@ -640,7 +640,8 @@ func (l *Decoder) setValueFromId(eObject ecore.EObject, eReference ecore.ERefere
 	isFirstID := true
 	position := 0
 	references := []xmlReference{}
-	tokens := strings.Split(ids, " ")
+	// an empty value has no id : an empty list
+	tokens := strings.Fields(ids)
 	qName := ""
 	for _, token := range tokens {
 		id := token
@@ -769,7 +770,7 @@ func (l *Decoder) handleReferences() {
 						replace = !list.Contains(proxyHolder)
 					} else {
 						value := resolvedObject.EGet(eReference)
-						object := value.(ecore.EObject)
+						object, _ := value.(ecore.EObject)
 						replace = object != proxyHolder
 					}
 

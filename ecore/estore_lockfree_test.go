@@ -86,11 +86,11 @@ func TestEStoreList_ConcurrentReadsDuringWrites(t *testing.T) {
 	}
 	for i := range count {
 		list.Add(fmt.Sprintf("v%d", i))
-		switch {
-		case i%100 == 50:
+		switch i % 100 {
+		case 50:
 			list.Move(0, i)
 			list.Move(i, 0)
-		case i%100 == 75:
+		case 75:
 			list.Set(i, list.Get(i))
 		}
 	}

@@ -20,8 +20,6 @@ MODULES = . codec/xml codec/xmi codec/json codec/binary codec/sqlite codec/defau
 SOFT_GEN_GOLANG_IMAGE ?= golang:1.27.3-alpine
 # the generator: soft-gen of soft.gen v2, run from its module at a fixed version
 SOFT_GEN_VERSION = v2.0.0-alpha.2
-SOFT_GEN = $(SOFT_GEN_GO) run github.com/masagroup/soft.gen/v2/cmd/soft-gen@$(SOFT_GEN_VERSION)
-GENERATE = $(SOFT_GEN) go -m ../models/$(2) -o ./$(1) -P generator.properties $(3)
 
 # os detection
 ifeq (${OS},Windows_NT)
@@ -50,6 +48,16 @@ else
 	SOFT_GEN_GO := docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -v soft-gen-gomod:/go/pkg/mod -w /pwd $(SOFT_GEN_GOLANG_IMAGE) go
 	GO = $(error "go is not in your system PATH")
 endif
+
+# the soft-gen command: built and run by go from the soft.gen module at
+# SOFT_GEN_VERSION (downloaded once into the go module cache), whatever the
+# go.mod and go.work of this folder
+SOFT_GEN = $(SOFT_GEN_GO) run github.com/masagroup/soft.gen/v2/cmd/soft-gen@$(SOFT_GEN_VERSION)
+# GENERATE generates go code from a model of ../models with the properties of
+# generator.properties: $(call GENERATE,<output folder>,<model>,<options>), the
+# output folder relative to this one (empty: here), the model a file name in
+# ../models, the options extra soft-gen options (-t <template>, -p key=value)
+GENERATE = $(SOFT_GEN) go -m ../models/$(2) -o ./$(1) -P generator.properties $(3)
 
 .PHONY: all
 all: generate fmt lint build test

@@ -16,7 +16,10 @@ TOURNAMENT_REFLECTIVE = $(TOURNAMENT)/tournament\#$(TOURNAMENT)/reflective/refle
 # the modules of the go.work: the core and the codecs, each with its own dependencies
 MODULES = . codec/xml codec/xmi codec/json codec/binary codec/sqlite codec/defaults test/integration
 
-GENERATE = docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -w /pwd masagroup/soft.generator.go -m /models/$(2) -o /pwd/$(1) -P /pwd/generator.properties $(3)
+# the generator: soft-gen of soft.gen v2, run from its module at a fixed version
+SOFT_GEN_VERSION = v2.0.0-alpha.2
+SOFT_GEN = $(GO) run github.com/masagroup/soft.gen/v2/cmd/soft-gen@$(SOFT_GEN_VERSION)
+GENERATE = $(SOFT_GEN) go -m ../models/$(2) -o ./$(1) -P generator.properties $(3)
 
 # os detection
 ifeq (${OS},Windows_NT)

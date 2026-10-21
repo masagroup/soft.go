@@ -712,7 +712,7 @@ func (s *Encoder) getPrefix(ePackage ecore.EPackage, mustHavePrefix bool) string
 
 			if uri, exists := s.prefixesToURI[nsPrefix]; exists && uri != nsURI {
 				index := 1
-				for _, exists = s.prefixesToURI[nsPrefix+"_"+fmt.Sprintf("%d", index)]; exists; {
+				for _, exists = s.prefixesToURI[nsPrefix+"_"+fmt.Sprintf("%d", index)]; exists; _, exists = s.prefixesToURI[nsPrefix+"_"+fmt.Sprintf("%d", index)] {
 					index++
 				}
 				nsPrefix += "_" + fmt.Sprintf("%d", index)

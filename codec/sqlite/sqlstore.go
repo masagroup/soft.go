@@ -761,6 +761,13 @@ func newSQLStore(
 		return nil, err
 	}
 
+	// a new database has qualified tables, an existing one keeps the naming of its property
+	hasObjects, err := store.hasTable(".objects")
+	if err != nil {
+		return nil, err
+	}
+	store.isQualifiedTables = !hasObjects
+
 	// decode schema
 	if err = store.decodeSchema([]sqlSchemaOption{withCreateIfNotExists(true)}); err != nil {
 		return nil, err

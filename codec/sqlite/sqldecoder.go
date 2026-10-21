@@ -187,7 +187,15 @@ func (d *sqlDecoder) decodeSchema(schemaOptions []sqlSchemaOption) error {
 		}
 	}
 
+	// qualified tables : a database written without the property has the tables named by class
+	if properties["qualifiedTables"] == "true" {
+		d.isQualifiedTables = true
+	}
+
 	// create schema
+	if d.isQualifiedTables {
+		schemaOptions = append(schemaOptions, withQualifiedTables(true))
+	}
 	if d.isObjectID {
 		schemaOptions = append(schemaOptions, withObjectIDName(d.objectIDName))
 	}

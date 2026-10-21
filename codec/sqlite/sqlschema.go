@@ -317,6 +317,8 @@ type sqlSchema struct {
 	createIfNotExists bool
 	isContainerID     bool
 	objectIDName      string
+	// isQualifiedTables names the tables of the classes with their package (see classTableName)
+	isQualifiedTables bool
 }
 
 type sqlSchemaOption interface {
@@ -344,6 +346,12 @@ func withObjectIDName(objectIDName string) sqlSchemaOption {
 func withContainerID(isContainerID bool) sqlSchemaOption {
 	return newFuncSqlSchemaOption(func(s *sqlSchema) {
 		s.isContainerID = isContainerID
+	})
+}
+
+func withQualifiedTables(isQualifiedTables bool) sqlSchemaOption {
+	return newFuncSqlSchemaOption(func(s *sqlSchema) {
+		s.isQualifiedTables = isQualifiedTables
 	})
 }
 
@@ -457,11 +465,33 @@ func (s *sqlSchema) getFeatureSchema(eClass ecore.EClass, eFeature ecore.EStruct
 	return featureSchema
 }
 
+// classTableName is the name of the table of eClass: with qualified tables, "package.class", as
+// classes of different packages may have the same name; otherwise "class", the names of the
+// databases written before the qualified tables.
+func (s *sqlSchema) classTableName(eClass ecore.EClass) string {
+	name := strings.ToLower(eClass.GetName())
+	if s.isQualifiedTables {
+		if ePackage := eClass.GetEPackage(); ePackage != nil {
+			name = strings.ToLower(ePackage.GetName()) + "." + name
+		}
+	}
+	return name
+}
+
+// featureTableName is the name of the table of a many feature of the class of classTable:
+// "package.class.feature" with qualified tables, as '.' is in no name; otherwise "class_feature".
+func (s *sqlSchema) featureTableName(classTable *sqlTable, eFeature ecore.EStructuralFeature) string {
+	if s.isQualifiedTables {
+		return classTable.name + "." + eFeature.GetName()
+	}
+	return classTable.name + "_" + eFeature.GetName()
+}
+
 func (s *sqlSchema) getOrComputeClassSchema(eClass ecore.EClass) *sqlClassSchema {
 	classSchema := s.classSchemaMap[eClass]
 	if classSchema == nil {
 		// create table descriptor
-		classTable := newSqlTable(strings.ToLower(eClass.GetName()), withSqlTableCreateIfNotExists(s.createIfNotExists))
+		classTable := newSqlTable(s.classTableName(eClass), withSqlTableCreateIfNotExists(s.createIfNotExists))
 		classTable.addColumn(newSqlAttributeColumn(strings.ToLower(eClass.GetName())+"ID", "INTEGER", withSqlColumnPrimary(true)))
 
 		// compute table columns and external tables
@@ -488,7 +518,7 @@ func (s *sqlSchema) getOrComputeClassSchema(eClass ecore.EClass) *sqlClassSchema
 
 		newFeatureTable := func(featureSchema *sqlFeatureSchema, eFeature ecore.EStructuralFeature, columns ...*sqlColumn) {
 			table := newSqlTable(
-				classTable.name+"_"+eFeature.GetName(),
+				s.featureTableName(classTable, eFeature),
 				withSqlTableColumns(columns...),
 				withSqlTableCreateIfNotExists(s.createIfNotExists),
 			)
@@ -588,7 +618,8 @@ func isSqliteKeyWord(k string) bool {
 }
 
 func sqlEscapeIdentifier(id string) string {
-	if id[0] == '.' || isSqliteKeyWord(id) {
+	// '.' starts the names of the common tables, and separates the parts of the qualified ones
+	if strings.Contains(id, ".") || isSqliteKeyWord(id) {
 		return "\"" + id + "\""
 	}
 	return id

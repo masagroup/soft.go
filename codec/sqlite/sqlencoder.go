@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -318,10 +320,14 @@ func (e *sqlEncoder) encodeProperties() (err error) {
 	if e.isContainerID {
 		properties["containerID"] = "true"
 	}
+	if e.isQualifiedTables {
+		properties["qualifiedTables"] = "true"
+	}
 
 	query := e.schema.propertiesTable.insertOrReplaceQuery()
-	for k, v := range properties {
-		if previous[k] != v {
+	// by key: the rows are in the same order at each encoding
+	for _, k := range slices.Sorted(maps.Keys(properties)) {
+		if v := properties[k]; previous[k] != v {
 			if err := e.executeQuery(query, &sqlitex.ExecOptions{
 				Args: []any{k, v},
 			}); err != nil {
@@ -953,18 +959,20 @@ func newSQLEncoder(connectionPoolProvider func() (*sqlitex.Pool, error), connect
 	e := &Encoder{
 		sqlEncoder: sqlEncoder{
 			sqlBase: &sqlBase{
-				codecVersion:     codecVersion,
-				uri:              resource.GetURI(),
-				objectIDManager:  objectIDManager,
-				objectIDName:     objectIDName,
-				isContainerID:    isContainerID,
-				isObjectID:       isObjectID,
-				schema:           newSqlSchema(schemaOptions...),
-				sqliteQueries:    map[string][]*query{},
-				antsPool:         antsPool,
-				promisePool:      promisePool,
-				connPoolProvider: connectionPoolProvider,
-				connPoolClose:    connectionPoolClose,
+				codecVersion:    codecVersion,
+				uri:             resource.GetURI(),
+				objectIDManager: objectIDManager,
+				objectIDName:    objectIDName,
+				isContainerID:   isContainerID,
+				isObjectID:      isObjectID,
+				// a written database has the tables of its classes named with their package
+				isQualifiedTables: true,
+				schema:            newSqlSchema(append(schemaOptions, withQualifiedTables(true))...),
+				sqliteQueries:     map[string][]*query{},
+				antsPool:          antsPool,
+				promisePool:       promisePool,
+				connPoolProvider:  connectionPoolProvider,
+				connPoolClose:     connectionPoolClose,
 			},
 			isForced:         true,
 			isKeepDefaults:   isKeepDefaults,

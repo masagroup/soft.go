@@ -122,7 +122,7 @@ func getSQLCodecFeatureKind(eFeature ecore.EStructuralFeature) sqlFeatureKind {
 				return sfkEnum
 			}
 
-			switch eDataType.GetInstanceTypeName() {
+			switch instanceTypeName(eDataType) {
 			case "float64", "java.lang.Double", "double":
 				return sfkFloat64
 			case "float32", "java.lang.Float", "float":
@@ -158,4 +158,15 @@ type CodecIDManager interface {
 	SetObjectID(ecore.EObject, int64)
 	SetClassID(ecore.EClass, int64)
 	SetEnumLiteralID(ecore.EEnumLiteral, int64)
+}
+
+// instanceTypeName returns the Go type of the values of eDataType: the instance type of its GenGo
+// annotation if any, as ecore's factory creates them, else its instance type name.
+func instanceTypeName(eDataType ecore.EDataType) string {
+	if eAnnotation := eDataType.GetEAnnotation("http://net.masagroup/soft/2019/GenGo"); eAnnotation != nil {
+		if name, _ := eAnnotation.GetDetails().GetValue("instanceTypeName").(string); name != "" {
+			return name
+		}
+	}
+	return eDataType.GetInstanceTypeName()
 }

@@ -19,34 +19,38 @@ import (
 )
 
 type URIBuilder struct {
-	scheme   string
-	username string
-	password string
-	host     string
-	port     string
-	path     string
-	query    string
-	fragment string
+	// hasAuthority keeps an empty authority ("file:///path")
+	hasAuthority bool
+	scheme       string
+	username     string
+	password     string
+	host         string
+	port         string
+	path         string
+	query        string
+	fragment     string
 }
 
 func NewURIBuilder(uri *URI) *URIBuilder {
 	if uri != nil {
 		return &URIBuilder{
-			scheme:   uri.scheme,
-			username: uri.username,
-			password: uri.password,
-			host:     uri.host,
-			port:     uri.port,
-			path:     uri.path,
-			query:    uri.query,
-			fragment: uri.fragment,
+			hasAuthority: uri.hasAuthority,
+			scheme:       uri.scheme,
+			username:     uri.username,
+			password:     uri.password,
+			host:         uri.host,
+			port:         uri.port,
+			path:         uri.path,
+			query:        uri.query,
+			fragment:     uri.fragment,
 		}
 	}
 	return &URIBuilder{}
 }
 
 func (builder *URIBuilder) URI() *URI {
-	return NewURIFromComponents(
+	return newURIFromComponents(
+		builder.hasAuthority,
 		builder.scheme,
 		builder.username,
 		builder.password,
@@ -109,15 +113,18 @@ func (b *URIBuilder) ClearFragment() *URIBuilder {
 }
 
 type URI struct {
-	scheme   string
-	username string
-	password string
-	host     string
-	port     string
-	path     string
-	query    string
-	fragment string
-	rawURI   string
+	// hasAuthority is true for a uri with an authority, empty in "file:///path" but not in
+	// "file:/path"
+	hasAuthority bool
+	scheme       string
+	username     string
+	password     string
+	host         string
+	port         string
+	path         string
+	query        string
+	fragment     string
+	rawURI       string
 }
 
 const (
@@ -167,6 +174,12 @@ func (c *uriWeakCache) GetOrSet(rawURI string, uri *URI) *URI {
 }
 
 func NewURIFromComponents(scheme string, username string, password string, host string, port string, path string, query string, fragment string) *URI {
+	return newURIFromComponents(false, scheme, username, password, host, port, path, query, fragment)
+}
+
+// newURIFromComponents creates the uri of the components, with an authority, if hasAuthority, even
+// empty.
+func newURIFromComponents(hasAuthority bool, scheme string, username string, password string, host string, port string, path string, query string, fragment string) *URI {
 	var s strings.Builder
 	indexes := [8][2]int{}
 	writeComponent := func(Component int, str string) {
@@ -178,7 +191,8 @@ func NewURIFromComponents(scheme string, username string, password string, host 
 		writeComponent(schemeComponent, scheme)
 		s.WriteRune(':')
 	}
-	if len(username) > 0 || len(password) > 0 || len(host) > 0 || len(port) > 0 {
+	hasAuthority = hasAuthority || len(username) > 0 || len(password) > 0 || len(host) > 0 || len(port) > 0
+	if hasAuthority {
 		s.WriteString("//")
 		if len(username) > 0 || len(password) > 0 {
 			writeComponent(usernameComponent, username)
@@ -213,15 +227,16 @@ func NewURIFromComponents(scheme string, username string, password string, host 
 			return rawURI[indexes[c][0]:indexes[c][1]]
 		}
 		uri = &URI{
-			scheme:   getComponent(schemeComponent),
-			username: getComponent(usernameComponent),
-			password: getComponent(passwordComponent),
-			host:     getComponent(hostComponent),
-			port:     getComponent(portComponent),
-			path:     getComponent(pathComponent),
-			query:    getComponent(queryComponent),
-			fragment: getComponent(fragmentComponent),
-			rawURI:   rawURI,
+			hasAuthority: hasAuthority,
+			scheme:       getComponent(schemeComponent),
+			username:     getComponent(usernameComponent),
+			password:     getComponent(passwordComponent),
+			host:         getComponent(hostComponent),
+			port:         getComponent(portComponent),
+			path:         getComponent(pathComponent),
+			query:        getComponent(queryComponent),
+			fragment:     getComponent(fragmentComponent),
+			rawURI:       rawURI,
 		}
 		uri = uriCache.GetOrSet(rawURI, uri)
 	}
@@ -240,6 +255,12 @@ func ParseURI(rawURI string) (*URI, error) {
 			return nil, err
 		} else {
 			uri = &URI{scheme: url.Scheme, path: url.Path, fragment: url.Fragment, query: url.RawQuery, rawURI: rawURI}
+			// the authority follows the scheme and its ':' (as url.Parse, a relative "///path" is a path)
+			afterScheme := rawURI
+			if len(url.Scheme) > 0 {
+				afterScheme = rawURI[len(url.Scheme)+1:]
+			}
+			uri.hasAuthority = strings.HasPrefix(afterScheme, "//") && (len(url.Scheme) > 0 || !strings.HasPrefix(afterScheme, "///"))
 			if url.User != nil {
 				uri.username = url.User.Username()
 				uri.password, _ = url.User.Password()
@@ -341,7 +362,8 @@ func (uri *URI) Normalize() *URI {
 		return uri
 	}
 
-	return NewURIFromComponents(
+	return newURIFromComponents(
+		uri.hasAuthority,
 		uri.scheme,
 		uri.username,
 		uri.password,
@@ -360,7 +382,7 @@ func (uri *URI) Resolve(ref *URI) *URI {
 		if ref.fragment == uri.fragment {
 			return uri
 		}
-		return NewURIFromComponents(uri.scheme, uri.username, uri.password, uri.host, uri.port, uri.path, uri.query, ref.fragment)
+		return newURIFromComponents(uri.hasAuthority, uri.scheme, uri.username, uri.password, uri.host, uri.port, uri.path, uri.query, ref.fragment)
 	}
 
 	// check if opaque
@@ -374,14 +396,14 @@ func (uri *URI) Resolve(ref *URI) *URI {
 	}
 
 	// no authority
-	if len(refAuthority) == 0 {
+	if !ref.hasAuthority {
 		path := ref.path
 		if len(ref.path) == 0 || ref.path[0] != '/' {
 			path = resolvePath(uri.path, ref.path, uri.IsAbsolute())
 		}
-		return NewURIFromComponents(uri.scheme, uri.username, uri.password, uri.host, uri.port, path, ref.query, ref.fragment)
+		return newURIFromComponents(uri.hasAuthority, uri.scheme, uri.username, uri.password, uri.host, uri.port, path, ref.query, ref.fragment)
 	}
-	return NewURIFromComponents(uri.scheme, ref.username, ref.password, ref.host, ref.port, ref.path, ref.query, ref.fragment)
+	return newURIFromComponents(true, uri.scheme, ref.username, ref.password, ref.host, ref.port, ref.path, ref.query, ref.fragment)
 }
 
 func (uri *URI) Relativize(ref *URI) *URI {
@@ -410,7 +432,8 @@ func (uri *URI) Relativize(ref *URI) *URI {
 }
 
 func (uri *URI) TrimFragment() *URI {
-	return NewURIFromComponents(
+	return newURIFromComponents(
+		uri.hasAuthority,
 		uri.scheme,
 		uri.username,
 		uri.password,
@@ -423,7 +446,8 @@ func (uri *URI) TrimFragment() *URI {
 }
 
 func (uri *URI) TrimQuery() *URI {
-	return NewURIFromComponents(
+	return newURIFromComponents(
+		uri.hasAuthority,
 		uri.scheme,
 		uri.username,
 		uri.password,
@@ -444,7 +468,7 @@ func (uri *URI) ReplacePrefix(oldPrefix *URI, newPrefix *URI) *URI {
 		return nil
 	}
 	if oldLen := len(oldPrefix.path); len(uri.path) >= oldLen && uri.path[0:oldLen] == oldPrefix.path {
-		return NewURIFromComponents(newPrefix.scheme, uri.username, uri.password, uri.host, uri.port, newPrefix.path+uri.path[oldLen:], uri.query, uri.fragment)
+		return newURIFromComponents(uri.hasAuthority, newPrefix.scheme, uri.username, uri.password, uri.host, uri.port, newPrefix.path+uri.path[oldLen:], uri.query, uri.fragment)
 	}
 	return nil
 

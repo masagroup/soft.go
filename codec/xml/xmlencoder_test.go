@@ -87,7 +87,7 @@ func TestXMLEncoder_CrossResourceReferences(t *testing.T) {
 	other := m.create(m.library, "other")
 	x := m.create(m.novel, "x")
 	other.EGet(m.books).(ecore.EList).Add(x)
-	eOther := rs.CreateResource(ecore.NewURI("other.xml"))
+	eOther := rs.CreateResource(ecore.NewURI("file:///other.xml"))
 	eOther.GetContents().Add(other)
 
 	library := m.create(m.library, "l")
@@ -95,9 +95,9 @@ func TestXMLEncoder_CrossResourceReferences(t *testing.T) {
 	library.ESet(m.any, x)
 	library.EGet(m.favorites).(ecore.EList).Add(x)
 	proxy := m.ePackage.GetEFactoryInstance().Create(m.book).(ecore.EObjectInternal)
-	proxy.ESetProxyURI(ecore.NewURI("missing.xml#//@books.0"))
+	proxy.ESetProxyURI(ecore.NewURI("file:///missing.xml#//@books.0"))
 	library.EGet(m.books).(ecore.EList).Add(proxy)
-	eResource := rs.CreateResource(ecore.NewURI("library.xml"))
+	eResource := rs.CreateResource(ecore.NewURI("file:///library.xml"))
 	eResource.GetContents().Add(library)
 
 	document := encodeResource(t, eResource, nil)
@@ -108,16 +108,16 @@ func TestXMLEncoder_CrossResourceReferences(t *testing.T) {
 
 	// decoded as proxies, resolved in a resource set holding the other resource
 	drs := m.newResourceSet()
-	decodeResource(t, drs.CreateResource(ecore.NewURI("other.xml")), encodeResource(t, eOther, nil), nil)
-	eDecoded := decodeResource(t, drs.CreateResource(ecore.NewURI("library.xml")), document, nil)
+	decodeResource(t, drs.CreateResource(ecore.NewURI("file:///other.xml")), encodeResource(t, eOther, nil), nil)
+	eDecoded := decodeResource(t, drs.CreateResource(ecore.NewURI("file:///library.xml")), document, nil)
 	assert.Equal(t, m.novel, eDecoded.EGetResolve(m.any, false).(ecore.EObject).EClass())
 	assert.Equal(t, m.book, eDecoded.EGetResolve(m.best, false).(ecore.EObject).EClass())
 	eBookProxy := eDecoded.EGetResolve(m.books, false).(ecore.EList).Get(0).(ecore.EObjectInternal)
-	assert.Equal(t, "missing.xml#//@books.0", eBookProxy.EProxyURI().String())
+	assert.Equal(t, "file:///missing.xml#//@books.0", eBookProxy.EProxyURI().String())
 	for _, feature := range []ecore.EStructuralFeature{m.best, m.any} {
 		eProxy := eDecoded.EGetResolve(feature, false).(ecore.EObjectInternal)
 		require.True(t, eProxy.EIsProxy(), feature.GetName())
-		assert.Equal(t, "other.xml#//@books.0", eProxy.EProxyURI().String())
+		assert.Equal(t, "file:///other.xml#//@books.0", eProxy.EProxyURI().String())
 		resolved := eDecoded.EGet(feature).(ecore.EObject)
 		assert.False(t, resolved.EIsProxy())
 		assert.Equal(t, "x", resolved.EGet(m.name))

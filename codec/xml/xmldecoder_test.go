@@ -102,7 +102,7 @@ func TestXMLDecoder_Errors(t *testing.T) {
 // uris of IDREF attributes, with or without the type of the proxy
 func TestXMLDecoder_Proxies(t *testing.T) {
 	m := newLibraryModel()
-	eResource := m.newResourceSet().CreateResource(ecore.NewURI("library.xml"))
+	eResource := m.newResourceSet().CreateResource(ecore.NewURI("file:///library.xml"))
 	library := decodeResource(t, eResource, `<lib:Library xmlns:lib="http://lib" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     favorites="other.xml#//@books.0 lib:Novel other.xml#//@books.1 #//@books.0" others="">
   <books name="b"/>
@@ -117,13 +117,13 @@ func TestXMLDecoder_Proxies(t *testing.T) {
 	}
 	favorites := library.EGetResolve(m.favorites, false).(ecore.EList)
 	require.Equal(t, 3, favorites.Size())
-	assert.Equal(t, "other.xml#//@books.0", proxyURI(favorites.Get(0)))
+	assert.Equal(t, "file:///other.xml#//@books.0", proxyURI(favorites.Get(0)))
 	assert.Equal(t, m.book, favorites.Get(0).(ecore.EObject).EClass())
-	assert.Equal(t, "other.xml#//@books.1", proxyURI(favorites.Get(1)))
+	assert.Equal(t, "file:///other.xml#//@books.1", proxyURI(favorites.Get(1)))
 	assert.Equal(t, m.novel, favorites.Get(1).(ecore.EObject).EClass())
 	assert.Same(t, library.EGet(m.books).(ecore.EList).Get(0), favorites.Get(2))
-	assert.Equal(t, "other.xml#//@books.2", proxyURI(library.EGetResolve(m.best, false)))
-	assert.Equal(t, "other.xml#//@writers.0", proxyURI(library.EGetResolve(m.any, false)))
+	assert.Equal(t, "file:///other.xml#//@books.2", proxyURI(library.EGetResolve(m.best, false)))
+	assert.Equal(t, "file:///other.xml#//@writers.0", proxyURI(library.EGetResolve(m.any, false)))
 	assert.Equal(t, m.writer, library.EGetResolve(m.any, false).(ecore.EObject).EClass())
 	assert.True(t, library.EGet(m.others).(ecore.EList).Empty())
 }
@@ -143,7 +143,7 @@ func TestXMLDecoder_SameDocumentProxy(t *testing.T) {
   <books name="b" author="#//@writers.0"/>
 </lib:Library>`,
 	} {
-		eResource := m.newResourceSet().CreateResource(ecore.NewURI("library.xml"))
+		eResource := m.newResourceSet().CreateResource(ecore.NewURI("file:///library.xml"))
 		library := decodeResource(t, eResource, document, nil)
 		book := library.EGet(m.books).(ecore.EList).Get(0).(ecore.EObject)
 		writer := library.EGet(m.writers).(ecore.EList).Get(0).(ecore.EObject)

@@ -401,7 +401,7 @@ func (d *sqlDecoder) decodeEnumLiteral(id int64) (ecore.EEnumLiteral, error) {
 			return nil, fmt.Errorf("unable to find enum '%s' in package '%s'", enumName, ePackage.GetName())
 		}
 
-		eEnumLiteral = eEnum.GetEEnumLiteralByLiteral(literalValue)
+		eEnumLiteral = enumLiteralByStoredLiteral(eEnum, literalValue)
 		if eEnumLiteral == nil {
 			return nil, fmt.Errorf("unable to find enum literal '%s' in enum '%s'", literalValue, eEnum.GetName())
 		}
@@ -410,6 +410,29 @@ func (d *sqlDecoder) decodeEnumLiteral(id int64) (ecore.EEnumLiteral, error) {
 		d.sqlIDManager.SetEnumLiteralID(eEnumLiteral, enumID)
 	}
 	return eEnumLiteral, nil
+}
+
+// enumLiteralByStoredLiteral returns the literal of eEnum stored as literal in
+// the enums table: by its literal, or by its name for a literal set to "",
+// which was stored as its name when GetLiteral gave the name for "".
+func enumLiteralByStoredLiteral(eEnum ecore.EEnum, literal string) ecore.EEnumLiteral {
+	if eEnumLiteral := eEnum.GetEEnumLiteralByLiteral(literal); eEnumLiteral != nil {
+		return eEnumLiteral
+	}
+	if eEnumLiteral := eEnum.GetEEnumLiteralByName(literal); eEnumLiteral != nil && eEnumLiteral.GetLiteral() == "" {
+		return eEnumLiteral
+	}
+	return nil
+}
+
+// storedEnumLiterals returns the values an enum literal can be stored as in
+// the enums table: its literal, and its name for a literal set to "" (see
+// enumLiteralByStoredLiteral).
+func storedEnumLiterals(eEnumLiteral ecore.EEnumLiteral) []any {
+	if literal := eEnumLiteral.GetLiteral(); literal != "" {
+		return []any{literal}
+	}
+	return []any{"", eEnumLiteral.GetName()}
 }
 
 func (d *sqlDecoder) decodeFeatureValue(featureData *sqlFeatureSchema, value any) (any, error) {
@@ -956,7 +979,7 @@ func (d *Decoder) decodeEnums() error {
 					return fmt.Errorf("unable to find enum '%s' in package '%s'", enumName, ePackage.GetNsURI())
 				}
 
-				eEnumLiteral := eEnum.GetEEnumLiteralByLiteral(literalValue)
+				eEnumLiteral := enumLiteralByStoredLiteral(eEnum, literalValue)
 				if eEnumLiteral == nil {
 					return fmt.Errorf("unable to find enum literal '%s' in enum '%s'", literalValue, eEnum.GetName())
 				}

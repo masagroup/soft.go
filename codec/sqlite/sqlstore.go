@@ -1711,10 +1711,11 @@ func (s *Store) encodeLookupValue(featureSchema *sqlFeatureSchema, value any) (e
 		table := s.schema.enumsTable
 		var id int64
 		isID := false
+		literals := storedEnumLiterals(eEnumLiteral)
 		if err := s.executeQuery(
-			table.selectQuery(nil, sqlEscapeIdentifier(table.columns[2].columnName)+"=? AND "+sqlEscapeIdentifier(table.columns[3].columnName)+"=?", ""),
+			table.selectQuery(nil, sqlEscapeIdentifier(table.columns[2].columnName)+"=? AND "+sqlEscapeIdentifier(table.columns[3].columnName)+" IN (?"+strings.Repeat(",?", len(literals)-1)+")", ""),
 			&sqlitex.ExecOptions{
-				Args: []any{eEnum.GetName(), eEnumLiteral.GetLiteral()},
+				Args: append([]any{eEnum.GetName()}, literals...),
 				ResultFunc: func(stmt *sqlite.Stmt) error {
 					id = stmt.ColumnInt64(0)
 					isID = true

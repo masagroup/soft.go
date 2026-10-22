@@ -17,7 +17,7 @@ TOURNAMENT_REFLECTIVE = $(TOURNAMENT)/tournament\#$(TOURNAMENT)/reflective/refle
 MODULES = . codec/xml codec/xmi codec/json codec/binary codec/sqlite codec/defaults test/integration
 
 # the generator: the docker image of soft.gen v2 at a fixed version
-SOFT_GEN_VERSION = v2.0.0-alpha.3
+SOFT_GEN_VERSION = v2.0.0-alpha.4
 SOFT_GEN_IMAGE ?= masagroup/soft.gen:$(SOFT_GEN_VERSION)
 
 # the golang image go runs in when it is not installed: its Go must support the go directive of go.work

@@ -1,4 +1,4 @@
 *.go
 go.sum
 !*tournamentpackage_impl.go
-*/.soft-gen.yaml
+*/.soft.gen.yaml

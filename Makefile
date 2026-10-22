@@ -16,10 +16,10 @@ TOURNAMENT_REFLECTIVE = $(TOURNAMENT)/tournament\#$(TOURNAMENT)/reflective/refle
 # the modules of the go.work: the core and the codecs, each with its own dependencies
 MODULES = . codec/xml codec/xmi codec/json codec/binary codec/sqlite codec/defaults test/integration
 
-# the golang image soft-gen runs in when go is not installed: its Go must support the go directive of soft.gen
+# the golang image soft.gen runs in when go is not installed: its Go must support the go directive of soft.gen
 SOFT_GEN_GOLANG_IMAGE ?= golang:1.27.3-alpine
-# the generator: soft-gen of soft.gen v2, run from its module at a fixed version
-SOFT_GEN_VERSION = v2.0.0-alpha.2
+# the generator: soft.gen of soft.gen v2, run from its module at a fixed version
+SOFT_GEN_VERSION = v2.0.0-alpha.3
 
 # os detection
 ifeq (${OS},Windows_NT)
@@ -39,24 +39,24 @@ else ifneq ($(shell $(WHICH) go.exe 2>$(DEVNULL)),)
 	GO := go.exe
 endif
 
-# the go that runs soft-gen: the go found, else go in a golang container, the
+# the go that runs soft.gen: the go found, else go in a golang container, the
 # folder of the models mounted where ../models points (the go modules are kept
-# in the soft-gen-gomod volume); without go, only generate works
+# in the soft.gen-gomod volume); without go, only generate works
 ifdef GO
 	SOFT_GEN_GO := $(GO)
 else
-	SOFT_GEN_GO := docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -v soft-gen-gomod:/go/pkg/mod -w /pwd $(SOFT_GEN_GOLANG_IMAGE) go
+	SOFT_GEN_GO := docker run --rm -v $(CURDIR):/pwd -v $(realpath ../models):/models -v soft.gen-gomod:/go/pkg/mod -w /pwd $(SOFT_GEN_GOLANG_IMAGE) go
 	GO = $(error "go is not in your system PATH")
 endif
 
-# the soft-gen command: built and run by go from the soft.gen module at
+# the soft.gen command: built and run by go from the soft.gen module at
 # SOFT_GEN_VERSION (downloaded once into the go module cache), whatever the
 # go.mod and go.work of this folder
-SOFT_GEN = $(SOFT_GEN_GO) run github.com/masagroup/soft.gen/v2/cmd/soft-gen@$(SOFT_GEN_VERSION)
+SOFT_GEN = $(SOFT_GEN_GO) run github.com/masagroup/soft.gen/v2/cmd/soft.gen@$(SOFT_GEN_VERSION)
 # GENERATE generates go code from a model of ../models with the properties of
 # generator.properties: $(call GENERATE,<output folder>,<model>,<options>), the
 # output folder relative to this one (empty: here), the model a file name in
-# ../models, the options extra soft-gen options (-t <template>, -p key=value)
+# ../models, the options extra soft.gen options (-t <template>, -p key=value)
 GENERATE = $(SOFT_GEN) go -m ../models/$(2) -o ./$(1) -P generator.properties $(3)
 
 .PHONY: all

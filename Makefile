@@ -20,6 +20,9 @@ MODULES = . codec/xml codec/xmi codec/json codec/binary codec/sqlite codec/defau
 SOFT_GEN_VERSION = v2.0.0-alpha.3
 SOFT_GEN_IMAGE ?= masagroup/soft.gen:$(SOFT_GEN_VERSION)
 
+# the golang image go runs in when it is not installed: its Go must support the go directive of go.work
+GOLANG_IMAGE ?= golang:1.27.3-alpine
+
 # os detection
 ifeq (${OS},Windows_NT)
 MKDIR = mkdir $(subst /,\,$(1)) > nul 2>&1 || (exit 0)
@@ -40,9 +43,16 @@ else ifneq ($(shell $(WHICH) go.exe 2>$(DEVNULL)),)
 	GO := go.exe
 endif
 
-# without go, only generate works
+# without go, go runs in a golang container: this folder mounted read-write (with its go.work),
+# the go modules and the build cache in docker volumes kept between runs, no VCS stamping (no git
+# in the image)
 ifndef GO
-	GO = $(error "go is not in your system PATH")
+	GO := MSYS_NO_PATHCONV=1 docker run --rm \
+		-v "$(CURDIR)":/src -w /src \
+		-v soft.go-gomod:/go/pkg/mod \
+		-v soft.go-gocache:/root/.cache/go-build \
+		-e GOFLAGS=-buildvcs=false \
+		$(GOLANG_IMAGE) go
 endif
 
 # the soft.gen command: the soft.gen image, this folder mounted at /soft/go

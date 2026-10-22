@@ -49,10 +49,10 @@ endif
 # and the folder of the models where ../models points
 SOFT_GEN = docker run --rm $(SOFT_GEN_USER) -v $(CURDIR):/soft/go -v $(realpath ../models):/soft/models -w /soft/go $(SOFT_GEN_IMAGE)
 # GENERATE generates go code from a model of ../models with the properties of
-# generator.properties: $(call GENERATE,<output folder>,<model>,<options>), the
+# .generator.yaml: $(call GENERATE,<output folder>,<model>,<options>), the
 # output folder relative to this one (empty: here), the model a file name in
 # ../models, the options extra soft.gen options (-t <template>, -p key=value)
-GENERATE = $(SOFT_GEN) go -m ../models/$(2) -o ./$(1) -P generator.properties $(3)
+GENERATE = $(SOFT_GEN) go -m ../models/$(2) -o ./$(1) -P .generator.yaml $(3)
 
 .PHONY: all
 all: generate fmt lint build test

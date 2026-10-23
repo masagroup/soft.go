@@ -8,7 +8,7 @@ sword:
   shipped: false
   languages: [Go, Makefile, YAML]
   build: [go, make]
-  ng: [history, datacore, esync, ecore-model, hla]
+  ng: [history, hub, recorder, datacore, esync, ecore-model, hla]
   apps: []
 -->
 
@@ -28,7 +28,7 @@ sword:
 | **Languages** | Go (100% of sources), Makefile, YAML |
 | **Remote / branch** | github.com/masagroup/soft.go, default branch `master` |
 | **Generation** | next gen (not shipped): consumed as Go modules by NG services, no binary or artifact of its own |
-| **Build systems** | Go (`go.work`) · Makefile (generation with `soft-gen` of soft.gen v2, run by `go run`, or in a `golang` container when Go is missing). No Ant, no Dockerfile, no docker-compose, no CMake, no npm |
+| **Build systems** | Go (`go.work`) · Makefile (generation with soft.gen v2, run from its Docker image `masagroup/soft.gen:v2.0.0-alpha.4`; `go` runs in a `golang` container when Go is missing). No Ant, no Dockerfile, no docker-compose, no CMake, no npm |
 
 ## Overview
 
@@ -40,23 +40,28 @@ Who uses it (from their `go.mod`):
 
 | Consumer | Version required |
 |---|---|
-| `soft/soft.sync.go` (esync) | v1.11.0 |
-| `soft/soft.sync.studio/devserver` | v1.11.1 |
-| `sw/sw.ng/src` | v1.10.2 |
-| `sw/sw.datacore` | v1.10.2, replaced by fork `github.com/BenSouchet/soft.go v1.10.3-0.20261005102653-6e14d517bed8` |
-| `sw/sw.analysis/src`, `sw/sw.api.ng.go` | v1.10.2 |
-| `io/io.connector`, `io/io.hla`, `io/io.nato` | v1.10.2 |
+| `soft/soft.sync.go` (esync) | v1.12.0 on `master`; v1.13.3 and the `codec/binary`, `codec/xmi`, `codec/xml` v1.0.0 modules on `release/v2` (module `soft.sync.go/v2`) |
+| `soft/soft.sync.studio/devserver` | v1.13.3 (codec modules indirect) |
+| `soft/soft.gen` (v2 generator) | v1.13.3-0.20261022175029-abd1d4df298b, with `codec/xmi` and `codec/xml` pseudo-versions (loads the `.ecore` models) |
+| `sw/sw.ng/src` | v1.11.0 |
+| `sw/sw.datacore` | v1.11.0, replaced by fork `github.com/BenSouchet/soft.go v1.10.3-0.20261020150046-020a766d99c1` |
+| `sw/sw.analysis/src`, `sw/sw.api.ng.go` | v1.11.0; v1.13.3 and `codec/xml` v1.0.0 on the `release/v2` branch of sw.api.ng.go (module `sw.api.ng.go/v2`) |
+| `sw/sw.recorder` | v1.13.3 and `codec/xml` v1.0.0 |
+| `sw/sw.hub` | v1.13.3 (indirect, through `soft.sync.go/v2` and `sw.api.ng.go/v2`) |
+| `io/io.connector`, `io/io.nato` | v1.11.0 |
+| `io/io.hla` | v1.10.2 |
 | `soft/soft` (umbrella repo, submodule `go`) | v1.7.0 (stale) |
 
-Most sw.* / io.* consumers are on v1.10.2 (tagged 2025-10-29) while HEAD is v1.13.1 (2026-10-21). Since v1.13.0 the codecs are no longer in `ecore`: a consumer upgrading from v1.10 / v1.11 must require the codec modules and rename the codec symbols (see [Migration from v1.12](#migration-from-v112)).
+The sw.* / io.* consumers of the v1 line are on v1.11.0 (io.hla on v1.10.2) while HEAD is v1.13.3 (2026-10-23); the v2 line (sw.hub, sw.recorder, the `release/v2` branches of soft.sync.go and sw.api.ng.go, the soft.sync.studio devserver) is on v1.13.3 with the codec modules. Since v1.13.0 the codecs are no longer in `ecore`: a consumer upgrading from v1.10 / v1.11 / v1.12 must require the codec modules and rename the codec symbols (see [Migration from v1.12](#migration-from-v112)).
 
 ```mermaid
 flowchart LR
-    models["soft.models (.ecore)"] --> gen["soft-gen (soft.gen v2)"]
+    models["soft.models (.ecore)"] --> gen["soft.gen v2 (image masagroup/soft.gen)"]
     gen -->|"make generate"| ecore["soft.go: package ecore"]
     ecore --> codecs["soft.go/codec/* modules"]
     ecore --> syncgo["soft.sync.go (esync)"]
     ecore --> ng["sw.ng / sw.analysis / sw.api.ng.go"]
+    codecs --> v2["v2 line: sw.hub / sw.recorder"]
     ecore --> dc["sw.datacore"]
     ecore --> ioc["io.connector / io.hla / io.nato"]
     codecs --> files[("XMI / XML / bin / JSON / sqlite files")]
@@ -67,7 +72,7 @@ flowchart LR
 ```
 soft.go/
   ecore/                    package `ecore` of the root module (~191 non-test .go files, ~150 *_test.go), generated + hand-written
-    .soft-gen.yaml          marker written by soft-gen (generator, version, package)
+    .soft.gen.yaml          marker written by soft.gen (generator, version, package; `.soft-gen.yaml` up to soft.gen v2.0.0-alpha.2)
   codec/                    one Go module per codec, each with its own go.mod and testdata/
     xml/                    XML codec, `xml.Processor`, extended metadata, XML namespaces
     xmi/                    XMI codec and processor (requires codec/xml)
@@ -84,13 +89,13 @@ soft.go/
   .github/workflows/        build_and_test.yaml (single workflow)
   Makefile                  generate / fmt / lint / build / test / coverage
   go.work, go.work.sum      workspace of the 8 modules
-  generator.properties      only defines fileNotes (MPL header injected by the generator)
+  .generator.yaml           generator properties: only fileNotes (MPL header injected by the generator); was generator.properties up to v1.13.1
   .golangci.yaml            golangci-lint v2 config (ignores SA1019 for staticcheck)
   .mockery.yaml             mockery config (inpackage, with-expecter)
   go.mod, go.sum, LICENSE (MPL 2.0), README.md
 ```
 
-File-naming convention in `ecore/`: `<x>.go` = interface, `<x>_impl.go` = generated implementation, `<x>_ext.go` = hand-written extension, `<x>_mock.go` = mock (generated by soft-gen for the metamodel, by mockery for the hand-written interfaces). Generated files start with `// Code generated by soft-gen go. DO NOT EDIT.`
+File-naming convention in `ecore/`: `<x>.go` = interface, `<x>_impl.go` = generated implementation, `<x>_ext.go` = hand-written extension, `<x>_mock.go` = mock (generated by soft.gen for the metamodel, by mockery for the hand-written interfaces). Generated files start with `// Code generated by soft.gen go. DO NOT EDIT.` (`soft-gen go` before v1.13.2).
 
 ## Build
 
@@ -102,7 +107,7 @@ Not applicable: no `build.xml`.
 
 ### Linux (Docker)
 
-Not applicable: no `Dockerfile` or `docker-compose.yaml`. Docker is only used by `make generate` when Go is not installed (image `golang:1.27.3-alpine`, see below) and by `make lint` (image `golangci/golangci-lint:v2.14.0-alpine`).
+Not applicable: no `Dockerfile` or `docker-compose.yaml`. Docker is used by `make generate` (image `masagroup/soft.gen:v2.0.0-alpha.4`, always), by `make lint` (image `golangci/golangci-lint:v2.14.0-alpine`), and to run `go` in a container (image `golang:1.27.3-alpine`) when Go is not installed (see below).
 
 ### Other
 
@@ -116,7 +121,7 @@ go build ./ecore/...
 go test -covermode=atomic ./ecore/...
 go -C codec/sqlite test -covermode=atomic ./...   # same for codec/xml, codec/xmi, codec/binary, codec/json
 
-# full pipeline as in CI (needs Go, or Docker, and the soft.models repo checked out as ../models)
+# full pipeline as in CI (needs Docker, Go or the golang container, and the soft.models repo checked out as ../models)
 make generate build test
 
 # lint (Docker)
@@ -128,7 +133,7 @@ Makefile targets:
 | Target | What it does |
 |---|---|
 | `all` (default) | `generate fmt lint build test` |
-| `generate` | Runs `soft-gen go` 6 times on `.ecore` models from `../models` with `-P generator.properties`: `ecore.ecore` -> repo root (regenerates `ecore/`); `empty.ecore`, `library.ecore` -> `test/`; `tournament.ecore` 3 times with `-p packageInstance=interfaces -p module=github.com/masagroup/soft.go`: interfaces and mocks (`-t generateInterfaces -t generateMocks -t generateMocksTests`) into `test/tournament`, typed implementation (`-t generateImplementations -t generateTests`) into `test/tournament/typed`, reflective implementation (same templates plus `-p featureDelegation=Reflective`) into `test/tournament/reflective` |
+| `generate` | Runs `soft.gen go` 6 times on `.ecore` models from `../models` with `-P .generator.yaml`: `ecore.ecore` -> repo root (regenerates `ecore/`); `empty.ecore`, `library.ecore` -> `test/`; `tournament.ecore` 3 times with `-p packageInstance=interfaces -p module=github.com/masagroup/soft.go` and the package paths of `-p packages=...`: interfaces and mocks (`-t generateInterfaces -t generateMocks -t generateMocksTests`) into `test/tournament`, typed implementation (`-t generateImplementations -t generateTests`) into `test/tournament/typed`, reflective implementation (same templates plus `-p featureDelegation=Reflective`) into `test/tournament/reflective` |
 | `fmt` | `go -C <module> fmt ./...` for each module of `MODULES` |
 | `lint` | `docker run golangci/golangci-lint:v2.14.0-alpine golangci-lint run --timeout=5m` |
 | `build` | `go -C <module> build ./...` for each module of `MODULES` |
@@ -140,16 +145,17 @@ Makefile variables:
 | Variable | Value |
 |---|---|
 | `MODULES` | `. codec/xml codec/xmi codec/json codec/binary codec/sqlite codec/defaults test/integration` |
-| `SOFT_GEN_VERSION` | `v2.0.0-alpha.2` |
-| `SOFT_GEN` | `$(SOFT_GEN_GO) run github.com/masagroup/soft.gen/v2/cmd/soft-gen@$(SOFT_GEN_VERSION)`: soft-gen is built and run from the soft.gen module at that version (downloaded once into the Go module cache), whatever the `go.mod` / `go.work` of the repository |
-| `SOFT_GEN_GO` | the `go` found (`go`, else `go.exe`); without Go, `docker run --rm` of `SOFT_GEN_GOLANG_IMAGE` with the repository mounted on `/pwd`, `$(realpath ../models)` on `/models` and the Go module cache in the volume `soft-gen-gomod`. Without Go, only `generate` works |
-| `SOFT_GEN_GOLANG_IMAGE` | `golang:1.27.3-alpine` (overridable with `?=`; its Go must support the `go` directive of soft.gen) |
-| `GENERATE` | `$(call GENERATE,<output folder>,<model>,<options>)` = `$(SOFT_GEN) go -m ../models/<model> -o ./<output folder> -P generator.properties <options>` (extra options: `-t <template>`, `-p key=value`) |
+| `SOFT_GEN_VERSION` | `v2.0.0-alpha.4` (`v2.0.0-alpha.2` up to v1.13.1, `v2.0.0-alpha.3` in v1.13.2) |
+| `SOFT_GEN_IMAGE` | `masagroup/soft.gen:$(SOFT_GEN_VERSION)` (overridable with `?=`) |
+| `SOFT_GEN` | `docker run --rm $(SOFT_GEN_USER) -v $(CURDIR):/soft/go -v $(realpath ../models):/soft/models -w /soft/go $(SOFT_GEN_IMAGE)`: the generator runs from its image, the repository mounted on `/soft/go` and the models folder on `/soft/models`; on Linux `SOFT_GEN_USER` (`--user <uid>:<gid>`) gives the generated files to the user. Up to v1.13.1 the Makefile ran `go run github.com/masagroup/soft.gen/v2/cmd/soft-gen@v2.0.0-alpha.2` instead (the command is `cmd/soft-gen` up to soft.gen `v2.0.0-alpha.2`, `cmd/soft.gen` from `v2.0.0-alpha.3`) |
+| `GO` | the `go` found (`go`, else `go.exe`); without Go, `docker run --rm` of `GOLANG_IMAGE` with the repository mounted on `/src`, the Go module cache and build cache in the volumes `soft.go-gomod` and `soft.go-gocache`, and `GOFLAGS=-buildvcs=false`: `fmt`, `build`, `test` and the coverage targets then run in the container |
+| `GOLANG_IMAGE` | `golang:1.27.3-alpine` (overridable with `?=`; its Go must support the `go` directive of `go.work`) |
+| `GENERATE` | `$(call GENERATE,<output folder>,<model>,<options>)` = `$(SOFT_GEN) go -m ../models/<model> -o ./<output folder> -P .generator.yaml <options>` (extra options: `-t <template>`, `-p key=value`) |
 
 Gotchas:
 
-- The `test/` tree mostly contains generated, gitignored code (`test/*/.gitignore` ignores `*.go` and `go.sum`, whitelisting only hand-written files: `test/library/writer_ext.go` and `test/tournament/tournamentpackage_impl.go`; in `test/tournament` the `*/.soft-gen.yaml` of the implementations are ignored too). The generated models belong to the root module, and the integration tests of `test/integration` import them, so `make build` / `make test` (and `go build ./...` in the root module) on a fresh clone only work after `make generate`.
-- `make generate` reads the models from `../models` (and mounts `$(realpath ../models)` in the golang container when Go is missing). In the ecosystem workspace the models repo lives at `..\soft.models`, not `..\models` (CI checks it out as `models`). Running `make generate` locally therefore needs a `models` folder or link next to the repo (UNVERIFIED how developers handle this).
+- The `test/` tree mostly contains generated, gitignored code (`test/*/.gitignore` ignores `*.go` and `go.sum`, whitelisting only hand-written files: `test/library/writer_ext.go` and `test/tournament/tournamentpackage_impl.go`; in `test/tournament` the `*/.soft.gen.yaml` of the implementations are ignored too). The generated models belong to the root module, and the integration tests of `test/integration` import them, so `make build` / `make test` (and `go build ./...` in the root module) on a fresh clone only work after `make generate`.
+- `make generate` reads the models from `../models` (it mounts `$(realpath ../models)` on `/soft/models` in the soft.gen container). In the ecosystem workspace the models repo lives at `..\soft.models`, not `..\models` (CI checks it out as `models`). Running `make generate` locally therefore needs a `models` folder or link next to the repo (UNVERIFIED how developers handle this).
 - The mockery mocks are generated with the config in `.mockery.yaml` (headers say mockery v2.53.2); the mockery version is not pinned in the Makefile.
 
 ## Run
@@ -257,7 +263,7 @@ Upstream (what soft.go depends on):
 
 | Repository | How it is pulled | What for |
 |---|---|---|
-| [soft.gen](https://github.com/masagroup/soft.gen) v2 (`soft-gen`) | `go run github.com/masagroup/soft.gen/v2/cmd/soft-gen@v2.0.0-alpha.2` in `Makefile` (`SOFT_GEN` / `GENERATE` macros), not a `go.mod` require | Generates `ecore/*.go` and the `test/` models |
+| [soft.gen](https://github.com/masagroup/soft.gen) v2 | Docker image `masagroup/soft.gen:v2.0.0-alpha.4` run by the `Makefile` (`SOFT_GEN_VERSION`, `SOFT_GEN` / `GENERATE` macros, properties in `.generator.yaml`), not a `go.mod` require; `go run github.com/masagroup/soft.gen/v2/cmd/soft-gen@v2.0.0-alpha.2` up to v1.13.1 | Generates `ecore/*.go` and the `test/` models |
 | [soft.models](https://github.com/masagroup/soft.models) | CI checkout of `masagroup/soft.models` pinned at `90286c344159492747920472760ac3904b19e784`; Makefile expects `../models` | Source `.ecore` metamodels: `ecore.ecore`, `empty.ecore`, `library.ecore`, `tournament.ecore` |
 
 The only `github.com/masagroup/*` requires are between the modules of this repository: the codec modules require `github.com/masagroup/soft.go v1.13.0` and the codec modules they build on (`codec/xml v1.0.0`, `codec/xmi v1.0.0`, ...), resolved locally by `go.work`. No `.gitmodules`, no Ant `<update>`.
@@ -266,17 +272,21 @@ Downstream (who requires soft.go):
 
 | Repository | How it is pulled | What for |
 |---|---|---|
-| [soft.sync.go](https://github.com/masagroup/soft.sync.go) | go.mod (v1.11.0) | esync; uses `ecore.NewSQLStore` (now `sqlite.NewStore` of `codec/sqlite`) in `internal/ehistory/history/history_builder_database.go`, `history_database_reader_database.go`, `history_sync_reader_database.go` |
-| [soft.sync.studio](https://github.com/masagroup/soft.sync.studio) (devserver) | go.mod (v1.11.1) | Dev server |
-| [sw.ng](https://github.com/masagroup/sw.ng) | go.mod (v1.10.2) | Ecore model runtime |
-| [sw.datacore](https://github.com/masagroup/sw.datacore) | go.mod (v1.10.2) + `replace` to fork `github.com/BenSouchet/soft.go` | Ecore model runtime (fork reason UNVERIFIED) |
-| [sw.analysis](https://github.com/masagroup/sw.analysis), [sw.api.ng.go](https://github.com/masagroup/sw.api.ng.go) | go.mod (v1.10.2) | Ecore model runtime |
-| [io.connector](https://github.com/masagroup/io.connector), [io.hla](https://github.com/masagroup/io.hla), [io.nato](https://github.com/masagroup/io.nato) | go.mod (v1.10.2) | Ecore model runtime |
+| [soft.sync.go](https://github.com/masagroup/soft.sync.go) | go.mod (v1.12.0 on `master`; v1.13.3 and the codec modules `binary`, `xmi`, `xml` on `release/v2`) | esync; on `master` uses `ecore.NewSQLStore` in `internal/ehistory/history/history_builder_database.go`, `history_database_reader_database.go`, `history_sync_reader_database.go` (`sqlite.NewStore` of `codec/sqlite` since v1.13.0); `release/v2` does not require `codec/sqlite` |
+| [soft.sync.studio](https://github.com/masagroup/soft.sync.studio) (devserver) | go.mod (v1.13.3) | Dev server of the v2 web UI |
+| [soft.gen](https://github.com/masagroup/soft.gen) | go.mod (v1.13.3-0.20261022175029-abd1d4df298b, `codec/xmi` and `codec/xml` pseudo-versions) | Loads the `.ecore` models it generates from |
+| [sw.ng](https://github.com/masagroup/sw.ng) | go.mod (v1.11.0) | Ecore model runtime |
+| [sw.datacore](https://github.com/masagroup/sw.datacore) | go.mod (v1.11.0) + `replace` to fork `github.com/BenSouchet/soft.go` | Ecore model runtime (fork reason UNVERIFIED) |
+| [sw.analysis](https://github.com/masagroup/sw.analysis), [sw.api.ng.go](https://github.com/masagroup/sw.api.ng.go) | go.mod (v1.11.0; v1.13.3 and `codec/xml` on the `release/v2` branch of sw.api.ng.go) | Ecore model runtime |
+| [sw.recorder](https://github.com/masagroup/sw.recorder) | go.mod (v1.13.3 and `codec/xml` v1.0.0) | Ecore model runtime and XML codec |
+| [sw.hub](https://github.com/masagroup/sw.hub) | go.mod (v1.13.3, indirect) | Through `soft.sync.go/v2` and `sw.api.ng.go/v2` |
+| [io.connector](https://github.com/masagroup/io.connector), [io.nato](https://github.com/masagroup/io.nato) | go.mod (v1.11.0) | Ecore model runtime |
+| [io.hla](https://github.com/masagroup/io.hla) | go.mod (v1.10.2) | Ecore model runtime |
 | [soft](https://github.com/masagroup/soft) (umbrella repo) | git submodule `go`, pinned at v1.7.0 (`go 1.20`, commit c80fbf86) | Stale second copy of the module on disk (`soft\soft\go`) |
 
-No consumer requires a `codec/*` module yet: they are all on versions where the codecs were in `ecore`.
+The codec modules are required by the v2 line only: `soft.sync.go/v2`, `sw.api.ng.go/v2`, sw.recorder (direct), sw.hub and the soft.sync.studio devserver (indirect), plus soft.gen. The other consumers are on versions where the codecs were in `ecore`.
 
-Indirect esync path: `sw.ng/src`, `sw.analysis/src`, `sw.api.ng.go`, `sw.datacore` and `io.connector` require `soft.sync.go` v1.6.1 (`io.hla`, `io.nato`: indirect); `sw.datacore` also replaces `soft.sync.go` with the fork `github.com/BenSouchet/soft.sync.go v1.6.2-0.20261008090548-07d4f903a036`. Only `soft.sync.go` and the `soft.sync.studio` devserver call `ecore.NewSQLStore` / `SQL_OPTION_*`; no direct SQLStore usage was found in the sw.* / io.* consumers. No `go.mod` under `sw.storage`, `sw.golibs`, `sw.node`, `sw.dos`, `sw.hub`, `sw.recorder`, `sw.commander`, `sw.mapserver`, `sw.authentication` requires soft.go.
+Indirect esync path: `sw.ng/src`, `sw.analysis/src`, `sw.api.ng.go` and `io.connector` require `soft.sync.go` v1.6.2 and `sw.datacore` v1.6.1 (`io.nato` v1.6.2 and `io.hla` v1.6.1: indirect); `sw.datacore` also replaces `soft.sync.go` with the fork `github.com/BenSouchet/soft.sync.go v1.6.2-0.20261017105210-534e68b53610`. sw.hub, sw.recorder and the soft.sync.studio devserver require `soft.sync.go/v2`. Only the `master` of `soft.sync.go` calls `ecore.NewSQLStore` / `SQL_OPTION_*`; no direct SQLStore usage was found in the sw.* / io.* consumers. No `go.mod` under `sw.storage`, `sw.golibs`, `sw.node`, `sw.dos`, `sw.commander`, `sw.mapserver`, `sw.authentication` requires soft.go.
 
 ### External
 
@@ -300,7 +310,7 @@ Direct requires, per module:
 
 The `*_mock.go` files of `ecore` are compiled into the library package, so testify is linked into every consumer, not only tests; likewise `codec/sqlite` compiles `sqlobject_mock.go` and `sqlequal.go` (exported `RequireEqualDB`), so its consumers also link go-spew and go-difflib.
 
-Tooling: Go 1.27.x (`go.mod`, CI matrix), soft-gen `v2.0.0-alpha.2`, `golang:1.27.3-alpine` (generation without Go), `golangci/golangci-lint:v2.14.0-alpine`, mockery, `actions/setup-go@v5`, `actions/checkout@v4`.
+Tooling: Go 1.27.x (`go.mod`, CI matrix), `masagroup/soft.gen:v2.0.0-alpha.4` (generation), `golang:1.27.3-alpine` (`go` without Go installed), `golangci/golangci-lint:v2.14.0-alpine`, mockery, `actions/setup-go@v5`, `actions/checkout@v4`.
 
 ## Architecture
 
@@ -342,7 +352,7 @@ flowchart LR
 
 Data flow: in, files or readers go through a codec decoder into an EObject graph held by an `EResource` / `EResourceSet`; out, the graph goes through an encoder to a file or writer. With `sqlite.Store`, EObjects are thin proxies and the SQLite database is the source of truth (live persistence, used by the esync history in `soft.sync.go`).
 
-Notable patterns: model-driven code generation (soft-gen + soft.models), EMF adapter/notification observer, pluggable codec registry with codecs as opt-in modules, pluggable `EStore`, one shared package with several implementations, mockery in-package mocks, Go iterators (`iter.Seq` in `estore.go`), generics.
+Notable patterns: model-driven code generation (soft.gen + soft.models), EMF adapter/notification observer, pluggable codec registry with codecs as opt-in modules, pluggable `EStore`, one shared package with several implementations, mockery in-package mocks, Go iterators (`iter.Seq` in `estore.go`), generics.
 
 ## CI/CD
 
@@ -352,22 +362,23 @@ Single workflow: `.github/workflows/build_and_test.yaml` ("Build and Test").
 |---|---|
 | Triggers | pull request to `master` (opened, synchronize, reopened, ready_for_review), push to `master`, `workflow_dispatch` |
 | Matrix | `go-version: [1.27.x]`, `os: [ubuntu-latest]` |
-| Steps | `actions/setup-go@v5`; checkout this repo into `go/`; checkout `masagroup/soft.models` at pinned SHA `90286c344159492747920472760ac3904b19e784` into `models/`; run `make generate build test` in `go/` (soft-gen runs with the installed Go, `go run ...soft-gen@v2.0.0-alpha.2`; build and test cover every module of `MODULES`) |
+| Steps | `actions/setup-go@v5`; checkout this repo into `go/`; checkout `masagroup/soft.models` at pinned SHA `90286c344159492747920472760ac3904b19e784` into `models/`; run `make generate build test` in `go/` (soft.gen runs from the image `masagroup/soft.gen:v2.0.0-alpha.4` with the Docker of the runner, build and test with the installed Go; build and test cover every module of `MODULES`) |
 | Shared workflows | None: it does not use the `masagroup/cicd` reusable workflows (contrary to the ecosystem convention); it is a self-contained job. See [cicd](https://github.com/masagroup/cicd) and the ecosystem wiki page "CI/CD pipelines" |
 | Lint / coverage | No lint step in CI (`make lint` is not invoked), no coverage upload |
-| Artifacts | None: no zip, deb, Docker image or release asset. Releases are plain git tags consumed through the Go module proxy: `v1.13.1`, `v1.13.0`, `v1.12.0`, `v1.11.1`, ... for the root module, `codec/<name>/vX.Y.Z` for the codec modules (`codec/xml/v1.0.0`, `codec/xmi/v1.0.0`, `codec/binary/v1.0.0`, `codec/sqlite/v1.0.0`, `codec/defaults/v1.0.0`, `codec/json/v1.1.0`) |
+| Artifacts | None: no zip, deb, Docker image or release asset. Releases are plain git tags consumed through the Go module proxy: `v1.13.3`, `v1.13.2`, `v1.13.1`, `v1.13.0`, `v1.12.0`, `v1.11.1`, ... for the root module, `codec/<name>/vX.Y.Z` for the codec modules (`codec/xml/v1.0.0`, `codec/xmi/v1.0.0`, `codec/binary/v1.0.0`, `codec/sqlite/v1.0.0`, `codec/defaults/v1.0.0`, `codec/json/v1.1.0`) |
 
 ## Next-gen relevance
 
 | Concept | Status |
 |---|---|
 | ecore model | Implements the Go Ecore runtime itself (`ecore/` package); see the ecosystem wiki page "esync and ecore" |
-| esync | Used by esync: `soft.sync.go` requires soft.go v1.11.0. soft.go contains no esync code itself, only a test using an `esyncID` object-ID column |
-| history | Indirect: the SQLite store (`SQLStore` in v1.11, `sqlite.Store` of `codec/sqlite` now) is the persistence engine of esync's history database (`soft.sync.go/internal/ehistory/history/*_database.go`) |
+| esync | Used by esync: `soft.sync.go` requires soft.go v1.12.0 on `master` and v1.13.3 on `release/v2`. soft.go contains no esync code itself, only a test using an `esyncID` object-ID column |
+| history | Indirect: the SQLite store (`SQLStore` up to v1.12, `sqlite.Store` of `codec/sqlite` now) is the persistence engine of esync's history database on the `master` of soft.sync.go (`soft.sync.go/internal/ehistory/history/*_database.go`) |
+| hub, recorder | Used by the v2 line: [sw.recorder](https://github.com/masagroup/sw.recorder) requires soft.go v1.13.3 and `codec/xml`, [sw.hub](https://github.com/masagroup/sw.hub) requires it indirectly (both not shipped) |
 | storage | Provides SQLite model persistence; `sw.storage` does not depend on soft.go |
 | datacore | Used by [sw.datacore](https://github.com/masagroup/sw.datacore) through a fork `replace` to `BenSouchet/soft.go` |
 | HLA | Not implemented here; [io.hla](https://github.com/masagroup/io.hla) depends on soft.go |
-| gateway, dos, authentication, node, orchestrator, commander, hub, recorder, timeline, mapserver, webclient, dispatcher | Unrelated (no code, config or reference in this repo). Of these, only [sw.ng](https://github.com/masagroup/sw.ng) depends on it (v1.10.2) |
+| gateway, dos, authentication, node, orchestrator, commander, timeline, mapserver, webclient, dispatcher | Unrelated (no code, config or reference in this repo). Of these, only [sw.ng](https://github.com/masagroup/sw.ng) depends on it (v1.11.0) |
 
 See also the ecosystem wiki page "Next-gen ecosystem".
 
@@ -375,9 +386,9 @@ See also the ecosystem wiki page "Next-gen ecosystem".
 
 No formal audit exists; the scan report lists the following:
 
-- The previous `Readme.md` stated "We support Go v1.12": outdated, every `go.mod` requires `go 1.27.0` and CI uses 1.27.x. It also omitted the generation workflow (`make generate`, `../models`, soft-gen) and the fact that `test/` requires generation.
-- Breaking change for consumers: since v1.13.0 the codecs and the SQLite store are separate modules with renamed symbols (see [Migration from v1.12](#migration-from-v112)); every consumer listed above is still on v1.10.2 / v1.11.x.
-- The generator is a pre-release: `soft-gen` `v2.0.0-alpha.2`.
+- The previous `Readme.md` stated "We support Go v1.12": outdated, every `go.mod` requires `go 1.27.0` and CI uses 1.27.x. It also omitted the generation workflow (`make generate`, `../models`, soft.gen) and the fact that `test/` requires generation.
+- Breaking change for consumers: since v1.13.0 the codecs and the SQLite store are separate modules with renamed symbols (see [Migration from v1.12](#migration-from-v112)); the sw.* / io.* consumers of the v1 line listed above are still on v1.10.2 / v1.11.0 and the `master` of soft.sync.go on v1.12.0; only the v2 line (sw.hub, sw.recorder, the `release/v2` branches, the soft.sync.studio devserver) and soft.gen use v1.13.
+- The generator is a pre-release: soft.gen `v2.0.0-alpha.4`, run from the image `masagroup/soft.gen`.
 - MPL header is not present in every tracked `.go` file (290 of 375 at v1.11.1; not recounted since the codec split).
 - `sqlEscapeIdentifier` (`codec/sqlite/sqlschema.go`) is not a real escaper: it only wraps the name in double quotes if it contains `.` or is an SQLite keyword, and does not escape embedded `"`. A hostile `.ecore` / metamodel with crafted names is an injection vector. Values are bound as `?` parameters.
 - `Store.ExecuteQuery` (`codec/sqlite/sqlstore.go`) accepts raw SQL and classifies it read vs write by an exact upper-case `SELECT` first token; anything else (lowercase `select`, `WITH`) is scheduled as a write.
@@ -388,9 +399,9 @@ No formal audit exists; the scan report lists the following:
 ## Open questions
 
 - UNVERIFIED: how developers run `make generate` locally, given the Makefile expects `../models` while the workspace has `../soft.models`.
-- UNVERIFIED: why `sw.datacore` replaces soft.go with the `BenSouchet/soft.go` fork, and whether that fork's change (2026-10-05) is merged into v1.11.x or later.
-- UNVERIFIED: content and status of remote branch `masa/sqlstore.optimization`.
-- UNVERIFIED: breaking changes between v1.10.2 (most sw.* / io.* consumers) and v1.11.x (last commits mention an adapted promise API), beyond the codec split of v1.13.0.
+- UNVERIFIED: why `sw.datacore` replaces soft.go with the `BenSouchet/soft.go` fork, and whether that fork's change (pseudo-version `v1.10.3-0.20261020150046-020a766d99c1`, 2026-10-20; `...20261005102653-6e14d517bed8` before) is merged into v1.11.x or later.
+- UNVERIFIED: content and status of the former remote branch `masa/sqlstore.optimization` (masagroup/soft.go only has `master` and `wiki` on 2026-10-23).
+- UNVERIFIED: breaking changes between v1.10.2 (io.hla), v1.11.0 (the other sw.* / io.* consumers) and v1.12.0 (`master` of soft.sync.go) (commits of v1.11 mention an adapted promise API), beyond the codec split of v1.13.0.
 - UNVERIFIED: whether the `soft` umbrella repo is still maintained, since its `go` submodule is at v1.7.0.
 - UNVERIFIED: whether `sw.ng` / other NG services will use the SQLite store directly (no current usage outside `soft.sync.go`).
 - UNVERIFIED: impact of CI pinning `soft.models` at `90286c34...` while the local `soft.models` HEAD is `f0dd72e4...`.

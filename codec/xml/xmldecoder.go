@@ -492,10 +492,10 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 		eList := eObject.EGetResolve(eFeature, false).(ecore.EList)
 		if position == -2 {
 		} else if value == nil {
-			eList.Add(nil)
+			appendLoaded(eList, nil)
 		} else if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
 			if data, ok := l.createFromString(eFactory, eDataType, value.(string)); ok {
-				eList.Add(data)
+				appendLoaded(eList, data)
 			}
 		}
 	case xlfkManyAdd:

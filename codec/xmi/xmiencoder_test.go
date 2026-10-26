@@ -14,6 +14,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/masagroup/soft.go/codec/xml"
 	"github.com/masagroup/soft.go/ecore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -79,4 +80,22 @@ func BenchmarkXMIEncoderLibraryNoRoot(b *testing.B) {
 		resource.SaveWithWriter(&strbuff, nil)
 		resource = nil
 	}
+}
+
+func TestXMIEncoderLibraryEncodedAttributeStyle(t *testing.T) {
+	// load/save with the cross resource references as attributes, as EMF saves .ecore files
+	xmiProcessor := NewProcessor()
+	resource := xmiProcessor.Load(ecore.NewURI("testdata/library.encoded.ecore"))
+	require.NotNil(t, resource)
+	require.True(t, resource.GetErrors().Empty())
+	result := xmiProcessor.SaveToString(resource, map[string]any{xml.OPTION_USE_ENCODED_ATTRIBUTE_STYLE: true})
+	// check
+	bytes, err := os.ReadFile("testdata/library.encoded.ecore")
+	assert.Nil(t, err)
+	assert.Equal(t, strings.ReplaceAll(string(bytes), "\r\n", "\n"), strings.ReplaceAll(result, "\r\n", "\n"))
+
+	// without the option, as href elements
+	result = xmiProcessor.SaveToString(resource, nil)
+	assert.Contains(t, result, `<eType xsi:type="ecore:EClass" href="library.simple.ecore#//Book"/>`)
+	assert.Contains(t, result, `<eSuperTypes href="library.simple.ecore#//Book"/>`)
 }

@@ -88,6 +88,7 @@ type Encoder struct {
 	xmlVersion       string
 	encoding         string
 	keepDefaults     bool
+	useEncodedStyle  bool
 }
 
 func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *Encoder {
@@ -105,6 +106,7 @@ func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *
 	if options != nil {
 		s.idAttributeName, _ = options[OPTION_ID_ATTRIBUTE_NAME].(string)
 		s.roots, _ = options[OPTION_ROOT_OBJECTS].(ecore.EList)
+		s.useEncodedStyle = options[OPTION_USE_ENCODED_ATTRIBUTE_STYLE] == true
 		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
 			s.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
 		}
@@ -302,6 +304,10 @@ func (s *Encoder) saveFeatures(eObject ecore.EObject, attributesOnly bool) bool 
 				if !s.isNil(eObject, eFeature) {
 					switch s.getSaveResourceKindSingle(eObject, eFeature) {
 					case cross:
+						if s.useEncodedStyle {
+							s.saveEncodedHRefSingle(eObject, eFeature)
+							continue
+						}
 					case same:
 						s.saveIDRefSingle(eObject, eFeature)
 						continue
@@ -312,6 +318,10 @@ func (s *Encoder) saveFeatures(eObject ecore.EObject, attributesOnly bool) bool 
 			case xsfkObjectHrefSingle:
 				switch s.getSaveResourceKindSingle(eObject, eFeature) {
 				case cross:
+					if s.useEncodedStyle {
+						s.saveEncodedHRefSingle(eObject, eFeature)
+						continue
+					}
 				case same:
 					s.saveIDRefSingle(eObject, eFeature)
 					continue
@@ -325,6 +335,10 @@ func (s *Encoder) saveFeatures(eObject ecore.EObject, attributesOnly bool) bool 
 				} else {
 					switch s.getSaveResourceKindMany(eObject, eFeature) {
 					case cross:
+						if s.useEncodedStyle {
+							s.saveEncodedHRefMany(eObject, eFeature)
+							continue
+						}
 					case same:
 						s.saveIDRefMany(eObject, eFeature)
 						continue
@@ -336,6 +350,10 @@ func (s *Encoder) saveFeatures(eObject ecore.EObject, attributesOnly bool) bool 
 			case xsfkObjectHrefMany:
 				switch s.getSaveResourceKindMany(eObject, eFeature) {
 				case cross:
+					if s.useEncodedStyle {
+						s.saveEncodedHRefMany(eObject, eFeature)
+						continue
+					}
 				case same:
 					s.saveIDRefMany(eObject, eFeature)
 					continue
@@ -540,6 +558,37 @@ func (s *Encoder) saveHRef(eObject ecore.EObject, eFeature ecore.EStructuralFeat
 		s.str.addAttribute("href", escapeAttribute(href))
 		s.str.endEmptyElement()
 	}
+}
+
+// saveEncodedHRefSingle saves a cross resource reference in the encoded attribute style, as EMF
+// does for .ecore files: eType="ecore:EClass other.ecore#//X"
+func (s *Encoder) saveEncodedHRefSingle(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
+	value, _ := eObject.EGetResolve(eFeature, false).(ecore.EObject)
+	if value != nil {
+		if href := s.getEncodedHRef(value, eFeature); href != "" {
+			s.str.addAttribute(s.getFeatureQName(eFeature), escapeAttribute(href))
+		}
+	}
+}
+
+func (s *Encoder) saveEncodedHRefMany(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
+	s.saveRefsAttribute(eObject, eFeature, func(value ecore.EObject) string {
+		return s.getEncodedHRef(value, eFeature)
+	})
+}
+
+// getEncodedHRef is the href of eObject prefixed with the qualified name of its class when the
+// type of eFeature does not tell it, as the xsi:type of an href element would be.
+func (s *Encoder) getEncodedHRef(eObject ecore.EObject, eFeature ecore.EStructuralFeature) string {
+	href := s.getHRef(eObject)
+	if href != "" {
+		eClass := eObject.EClass()
+		eType, _ := eFeature.GetEType().(ecore.EClass)
+		if eType != eClass && eType != nil && eType.IsAbstract() {
+			return s.getClassQName(eClass) + " " + href
+		}
+	}
+	return href
 }
 
 func (s *Encoder) saveIDRefSingle(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {

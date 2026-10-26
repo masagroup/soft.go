@@ -107,6 +107,7 @@ func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *
 		s.idAttributeName, _ = options[OPTION_ID_ATTRIBUTE_NAME].(string)
 		s.roots, _ = options[OPTION_ROOT_OBJECTS].(ecore.EList)
 		s.useEncodedStyle = options[OPTION_USE_ENCODED_ATTRIBUTE_STYLE] == true
+		s.keepDefaults = options[OPTION_KEEP_DEFAULTS] == true
 		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
 			s.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
 		}

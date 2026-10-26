@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	OPTION_ID_ATTRIBUTE_NAME = "ID_ATTRIBUTE" // if true, save id attribute of the object
+	OPTION_ID_ATTRIBUTE_NAME = "ID_ATTRIBUTE"  // if true, save id attribute of the object
+	OPTION_KEEP_DEFAULTS     = "KEEP_DEFAULTS" // if true, save unset features with a default value
 )
 
 type Codec struct {

@@ -12,6 +12,7 @@ package xml
 import (
 	"fmt"
 	"io"
+	"math"
 	"sort"
 	"strings"
 
@@ -401,7 +402,7 @@ func (s *Encoder) saveDataTypeMany(eObject ecore.EObject, eFeature ecore.EStruct
 			s.uriToPrefixes[xsiURI] = []string{xsiNS}
 			s.prefixesToURI[xsiNS] = xsiURI
 		} else {
-			str := f.ConvertToString(d, value)
+			str := convertToString(f, d, value)
 			s.str.addContent(name, escapeContent(str))
 		}
 	}
@@ -753,9 +754,33 @@ func (s *Encoder) getDataType(value any, f ecore.EStructuralFeature, _ bool) (st
 		d := f.GetEType().(ecore.EDataType)
 		p := d.GetEPackage()
 		f := p.GetEFactoryInstance()
-		s := f.ConvertToString(d, value)
+		s := convertToString(f, d, value)
 		return s, true
 	}
+}
+
+// convertToString is the lexical form of a data value: the one of its factory, but for the
+// infinite and NaN floats, written in the XSD lexical space of xsd:double and xsd:float (INF,
+// -INF, NaN) instead of the Go forms (+Inf, -Inf). The decoder reads both.
+func convertToString(eFactory ecore.EFactory, eDataType ecore.EDataType, value any) string {
+	var v float64
+	switch value := value.(type) {
+	case float64:
+		v = value
+	case float32:
+		v = float64(value)
+	default:
+		return eFactory.ConvertToString(eDataType, value)
+	}
+	switch {
+	case math.IsInf(v, 1):
+		return "INF"
+	case math.IsInf(v, -1):
+		return "-INF"
+	case math.IsNaN(v):
+		return "NaN"
+	}
+	return eFactory.ConvertToString(eDataType, value)
 }
 
 func (s *Encoder) getHRef(eObject ecore.EObject) string {

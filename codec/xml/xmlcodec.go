@@ -21,6 +21,7 @@ const (
 	OPTION_DEFERRED_ROOT_ATTACHMENT      = "DEFERRED_ROOT_ATTACHMENT"      // if true , defer id ref resolution
 	OPTION_ID_ATTRIBUTE_NAME             = "ID_ATTRIBUTE_NAME"             // value of the id attribute
 	OPTION_ROOT_OBJECTS                  = "ROOT_OBJECTS"                  // list of root objects to save
+	OPTION_USE_ENCODED_ATTRIBUTE_STYLE   = "USE_ENCODED_ATTRIBUTE_STYLE"   // if true , save cross resource references as attributes
 )
 
 type Codec struct {

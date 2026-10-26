@@ -304,3 +304,52 @@ func TestXMLEncoder_IDs(t *testing.T) {
 	assert.Equal(t, "B<1>", eDecodedResource.GetObjectIDManager().GetID(eBook))
 	assert.Same(t, eBook, eDecoded.EGet(m.best))
 }
+
+// with the encoded attribute style, the references to objects of another resource are attributes,
+// prefixed with the class of an object of a type other than the abstract reference type
+func TestXMLEncoder_EncodedAttributeStyle(t *testing.T) {
+	m := newLibraryModel()
+	rs := m.newResourceSet()
+	other := m.create(m.library, "other")
+	x := m.create(m.novel, "x")
+	y := m.create(m.book, "y")
+	other.EGet(m.books).(ecore.EList).AddAll(ecore.NewImmutableEList([]any{x, y}))
+	eOther := rs.CreateResource(ecore.NewURI("file:///other.xml"))
+	eOther.GetContents().Add(other)
+
+	library := m.create(m.library, "l")
+	library.ESet(m.best, x)
+	library.ESet(m.any, x)
+	library.ESet(m.maybe, y)
+	library.EGet(m.favorites).(ecore.EList).AddAll(ecore.NewImmutableEList([]any{x, y}))
+	library.EGet(m.others).(ecore.EList).Add(y)
+	proxy := m.ePackage.GetEFactoryInstance().Create(m.book).(ecore.EObjectInternal)
+	proxy.ESetProxyURI(ecore.NewURI("file:///missing.xml#//@books.0"))
+	library.EGet(m.books).(ecore.EList).Add(proxy)
+	eResource := rs.CreateResource(ecore.NewURI("file:///library.xml"))
+	eResource.GetContents().Add(library)
+
+	document := encodeResource(t, eResource, map[string]any{OPTION_USE_ENCODED_ATTRIBUTE_STYLE: true})
+	assert.Contains(t, document, `best="other.xml#//@books.0"`)
+	assert.Contains(t, document, `any="lib:Novel other.xml#//@books.0"`)
+	assert.Contains(t, document, `maybe="other.xml#//@books.1"`)
+	assert.Contains(t, document, `favorites="other.xml#//@books.0 other.xml#//@books.1"`)
+	assert.Contains(t, document, `others="other.xml#//@books.1"`)
+	// a containment is still an element
+	assert.Contains(t, document, `<books href="missing.xml#//@books.0"/>`)
+
+	// decoded as proxies, resolved in a resource set holding the other resource
+	drs := m.newResourceSet()
+	decodeResource(t, drs.CreateResource(ecore.NewURI("file:///other.xml")), encodeResource(t, eOther, nil), nil)
+	eDecoded := decodeResource(t, drs.CreateResource(ecore.NewURI("file:///library.xml")), document, nil)
+	assert.Equal(t, m.novel, eDecoded.EGetResolve(m.any, false).(ecore.EObject).EClass())
+	for _, feature := range []ecore.EStructuralFeature{m.best, m.any, m.maybe} {
+		eProxy := eDecoded.EGetResolve(feature, false).(ecore.EObjectInternal)
+		require.True(t, eProxy.EIsProxy(), feature.GetName())
+		assert.False(t, eDecoded.EGet(feature).(ecore.EObject).EIsProxy(), feature.GetName())
+	}
+	favorites := eDecoded.EGet(m.favorites).(ecore.EList)
+	require.Equal(t, 2, favorites.Size())
+	assert.Equal(t, "x", favorites.Get(0).(ecore.EObject).EGet(m.name))
+	assert.Equal(t, "y", favorites.Get(1).(ecore.EObject).EGet(m.name))
+}

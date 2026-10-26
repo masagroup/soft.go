@@ -87,6 +87,14 @@ type Decoder struct {
 	// resolve with them, without an object id manager
 	ids               map[string]ecore.EObject
 	isResolveDeferred bool
+	// options are the load options of the document: a package it names in xsi:schemaLocation loads
+	// with them
+	options map[string]any
+	// urisToLocations are the locations of the xsi:schemaLocation of the document by namespace, the
+	// location of xsi:noNamespaceSchemaLocation under ""
+	urisToLocations map[string]*ecore.URI
+	// locationErrors are the reasons why the package at the location of a namespace did not load
+	locationErrors map[string]string
 }
 
 func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *Decoder {
@@ -100,6 +108,7 @@ func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *
 	l.spacesToFactories = make(map[string]ecore.EFactory)
 	l.simpleFeatures = make(map[ecore.EClass]ecore.EStructuralFeature)
 	l.notFeatures = append(l.notFeatures, xml.Name{Space: xsiURI, Local: typeAttrib}, xml.Name{Space: xsiURI, Local: schemaLocationAttrib}, xml.Name{Space: xsiURI, Local: noNamespaceSchemaLocationAttrib})
+	l.options = options
 	if options != nil {
 		l.idAttributeName, _ = options[OPTION_ID_ATTRIBUTE_NAME].(string)
 		l.isResolveDeferred = options[OPTION_DEFERRED_REFERENCE_RESOLUTION] == true
@@ -275,10 +284,33 @@ func (l *Decoder) handleSchemaLocation() {
 	}
 }
 
+// handleXSISchemaLocation records the locations of xsi:schemaLocation, pairs of a namespace and a
+// location, a relative location resolved against the uri of the resource. The package of a namespace
+// loads from its location when the package registry does not know it (see getPackageFromLocation).
 func (l *Decoder) handleXSISchemaLocation(loc string) {
+	fields := strings.Fields(loc)
+	for i := 0; i+1 < len(fields); i += 2 {
+		l.putLocation(fields[i], fields[i+1])
+	}
 }
 
+// handleXSINoNamespaceSchemaLocation records the location of the elements without namespace.
 func (l *Decoder) handleXSINoNamespaceSchemaLocation(loc string) {
+	l.putLocation("", strings.TrimSpace(loc))
+}
+
+func (l *Decoder) putLocation(space, location string) {
+	uri, err := ecore.ParseURI(location)
+	if err != nil {
+		return
+	}
+	if resourceURI := l.resource.GetURI(); resourceURI != nil && !uri.IsAbsolute() {
+		uri = resourceURI.Resolve(uri)
+	}
+	if l.urisToLocations == nil {
+		l.urisToLocations = map[string]*ecore.URI{}
+	}
+	l.urisToLocations[space] = uri
 }
 
 func (l *Decoder) handlePrefixMapping() {
@@ -636,11 +668,60 @@ func (l *Decoder) getFactoryForSpace(space string) ecore.EFactory {
 			packageRegistry = l.resource.GetResourceSet().GetPackageRegistry()
 		}
 		factory = packageRegistry.GetFactory(space)
+		if factory == nil && l.getPackageFromLocation(space) != nil {
+			factory = packageRegistry.GetFactory(space)
+		}
 		if factory != nil {
 			l.spacesToFactories[space] = factory
 		}
 	}
 	return factory
+}
+
+// getPackageFromLocation loads the package of the namespace space from its schema location, through
+// the resource set with the options of the document, and registers it by its namespace in the package
+// registry of the resource set (EMF XMLHandler.getPackageForURI). A resource of the resource set at
+// the location is reused, loaded when it is not: a resource being loaded, as in a cycle of schema
+// locations, gives the package already decoded. It returns nil without a location or a resource set,
+// or when the location has no package, the reason recorded for the diagnostic of the unknown package.
+func (l *Decoder) getPackageFromLocation(space string) ecore.EPackage {
+	location := l.urisToLocations[space]
+	resourceSet := l.resource.GetResourceSet()
+	if location == nil || resourceSet == nil {
+		return nil
+	}
+	resource := resourceSet.GetResource(location, false)
+	if resource == nil {
+		resource = resourceSet.CreateResource(location)
+		if resource == nil {
+			l.putLocationError(space, location, "no codec")
+			return nil
+		}
+		resource.LoadWithOptions(l.options)
+		if errors := resource.GetErrors(); !errors.Empty() {
+			// a location that does not load is not kept in the resource set
+			resourceSet.GetResources().Remove(resource)
+			l.putLocationError(space, location, errors.Get(0).(ecore.EDiagnostic).GetMessage())
+			return nil
+		}
+	} else if !resource.IsLoaded() {
+		resource.LoadWithOptions(l.options)
+	}
+	for _, content := range resource.GetContents().ToArray() {
+		if ePackage, _ := content.(ecore.EPackage); ePackage != nil {
+			resourceSet.GetPackageRegistry().PutPackage(ePackage.GetNsURI(), ePackage)
+			return ePackage
+		}
+	}
+	l.putLocationError(space, location, "no package")
+	return nil
+}
+
+func (l *Decoder) putLocationError(space string, location *ecore.URI, reason string) {
+	if l.locationErrors == nil {
+		l.locationErrors = map[string]string{}
+	}
+	l.locationErrors[space] = location.String() + ": " + reason
 }
 
 func (l *Decoder) setAttributeValue(eObject ecore.EObject, qname string, value string) {
@@ -870,7 +951,11 @@ func (l *Decoder) handleUnknownFeature(name string) {
 }
 
 func (l *Decoder) handleUnknownPackage(name, space string) {
-	l.error(ecore.NewEDiagnosticImpl("Package {'"+name+"'='"+space+"'} not found", l.location(), int(l.decoder.InputOffset()), 0))
+	message := "Package {'" + name + "'='" + space + "'} not found"
+	if reason := l.locationErrors[space]; reason != "" {
+		message += " (schema location " + reason + ")"
+	}
+	l.error(ecore.NewEDiagnosticImpl(message, l.location(), int(l.decoder.InputOffset()), 0))
 }
 
 func (l *Decoder) error(diagnostic ecore.EDiagnostic) {

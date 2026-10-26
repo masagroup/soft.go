@@ -24,6 +24,7 @@ func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *
 	}
 	if options != nil {
 		e.idAttributeName, _ = options[OPTION_ID_ATTRIBUTE_NAME].(string)
+		e.keepDefaults = options[OPTION_KEEP_DEFAULTS] == true
 	}
 	return e
 }

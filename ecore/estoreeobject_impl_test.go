@@ -216,6 +216,7 @@ func TestEStoreEObjectImpl_UnSetAttribute_Transient(t *testing.T) {
 	o.SetEClass(mockClass)
 	o.SetEStore(mockStore)
 
+	mockAttribute.EXPECT().IsMany().Return(false).Once()
 	mockAttribute.EXPECT().IsTransient().Return(true).Twice()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(3)
 	o.EUnsetFromID(0)
@@ -233,7 +234,8 @@ func TestEStoreEObjectImpl_UnSetAttribute(t *testing.T) {
 	o.SetEClass(mockClass)
 	o.SetEStore(mockStore)
 
-	mockAttribute.EXPECT().IsMany().Return(false).Once()
+	// unset checks the feature is single-valued, the read of the old value too
+	mockAttribute.EXPECT().IsMany().Return(false).Twice()
 	mockAttribute.EXPECT().IsTransient().Return(false).Twice()
 	mockClass.EXPECT().GetEStructuralFeature(0).Return(mockAttribute).Times(3)
 	mockStore.EXPECT().Get(o, mockAttribute, NO_INDEX).Return(2).Once()

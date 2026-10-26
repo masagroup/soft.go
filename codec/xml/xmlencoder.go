@@ -264,6 +264,23 @@ func (s *Encoder) saveFeatures(eObject ecore.EObject, attributesOnly bool) bool 
 			case xsfkDataTypeSingle:
 				s.saveDataTypeSingle(eObject, eFeature)
 				continue
+			case xsfkObjectAttributeSingle:
+				// An attribute reference: a full href across resources, an IDREF otherwise.
+				switch s.getSaveResourceKindSingle(eObject, eFeature) {
+				case cross:
+					s.saveEObjectSingle(eObject, eFeature)
+				case same:
+					s.saveIDRefSingle(eObject, eFeature)
+				}
+				continue
+			case xsfkObjectAttributeMany:
+				switch s.getSaveResourceKindMany(eObject, eFeature) {
+				case cross:
+					s.saveEObjectMany(eObject, eFeature)
+				case same:
+					s.saveIDRefMany(eObject, eFeature)
+				}
+				continue
 			case xsfkDataTypeSingleNillable:
 				if !s.isNil(eObject, eFeature) {
 					s.saveDataTypeSingle(eObject, eFeature)
@@ -279,6 +296,8 @@ func (s *Encoder) saveFeatures(eObject ecore.EObject, attributesOnly bool) bool 
 			case xsfkObjectContainSingleUnsettable:
 			case xsfkObjectContainSingle:
 			case xsfkObjectContainMany:
+			case xsfkDataTypeContentSingle:
+			case xsfkDataTypeElementSingle:
 			case xsfkObjectHrefSingleUnsettable:
 				if !s.isNil(eObject, eFeature) {
 					switch s.getSaveResourceKindSingle(eObject, eFeature) {
@@ -356,6 +375,10 @@ func (s *Encoder) saveFeatures(eObject ecore.EObject, attributesOnly bool) bool 
 			}
 		case xsfkObjectContainSingle:
 			s.saveContainedSingle(eObject, eFeature)
+		case xsfkDataTypeContentSingle:
+			s.saveDataTypeContent(eObject, eFeature)
+		case xsfkDataTypeElementSingle:
+			s.saveDataTypeElementSingle(eObject, eFeature)
 		case xsfkObjectContainManyUnsettable:
 			fallthrough
 		case xsfkObjectContainMany:
@@ -387,6 +410,24 @@ func (s *Encoder) saveDataTypeSingle(eObject ecore.EObject, eFeature ecore.EStru
 	}
 }
 
+// saveDataTypeElementSingle writes a kind="element" scalar attribute as a child element.
+func (s *Encoder) saveDataTypeElementSingle(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
+	val := eObject.EGetResolve(eFeature, false)
+	str, ok := s.getDataType(val, eFeature, true)
+	if ok {
+		s.str.addContent(s.getFeatureQName(eFeature), escapeContent(str))
+	}
+}
+
+// saveDataTypeContent writes a kind="simple" feature as the element's text.
+func (s *Encoder) saveDataTypeContent(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
+	val := eObject.EGetResolve(eFeature, false)
+	str, ok := s.getDataType(val, eFeature, true)
+	if ok {
+		s.str.addContentValue(escapeContent(str))
+	}
+}
+
 func (s *Encoder) saveDataTypeMany(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
 	l := eObject.EGetResolve(eFeature, false).(ecore.EList)
 	d := eFeature.GetEType().(ecore.EDataType)
@@ -412,7 +453,6 @@ func (s *Encoder) saveManyEmpty(_ ecore.EObject, eFeature ecore.EStructuralFeatu
 	s.str.addAttribute(s.getFeatureQName(eFeature), "")
 }
 
-//lint:ignore U1000 func (*Encoder).saveEObjectSingle is unused
 func (s *Encoder) saveEObjectSingle(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
 	value, _ := eObject.EGetResolve(eFeature, false).(ecore.EObject)
 	if value != nil {
@@ -421,7 +461,6 @@ func (s *Encoder) saveEObjectSingle(eObject ecore.EObject, eFeature ecore.EStruc
 	}
 }
 
-//lint:ignore U1000 func (*Encoder).saveEObjectMany is unused
 func (s *Encoder) saveEObjectMany(eObject ecore.EObject, eFeature ecore.EStructuralFeature) {
 	s.saveRefsAttribute(eObject, eFeature, s.getHRef)
 }
@@ -581,6 +620,13 @@ func (s *Encoder) getSaveFeatureKind(f ecore.EStructuralFeature) xmlSaveFeatureK
 		if opposite != nil && opposite.IsContainment() {
 			return xsfkTransient
 		}
+		// A kind="attribute" reference is an attribute, as the decoder reads it.
+		if s.extendedMetaData != nil && s.extendedMetaData.GetFeatureKind(f) == "attribute" {
+			if isMany {
+				return xsfkObjectAttributeMany
+			}
+			return xsfkObjectAttributeSingle
+		}
 		if isMany {
 			if isUnsettable {
 				return xsfkObjectHrefManyUnsettable
@@ -599,6 +645,14 @@ func (s *Encoder) getSaveFeatureKind(f ecore.EStructuralFeature) xmlSaveFeatureK
 		d := f.GetEType().(ecore.EDataType)
 		if !d.IsSerializable() {
 			return xsfkTransient
+		}
+		// A kind="simple" attribute is the element text, not an attribute.
+		if !isMany && s.extendedMetaData != nil && s.extendedMetaData.GetFeatureKind(f) == "simple" {
+			return xsfkDataTypeContentSingle
+		}
+		// A kind="element" scalar attribute is a child element, as the decoder reads it.
+		if !isMany && s.extendedMetaData != nil && s.extendedMetaData.GetFeatureKind(f) == "element" {
+			return xsfkDataTypeElementSingle
 		}
 		if isMany {
 			return xsfkDataTypeMany

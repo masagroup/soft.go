@@ -81,6 +81,7 @@ type Decoder struct {
 	objects                []ecore.EObject
 	deferred               []ecore.EObject
 	elements               []string
+	simpleFeatures         map[ecore.EClass]ecore.EStructuralFeature
 	isSuppressDocumentRoot bool
 	// ids are the ids of the objects of the document set by SetObjectID (xmi:id): its references by id
 	// resolve with them, without an object id manager
@@ -97,6 +98,7 @@ func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *
 	l.namespaces = newXMLNamespaces()
 	l.prefixesToURI = make(map[string]string)
 	l.spacesToFactories = make(map[string]ecore.EFactory)
+	l.simpleFeatures = make(map[ecore.EClass]ecore.EStructuralFeature)
 	l.notFeatures = append(l.notFeatures, xml.Name{Space: xsiURI, Local: typeAttrib}, xml.Name{Space: xsiURI, Local: schemaLocationAttrib}, xml.Name{Space: xsiURI, Local: noNamespaceSchemaLocationAttrib})
 	if options != nil {
 		l.idAttributeName, _ = options[OPTION_ID_ATTRIBUTE_NAME].(string)
@@ -208,7 +210,12 @@ func (l *Decoder) endElement(_ xml.EndElement) {
 	if l.textBuilder != nil {
 		if eType == load_object_type {
 			if l.textBuilder.Len() > 0 {
-				l.handleProxy(eObject, l.textBuilder.String())
+				// Element text is the class's simple content when it has one, else a proxy URI.
+				if sf := l.getSimpleFeature(eObject.EClass()); sf != nil {
+					l.setFeatureValue(eObject, sf, l.textBuilder.String(), -1)
+				} else {
+					l.handleProxy(eObject, l.textBuilder.String())
+				}
 			}
 		} else if eType != load_error_type {
 			if eObject == nil && len(l.objects) > 0 {
@@ -324,9 +331,32 @@ func (l *Decoder) processObject(eObject ecore.EObject) {
 	if eObject != nil {
 		l.objects = append(l.objects, eObject)
 		l.types = append(l.types, load_object_type)
+		// Capture the element text of a class with simple content.
+		if l.getSimpleFeature(eObject.EClass()) != nil {
+			l.textBuilder = &strings.Builder{}
+		}
 	} else {
 		l.types = append(l.types, load_error_type)
 	}
+}
+
+// getSimpleFeature returns the class's kind="simple" attribute, or nil, cached per class.
+func (l *Decoder) getSimpleFeature(eClass ecore.EClass) ecore.EStructuralFeature {
+	if f, ok := l.simpleFeatures[eClass]; ok {
+		return f
+	}
+	var found ecore.EStructuralFeature
+	if l.extendedMetaData != nil {
+		for it := eClass.GetEAllStructuralFeatures().Iterator(); it.HasNext(); {
+			f := it.Next().(ecore.EStructuralFeature)
+			if _, isAttr := f.(ecore.EAttribute); isAttr && l.extendedMetaData.GetFeatureKind(f) == "simple" {
+				found = f
+				break
+			}
+		}
+	}
+	l.simpleFeatures[eClass] = found
+	return found
 }
 
 func (l *Decoder) createTopObject(space string, local string) ecore.EObject {

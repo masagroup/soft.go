@@ -20,6 +20,7 @@ type xmlString struct {
 	lineWidth          int
 	depth              int
 	lastElementIsStart bool
+	lastElementHasText bool
 }
 
 const MaxInt = int(^uint(0) >> 1)
@@ -85,6 +86,16 @@ func (s *xmlString) closeStartElement() {
 func (s *xmlString) endElement() {
 	if s.lastElementIsStart {
 		s.endEmptyElement()
+	} else if s.lastElementHasText {
+		// Text was written inline after the start tag: close the element on the same line.
+		name := s.removeLast()
+		if name != "" {
+			s.add("</")
+			s.add(name)
+			s.add(">")
+			s.addLine()
+		}
+		s.lastElementHasText = false
 	} else {
 		name := s.removeLast()
 		if name != "" {
@@ -176,6 +187,17 @@ func (s *xmlString) addContent(name string, content string) {
 	s.add(">")
 	s.addLine()
 	s.lastElementIsStart = false
+}
+
+// addContentValue closes the open start tag and appends already escaped text as the
+// element's content; endElement keeps the closing tag on the same line.
+func (s *xmlString) addContentValue(content string) {
+	if s.lastElementIsStart {
+		s.add(">")
+		s.lastElementIsStart = false
+	}
+	s.add(content)
+	s.lastElementHasText = true
 }
 
 func (s *xmlString) getElementIndent() string {

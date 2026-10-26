@@ -30,6 +30,10 @@ type internalENotifyingList interface {
 // BasicENotifyingList ...
 type BasicENotifyingList struct {
 	BasicEList
+	// unsettable is true for the list of an unsettable feature: it is set from its first change
+	// (isSet) until Unset
+	unsettable bool
+	isSet      bool
 }
 
 // NewBasicENotifyingList ...
@@ -136,6 +140,31 @@ func (list *BasicENotifyingList) createAndDispatchNotificationFn(notifications E
 		if notifications != nil {
 			notifications.Dispatch()
 		}
+	}
+}
+
+// DidChange records the list of an unsettable feature as set.
+func (list *BasicENotifyingList) DidChange() {
+	list.isSet = true
+}
+
+// IsSet returns true when the list is set (EUnsettableList): for an unsettable feature, when it
+// changed since it was created or unset, else when it is not empty.
+func (list *BasicENotifyingList) IsSet() bool {
+	if list.unsettable {
+		return list.isSet
+	}
+	return !list.asEList().Empty()
+}
+
+// Unset clears the list (EUnsettableList) and, for an unsettable feature, makes it unset and
+// notifies UNSET, from the old set state to false.
+func (list *BasicENotifyingList) Unset() {
+	list.asEList().Clear()
+	oldIsSet := list.isSet
+	list.isSet = false
+	if list.unsettable {
+		list.createAndDispatchNotification(nil, UNSET, oldIsSet, false, NO_INDEX)
 	}
 }
 

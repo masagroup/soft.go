@@ -64,6 +64,16 @@ func NewBasicEMap() *BasicEMap {
 	return basicEMap
 }
 
+// IsSet returns true when the list of the entries is set (EUnsettableList).
+func (m *BasicEMap) IsSet() bool {
+	return isSetList(m.EList)
+}
+
+// Unset unsets the list of the entries (EUnsettableList).
+func (m *BasicEMap) Unset() {
+	unsetList(m.EList)
+}
+
 func (m *BasicEMap) asEMapEntryFactory() eMapEntryFactory {
 	return m.interfaces.(eMapEntryFactory)
 }

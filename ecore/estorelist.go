@@ -34,6 +34,8 @@ type EStoreList struct {
 	opposite    bool
 	proxies     bool
 	unset       bool
+	// isSet tells whether the list of an unsettable feature without store is set: read without lock
+	isSet atomic.Bool
 }
 
 // eStoreListState is a state of an EStoreList. It is never changed once published.
@@ -118,6 +120,40 @@ func (list *EStoreList) GetFeature() EStructuralFeature {
 
 func (list *EStoreList) GetFeatureID() int {
 	return list.owner.EClass().GetFeatureID(list.feature)
+}
+
+// DidChange records the list of an unsettable feature as set.
+func (list *EStoreList) DidChange() {
+	list.isSet.Store(true)
+}
+
+// IsSet returns true when the list is set (EUnsettableList): for an unsettable feature, as its
+// store tells, or without store when it changed since it was created or unset; else when it is not
+// empty.
+func (list *EStoreList) IsSet() bool {
+	if !list.feature.IsUnsettable() {
+		return !list.Empty()
+	}
+	if store := list.state.Load().store; store != nil {
+		return store.IsSet(list.owner, list.feature)
+	}
+	return list.isSet.Load()
+}
+
+// Unset clears the list (EUnsettableList) and, for an unsettable feature, unsets it in the store
+// and notifies UNSET, from the old set state to false.
+func (list *EStoreList) Unset() {
+	list.Clear()
+	if list.feature.IsUnsettable() {
+		oldIsSet := list.IsSet()
+		list.mutex.Lock()
+		list.isSet.Store(false)
+		if store := list.state.Load().store; store != nil {
+			store.UnSet(list.owner, list.feature)
+		}
+		list.mutex.Unlock()
+		list.createAndDispatchNotification(nil, UNSET, oldIsSet, false, NO_INDEX)
+	}
 }
 
 // Lock prevents the writes to the list until Unlock. The list can be read meanwhile, by the
@@ -324,7 +360,9 @@ func (list *EStoreList) PerformClear() []any {
 	// size
 	state.size = 0
 	list.state.Store(state)
-	list.asEListCallbacks().DidClear(result)
+	listCallbacks := list.asEListCallbacks()
+	listCallbacks.DidClear(result)
+	listCallbacks.DidChange()
 	return result
 }
 

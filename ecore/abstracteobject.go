@@ -41,6 +41,22 @@ type EDynamicProperties interface {
 	EDynamicIsSet(dynamicFeatureID int) bool
 }
 
+type nilValue struct {
+	name string
+}
+
+// NIL is the value a single-valued feature set to nil keeps in the EDynamicProperties that tell it
+// from an unset feature (EMF DynamicValueHolder.NIL): an unsettable feature, or an attribute whose
+// default value is not nil. AbstractEObject gives it to the dynamic properties of the in-memory
+// objects only (DynamicEObjectImpl, ReflectiveEObjectImpl); the store-backed ones get nil, and their
+// store tells whether the feature is set.
+var NIL any = &nilValue{"NIL"}
+
+// eNilDynamicProperties is implemented by the EDynamicProperties that keep NIL.
+type eNilDynamicProperties interface {
+	eKeepsNil()
+}
+
 // EObjectInternal is the implementation protocol of an EObject: its container and resource, the
 // inverse references, the access to its features and operations by ID, and its proxy URI.
 //
@@ -406,15 +422,13 @@ func (o *AbstractEObject) eDynamicPropertiesGet(properties EDynamicProperties, d
 		result := properties.EDynamicGet(dynamicFeatureID)
 		if result == nil {
 			if dynamicFeature.IsMany() {
-				if IsMapType(dynamicFeature) {
-					result = o.eDynamicPropertiesCreateMap(dynamicFeature)
-				} else {
-					result = o.eDynamicPropertiesCreateList(dynamicFeature)
-				}
+				result = o.eDynamicPropertiesCreateCollection(dynamicFeature)
 				properties.EDynamicSet(dynamicFeatureID, result)
 			} else if defaultValue := dynamicFeature.GetDefaultValue(); defaultValue != nil {
 				result = defaultValue
 			}
+		} else if result == NIL {
+			result = nil
 		} else if resolve && IsProxy(dynamicFeature) {
 			oldValue, _ := result.(EObject)
 			if oldValue != nil && oldValue.EIsProxy() {
@@ -464,6 +478,15 @@ func (o *AbstractEObject) eDynamicPropertiesGet(properties EDynamicProperties, d
 	return nil
 }
 
+// eDynamicPropertiesCreateCollection returns the map of a dynamic map feature, or the list of
+// another dynamic many feature.
+func (o *AbstractEObject) eDynamicPropertiesCreateCollection(feature EStructuralFeature) EList {
+	if IsMapType(feature) {
+		return o.eDynamicPropertiesCreateMap(feature)
+	}
+	return o.eDynamicPropertiesCreateList(feature)
+}
+
 // eDynamicPropertiesCreateMap returns the map of a dynamic map feature.
 func (o *AbstractEObject) eDynamicPropertiesCreateMap(feature EStructuralFeature) EMap {
 	eClass := feature.GetEType().(EClass)
@@ -486,7 +509,9 @@ func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeatur
 	// the ID of the feature in the class of the object, not in the class declaring it
 	featureID := o.AsEObject().EClass().GetFeatureID(feature)
 	if attribute, isAttribute := feature.(EAttribute); isAttribute {
-		return NewBasicEDataTypeList(o.AsEObjectInternal(), featureID, attribute.IsUnique())
+		l := NewBasicEDataTypeList(o.AsEObjectInternal(), featureID, attribute.IsUnique())
+		l.unsettable = attribute.IsUnsettable()
+		return l
 	} else if ref, isRef := feature.(EReference); isRef {
 		inverse := false
 		opposite := false
@@ -589,8 +614,14 @@ func (o *AbstractEObject) eDynamicPropertiesSet(properties EDynamicProperties, d
 		}
 	} else if IsBidirectional(dynamicFeature) || IsContains(dynamicFeature) {
 		// inverse - opposite
-		oldValue := properties.EDynamicGet(dynamicFeatureID)
-		if oldValue != newValue {
+		oldStored := properties.EDynamicGet(dynamicFeatureID)
+		oldValue := oldStored
+		if oldValue == NIL {
+			oldValue = nil
+		}
+		newStored, _ := eDynamicStoredValue(properties, dynamicFeature, newValue)
+		// nil set to an unset unsettable reference sets it: it has no inverse to update
+		if oldValue != newValue || oldStored != newStored {
 			var notifications ENotificationChain
 			oldObject, _ := oldValue.(EObjectInternal)
 			newObject, _ := newValue.(EObjectInternal)
@@ -616,7 +647,7 @@ func (o *AbstractEObject) eDynamicPropertiesSet(properties EDynamicProperties, d
 				}
 			}
 			// basic set
-			properties.EDynamicSet(dynamicFeatureID, newValue)
+			properties.EDynamicSet(dynamicFeatureID, newStored)
 
 			// create notification
 			if o.ENotificationRequired() {
@@ -635,14 +666,60 @@ func (o *AbstractEObject) eDynamicPropertiesSet(properties EDynamicProperties, d
 		}
 	} else {
 		// basic set
-		oldValue := properties.EDynamicGet(dynamicFeatureID)
-		properties.EDynamicSet(dynamicFeatureID, newValue)
+		oldStored := properties.EDynamicGet(dynamicFeatureID)
+		newStored, notifiedValue := eDynamicStoredValue(properties, dynamicFeature, newValue)
+		properties.EDynamicSet(dynamicFeatureID, newStored)
 
 		// notify
 		if o.ENotificationRequired() {
-			o.ENotify(NewNotificationByFeature(o.AsEObject(), SET, dynamicFeature, oldValue, newValue, NO_INDEX))
+			o.ENotify(NewNotificationByFeature(o.AsEObject(), SET, dynamicFeature, eDynamicValue(dynamicFeature, oldStored), notifiedValue, NO_INDEX))
 		}
 	}
+}
+
+// eDynamicStoredValue returns the value EDynamicSet stores for newValue set to a single-valued
+// feature, and the new value to notify, as EMF does: nil set to an attribute whose type has a
+// default value (a number, a bool...) stores no value, and notifies the default value of the
+// feature; nil set to an unsettable feature, or to an attribute with a default value, stores NIL
+// in the properties that keep it.
+func eDynamicStoredValue(properties EDynamicProperties, feature EStructuralFeature, newValue any) (stored any, notified any) {
+	if newValue != nil {
+		return newValue, newValue
+	}
+	if _, isAttribute := feature.(EAttribute); isAttribute {
+		if eType := feature.GetEType(); eType != nil && eType.GetDefaultValue() != nil {
+			return nil, feature.GetDefaultValue()
+		}
+		if !feature.IsUnsettable() && feature.GetDefaultValue() == nil {
+			return nil, nil
+		}
+	} else if !feature.IsUnsettable() {
+		return nil, nil
+	}
+	if _, keepsNil := properties.(eNilDynamicProperties); keepsNil {
+		return NIL, nil
+	}
+	return nil, nil
+}
+
+// eDynamicValue returns the value of a single-valued feature whose stored value is stored: nil for
+// NIL, the default value of the feature for no value.
+func eDynamicValue(feature EStructuralFeature, stored any) any {
+	switch stored {
+	case nil:
+		return eDynamicDefaultValue(feature)
+	case NIL:
+		return nil
+	}
+	return stored
+}
+
+// eDynamicDefaultValue returns the default value of a single-valued feature: nil for a reference.
+func eDynamicDefaultValue(feature EStructuralFeature) any {
+	if _, isAttribute := feature.(EAttribute); isAttribute {
+		return feature.GetDefaultValue()
+	}
+	return nil
 }
 
 // EIsSet returns true when feature is set (EIsSetFromID). It panics when the class of the object
@@ -685,11 +762,11 @@ func (o *AbstractEObject) eDynamicPropertiesIsSet(properties EDynamicProperties,
 		return objInternal.EInternalContainerFeatureID() == featureID && objInternal.EInternalContainer() != nil
 	} else if !properties.EDynamicIsSet(dynamicFeatureID) {
 		return false
-	} else if dynamicFeature.IsMany() && !dynamicFeature.IsUnsettable() {
-		// the list of a many feature is created by its first read: as in EMF, it is set when not
-		// empty, not when it exists
+	} else if dynamicFeature.IsMany() {
+		// the list of a many feature is created by its first read: as in EMF, its list tells whether
+		// it is set, not its existence
 		if list, _ := properties.EDynamicGet(dynamicFeatureID).(EList); list != nil {
-			return !list.Empty()
+			return isSetList(list)
 		}
 	}
 	return true
@@ -741,55 +818,68 @@ func (o *AbstractEObject) eDynamicPropertiesUnset(properties EDynamicProperties,
 		} else if o.ENotificationRequired() {
 			o.ENotify(NewNotificationByFeature(o.AsEObject(), SET, dynamicFeature, nil, nil, NO_INDEX))
 		}
+	} else if dynamicFeature.IsMany() {
+		// as EMF, the list is kept and unset: cleared, which updates the containment and the opposites
+		// of its elements and notifies, and for an unsettable feature made unset
+		value := properties.EDynamicGet(dynamicFeatureID)
+		if value == nil {
+			value = o.eDynamicPropertiesCreateCollection(dynamicFeature)
+			properties.EDynamicSet(dynamicFeatureID, value)
+		}
+		if list, _ := value.(EList); list != nil {
+			unsetList(list)
+		}
 	} else if IsBidirectional(dynamicFeature) || IsContains(dynamicFeature) {
 		// inverse - opposite
 		oldValue := properties.EDynamicGet(dynamicFeatureID)
-		if oldValue != nil {
-			var notifications ENotificationChain
-			oldObject, _ := oldValue.(EObject)
-
+		if oldValue == NIL {
+			oldValue = nil
+		}
+		var notifications ENotificationChain
+		if oldObject, _ := oldValue.(EObjectInternal); oldObject != nil {
 			if !IsBidirectional(dynamicFeature) {
-				if oldObject != nil {
-					featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
-					notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
-				}
+				featureID := o.AsEObject().EClass().GetFeatureID(dynamicFeature)
+				notifications = oldObject.EInverseRemove(o.AsEObject(), EOPPOSITE_FEATURE_BASE-featureID, notifications)
 			} else {
-				dynamicReference := dynamicFeature.(EReference)
-				reverseFeature := dynamicReference.GetEOpposite()
-				if oldObject != nil {
-					featureID := oldObject.EClass().GetFeatureID(reverseFeature)
-					notifications = oldObject.(EObjectInternal).EInverseRemove(o.AsEObject(), featureID, notifications)
-				}
+				reverseFeature := dynamicFeature.(EReference).GetEOpposite()
+				featureID := oldObject.EClass().GetFeatureID(reverseFeature)
+				notifications = oldObject.EInverseRemove(o.AsEObject(), featureID, notifications)
 			}
-			// basic unset
-			properties.EDynamicUnset(dynamicFeatureID)
+		}
+		// basic unset
+		properties.EDynamicUnset(dynamicFeatureID)
 
-			// create notification
-			if o.ENotificationRequired() {
-				eventType := SET
-				if dynamicFeature.IsUnsettable() {
-					eventType = UNSET
-				}
-				notification := NewNotificationByFeature(o.AsEObject(), eventType, dynamicFeature, oldValue, nil, NO_INDEX)
-				if notifications != nil {
-					notifications.Add(notification)
-				} else {
-					notifications = notification
-				}
-			}
-
-			// notify
+		// create notification: UNSET for an unsettable feature, else SET, as EMF
+		if o.ENotificationRequired() {
+			notification := NewNotificationByFeature(o.AsEObject(), unsetEventType(dynamicFeature), dynamicFeature, oldValue, nil, NO_INDEX)
 			if notifications != nil {
-				notifications.Dispatch()
+				notifications.Add(notification)
+			} else {
+				notifications = notification
 			}
+		}
+
+		// notify
+		if notifications != nil {
+			notifications.Dispatch()
 		}
 	} else {
-		oldValue := properties.EDynamicGet(dynamicFeatureID)
+		oldStored := properties.EDynamicGet(dynamicFeatureID)
 		properties.EDynamicUnset(dynamicFeatureID)
+		// as EMF: UNSET for an unsettable feature, else SET, to the default value of the feature
 		if o.ENotificationRequired() {
-			o.ENotify(NewNotificationByFeature(o.AsEObject(), UNSET, dynamicFeature, oldValue, nil, NO_INDEX))
+			o.ENotify(NewNotificationByFeature(o.AsEObject(), unsetEventType(dynamicFeature), dynamicFeature, eDynamicValue(dynamicFeature, oldStored), eDynamicDefaultValue(dynamicFeature), NO_INDEX))
 		}
 	}
+}
+
+// unsetEventType returns the type of the notification of the unset of a single-valued feature:
+// UNSET for an unsettable feature, else SET.
+func unsetEventType(feature EStructuralFeature) EventType {
+	if feature.IsUnsettable() {
+		return UNSET
+	}
+	return SET
 }
 
 // EInvoke invokes operation with arguments (EInvokeFromID). It panics when the class of the object
@@ -864,7 +954,7 @@ func (o *AbstractEObject) eDynamicPropertiesInverseAdd(properties EDynamicProper
 	if dynamicFeature.IsMany() {
 		value := properties.EDynamicGet(dynamicFeatureID)
 		if value == nil {
-			value = o.eDynamicPropertiesCreateList(dynamicFeature)
+			value = o.eDynamicPropertiesCreateCollection(dynamicFeature)
 			properties.EDynamicSet(dynamicFeatureID, value)
 		}
 		if list, _ := value.(ENotifyingList); list != nil {
@@ -880,6 +970,9 @@ func (o *AbstractEObject) eDynamicPropertiesInverseAdd(properties EDynamicProper
 	} else {
 		// inverse - opposite
 		oldValue := properties.EDynamicGet(dynamicFeatureID)
+		if oldValue == NIL {
+			oldValue = nil
+		}
 		oldObject, _ := oldValue.(EObject)
 		if oldObject != nil {
 			if IsContains(dynamicFeature) {
@@ -942,11 +1035,14 @@ func (o *AbstractEObject) eDynamicPropertiesInverseRemove(properties EDynamicPro
 		return o.EBasicSetContainer(nil, featureID, notifications)
 	} else {
 		oldValue := properties.EDynamicGet(dynamicFeatureID)
+		if oldValue == NIL {
+			oldValue = nil
+		}
 		properties.EDynamicUnset(dynamicFeatureID)
 
-		// create notification
+		// create notification: UNSET for an unsettable feature, else SET, as EMF
 		if o.ENotificationRequired() {
-			notification := NewNotificationByFeature(o.AsEObject(), SET, dynamicFeature, oldValue, nil, NO_INDEX)
+			notification := NewNotificationByFeature(o.AsEObject(), unsetEventType(dynamicFeature), dynamicFeature, oldValue, nil, NO_INDEX)
 			if notifications != nil {
 				notifications.Add(notification)
 			} else {

@@ -76,8 +76,12 @@ func (o *ReflectiveEObjectImpl) EDynamicUnset(dynamicFeatureID int) {
 	o.getProperties()[dynamicFeatureID] = nil
 }
 
+// eKeepsNil tells that the properties keep NIL, the value of a feature set to nil.
+func (o *ReflectiveEObjectImpl) eKeepsNil() {}
+
 func (o *ReflectiveEObjectImpl) EDynamicIsSet(dynamicFeatureID int) bool {
-	// as in EMF, an attribute (not unsettable) set to its default value is not set
+	// as in EMF, an attribute (not unsettable) set to its default value is not set, one set to nil
+	// (NIL) is
 	value := o.getProperties()[dynamicFeatureID]
 	return value != nil && isSetValue(o.EClass().GetEStructuralFeature(dynamicFeatureID), value)
 }

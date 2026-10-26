@@ -174,6 +174,7 @@ func (list *BasicEList) DoClear() []any {
 	// events
 	listCallbacks := list.asEListCallbacks()
 	listCallbacks.DidClear(oldData)
+	listCallbacks.DidChange()
 	return oldData
 }
 

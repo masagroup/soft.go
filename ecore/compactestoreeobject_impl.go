@@ -384,6 +384,9 @@ func isSetValue(feature EStructuralFeature, value any) bool {
 	if value == nil {
 		return false
 	}
+	if value == NIL {
+		return true
+	}
 	if _, isAttribute := feature.(EAttribute); !isAttribute || feature.IsMany() || feature.IsUnsettable() {
 		return true
 	}

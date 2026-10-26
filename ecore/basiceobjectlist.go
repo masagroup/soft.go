@@ -22,7 +22,6 @@ type basicEObjectList struct {
 	inverse           bool
 	opposite          bool
 	proxies           bool
-	unset             bool
 }
 
 func NewBasicEObjectList(owner EObjectInternal, featureID int, inverseFeatureID int, containment, inverse, opposite, proxies, unset bool) *basicEObjectList {
@@ -37,7 +36,7 @@ func NewBasicEObjectList(owner EObjectInternal, featureID int, inverseFeatureID 
 	l.inverse = inverse
 	l.opposite = opposite
 	l.proxies = proxies
-	l.unset = unset
+	l.unsettable = unset
 	return l
 }
 

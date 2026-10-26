@@ -222,6 +222,7 @@ func TestReflectiveEObjectImpl_GetAttribute_Many(t *testing.T) {
 	mockAttribute.EXPECT().IsMany().Return(true).Once()
 	mockClass.EXPECT().GetFeatureID(mockAttribute).Return(2).Once()
 	mockAttribute.EXPECT().IsUnique().Return(true).Once()
+	mockAttribute.EXPECT().IsUnsettable().Return(false).Once()
 	mockAttribute.EXPECT().GetEType().Return(nil).Once()
 	val := o.EGetFromID(0, false)
 	assert.NotNil(t, val)
@@ -286,7 +287,8 @@ func TestReflectiveEObjectImpl_SetAttribute(t *testing.T) {
 
 func TestReflectiveEObjectImpl_UnsetAttribute(t *testing.T) {
 	mockAttribute := NewMockEAttribute(t)
-	mockAttribute.EXPECT().IsMany().Return(false).Once()
+	// unset checks the feature is single-valued, get too
+	mockAttribute.EXPECT().IsMany().Return(false).Twice()
 	mockAttribute.EXPECT().GetDefaultValue().Return(nil).Once()
 
 	mockClass := NewMockEClass(t)

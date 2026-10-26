@@ -30,14 +30,15 @@ func (d *Codec) NewDecoder(resource ecore.EResource, r io.Reader, options map[st
 }
 
 // EcoreCodec is the XMI codec of the .ecore resources: as EMF's EcoreResourceFactoryImpl, it
-// saves the cross resource references in the encoded attribute style, unless the options of the
-// save set xml.OPTION_USE_ENCODED_ATTRIBUTE_STYLE.
+// saves the cross resource references in the encoded attribute style and wraps the attributes at
+// a line width of 80, unless the options of the save set xml.OPTION_USE_ENCODED_ATTRIBUTE_STYLE
+// or xml.OPTION_LINE_WIDTH.
 type EcoreCodec struct {
 	Codec
 }
 
 func (d *EcoreCodec) NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) ecore.EEncoder {
-	o := map[string]any{xml.OPTION_USE_ENCODED_ATTRIBUTE_STYLE: true}
+	o := map[string]any{xml.OPTION_USE_ENCODED_ATTRIBUTE_STYLE: true, xml.OPTION_LINE_WIDTH: 80}
 	maps.Copy(o, options)
 	return NewEncoder(resource, w, o)
 }

@@ -20,15 +20,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// the options of a save of the libraries, whose cross resource references are href elements
-var hrefStyle = map[string]any{xml.OPTION_USE_ENCODED_ATTRIBUTE_STYLE: false}
+// the options of a save of the libraries in the style of the XMI codec: the cross resource references
+// are href elements and the lines are not wrapped
+var xmiStyle = map[string]any{xml.OPTION_USE_ENCODED_ATTRIBUTE_STYLE: false, xml.OPTION_LINE_WIDTH: 0}
 
 func TestXMIEncoderLibrarySimple(t *testing.T) {
 	// load/save
 	xmiProcessor := NewProcessor()
 	resource := xmiProcessor.Load(ecore.NewURI("testdata/library.simple.ecore"))
 	require.NotNil(t, resource)
-	result := xmiProcessor.SaveToString(resource, hrefStyle)
+	result := xmiProcessor.SaveToString(resource, xmiStyle)
 	// check
 	bytes, err := os.ReadFile("testdata/library.simple.ecore")
 	assert.Nil(t, err)
@@ -40,7 +41,7 @@ func TestXMIEncoderLibraryNoRoot(t *testing.T) {
 	xmiProcessor := NewProcessor()
 	resource := xmiProcessor.Load(ecore.NewURI("testdata/library.noroot.ecore"))
 	require.NotNil(t, resource)
-	result := xmiProcessor.SaveToString(resource, hrefStyle)
+	result := xmiProcessor.SaveToString(resource, xmiStyle)
 	// check
 	bytes, err := os.ReadFile("testdata/library.noroot.ecore")
 	assert.Nil(t, err)
@@ -52,7 +53,7 @@ func TestXMIEncoderLibraryComplex(t *testing.T) {
 	xmiProcessor := NewProcessor()
 	resource := xmiProcessor.Load(ecore.NewURI("testdata/library.complex.ecore"))
 	require.NotNil(t, resource)
-	result := xmiProcessor.SaveToString(resource, hrefStyle)
+	result := xmiProcessor.SaveToString(resource, xmiStyle)
 	// check
 	bytes, err := os.ReadFile("testdata/library.complex.ecore")
 	assert.Nil(t, err)
@@ -94,14 +95,18 @@ func TestXMIEncoderLibraryEncodedAttributeStyle(t *testing.T) {
 	bytes, err := os.ReadFile("testdata/library.encoded.ecore")
 	assert.Nil(t, err)
 	expected := strings.ReplaceAll(string(bytes), "\r\n", "\n")
-	// the default style of a .ecore resource, and with the option
-	for _, options := range []map[string]any{nil, {xml.OPTION_USE_ENCODED_ATTRIBUTE_STYLE: true}} {
+	// the default style of a .ecore resource, and with the options
+	for _, options := range []map[string]any{nil, {xml.OPTION_USE_ENCODED_ATTRIBUTE_STYLE: true, xml.OPTION_LINE_WIDTH: 80}} {
 		result := xmiProcessor.SaveToString(resource, options)
 		assert.Equal(t, expected, strings.ReplaceAll(result, "\r\n", "\n"))
 	}
 
-	// with the option off, as href elements
-	result := xmiProcessor.SaveToString(resource, hrefStyle)
+	// without line width, an element on one line
+	result := xmiProcessor.SaveToString(resource, map[string]any{xml.OPTION_LINE_WIDTH: 0})
+	assert.Contains(t, result, `<eStructuralFeatures xsi:type="ecore:EReference" name="books" upperBound="-1" eType="#//Novel" containment="true"/>`)
+
+	// with the options off, as href elements
+	result = xmiProcessor.SaveToString(resource, xmiStyle)
 	assert.Contains(t, result, `<eType xsi:type="ecore:EClass" href="library.simple.ecore#//Book"/>`)
 	assert.Contains(t, result, `<eSuperTypes href="library.simple.ecore#//Book"/>`)
 

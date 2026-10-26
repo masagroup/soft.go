@@ -222,7 +222,8 @@ func (s *xmlString) getAttributeIndent() string {
 
 func (s *xmlString) mark() *xmlStringSegment {
 	r := s.currentSegment
-	s.currentSegment = &xmlStringSegment{}
+	// the line goes on in the new segment: its width starts at the one of the marked segment
+	s.currentSegment = &xmlStringSegment{lineWidth: r.lineWidth}
 	s.segments = append(s.segments, s.currentSegment)
 	return r
 }
@@ -235,4 +236,6 @@ func (s *xmlString) resetToMark(segment *xmlStringSegment) {
 	if segment != nil {
 		s.currentSegment = segment
 	}
+	// as EMF, the attributes added at the mark are indented as the ones of a top level element
+	s.depth++
 }

@@ -34,7 +34,6 @@ func TestXMIProcessor_LoadWithReader(t *testing.T) {
 }
 
 func TestXMIRegistration(t *testing.T) {
-	for _, extension := range []string{"ecore", "xmi"} {
-		assert.IsType(t, &Codec{}, ecore.GetCodecRegistry().GetCodec(ecore.NewURI("model."+extension)), extension)
-	}
+	assert.IsType(t, &EcoreCodec{}, ecore.GetCodecRegistry().GetCodec(ecore.NewURI("model.ecore")))
+	assert.IsType(t, &Codec{}, ecore.GetCodecRegistry().GetCodec(ecore.NewURI("model.xmi")))
 }

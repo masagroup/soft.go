@@ -15,6 +15,6 @@ package xmi
 import "github.com/masagroup/soft.go/ecore"
 
 func init() {
-	ecore.RegisterCodec("ecore", &Codec{})
+	ecore.RegisterCodec("ecore", &EcoreCodec{})
 	ecore.RegisterCodec("xmi", &Codec{})
 }

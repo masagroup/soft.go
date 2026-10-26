@@ -520,7 +520,7 @@ func (s *Encoder) saveEObject(o ecore.EObject, f ecore.EStructuralFeature) {
 	s.str.startElement(s.getFeatureQName(f))
 	eClass := o.EClass()
 	eType := f.GetEType()
-	if eType != eClass && eType != ecore.GetPackage().GetEObject() {
+	if eType != eClass {
 		s.saveTypeAttribute(eClass)
 	}
 	s.saveElementID(o)

@@ -509,9 +509,7 @@ func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeatur
 	// the ID of the feature in the class of the object, not in the class declaring it
 	featureID := o.AsEObject().EClass().GetFeatureID(feature)
 	if attribute, isAttribute := feature.(EAttribute); isAttribute {
-		l := NewBasicEDataTypeList(o.AsEObjectInternal(), featureID, attribute.IsUnique())
-		l.unsettable = attribute.IsUnsettable()
-		return l
+		return NewBasicEDataTypeList(o.AsEObjectInternal(), featureID, attribute.IsUnique(), attribute.IsUnsettable())
 	} else if ref, isRef := feature.(EReference); isRef {
 		inverse := false
 		opposite := false

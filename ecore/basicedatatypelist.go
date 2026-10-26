@@ -6,13 +6,17 @@ type basicEDataTypeList struct {
 	featureID int
 }
 
-func NewBasicEDataTypeList(owner EObjectInternal, featureID int, isUnique bool) *basicEDataTypeList {
+// NewBasicEDataTypeList returns the list of the values of the many-valued attribute of ID featureID
+// of owner. The list of an unsettable attribute is set from its first change until Unset
+// (EUnsettableList).
+func NewBasicEDataTypeList(owner EObjectInternal, featureID int, isUnique, unsettable bool) *basicEDataTypeList {
 	l := new(basicEDataTypeList)
 	l.interfaces = l
 	l.data = []any{}
 	l.owner = owner
 	l.featureID = featureID
 	l.isUnique = isUnique
+	l.unsettable = unsettable
 	return l
 }
 

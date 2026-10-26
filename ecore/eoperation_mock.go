@@ -166,6 +166,42 @@ func (c *MockEOperation_UnsetEExceptions_Call) Return() *MockEOperation_UnsetEEx
 	return c
 }
 
+// IsSetEExceptions get if the value of eExceptions is set
+func (e *MockEOperation_Prototype_Methods) IsSetEExceptions() bool {
+	ret := e.mock.Called()
+
+	var res bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		res = rf()
+	} else {
+		if ret.Get(0) != nil {
+			res = ret.Get(0).(bool)
+		}
+	}
+
+	return res
+}
+
+type MockEOperation_IsSetEExceptions_Call struct {
+	*mock.Call
+}
+
+func (e *MockEOperation_Expecter_Methods) IsSetEExceptions() *MockEOperation_IsSetEExceptions_Call {
+	return &MockEOperation_IsSetEExceptions_Call{Call: e.mock.On("IsSetEExceptions")}
+}
+
+func (c *MockEOperation_IsSetEExceptions_Call) Run(run func()) *MockEOperation_IsSetEExceptions_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockEOperation_IsSetEExceptions_Call) Return(eExceptions bool) *MockEOperation_IsSetEExceptions_Call {
+	c.Call.Return(eExceptions)
+	return c
+}
+
 // GetEParameters get the value of eParameters
 func (e *MockEOperation_Prototype_Methods) GetEParameters() EList {
 	ret := e.mock.Called()

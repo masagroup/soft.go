@@ -15,6 +15,7 @@ package ecore
 type ETypedElementImpl struct {
 	ENamedElementImpl
 	eType      EClassifier
+	eTypeESet  bool
 	isOrdered  bool
 	isUnique   bool
 	lowerBound int
@@ -81,6 +82,7 @@ func (e *ETypedElementImpl) basicGetEType() EClassifier {
 func (e *ETypedElementImpl) SetEType(newEType EClassifier) {
 	oldEType := e.eType
 	e.eType = newEType
+	e.eTypeESet = true
 	if e.ENotificationRequired() {
 		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), SET, ETYPED_ELEMENT__ETYPE, oldEType, newEType, NO_INDEX))
 	}
@@ -90,9 +92,15 @@ func (e *ETypedElementImpl) SetEType(newEType EClassifier) {
 func (e *ETypedElementImpl) UnsetEType() {
 	oldEType := e.eType
 	e.eType = nil
+	e.eTypeESet = false
 	if e.ENotificationRequired() {
 		e.ENotify(NewNotificationByFeatureID(e.AsEObject(), UNSET, ETYPED_ELEMENT__ETYPE, oldEType, nil, NO_INDEX))
 	}
+}
+
+// IsSetEType get if the value of eType is set
+func (e *ETypedElementImpl) IsSetEType() bool {
+	return e.eTypeESet
 }
 
 // IsMany get the value of isMany
@@ -223,7 +231,7 @@ func (e *ETypedElementImpl) EUnsetFromID(featureID int) {
 func (e *ETypedElementImpl) EIsSetFromID(featureID int) bool {
 	switch featureID {
 	case ETYPED_ELEMENT__ETYPE:
-		return e.eType != nil
+		return e.eTypeESet
 	case ETYPED_ELEMENT__LOWER_BOUND:
 		return e.lowerBound != 0
 	case ETYPED_ELEMENT__MANY:

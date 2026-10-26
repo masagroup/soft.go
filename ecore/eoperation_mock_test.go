@@ -51,6 +51,17 @@ func TestMockEOperationUnsetEExceptions(t *testing.T) {
 	o.UnsetEExceptions()
 }
 
+// TestMockEOperationIsSetEExceptions tests method IsSetEExceptions
+func TestMockEOperationIsSetEExceptions(t *testing.T) {
+	o := NewMockEOperation(t)
+	r := true
+	m := NewMockRun(t)
+	o.EXPECT().IsSetEExceptions().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().IsSetEExceptions().Call.Return(func() bool { return r }).Once()
+	assert.Equal(t, r, o.IsSetEExceptions())
+	assert.Equal(t, r, o.IsSetEExceptions())
+}
+
 // TestMockEOperationGetEParameters tests method GetEParameters
 func TestMockEOperationGetEParameters(t *testing.T) {
 	o := NewMockEOperation(t)

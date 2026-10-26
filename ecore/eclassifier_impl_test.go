@@ -157,7 +157,7 @@ func TestEClassifierESetFromID(t *testing.T) {
 	{
 		v := int(45)
 		o.ESetFromID(ECLASSIFIER__CLASSIFIER_ID, v)
-		assert.Equal(t, v, o.EGetFromID(ECLASSIFIER__CLASSIFIER_ID, false))
+		assert.Equal(t, v, o.classifierID)
 	}
 	{
 		v := reflect.Type(reflect.TypeOf(""))
@@ -189,7 +189,7 @@ func TestEClassifierEUnsetFromID(t *testing.T) {
 	assert.Panics(t, func() { o.EUnsetFromID(-1) })
 	{
 		o.EUnsetFromID(ECLASSIFIER__CLASSIFIER_ID)
-		v := o.EGetFromID(ECLASSIFIER__CLASSIFIER_ID, false)
+		v := o.classifierID
 		assert.Equal(t, int(-1), v)
 	}
 	{

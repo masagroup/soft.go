@@ -49,6 +49,17 @@ func TestMockETypedElementUnsetEType(t *testing.T) {
 	o.UnsetEType()
 }
 
+// TestMockETypedElementIsSetEType tests method IsSetEType
+func TestMockETypedElementIsSetEType(t *testing.T) {
+	o := NewMockETypedElement(t)
+	r := true
+	m := NewMockRun(t)
+	o.EXPECT().IsSetEType().Return(r).Run(func() { m.Run() }).Once()
+	o.EXPECT().IsSetEType().Call.Return(func() bool { return r }).Once()
+	assert.Equal(t, r, o.IsSetEType())
+	assert.Equal(t, r, o.IsSetEType())
+}
+
 // TestMockETypedElementGetLowerBound tests method GetLowerBound
 func TestMockETypedElementGetLowerBound(t *testing.T) {
 	o := NewMockETypedElement(t)

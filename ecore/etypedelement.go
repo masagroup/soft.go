@@ -34,6 +34,7 @@ type ETypedElement interface {
 	GetEType() EClassifier
 	SetEType(EClassifier)
 	UnsetEType()
+	IsSetEType() bool
 
 	// Start of user code ETypedElement
 	// End of user code

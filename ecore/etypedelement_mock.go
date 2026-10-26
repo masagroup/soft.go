@@ -157,6 +157,42 @@ func (c *MockETypedElement_UnsetEType_Call) Return() *MockETypedElement_UnsetETy
 	return c
 }
 
+// IsSetEType get if the value of eType is set
+func (e *MockETypedElement_Prototype_Methods) IsSetEType() bool {
+	ret := e.mock.Called()
+
+	var res bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		res = rf()
+	} else {
+		if ret.Get(0) != nil {
+			res = ret.Get(0).(bool)
+		}
+	}
+
+	return res
+}
+
+type MockETypedElement_IsSetEType_Call struct {
+	*mock.Call
+}
+
+func (e *MockETypedElement_Expecter_Methods) IsSetEType() *MockETypedElement_IsSetEType_Call {
+	return &MockETypedElement_IsSetEType_Call{Call: e.mock.On("IsSetEType")}
+}
+
+func (c *MockETypedElement_IsSetEType_Call) Run(run func()) *MockETypedElement_IsSetEType_Call {
+	c.Call.Run(func(mock.Arguments) {
+		run()
+	})
+	return c
+}
+
+func (c *MockETypedElement_IsSetEType_Call) Return(eType bool) *MockETypedElement_IsSetEType_Call {
+	c.Call.Return(eType)
+	return c
+}
+
 // GetLowerBound get the value of lowerBound
 func (e *MockETypedElement_Prototype_Methods) GetLowerBound() int {
 	ret := e.mock.Called()

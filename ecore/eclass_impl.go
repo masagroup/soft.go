@@ -256,43 +256,63 @@ func (e *EClassImpl) SetInterface(newIsInterface bool) {
 }
 
 func (e *EClassImpl) initEAllAttributes() {
-	e.eAllAttributes = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_ATTRIBUTES, -1, false, false, false, true, false)
+	if e.eAllAttributes == nil {
+		e.eAllAttributes = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_ATTRIBUTES, -1, false, false, false, true, false)
+	}
 }
 
 func (e *EClassImpl) initEAllContainments() {
-	e.eAllContainments = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_CONTAINMENTS, -1, false, false, false, true, false)
+	if e.eAllContainments == nil {
+		e.eAllContainments = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_CONTAINMENTS, -1, false, false, false, true, false)
+	}
 }
 
 func (e *EClassImpl) initEAllCrossReferences() {
-	e.eAllCrossReferences = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_CROSS_REFERENCES, -1, false, false, false, true, false)
+	if e.eAllCrossReferences == nil {
+		e.eAllCrossReferences = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_CROSS_REFERENCES, -1, false, false, false, true, false)
+	}
 }
 
 func (e *EClassImpl) initEAllOperations() {
-	e.eAllOperations = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_OPERATIONS, -1, false, false, false, true, false)
+	if e.eAllOperations == nil {
+		e.eAllOperations = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_OPERATIONS, -1, false, false, false, true, false)
+	}
 }
 
 func (e *EClassImpl) initEAllReferences() {
-	e.eAllReferences = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_REFERENCES, -1, false, false, false, true, false)
+	if e.eAllReferences == nil {
+		e.eAllReferences = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_REFERENCES, -1, false, false, false, true, false)
+	}
 }
 
 func (e *EClassImpl) initEAllStructuralFeatures() {
-	e.eAllStructuralFeatures = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_STRUCTURAL_FEATURES, -1, false, false, false, true, false)
+	if e.eAllStructuralFeatures == nil {
+		e.eAllStructuralFeatures = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_STRUCTURAL_FEATURES, -1, false, false, false, true, false)
+	}
 }
 
 func (e *EClassImpl) initEAllSuperTypes() {
-	e.eAllSuperTypes = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_SUPER_TYPES, -1, false, false, false, true, false)
+	if e.eAllSuperTypes == nil {
+		e.eAllSuperTypes = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EALL_SUPER_TYPES, -1, false, false, false, true, false)
+	}
 }
 
 func (e *EClassImpl) initEAttributes() {
-	e.eAttributes = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EATTRIBUTES, -1, false, false, false, true, false)
+	if e.eAttributes == nil {
+		e.eAttributes = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EATTRIBUTES, -1, false, false, false, true, false)
+	}
 }
 
 func (e *EClassImpl) initEContainmentFeatures() {
-	e.eContainmentFeatures = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__ECONTAINMENT_FEATURES, -1, false, false, false, true, false)
+	if e.eContainmentFeatures == nil {
+		e.eContainmentFeatures = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__ECONTAINMENT_FEATURES, -1, false, false, false, true, false)
+	}
 }
 
 func (e *EClassImpl) initECrossReferenceFeatures() {
-	e.eCrossReferenceFeatures = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__ECROSS_REFERENCE_FEATURES, -1, false, false, false, true, false)
+	if e.eCrossReferenceFeatures == nil {
+		e.eCrossReferenceFeatures = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__ECROSS_REFERENCE_FEATURES, -1, false, false, false, true, false)
+	}
 }
 
 func (e *EClassImpl) initEIDAttribute() {
@@ -304,7 +324,9 @@ func (e *EClassImpl) initEOperations() EList {
 }
 
 func (e *EClassImpl) initEReferences() {
-	e.eReferences = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EREFERENCES, -1, false, false, false, true, false)
+	if e.eReferences == nil {
+		e.eReferences = NewBasicEObjectList(e.AsEObjectInternal(), ECLASS__EREFERENCES, -1, false, false, false, true, false)
+	}
 }
 
 func (e *EClassImpl) initEStructuralFeatures() EList {

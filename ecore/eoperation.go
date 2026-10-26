@@ -26,6 +26,7 @@ type EOperation interface {
 
 	GetEExceptions() EList
 	UnsetEExceptions()
+	IsSetEExceptions() bool
 
 	// Start of user code EOperation
 	// End of user code

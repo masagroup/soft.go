@@ -105,6 +105,18 @@ func TestETypedElementETypeUnSet(t *testing.T) {
 	mock.AssertExpectationsForObjects(t, mockAdapter)
 }
 
+func TestETypedElementETypeIsSet(t *testing.T) {
+	o := newETypedElementImpl()
+	assert.False(t, o.IsSetEType())
+	assert.False(t, o.EIsSetFromID(ETYPED_ELEMENT__ETYPE))
+	o.eTypeESet = true
+	assert.True(t, o.IsSetEType())
+	assert.True(t, o.EIsSetFromID(ETYPED_ELEMENT__ETYPE))
+	o.UnsetEType()
+	assert.False(t, o.IsSetEType())
+	assert.False(t, o.EIsSetFromID(ETYPED_ELEMENT__ETYPE))
+}
+
 func TestETypedElementManyGet(t *testing.T) {
 	o := newETypedElementImpl()
 	assert.Panics(t, func() { o.IsMany() })

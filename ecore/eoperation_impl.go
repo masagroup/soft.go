@@ -81,6 +81,11 @@ func (e *EOperationImpl) UnsetEExceptions() {
 	}
 }
 
+// IsSetEExceptions get if the value of eExceptions is set
+func (e *EOperationImpl) IsSetEExceptions() bool {
+	return e.eExceptions != nil && e.eExceptions.Size() != 0
+}
+
 // GetEParameters get the value of eParameters
 func (e *EOperationImpl) GetEParameters() EList {
 	if e.eParameters == nil {

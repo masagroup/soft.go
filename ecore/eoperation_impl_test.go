@@ -66,6 +66,11 @@ func TestEOperationEExceptionsUnSet(t *testing.T) {
 	assert.True(t, l.Empty())
 }
 
+func TestEOperationEExceptionsIsSet(t *testing.T) {
+	o := newEOperationImpl()
+	assert.False(t, o.IsSetEExceptions())
+}
+
 func TestEOperationEParametersGet(t *testing.T) {
 	o := newEOperationImpl()
 	assert.NotNil(t, o.GetEParameters())

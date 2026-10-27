@@ -91,6 +91,8 @@ type Encoder struct {
 	encoding         string
 	keepDefaults     bool
 	useEncodedStyle  bool
+	// the schemas a document root records, written as xsi:schemaLocation
+	xsiSchemaLocation string
 }
 
 func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *Encoder {
@@ -164,6 +166,15 @@ func (s *Encoder) encodeTopObject(eObject ecore.EObject) {
 		if ePrefixMapFeature := s.extendedMetaData.GetXMLNSPrefixMapFeature(eClass); ePrefixMapFeature != nil {
 			m := eObject.EGet(ePrefixMapFeature).(ecore.EMap)
 			s.setPrefixToNamespace(m)
+		}
+		// Read only when set: reading the map builds it on the object.
+		if eSchemaLocationFeature := s.extendedMetaData.GetXSISchemaLocationMapFeature(eClass); eSchemaLocationFeature != nil && eObject.EIsSet(eSchemaLocationFeature) {
+			var pairs []string
+			for it := eObject.EGet(eSchemaLocationFeature).(ecore.EMap).Iterator(); it.HasNext(); {
+				entry := it.Next().(ecore.EMapEntry)
+				pairs = append(pairs, fmt.Sprintf("%v %v", entry.GetKey(), entry.GetValue()))
+			}
+			s.xsiSchemaLocation = strings.Join(pairs, " ")
 		}
 	}
 
@@ -244,6 +255,13 @@ func (s *Encoder) SaveNamespaces() {
 			attribute += ":" + prefix
 		}
 		s.str.addAttribute(attribute, escapeAttribute(s.prefixesToURI[prefix]))
+	}
+	// A document root records the schemas of its document: written back as xsi:schemaLocation.
+	if s.xsiSchemaLocation != "" {
+		if _, ok := s.prefixesToURI["xsi"]; !ok {
+			s.str.addAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+		}
+		s.str.addAttribute("xsi:schemaLocation", escapeAttribute(s.xsiSchemaLocation))
 	}
 }
 

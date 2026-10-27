@@ -152,3 +152,17 @@ func TestXMLDocumentRoot(t *testing.T) {
 	// a library is encoded with the name of its document root feature
 	assert.Equal(t, document, encodeResource(t, eSuppressed, options))
 }
+
+// The xsi:schemaLocation of a document is recorded in its document root and written back, as EMF
+// does: a document that names the schema of its namespace keeps naming it.
+func TestXMLDocumentRootSchemaLocation(t *testing.T) {
+	m := newDocumentRootModel()
+	options := map[string]any{OPTION_EXTENDED_META_DATA: NewExtendedMetaData()}
+	document := `<?xml version="1.0" encoding="UTF-8"?>
+<lib:library xmlns:lib="http://lib" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://lib schemas/1.0/lib.xsd" name="l"/>
+`
+	eResource := m.newResourceSet().CreateResource(ecore.NewURI("library.xml"))
+	root := decodeResource(t, eResource, document, options)
+	assert.Equal(t, "schemas/1.0/lib.xsd", root.EGet(m.schemaLocation).(ecore.EMap).GetValue("http://lib"))
+	assert.Equal(t, document, encodeResource(t, eResource, options))
+}

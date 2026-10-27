@@ -166,3 +166,19 @@ func TestXMLDocumentRootSchemaLocation(t *testing.T) {
 	assert.Equal(t, "schemas/1.0/lib.xsd", root.EGet(m.schemaLocation).(ecore.EMap).GetValue("http://lib"))
 	assert.Equal(t, document, encodeResource(t, eResource, options))
 }
+
+// OPTION_SCHEMA_LOCATION names the schemas of a document a save writes, over the ones its document
+// root records, and leaves the document root as it is.
+func TestXMLSchemaLocationOption(t *testing.T) {
+	m := newDocumentRootModel()
+	emd := NewExtendedMetaData()
+	document := `<?xml version="1.0" encoding="UTF-8"?>
+<lib:library xmlns:lib="http://lib" name="l"/>
+`
+	eResource := m.newResourceSet().CreateResource(ecore.NewURI("library.xml"))
+	root := decodeResource(t, eResource, document, map[string]any{OPTION_EXTENDED_META_DATA: emd})
+	assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
+<lib:library xmlns:lib="http://lib" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://lib schemas/2.0/lib.xsd" name="l"/>
+`, encodeResource(t, eResource, map[string]any{OPTION_EXTENDED_META_DATA: emd, OPTION_SCHEMA_LOCATION: "http://lib schemas/2.0/lib.xsd"}))
+	assert.False(t, root.EIsSet(m.schemaLocation))
+}

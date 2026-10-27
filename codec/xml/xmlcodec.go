@@ -24,6 +24,7 @@ const (
 	OPTION_USE_ENCODED_ATTRIBUTE_STYLE   = "USE_ENCODED_ATTRIBUTE_STYLE"   // if true , save cross resource references as attributes
 	OPTION_LINE_WIDTH                    = "LINE_WIDTH"                    // int, start a new line before an attribute once a line is longer
 	OPTION_KEEP_DEFAULTS                 = "KEEP_DEFAULTS"                 // if true , save unset features with a default value
+	OPTION_SCHEMA_LOCATION               = "SCHEMA_LOCATION"               // encode: string, write xsi:schemaLocation on the root, pairs of a namespace and a location, instead of the ones its document root records
 )
 
 type Codec struct {

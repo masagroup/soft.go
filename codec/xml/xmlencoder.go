@@ -118,6 +118,7 @@ func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *
 		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
 			s.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
 		}
+		s.xsiSchemaLocation, _ = options[OPTION_SCHEMA_LOCATION].(string)
 	}
 	if s.extendedMetaData == nil {
 		s.extendedMetaData = NewExtendedMetaData()
@@ -167,8 +168,9 @@ func (s *Encoder) encodeTopObject(eObject ecore.EObject) {
 			m := eObject.EGet(ePrefixMapFeature).(ecore.EMap)
 			s.setPrefixToNamespace(m)
 		}
-		// Read only when set: reading the map builds it on the object.
-		if eSchemaLocationFeature := s.extendedMetaData.GetXSISchemaLocationMapFeature(eClass); eSchemaLocationFeature != nil && eObject.EIsSet(eSchemaLocationFeature) {
+		// Read only when set: reading the map builds it on the object. The option names the
+		// schemas instead.
+		if eSchemaLocationFeature := s.extendedMetaData.GetXSISchemaLocationMapFeature(eClass); eSchemaLocationFeature != nil && s.xsiSchemaLocation == "" && eObject.EIsSet(eSchemaLocationFeature) {
 			var pairs []string
 			for it := eObject.EGet(eSchemaLocationFeature).(ecore.EMap).Iterator(); it.HasNext(); {
 				entry := it.Next().(ecore.EMapEntry)

@@ -456,18 +456,23 @@ func (l *Decoder) createObjectWithFactory(eFactory ecore.EFactory, eType ecore.E
 	return nil
 }
 
+// getFactoryForType returns the factory of the objects of eType: the factory of the resource set
+// when it is a factory of the package of eType (an implementation of a shared package), the
+// factory instance of the package otherwise.
+func (l *Decoder) getFactoryForType(eType ecore.EClassifier) ecore.EFactory {
+	ePackage := eType.GetEPackage()
+	eFactory := l.getFactoryForSpace(ePackage.GetNsURI())
+	if eFactory == nil || eFactory.GetEPackage() != ePackage {
+		eFactory = ePackage.GetEFactoryInstance()
+	}
+	return eFactory
+}
+
 func (l *Decoder) createObjectFromFeatureType(eObject ecore.EObject, eFeature ecore.EStructuralFeature) ecore.EObject {
 	var eResult ecore.EObject
 	if eFeature != nil {
 		if eType := eFeature.GetEType(); eType != nil {
-			// the factory of the resource set when it is a factory of the package of eType
-			// (an implementation of a shared package), the factory instance of the package otherwise
-			ePackage := eType.GetEPackage()
-			eFactory := l.getFactoryForSpace(ePackage.GetNsURI())
-			if eFactory == nil || eFactory.GetEPackage() != ePackage {
-				eFactory = ePackage.GetEFactoryInstance()
-			}
-			eResult = l.createObjectWithFactory(eFactory, eType, true)
+			eResult = l.createObjectWithFactory(l.getFactoryForType(eType), eType, true)
 		}
 	}
 	if eResult != nil {
@@ -976,7 +981,7 @@ func (l *Decoder) createIDReferenceProxy(eFeature ecore.EStructuralFeature, id s
 		return nil
 	}
 	eType := eReference.GetEType()
-	eProxy := l.createObjectWithFactory(eType.GetEPackage().GetEFactoryInstance(), eType, false)
+	eProxy := l.createObjectWithFactory(l.getFactoryForType(eType), eType, false)
 	if eProxy == nil {
 		// an abstract target type: a dynamic object of that class carries the id until resolved
 		if eClass, _ := eType.(ecore.EClass); eClass != nil {

@@ -31,6 +31,18 @@ jobs:
         repository: masagroup/soft.models
         ref: 9217d2a7fb05019340ff6fe9feb335a79673e6c1
         path: models
+    - name: Generate
+      working-directory: go
+      run: make generate
+    - name: Check Generated Code
+      working-directory: go
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "::error::the committed generated code differs from make generate: regenerate and commit"
+          git status --porcelain
+          git --no-pager diff --stat
+          exit 1
+        fi
     - name: Build And Test
       working-directory: go
-      run: make generate build test
+      run: make build test

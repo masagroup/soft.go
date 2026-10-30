@@ -24,7 +24,7 @@ For the previous documentation of the project (v1), see [README.LEGACY.md](READM
 | **Languages** | Go (100% of sources), Makefile, YAML |
 | **Build systems** | Go (`go.work`) · Makefile (generation with soft.gen v2, run from its Docker image `masagroup/soft.gen:v2.0.0-alpha.4`; `go` runs in a `golang` container when Go is missing). No Ant, no Dockerfile, no docker-compose, no CMake, no npm |
 
-**[Architecture](ARCHITECTURE.md)** · [Contributing](CONTRIBUTING.md) · [previous README (v1)](README.LEGACY.md) · [known issues and open questions](https://claude.ai/artifact/UfvKmky7e8LwEXf192hQjQ#soft.go) · [repository on GitHub](https://github.com/masagroup/soft.go)
+**[Architecture](ARCHITECTURE.md)** · [Contributing](CONTRIBUTING.md) · [previous README (v1)](README.LEGACY.md) · [known issues and open questions](https://github.com/masagroup/wiki/wiki/known-issues#soft.go) · [repository on GitHub](https://github.com/masagroup/soft.go)
 
 ## Overview
 
@@ -155,7 +155,7 @@ No executable is produced by this repository (library, contract, data or tooling
 - [Architecture](ARCHITECTURE.md): position in the ecosystem, repository layout, internal structure, how it works (diagrams), dependencies.
 - [Contributing](CONTRIBUTING.md): development environment, Git and Jira workflow, conventions, CI/CD.
 - [Previous README (v1)](README.LEGACY.md): the documentation of the repository before the wiki rewrite.
-- [Known issues and open questions](https://claude.ai/artifact/UfvKmky7e8LwEXf192hQjQ#soft.go): the private artifact that holds them (every page of the wiki).
+- [Known issues and open questions](https://github.com/masagroup/wiki/wiki/known-issues#soft.go): the known defects and open points of the repository, kept in the SWORD wiki.
 - Related repositories: [io.connector](https://github.com/masagroup/io.connector), [io.hla](https://github.com/masagroup/io.hla), [io.nato](https://github.com/masagroup/io.nato), [soft](https://github.com/masagroup/soft), [soft.gen](https://github.com/masagroup/soft.gen), [soft.models](https://github.com/masagroup/soft.models), [soft.sync.go](https://github.com/masagroup/soft.sync.go), [soft.sync.studio](https://github.com/masagroup/soft.sync.studio), [sw.analysis](https://github.com/masagroup/sw.analysis), [sw.api.ng.go](https://github.com/masagroup/sw.api.ng.go), [sw.datacore](https://github.com/masagroup/sw.datacore), [sw.hub](https://github.com/masagroup/sw.hub), [sw.ng](https://github.com/masagroup/sw.ng), [sw.recorder](https://github.com/masagroup/sw.recorder).
 - Transverse pages: [Build on Windows](https://github.com/masagroup/wiki/wiki/build-windows), [Build on Linux](https://github.com/masagroup/wiki/wiki/build-linux), [CI/CD pipelines](https://github.com/masagroup/wiki/wiki/cicd-pipelines), [Ecosystem today](https://github.com/masagroup/wiki/wiki/ecosystem-current), [Ecosystem next gen](https://github.com/masagroup/wiki/wiki/ecosystem-nextgen), [Glossary](https://github.com/masagroup/wiki/wiki/glossary).
 - Repository on GitHub: [masagroup/soft.go](https://github.com/masagroup/soft.go).

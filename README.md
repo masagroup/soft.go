@@ -106,7 +106,7 @@ Makefile variables:
 
 Gotchas:
 
-- The `test/` tree mostly contains generated, gitignored code (`test/*/.gitignore` ignores `*.go` and `go.sum`, whitelisting only hand-written files: `test/library/writer_ext.go` and `test/tournament/tournamentpackage_impl.go`; in `test/tournament` the `*/.soft.gen.yaml` of the implementations are ignored too). The generated models belong to the root module, and the integration tests of `test/integration` import them, so `make build` / `make test` (and `go build ./...` in the root module) on a fresh clone only work after `make generate`.
+- The `test/` tree mostly contains generated code, committed like `ecore/` (the only hand-written file of the models is `test/library/writer_ext.go`; `.gitattributes` marks the rest `linguist-generated`). The generated models belong to the root module and the integration tests of `test/integration` import them, so `make build` / `make test` work on a fresh clone. After a change of the models or of `SOFT_GEN_VERSION`, run `make generate` and commit the result: CI regenerates and fails if `git status --porcelain` is not empty, which also catches stale files left by an older generator.
 - `make generate` reads the models from `../models` (it mounts `$(realpath ../models)` on `/soft/models` in the soft.gen container). In the ecosystem workspace the models repo lives at `..\soft.models`, not `..\models` (CI checks it out as `models`). Running `make generate` locally therefore needs a `models` folder or link next to the repo (UNVERIFIED how developers handle this).
 - The mockery mocks are generated with the config in `.mockery.yaml` (headers say mockery v2.53.2); the mockery version is not pinned in the Makefile.
 

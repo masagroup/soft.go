@@ -1,3 +1,0 @@
-*.go
-go.sum
-!writer_ext.go

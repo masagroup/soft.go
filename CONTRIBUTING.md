@@ -39,7 +39,3 @@ Single workflow: `.github/workflows/build_and_test.yaml` ("Build and Test").
 | Shared workflows | None: it does not use the `masagroup/cicd` reusable workflows (contrary to the ecosystem convention); it is a self-contained job. See [cicd](https://github.com/masagroup/cicd) and the ecosystem wiki page [CI/CD pipelines](https://github.com/masagroup/wiki/wiki/cicd-pipelines) |
 | Lint / coverage | No lint step in CI (`make lint` is not invoked), no coverage upload |
 | Artifacts | None: no zip, deb, Docker image or release asset. Releases are plain git tags consumed through the Go module proxy: `v1.13.3`, `v1.13.2`, `v1.13.1`, `v1.13.0`, `v1.12.0`, `v1.11.1`, ... for the root module, `codec/<name>/vX.Y.Z` for the codec modules (`codec/xml/v1.0.0`, `codec/xmi/v1.0.0`, `codec/binary/v1.0.0`, `codec/sqlite/v1.0.0`, `codec/defaults/v1.0.0`, `codec/json/v1.1.0`) |
-
-## Known issues and open questions
-
-They are not kept in the repository: see the [private artifact](https://claude.ai/artifact/UfvKmky7e8LwEXf192hQjQ#soft.go) that holds them for every page of the wiki.

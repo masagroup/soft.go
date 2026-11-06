@@ -1,6 +1,7 @@
 package binary
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/oklog/ulid/v2"
@@ -20,6 +21,10 @@ func ulidEncoder(e *msgpack.Encoder, v reflect.Value) ([]byte, error) {
 }
 
 func ulidDecoder(d *msgpack.Decoder, v reflect.Value, extLen int) error {
+	// the length is read from the input: check it before allocating
+	if extLen != len(ulid.ULID{}) {
+		return fmt.Errorf("invalid ulid length %d", extLen)
+	}
 	bytes := make([]byte, extLen)
 	err := d.ReadFull(bytes)
 	if err != nil {

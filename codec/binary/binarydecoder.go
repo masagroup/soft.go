@@ -18,6 +18,7 @@ import (
 
 	"github.com/masagroup/soft.go/ecore"
 	"github.com/vmihailenco/msgpack/v5"
+	"github.com/vmihailenco/msgpack/v5/msgpcode"
 )
 
 // the class and feature data are indexed by the ids of the encoder, which may not be the ones of
@@ -42,15 +43,32 @@ type binaryDecoderFeatureData struct {
 	featureKind binaryFeatureKind
 }
 
+// maxPreallocation is the number of elements a list is allocated for before they are read when the
+// length of the input is unknown: a longer list grows while its elements are read.
+const maxPreallocation = 1024
+
+// lenScanner is a reader that tells how many bytes it has left. The msgpack decoder reads directly
+// from a reader that is also an io.ByteScanner (bytes.Reader, bytes.Buffer, strings.Reader) and
+// wraps any other one in a bufio.Reader that reads ahead, so Len is the remaining input only for
+// the former.
+type lenScanner interface {
+	io.Reader
+	io.ByteScanner
+	Len() int
+}
+
 type Decoder struct {
 	resource     ecore.EResource
 	r            io.Reader
+	input        lenScanner // r when it tells its remaining length, else nil
 	decoder      *msgpack.Decoder
 	baseURI      *ecore.URI
 	objects      []ecore.EObject
 	uris         []*ecore.URI
 	packageData  []*binaryDecoderPackageData
 	enumLiterals []string
+	depth        int
+	maxDepth     int
 }
 
 func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *Decoder {
@@ -62,9 +80,14 @@ func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *
 		uris:         []*ecore.URI{},
 		packageData:  []*binaryDecoderPackageData{},
 		enumLiterals: []string{},
+		maxDepth:     DefaultMaxDepth,
 	}
+	d.input, _ = r.(lenScanner)
 	if uri := resource.GetURI(); uri != nil {
 		d.baseURI = uri
+	}
+	if maxDepth, isInt := options[OPTION_MAX_DEPTH].(int); isInt && maxDepth > 0 {
+		d.maxDepth = maxDepth
 	}
 	return d
 }
@@ -91,14 +114,16 @@ func (d *Decoder) DecodeResource() {
 	}
 	// objects
 	var size int
-	if size, err = d.decodeInt(); err != nil {
+	if size, err = d.decodeSize(); err != nil {
 		return
 	}
-	objects := make([]any, size)
+	objects := make([]any, 0, d.preallocation(size))
 	for i := 0; i < size; i++ {
-		if objects[i], err = d.decodeObject(); err != nil {
+		var object ecore.EObject
+		if object, err = d.decodeObject(); err != nil {
 			return
 		}
+		objects = append(objects, object)
 	}
 
 	// add objects to resource
@@ -117,6 +142,33 @@ func (d *Decoder) DecodeObject() (ecore.EObject, error) {
 
 func (d *Decoder) decodeInt() (int, error) {
 	return d.decoder.DecodeInt()
+}
+
+// decodeSize decodes the number of elements of a list. The size is read from the input and is not
+// trusted: a negative one is refused, and so is one larger than the remaining input when the reader
+// tells its length, since every element takes at least one byte.
+func (d *Decoder) decodeSize() (int, error) {
+	size, err := d.decodeInt()
+	if err != nil {
+		return 0, err
+	}
+	if size < 0 {
+		return 0, fmt.Errorf("invalid size %d", size)
+	}
+	if d.input != nil && size > d.input.Len() {
+		return 0, fmt.Errorf("invalid size %d: only %d bytes left", size, d.input.Len())
+	}
+	return size, nil
+}
+
+// preallocation returns the capacity to allocate for a list of size elements before reading them:
+// size when decodeSize has checked it against the remaining input, at most maxPreallocation
+// otherwise, the list growing while its elements are read.
+func (d *Decoder) preallocation(size int) int {
+	if d.input != nil {
+		return size
+	}
+	return min(size, maxPreallocation)
 }
 
 func (d *Decoder) decodeInt64() (int64, error) {
@@ -165,7 +217,18 @@ func (d *Decoder) decodeFloat32() (float32, error) {
 	return d.decoder.DecodeFloat32()
 }
 
+// decodeInterface decodes an object id: a scalar (number, string, bytes) or an extension (uuid,
+// ulid). An array or a map is refused before it is read: msgpack allocates them from their
+// announced length and decodes their elements recursively, without bound.
 func (d *Decoder) decodeInterface() (any, error) {
+	c, err := d.decoder.PeekCode()
+	if err != nil {
+		return nil, err
+	}
+	if msgpcode.IsFixedArray(c) || msgpcode.IsFixedMap(c) ||
+		c == msgpcode.Array16 || c == msgpcode.Array32 || c == msgpcode.Map16 || c == msgpcode.Map32 {
+		return nil, fmt.Errorf("invalid object id: unexpected msgpack code %#x", c)
+	}
 	return d.decoder.DecodeInterface()
 }
 
@@ -204,6 +267,13 @@ func (d *Decoder) decodeObject() (ecore.EObject, error) {
 		return nil, fmt.Errorf("invalid object id %d", id)
 	default:
 		if len(d.objects) == id {
+			// a new object is decoded inside the one that refers to it first
+			if d.depth >= d.maxDepth {
+				return nil, fmt.Errorf("invalid object %d: nested deeper than %d objects", id, d.maxDepth)
+			}
+			d.depth++
+			defer func() { d.depth-- }()
+
 			eClassData, err := d.decodeClass()
 			if err != nil {
 				return nil, err
@@ -282,17 +352,17 @@ func (d *Decoder) decodeObject() (ecore.EObject, error) {
 }
 
 func (d *Decoder) decodeObjects(list ecore.EList) error {
-	size, err := d.decodeInt()
+	size, err := d.decodeSize()
 	if err != nil {
 		return err
 	}
-	objects := make([]any, size)
+	objects := make([]any, 0, d.preallocation(size))
 	for i := 0; i < size; i++ {
 		object, err := d.decodeObject()
 		if err != nil {
 			return err
 		}
-		objects[i] = object
+		objects = append(objects, object)
 	}
 
 	// If the list is empty, we need to add all the objects,
@@ -377,11 +447,11 @@ func (d *Decoder) decodeFeatureValue(eObject ecore.EObjectInternal, featureData 
 		}
 		eObject.ESetFromID(featureData.featureID, value)
 	case bfkDataList:
-		size, err := d.decodeInt()
+		size, err := d.decodeSize()
 		if err != nil {
 			return err
 		}
-		values := []any{}
+		values := make([]any, 0, d.preallocation(size))
 		for range size {
 			decoded, err := d.decodeString()
 			if err != nil {

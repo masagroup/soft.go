@@ -17,7 +17,15 @@ import (
 const (
 	OPTION_ID_ATTRIBUTE        = "ID_ATTRIBUTE"       // if true, save id attribute of the object
 	OPTION_NAMESPACE_ATTRIBUTE = "NAMESPACE_ATTIBUTE" // if true, namespaces informations are encoded
+	OPTION_MAX_DEPTH           = "MAX_DEPTH"          // int, the maximum nesting of the objects a decoder reads (DefaultMaxDepth)
 )
+
+// DefaultMaxDepth is the maximum nesting of the objects the decoder reads when OPTION_MAX_DEPTH is
+// not given. An object is decoded inside the object that first refers to it, by containment or by a
+// plain reference, so the nesting of a resource is the length of its longest chain of first
+// references: a deeper input is refused with an error instead of growing the goroutine stack until
+// the runtime aborts the process, which no recover can catch.
+const DefaultMaxDepth = 100_000
 
 type Codec struct {
 }

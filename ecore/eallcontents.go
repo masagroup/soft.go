@@ -115,7 +115,7 @@ func NewEClassTransitionsTable(startClass EClass, endClass EClass) *EClassTransi
 func classesOf(eClass EClass) []EClass {
 	classes := []EClass{eClass}
 	for i := 0; i < len(classes); i++ {
-		if internal, _ := classes[i].(EClassInternal); internal != nil {
+		if internal, _ := classes[i].(eClassSubClasses); internal != nil {
 			for _, subClass := range internal.getSubClasses() {
 				if subEClass, _ := subClass.(EClass); subEClass != nil && !slices.Contains(classes, subEClass) {
 					classes = append(classes, subEClass)

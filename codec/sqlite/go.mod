@@ -5,7 +5,7 @@ go 1.27.0
 require (
 	github.com/chebyrash/promise v0.0.0-20260915144232-ce593674804a
 	github.com/davecgh/go-spew v1.1.1
-	github.com/masagroup/soft.go v1.13.0
+	github.com/masagroup/soft.go v1.14.1
 	github.com/masagroup/soft.go/codec/xmi v1.0.0
 	github.com/masagroup/soft.go/codec/xml v1.0.0
 	github.com/oklog/ulid/v2 v2.1.2

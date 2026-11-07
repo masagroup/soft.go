@@ -555,10 +555,23 @@ func (o *AbstractEObject) ESet(feature EStructuralFeature, newValue any) {
 	}
 }
 
+// panicUnhandledFeature panics for a static feature that no generated class handles in
+// ESetFromID, EIsSetFromID or EUnsetFromID, such as an unchangeable feature: the package of a
+// classifier, the derived attributes of a class. The generated classes handle their features in
+// those methods, overriding them on the object AsEObjectInternal returns; a feature they do not
+// handle reached this class. Delegating to ESet, EIsSet or EUnset, as these methods did, called
+// ESetFromID, EIsSetFromID or EUnsetFromID again on that object, for the same ID: it recursed until
+// the stack overflowed, a fatal error no recover catches. A malformed document, setting the
+// package of a class, crashed the process decoding it. EMF throws an IllegalArgumentException.
+func panicUnhandledFeature(feature EStructuralFeature, verb string) {
+	panic("The feature '" + feature.GetName() + "' cannot be " + verb)
+}
+
 // ESetFromID sets the value of the feature of ID featureID: a dynamic feature in
-// EDynamicProperties, updating the opposite or the container and notifying, or ESet for a static
-// feature, whose value the generated classes set by overriding ESetFromID. It panics for an
-// invalid featureID, or a dynamic feature of an object without dynamic properties.
+// EDynamicProperties, updating the opposite or the container and notifying. A static feature is
+// set by the generated classes, which override ESetFromID: one reaching this method is a feature
+// no class sets, such as an unchangeable one, and it panics (see panicUnhandledFeature). It panics
+// too for an invalid featureID, or a dynamic feature of an object without dynamic properties.
 func (o *AbstractEObject) ESetFromID(featureID int, newValue any) {
 	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
 	if feature == nil {
@@ -566,7 +579,7 @@ func (o *AbstractEObject) ESetFromID(featureID int, newValue any) {
 	}
 	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
 	if dynamicFeatureID < 0 {
-		o.ESet(feature, newValue)
+		panicUnhandledFeature(feature, "set")
 	} else {
 		properties := o.AsEObjectInternal().EDynamicProperties()
 		if properties != nil {
@@ -731,8 +744,9 @@ func (o *AbstractEObject) EIsSet(feature EStructuralFeature) bool {
 }
 
 // EIsSetFromID returns true when the feature of ID featureID is set: a dynamic feature in
-// EDynamicProperties, or EIsSet for a static feature, overridden by the generated classes. It
-// panics for an invalid featureID, or a dynamic feature of an object without dynamic properties.
+// EDynamicProperties. The generated classes answer for a static feature by overriding
+// EIsSetFromID: one reaching this method panics (see panicUnhandledFeature). It panics too for an
+// invalid featureID, or a dynamic feature of an object without dynamic properties.
 func (o *AbstractEObject) EIsSetFromID(featureID int) bool {
 	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
 	if feature == nil {
@@ -740,7 +754,8 @@ func (o *AbstractEObject) EIsSetFromID(featureID int) bool {
 	}
 	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
 	if dynamicFeatureID < 0 {
-		return o.EIsSet(feature)
+		panicUnhandledFeature(feature, "checked")
+		return false
 	} else {
 		properties := o.AsEObjectInternal().EDynamicProperties()
 		if properties != nil {
@@ -781,9 +796,10 @@ func (o *AbstractEObject) EUnset(feature EStructuralFeature) {
 }
 
 // EUnsetFromID unsets the feature of ID featureID: a dynamic feature in EDynamicProperties,
-// updating the opposite or the container and notifying, or EUnset for a static feature, overridden
-// by the generated classes. It panics for an invalid featureID, or a dynamic feature of an object
-// without dynamic properties.
+// updating the opposite or the container and notifying. A static feature is unset by the
+// generated classes, which override EUnsetFromID: one reaching this method panics (see
+// panicUnhandledFeature). It panics too for an invalid featureID, or a dynamic feature of an
+// object without dynamic properties.
 func (o *AbstractEObject) EUnsetFromID(featureID int) {
 	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
 	if feature == nil {
@@ -791,7 +807,7 @@ func (o *AbstractEObject) EUnsetFromID(featureID int) {
 	}
 	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
 	if dynamicFeatureID < 0 {
-		o.EUnset(feature)
+		panicUnhandledFeature(feature, "unset")
 	} else {
 		properties := o.AsEObjectInternal().EDynamicProperties()
 		if properties != nil {

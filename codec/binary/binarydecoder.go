@@ -125,6 +125,9 @@ func (d *Decoder) DecodeResource() {
 		}
 		objects = append(objects, object)
 	}
+	if err = checkSuperTypes(d.objects); err != nil {
+		return
+	}
 
 	// add objects to resource
 	d.resource.GetContents().AddAll(ecore.NewImmutableEList(objects))
@@ -137,7 +140,74 @@ func (d *Decoder) DecodeObject() (ecore.EObject, error) {
 	if err := d.decodeVersion(); err != nil {
 		return nil, err
 	}
-	return d.decodeObject()
+	decoded := len(d.objects)
+	eObject, err := d.decodeObject()
+	if err != nil {
+		return nil, err
+	}
+	// a cycle is closed by the super types of a class decoded now: the ones decoded before have
+	// their super types already
+	if err := checkSuperTypes(d.objects[decoded:]); err != nil {
+		return nil, err
+	}
+	return eObject, nil
+}
+
+// checkSuperTypes returns an error if the super types of a class among objects lead to a cycle: a
+// class among its own super types, directly or not, is invalid. The super types are read without
+// resolving their proxies, and each class is visited once.
+func checkSuperTypes(objects []ecore.EObject) error {
+	const (
+		visiting = 1 // a super type of the class being visited
+		visited  = 2
+	)
+	type frame struct {
+		eClass     ecore.EClass
+		superTypes []any
+	}
+	var states map[ecore.EClass]int
+	var stack []frame
+	push := func(eClass ecore.EClass) {
+		states[eClass] = visiting
+		superTypes := eClass.GetESuperTypes()
+		if objectList, isObjectList := superTypes.(ecore.EObjectList); isObjectList {
+			superTypes = objectList.GetUnResolvedList()
+		}
+		stack = append(stack, frame{eClass: eClass, superTypes: superTypes.ToArray()})
+	}
+	for _, object := range objects {
+		eClass, isClass := object.(ecore.EClass)
+		if !isClass {
+			continue
+		}
+		if states == nil {
+			states = map[ecore.EClass]int{}
+		}
+		if states[eClass] != 0 {
+			continue
+		}
+		push(eClass)
+		for len(stack) > 0 {
+			top := &stack[len(stack)-1]
+			if len(top.superTypes) == 0 {
+				states[top.eClass] = visited
+				stack = stack[:len(stack)-1]
+				continue
+			}
+			superType, _ := top.superTypes[0].(ecore.EClass)
+			top.superTypes = top.superTypes[1:]
+			if superType == nil {
+				continue
+			}
+			switch states[superType] {
+			case visiting:
+				return fmt.Errorf("invalid class '%s': a cycle of super types", superType.GetName())
+			case 0:
+				push(superType)
+			}
+		}
+	}
+	return nil
 }
 
 func (d *Decoder) decodeInt() (int, error) {

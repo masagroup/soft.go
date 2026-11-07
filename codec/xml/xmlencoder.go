@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"slices"
 	"sort"
 	"strings"
 
@@ -202,7 +203,11 @@ func (s *Encoder) saveTopObject(eObject ecore.EObject) {
 
 func (s *Encoder) getRootFeature(eClassifier ecore.EClassifier) ecore.EStructuralFeature {
 	if s.extendedMetaData != nil {
-		for eClassifier != nil {
+		// the classifiers searched already: the first super types may lead to a cycle, in an
+		// invalid model
+		var searched []ecore.EClassifier
+		for eClassifier != nil && !slices.Contains(searched, eClassifier) {
+			searched = append(searched, eClassifier)
 			if eClass := s.extendedMetaData.GetDocumentRoot(eClassifier.GetEPackage()); eClass != nil {
 				for it := eClass.GetEStructuralFeatures().Iterator(); it.HasNext(); {
 					eFeature := it.Next().(ecore.EStructuralFeature)

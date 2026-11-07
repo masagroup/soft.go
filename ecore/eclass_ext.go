@@ -126,17 +126,33 @@ func (d *derivedValue[T]) invalidate() {
 	}
 }
 
-// eClassSubClasses is a class that knows its sub classes: a change of its features, operations or
-// super types invalidates the values derived from them in the class and in its sub classes
-// (setModified). The super types adapter registers a class with its super types (addSubClass,
-// removeSubClass). The values are built the other way, from the super types: see eClassHierarchy.
-type eClassSubClasses interface {
-	getSubClasses() []eClassSubClasses
-	addSubClass(eClassSubClasses)
-	removeSubClass(eClassSubClasses)
+// eClassModifiable is a class whose derived values a change of its features, operations or super
+// types invalidates, in the class and in its sub classes: an attribute that becomes, or stops
+// being, the ID of its class invalidates the attributes of the class. setModified starts the
+// invalidation; setModifiedFrom carries it on in each sub class, visited holding the classes
+// invalidated already.
+type eClassModifiable interface {
 	setModified(featureID int)
 	setModifiedFrom(featureID int, visited map[*EClassExt]struct{})
 }
+
+// eClassSubClasses is a class that knows its sub classes, to invalidate their derived values
+// with its own: a sub class is an eClassModifiable. The super types adapter registers a class with
+// its super types (addSubClass, removeSubClass). The values are built the other way, from the
+// super types: see eClassHierarchy.
+type eClassSubClasses interface {
+	eClassModifiable
+	getSubClasses() []eClassSubClasses
+	addSubClass(eClassSubClasses)
+	removeSubClass(eClassSubClasses)
+}
+
+// The internal interfaces of a class, checked at compile time: they are asserted at run time.
+var (
+	_ eClassModifiable = (*EClassExt)(nil)
+	_ eClassSubClasses = (*EClassExt)(nil)
+	_ eClassHierarchy  = (*EClassExt)(nil)
+)
 
 // eClassHierarchy builds the values derived from the super types of a class, for the build of the
 // same value in its sub classes: path holds the classes whose build is in progress in the calling

@@ -43,7 +43,7 @@ type EClassExt struct {
 	buildMutex sync.Mutex
 
 	subClassesMutex sync.Mutex
-	subClasses      []EClassInternal
+	subClasses      []eClassSubClasses
 }
 
 type eClassAttributes struct {
@@ -126,13 +126,33 @@ func (d *derivedValue[T]) invalidate() {
 	}
 }
 
-type EClassInternal interface {
-	getSubClasses() []EClassInternal
-	addSubClass(EClassInternal)
-	removeSubClass(EClassInternal)
+// eClassModifiable is a class whose derived values a change of its features, operations or super
+// types invalidates, in the class and in its sub classes: an attribute that becomes, or stops
+// being, the ID of its class invalidates the attributes of the class. setModified starts the
+// invalidation; setModifiedFrom carries it on in each sub class, visited holding the classes
+// invalidated already.
+type eClassModifiable interface {
 	setModified(featureID int)
 	setModifiedFrom(featureID int, visited map[*EClassExt]struct{})
 }
+
+// eClassSubClasses is a class that knows its sub classes, to invalidate their derived values
+// with its own: a sub class is an eClassModifiable. The super types adapter registers a class with
+// its super types (addSubClass, removeSubClass). The values are built the other way, from the
+// super types: see eClassHierarchy.
+type eClassSubClasses interface {
+	eClassModifiable
+	getSubClasses() []eClassSubClasses
+	addSubClass(eClassSubClasses)
+	removeSubClass(eClassSubClasses)
+}
+
+// The internal interfaces of a class, checked at compile time: they are asserted at run time.
+var (
+	_ eClassModifiable = (*EClassExt)(nil)
+	_ eClassSubClasses = (*EClassExt)(nil)
+	_ eClassHierarchy  = (*EClassExt)(nil)
+)
 
 // eClassHierarchy builds the values derived from the super types of a class, for the build of the
 // same value in its sub classes: path holds the classes whose build is in progress in the calling
@@ -163,7 +183,7 @@ type eSuperAdapter struct {
 
 func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 	eventType := notification.GetEventType()
-	eNotifier := notification.GetNotifier().(EClassInternal)
+	eNotifier := notification.GetNotifier().(eClassSubClasses)
 	if eventType != REMOVING_ADAPTER {
 		featureID := notification.GetFeatureID()
 		if featureID == ECLASS__ESUPER_TYPES {
@@ -172,29 +192,29 @@ func (adapter *eSuperAdapter) NotifyChanged(notification ENotification) {
 				fallthrough
 			case RESOLVE:
 				if oldValue := notification.GetOldValue(); oldValue != nil {
-					oldValue.(EClassInternal).removeSubClass(eNotifier)
+					oldValue.(eClassSubClasses).removeSubClass(eNotifier)
 				}
 				if newValue := notification.GetNewValue(); newValue != nil {
-					newValue.(EClassInternal).addSubClass(eNotifier)
+					newValue.(eClassSubClasses).addSubClass(eNotifier)
 				}
 			case ADD:
 				if newValue := notification.GetNewValue(); newValue != nil {
-					newValue.(EClassInternal).addSubClass(eNotifier)
+					newValue.(eClassSubClasses).addSubClass(eNotifier)
 				}
 			case ADD_MANY:
 				if newValue := notification.GetNewValue(); newValue != nil {
 					for _, s := range newValue.([]any) {
-						s.(EClassInternal).addSubClass(eNotifier)
+						s.(eClassSubClasses).addSubClass(eNotifier)
 					}
 				}
 			case REMOVE:
 				if oldValue := notification.GetOldValue(); oldValue != nil {
-					oldValue.(EClassInternal).removeSubClass(eNotifier)
+					oldValue.(eClassSubClasses).removeSubClass(eNotifier)
 				}
 			case REMOVE_MANY:
 				if oldValue := notification.GetOldValue(); oldValue != nil {
 					for _, s := range oldValue.([]any) {
-						s.(EClassInternal).removeSubClass(eNotifier)
+						s.(eClassSubClasses).removeSubClass(eNotifier)
 					}
 				}
 			}
@@ -733,7 +753,7 @@ func appendUnique(dst []any, seen map[any]struct{}, elements []any) []any {
 	return dst
 }
 
-func (eClass *EClassExt) getSubClasses() []EClassInternal {
+func (eClass *EClassExt) getSubClasses() []eClassSubClasses {
 	eClass.subClassesMutex.Lock()
 	defer eClass.subClassesMutex.Unlock()
 	return eClass.subClasses
@@ -741,13 +761,13 @@ func (eClass *EClassExt) getSubClasses() []EClassInternal {
 
 // addSubClass and removeSubClass update the sub classes under the mutex, in a new slice: the
 // slice returned by getSubClasses is never changed, setModified iterates it without lock.
-func (eClass *EClassExt) addSubClass(subClass EClassInternal) {
+func (eClass *EClassExt) addSubClass(subClass eClassSubClasses) {
 	eClass.subClassesMutex.Lock()
 	eClass.subClasses = append(slices.Clip(eClass.subClasses), subClass)
 	eClass.subClassesMutex.Unlock()
 }
 
-func (eClass *EClassExt) removeSubClass(subClass EClassInternal) {
+func (eClass *EClassExt) removeSubClass(subClass eClassSubClasses) {
 	eClass.subClassesMutex.Lock()
 	if i := slices.Index(eClass.subClasses, subClass); i != -1 {
 		eClass.subClasses = slices.Delete(slices.Clone(eClass.subClasses), i, i+1)

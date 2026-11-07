@@ -131,6 +131,29 @@ type EClassInternal interface {
 	addSubClass(EClassInternal)
 	removeSubClass(EClassInternal)
 	setModified(featureID int)
+	setModifiedFrom(featureID int, visited map[*EClassExt]struct{})
+}
+
+// eClassHierarchy builds the values derived from the super types of a class, for the build of the
+// same value in its sub classes: path holds the classes whose build is in progress in the calling
+// goroutine. A class of path is in a cycle of super types, an invalid model: its value is nil,
+// neither built again nor waited for (its build mutex is held), and the recursion over the super
+// types ends, as EMF ends it with the classes whose computation is in progress.
+type eClassHierarchy interface {
+	getEAllSuperTypes(path []*EClassExt) EList
+	getEAllAttributes(path []*EClassExt) EList
+	getEAllReferences(path []*EClassExt) EList
+	getEAllOperations(path []*EClassExt) EList
+	getEAllStructuralFeatures(path []*EClassExt) EList
+}
+
+// superValue returns the value derived from superClass for the build of the classes of path: by
+// eClassHierarchy when superClass implements it, nil for a class of path
+func superValue(superClass EClass, path []*EClassExt, internal func(eClassHierarchy, []*EClassExt) EList, public func(EClass) EList) EList {
+	if hierarchy, ok := superClass.(eClassHierarchy); ok {
+		return internal(hierarchy, path)
+	}
+	return public(superClass)
 }
 
 type eSuperAdapter struct {
@@ -289,42 +312,91 @@ func (eClass *EClassExt) GetEAllStructuralFeatures() EList {
 	if value, ok := eClass.allStructuralFeatures.load(); ok {
 		return value
 	}
-	return eClass.allStructuralFeatures.get(eClass.buildEAllStructuralFeatures)
+	return eClass.getEAllStructuralFeatures(nil)
+}
+
+func (eClass *EClassExt) getEAllStructuralFeatures(path []*EClassExt) EList {
+	if value, ok := eClass.allStructuralFeatures.load(); ok {
+		return value
+	}
+	if slices.Contains(path, eClass) {
+		return nil
+	}
+	path = append(path, eClass)
+	return eClass.allStructuralFeatures.get(func() EList { return eClass.buildEAllStructuralFeatures(path) })
 }
 
 func (eClass *EClassExt) GetEAllAttributes() EList {
 	if value, ok := eClass.allAttributes.load(); ok {
 		return value.eAllAttributes
 	}
-	return eClass.allAttributes.get(eClass.buildEAllAttributes).eAllAttributes
+	return eClass.attributes(nil).eAllAttributes
+}
+
+func (eClass *EClassExt) getEAllAttributes(path []*EClassExt) EList {
+	if attributes := eClass.attributes(path); attributes != nil {
+		return attributes.eAllAttributes
+	}
+	return nil
+}
+
+// attributes returns the attributes of the class, nil for a class of path (see eClassHierarchy)
+func (eClass *EClassExt) attributes(path []*EClassExt) *eClassAttributes {
+	if value, ok := eClass.allAttributes.load(); ok {
+		return value
+	}
+	if slices.Contains(path, eClass) {
+		return nil
+	}
+	path = append(path, eClass)
+	return eClass.allAttributes.get(func() *eClassAttributes { return eClass.buildEAllAttributes(path) })
 }
 
 func (eClass *EClassExt) GetEAttributes() EList {
 	if value, ok := eClass.allAttributes.load(); ok {
 		return value.eAttributes
 	}
-	return eClass.allAttributes.get(eClass.buildEAllAttributes).eAttributes
+	return eClass.attributes(nil).eAttributes
 }
 
 func (eClass *EClassExt) GetEIDAttribute() EAttribute {
 	if value, ok := eClass.allAttributes.load(); ok {
 		return value.eIDAttribute
 	}
-	return eClass.allAttributes.get(eClass.buildEAllAttributes).eIDAttribute
+	return eClass.attributes(nil).eIDAttribute
 }
 
 func (eClass *EClassExt) GetEAllReferences() EList {
 	if value, ok := eClass.allReferences.load(); ok {
 		return value.eAllReferences
 	}
-	return eClass.allReferences.get(eClass.buildEAllReferences).eAllReferences
+	return eClass.references(nil).eAllReferences
+}
+
+func (eClass *EClassExt) getEAllReferences(path []*EClassExt) EList {
+	if references := eClass.references(path); references != nil {
+		return references.eAllReferences
+	}
+	return nil
+}
+
+// references returns the references of the class, nil for a class of path (see eClassHierarchy)
+func (eClass *EClassExt) references(path []*EClassExt) *eClassReferences {
+	if value, ok := eClass.allReferences.load(); ok {
+		return value
+	}
+	if slices.Contains(path, eClass) {
+		return nil
+	}
+	path = append(path, eClass)
+	return eClass.allReferences.get(func() *eClassReferences { return eClass.buildEAllReferences(path) })
 }
 
 func (eClass *EClassExt) GetEReferences() EList {
 	if value, ok := eClass.allReferences.load(); ok {
 		return value.eReferences
 	}
-	return eClass.allReferences.get(eClass.buildEAllReferences).eReferences
+	return eClass.references(nil).eReferences
 }
 
 func (eClass *EClassExt) GetEAllContainments() EList {
@@ -345,14 +417,36 @@ func (eClass *EClassExt) GetEAllOperations() EList {
 	if value, ok := eClass.allOperations.load(); ok {
 		return value
 	}
-	return eClass.allOperations.get(eClass.buildEAllOperations)
+	return eClass.getEAllOperations(nil)
+}
+
+func (eClass *EClassExt) getEAllOperations(path []*EClassExt) EList {
+	if value, ok := eClass.allOperations.load(); ok {
+		return value
+	}
+	if slices.Contains(path, eClass) {
+		return nil
+	}
+	path = append(path, eClass)
+	return eClass.allOperations.get(func() EList { return eClass.buildEAllOperations(path) })
 }
 
 func (eClass *EClassExt) GetEAllSuperTypes() EList {
 	if value, ok := eClass.allSuperTypes.load(); ok {
 		return value
 	}
-	return eClass.allSuperTypes.get(eClass.buildEAllSuperTypes)
+	return eClass.getEAllSuperTypes(nil)
+}
+
+func (eClass *EClassExt) getEAllSuperTypes(path []*EClassExt) EList {
+	if value, ok := eClass.allSuperTypes.load(); ok {
+		return value
+	}
+	if slices.Contains(path, eClass) {
+		return nil
+	}
+	path = append(path, eClass)
+	return eClass.allSuperTypes.get(func() EList { return eClass.buildEAllSuperTypes(path) })
 }
 
 func (eClass *EClassExt) GetEContainmentFeatures() EList {
@@ -467,7 +561,8 @@ func (eClass *EClassExt) buildFeaturesSubSet() *eClassFeaturesSubSet {
 	}
 }
 
-func (eClass *EClassExt) buildEAllAttributes() *eClassAttributes {
+// buildEAllAttributes builds the attributes of the class, the last class of path
+func (eClass *EClassExt) buildEAllAttributes(path []*EClassExt) *eClassAttributes {
 	eClass.buildMutex.Lock()
 	defer eClass.buildMutex.Unlock()
 	attributes := []any{}
@@ -475,7 +570,10 @@ func (eClass *EClassExt) buildEAllAttributes() *eClassAttributes {
 	var eIDAttribute EAttribute = nil
 	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
-		superAttributes := itClass.Next().(EClass).GetEAllAttributes()
+		superAttributes := superValue(itClass.Next().(EClass), path, eClassHierarchy.getEAllAttributes, EClass.GetEAllAttributes)
+		if superAttributes == nil {
+			continue
+		}
 		for itAttribute := superAttributes.Iterator(); itAttribute.HasNext(); {
 			attribute := itAttribute.Next().(EAttribute)
 			if _, isSeen := seen[attribute]; isSeen {
@@ -507,15 +605,17 @@ func (eClass *EClassExt) buildEAllAttributes() *eClassAttributes {
 	}
 }
 
-func (eClass *EClassExt) buildEAllReferences() *eClassReferences {
+// buildEAllReferences builds the references of the class, the last class of path
+func (eClass *EClassExt) buildEAllReferences(path []*EClassExt) *eClassReferences {
 	eClass.buildMutex.Lock()
 	defer eClass.buildMutex.Unlock()
 	allReferences := []any{}
 	references := []any{}
 	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
-		superReferences := itClass.Next().(EClass).GetEAllReferences()
-		allReferences = appendUnique(allReferences, seen, superReferences.ToArray())
+		if superReferences := superValue(itClass.Next().(EClass), path, eClassHierarchy.getEAllReferences, EClass.GetEAllReferences); superReferences != nil {
+			allReferences = appendUnique(allReferences, seen, superReferences.ToArray())
+		}
 	}
 
 	for itFeature := eClass.GetEStructuralFeatures().Iterator(); itFeature.HasNext(); {
@@ -553,14 +653,16 @@ func (eClass *EClassExt) buildEAllCrossReferences() EList {
 	return NewImmutableEList(allCrossReferences)
 }
 
-func (eClass *EClassExt) buildEAllOperations() EList {
+// buildEAllOperations builds the operations of the class, the last class of path
+func (eClass *EClassExt) buildEAllOperations(path []*EClassExt) EList {
 	eClass.buildMutex.Lock()
 	defer eClass.buildMutex.Unlock()
 	allOperations := []any{}
 	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
-		superOperations := itClass.Next().(EClass).GetEAllOperations()
-		allOperations = appendUnique(allOperations, seen, superOperations.ToArray())
+		if superOperations := superValue(itClass.Next().(EClass), path, eClassHierarchy.getEAllOperations, EClass.GetEAllOperations); superOperations != nil {
+			allOperations = appendUnique(allOperations, seen, superOperations.ToArray())
+		}
 	}
 
 	operationID := len(allOperations)
@@ -578,14 +680,16 @@ func (eClass *EClassExt) buildEAllOperations() EList {
 	return NewImmutableEList(allOperations)
 }
 
-func (eClass *EClassExt) buildEAllStructuralFeatures() EList {
+// buildEAllStructuralFeatures builds the structural features of the class, the last class of path
+func (eClass *EClassExt) buildEAllStructuralFeatures(path []*EClassExt) EList {
 	eClass.buildMutex.Lock()
 	defer eClass.buildMutex.Unlock()
 	allFeatures := []any{}
 	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
-		superFeatures := itClass.Next().(EClass).GetEAllStructuralFeatures()
-		allFeatures = appendUnique(allFeatures, seen, superFeatures.ToArray())
+		if superFeatures := superValue(itClass.Next().(EClass), path, eClassHierarchy.getEAllStructuralFeatures, EClass.GetEAllStructuralFeatures); superFeatures != nil {
+			allFeatures = appendUnique(allFeatures, seen, superFeatures.ToArray())
+		}
 	}
 
 	featureID := len(allFeatures)
@@ -601,15 +705,17 @@ func (eClass *EClassExt) buildEAllStructuralFeatures() EList {
 	return NewImmutableEList(allFeatures)
 }
 
-func (eClass *EClassExt) buildEAllSuperTypes() EList {
+// buildEAllSuperTypes builds the super types of the class, the last class of path
+func (eClass *EClassExt) buildEAllSuperTypes(path []*EClassExt) EList {
 	eClass.buildMutex.Lock()
 	defer eClass.buildMutex.Unlock()
 	allSuperTypes := []any{}
 	seen := map[any]struct{}{}
 	for itClass := eClass.GetESuperTypes().Iterator(); itClass.HasNext(); {
 		superClass := itClass.Next().(EClass)
-		superTypes := superClass.GetEAllSuperTypes()
-		allSuperTypes = appendUnique(allSuperTypes, seen, superTypes.ToArray())
+		if superTypes := superValue(superClass, path, eClassHierarchy.getEAllSuperTypes, EClass.GetEAllSuperTypes); superTypes != nil {
+			allSuperTypes = appendUnique(allSuperTypes, seen, superTypes.ToArray())
+		}
 		allSuperTypes = appendUnique(allSuperTypes, seen, []any{superClass})
 	}
 	return NewImmutableEList(allSuperTypes)
@@ -652,6 +758,19 @@ func (eClass *EClassExt) removeSubClass(subClass EClassInternal) {
 // setModified invalidates the values derived from featureID, in this class and its sub classes.
 // A value derived from another one is invalidated with it.
 func (eClass *EClassExt) setModified(featureID int) {
+	eClass.setModifiedFrom(featureID, nil)
+}
+
+// setModifiedFrom is setModified in a sub class, visited holding the classes invalidated already
+// by this modification: a class inheriting from the modified one through several super types (a
+// diamond) or through a cycle of super types is invalidated once, and the recursion ends.
+func (eClass *EClassExt) setModifiedFrom(featureID int, visited map[*EClassExt]struct{}) {
+	if visited != nil {
+		if _, isVisited := visited[eClass]; isVisited {
+			return
+		}
+		visited[eClass] = struct{}{}
+	}
 	allStructuralFeatures := false
 	switch featureID {
 	case ECLASS__ESTRUCTURAL_FEATURES:
@@ -690,8 +809,13 @@ func (eClass *EClassExt) setModified(featureID int) {
 		eClass.featuresSubSet.invalidate()
 		eClass.nameToFeature.invalidate()
 	}
-	for _, s := range eClass.getSubClasses() {
-		s.setModified(featureID)
+	if subClasses := eClass.getSubClasses(); len(subClasses) != 0 {
+		if visited == nil {
+			visited = map[*EClassExt]struct{}{eClass: {}}
+		}
+		for _, s := range subClasses {
+			s.setModifiedFrom(featureID, visited)
+		}
 	}
 }
 

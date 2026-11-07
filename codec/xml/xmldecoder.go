@@ -95,6 +95,9 @@ type Decoder struct {
 	urisToLocations map[string]*ecore.URI
 	// locationErrors are the reasons why the package at the location of a namespace did not load
 	locationErrors map[string]string
+	// subClasses are the classes of the document given super types: checked for a cycle of super
+	// types at its end
+	subClasses []ecore.EObject
 }
 
 func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *Decoder {
@@ -241,6 +244,10 @@ func (l *Decoder) endElement(_ xml.EndElement) {
 			l.resource.GetContents().Add(deferred)
 		}
 		l.handleReferences()
+		if err := checkSuperTypes(l.subClasses); err != nil {
+			l.error(ecore.NewEDiagnosticImpl(err.Error(), l.location(), int(l.decoder.InputOffset()), 0))
+		}
+		l.subClasses = nil
 		l.recordSchemaLocations(eRoot)
 	}
 
@@ -563,6 +570,9 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 	case xlfkManyAdd:
 		fallthrough
 	case xlfkManyMove:
+		if eFeature == ecore.GetPackage().GetEClass_ESuperTypes() && value != nil {
+			l.subClasses = append(l.subClasses, eObject)
+		}
 		eList := eObject.EGetResolve(eFeature, false).(ecore.EList)
 		if position == -1 {
 			appendLoaded(eList, value)
@@ -1053,4 +1063,61 @@ func (l *Decoder) AddNotFeatures(names ...xml.Name) {
 // SetExtendedMetaData sets the extended metadata of the decoder, nil for none.
 func (l *Decoder) SetExtendedMetaData(extendedMetaData *ExtendedMetaData) {
 	l.extendedMetaData = extendedMetaData
+}
+
+// checkSuperTypes returns an error if the super types of a class among objects lead to a cycle: a
+// class among its own super types, directly or not, is invalid. The super types are read without
+// resolving their proxies, and each class is visited once.
+func checkSuperTypes(objects []ecore.EObject) error {
+	const (
+		visiting = 1 // a super type of the class being visited
+		visited  = 2
+	)
+	type frame struct {
+		eClass     ecore.EClass
+		superTypes []any
+	}
+	var states map[ecore.EClass]int
+	var stack []frame
+	push := func(eClass ecore.EClass) {
+		states[eClass] = visiting
+		superTypes := eClass.GetESuperTypes()
+		if objectList, isObjectList := superTypes.(ecore.EObjectList); isObjectList {
+			superTypes = objectList.GetUnResolvedList()
+		}
+		stack = append(stack, frame{eClass: eClass, superTypes: superTypes.ToArray()})
+	}
+	for _, object := range objects {
+		eClass, isClass := object.(ecore.EClass)
+		if !isClass {
+			continue
+		}
+		if states == nil {
+			states = map[ecore.EClass]int{}
+		}
+		if states[eClass] != 0 {
+			continue
+		}
+		push(eClass)
+		for len(stack) > 0 {
+			top := &stack[len(stack)-1]
+			if len(top.superTypes) == 0 {
+				states[top.eClass] = visited
+				stack = stack[:len(stack)-1]
+				continue
+			}
+			superType, _ := top.superTypes[0].(ecore.EClass)
+			top.superTypes = top.superTypes[1:]
+			if superType == nil {
+				continue
+			}
+			switch states[superType] {
+			case visiting:
+				return fmt.Errorf("invalid class '%s': a cycle of super types", superType.GetName())
+			case 0:
+				push(superType)
+			}
+		}
+	}
+	return nil
 }

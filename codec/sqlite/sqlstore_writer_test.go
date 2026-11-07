@@ -605,9 +605,12 @@ func TestSQLStore_Writer_CommitError(t *testing.T) {
 
 func TestSQLStore_Writer_OperationTimeout(t *testing.T) {
 	core, logs := observer.New(zap.WarnLevel)
+	// The waits after release() are operations too, bounded by the same timeout: it leaves the
+	// writer time to run the operation it held and the wait, on a busy machine. With 20 ms, the
+	// wait timed out about once in 150 runs, more on CI runners.
 	s, dbPath, _, _ := newWriterTestStore(t, map[string]any{
 		OPTION_LOGGER:            zap.New(core),
-		OPTION_OPERATION_TIMEOUT: 20 * time.Millisecond,
+		OPTION_OPERATION_TIMEOUT: 250 * time.Millisecond,
 	})
 	defer s.Close()
 

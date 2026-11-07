@@ -23,6 +23,7 @@ import (
 const (
 	href                            = "href"
 	typeAttrib                      = "type"
+	nilAttrib                       = "nil"
 	schemaLocationAttrib            = "schemaLocation"
 	noNamespaceSchemaLocationAttrib = "noNamespaceSchemaLocation"
 	xsiURI                          = "http://www.w3.org/2001/XMLSchema-instance"
@@ -375,7 +376,9 @@ func (l *Decoder) processObject(eObject ecore.EObject) {
 			l.textBuilder = &strings.Builder{}
 		}
 	} else {
+		// A placeholder, so endElement pops it and not the object holding the element.
 		l.types = append(l.types, load_error_type)
+		l.objects = append(l.objects, nil)
 	}
 }
 
@@ -507,6 +510,14 @@ func (l *Decoder) handleFeature(space string, local string) {
 			if featureKind := l.getLoadFeatureKind(eFeature); featureKind == xlfkSingle || featureKind == xlfkMany {
 				l.textBuilder = &strings.Builder{}
 				l.types = append(l.types, eFeature)
+				l.objects = append(l.objects, nil)
+			} else if l.GetAttributeValue(xsiURI, nilAttrib) == "true" {
+				// An unsettable object feature set to nil, as the encoder writes it: no object is
+				// created, and a placeholder keeps the stack of objects in step with the elements.
+				if !eFeature.IsMany() {
+					eObject.ESet(eFeature, nil)
+				}
+				l.types = append(l.types, load_error_type)
 				l.objects = append(l.objects, nil)
 			} else {
 				xsiType := l.interfaces.(DecoderHooks).GetXSIType()

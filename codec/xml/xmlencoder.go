@@ -15,6 +15,7 @@ import (
 	"math"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/masagroup/soft.go/ecore"
@@ -873,14 +874,17 @@ func (s *Encoder) getDataType(value any, f ecore.EStructuralFeature, _ bool) (st
 
 // convertToString is the lexical form of a data value: the one of its factory, but for the
 // infinite and NaN floats, written in the XSD lexical space of xsd:double and xsd:float (INF,
-// -INF, NaN) instead of the Go forms (+Inf, -Inf). The decoder reads both.
+// -INF, NaN) instead of the Go forms (+Inf, -Inf), and for the floats of a magnitude from 1e21
+// or under 1e-6, written in the shortest exponent form, as encoding/json does. The decoder reads
+// all of them.
 func convertToString(eFactory ecore.EFactory, eDataType ecore.EDataType, value any) string {
 	var v float64
+	bitSize := 64
 	switch value := value.(type) {
 	case float64:
 		v = value
 	case float32:
-		v = float64(value)
+		v, bitSize = float64(value), 32
 	default:
 		return eFactory.ConvertToString(eDataType, value)
 	}
@@ -891,6 +895,9 @@ func convertToString(eFactory ecore.EFactory, eDataType ecore.EDataType, value a
 		return "-INF"
 	case math.IsNaN(v):
 		return "NaN"
+	}
+	if abs := math.Abs(v); abs != 0 && (abs < 1e-6 || abs >= 1e21) {
+		return strconv.FormatFloat(v, 'e', -1, bitSize)
 	}
 	return eFactory.ConvertToString(eDataType, value)
 }

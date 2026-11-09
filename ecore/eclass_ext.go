@@ -25,7 +25,7 @@ type EClassExt struct {
 	EClassImpl
 	adapter *eSuperAdapter
 
-	allStructuralFeatures derivedValue[EList]
+	allStructuralFeatures derivedValue[*eClassFeatures]
 	allAttributes         derivedValue[*eClassAttributes]
 	allReferences         derivedValue[*eClassReferences]
 	allContainments       derivedValue[EList]
@@ -44,6 +44,13 @@ type EClassExt struct {
 
 	subClassesMutex sync.Mutex
 	subClasses      []eClassSubClasses
+}
+
+// eClassFeatures is the list of all the features of a class and the same features as a slice: the
+// slice serves the lookups by ID without interface calls nor type assertions.
+type eClassFeatures struct {
+	list  EList
+	slice []EStructuralFeature
 }
 
 type eClassAttributes struct {
@@ -247,25 +254,22 @@ func (eClass *EClassExt) IsSuperTypeOf(someClass EClass) bool {
 
 func (eClass *EClassExt) GetFeatureCount() int {
 	// read at each access to a feature of an object: the lock-free path is inlined
-	var features EList
 	if s := eClass.allStructuralFeatures.state.Load(); s != nil && s.built {
-		features = s.value
-	} else {
-		features = eClass.GetEAllStructuralFeatures()
+		return len(s.value.slice)
 	}
-	return features.Size()
+	return len(eClass.features(nil).slice)
 }
 
 func (eClass *EClassExt) GetEStructuralFeature(featureID int) EStructuralFeature {
 	// read at each access to a feature of an object: the lock-free path is inlined
-	var features EList
+	var features []EStructuralFeature
 	if s := eClass.allStructuralFeatures.state.Load(); s != nil && s.built {
-		features = s.value
+		features = s.value.slice
 	} else {
-		features = eClass.GetEAllStructuralFeatures()
+		features = eClass.features(nil).slice
 	}
-	if featureID >= 0 && featureID < features.Size() {
-		return features.Get(featureID).(EStructuralFeature)
+	if featureID >= 0 && featureID < len(features) {
+		return features[featureID]
 	}
 	return nil
 }
@@ -279,16 +283,16 @@ func (eClass *EClassExt) GetEStructuralFeatureFromName(featureName string) EStru
 
 func (eClass *EClassExt) GetFeatureID(feature EStructuralFeature) int {
 	// read at each access to a feature of an object: the lock-free path is inlined
-	var features EList
+	var features []EStructuralFeature
 	if s := eClass.allStructuralFeatures.state.Load(); s != nil && s.built {
-		features = s.value
+		features = s.value.slice
 	} else {
-		features = eClass.GetEAllStructuralFeatures()
+		features = eClass.features(nil).slice
 	}
 	featureID := feature.GetFeatureID()
 	if featureID != -1 {
-		for ; featureID < features.Size(); featureID++ {
-			if features.Get(featureID) == feature {
+		for ; featureID < len(features); featureID++ {
+			if features[featureID] == feature {
 				return featureID
 			}
 		}
@@ -330,12 +334,20 @@ func (eClass *EClassExt) GetOverride(operation EOperation) EOperation {
 
 func (eClass *EClassExt) GetEAllStructuralFeatures() EList {
 	if value, ok := eClass.allStructuralFeatures.load(); ok {
-		return value
+		return value.list
 	}
 	return eClass.getEAllStructuralFeatures(nil)
 }
 
 func (eClass *EClassExt) getEAllStructuralFeatures(path []*EClassExt) EList {
+	if features := eClass.features(path); features != nil {
+		return features.list
+	}
+	return nil
+}
+
+// features returns the features of the class, nil for a class of path (see eClassHierarchy)
+func (eClass *EClassExt) features(path []*EClassExt) *eClassFeatures {
 	if value, ok := eClass.allStructuralFeatures.load(); ok {
 		return value
 	}
@@ -343,7 +355,7 @@ func (eClass *EClassExt) getEAllStructuralFeatures(path []*EClassExt) EList {
 		return nil
 	}
 	path = append(path, eClass)
-	return eClass.allStructuralFeatures.get(func() EList { return eClass.buildEAllStructuralFeatures(path) })
+	return eClass.allStructuralFeatures.get(func() *eClassFeatures { return eClass.buildEAllStructuralFeatures(path) })
 }
 
 func (eClass *EClassExt) GetEAllAttributes() EList {
@@ -512,7 +524,7 @@ func (eClass *EClassExt) EIsSetFromID(featureID int) bool {
 		return ok && isListSet(l)
 	case ECLASS__EALL_STRUCTURAL_FEATURES:
 		l, ok := eClass.allStructuralFeatures.load()
-		return ok && isListSet(l)
+		return ok && isListSet(l.list)
 	case ECLASS__EALL_SUPER_TYPES:
 		l, ok := eClass.allSuperTypes.load()
 		return ok && isListSet(l)
@@ -701,7 +713,7 @@ func (eClass *EClassExt) buildEAllOperations(path []*EClassExt) EList {
 }
 
 // buildEAllStructuralFeatures builds the structural features of the class, the last class of path
-func (eClass *EClassExt) buildEAllStructuralFeatures(path []*EClassExt) EList {
+func (eClass *EClassExt) buildEAllStructuralFeatures(path []*EClassExt) *eClassFeatures {
 	eClass.buildMutex.Lock()
 	defer eClass.buildMutex.Unlock()
 	allFeatures := []any{}
@@ -722,7 +734,11 @@ func (eClass *EClassExt) buildEAllStructuralFeatures(path []*EClassExt) EList {
 		featureID++
 		allFeatures = append(allFeatures, feature)
 	}
-	return NewImmutableEList(allFeatures)
+	slice := make([]EStructuralFeature, len(allFeatures))
+	for i, f := range allFeatures {
+		slice[i] = f.(EStructuralFeature)
+	}
+	return &eClassFeatures{list: NewImmutableEList(allFeatures), slice: slice}
 }
 
 // buildEAllSuperTypes builds the super types of the class, the last class of path

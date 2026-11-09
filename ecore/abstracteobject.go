@@ -374,9 +374,10 @@ func (o *AbstractEObject) EGetResolve(feature EStructuralFeature, resolve bool) 
 // eGetFromFeature returns the value of feature (EGetFromID). It panics when the class of the object
 // has no such feature.
 func (o *AbstractEObject) eGetFromFeature(feature EStructuralFeature, resolve bool) any {
-	featureID := o.AsEObjectInternal().EFeatureID(feature)
+	internal := o.AsEObjectInternal()
+	featureID := internal.EFeatureID(feature)
 	if featureID >= 0 {
-		return o.AsEObjectInternal().EGetFromID(featureID, resolve)
+		return internal.EGetFromID(featureID, resolve)
 	}
 	panic("The feature '" + feature.GetName() + "' is not a valid feature")
 }
@@ -386,15 +387,16 @@ func (o *AbstractEObject) eGetFromFeature(feature EStructuralFeature, resolve bo
 // classes return by overriding EGetFromID. It panics for an invalid featureID, or a dynamic
 // feature of an object without dynamic properties.
 func (o *AbstractEObject) EGetFromID(featureID int, resolve bool) any {
-	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
+	internal := o.AsEObjectInternal()
+	feature := internal.EClass().GetEStructuralFeature(featureID)
 	if feature == nil {
 		panic("Invalid featureID: " + strconv.Itoa(featureID))
 	}
-	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
+	dynamicFeatureID := featureID - internal.EStaticFeatureCount()
 	if dynamicFeatureID < 0 {
-		return o.AsEObjectInternal().EGetResolve(feature, resolve)
+		return internal.EGetResolve(feature, resolve)
 	} else {
-		properties := o.AsEObjectInternal().EDynamicProperties()
+		properties := internal.EDynamicProperties()
 		if properties != nil {
 			return o.eDynamicPropertiesGet(properties, feature, dynamicFeatureID, resolve)
 		} else {
@@ -547,9 +549,10 @@ func (o *AbstractEObject) eDynamicPropertiesCreateList(feature EStructuralFeatur
 // ESet sets the value of feature (ESetFromID). It panics when the class of the object has no such
 // feature.
 func (o *AbstractEObject) ESet(feature EStructuralFeature, newValue any) {
-	featureID := o.AsEObjectInternal().EFeatureID(feature)
+	internal := o.AsEObjectInternal()
+	featureID := internal.EFeatureID(feature)
 	if featureID >= 0 {
-		o.AsEObjectInternal().ESetFromID(featureID, newValue)
+		internal.ESetFromID(featureID, newValue)
 	} else {
 		panic("The feature '" + feature.GetName() + "' is not a valid feature")
 	}
@@ -573,15 +576,16 @@ func panicUnhandledFeature(feature EStructuralFeature, verb string) {
 // no class sets, such as an unchangeable one, and it panics (see panicUnhandledFeature). It panics
 // too for an invalid featureID, or a dynamic feature of an object without dynamic properties.
 func (o *AbstractEObject) ESetFromID(featureID int, newValue any) {
-	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
+	internal := o.AsEObjectInternal()
+	feature := internal.EClass().GetEStructuralFeature(featureID)
 	if feature == nil {
 		panic("Invalid featureID: " + strconv.Itoa(featureID))
 	}
-	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
+	dynamicFeatureID := featureID - internal.EStaticFeatureCount()
 	if dynamicFeatureID < 0 {
 		panicUnhandledFeature(feature, "set")
 	} else {
-		properties := o.AsEObjectInternal().EDynamicProperties()
+		properties := internal.EDynamicProperties()
 		if properties != nil {
 			o.eDynamicPropertiesSet(properties, feature, dynamicFeatureID, newValue)
 		} else {
@@ -736,9 +740,10 @@ func eDynamicDefaultValue(feature EStructuralFeature) any {
 // EIsSet returns true when feature is set (EIsSetFromID). It panics when the class of the object
 // has no such feature.
 func (o *AbstractEObject) EIsSet(feature EStructuralFeature) bool {
-	featureID := o.AsEObjectInternal().EFeatureID(feature)
+	internal := o.AsEObjectInternal()
+	featureID := internal.EFeatureID(feature)
 	if featureID >= 0 {
-		return o.AsEObjectInternal().EIsSetFromID(featureID)
+		return internal.EIsSetFromID(featureID)
 	}
 	panic("The feature '" + feature.GetName() + "' is not a valid feature")
 }
@@ -748,11 +753,12 @@ func (o *AbstractEObject) EIsSet(feature EStructuralFeature) bool {
 // EIsSetFromID: one reaching this method panics (see panicUnhandledFeature). It panics too for an
 // invalid featureID, or a dynamic feature of an object without dynamic properties.
 func (o *AbstractEObject) EIsSetFromID(featureID int) bool {
-	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
+	internal := o.AsEObjectInternal()
+	feature := internal.EClass().GetEStructuralFeature(featureID)
 	if feature == nil {
 		panic("Invalid featureID: " + strconv.Itoa(featureID))
 	}
-	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
+	dynamicFeatureID := featureID - internal.EStaticFeatureCount()
 	if dynamicFeatureID < 0 {
 		panicUnhandledFeature(feature, "checked")
 		return false
@@ -787,9 +793,10 @@ func (o *AbstractEObject) eDynamicPropertiesIsSet(properties EDynamicProperties,
 
 // EUnset unsets feature (EUnsetFromID). It panics when the class of the object has no such feature.
 func (o *AbstractEObject) EUnset(feature EStructuralFeature) {
-	featureID := o.AsEObjectInternal().EFeatureID(feature)
+	internal := o.AsEObjectInternal()
+	featureID := internal.EFeatureID(feature)
 	if featureID >= 0 {
-		o.AsEObjectInternal().EUnsetFromID(featureID)
+		internal.EUnsetFromID(featureID)
 	} else {
 		panic("The feature '" + feature.GetName() + "' is not a valid feature")
 	}
@@ -801,15 +808,16 @@ func (o *AbstractEObject) EUnset(feature EStructuralFeature) {
 // panicUnhandledFeature). It panics too for an invalid featureID, or a dynamic feature of an
 // object without dynamic properties.
 func (o *AbstractEObject) EUnsetFromID(featureID int) {
-	feature := o.AsEObject().EClass().GetEStructuralFeature(featureID)
+	internal := o.AsEObjectInternal()
+	feature := internal.EClass().GetEStructuralFeature(featureID)
 	if feature == nil {
 		panic("Invalid featureID: " + strconv.Itoa(featureID))
 	}
-	dynamicFeatureID := featureID - o.AsEObjectInternal().EStaticFeatureCount()
+	dynamicFeatureID := featureID - internal.EStaticFeatureCount()
 	if dynamicFeatureID < 0 {
 		panicUnhandledFeature(feature, "unset")
 	} else {
-		properties := o.AsEObjectInternal().EDynamicProperties()
+		properties := internal.EDynamicProperties()
 		if properties != nil {
 			o.eDynamicPropertiesUnset(properties, feature, dynamicFeatureID)
 		} else {

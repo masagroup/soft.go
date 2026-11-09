@@ -351,3 +351,51 @@ func TestBasicNotifyingRemoveRange(t *testing.T) {
 		assert.Equal(t, []any{3}, l.ToArray())
 	}
 }
+
+func TestBasicNotifyingList_NotificationRequiredCreatesNoAdapters(t *testing.T) {
+	c := GetFactory().CreateEClass()
+	f := GetFactory().CreateEAttribute()
+	f.SetUpperBound(-1)
+	f.SetEType(GetPackage().GetEInt())
+	c.GetEStructuralFeatures().Add(f)
+	o := NewDynamicEObjectImpl()
+	o.SetEClass(c)
+
+	// an object without adapters stays without: its later changes then require no notification
+	l := o.EGet(f).(EList)
+	l.Add(1)
+	l.Set(0, 2)
+	l.Remove(2)
+	assert.False(t, o.EBasicHasAdapters())
+	assert.False(t, o.ENotificationRequired())
+
+	// an object with adapters notifies them
+	mockAdapter := NewMockEAdapter(t)
+	mockAdapter.EXPECT().SetTarget(o).Once()
+	o.EAdapters().Add(mockAdapter)
+	mockAdapter.EXPECT().NotifyChanged(mock.MatchedBy(func(n ENotification) bool {
+		return n.GetEventType() == ADD && n.GetNewValue() == 3
+	})).Once()
+	l.Add(3)
+	mock.AssertExpectationsForObjects(t, mockAdapter)
+}
+
+// BenchmarkBasicNotifyingList_WriteWithoutAdapters writes a list then an attribute of a new object
+// without adapters: neither requires a notification.
+func BenchmarkBasicNotifyingList_WriteWithoutAdapters(b *testing.B) {
+	c := GetFactory().CreateEClass()
+	many := GetFactory().CreateEAttribute()
+	many.SetUpperBound(-1)
+	many.SetEType(GetPackage().GetEInt())
+	single := GetFactory().CreateEAttribute()
+	single.SetEType(GetPackage().GetEInt())
+	c.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{many, single}))
+	b.ReportAllocs()
+	for b.Loop() {
+		o := NewDynamicEObjectImpl()
+		o.SetEClass(c)
+		o.EGet(many).(EList).Add(1)
+		o.ESet(single, 1000)
+		o.ESet(single, 1001)
+	}
+}

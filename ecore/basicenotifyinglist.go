@@ -100,9 +100,19 @@ func (list *BasicENotifyingList) createNotification(eventType EventType, oldValu
 	return n
 }
 
+// isNotificationRequired reports whether the notifier of the list delivers notifications and has
+// adapters to deliver them to. It does not create the adapter list of a notifier that has none:
+// EAdapters would, and the notifier would then require notifications for every later change.
 func (list *BasicENotifyingList) isNotificationRequired() bool {
 	notifier := list.asENotifyingList().GetNotifier()
-	return notifier != nil && notifier.EDeliver() && !notifier.EAdapters().Empty()
+	if notifier == nil || !notifier.EDeliver() {
+		return false
+	}
+	if internal, ok := notifier.(ENotifierInternal); ok {
+		adapters := internal.EBasicAdapters()
+		return adapters != nil && !adapters.Empty()
+	}
+	return !notifier.EAdapters().Empty()
 }
 
 func (list *BasicENotifyingList) createAndAddNotification(ns ENotificationChain, eventType EventType, oldValue any, newValue any, position int) ENotificationChain {

@@ -24,18 +24,34 @@ import (
 // is amortized O(1). The other changes of the cache copy it.
 type EStoreList struct {
 	BasicENotifyingList
-	state       atomic.Pointer[eStoreListState]
-	mutex       sync.Mutex
-	owner       EObject
-	feature     EStructuralFeature
-	object      bool
-	containment bool
-	inverse     bool
-	opposite    bool
-	proxies     bool
-	unset       bool
+	state   atomic.Pointer[eStoreListState]
+	mutex   sync.Mutex
+	owner   EObject
+	feature EStructuralFeature
+	// proxies tells whether the list resolves the proxies it holds: its feature is a reference
+	// resolving proxies. It is read at each access to an element.
+	proxies bool
+	// flags holds what else the feature of the list is (storeListContainment...), set by
+	// Initialize: one byte rather than one bool each, so that the list fits in a smaller size class.
+	flags uint8
 	// isSet tells whether the list of an unsettable feature without store is set: read without lock
 	isSet atomic.Bool
+}
+
+// The flags of an EStoreList, from its feature.
+const (
+	// storeListContainment is set for a list of contained objects.
+	storeListContainment uint8 = 1 << iota
+	// storeListInverse is set for a list whose changes update the objects it holds: a containment
+	// or a reference with an opposite.
+	storeListInverse
+	// storeListOpposite is set for a list whose feature has an opposite.
+	storeListOpposite
+)
+
+// has reports whether flag is set on the list.
+func (list *EStoreList) has(flag uint8) bool {
+	return list.flags&flag != 0
 }
 
 // eStoreListState is a state of an EStoreList. It is never changed once published.
@@ -43,8 +59,9 @@ type eStoreListState struct {
 	// data is the cache of the elements, nil when not caching with a store. The elements up to
 	// its length are never changed: the next state appends past it, or uses a copy.
 	data  []any
-	size  int
 	store EStore
+	// size is the number of elements: an int32, so that the state fits in 48 bytes.
+	size  int32
 	cache bool
 }
 
@@ -67,40 +84,21 @@ func (list *EStoreList) Initialize(owner EObject, feature EStructuralFeature, st
 	state := &eStoreListState{store: store}
 	if store != nil {
 		// one store <=> no data
-		state.size = store.Size(owner, feature)
+		state.size = int32(store.Size(owner, feature))
 	} else {
 		// no store <=> we need data
 		state.data = []any{}
 	}
 	list.state.Store(state)
-	list.object = false
-	list.containment = false
-	list.inverse = false
-	list.opposite = false
 	list.proxies = false
-	list.unset = false
+	list.flags = 0
 	if ref, _ := feature.(EReference); ref != nil {
-		list.object = true
-		list.containment = ref.IsContainment()
+		if ref.IsContainment() {
+			list.flags |= storeListContainment | storeListInverse
+		}
 		list.proxies = ref.IsResolveProxies()
-		list.unset = ref.IsUnsettable()
-		reverseFeature := ref.GetEOpposite()
-		if list.containment {
-			if reverseFeature != nil {
-				list.inverse = true
-				list.opposite = true
-			} else {
-				list.inverse = true
-				list.opposite = false
-			}
-		} else {
-			if reverseFeature != nil {
-				list.inverse = true
-				list.opposite = true
-			} else {
-				list.inverse = false
-				list.opposite = false
-			}
+		if ref.GetEOpposite() != nil {
+			list.flags |= storeListInverse | storeListOpposite
 		}
 	}
 
@@ -269,7 +267,7 @@ func (list *EStoreList) PerformAdd(object any) {
 	defer list.mutex.Unlock()
 	current := list.state.Load()
 	state := current.clone()
-	index := state.size
+	index := int(state.size)
 	// add to data
 	if state.data != nil {
 		state.data = insertData(state.data, index, object)
@@ -326,7 +324,7 @@ func (list *EStoreList) PerformInsertAll(index int, c Collection) bool {
 		state.store.AddAll(list.owner, list.feature, index, NewImmutableEList(slices.Clone(elements)))
 	}
 	// size
-	state.size += len(elements)
+	state.size += int32(len(elements))
 	list.state.Store(state)
 	// events
 	listCallbacks := list.asEListCallbacks()
@@ -413,7 +411,7 @@ func (list *EStoreList) PerformRemoveRange(fromIndex int, toIndex int) []any {
 				_ = state.store.Remove(list.owner, list.feature, fromIndex, false)
 			}
 		}
-		state.size -= len(result)
+		state.size -= int32(len(result))
 		list.state.Store(state)
 		listCallbacks := list.asEListCallbacks()
 		for i := toIndex - 1; i >= fromIndex; i-- {
@@ -430,7 +428,7 @@ func (list *EStoreList) PerformRemoveRange(fromIndex int, toIndex int) []any {
 			result = append(result, object)
 			listCallbacks.DidRemove(fromIndex, object)
 		}
-		state.size -= len(result)
+		state.size -= int32(len(result))
 		list.state.Store(state)
 		listCallbacks.DidChange()
 	}
@@ -511,7 +509,7 @@ func (s *eStoreListState) get(list *EStoreList, index int) any {
 }
 
 func (list *EStoreList) resolve(index int, object any) any {
-	if list.object && list.proxies {
+	if list.proxies {
 		resolved := list.resolveProxy(object.(EObject))
 		if resolved != object {
 			// only update cache because only proxies are stored in a store
@@ -520,7 +518,7 @@ func (list *EStoreList) resolve(index int, object any) any {
 				return resolved
 			}
 			var notifications ENotificationChain
-			if list.containment {
+			if list.has(storeListContainment) {
 				notifications = list.interfaces.(internalENotifyingList).InverseRemove(object, notifications)
 				if resolvedInternal, _ := resolved.(EObjectInternal); resolvedInternal != nil && resolvedInternal.EInternalContainer() == nil {
 					notifications = list.interfaces.(internalENotifyingList).InverseAdd(resolved, notifications)
@@ -608,7 +606,7 @@ func (list *EStoreList) ToArray() []any {
 }
 
 func (list *EStoreList) Size() int {
-	return list.state.Load().size
+	return int(list.state.Load().size)
 }
 
 func (list *EStoreList) Empty() bool {
@@ -628,8 +626,8 @@ func (list *EStoreList) IndexOf(element any) int {
 		if result >= 0 {
 			return result
 		}
-		if list.object && list.proxies {
-			for i := range state.size {
+		if list.proxies {
+			for i := range int(state.size) {
 				eObject, _ := state.store.Get(list.owner, list.feature, i).(EObject)
 				eResolved := list.resolveProxy(eObject)
 				if element == eResolved {
@@ -648,8 +646,8 @@ func (list *EStoreList) Contains(element any) bool {
 	} else if state.store != nil {
 		if state.store.Contains(list.owner, list.feature, element) {
 			return true
-		} else if list.object && list.proxies {
-			for i := range state.size {
+		} else if list.proxies {
+			for i := range int(state.size) {
 				eObject, _ := state.store.Get(list.owner, list.feature, i).(EObject)
 				eResolved := list.resolveProxy(eObject)
 				if element == eResolved {
@@ -664,8 +662,8 @@ func (list *EStoreList) Contains(element any) bool {
 func (list *EStoreList) InverseAdd(object any, notifications ENotificationChain) ENotificationChain {
 	checkSameImplementation(list.owner, object)
 	internal, _ := object.(EObjectInternal)
-	if internal != nil && list.inverse {
-		if list.opposite {
+	if internal != nil && list.has(storeListInverse) {
+		if list.has(storeListOpposite) {
 			inverseReference := list.feature.(EReference).GetEOpposite()
 			inverseFeatureID := internal.EClass().GetFeatureID(inverseReference)
 			return internal.EInverseAdd(list.owner, inverseFeatureID, notifications)
@@ -680,8 +678,8 @@ func (list *EStoreList) InverseAdd(object any, notifications ENotificationChain)
 
 func (list *EStoreList) InverseRemove(object any, notifications ENotificationChain) ENotificationChain {
 	internal, _ := object.(EObjectInternal)
-	if internal != nil && list.inverse {
-		if list.opposite {
+	if internal != nil && list.has(storeListInverse) {
+		if list.has(storeListOpposite) {
 			inverseReference := list.feature.(EReference).GetEOpposite()
 			inverseFeatureID := internal.EClass().GetFeatureID(inverseReference)
 			return internal.EInverseRemove(list.owner, inverseFeatureID, notifications)
@@ -694,7 +692,7 @@ func (list *EStoreList) InverseRemove(object any, notifications ENotificationCha
 }
 
 func (list *EStoreList) GetUnResolvedList() EList {
-	if list.object && list.proxies {
+	if list.proxies {
 		return newUnResolvedEStoreList(list)
 	}
 	return list

@@ -571,6 +571,17 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 		eDataType := eFeature.GetEType().(ecore.EDataType)
 		eList := eObject.EGetResolve(eFeature, false).(ecore.EList)
 		if position == -2 {
+			// A list written as one XML attribute holds its values separated by white space, which
+			// EMF's XMLHelperImpl splits the same way.
+			if text, isText := value.(string); isText {
+				if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
+					for _, token := range strings.Fields(text) {
+						if data, ok := l.createFromString(eFactory, eDataType, token); ok {
+							appendLoaded(eList, data)
+						}
+					}
+				}
+			}
 		} else if value == nil {
 			appendLoaded(eList, nil)
 		} else if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {

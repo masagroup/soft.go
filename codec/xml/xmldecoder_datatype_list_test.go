@@ -75,3 +75,12 @@ func BenchmarkXMLDecoderLongDataTypeList(b *testing.B) {
 		m.load(b, document)
 	}
 }
+
+// A list written as one XML attribute is split on white space, as EMF reads it, instead of being
+// dropped.
+func TestXMLDecoderSplitsADataTypeListWrittenAsAnAttribute(t *testing.T) {
+	m := newTagListModel()
+	tags := m.load(t, `<?xml version="1.0" encoding="UTF-8"?>`+"\n"+`<tags:Root xmlns:tags="urn:tags" tags="alpha  beta`+"\t"+`gamma"/>`)
+	require.Equal(t, 3, tags.Size())
+	assert.Equal(t, []any{"alpha", "beta", "gamma"}, tags.ToArray())
+}

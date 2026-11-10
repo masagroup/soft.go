@@ -138,13 +138,87 @@ func (c *compactCache) get(featureID int) (any, bool) {
 	return c.values[bits.OnesCount64(c.mask&(bit-1))], true
 }
 
+// The caches of up to 8 values hold their values in the same block as their header: one
+// allocation per cached value, not two.
+type compactCache1 struct {
+	compactCache
+	arr [1]any
+}
+type compactCache2 struct {
+	compactCache
+	arr [2]any
+}
+type compactCache3 struct {
+	compactCache
+	arr [3]any
+}
+type compactCache4 struct {
+	compactCache
+	arr [4]any
+}
+type compactCache5 struct {
+	compactCache
+	arr [5]any
+}
+type compactCache6 struct {
+	compactCache
+	arr [6]any
+}
+type compactCache7 struct {
+	compactCache
+	arr [7]any
+}
+type compactCache8 struct {
+	compactCache
+	arr [8]any
+}
+
+// newCompactCache returns a cache with room for n values, in one block when n <= 8.
+func newCompactCache(n int) *compactCache {
+	switch n {
+	case 1:
+		b := &compactCache1{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 2:
+		b := &compactCache2{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 3:
+		b := &compactCache3{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 4:
+		b := &compactCache4{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 5:
+		b := &compactCache5{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 6:
+		b := &compactCache6{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 7:
+		b := &compactCache7{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 8:
+		b := &compactCache8{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	}
+	return &compactCache{values: make([]any, n)}
+}
+
 // with returns a copy of c with the value of featureID: c is read meanwhile.
 func (c *compactCache) with(featureID int, value any) *compactCache {
-	result := &compactCache{}
-	if c != nil {
-		*result = *c
-	}
 	if featureID >= 64 {
+		result := &compactCache{}
+		if c != nil {
+			*result = *c
+		}
 		result.overflow = maps.Clone(result.overflow)
 		if result.overflow == nil {
 			result.overflow = map[int]any{}
@@ -152,18 +226,30 @@ func (c *compactCache) with(featureID int, value any) *compactCache {
 		result.overflow[featureID] = value
 		return result
 	}
+	var mask uint64
+	var old []any
+	if c != nil {
+		mask, old = c.mask, c.values
+	}
 	bit := uint64(1) << featureID
-	idx := bits.OnesCount64(result.mask & (bit - 1))
-	if (result.mask & bit) == 0 {
-		values := make([]any, len(result.values)+1)
-		copy(values[:idx], result.values[:idx])
+	idx := bits.OnesCount64(mask & (bit - 1))
+	n := len(old)
+	if (mask & bit) == 0 {
+		n++
+	}
+	result := newCompactCache(n)
+	if c != nil {
+		result.mask, result.overflow, result.epoch = c.mask, c.overflow, c.epoch
+	}
+	values := result.values
+	if (mask & bit) == 0 {
+		copy(values[:idx], old[:idx])
 		values[idx] = value
-		copy(values[idx+1:], result.values[idx:])
-		result.values = values
+		copy(values[idx+1:], old[idx:])
 		result.mask |= bit
 	} else {
-		result.values = slices.Clone(result.values)
-		result.values[idx] = value
+		copy(values, old)
+		values[idx] = value
 	}
 	return result
 }

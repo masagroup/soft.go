@@ -205,3 +205,17 @@ func BenchmarkReadLocks_EStoreListAdd(b *testing.B) {
 		})
 	}
 }
+
+// BenchmarkCompactEStoreEObject_Fill sets the six attributes of a new store object without store:
+// each value is cached, as a value read from a store is, the cache copied at each.
+func BenchmarkCompactEStoreEObject_Fill(b *testing.B) {
+	m := newReadBenchModel()
+	b.ReportAllocs()
+	for b.Loop() {
+		o := newTestCompactEStoreEObject(nil)
+		o.SetEClass(m.class)
+		for _, attribute := range m.attributes {
+			o.ESet(attribute, "value")
+		}
+	}
+}

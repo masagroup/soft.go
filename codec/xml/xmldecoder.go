@@ -17,7 +17,6 @@ import (
 	"strings"
 
 	"github.com/masagroup/soft.go/ecore"
-	"golang.org/x/net/html/charset"
 )
 
 const (
@@ -73,6 +72,7 @@ type Decoder struct {
 	namespaces             *xmlNamespaces
 	xmlVersion             string
 	encoding               string
+	documentType           string
 	idAttributeName        string
 	references             []xmlReference
 	attributes             []xml.Attr
@@ -111,8 +111,9 @@ func NewDecoder(resource ecore.EResource, r io.Reader, options map[string]any) *
 	l := new(Decoder)
 	l.interfaces = l
 	l.resource = resource
+	r, l.encoding = newDocumentReader(r)
 	l.decoder = xml.NewDecoder(r)
-	l.decoder.CharsetReader = charset.NewReaderLabel
+	l.decoder.CharsetReader = charsetReader(l.encoding)
 	l.namespaces = newXMLNamespaces()
 	l.prefixesToURI = make(map[string]string)
 	l.spacesToFactories = make(map[string]ecore.EFactory)
@@ -140,8 +141,16 @@ func (l *Decoder) GetXMLVersion() string {
 	return l.xmlVersion
 }
 
+// GetEncoding returns the encoding of the document as its declaration names it, "UTF-16" for one
+// in UTF-16 without declaration, "" for none.
 func (l *Decoder) GetEncoding() string {
 	return l.encoding
+}
+
+// GetDocumentType returns the document type declaration of the document as it was written,
+// <!DOCTYPE TS>, "" for none.
+func (l *Decoder) GetDocumentType() string {
+	return l.documentType
 }
 
 func (l *Decoder) DecodeResource() {
@@ -1072,7 +1081,11 @@ func (l *Decoder) procInst(param, s string) string {
 	return v[1 : idx+1]
 }
 
+// directive keeps the document type declaration of the document, read before its root.
 func (l *Decoder) directive(directive string) {
+	if len(l.objects) == 0 && l.documentType == "" && strings.HasPrefix(directive, "DOCTYPE") {
+		l.documentType = "<!" + directive + ">"
+	}
 }
 
 // SetObjectID gives id to eObject, an object of the document: the references of the document

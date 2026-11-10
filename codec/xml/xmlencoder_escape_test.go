@@ -9,7 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// the values with XML special characters and whitespaces are escaped: the document is read back
+// the values with XML special characters and whitespaces are escaped as XML requires, as EMF does:
+// an apostrophe stays an apostrophe, and so does a double quote in a text. The document is read back
 // with the same values
 func TestXMLEncoder_Escape(t *testing.T) {
 	f := ecore.GetFactory()
@@ -33,7 +34,7 @@ func TestXMLEncoder_Escape(t *testing.T) {
 
 	eObject := ePackage.GetEFactoryInstance().Create(eClass)
 	eObject.ESet(single, "a\nb\tc\r<&>\"'")
-	eObject.EGet(many).(ecore.EList).Add("x<y&z")
+	eObject.EGet(many).(ecore.EList).Add("x<y&z \"'")
 
 	eResourceSet := ecore.NewEResourceSetImpl()
 	eResourceSet.GetPackageRegistry().RegisterPackage(ePackage)
@@ -42,8 +43,8 @@ func TestXMLEncoder_Escape(t *testing.T) {
 	var buffer bytes.Buffer
 	NewEncoder(eResource, &buffer, nil).EncodeResource()
 	require.True(t, eResource.GetErrors().Empty())
-	assert.Contains(t, buffer.String(), `single="a&#xA;b&#x9;c&#13;&lt;&amp;&gt;&#34;&#39;"`)
-	assert.Contains(t, buffer.String(), `<many>x&lt;y&amp;z</many>`)
+	assert.Contains(t, buffer.String(), `single="a&#xA;b&#x9;c&#13;&lt;&amp;&gt;&quot;'"`)
+	assert.Contains(t, buffer.String(), `<many>x&lt;y&amp;z "'</many>`)
 
 	eDecoded := eResourceSet.CreateResource(ecore.NewURI("file:///escape-decoded.xml"))
 	NewDecoder(eDecoded, bytes.NewReader(buffer.Bytes()), nil).DecodeResource()
@@ -51,5 +52,5 @@ func TestXMLEncoder_Escape(t *testing.T) {
 	require.Equal(t, 1, eDecoded.GetContents().Size())
 	eDecodedObject := eDecoded.GetContents().Get(0).(ecore.EObject)
 	assert.Equal(t, "a\nb\tc\r<&>\"'", eDecodedObject.EGet(single))
-	assert.Equal(t, []any{"x<y&z"}, eDecodedObject.EGet(many).(ecore.EList).ToArray())
+	assert.Equal(t, []any{"x<y&z \"'"}, eDecodedObject.EGet(many).(ecore.EList).ToArray())
 }

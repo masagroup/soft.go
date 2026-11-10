@@ -9,8 +9,22 @@
 
 package ecore
 
+import "sync/atomic"
+
 type EEnumExt struct {
 	EEnumImpl
+	defaultValue atomic.Pointer[enumDefaultValue]
+}
+
+// enumDefaultValue is the default value of an enum, read by factory from its first literal, of
+// literal name and value ordinal: kept as long as they do not change, as the default value is read
+// at each access to an unset attribute of the enum. The value depends on nothing else: another
+// first literal of the same literal and value gives the same.
+type enumDefaultValue struct {
+	factory EFactory
+	name    string
+	ordinal int
+	value   any
 }
 
 func newEEnumExt() *EEnumExt {
@@ -35,12 +49,20 @@ func (eEnum *EEnumExt) GetDefaultValue() any {
 		return nil
 	}
 	eLiteral := eLiterals.Get(0).(EEnumLiteral)
+	var eFactory EFactory
 	if ePackage := eEnum.GetEPackage(); ePackage != nil {
-		if eFactory := ePackage.GetEFactoryInstance(); eFactory != nil {
-			return eFactory.CreateFromString(eEnum, eLiteral.GetLiteral())
-		}
+		eFactory = ePackage.GetEFactoryInstance()
 	}
-	return eLiteral.GetValue()
+	if eFactory == nil {
+		return eLiteral.GetValue()
+	}
+	name, ordinal := eLiteral.GetLiteral(), eLiteral.GetValue()
+	if current := eEnum.defaultValue.Load(); current != nil && current.factory == eFactory && current.name == name && current.ordinal == ordinal {
+		return current.value
+	}
+	value := eFactory.CreateFromString(eEnum, name)
+	eEnum.defaultValue.Store(&enumDefaultValue{factory: eFactory, name: name, ordinal: ordinal, value: value})
+	return value
 }
 
 // GetEEnumLiteralByName default implementation

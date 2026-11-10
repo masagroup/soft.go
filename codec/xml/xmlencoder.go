@@ -20,22 +20,7 @@ import (
 	"strings"
 
 	"github.com/masagroup/soft.go/ecore"
-	"golang.org/x/net/html"
 )
-
-// whitespaceEscaper escapes the whitespaces an XML parser normalizes to spaces in an attribute value
-// (html.EscapeString escapes \r already)
-var whitespaceEscaper = strings.NewReplacer("\n", "&#xA;", "\t", "&#x9;")
-
-// escapeAttribute escapes s as the value of an attribute
-func escapeAttribute(s string) string {
-	return whitespaceEscaper.Replace(html.EscapeString(s))
-}
-
-// escapeContent escapes s as the content of an element
-func escapeContent(s string) string {
-	return html.EscapeString(s)
-}
 
 type xmlSaveFeatureKind int
 
@@ -90,6 +75,7 @@ type Encoder struct {
 	idAttributeName  string
 	xmlVersion       string
 	encoding         string
+	documentType     string
 	keepDefaults     bool
 	useEncodedStyle  bool
 	// the schemas of the document, from OPTION_SCHEMA_LOCATION or its document root: written as
@@ -128,6 +114,9 @@ func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *
 		s.roots, _ = options[OPTION_ROOT_OBJECTS].(ecore.EList)
 		s.useEncodedStyle = options[OPTION_USE_ENCODED_ATTRIBUTE_STYLE] == true
 		s.keepDefaults = options[OPTION_KEEP_DEFAULTS] == true
+		if encoding, _ := options[OPTION_ENCODING].(string); encoding != "" {
+			s.encoding = encoding
+		}
 		if lineWidth, isInt := options[OPTION_LINE_WIDTH].(int); isInt && lineWidth > 0 {
 			s.str.lineWidth = lineWidth
 		}
@@ -150,8 +139,16 @@ func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *
 	return s
 }
 
+// SetEncoding sets the encoding the document is written in, an IANA name, UTF-8 by default, as
+// OPTION_ENCODING does.
 func (s *Encoder) SetEncoding(encoding string) {
 	s.encoding = encoding
+}
+
+// SetDocumentType sets the document type declaration written after the XML declaration, <!DOCTYPE
+// TS>, none by default.
+func (s *Encoder) SetDocumentType(documentType string) {
+	s.documentType = documentType
 }
 
 func (s *Encoder) SetXMLVersion(xmlVersion string) {
@@ -216,7 +213,7 @@ func (s *Encoder) encodeTopObject(eObject ecore.EObject) {
 	s.interfaces.(EncoderHooks).SaveNamespaces()
 
 	// write result
-	if err := s.str.write(s.w); err != nil {
+	if err := writeEncoded(s.w, s.encoding, s.str); err != nil {
 		s.error(ecore.NewEDiagnosticImpl(err.Error(), s.location(), 0, 0))
 	}
 }
@@ -224,6 +221,10 @@ func (s *Encoder) encodeTopObject(eObject ecore.EObject) {
 func (s *Encoder) saveHeader() {
 	s.str.add(fmt.Sprintf("<?xml version=\"%v\" encoding=\"%v\"?>", s.xmlVersion, s.encoding))
 	s.str.addLine()
+	if s.documentType != "" {
+		s.str.add(s.documentType)
+		s.str.addLine()
+	}
 }
 
 func (s *Encoder) saveTopObject(eObject ecore.EObject) {

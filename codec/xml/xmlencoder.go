@@ -12,6 +12,7 @@ package xml
 import (
 	"fmt"
 	"io"
+	"maps"
 	"math"
 	"slices"
 	"sort"
@@ -91,8 +92,23 @@ type Encoder struct {
 	encoding         string
 	keepDefaults     bool
 	useEncodedStyle  bool
-	// the schemas a document root records, written as xsi:schemaLocation
-	xsiSchemaLocation string
+	// the schemas of the document, from OPTION_SCHEMA_LOCATION or its document root: written as
+	// xsi:schemaLocation, and xsi:noNamespaceSchemaLocation for the namespace ""
+	schemaLocations    []schemaLocation
+	hasSchemaLocations bool // OPTION_SCHEMA_LOCATION is a map: the document root is not read
+	// OPTION_SCHEMA_LOCATION is true: the location of each package of the document is written
+	declareSchemaLocation bool
+	// rootPackage is the package of the top object: the package of the schema without namespace
+	rootPackage ecore.EPackage
+	// noNamespace is set by a schema without namespace: the names of the packages that are not
+	// qualified (ExtendedMetaData.IsQualified) are written without namespace
+	noNamespace bool
+}
+
+// schemaLocation is the location of the schema of a namespace, "" for a schema without namespace.
+type schemaLocation struct {
+	namespace string
+	location  string
 }
 
 func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *Encoder {
@@ -118,7 +134,15 @@ func NewEncoder(resource ecore.EResource, w io.Writer, options map[string]any) *
 		if extendedMetaData := options[OPTION_EXTENDED_META_DATA]; extendedMetaData != nil {
 			s.extendedMetaData = extendedMetaData.(*ExtendedMetaData)
 		}
-		s.xsiSchemaLocation, _ = options[OPTION_SCHEMA_LOCATION].(string)
+		switch locations := options[OPTION_SCHEMA_LOCATION].(type) {
+		case bool:
+			s.declareSchemaLocation = locations
+		case map[string]string:
+			s.hasSchemaLocations = true
+			for _, namespace := range slices.Sorted(maps.Keys(locations)) {
+				s.schemaLocations = append(s.schemaLocations, schemaLocation{namespace, locations[namespace]})
+			}
+		}
 	}
 	if s.extendedMetaData == nil {
 		s.extendedMetaData = NewExtendedMetaData()
@@ -160,23 +184,28 @@ func (s *Encoder) EncodeObject(eObject ecore.EObject) (err error) {
 
 func (s *Encoder) encodeTopObject(eObject ecore.EObject) {
 	s.saveHeader()
+	s.rootPackage = eObject.EClass().GetEPackage()
 
 	// initialize prefixes if any in top
 	if s.extendedMetaData != nil {
 		eClass := eObject.EClass()
+		// Read only when set: reading the map builds it on the object. The option names the
+		// schemas instead.
+		if eSchemaLocationFeature := s.extendedMetaData.GetXSISchemaLocationMapFeature(eClass); eSchemaLocationFeature != nil && !s.hasSchemaLocations && eObject.EIsSet(eSchemaLocationFeature) {
+			for it := eObject.EGet(eSchemaLocationFeature).(ecore.EMap).Iterator(); it.HasNext(); {
+				entry := it.Next().(ecore.EMapEntry)
+				namespace, _ := entry.GetKey().(string)
+				location, _ := entry.GetValue().(string)
+				s.schemaLocations = append(s.schemaLocations, schemaLocation{namespace, location})
+			}
+		}
+		for _, l := range s.schemaLocations {
+			s.noNamespace = s.noNamespace || l.namespace == ""
+		}
+		// after the schemas: the namespace of a package written without namespace is not declared
 		if ePrefixMapFeature := s.extendedMetaData.GetXMLNSPrefixMapFeature(eClass); ePrefixMapFeature != nil {
 			m := eObject.EGet(ePrefixMapFeature).(ecore.EMap)
 			s.setPrefixToNamespace(m)
-		}
-		// Read only when set: reading the map builds it on the object. The option names the
-		// schemas instead.
-		if eSchemaLocationFeature := s.extendedMetaData.GetXSISchemaLocationMapFeature(eClass); eSchemaLocationFeature != nil && s.xsiSchemaLocation == "" && eObject.EIsSet(eSchemaLocationFeature) {
-			var pairs []string
-			for it := eObject.EGet(eSchemaLocationFeature).(ecore.EMap).Iterator(); it.HasNext(); {
-				entry := it.Next().(ecore.EMapEntry)
-				pairs = append(pairs, fmt.Sprintf("%v %v", entry.GetKey(), entry.GetValue()))
-			}
-			s.xsiSchemaLocation = strings.Join(pairs, " ")
 		}
 	}
 
@@ -258,12 +287,79 @@ func (s *Encoder) SaveNamespaces() {
 		}
 		s.str.addAttribute(attribute, escapeAttribute(s.prefixesToURI[prefix]))
 	}
-	// A document root records the schemas of its document: written back as xsi:schemaLocation.
-	if s.xsiSchemaLocation != "" {
+	// The schemas of the document, as EMF writes them: the schema without namespace as
+	// xsi:noNamespaceSchemaLocation. A schema without namespace and without location writes none,
+	// and only makes the document a document without namespace.
+	if s.declareSchemaLocation {
+		s.addPackageSchemaLocations()
+	}
+	var pairs []string
+	noNamespaceLocation := ""
+	for _, l := range s.schemaLocations {
+		if l.namespace == "" {
+			noNamespaceLocation = l.location
+		} else {
+			pairs = append(pairs, l.namespace, l.location)
+		}
+	}
+	if len(pairs) > 0 || noNamespaceLocation != "" {
 		if _, ok := s.prefixesToURI["xsi"]; !ok {
 			s.str.addAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
 		}
-		s.str.addAttribute("xsi:schemaLocation", escapeAttribute(s.xsiSchemaLocation))
+	}
+	if len(pairs) > 0 {
+		s.str.addAttribute("xsi:schemaLocation", escapeAttribute(strings.Join(pairs, " ")))
+	}
+	if noNamespaceLocation != "" {
+		s.str.addAttribute("xsi:noNamespaceSchemaLocation", escapeAttribute(noNamespaceLocation))
+	}
+}
+
+// addPackageSchemaLocations adds the location of each package of the document, for
+// OPTION_SCHEMA_LOCATION true, as EMF does: the uri of the resource of the package, relative to the
+// resource saved, its fragment kept unless it is the root. A package without resource, or registered
+// at its namespace, as a generated package is, has none. The schemas the document names already are
+// kept, and those named without location are given one. A package written without namespace is the
+// schema without namespace when it is the package of the top object.
+func (s *Encoder) addPackageSchemaLocations() {
+	known := map[string]int{}
+	for i, l := range s.schemaLocations {
+		known[l.namespace] = i
+	}
+	for _, ePackage := range slices.SortedFunc(maps.Keys(s.packages), func(a, b ecore.EPackage) int {
+		return strings.Compare(a.GetNsURI(), b.GetNsURI())
+	}) {
+		namespace := ePackage.GetNsURI()
+		if s.isUnqualified(ePackage) {
+			if ePackage != s.rootPackage {
+				continue
+			}
+			namespace = ""
+		}
+		i, isKnown := known[namespace]
+		if isKnown && s.schemaLocations[i].location != "" {
+			continue
+		}
+		resource := ePackage.EResource()
+		if resource == nil || resource.GetURI() == nil {
+			continue
+		}
+		location := resource.GetURI()
+		if fragment := resource.GetURIFragment(ePackage); fragment != "/" {
+			location = s.getResourceHRef(resource, ePackage)
+		}
+		if location.String() == ePackage.GetNsURI() {
+			continue
+		}
+		if s.resource != nil && s.resource.GetURI() != nil {
+			location = s.resource.GetURI().Relativize(location)
+		}
+		if isKnown {
+			s.schemaLocations[i].location = location.String()
+		} else {
+			known[namespace] = len(s.schemaLocations)
+			s.schemaLocations = append(s.schemaLocations, schemaLocation{namespace, location.String()})
+		}
 	}
 }
 
@@ -796,6 +892,11 @@ func (s *Encoder) getFeatureQName(eFeature ecore.EStructuralFeature) string {
 	if s.extendedMetaData != nil {
 		name := s.extendedMetaData.GetName(eFeature)
 		namespace := s.extendedMetaData.GetNamespace(eFeature)
+		if namespace == "" {
+			// a feature without namespace, as an attribute is by default, is not qualified, even when
+			// a package is registered for documents without namespace
+			return name
+		}
 		ePackage := s.getPackageForSpace(namespace)
 		if ePackage != nil {
 			return s.getElementQName(ePackage, name, false)
@@ -828,6 +929,10 @@ func (s *Encoder) getXmlName(eElement ecore.ENamedElement) string {
 func (s *Encoder) getPrefix(ePackage ecore.EPackage, mustHavePrefix bool) string {
 	nsPrefix, ok := s.packages[ePackage]
 	if !ok {
+		if s.isUnqualified(ePackage) {
+			s.packages[ePackage] = ""
+			return ""
+		}
 		nsURI := ePackage.GetNsURI()
 		found := false
 		prefixes := s.uriToPrefixes[nsURI]
@@ -859,12 +964,22 @@ func (s *Encoder) getPrefix(ePackage ecore.EPackage, mustHavePrefix bool) string
 	return nsPrefix
 }
 
+// isUnqualified returns whether the names of a package are written without namespace: in a
+// document without namespace, those of a package that is not qualified.
+func (s *Encoder) isUnqualified(ePackage ecore.EPackage) bool {
+	return s.noNamespace && s.extendedMetaData != nil && !s.extendedMetaData.IsQualified(ePackage)
+}
+
 func (s *Encoder) setPrefixToNamespace(prefixToNamespaceMap ecore.EMap) {
 	for it := prefixToNamespaceMap.Iterator(); it.HasNext(); {
 		entry := it.Next().(ecore.EMapEntry)
 		prefix := entry.GetKey().(string)
 		nsURI := entry.GetValue().(string)
-		if ePackage := s.getPackageForSpace(nsURI); ePackage != nil {
+		ePackage := s.getPackageForSpace(nsURI)
+		if ePackage != nil && s.isUnqualified(ePackage) {
+			continue
+		}
+		if ePackage != nil {
 			s.packages[ePackage] = prefix
 		}
 		s.prefixesToURI[prefix] = nsURI

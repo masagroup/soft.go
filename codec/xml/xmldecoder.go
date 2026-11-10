@@ -94,6 +94,9 @@ type Decoder struct {
 	// xsiSchemaLocation is the xsi:schemaLocation of the root element as written, recorded in the
 	// document root: pairs of a namespace and the location of its schema.
 	xsiSchemaLocation string
+	// xsiNoNamespaceSchemaLocation is the xsi:noNamespaceSchemaLocation of the root element,
+	// recorded in the document root under the namespace "".
+	xsiNoNamespaceSchemaLocation string
 	// urisToLocations are the locations of the xsi:schemaLocation of the document by namespace, the
 	// location of xsi:noNamespaceSchemaLocation under ""
 	urisToLocations map[string]*ecore.URI
@@ -308,6 +311,7 @@ func (l *Decoder) handleXSISchemaLocation(loc string) {
 
 // handleXSINoNamespaceSchemaLocation records the location of the elements without namespace.
 func (l *Decoder) handleXSINoNamespaceSchemaLocation(loc string) {
+	l.xsiNoNamespaceSchemaLocation = strings.TrimSpace(loc)
 	l.putLocation("", strings.TrimSpace(loc))
 }
 
@@ -964,12 +968,16 @@ func (l *Decoder) recordSchemaLocations(eObject ecore.EObject) {
 			}
 		}
 		// The schema of each namespace, as the document wrote it, which a save writes back, as EMF
-		// does. A document that names none leaves the map unbuilt.
-		if xsiSchemaLocationFeature := l.extendedMetaData.GetXSISchemaLocationMapFeature(eClass); xsiSchemaLocationFeature != nil && l.xsiSchemaLocation != "" {
+		// does: the schema without namespace under "". A document that names none leaves the map
+		// unbuilt.
+		if xsiSchemaLocationFeature := l.extendedMetaData.GetXSISchemaLocationMapFeature(eClass); xsiSchemaLocationFeature != nil && (l.xsiSchemaLocation != "" || l.xsiNoNamespaceSchemaLocation != "") {
 			m := eObject.EGet(xsiSchemaLocationFeature).(ecore.EMap)
 			pairs := strings.Fields(l.xsiSchemaLocation)
 			for i := 0; i+1 < len(pairs); i += 2 {
 				m.Put(pairs[i], pairs[i+1])
+			}
+			if l.xsiNoNamespaceSchemaLocation != "" {
+				m.Put("", l.xsiNoNamespaceSchemaLocation)
 			}
 		}
 	}

@@ -562,7 +562,7 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 		if value == nil {
 			eObject.ESet(eFeature, nil)
 		} else if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
-			if data, ok := l.createFromString(eFactory, eDataType, value.(string)); ok {
+			if data, ok := l.createFromString(eFeature, eFactory, eDataType, value.(string)); ok {
 				eObject.ESet(eFeature, data)
 			}
 		}
@@ -576,7 +576,7 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 			if text, isText := value.(string); isText {
 				if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
 					for _, token := range strings.Fields(text) {
-						if data, ok := l.createFromString(eFactory, eDataType, token); ok {
+						if data, ok := l.createFromString(eFeature, eFactory, eDataType, token); ok {
 							appendLoaded(eList, data)
 						}
 					}
@@ -585,7 +585,7 @@ func (l *Decoder) setFeatureValue(eObject ecore.EObject,
 		} else if value == nil {
 			appendLoaded(eList, nil)
 		} else if eFactory := l.factoryFor(eFeature, eDataType); eFactory != nil {
-			if data, ok := l.createFromString(eFactory, eDataType, value.(string)); ok {
+			if data, ok := l.createFromString(eFeature, eFactory, eDataType, value.(string)); ok {
 				appendLoaded(eList, data)
 			}
 		}
@@ -633,12 +633,18 @@ func (l *Decoder) factoryFor(eFeature ecore.EStructuralFeature, eDataType ecore.
 	return eFactory
 }
 
-// createFromString creates the value of eDataType from str: a factory panics on an invalid
-// literal, which is reported as a diagnostic and not set (ok is false), as EMF's loader does.
-func (l *Decoder) createFromString(eFactory ecore.EFactory, eDataType ecore.EDataType, str string) (value any, ok bool) {
+// createFromString creates the value of eDataType from str, read for eFeature: a factory panics on
+// an invalid literal, which is reported as an IllegalValueDiagnostic and not set (ok is false), as
+// EMF's loader reports an IllegalValueException.
+func (l *Decoder) createFromString(eFeature ecore.EStructuralFeature, eFactory ecore.EFactory, eDataType ecore.EDataType, str string) (value any, ok bool) {
 	defer func() {
 		if r := recover(); r != nil {
-			l.decodeError(fmt.Sprintf("%v", r))
+			l.error(&IllegalValueDiagnostic{
+				EDiagnosticImpl: ecore.NewEDiagnosticImpl(fmt.Sprintf("%v", r), l.location(), int(l.decoder.InputOffset()), 0),
+				Feature:         eFeature,
+				DataType:        eDataType,
+				Value:           str,
+			})
 			value, ok = nil, false
 		}
 	}()

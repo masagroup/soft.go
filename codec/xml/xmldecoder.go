@@ -91,6 +91,12 @@ type Decoder struct {
 	// options are the load options of the document: a package it names in xsi:schemaLocation loads
 	// with them
 	options map[string]any
+	// xsiSchemaLocation is the xsi:schemaLocation of the root element as written, recorded in the
+	// document root: pairs of a namespace and the location of its schema.
+	xsiSchemaLocation string
+	// xsiNoNamespaceSchemaLocation is the xsi:noNamespaceSchemaLocation of the root element,
+	// recorded in the document root under the namespace "".
+	xsiNoNamespaceSchemaLocation string
 	// urisToLocations are the locations of the xsi:schemaLocation of the document by namespace, the
 	// location of xsi:noNamespaceSchemaLocation under ""
 	urisToLocations map[string]*ecore.URI
@@ -296,6 +302,7 @@ func (l *Decoder) handleSchemaLocation() {
 // location, a relative location resolved against the uri of the resource. The package of a namespace
 // loads from its location when the package registry does not know it (see getPackageFromLocation).
 func (l *Decoder) handleXSISchemaLocation(loc string) {
+	l.xsiSchemaLocation = loc
 	fields := strings.Fields(loc)
 	for i := 0; i+1 < len(fields); i += 2 {
 		l.putLocation(fields[i], fields[i+1])
@@ -304,6 +311,7 @@ func (l *Decoder) handleXSISchemaLocation(loc string) {
 
 // handleXSINoNamespaceSchemaLocation records the location of the elements without namespace.
 func (l *Decoder) handleXSINoNamespaceSchemaLocation(loc string) {
+	l.xsiNoNamespaceSchemaLocation = strings.TrimSpace(loc)
 	l.putLocation("", strings.TrimSpace(loc))
 }
 
@@ -957,6 +965,19 @@ func (l *Decoder) recordSchemaLocations(eObject ecore.EObject) {
 			m := eObject.EGet(xmlnsPrefixMapFeature).(ecore.EMap)
 			for prefix, nsURI := range l.prefixesToURI {
 				m.Put(prefix, nsURI)
+			}
+		}
+		// The schema of each namespace, as the document wrote it, which a save writes back, as EMF
+		// does: the schema without namespace under "". A document that names none leaves the map
+		// unbuilt.
+		if xsiSchemaLocationFeature := l.extendedMetaData.GetXSISchemaLocationMapFeature(eClass); xsiSchemaLocationFeature != nil && (l.xsiSchemaLocation != "" || l.xsiNoNamespaceSchemaLocation != "") {
+			m := eObject.EGet(xsiSchemaLocationFeature).(ecore.EMap)
+			pairs := strings.Fields(l.xsiSchemaLocation)
+			for i := 0; i+1 < len(pairs); i += 2 {
+				m.Put(pairs[i], pairs[i+1])
+			}
+			if l.xsiNoNamespaceSchemaLocation != "" {
+				m.Put("", l.xsiNoNamespaceSchemaLocation)
 			}
 		}
 	}

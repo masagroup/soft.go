@@ -168,6 +168,17 @@ func (emd *ExtendedMetaData) GetXSISchemaLocationMapFeature(eClass ecore.EClass)
 	return nil
 }
 
+// IsQualified returns whether the names of a package are qualified by its namespace: false for a
+// package annotated qualified="false", as for a schema without target namespace.
+func (emd *ExtendedMetaData) IsQualified(ePackage ecore.EPackage) bool {
+	if annotation := ePackage.GetEAnnotation(annotationURI); annotation != nil {
+		if qualified, _ := annotation.GetDetails().GetValue("qualified").(string); qualified == "false" {
+			return false
+		}
+	}
+	return true
+}
+
 // GetFeatureKind returns the ExtendedMetaData kind of a feature ("attribute", "element",
 // "simple", ...), or "" when none is declared.
 func (emd *ExtendedMetaData) GetFeatureKind(eFeature ecore.EStructuralFeature) string {

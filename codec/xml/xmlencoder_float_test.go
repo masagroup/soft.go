@@ -120,6 +120,21 @@ func TestXMLDecoder_GoSpecialFloats(t *testing.T) {
 	assert.True(t, math.IsNaN(decoded.EGet(m.d3).(float64)))
 }
 
+// The largest double, as SWORD writes it, is read and written back as it was, not as the 309
+// digits of its decimal form.
+func TestXMLEncoder_LargeFloatsKeepTheExponentForm(t *testing.T) {
+	m := newFloatModel()
+	document := `<?xml version="1.0" encoding="UTF-8"?>` + "\n" +
+		`<floats:Sample xmlns:floats="http://floats" d1="1.7976931348623157e+308" d2="1e-07" finite="0.5">` + "\n" +
+		`  <ds>1.7976931348623157e+308</ds>` + "\n" +
+		`</floats:Sample>` + "\n"
+	decoded := decodeResource(t, m.newResource(), document, nil)
+	assert.Equal(t, math.MaxFloat64, decoded.EGet(m.d1))
+	eResource := m.newResource()
+	eResource.GetContents().Add(decoded)
+	assert.Equal(t, document, encodeResource(t, eResource, nil))
+}
+
 func TestConvertToString(t *testing.T) {
 	eDouble := ecore.GetPackage().GetEDouble()
 	eFloat := ecore.GetPackage().GetEFloat()
@@ -134,10 +149,20 @@ func TestConvertToString(t *testing.T) {
 		{"double -inf", eDouble, math.Inf(-1), "-INF"},
 		{"double nan", eDouble, math.NaN(), "NaN"},
 		{"double finite", eDouble, -0.25, "-0.25"},
+		{"double zero", eDouble, 0.0, "0"},
+		{"double max", eDouble, math.MaxFloat64, "1.7976931348623157e+308"},
+		{"double -max", eDouble, -math.MaxFloat64, "-1.7976931348623157e+308"},
+		{"double 1e21", eDouble, 1e21, "1e+21"},
+		{"double under 1e21", eDouble, 1e20, "100000000000000000000"},
+		{"double 1e-6", eDouble, 1e-6, "0.000001"},
+		{"double under 1e-6", eDouble, 1e-7, "1e-07"},
+		{"double smallest", eDouble, math.SmallestNonzeroFloat64, "5e-324"},
 		{"float +inf", eFloat, float32(math.Inf(1)), "INF"},
 		{"float -inf", eFloat, float32(math.Inf(-1)), "-INF"},
 		{"float nan", eFloat, float32(math.NaN()), "NaN"},
 		{"float finite", eFloat, float32(0.5), "0.5"},
+		{"float max", eFloat, float32(math.MaxFloat32), "3.4028235e+38"},
+		{"float smallest", eFloat, float32(math.SmallestNonzeroFloat32), "1e-45"},
 		{"string", eString, "+Inf", "+Inf"},
 	} {
 		t.Run(test.name, func(t *testing.T) {

@@ -36,7 +36,11 @@ func newCacheBenchClass(n int) EClass {
 var cacheBenchCases = []struct {
 	features, read int
 }{
+	{1, 1},
+	{4, 1},
 	{4, 4},
+	{8, 2},
+	{8, 8},
 	{16, 4},
 	{16, 16},
 	{40, 40},

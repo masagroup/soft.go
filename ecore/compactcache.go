@@ -133,21 +133,96 @@ func (c *compactCache) seal() {
 	}
 }
 
+// The caches of up to 8 slots hold their slots in the same block as their header: one allocation
+// per cache, not two, for the objects of the small classes.
+type compactCache1 struct {
+	compactCache
+	arr [1]any
+}
+type compactCache2 struct {
+	compactCache
+	arr [2]any
+}
+type compactCache3 struct {
+	compactCache
+	arr [3]any
+}
+type compactCache4 struct {
+	compactCache
+	arr [4]any
+}
+type compactCache5 struct {
+	compactCache
+	arr [5]any
+}
+type compactCache6 struct {
+	compactCache
+	arr [6]any
+}
+type compactCache7 struct {
+	compactCache
+	arr [7]any
+}
+type compactCache8 struct {
+	compactCache
+	arr [8]any
+}
+
+// newCompactCache returns an empty cache of n slots, in one block with its header when n <= 8.
+func newCompactCache(n int) *compactCache {
+	switch n {
+	case 0:
+		return &compactCache{}
+	case 1:
+		b := &compactCache1{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 2:
+		b := &compactCache2{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 3:
+		b := &compactCache3{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 4:
+		b := &compactCache4{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 5:
+		b := &compactCache5{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 6:
+		b := &compactCache6{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 7:
+		b := &compactCache7{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	case 8:
+		b := &compactCache8{}
+		b.values = b.arr[:]
+		return &b.compactCache
+	}
+	return &compactCache{values: make([]any, n)}
+}
+
 // copyWith returns a copy of c, sealed or not published, with the value of featureID changed by
 // change, with slots for the feature IDs below slots at least, and the cached value of featureID.
 func (c *compactCache) copyWith(featureID int, value any, change compactChange, slots int) (*compactCache, any) {
 	var mask uint64
-	result := &compactCache{}
 	if c != nil {
 		mask = c.mask.Load()
-		result.epoch, result.overflow = c.epoch, c.overflow
 		slots = max(slots, len(c.values))
 	}
 	if change != compactUnset && featureID < compactSlots {
 		slots = max(slots, featureID+1)
 	}
-	if slots = min(slots, compactSlots); slots > 0 {
-		result.values = make([]any, slots)
+	result := newCompactCache(min(slots, compactSlots))
+	if c != nil {
+		result.epoch, result.overflow = c.epoch, c.overflow
 	}
 	for m := mask; m != 0; m &= m - 1 {
 		id := bits.TrailingZeros64(m)

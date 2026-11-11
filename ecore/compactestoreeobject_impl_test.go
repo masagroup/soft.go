@@ -35,6 +35,7 @@ func (o *testCompactEStoreEObject) GetEStore() EStore {
 
 func TestCompactEStoreEObjectImpl_GetAttribute_Transient(t *testing.T) {
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -53,6 +54,7 @@ func TestCompactEStoreEObjectImpl_GetAttribute_Transient(t *testing.T) {
 
 func TestCompactEStoreEObjectImpl_SetAttribute_Transient(t *testing.T) {
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -74,6 +76,7 @@ func TestCompactEStoreEObjectImpl_SetAttribute_Transient(t *testing.T) {
 
 func TestCompactEStoreEObjectImpl_GetAttribute_PersistentCaching(t *testing.T) {
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -98,6 +101,7 @@ func TestCompactEStoreEObjectImpl_GetAttribute_PersistentCaching(t *testing.T) {
 
 func TestCompactEStoreEObjectImpl_SetAndUnset(t *testing.T) {
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -167,6 +171,7 @@ func TestCompactEStoreEObjectImpl_Cache_FeatureIDsFrom64(t *testing.T) {
 func TestCompactEStoreEObjectImpl_SetAttribute_NoStore_FeatureIDFrom64(t *testing.T) {
 	// without a store, the cache keeps the values of the object: a feature ID from 64 is kept too
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	o := newTestCompactEStoreEObject(nil)
 	o.SetEClass(mockClass)

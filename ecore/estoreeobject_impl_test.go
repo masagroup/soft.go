@@ -22,6 +22,7 @@ func TestEStoreEObjectImpl_GetAttribute_Transient(t *testing.T) {
 
 	// create mocks
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -42,6 +43,7 @@ func TestEStoreEObjectImpl_GetAttribute_Transient(t *testing.T) {
 func TestEStoreEObjectImpl_GetAttribute_Caching(t *testing.T) {
 	// create mocks
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -67,6 +69,7 @@ func TestEStoreEObjectImpl_GetAttribute_Caching(t *testing.T) {
 func TestEStoreEObjectImpl_GetAttribute_NoCaching(t *testing.T) {
 	// create mocks
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -88,6 +91,7 @@ func TestEStoreEObjectImpl_GetAttribute_NoCaching(t *testing.T) {
 func TestEStoreEObjectImpl_SetAttribute_Transient(t *testing.T) {
 	// create mocks
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -111,6 +115,7 @@ func TestEStoreEObjectImpl_SetAttribute_Transient(t *testing.T) {
 func TestEStoreEObjectImpl_SetAttribute(t *testing.T) {
 	// create mocks
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -131,6 +136,7 @@ func TestEStoreEObjectImpl_SetAttribute(t *testing.T) {
 func TestEStoreEObjectImpl_SetAttribute_Caching(t *testing.T) {
 	// create mocks
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -151,6 +157,7 @@ func TestEStoreEObjectImpl_SetAttribute_Caching(t *testing.T) {
 func TestEStoreEObjectImpl_GetAttribute_Many_List(t *testing.T) {
 	// create mocks
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -178,6 +185,7 @@ func TestEStoreEObjectImpl_GetAttribute_Many_List(t *testing.T) {
 func TestEStoreEObjectImpl_GetAttribute_Many_Map(t *testing.T) {
 	// create mocks
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 	mockType := NewMockEClass(t)
@@ -208,6 +216,7 @@ func TestEStoreEObjectImpl_GetAttribute_Many_Map(t *testing.T) {
 func TestEStoreEObjectImpl_UnSetAttribute_Transient(t *testing.T) {
 	// create mocks
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -226,6 +235,7 @@ func TestEStoreEObjectImpl_UnSetAttribute_Transient(t *testing.T) {
 func TestEStoreEObjectImpl_UnSetAttribute(t *testing.T) {
 	// create mocks
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	mockStore := NewMockEStore(t)
 
@@ -246,6 +256,7 @@ func TestEStoreEObjectImpl_UnSetAttribute(t *testing.T) {
 
 func TestEStoreEObjectImpl_GetContainer(t *testing.T) {
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockStore := NewMockEStore(t)
 	mockObject := NewMockEObject(t)
 	mockObjectClass := NewMockEClass(t)
@@ -269,6 +280,7 @@ func TestEStoreEObjectImpl_GetContainer(t *testing.T) {
 
 func TestEStoreEObjectImpl_IsSet_NoCache_NoStore(t *testing.T) {
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	o := NewEStoreEObjectImpl(false)
 	o.SetEClass(mockClass)
@@ -278,6 +290,7 @@ func TestEStoreEObjectImpl_IsSet_NoCache_NoStore(t *testing.T) {
 
 func TestEStoreEObjectImpl_IsSet_NoCache(t *testing.T) {
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockStore := NewMockEStore(t)
 	mockAttribute := NewMockEAttribute(t)
 	o := NewEStoreEObjectImpl(false)
@@ -291,6 +304,7 @@ func TestEStoreEObjectImpl_IsSet_NoCache(t *testing.T) {
 
 func TestEStoreEObjectImpl_IsSet_WithCache(t *testing.T) {
 	mockClass := NewMockEClass(t)
+	mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	mockAttribute := NewMockEAttribute(t)
 	o := NewEStoreEObjectImpl(true)
 	o.SetEClass(mockClass)
@@ -317,6 +331,7 @@ type EStoreEObjectImplWithCacheTestSuite struct {
 func (suite *EStoreEObjectImplWithCacheTestSuite) SetupTest() {
 	t := suite.T()
 	suite.mockClass = NewMockEClass(t)
+	suite.mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	suite.mockStore = NewMockEStore(t)
 	suite.mockFeature = NewMockEAttribute(t)
 	suite.o = NewEStoreEObjectImpl(true)
@@ -371,6 +386,7 @@ type EStoreEObjectImplNoCacheTestSuite struct {
 func (suite *EStoreEObjectImplNoCacheTestSuite) SetupTest() {
 	t := suite.T()
 	suite.mockClass = NewMockEClass(t)
+	suite.mockClass.EXPECT().GetFeatureCount().Return(2).Maybe() // the slots of the cache
 	suite.mockStore = NewMockEStore(t)
 	suite.mockFeatureList = NewMockEAttribute(t)
 	suite.mockAttribute = NewMockEAttribute(t)
@@ -399,7 +415,6 @@ func (suite *EStoreEObjectImplNoCacheTestSuite) TestSetStore() {
 	suite.mockAttribute.EXPECT().IsTransient().Return(false).Once()
 	suite.mockAttribute.EXPECT().IsMany().Return(false).Once()
 	mockStore.EXPECT().Get(suite.o, suite.mockAttribute, NO_INDEX).Return(2).Once()
-	suite.mockClass.EXPECT().GetFeatureCount().Return(2).Once()
 	suite.o.SetEStore(nil)
 	require.Equal(t, nil, suite.o.GetEStore())
 }

@@ -98,6 +98,8 @@ func (o *EStoreEObjectImpl) reconfigure(store EStore, cache bool, values func(cu
 	next := &eStoreEObjectConfig{store: store, cache: cache, epoch: o.config.Load().getEpoch() + 1}
 	for {
 		c := o.cache.Load()
+		// sealed: a value cached in place meanwhile is in its values
+		c.seal()
 		current := c.featureValues()
 		replaced := emptyCache(next.epoch)
 		for _, v := range values(current) {

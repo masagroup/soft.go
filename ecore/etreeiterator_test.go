@@ -28,7 +28,7 @@ func TestETreeIteratorWithRoot(t *testing.T) {
 
 func TestEAllContentsIteratorEmpty(t *testing.T) {
 	mockObject := newMockEContentsObject(t)
-	it := newEAllContentsIterator(mockObject)
+	it := newEAllContentsIterator(newEAllContentsFrame(mockObject, nil), nil)
 	assert.False(t, it.HasNext())
 }
 
@@ -40,7 +40,7 @@ func TestEAllContentsIteratorNotEmpty(t *testing.T) {
 	mockObject := newMockEContentsObject(t, mockChild1, mockChild2)
 
 	var result []any
-	for it := newEAllContentsIterator(mockObject); it.HasNext(); {
+	for it := newEAllContentsIterator(newEAllContentsFrame(mockObject, nil), nil); it.HasNext(); {
 		result = append(result, it.Next())
 	}
 	assert.Equal(t, []any{mockChild1, mockGrandChild1, mockGrandChild2, mockChild2}, result)

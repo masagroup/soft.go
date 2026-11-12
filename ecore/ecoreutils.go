@@ -423,11 +423,3 @@ func resolveCrossReferences(eObject EObject) {
 		// The loop resolves the cross references by visiting them.
 	}
 }
-
-func EAllContentsWithClass(eObject EObject, eClass EClass) EIterator {
-	return newEAllContentsWithClassIterator(eObject, eClass)
-}
-
-func EAllContentsWithTable(eObject EObject, table *EClassTransitionsTable) EIterator {
-	return newEAllContentsWithTableIterator(eObject, table)
-}

@@ -61,7 +61,7 @@ func newMockEContentsObject(t *testing.T, contents ...any) *MockEObject {
 func TestEAllContents_MockObjects(t *testing.T) {
 	child := newMockEContentsObject(t)
 	o := newMockEContentsObject(t, child)
-	assert.Equal(t, []EObject{child}, collectIterator(newEAllContentsIterator(o)))
+	assert.Equal(t, []EObject{child}, collectIterator(newEAllContentsIterator(newEAllContentsFrame(o, nil), nil)))
 	assert.Equal(t, []EObject{child}, slices.Collect(AllContents(o)))
 }
 
@@ -141,7 +141,7 @@ func TestAllContents(t *testing.T) {
 	resource, expected := newAllContentsResource(p, 3, 3, 2)
 	assert.Equal(t, expected, collectIterator(resource.GetAllContents()))
 	assert.Equal(t, expected, slices.Collect(AllContents(resource)))
-	assert.Equal(t, expected, slices.Collect(allContentsResolve(resource, false)))
+	assert.Equal(t, expected, slices.Collect(allContents(resource, nil, false)))
 	assert.False(t, NewEResourceImpl().GetAllContents().HasNext())
 	assert.Empty(t, slices.Collect(AllContents(NewEResourceImpl())))
 
@@ -182,7 +182,7 @@ func TestAllContents_ResourceSet(t *testing.T) {
 		expected = append(expected, objects...)
 	}
 	assert.Equal(t, expected, slices.Collect(AllContents(resourceSet)))
-	assert.Equal(t, expected, slices.Collect(allContentsResolve(resourceSet, false)))
+	assert.Equal(t, expected, slices.Collect(allContents(resourceSet, nil, false)))
 	assert.Equal(t, expected[:3], slices.Collect(func(yield func(EObject) bool) {
 		n := 0
 		for o := range AllContents(resourceSet) {

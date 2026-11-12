@@ -213,11 +213,6 @@ func (o *CompactEObjectImpl) EContents() EList {
 	return newEContentsList(eObject, eObject.EClass().GetEContainmentFeatures(), true)
 }
 
-// eContentsFeatures returns the containment features of the view EContents.
-func (o *CompactEObjectImpl) eContentsFeatures() EList {
-	return o.AsEObject().EClass().GetEContainmentFeatures()
-}
-
 // ECrossReferences returns a view of the cross references, created at each call as EContents.
 func (o *CompactEObjectImpl) ECrossReferences() EList {
 	eObject := o.AsEObject()

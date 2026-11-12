@@ -5,50 +5,28 @@ import (
 	"slices"
 )
 
-// eContentsFeaturesHolder is implemented by the objects whose EContents is the view of the values
-// of a list of containment features: the contents are walked from the features, without the view
-// and its iterator.
-type eContentsFeaturesHolder interface {
-	eContentsFeatures() EList
-}
-
-// containmentFeatures returns the containment features EContents of o walks, nil when its
-// contents are to be read from EContents.
+// containmentFeatures returns the containment features of the class of o, those EContents walks:
+// the contents are walked from them, without the view and its iterator. The class holds them in
+// an immutable list, whose array is not a copy.
 func containmentFeatures(o EObject) []any {
-	if holder, _ := o.(eContentsFeaturesHolder); holder != nil {
-		if features, _ := holder.eContentsFeatures().(*immutableEList); features != nil {
-			return features.data
-		}
-	}
-	return nil
+	return o.EClass().GetEContainmentFeatures().ToArray()
 }
 
 // eAllContentsFrame is the walk of the contents of an object: its containment features from
-// cursor, then values, the remaining values of the current many feature. contents is the
-// iterator of EContents of the objects not walked from their features.
+// cursor, then values, the remaining values of the current many feature.
 type eAllContentsFrame struct {
 	object   EObject
 	features []any
 	cursor   int
 	values   EIterator
-	contents EIterator
 }
 
 func newEAllContentsFrame(o EObject) eAllContentsFrame {
-	if features := containmentFeatures(o); features != nil {
-		return eAllContentsFrame{object: o, features: features}
-	}
-	return eAllContentsFrame{object: o, contents: o.EContents().Iterator()}
+	return eAllContentsFrame{object: o, features: containmentFeatures(o)}
 }
 
 // next returns the next content of the object, nil when there is none.
 func (f *eAllContentsFrame) next() any {
-	if f.contents != nil {
-		if f.contents.HasNext() {
-			return f.contents.Next()
-		}
-		return nil
-	}
 	if f.values != nil {
 		if f.values.HasNext() {
 			return f.values.Next()
@@ -174,20 +152,7 @@ func yieldRoots(resource EResource, resolve bool, yield func(EObject) bool) bool
 // yieldAllContents yields the contents of o and their contents, false when the iteration is
 // stopped.
 func yieldAllContents(o EObject, resolve bool, yield func(EObject) bool) bool {
-	features := containmentFeatures(o)
-	if features == nil {
-		contents := o.EContents()
-		if !resolve {
-			contents = contents.(EObjectList).GetUnResolvedList()
-		}
-		for it := contents.Iterator(); it.HasNext(); {
-			if child := it.Next().(EObject); !yield(child) || !yieldAllContents(child, resolve, yield) {
-				return false
-			}
-		}
-		return true
-	}
-	for _, f := range features {
+	for _, f := range containmentFeatures(o) {
 		feature := f.(EStructuralFeature)
 		if !o.EIsSet(feature) {
 			continue

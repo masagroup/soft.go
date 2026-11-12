@@ -92,11 +92,6 @@ func (o *BasicEObjectImpl) EContents() EList {
 	return properties.contents
 }
 
-// eContentsFeatures returns the containment features of the view EContents.
-func (o *BasicEObjectImpl) eContentsFeatures() EList {
-	return o.AsEObject().EClass().GetEContainmentFeatures()
-}
-
 // ECrossReferences returns a view of the values of the cross reference features of the class, as
 // the compact objects.
 func (o *BasicEObjectImpl) ECrossReferences() EList {

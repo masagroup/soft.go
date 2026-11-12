@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,12 +44,23 @@ func TestEAllContents_Empty(t *testing.T) {
 	assert.Empty(t, slices.Collect(AllContents(root)))
 }
 
-func TestEAllContents_FromEContents(t *testing.T) {
-	// an object not walked from its features: its contents are read from EContents
-	child := NewMockEObject(t)
-	child.EXPECT().EContents().Return(NewImmutableEList(nil))
+// newMockEContentsObject returns a mock object of contents: its class has one many containment,
+// whose values are contents.
+func newMockEContentsObject(t *testing.T, contents ...any) *MockEObject {
+	eReference := NewMockEReference(t)
+	eReference.EXPECT().IsMany().Return(true).Maybe()
+	eClass := NewMockEClass(t)
+	eClass.EXPECT().GetEContainmentFeatures().Return(NewImmutableEList([]any{eReference})).Maybe()
 	o := NewMockEObject(t)
-	o.EXPECT().EContents().Return(NewImmutableEList([]any{child}))
+	o.EXPECT().EClass().Return(eClass).Maybe()
+	o.EXPECT().EIsSet(eReference).Return(len(contents) != 0).Maybe()
+	o.EXPECT().EGetResolve(eReference, mock.Anything).Return(NewImmutableEList(contents)).Maybe()
+	return o
+}
+
+func TestEAllContents_MockObjects(t *testing.T) {
+	child := newMockEContentsObject(t)
+	o := newMockEContentsObject(t, child)
 	assert.Equal(t, []EObject{child}, collectIterator(newEAllContentsIterator(o)))
 	assert.Equal(t, []EObject{child}, slices.Collect(AllContents(o)))
 }

@@ -138,7 +138,10 @@ var hybridTestClass = sync.OnceValue(func() EClass {
 	items.SetName("items")
 	items.SetUpperBound(-1)
 	items.SetEType(GetPackage().GetEInt())
-	c.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{name, count, items}))
+	ref := GetFactory().CreateEReference()
+	ref.SetName("ref")
+	ref.SetEType(GetPackage().GetEObject())
+	c.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{name, count, items, ref}))
 	return c
 })
 
@@ -146,6 +149,7 @@ const (
 	hybridTestName = iota
 	hybridTestCount
 	hybridTestItems
+	hybridTestRef
 )
 
 // hybridTestObject is a class as soft.gen generates it with the property hybridFields.
@@ -159,6 +163,7 @@ type hybridTestFields struct {
 	name  string
 	count int
 	items EList
+	ref   EObject
 }
 
 var (
@@ -167,6 +172,7 @@ var (
 	hybridTestNameField  = Value[string](hybridTestLevel, hybridTestName, 0, unsafe.Offsetof(hybridTestFields{}.name), Plain)
 	hybridTestCountField = Value[int](hybridTestLevel, hybridTestCount, 1, unsafe.Offsetof(hybridTestFields{}.count), Plain)
 	hybridTestItemsField = List(hybridTestLevel, hybridTestItems, 2, unsafe.Offsetof(hybridTestFields{}.items))
+	hybridTestRefField   = Value[EObject](hybridTestLevel, hybridTestRef, 3, unsafe.Offsetof(hybridTestFields{}.ref), Reference|Plain)
 	hybridTestLayout     = NewLayout(nil, hybridTestLevel)
 )
 
@@ -230,6 +236,80 @@ func (o *hybridTestObject) GetItems() EList {
 		return block.items
 	}
 	return hybridTestItemsField.Load(&o.HybridEObjectImpl, o.fields.Ref())
+}
+
+func (o *hybridTestObject) GetRef() EObject {
+	if block := o.fields.Published(1 << 3); block != nil && (block.ref == nil || !block.ref.EIsProxy()) {
+		return block.ref
+	}
+	return hybridTestRefField.Load(&o.HybridEObjectImpl, o.fields.Ref())
+}
+
+func (o *hybridTestObject) SetRef(ref EObject) {
+	hybridTestRefField.Set(&o.HybridEObjectImpl, o.fields.Ref(), ref)
+}
+
+// TestHybridEObjectImpl_UnresolvedProxyIsNotKept checks that a reference read while its proxy does
+// not resolve is resolved again by the next read: the proxy is not published in its field.
+func TestHybridEObjectImpl_UnresolvedProxyIsNotKept(t *testing.T) {
+	for _, withStore := range []bool{false, true} {
+		rs := NewEResourceSetImpl()
+		a := rs.CreateResource(NewURI("a.xml"))
+		var store EStore
+		if withStore {
+			store = newHybridTestStore()
+		}
+		o := newHybridTestObject(store)
+		a.GetContents().Add(o)
+		b := rs.CreateResource(NewURI("b.xml"))
+		b.(interface {
+			BasicSetLoaded(bool, ENotificationChain) ENotificationChain
+		}).BasicSetLoaded(true, nil)
+
+		proxy := newHybridTestObject(nil)
+		proxy.ESetProxyURI(NewURI("b.xml#/0"))
+		o.SetRef(proxy)
+		assert.Same(t, proxy, o.GetRef(), "store %v: b.xml has no object yet", withStore)
+		assert.Nil(t, o.fields.Published(1<<3), "store %v: the unresolved proxy is not published", withStore)
+
+		target := newHybridTestObject(nil)
+		b.GetContents().Add(target)
+		assert.Same(t, target, o.GetRef(), "store %v: resolved by the next read", withStore)
+		assert.NotNil(t, o.fields.Published(1<<3), "store %v: the resolved object is published", withStore)
+	}
+}
+
+// TestHybridEObjectImpl_PublishedObjectBecomesAProxy checks that an object published in a
+// reference field, then made a proxy, as the XML decoder does with an element giving its proxy URI
+// after the object is set, is resolved by the next reads, and replaced in its field once resolved.
+func TestHybridEObjectImpl_PublishedObjectBecomesAProxy(t *testing.T) {
+	for _, withStore := range []bool{false, true} {
+		rs := NewEResourceSetImpl()
+		a := rs.CreateResource(NewURI("a.xml"))
+		var store EStore
+		if withStore {
+			store = newHybridTestStore()
+		}
+		o := newHybridTestObject(store)
+		a.GetContents().Add(o)
+		b := rs.CreateResource(NewURI("b.xml"))
+		b.(interface {
+			BasicSetLoaded(bool, ENotificationChain) ENotificationChain
+		}).BasicSetLoaded(true, nil)
+
+		object := newHybridTestObject(nil)
+		o.SetRef(object)
+		require.NotNil(t, o.fields.Published(1<<3), "store %v: the object set is published", withStore)
+		object.ESetProxyURI(NewURI("b.xml#/0"))
+		assert.Same(t, object, o.GetRef(), "store %v: b.xml has no object yet", withStore)
+		assert.Same(t, object, o.EGet(hybridTestClass().GetEStructuralFeature(hybridTestRef)), "store %v: reflective", withStore)
+
+		target := newHybridTestObject(nil)
+		b.GetContents().Add(target)
+		assert.Same(t, target, o.GetRef(), "store %v: resolved by the next read", withStore)
+		assert.Same(t, target, o.fields.Published(1<<3).ref, "store %v: the field holds the object resolved", withStore)
+		assert.Same(t, target, o.EGet(hybridTestClass().GetEStructuralFeature(hybridTestRef)), "store %v: reflective", withStore)
+	}
 }
 
 func TestHybridEObjectImpl_GetterReadsTheStoreOnce(t *testing.T) {

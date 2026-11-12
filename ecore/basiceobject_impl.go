@@ -81,27 +81,29 @@ func (o *BasicEObjectImpl) ESetProxyURI(uri *URI) {
 	o.getObjectProperties().proxyURI = uri
 }
 
-// EContents ...
+// EContents returns a view of the values of the containment features of the class, as the
+// compact objects.
 func (o *BasicEObjectImpl) EContents() EList {
 	properties := o.getObjectProperties()
 	if properties.contents == nil {
 		eObject := o.AsEObject()
-		properties.contents = newEContentsList(eObject, eObject.EClass().GetEAllContainments(), true)
+		properties.contents = newEContentsList(eObject, eObject.EClass().GetEContainmentFeatures(), true)
 	}
 	return properties.contents
 }
 
 // eContentsFeatures returns the containment features of the view EContents.
 func (o *BasicEObjectImpl) eContentsFeatures() EList {
-	return o.AsEObject().EClass().GetEAllContainments()
+	return o.AsEObject().EClass().GetEContainmentFeatures()
 }
 
-// ECrossReferences ...
+// ECrossReferences returns a view of the values of the cross reference features of the class, as
+// the compact objects.
 func (o *BasicEObjectImpl) ECrossReferences() EList {
 	properties := o.getObjectProperties()
 	if properties.crossReferences == nil {
 		eObject := o.AsEObject()
-		properties.crossReferences = newEContentsList(eObject, eObject.EClass().GetEAllCrossReferences(), true)
+		properties.crossReferences = newEContentsList(eObject, eObject.EClass().GetECrossReferenceFeatures(), true)
 	}
 	return properties.crossReferences
 }

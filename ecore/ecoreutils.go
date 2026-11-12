@@ -190,9 +190,11 @@ func EqualsAll(l1 EList, l2 EList) bool {
 	return dE.equalsObjectList(l1, l2)
 }
 
+// crossReferencesInObject returns the cross references of eObject and the objects they reference,
+// those of ECrossReferences.
 func crossReferencesInObject(eObject EObject, resolve bool) iter.Seq2[EStructuralFeature, EObject] {
 	return func(yield func(EStructuralFeature, EObject) bool) {
-		for crossReferenceAny := range eObject.EClass().GetEAllCrossReferences().All() {
+		for _, crossReferenceAny := range eObject.EClass().GetECrossReferenceFeatures().ToArray() {
 			crossReference := crossReferenceAny.(EStructuralFeature)
 			if eObject.EIsSet(crossReference) {
 				value := eObject.EGetResolve(crossReference, resolve)

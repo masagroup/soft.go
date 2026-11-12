@@ -210,3 +210,60 @@ func BenchmarkAllContents_Resource(b *testing.B) {
 		})
 	}
 }
+
+// BenchmarkEAllContentsWithClass walks the instances of a class in the contents of a tree, the
+// leaves, at its bottom, and the nodes, everywhere: with EAllContentsWithClass (class), which
+// builds its table, EAllContentsWithTable (table), and their sequences (seqclass, seqtable).
+func BenchmarkEAllContentsWithClass(b *testing.B) {
+	p := newEAllContentsBenchPackage()
+	root, _ := p.newTree(4, 8, 4)
+	for _, end := range []EClass{p.leafClass, p.nodeClass} {
+		count := len(instancesInContents(root, end))
+		table := NewEClassTransitionsTable(root.EClass(), end)
+		for _, v := range []struct {
+			name string
+			walk func() int
+		}{
+			{"class", func() int {
+				n := 0
+				for it := EAllContentsWithClass(root, end); it.HasNext(); {
+					it.Next()
+					n++
+				}
+				return n
+			}},
+			{"table", func() int {
+				n := 0
+				for it := EAllContentsWithTable(root, table); it.HasNext(); {
+					it.Next()
+					n++
+				}
+				return n
+			}},
+			{"seqclass", func() int {
+				n := 0
+				for range AllContentsWithClass(root, end) {
+					n++
+				}
+				return n
+			}},
+			{"seqtable", func() int {
+				n := 0
+				for range AllContentsWithTable(root, table) {
+					n++
+				}
+				return n
+			}},
+		} {
+			b.Run(fmt.Sprintf("end=%s/impl=%s", end.GetName(), v.name), func(b *testing.B) {
+				b.ReportAllocs()
+				for b.Loop() {
+					if n := v.walk(); n != count {
+						b.Fatalf("%d objects, expected %d", n, count)
+					}
+				}
+				b.ReportMetric(float64(b.Elapsed().Nanoseconds())/float64(b.N*count), "ns/object")
+			})
+		}
+	}
+}

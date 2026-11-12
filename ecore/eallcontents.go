@@ -187,104 +187,136 @@ func yieldAllContents(o EObject, resolve bool, yield func(EObject) bool) bool {
 	return true
 }
 
-type transition struct {
-	reference EReference
-	source    EClass
-	target    EClass
-}
-
-type transitions []*transition
-
-func (ts transitions) addTransition(transition *transition) transitions {
-	for _, t := range ts {
-		if t == transition || *t == *transition {
-			return ts
-		}
-	}
-	return append(ts, transition)
-}
-
-func (ts transitions) removeTransition(transition *transition) transitions {
-	for i, t := range ts {
-		if t == transition || *t == *transition {
-			ts[i] = ts[len(ts)-1]
-			return ts[:len(ts)-1]
-		}
-	}
-	return ts
-}
-
+// EClassTransitionsTable tells, for the classes of the objects in the contents of an object of
+// its start classes, whether their instances are searched, those of its end class, and which of
+// their containment features may hold searched objects or objects containing some: the contents
+// walks with a table only follow these features.
 type EClassTransitionsTable struct {
-	transitionsMap map[EClass]transitions
-	endSet         map[EClass]struct{}
-	// endClass is the class of the objects searched, nil for an empty table: an object is an end
-	// when it is an instance of it, whatever the type of the reference holding it
+	states map[EClass]eClassTransitions
+	// endClass is the class of the searched objects
 	endClass EClass
 }
 
-func newEClassTransitionsTable() *EClassTransitionsTable {
-	return &EClassTransitionsTable{
-		transitionsMap: map[EClass]transitions{},
-		endSet:         map[EClass]struct{}{},
-	}
+// eClassTransitions is the state of a class in a table: whether its instances are searched, and
+// its containment features which may lead to searched objects, in the order of
+// GetEContainmentFeatures.
+type eClassTransitions struct {
+	features []any
+	end      bool
 }
 
-func (table *EClassTransitionsTable) union(other *EClassTransitionsTable) *EClassTransitionsTable {
-	for _, transitions := range other.transitionsMap {
-		for _, transition := range transitions {
-			table.addTransition(transition)
+// NewEClassTransitionsTable returns the table of the walks of the contents of the objects of
+// startClass searching the instances of endClass.
+func NewEClassTransitionsTable(startClass EClass, endClass EClass) *EClassTransitionsTable {
+	return newEClassTransitionsTable([]EClass{startClass}, endClass)
+}
+
+// newEClassTransitionsTable returns the table of the walks of the contents of the objects of
+// startClasses searching the instances of endClass. A class may lead to a searched object when one
+// of its containment features may hold an instance of endClass, or an object of a class which
+// may lead to one: computed as a fixed point, whatever the cycles of containments.
+func newEClassTransitionsTable(startClasses []EClass, endClass EClass) *EClassTransitionsTable {
+	table := &EClassTransitionsTable{states: map[EClass]eClassTransitions{}, endClass: endClass}
+	// the classes of the objects in the contents of the start objects, and for each one the
+	// classes of the objects each of its containment features may hold
+	type classNode struct {
+		eClass   EClass
+		features []any
+		targets  [][]EClass // nil for a feature holding objects of any class
+		end      bool
+		leads    bool
+	}
+	nodes := []*classNode{}
+	index := map[EClass]*classNode{}
+	add := func(eClass EClass) {
+		if _, known := index[eClass]; !known {
+			node := &classNode{eClass: eClass, end: table.isInstance(eClass)}
+			index[eClass] = node
+			nodes = append(nodes, node)
 		}
 	}
-	for eClass := range other.endSet {
-		table.setIsEnd(eClass)
+	for _, startClass := range startClasses {
+		add(startClass)
+	}
+	for i := 0; i < len(nodes); i++ {
+		node := nodes[i]
+		node.features = node.eClass.GetEContainmentFeatures().ToArray()
+		node.targets = make([][]EClass, len(node.features))
+		for j, feature := range node.features {
+			targetClass := feature.(EReference).GetEReferenceType()
+			if isEObjectClass(targetClass) {
+				// a feature typed EObject holds objects of any class
+				continue
+			}
+			targets := classesOf(targetClass)
+			node.targets[j] = targets
+			for _, target := range targets {
+				add(target)
+			}
+		}
+	}
+	// a feature leads to searched objects when it may hold a searched object or an object leading
+	// to one
+	featureLeads := func(targets []EClass) bool {
+		if targets == nil {
+			return true
+		}
+		for _, target := range targets {
+			if node := index[target]; node.end || node.leads {
+				return true
+			}
+		}
+		return false
+	}
+	for changed := true; changed; {
+		changed = false
+		for _, node := range nodes {
+			if node.leads {
+				continue
+			}
+			for _, targets := range node.targets {
+				if featureLeads(targets) {
+					node.leads = true
+					changed = true
+					break
+				}
+			}
+		}
+	}
+	for _, node := range nodes {
+		state := eClassTransitions{end: node.end}
+		if node.leads {
+			for j, feature := range node.features {
+				if featureLeads(node.targets[j]) {
+					state.features = append(state.features, feature)
+				}
+			}
+		}
+		table.states[node.eClass] = state
 	}
 	return table
 }
 
-func (table *EClassTransitionsTable) addTransition(t *transition) {
-	table.transitionsMap[t.source] = table.transitionsMap[t.source].addTransition(t)
+// isEObjectClass returns true for the class EObject of the Ecore package: all objects are its
+// instances, as in EMF.
+func isEObjectClass(eClass EClass) bool {
+	return eClass == GetPackage().GetEObject()
 }
 
-func (table *EClassTransitionsTable) removeTransition(t *transition) {
-	if tableTransitions, isTransitions := table.transitionsMap[t.source]; isTransitions {
-		table.transitionsMap[t.source] = tableTransitions.removeTransition(t)
+// isInstance returns true if the instances of eClass are searched: it is the end class or one of
+// its sub classes.
+func (table *EClassTransitionsTable) isInstance(eClass EClass) bool {
+	return table.endClass != nil && (isEObjectClass(table.endClass) || table.endClass.IsSuperTypeOf(eClass))
+}
+
+// transitions returns the state of eClass. A class the table does not know, created after it or
+// not in the contents of its start classes, may lead anywhere: all its containment features are
+// followed.
+func (table *EClassTransitionsTable) transitions(eClass EClass) eClassTransitions {
+	if state, known := table.states[eClass]; known {
+		return state
 	}
-}
-
-func (table *EClassTransitionsTable) getTransitions(eClass EClass) []*transition {
-	if tableTransitions, isTransitions := table.transitionsMap[eClass]; isTransitions {
-		return tableTransitions
-	}
-	return nil
-}
-
-func (table *EClassTransitionsTable) contains(source EClass) bool {
-	_, isTransitions := table.transitionsMap[source]
-	return isTransitions
-}
-
-func (table *EClassTransitionsTable) setIsEnd(eClass EClass) {
-	table.endSet[eClass] = struct{}{}
-}
-
-func (table *EClassTransitionsTable) isEnd(eClass EClass) bool {
-	_, isEnd := table.endSet[eClass]
-	return isEnd
-}
-
-// isInstanceEnd returns true if an object of class eClass is searched: its class is the end class or
-// one of its sub classes
-func (table *EClassTransitionsTable) isInstanceEnd(eClass EClass) bool {
-	return table.isEnd(eClass) || (table.endClass != nil && table.endClass.IsSuperTypeOf(eClass))
-}
-
-func NewEClassTransitionsTable(startClass EClass, endClass EClass) *EClassTransitionsTable {
-	resultTable := newEClassTransitionsTable()
-	if startClass != endClass {
-		resultTable.endClass = endClass
-		computeTransitionTableForState(startClass, endClass, newEClassTransitionsTable(), resultTable)
-	}
-	return resultTable
+	return eClassTransitions{features: eClass.GetEContainmentFeatures().ToArray(), end: table.isInstance(eClass)}
 }
 
 // classesOf returns eClass and its sub classes, recursively: the classes of the objects a reference
@@ -303,162 +335,151 @@ func classesOf(eClass EClass) []EClass {
 	return classes
 }
 
-func computeTransitionTableForState(eClass EClass, endClass EClass, currentTable *EClassTransitionsTable, resultTable *EClassTransitionsTable) {
-	for itFeature := eClass.GetEContainmentFeatures().Iterator(); itFeature.HasNext(); {
-		reference, _ := itFeature.Next().(EReference)
-		if reference != nil {
-			computeTransitionTableForReference(eClass, reference, endClass, currentTable, resultTable)
-		}
-	}
-}
-
-func computeTransitionTableForReference(sourceClass EClass, reference EReference, endClass EClass, currentTable *EClassTransitionsTable, resultTable *EClassTransitionsTable) {
-	targetClass := reference.GetEReferenceType()
-	transition := &transition{source: sourceClass, target: targetClass, reference: reference}
-
-	// the reference may hold instances of the sub classes of its type: each one may be an end, or
-	// lead to one through its own containments
-	targetClasses := classesOf(targetClass)
-	for _, eClass := range targetClasses {
-		if endClass.IsSuperTypeOf(eClass) {
-			// end
-			// add current to result table
-			resultTable.setIsEnd(eClass)
-			resultTable.union(currentTable)
-			resultTable.addTransition(transition)
-		}
-	}
-
-	for _, eClass := range targetClasses {
-		if currentTable.contains(eClass) {
-			// cycle
-			// check if target is in result and add the current
-			// transition table to keep track of this cycle
-			if resultTable.contains(eClass) {
-				resultTable.union(currentTable)
-				resultTable.addTransition(transition)
-			}
-			continue
-		}
-
-		currentTable.addTransition(transition)
-		computeTransitionTableForState(eClass, endClass, currentTable, resultTable)
-		currentTable.removeTransition(transition)
-	}
-}
-
-type data struct {
-	eObject     EObject
-	eClass      EClass
-	iterator    EIterator
-	transition  *transition   // current transition
-	transitions []*transition // remaining transitions
-}
-
-type eObjectIterator struct {
-	eObject EObject
-	next    bool
-}
-
-func newEObjectIterator(eObject EObject) *eObjectIterator {
-	return &eObjectIterator{
-		eObject: eObject,
-		next:    true,
-	}
-}
-
-func (it *eObjectIterator) HasNext() bool {
-	return it.next
-}
-
-func (it *eObjectIterator) Next() any {
-	if it.next {
-		it.next = false
-		return it.eObject
-	}
-	panic("Not such an element")
-}
-
-type eAllContentsWithClassIterator struct {
-	next  any
+// eAllContentsWithTableIterator iterates the searched objects of the contents of an object, depth
+// first, in the order of EAllContents: it walks the features of the table from a stack of frames,
+// pushed for the objects whose features may lead to searched objects.
+type eAllContentsWithTableIterator struct {
 	table *EClassTransitionsTable
-	data  []*data
+	stack []eAllContentsFrame
+	next  EObject
 }
 
-func newEAllContentsWithClassIterator(eObject EObject, eClass EClass) *eAllContentsWithClassIterator {
+func newEAllContentsWithClassIterator(eObject EObject, eClass EClass) *eAllContentsWithTableIterator {
 	return newEAllContentsWithTableIterator(eObject, NewEClassTransitionsTable(eObject.EClass(), eClass))
 }
 
-func newEAllContentsWithTableIterator(eObject EObject, table *EClassTransitionsTable) *eAllContentsWithClassIterator {
-	it := &eAllContentsWithClassIterator{
-		table: table,
-		data:  []*data{{eObject: eObject, eClass: eObject.EClass()}},
+func newEAllContentsWithTableIterator(eObject EObject, table *EClassTransitionsTable) *eAllContentsWithTableIterator {
+	stack := make([]eAllContentsFrame, 1, 8)
+	stack[0] = eAllContentsFrame{object: eObject, features: table.transitions(eObject.EClass()).features}
+	return &eAllContentsWithTableIterator{table: table, stack: stack}
+}
+
+func (it *eAllContentsWithTableIterator) HasNext() bool {
+	if it.next != nil {
+		return true
 	}
-	it.next = it.findNext()
-	return it
+	for len(it.stack) != 0 {
+		last := len(it.stack) - 1
+		next := it.stack[last].next()
+		if next == nil {
+			it.stack[last] = eAllContentsFrame{}
+			it.stack = it.stack[:last]
+			continue
+		}
+		eObject := next.(EObject)
+		state := it.table.transitions(eObject.EClass())
+		if len(state.features) != 0 {
+			it.stack = append(it.stack, eAllContentsFrame{object: eObject, features: state.features})
+		}
+		if state.end {
+			it.next = eObject
+			return true
+		}
+	}
+	return false
 }
 
-func (it *eAllContentsWithClassIterator) HasNext() bool {
-	return it.next != nil
-}
-
-func (it *eAllContentsWithClassIterator) Next() any {
+func (it *eAllContentsWithTableIterator) Next() any {
+	if !it.HasNext() {
+		panic("Not such an element")
+	}
 	next := it.next
-	it.next = it.findNext()
+	it.next = nil
 	return next
 }
 
-var notransitions = []*transition{}
-
-func (it *eAllContentsWithClassIterator) findNext() any {
-	for len(it.data) != 0 {
-		d := it.data[len(it.data)-1]
-
-		if d.iterator == nil || !d.iterator.HasNext() {
-			// retrieve state transitions
-			if d.transitions == nil {
-				if transitions := it.table.getTransitions(d.eClass); transitions != nil {
-					d.transitions = transitions
-				} else {
-					d.transitions = notransitions
-				}
-			}
-			// the next transition with values: an unset or empty feature does not end the
-			// exploration of the object, its other transitions are tried
-			d.iterator = nil
-			for (d.iterator == nil || !d.iterator.HasNext()) && len(d.transitions) != 0 {
-				last := len(d.transitions) - 1
-				d.transition = d.transitions[last]
-				d.transitions = d.transitions[:last]
-				d.iterator = nil
-				if d.eObject.EIsSet(d.transition.reference) {
-					value := d.eObject.EGet(d.transition.reference)
-					switch v := value.(type) {
-					case EList:
-						d.iterator = v.Iterator()
-					case EObject:
-						d.iterator = newEObjectIterator(v)
-					}
-				}
+// AllContentsWithClass returns the instances of eClass in the contents of notifier, as AllContents,
+// in the same order: the walk only follows the containments which may lead to them.
+func AllContentsWithClass(notifier ENotifier, eClass EClass) iter.Seq[EObject] {
+	return func(yield func(EObject) bool) {
+		startClasses := []EClass{}
+		for root := range roots(notifier) {
+			if rootClass := root.EClass(); !slices.Contains(startClasses, rootClass) {
+				startClasses = append(startClasses, rootClass)
 			}
 		}
+		allContentsWithTable(notifier, newEClassTransitionsTable(startClasses, eClass))(yield)
+	}
+}
 
-		if d.iterator != nil && d.iterator.HasNext() {
-			eObject := d.iterator.Next().(EObject)
-			// the class of the object, not the type of the reference: it may be a sub class
-			eClass := eObject.EClass()
-			// push data to the stack before returning to look for children next iteration
-			it.data = append(it.data, &data{eObject: eObject, eClass: eClass})
+// AllContentsWithTable returns the searched objects of table in the contents of notifier, as
+// AllContents, in the same order: the walk only follows the containments of the table. The table
+// is the one of the class of notifier, or of the classes of the roots of a resource.
+func AllContentsWithTable(notifier ENotifier, table *EClassTransitionsTable) iter.Seq[EObject] {
+	return allContentsWithTable(notifier, table)
+}
 
-			// a leaf is found
-			if it.table.isInstanceEnd(eClass) {
-				return eObject
+func allContentsWithTable(notifier ENotifier, table *EClassTransitionsTable) iter.Seq[EObject] {
+	return func(yield func(EObject) bool) {
+		if eObject, _ := notifier.(EObject); eObject != nil {
+			yieldContentsWithTable(eObject, table.transitions(eObject.EClass()).features, table, yield)
+			return
+		}
+		for root := range roots(notifier) {
+			if !yieldWithTable(root, table, yield) {
+				return
 			}
-
-		} else {
-			// pop data from the stack
-			it.data = it.data[:len(it.data)-1]
 		}
 	}
-	return nil
+}
+
+// roots returns the object notifier, or the roots of a resource or of the resources of a resource
+// set.
+func roots(notifier ENotifier) iter.Seq[EObject] {
+	return func(yield func(EObject) bool) {
+		yieldRoots := func(resource EResource) bool {
+			for it := resource.GetContents().Iterator(); it.HasNext(); {
+				if !yield(it.Next().(EObject)) {
+					return false
+				}
+			}
+			return true
+		}
+		switch n := notifier.(type) {
+		case EObject:
+			yield(n)
+		case EResource:
+			yieldRoots(n)
+		case EResourceSet:
+			for it := n.GetResources().Iterator(); it.HasNext(); {
+				if !yieldRoots(it.Next().(EResource)) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// yieldWithTable yields o if it is searched, then the searched objects of its contents, false when
+// the iteration is stopped.
+func yieldWithTable(o EObject, table *EClassTransitionsTable, yield func(EObject) bool) bool {
+	state := table.transitions(o.EClass())
+	if state.end && !yield(o) {
+		return false
+	}
+	return len(state.features) == 0 || yieldContentsWithTable(o, state.features, table, yield)
+}
+
+// yieldContentsWithTable yields the searched objects of the values of the features of o and of
+// their contents, false when the iteration is stopped.
+func yieldContentsWithTable(o EObject, features []any, table *EClassTransitionsTable, yield func(EObject) bool) bool {
+	for _, f := range features {
+		feature := f.(EStructuralFeature)
+		if !o.EIsSet(feature) {
+			continue
+		}
+		value := o.EGetResolve(feature, true)
+		if feature.IsMany() {
+			for it := value.(EList).Iterator(); it.HasNext(); {
+				if !yieldWithTable(it.Next().(EObject), table, yield) {
+					return false
+				}
+			}
+		} else if child, _ := value.(EObject); child != nil {
+			if !yieldWithTable(child, table, yield) {
+				return false
+			}
+		}
+	}
+	return true
 }

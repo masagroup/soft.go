@@ -82,45 +82,14 @@ func TestTransitionTable_Integration_Leaf(t *testing.T) {
 
 	table := NewEClassTransitionsTable(p.eRootClass, p.eUnitClass)
 	require.NotNil(t, table)
-	assert.True(t, table.isEnd(p.eUnitClass))
-	{
-		source := p.eRootClass
-		target := p.eTheaterClass
-		transitions := table.getTransitions(source)
-		require.Equal(t, 1, len(transitions))
-		assert.Equal(t, &transition{source: source, target: target, reference: p.eRootTheaterReference}, transitions[0])
-	}
-	{
-		source := p.eTheaterClass
-		target := p.ePartyClass
-		transitions := table.getTransitions(source)
-		require.Equal(t, 1, len(transitions))
-		assert.Equal(t, &transition{source: source, target: target, reference: p.eTheaterPartiesReference}, transitions[0])
-	}
-	{
-		source := p.ePartyClass
-		target := p.eFormationClass
-		transitions := table.getTransitions(source)
-		require.Equal(t, 1, len(transitions))
-		assert.Equal(t, &transition{source: source, target: target, reference: p.ePartyFormationsReference}, transitions[0])
-	}
-	{
-		source := p.eFormationClass
-		targetAutomat := p.eAutomatClass
-		targetFormation := p.eFormationClass
-		transitions := table.getTransitions(source)
-		require.Equal(t, 2, len(transitions))
-		assert.Equal(t, &transition{source: source, target: targetFormation, reference: p.eFormationFormationsReference}, transitions[0])
-		assert.Equal(t, &transition{source: source, target: targetAutomat, reference: p.eFormationAutomatsReference}, transitions[1])
-	}
-	{
-		source := p.eAutomatClass
-		target := p.eUnitClass
-		transitions := table.getTransitions(source)
-		require.Equal(t, 1, len(transitions))
-		assert.Equal(t, &transition{source: source, target: target, reference: p.eAutomatUnitsReference}, transitions[0])
-	}
-
+	assert.Equal(t, map[EClass]eClassTransitions{
+		p.eRootClass:      {features: []any{p.eRootTheaterReference}},
+		p.eTheaterClass:   {features: []any{p.eTheaterPartiesReference}},
+		p.ePartyClass:     {features: []any{p.ePartyFormationsReference}},
+		p.eFormationClass: {features: []any{p.eFormationFormationsReference, p.eFormationAutomatsReference}},
+		p.eAutomatClass:   {features: []any{p.eAutomatUnitsReference}},
+		p.eUnitClass:      {end: true},
+	}, table.states)
 }
 
 func TestTransitionTable_Integration_Cycle(t *testing.T) {
@@ -128,36 +97,15 @@ func TestTransitionTable_Integration_Cycle(t *testing.T) {
 
 	table := NewEClassTransitionsTable(p.eRootClass, p.eFormationClass)
 	require.NotNil(t, table)
-	assert.True(t, table.isEnd(p.eFormationClass))
-	{
-		source := p.eRootClass
-		target := p.eTheaterClass
-		transitions := table.getTransitions(source)
-		require.Equal(t, 1, len(transitions))
-		assert.Equal(t, &transition{source: source, target: target, reference: p.eRootTheaterReference}, transitions[0])
-	}
-	{
-		source := p.eTheaterClass
-		target := p.ePartyClass
-		transitions := table.getTransitions(source)
-		require.Equal(t, 1, len(transitions))
-		assert.Equal(t, &transition{source: source, target: target, reference: p.eTheaterPartiesReference}, transitions[0])
-	}
-	{
-		source := p.ePartyClass
-		target := p.eFormationClass
-		transitions := table.getTransitions(source)
-		require.Equal(t, 1, len(transitions))
-		assert.Equal(t, &transition{source: source, target: target, reference: p.ePartyFormationsReference}, transitions[0])
-	}
-	{
-		source := p.eFormationClass
-		target := p.eFormationClass
-		transitions := table.getTransitions(source)
-		require.Equal(t, 1, len(transitions))
-		assert.Equal(t, &transition{source: source, target: target, reference: p.eFormationFormationsReference}, transitions[0])
-	}
-
+	// the automats do not lead to formations
+	assert.Equal(t, map[EClass]eClassTransitions{
+		p.eRootClass:      {features: []any{p.eRootTheaterReference}},
+		p.eTheaterClass:   {features: []any{p.eTheaterPartiesReference}},
+		p.ePartyClass:     {features: []any{p.ePartyFormationsReference}},
+		p.eFormationClass: {features: []any{p.eFormationFormationsReference}, end: true},
+		p.eAutomatClass:   {},
+		p.eUnitClass:      {},
+	}, table.states)
 }
 
 type eAllContentsModel struct {
@@ -187,9 +135,9 @@ func TestEAllContentsWithClass_Leaf(t *testing.T) {
 	require.NotNil(t, it)
 	result := []string{}
 	expected := []string{
-		"unit 3",
 		"unit 1",
 		"unit 2",
+		"unit 3",
 		"unit 4",
 		"unit 5",
 	}

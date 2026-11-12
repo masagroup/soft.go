@@ -133,14 +133,16 @@ func newAllContentsResource(p *eAllContentsBenchPackage, depth, fanOut, leaves i
 		root, _ := p.newTree(depth, fanOut, leaves)
 		resource.GetContents().Add(root)
 	}
-	return resource, collectIterator(resource.GetAllContents())
+	return resource, collectIterator(newTreeResourceAllContentsIterator(resource))
 }
 
 func TestAllContents(t *testing.T) {
 	p := newEAllContentsBenchPackage()
 	resource, expected := newAllContentsResource(p, 3, 3, 2)
+	assert.Equal(t, expected, collectIterator(resource.GetAllContents()))
 	assert.Equal(t, expected, slices.Collect(AllContents(resource)))
 	assert.Equal(t, expected, slices.Collect(allContentsResolve(resource, false)))
+	assert.False(t, NewEResourceImpl().GetAllContents().HasNext())
 	assert.Empty(t, slices.Collect(AllContents(NewEResourceImpl())))
 
 	objects := []EObject{}
@@ -193,4 +195,39 @@ func TestAllContents_ResourceSet(t *testing.T) {
 
 func TestAllContents_OtherNotifier(t *testing.T) {
 	assert.Empty(t, slices.Collect(AllContents(NewMockENotifier(t))))
+}
+
+func TestEResourceImpl_GetAllContents_Prune(t *testing.T) {
+	p := newEAllContentsBenchPackage()
+	resource, _ := newAllContentsResource(p, 3, 3, 2)
+	// prune the nodes of the many containment, then the roots
+	for _, pruned := range []func(EObject) bool{
+		func(o EObject) bool { return o.EContainingFeature() == p.children },
+		func(o EObject) bool { return o.EContainer() == nil },
+	} {
+		expected := []EObject{}
+		for it := newTreeResourceAllContentsIterator(resource).(*treeIterator); it.HasNext(); {
+			o := it.Next().(EObject)
+			expected = append(expected, o)
+			if pruned(o) {
+				it.Prune()
+			}
+		}
+		objects := []EObject{}
+		for it := resource.GetAllContents().(*eAllContentsIterator); it.HasNext(); {
+			o := it.Next().(EObject)
+			objects = append(objects, o)
+			if pruned(o) {
+				it.Prune()
+			}
+		}
+		assert.Equal(t, expected, objects)
+	}
+	// each root pruned, only the roots are iterated
+	roots := []any{}
+	for it := resource.GetAllContents().(*eAllContentsIterator); it.HasNext(); {
+		roots = append(roots, it.Next())
+		it.Prune()
+	}
+	assert.Equal(t, resource.GetContents().ToArray(), roots)
 }

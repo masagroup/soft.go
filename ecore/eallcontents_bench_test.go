@@ -103,6 +103,17 @@ func newTreeEAllContentsIterator(object EObject) EIterator {
 	})
 }
 
+// newTreeResourceAllContentsIterator is the iterator GetAllContents was: a tree iterator of the
+// roots of the resource and of the iterators of EContents.
+func newTreeResourceAllContentsIterator(resource EResource) EIterator {
+	return newTreeIterator(resource, false, func(o any) EIterator {
+		if r, _ := o.(EResource); r != nil {
+			return r.GetContents().Iterator()
+		}
+		return o.(EObject).EContents().Iterator()
+	})
+}
+
 // BenchmarkEAllContents walks the contents of trees with the tree iterator EAllContents was
 // (tree), the iterator of EAllContents (iterator) and the sequence AllContents (seq).
 func BenchmarkEAllContents(b *testing.B) {
@@ -154,8 +165,8 @@ func BenchmarkEAllContents(b *testing.B) {
 	}
 }
 
-// BenchmarkAllContents_Resource walks the contents of a resource with GetAllContents (iterator)
-// and AllContents (seq).
+// BenchmarkAllContents_Resource walks the contents of a resource with the tree iterator
+// GetAllContents was (tree), GetAllContents (iterator) and AllContents (seq).
 func BenchmarkAllContents_Resource(b *testing.B) {
 	p := newEAllContentsBenchPackage()
 	resource, expected := newAllContentsResource(p, 4, 8, 4)
@@ -164,6 +175,14 @@ func BenchmarkAllContents_Resource(b *testing.B) {
 		name string
 		walk func(EResource) int
 	}{
+		{"tree", func(r EResource) int {
+			n := 0
+			for it := newTreeResourceAllContentsIterator(r); it.HasNext(); {
+				it.Next()
+				n++
+			}
+			return n
+		}},
 		{"iterator", func(r EResource) int {
 			n := 0
 			for it := r.GetAllContents(); it.HasNext(); {

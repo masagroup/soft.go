@@ -64,8 +64,18 @@ type eAllContentsIterator struct {
 }
 
 func newEAllContentsIterator(object EObject) *eAllContentsIterator {
+	return newEAllContentsIteratorFrom(newEAllContentsFrame(object))
+}
+
+// newResourceAllContentsIterator returns an iterator on the roots of resource and their contents:
+// its first frame has no object, its values are the roots.
+func newResourceAllContentsIterator(resource EResource) *eAllContentsIterator {
+	return newEAllContentsIteratorFrom(eAllContentsFrame{values: resource.GetContents().Iterator()})
+}
+
+func newEAllContentsIteratorFrom(frame eAllContentsFrame) *eAllContentsIterator {
 	stack := make([]eAllContentsFrame, 1, 8)
-	stack[0] = newEAllContentsFrame(object)
+	stack[0] = frame
 	return &eAllContentsIterator{stack: stack, prunable: -1}
 }
 

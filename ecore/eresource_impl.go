@@ -228,8 +228,10 @@ func (r *EResourceImpl) GetContents() EList {
 	return r.contents
 }
 
+// GetAllContents returns an iterator on the roots of the resource and their contents,
+// recursively, depth first.
 func (r *EResourceImpl) GetAllContents() EIterator {
-	return r.getAllContentsResolve(r.GetInterfaces(), true)
+	return newResourceAllContentsIterator(r.AsEResource())
 }
 
 func (r *EResourceImpl) GetResourceListeners() EList {
@@ -237,19 +239,6 @@ func (r *EResourceImpl) GetResourceListeners() EList {
 		r.listeners = NewEmptyBasicEList()
 	}
 	return r.listeners
-}
-
-func (r *EResourceImpl) getAllContentsResolve(root any, resolve bool) EIterator {
-	return newTreeIterator(root, false, func(o any) EIterator {
-		if o == r.GetInterfaces() {
-			return o.(EResource).GetContents().Iterator()
-		}
-		contents := o.(EObject).EContents()
-		if !resolve {
-			contents = contents.(EObjectList).GetUnResolvedList()
-		}
-		return contents.Iterator()
-	})
 }
 
 func (r *EResourceImpl) GetEObject(uriFragment string) EObject {

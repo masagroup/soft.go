@@ -264,22 +264,47 @@ func (d *ValueField[T]) copy(dst, src *FieldsHeader) {
 	*at[T](dst, d.offset) = *at[T](src, d.offset)
 }
 
+// isProxy reports whether value is a proxy object.
+func isProxy(value any) bool {
+	object, _ := value.(EObject)
+	return object != nil && object.EIsProxy()
+}
+
 // Load reads the value of the field from the store and publishes it in r: the cold path of the
-// typed getter.
+// typed getter, and of the getter of a reference whose published object is a proxy.
+//
+// A reference is resolved at each read, as by the reflective read of EMF: a proxy, which did not
+// resolve, is not published, and is resolved again by the next read. A published object may
+// become a proxy after it was published, as an object of an unloaded resource, or one a decoder
+// gives its proxy URI after setting it: its field is replaced by the object resolved.
 func (d *ValueField[T]) Load(o HybridRoot, r *BlockRef) T {
 	b := r.block(d.level)
-	value, _ := o.ELoadFeature(d.id, d.level.features()[d.index]).(T)
+	loaded := o.ELoadFeature(d.id, d.level.features()[d.index])
+	value, _ := loaded.(T)
+	reference := d.flags&Reference != 0
+	if reference && isProxy(loaded) {
+		return value
+	}
 	if b.claim(d.bit) {
 		*at[T](b, d.offset) = value
 		b.publish(d.bit)
+	} else if reference && b.has(d.bit) && isProxy(*at[T](b, d.offset)) {
+		r.replace(d.level, d.bit, func(next *FieldsHeader) {
+			*at[T](next, d.offset) = value
+			next.init(next.published() | d.bit)
+		})
 	}
 	return value
 }
 
-// Get returns the value of the field, loaded if it is not published.
+// Get returns the value of the field, loaded if it is not published, or if it is a reference
+// whose object became a proxy.
 func (d *ValueField[T]) Get(o HybridRoot, r *BlockRef) T {
 	if b := r.p.Load(); b != nil && b.has(d.bit) {
-		return *at[T](b, d.offset)
+		value := *at[T](b, d.offset)
+		if d.flags&Reference == 0 || !isProxy(value) {
+			return value
+		}
 	}
 	return d.Load(o, r)
 }

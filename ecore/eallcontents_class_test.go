@@ -270,3 +270,15 @@ func TestEAllContentsWithTable_UnknownClass(t *testing.T) {
 	assert.Equal(t, expected, collectIterator(EAllContentsWithTable(root, table)))
 	assert.Equal(t, expected, slices.Collect(AllContentsWithTable(root, table)))
 }
+
+// Prune skips the contents of the last instance returned: the top formations only
+func TestEAllContentsWithClass_Prune(t *testing.T) {
+	p := loadEAllContentsPackage(t)
+	m := loadEAllContentsModel(t, p.ePackage)
+	names := []string{}
+	for it := EAllContentsWithClass(m.eRoot, p.eFormationClass).(*eAllContentsIterator); it.HasNext(); {
+		names = append(names, it.Next().(EObject).EGet(p.eFormationNameAttribute).(string))
+		it.Prune()
+	}
+	assert.Equal(t, []string{"formation 1", "formation 3", "formation 4"}, names)
+}

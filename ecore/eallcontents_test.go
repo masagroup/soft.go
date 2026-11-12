@@ -131,7 +131,7 @@ func loadEAllContentsModel(t *testing.T, ePackage EPackage) *eAllContentsModel {
 func TestEAllContentsWithClass_Leaf(t *testing.T) {
 	p := loadEAllContentsPackage(t)
 	m := loadEAllContentsModel(t, p.ePackage)
-	it := newEAllContentsWithClassIterator(m.eRoot, p.eUnitClass)
+	it := EAllContentsWithClass(m.eRoot, p.eUnitClass)
 	require.NotNil(t, it)
 	result := []string{}
 	expected := []string{
@@ -154,7 +154,7 @@ func TestEAllContentsWithClass_Leaf(t *testing.T) {
 func TestEAllContentsWithClass_Cycle(t *testing.T) {
 	p := loadEAllContentsPackage(t)
 	m := loadEAllContentsModel(t, p.ePackage)
-	it := newEAllContentsWithClassIterator(m.eRoot, p.eFormationClass)
+	it := EAllContentsWithClass(m.eRoot, p.eFormationClass)
 	require.NotNil(t, it)
 	result := []string{}
 	expected := []string{

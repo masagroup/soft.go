@@ -313,7 +313,7 @@ func eContainmentFeature(o EObject, container EObject, containerFeatureID int) E
 
 // EAllContents returns an iterator on the contents of the object, recursively.
 func (o *AbstractEObject) EAllContents() EIterator {
-	return newEAllContentsIterator(o.AsEObject())
+	return newEAllContentsIterator(newEAllContentsFrame(o.AsEObject(), nil), nil)
 }
 
 // EFeatureID returns the ID of feature in the class of the object. It panics when the class has no

@@ -231,7 +231,7 @@ func (r *EResourceImpl) GetContents() EList {
 // GetAllContents returns an iterator on the roots of the resource and their contents,
 // recursively, depth first.
 func (r *EResourceImpl) GetAllContents() EIterator {
-	return newResourceAllContentsIterator(r.AsEResource())
+	return newEAllContentsIterator(eAllContentsFrame{values: r.GetContents().Iterator()}, nil)
 }
 
 func (r *EResourceImpl) GetResourceListeners() EList {
@@ -336,7 +336,7 @@ func (r *EResourceImpl) getObjectByID(id string) EObject {
 	// walk does not resolve proxies, so it cannot re-enter this lock.
 	index := map[string]EObject{}
 	idless := true
-	for eObject := range allContentsResolve(r.AsEResource(), false) {
+	for eObject := range allContents(r.AsEResource(), nil, false) {
 		if idless && eObject.EClass().GetEIDAttribute() != nil {
 			idless = false
 		}
@@ -389,7 +389,7 @@ func (r *EResourceImpl) IsAttachedDetachedRequired() bool {
 func (r *EResourceImpl) Attached(object EObject) {
 	if resourceInternal := r.AsEResourceInternal(); resourceInternal.IsAttachedDetachedRequired() {
 		resourceInternal.DoAttached(object)
-		for o := range allContentsResolve(object, false) {
+		for o := range allContents(object, nil, false) {
 			resourceInternal.DoAttached(o)
 		}
 	}
@@ -411,7 +411,7 @@ func (r *EResourceImpl) DoAttached(object EObject) {
 func (r *EResourceImpl) Detached(object EObject) {
 	if resourceInternal := r.AsEResourceInternal(); resourceInternal.IsAttachedDetachedRequired() {
 		resourceInternal.DoDetached(object)
-		for o := range allContentsResolve(object, false) {
+		for o := range allContents(object, nil, false) {
 			resourceInternal.DoDetached(o)
 		}
 	}

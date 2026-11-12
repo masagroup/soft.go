@@ -5,15 +5,146 @@ import (
 	"slices"
 )
 
-// containmentFeatures returns the containment features of the class of o, those EContents walks:
-// the contents are walked from them, without the view and its iterator. The class holds them in
-// an immutable list, whose array is not a copy.
-func containmentFeatures(o EObject) []any {
-	return o.EClass().GetEContainmentFeatures().ToArray()
+// EAllContentsWithClass returns an iterator on the instances of eClass in the contents of eObject,
+// in the order of EAllContents: the walk only follows the containments which may lead to them.
+func EAllContentsWithClass(eObject EObject, eClass EClass) EIterator {
+	return EAllContentsWithTable(eObject, NewEClassTransitionsTable(eObject.EClass(), eClass))
 }
 
-// eAllContentsFrame is the walk of the contents of an object: its containment features from
-// cursor, then values, the remaining values of the current many feature.
+// EAllContentsWithTable returns an iterator on the searched objects of table in the contents of
+// eObject, in the order of EAllContents: the walk only follows the containments of the table.
+func EAllContentsWithTable(eObject EObject, table *EClassTransitionsTable) EIterator {
+	return newEAllContentsIterator(newEAllContentsFrame(eObject, table), table)
+}
+
+// AllContents returns the contents of notifier, recursively, depth first, without the allocations
+// of an iterator:
+//   - of an object, its contents, not the object itself: the objects EAllContents iterates
+//   - of a resource, each root then its contents: the objects GetAllContents iterates
+//   - of a resource set, the roots and contents of each of its resources
+//
+// Any other notifier has no contents.
+func AllContents(notifier ENotifier) iter.Seq[EObject] {
+	return allContents(notifier, nil, true)
+}
+
+// AllContentsWithClass returns the instances of eClass in the contents of notifier, as AllContents,
+// in the same order: the walk only follows the containments which may lead to them.
+func AllContentsWithClass(notifier ENotifier, eClass EClass) iter.Seq[EObject] {
+	return func(yield func(EObject) bool) {
+		startClasses := []EClass{}
+		for root := range roots(notifier) {
+			if rootClass := root.EClass(); !slices.Contains(startClasses, rootClass) {
+				startClasses = append(startClasses, rootClass)
+			}
+		}
+		AllContentsWithTable(notifier, newEClassTransitionsTable(startClasses, eClass))(yield)
+	}
+}
+
+// AllContentsWithTable returns the searched objects of table in the contents of notifier, as
+// AllContents, in the same order: the walk only follows the containments of the table. The table
+// is the one of the class of notifier, or of the classes of the roots of a resource.
+func AllContentsWithTable(notifier ENotifier, table *EClassTransitionsTable) iter.Seq[EObject] {
+	return allContents(notifier, table, true)
+}
+
+// allContents returns the searched objects of table in the contents of notifier, all of them when
+// table is nil, their proxies resolved when resolve is true.
+func allContents(notifier ENotifier, table *EClassTransitionsTable, resolve bool) iter.Seq[EObject] {
+	return func(yield func(EObject) bool) {
+		if eObject, _ := notifier.(EObject); eObject != nil {
+			yieldContents(eObject, table.transitions(eObject.EClass()).features, table, resolve, yield)
+			return
+		}
+		for root := range roots(notifier) {
+			if !yieldObject(root, table, resolve, yield) {
+				return
+			}
+		}
+	}
+}
+
+// roots returns the object notifier, or the roots of a resource or of the resources of a resource
+// set.
+func roots(notifier ENotifier) iter.Seq[EObject] {
+	return func(yield func(EObject) bool) {
+		yieldRoots := func(resource EResource) bool {
+			for it := resource.GetContents().Iterator(); it.HasNext(); {
+				if !yield(it.Next().(EObject)) {
+					return false
+				}
+			}
+			return true
+		}
+		switch n := notifier.(type) {
+		case EObject:
+			yield(n)
+		case EResource:
+			yieldRoots(n)
+		case EResourceSet:
+			for it := n.GetResources().Iterator(); it.HasNext(); {
+				if !yieldRoots(it.Next().(EResource)) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// yieldObject yields o if it is searched, then the searched objects of its contents, false when
+// the iteration is stopped.
+func yieldObject(o EObject, table *EClassTransitionsTable, resolve bool, yield func(EObject) bool) bool {
+	state := table.transitions(o.EClass())
+	return (!state.end || yield(o)) && yieldContents(o, state.features, table, resolve, yield)
+}
+
+// yieldContents yields the searched objects of the values of the features of o and of their
+// contents, false when the iteration is stopped. The contents of an object without features to
+// walk are not walked.
+func yieldContents(o EObject, features []any, table *EClassTransitionsTable, resolve bool, yield func(EObject) bool) bool {
+	for _, f := range features {
+		feature := f.(EStructuralFeature)
+		if !o.EIsSet(feature) {
+			continue
+		}
+		value := o.EGetResolve(feature, resolve)
+		// the values of the feature: those of values when it is many, single otherwise
+		var values EIterator
+		var single EObject
+		if feature.IsMany() {
+			list := value.(EList)
+			if objects, _ := list.(EObjectList); objects != nil && !resolve {
+				list = objects.GetUnResolvedList()
+			}
+			values = list.Iterator()
+		} else if single, _ = value.(EObject); single == nil {
+			continue
+		}
+		for {
+			var child EObject
+			if values != nil {
+				if !values.HasNext() {
+					break
+				}
+				child = values.Next().(EObject)
+			} else if child, single = single, nil; child == nil {
+				break
+			}
+			state := table.transitions(child.EClass())
+			if state.end && !yield(child) {
+				return false
+			}
+			if len(state.features) != 0 && !yieldContents(child, state.features, table, resolve, yield) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// eAllContentsFrame is the walk of the contents of an object: its features from cursor, then
+// values, the remaining values of the current many feature.
 type eAllContentsFrame struct {
 	object   EObject
 	features []any
@@ -21,15 +152,17 @@ type eAllContentsFrame struct {
 	values   EIterator
 }
 
-func newEAllContentsFrame(o EObject) eAllContentsFrame {
-	return eAllContentsFrame{object: o, features: containmentFeatures(o)}
+// newEAllContentsFrame returns the frame of the walk of the features of o of table, all its
+// containment features when table is nil.
+func newEAllContentsFrame(o EObject, table *EClassTransitionsTable) eAllContentsFrame {
+	return eAllContentsFrame{object: o, features: table.transitions(o.EClass()).features}
 }
 
 // next returns the next content of the object, nil when there is none.
-func (f *eAllContentsFrame) next() any {
+func (f *eAllContentsFrame) next() EObject {
 	if f.values != nil {
 		if f.values.HasNext() {
-			return f.values.Next()
+			return f.values.Next().(EObject)
 		}
 		f.values = nil
 	}
@@ -44,39 +177,33 @@ func (f *eAllContentsFrame) next() any {
 		if feature.IsMany() {
 			if values := value.(EList).Iterator(); values.HasNext() {
 				f.values = values
-				return values.Next()
+				return values.Next().(EObject)
 			}
-		} else if value != nil {
-			return value
+		} else if child, _ := value.(EObject); child != nil {
+			return child
 		}
 	}
 	return nil
 }
 
-// eAllContentsIterator iterates the contents of an object, depth first. The frame of an object is
-// pushed when it is returned and walked when the next content is searched, so that Prune skips its
-// contents without reading them.
+// eAllContentsIterator iterates the searched objects of table in the contents of an object, all
+// of them when table is nil, depth first. The frame of a searched object is pushed when it is
+// returned and walked when the next object is searched, so that Prune skips its contents without
+// reading them; the frames of the other objects are pushed when they are walked through.
 type eAllContentsIterator struct {
+	table *EClassTransitionsTable
 	stack []eAllContentsFrame
-	next  any
+	next  EObject
+	// nextFeatures are the features of next to walk
+	nextFeatures []any
 	// prunable is the index of the frame of the last object returned, -1 when there is none
 	prunable int
 }
 
-func newEAllContentsIterator(object EObject) *eAllContentsIterator {
-	return newEAllContentsIteratorFrom(newEAllContentsFrame(object))
-}
-
-// newResourceAllContentsIterator returns an iterator on the roots of resource and their contents:
-// its first frame has no object, its values are the roots.
-func newResourceAllContentsIterator(resource EResource) *eAllContentsIterator {
-	return newEAllContentsIteratorFrom(eAllContentsFrame{values: resource.GetContents().Iterator()})
-}
-
-func newEAllContentsIteratorFrom(frame eAllContentsFrame) *eAllContentsIterator {
-	stack := make([]eAllContentsFrame, 1, 8)
-	stack[0] = frame
-	return &eAllContentsIterator{stack: stack, prunable: -1}
+// newEAllContentsIterator returns an iterator on the searched objects of table, all of them when
+// table is nil, walked from frame.
+func newEAllContentsIterator(frame eAllContentsFrame, table *EClassTransitionsTable) *eAllContentsIterator {
+	return &eAllContentsIterator{table: table, stack: append(make([]eAllContentsFrame, 0, 8), frame), prunable: -1}
 }
 
 func (it *eAllContentsIterator) HasNext() bool {
@@ -85,12 +212,20 @@ func (it *eAllContentsIterator) HasNext() bool {
 	}
 	for len(it.stack) != 0 {
 		last := len(it.stack) - 1
-		if next := it.stack[last].next(); next != nil {
-			it.next = next
+		next := it.stack[last].next()
+		if next == nil {
+			it.stack[last] = eAllContentsFrame{}
+			it.stack = it.stack[:last]
+			continue
+		}
+		state := it.table.transitions(next.EClass())
+		if state.end {
+			it.next, it.nextFeatures = next, state.features
 			return true
 		}
-		it.stack[last] = eAllContentsFrame{}
-		it.stack = it.stack[:last]
+		if len(state.features) != 0 {
+			it.stack = append(it.stack, eAllContentsFrame{object: next, features: state.features})
+		}
 	}
 	return false
 }
@@ -100,9 +235,13 @@ func (it *eAllContentsIterator) Next() any {
 		panic("Not such an element")
 	}
 	next := it.next
-	it.next = nil
-	it.prunable = len(it.stack)
-	it.stack = append(it.stack, newEAllContentsFrame(next.(EObject)))
+	// an object without features to walk has no frame: there is nothing to prune
+	it.prunable = -1
+	if len(it.nextFeatures) != 0 {
+		it.prunable = len(it.stack)
+		it.stack = append(it.stack, eAllContentsFrame{object: next, features: it.nextFeatures})
+	}
+	it.next, it.nextFeatures = nil, nil
 	return next
 }
 
@@ -113,78 +252,9 @@ func (it *eAllContentsIterator) Prune() {
 		// contents
 		clear(it.stack[it.prunable:])
 		it.stack = it.stack[:it.prunable]
-		it.next = nil
+		it.next, it.nextFeatures = nil, nil
 	}
 	it.prunable = -1
-}
-
-// AllContents returns the contents of notifier, recursively, depth first, without the allocations
-// of an iterator:
-//   - of an object, its contents, not the object itself: the objects EAllContents iterates
-//   - of a resource, each root then its contents: the objects GetAllContents iterates
-//   - of a resource set, the roots and contents of each of its resources
-//
-// Any other notifier has no contents.
-func AllContents(notifier ENotifier) iter.Seq[EObject] {
-	return allContentsResolve(notifier, true)
-}
-
-// allContentsResolve returns the contents of notifier as AllContents, the proxies of the contents
-// resolved when resolve is true.
-func allContentsResolve(notifier ENotifier, resolve bool) iter.Seq[EObject] {
-	return func(yield func(EObject) bool) {
-		switch n := notifier.(type) {
-		case EObject:
-			yieldAllContents(n, resolve, yield)
-		case EResource:
-			yieldRoots(n, resolve, yield)
-		case EResourceSet:
-			for it := n.GetResources().Iterator(); it.HasNext(); {
-				if !yieldRoots(it.Next().(EResource), resolve, yield) {
-					return
-				}
-			}
-		}
-	}
-}
-
-// yieldRoots yields the roots of resource and their contents, false when the iteration is
-// stopped.
-func yieldRoots(resource EResource, resolve bool, yield func(EObject) bool) bool {
-	for it := resource.GetContents().Iterator(); it.HasNext(); {
-		if root := it.Next().(EObject); !yield(root) || !yieldAllContents(root, resolve, yield) {
-			return false
-		}
-	}
-	return true
-}
-
-// yieldAllContents yields the contents of o and their contents, false when the iteration is
-// stopped.
-func yieldAllContents(o EObject, resolve bool, yield func(EObject) bool) bool {
-	for _, f := range containmentFeatures(o) {
-		feature := f.(EStructuralFeature)
-		if !o.EIsSet(feature) {
-			continue
-		}
-		value := o.EGetResolve(feature, resolve)
-		if feature.IsMany() {
-			values := value.(EList)
-			if objects, _ := values.(EObjectList); objects != nil && !resolve {
-				values = objects.GetUnResolvedList()
-			}
-			for it := values.Iterator(); it.HasNext(); {
-				if child := it.Next().(EObject); !yield(child) || !yieldAllContents(child, resolve, yield) {
-					return false
-				}
-			}
-		} else if child, _ := value.(EObject); child != nil {
-			if !yield(child) || !yieldAllContents(child, resolve, yield) {
-				return false
-			}
-		}
-	}
-	return true
 }
 
 // EClassTransitionsTable tells, for the classes of the objects in the contents of an object of
@@ -271,15 +341,9 @@ func newEClassTransitionsTable(startClasses []EClass, endClass EClass) *EClassTr
 	for changed := true; changed; {
 		changed = false
 		for _, node := range nodes {
-			if node.leads {
-				continue
-			}
-			for _, targets := range node.targets {
-				if featureLeads(targets) {
-					node.leads = true
-					changed = true
-					break
-				}
+			if !node.leads && slices.ContainsFunc(node.targets, featureLeads) {
+				node.leads = true
+				changed = true
 			}
 		}
 	}
@@ -309,10 +373,14 @@ func (table *EClassTransitionsTable) isInstance(eClass EClass) bool {
 	return table.endClass != nil && (isEObjectClass(table.endClass) || table.endClass.IsSuperTypeOf(eClass))
 }
 
-// transitions returns the state of eClass. A class the table does not know, created after it or
+// transitions returns the state of eClass. Without table, all the objects are searched and all
+// their containment features are followed. A class the table does not know, created after it or
 // not in the contents of its start classes, may lead anywhere: all its containment features are
 // followed.
 func (table *EClassTransitionsTable) transitions(eClass EClass) eClassTransitions {
+	if table == nil {
+		return eClassTransitions{features: eClass.GetEContainmentFeatures().ToArray(), end: true}
+	}
 	if state, known := table.states[eClass]; known {
 		return state
 	}
@@ -333,153 +401,4 @@ func classesOf(eClass EClass) []EClass {
 		}
 	}
 	return classes
-}
-
-// eAllContentsWithTableIterator iterates the searched objects of the contents of an object, depth
-// first, in the order of EAllContents: it walks the features of the table from a stack of frames,
-// pushed for the objects whose features may lead to searched objects.
-type eAllContentsWithTableIterator struct {
-	table *EClassTransitionsTable
-	stack []eAllContentsFrame
-	next  EObject
-}
-
-func newEAllContentsWithClassIterator(eObject EObject, eClass EClass) *eAllContentsWithTableIterator {
-	return newEAllContentsWithTableIterator(eObject, NewEClassTransitionsTable(eObject.EClass(), eClass))
-}
-
-func newEAllContentsWithTableIterator(eObject EObject, table *EClassTransitionsTable) *eAllContentsWithTableIterator {
-	stack := make([]eAllContentsFrame, 1, 8)
-	stack[0] = eAllContentsFrame{object: eObject, features: table.transitions(eObject.EClass()).features}
-	return &eAllContentsWithTableIterator{table: table, stack: stack}
-}
-
-func (it *eAllContentsWithTableIterator) HasNext() bool {
-	if it.next != nil {
-		return true
-	}
-	for len(it.stack) != 0 {
-		last := len(it.stack) - 1
-		next := it.stack[last].next()
-		if next == nil {
-			it.stack[last] = eAllContentsFrame{}
-			it.stack = it.stack[:last]
-			continue
-		}
-		eObject := next.(EObject)
-		state := it.table.transitions(eObject.EClass())
-		if len(state.features) != 0 {
-			it.stack = append(it.stack, eAllContentsFrame{object: eObject, features: state.features})
-		}
-		if state.end {
-			it.next = eObject
-			return true
-		}
-	}
-	return false
-}
-
-func (it *eAllContentsWithTableIterator) Next() any {
-	if !it.HasNext() {
-		panic("Not such an element")
-	}
-	next := it.next
-	it.next = nil
-	return next
-}
-
-// AllContentsWithClass returns the instances of eClass in the contents of notifier, as AllContents,
-// in the same order: the walk only follows the containments which may lead to them.
-func AllContentsWithClass(notifier ENotifier, eClass EClass) iter.Seq[EObject] {
-	return func(yield func(EObject) bool) {
-		startClasses := []EClass{}
-		for root := range roots(notifier) {
-			if rootClass := root.EClass(); !slices.Contains(startClasses, rootClass) {
-				startClasses = append(startClasses, rootClass)
-			}
-		}
-		allContentsWithTable(notifier, newEClassTransitionsTable(startClasses, eClass))(yield)
-	}
-}
-
-// AllContentsWithTable returns the searched objects of table in the contents of notifier, as
-// AllContents, in the same order: the walk only follows the containments of the table. The table
-// is the one of the class of notifier, or of the classes of the roots of a resource.
-func AllContentsWithTable(notifier ENotifier, table *EClassTransitionsTable) iter.Seq[EObject] {
-	return allContentsWithTable(notifier, table)
-}
-
-func allContentsWithTable(notifier ENotifier, table *EClassTransitionsTable) iter.Seq[EObject] {
-	return func(yield func(EObject) bool) {
-		if eObject, _ := notifier.(EObject); eObject != nil {
-			yieldContentsWithTable(eObject, table.transitions(eObject.EClass()).features, table, yield)
-			return
-		}
-		for root := range roots(notifier) {
-			if !yieldWithTable(root, table, yield) {
-				return
-			}
-		}
-	}
-}
-
-// roots returns the object notifier, or the roots of a resource or of the resources of a resource
-// set.
-func roots(notifier ENotifier) iter.Seq[EObject] {
-	return func(yield func(EObject) bool) {
-		yieldRoots := func(resource EResource) bool {
-			for it := resource.GetContents().Iterator(); it.HasNext(); {
-				if !yield(it.Next().(EObject)) {
-					return false
-				}
-			}
-			return true
-		}
-		switch n := notifier.(type) {
-		case EObject:
-			yield(n)
-		case EResource:
-			yieldRoots(n)
-		case EResourceSet:
-			for it := n.GetResources().Iterator(); it.HasNext(); {
-				if !yieldRoots(it.Next().(EResource)) {
-					return
-				}
-			}
-		}
-	}
-}
-
-// yieldWithTable yields o if it is searched, then the searched objects of its contents, false when
-// the iteration is stopped.
-func yieldWithTable(o EObject, table *EClassTransitionsTable, yield func(EObject) bool) bool {
-	state := table.transitions(o.EClass())
-	if state.end && !yield(o) {
-		return false
-	}
-	return len(state.features) == 0 || yieldContentsWithTable(o, state.features, table, yield)
-}
-
-// yieldContentsWithTable yields the searched objects of the values of the features of o and of
-// their contents, false when the iteration is stopped.
-func yieldContentsWithTable(o EObject, features []any, table *EClassTransitionsTable, yield func(EObject) bool) bool {
-	for _, f := range features {
-		feature := f.(EStructuralFeature)
-		if !o.EIsSet(feature) {
-			continue
-		}
-		value := o.EGetResolve(feature, true)
-		if feature.IsMany() {
-			for it := value.(EList).Iterator(); it.HasNext(); {
-				if !yieldWithTable(it.Next().(EObject), table, yield) {
-					return false
-				}
-			}
-		} else if child, _ := value.(EObject); child != nil {
-			if !yieldWithTable(child, table, yield) {
-				return false
-			}
-		}
-	}
-	return true
 }

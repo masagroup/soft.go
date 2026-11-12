@@ -190,9 +190,11 @@ func EqualsAll(l1 EList, l2 EList) bool {
 	return dE.equalsObjectList(l1, l2)
 }
 
+// crossReferencesInObject returns the cross references of eObject and the objects they reference,
+// those of ECrossReferences.
 func crossReferencesInObject(eObject EObject, resolve bool) iter.Seq2[EStructuralFeature, EObject] {
 	return func(yield func(EStructuralFeature, EObject) bool) {
-		for crossReferenceAny := range eObject.EClass().GetEAllCrossReferences().All() {
+		for _, crossReferenceAny := range eObject.EClass().GetECrossReferenceFeatures().ToArray() {
 			crossReference := crossReferenceAny.(EStructuralFeature)
 			if eObject.EIsSet(crossReference) {
 				value := eObject.EGetResolve(crossReference, resolve)
@@ -220,35 +222,25 @@ type usage struct {
 	feature EStructuralFeature
 }
 
-func findUsages(root any, lookups []EObject) map[EObject][]usage {
+// findUsages returns the usages of lookups by the cross references of the objects of root: an
+// object and its contents, or the contents of a resource or a resource set.
+func findUsages(root ENotifier, lookups []EObject) map[EObject][]usage {
 	usages := make(map[EObject][]usage)
-	_, isEObject := root.(EObject)
-	iterator := &eAllContentIterator{
-		object: root,
-		root:   isEObject,
-		getChildren: func(o any) EIterator {
-			switch t := o.(type) {
-			case EObject:
-				return t.EContents().Iterator()
-			case EResource:
-				return t.GetContents().Iterator()
-			case EResourceSet:
-				return t.GetResources().Iterator()
-			default:
-				return nil
-			}
-		}}
-	for iterator.HasNext() {
-		if eObject, _ := iterator.Next().(EObject); eObject != nil {
-			for crossReference, referencedObject := range crossReferencesInObject(eObject, true) {
-				if slices.Contains(lookups, referencedObject) {
-					usages[referencedObject] = append(
-						usages[referencedObject],
-						usage{object: eObject, feature: crossReference},
-					)
-				}
+	find := func(eObject EObject) {
+		for crossReference, referencedObject := range crossReferencesInObject(eObject, true) {
+			if slices.Contains(lookups, referencedObject) {
+				usages[referencedObject] = append(
+					usages[referencedObject],
+					usage{object: eObject, feature: crossReference},
+				)
 			}
 		}
+	}
+	if eObject, _ := root.(EObject); eObject != nil {
+		find(eObject)
+	}
+	for eObject := range AllContents(root) {
+		find(eObject)
 	}
 	return usages
 }

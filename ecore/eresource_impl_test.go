@@ -193,15 +193,13 @@ func TestResourceIDManager(t *testing.T) {
 
 func TestResourceListeners(t *testing.T) {
 	mockListener := NewMockEResourceListener(t)
-	mockObject := NewMockEObject(t)
+	mockObject := newMockEContentsObject(t)
 	eResource := NewEResourceImpl()
 	eResource.GetResourceListeners().Add(mockListener)
 
 	mockListener.EXPECT().Attached(mockObject).Once()
-	mockObject.EXPECT().EContents().Return(NewEmptyImmutableEList())
 	eResource.Attached(mockObject)
 
 	mockListener.EXPECT().Detached(mockObject).Once()
-	mockObject.EXPECT().EContents().Return(NewEmptyImmutableEList())
 	eResource.Detached(mockObject)
 }

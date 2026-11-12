@@ -228,8 +228,10 @@ func (r *EResourceImpl) GetContents() EList {
 	return r.contents
 }
 
+// GetAllContents returns an iterator on the roots of the resource and their contents,
+// recursively, depth first.
 func (r *EResourceImpl) GetAllContents() EIterator {
-	return r.getAllContentsResolve(r.GetInterfaces(), true)
+	return newResourceAllContentsIterator(r.AsEResource())
 }
 
 func (r *EResourceImpl) GetResourceListeners() EList {
@@ -237,19 +239,6 @@ func (r *EResourceImpl) GetResourceListeners() EList {
 		r.listeners = NewEmptyBasicEList()
 	}
 	return r.listeners
-}
-
-func (r *EResourceImpl) getAllContentsResolve(root any, resolve bool) EIterator {
-	return newTreeIterator(root, false, func(o any) EIterator {
-		if o == r.GetInterfaces() {
-			return o.(EResource).GetContents().Iterator()
-		}
-		contents := o.(EObject).EContents()
-		if !resolve {
-			contents = contents.(EObjectList).GetUnResolvedList()
-		}
-		return contents.Iterator()
-	})
 }
 
 func (r *EResourceImpl) GetEObject(uriFragment string) EObject {
@@ -347,8 +336,7 @@ func (r *EResourceImpl) getObjectByID(id string) EObject {
 	// walk does not resolve proxies, so it cannot re-enter this lock.
 	index := map[string]EObject{}
 	idless := true
-	for it := r.getAllContentsResolve(r.GetInterfaces(), false); it.HasNext(); {
-		eObject := it.Next().(EObject)
+	for eObject := range allContentsResolve(r.AsEResource(), false) {
 		if idless && eObject.EClass().GetEIDAttribute() != nil {
 			idless = false
 		}
@@ -401,10 +389,8 @@ func (r *EResourceImpl) IsAttachedDetachedRequired() bool {
 func (r *EResourceImpl) Attached(object EObject) {
 	if resourceInternal := r.AsEResourceInternal(); resourceInternal.IsAttachedDetachedRequired() {
 		resourceInternal.DoAttached(object)
-		for it := r.getAllContentsResolve(object, false); it.HasNext(); {
-			if o, _ := it.Next().(EObject); o != nil {
-				resourceInternal.DoAttached(o)
-			}
+		for o := range allContentsResolve(object, false) {
+			resourceInternal.DoAttached(o)
 		}
 	}
 }
@@ -425,10 +411,8 @@ func (r *EResourceImpl) DoAttached(object EObject) {
 func (r *EResourceImpl) Detached(object EObject) {
 	if resourceInternal := r.AsEResourceInternal(); resourceInternal.IsAttachedDetachedRequired() {
 		resourceInternal.DoDetached(object)
-		for it := r.getAllContentsResolve(object, false); it.HasNext(); {
-			if o, _ := it.Next().(EObject); o != nil {
-				resourceInternal.DoDetached(o)
-			}
+		for o := range allContentsResolve(object, false) {
+			resourceInternal.DoDetached(o)
 		}
 	}
 }

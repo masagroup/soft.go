@@ -27,29 +27,110 @@ func TestETreeIteratorWithRoot(t *testing.T) {
 }
 
 func TestEAllContentsIteratorEmpty(t *testing.T) {
-	emptyList := NewImmutableEList(nil)
-	mockObject := NewMockEObject(t)
-	mockObject.EXPECT().EContents().Return(emptyList)
+	mockObject := newMockEContentsObject(t)
 	it := newEAllContentsIterator(mockObject)
 	assert.False(t, it.HasNext())
 }
 
 func TestEAllContentsIteratorNotEmpty(t *testing.T) {
-	emptyList := NewImmutableEList(nil)
-	mockObject := NewMockEObject(t)
-	mockChild1 := NewMockEObject(t)
-	mockGrandChild1 := NewMockEObject(t)
-	mockGrandChild2 := NewMockEObject(t)
-	mockChild2 := NewMockEObject(t)
-	mockObject.EXPECT().EContents().Return(NewImmutableEList([]any{mockChild1, mockChild2}))
-	mockChild1.EXPECT().EContents().Return(NewImmutableEList([]any{mockGrandChild1, mockGrandChild2}))
-	mockGrandChild1.EXPECT().EContents().Return(emptyList)
-	mockGrandChild2.EXPECT().EContents().Return(emptyList)
-	mockChild2.EXPECT().EContents().Return(emptyList)
+	mockGrandChild1 := newMockEContentsObject(t)
+	mockGrandChild2 := newMockEContentsObject(t)
+	mockChild1 := newMockEContentsObject(t, mockGrandChild1, mockGrandChild2)
+	mockChild2 := newMockEContentsObject(t)
+	mockObject := newMockEContentsObject(t, mockChild1, mockChild2)
 
 	var result []any
 	for it := newEAllContentsIterator(mockObject); it.HasNext(); {
 		result = append(result, it.Next())
 	}
 	assert.Equal(t, []any{mockChild1, mockGrandChild1, mockGrandChild2, mockChild2}, result)
+}
+
+// treeIterator is the iterator EAllContents and GetAllContents were: a tree iterator of the
+// iterators of the children of each object. The tests and benchmarks of the walks compare them to
+// it.
+type treeIterator struct {
+	object      any
+	current     EIterator
+	getChildren func(any) EIterator
+	data        []EIterator
+	root        bool
+}
+
+func newTreeIterator(object any, root bool, getChildren func(any) EIterator) *treeIterator {
+	return &treeIterator{object: object, root: root, getChildren: getChildren}
+}
+
+func (it *treeIterator) HasNext() bool {
+	if it.data == nil && !it.root {
+		return it.hasAnyChildren()
+	} else {
+		return it.hasMoreChildren()
+	}
+}
+
+func (it *treeIterator) hasAnyChildren() bool {
+	current := it.getChildren(it.object)
+	it.data = append(it.data, current)
+	return current.HasNext()
+}
+
+func (it *treeIterator) hasMoreChildren() bool {
+	return it.data == nil || len(it.data) != 0 && it.data[len(it.data)-1].HasNext()
+}
+
+func (it *treeIterator) Next() any {
+	if it.data == nil {
+		// Yield that mapping, create a stack, and add it to the stack.
+		it.current = it.getChildren(it.object)
+		it.data = append(it.data, it.current)
+		if it.root {
+			return it.object
+		}
+	}
+
+	// Get the top iterator, retrieve it's result, and record it as the one to which
+	// remove will be delegated.
+	current := it.data[len(it.data)-1]
+	result := current.Next()
+
+	// If the result about to be returned has children...
+	iterator := it.getChildren(result)
+	if iterator.HasNext() {
+		// Add iterator to the stack.
+		it.current = iterator
+		it.data = append(it.data, iterator)
+	} else {
+		//
+		it.current = nil
+		// While the current iterator has no next...
+		for !current.HasNext() {
+			// Pop it from the stack.
+			it.data = it.data[:len(it.data)-1]
+
+			// If the stack is empty, we're done.
+			if len(it.data) == 0 {
+				break
+			}
+
+			// Get the next one down and then test it for has next.
+			current = it.data[len(it.data)-1]
+		}
+	}
+	return result
+}
+
+func (it *treeIterator) Prune() {
+	if it.current != nil {
+		if len(it.data) > 0 && it.data[len(it.data)-1] == it.current {
+			// Pop it from the stack.
+			it.data = it.data[:len(it.data)-1]
+			// then pop any iterators above it that have no next.
+			for len(it.data) > 0 && !it.data[len(it.data)-1].HasNext() {
+				it.data = it.data[:len(it.data)-1]
+			}
+		}
+		// clear the current iterator to prevent further pruning until the next call to next.
+		it.current = nil
+	}
 }

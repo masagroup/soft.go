@@ -1,13 +1,190 @@
 package ecore
 
-import "slices"
+import (
+	"iter"
+	"slices"
+)
 
-type eAllContentIterator = treeIterator
+// containmentFeatures returns the containment features of the class of o, those EContents walks:
+// the contents are walked from them, without the view and its iterator. The class holds them in
+// an immutable list, whose array is not a copy.
+func containmentFeatures(o EObject) []any {
+	return o.EClass().GetEContainmentFeatures().ToArray()
+}
 
-func newEAllContentsIterator(object EObject) *eAllContentIterator {
-	return &eAllContentIterator{object: object, root: false, getChildren: func(o any) EIterator {
-		return o.(EObject).EContents().Iterator()
-	}}
+// eAllContentsFrame is the walk of the contents of an object: its containment features from
+// cursor, then values, the remaining values of the current many feature.
+type eAllContentsFrame struct {
+	object   EObject
+	features []any
+	cursor   int
+	values   EIterator
+}
+
+func newEAllContentsFrame(o EObject) eAllContentsFrame {
+	return eAllContentsFrame{object: o, features: containmentFeatures(o)}
+}
+
+// next returns the next content of the object, nil when there is none.
+func (f *eAllContentsFrame) next() any {
+	if f.values != nil {
+		if f.values.HasNext() {
+			return f.values.Next()
+		}
+		f.values = nil
+	}
+	o := f.object
+	for f.cursor < len(f.features) {
+		feature := f.features[f.cursor].(EStructuralFeature)
+		f.cursor++
+		if !o.EIsSet(feature) {
+			continue
+		}
+		value := o.EGetResolve(feature, true)
+		if feature.IsMany() {
+			if values := value.(EList).Iterator(); values.HasNext() {
+				f.values = values
+				return values.Next()
+			}
+		} else if value != nil {
+			return value
+		}
+	}
+	return nil
+}
+
+// eAllContentsIterator iterates the contents of an object, depth first. The frame of an object is
+// pushed when it is returned and walked when the next content is searched, so that Prune skips its
+// contents without reading them.
+type eAllContentsIterator struct {
+	stack []eAllContentsFrame
+	next  any
+	// prunable is the index of the frame of the last object returned, -1 when there is none
+	prunable int
+}
+
+func newEAllContentsIterator(object EObject) *eAllContentsIterator {
+	return newEAllContentsIteratorFrom(newEAllContentsFrame(object))
+}
+
+// newResourceAllContentsIterator returns an iterator on the roots of resource and their contents:
+// its first frame has no object, its values are the roots.
+func newResourceAllContentsIterator(resource EResource) *eAllContentsIterator {
+	return newEAllContentsIteratorFrom(eAllContentsFrame{values: resource.GetContents().Iterator()})
+}
+
+func newEAllContentsIteratorFrom(frame eAllContentsFrame) *eAllContentsIterator {
+	stack := make([]eAllContentsFrame, 1, 8)
+	stack[0] = frame
+	return &eAllContentsIterator{stack: stack, prunable: -1}
+}
+
+func (it *eAllContentsIterator) HasNext() bool {
+	if it.next != nil {
+		return true
+	}
+	for len(it.stack) != 0 {
+		last := len(it.stack) - 1
+		if next := it.stack[last].next(); next != nil {
+			it.next = next
+			return true
+		}
+		it.stack[last] = eAllContentsFrame{}
+		it.stack = it.stack[:last]
+	}
+	return false
+}
+
+func (it *eAllContentsIterator) Next() any {
+	if !it.HasNext() {
+		panic("Not such an element")
+	}
+	next := it.next
+	it.next = nil
+	it.prunable = len(it.stack)
+	it.stack = append(it.stack, newEAllContentsFrame(next.(EObject)))
+	return next
+}
+
+// Prune skips the contents of the last object returned by Next.
+func (it *eAllContentsIterator) Prune() {
+	if it.prunable >= 0 && it.prunable < len(it.stack) {
+		// the frame of the object is in the stack: the next object, if prepared, is one of its
+		// contents
+		clear(it.stack[it.prunable:])
+		it.stack = it.stack[:it.prunable]
+		it.next = nil
+	}
+	it.prunable = -1
+}
+
+// AllContents returns the contents of notifier, recursively, depth first, without the allocations
+// of an iterator:
+//   - of an object, its contents, not the object itself: the objects EAllContents iterates
+//   - of a resource, each root then its contents: the objects GetAllContents iterates
+//   - of a resource set, the roots and contents of each of its resources
+//
+// Any other notifier has no contents.
+func AllContents(notifier ENotifier) iter.Seq[EObject] {
+	return allContentsResolve(notifier, true)
+}
+
+// allContentsResolve returns the contents of notifier as AllContents, the proxies of the contents
+// resolved when resolve is true.
+func allContentsResolve(notifier ENotifier, resolve bool) iter.Seq[EObject] {
+	return func(yield func(EObject) bool) {
+		switch n := notifier.(type) {
+		case EObject:
+			yieldAllContents(n, resolve, yield)
+		case EResource:
+			yieldRoots(n, resolve, yield)
+		case EResourceSet:
+			for it := n.GetResources().Iterator(); it.HasNext(); {
+				if !yieldRoots(it.Next().(EResource), resolve, yield) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// yieldRoots yields the roots of resource and their contents, false when the iteration is
+// stopped.
+func yieldRoots(resource EResource, resolve bool, yield func(EObject) bool) bool {
+	for it := resource.GetContents().Iterator(); it.HasNext(); {
+		if root := it.Next().(EObject); !yield(root) || !yieldAllContents(root, resolve, yield) {
+			return false
+		}
+	}
+	return true
+}
+
+// yieldAllContents yields the contents of o and their contents, false when the iteration is
+// stopped.
+func yieldAllContents(o EObject, resolve bool, yield func(EObject) bool) bool {
+	for _, f := range containmentFeatures(o) {
+		feature := f.(EStructuralFeature)
+		if !o.EIsSet(feature) {
+			continue
+		}
+		value := o.EGetResolve(feature, resolve)
+		if feature.IsMany() {
+			values := value.(EList)
+			if objects, _ := values.(EObjectList); objects != nil && !resolve {
+				values = objects.GetUnResolvedList()
+			}
+			for it := values.Iterator(); it.HasNext(); {
+				if child := it.Next().(EObject); !yield(child) || !yieldAllContents(child, resolve, yield) {
+					return false
+				}
+			}
+		} else if child, _ := value.(EObject); child != nil {
+			if !yield(child) || !yieldAllContents(child, resolve, yield) {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 type transition struct {

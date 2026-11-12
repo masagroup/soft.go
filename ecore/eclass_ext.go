@@ -570,20 +570,18 @@ func (eClass *EClassExt) buildOperationToOverrideMap() map[EOperation]EOperation
 
 func (eClass *EClassExt) buildFeaturesSubSet() *eClassFeaturesSubSet {
 	// like EMF , the subsets are computed from all structural features ( inherited ones included )
-	// so that EContents & ECrossReferences of an object visit the features of its super classes
+	// so that EContents & ECrossReferences of an object visit the features of its super classes.
+	// Like EMF, the derived references are included: EMF excludes them only when their values also
+	// come from a feature map (a mixed class or a group annotation), which soft does not have.
 	containments := []any{}
 	crossReferences := []any{}
 	for itFeature := eClass.GetEAllStructuralFeatures().Iterator(); itFeature.HasNext(); {
 		ref, isRef := itFeature.Next().(EReference)
 		if isRef {
 			if ref.IsContainment() {
-				if !ref.IsDerived() {
-					containments = append(containments, ref)
-				}
+				containments = append(containments, ref)
 			} else if !ref.IsContainer() {
-				if !ref.IsDerived() {
-					crossReferences = append(crossReferences, ref)
-				}
+				crossReferences = append(crossReferences, ref)
 			}
 		}
 	}

@@ -118,7 +118,9 @@ func yieldObject(o EObject, table *EClassTransitionsTable, resolve bool, yield f
 func yieldContents(o EObject, features []any, table *EClassTransitionsTable, resolve bool, yield func(EObject) bool) bool {
 	for _, f := range features {
 		feature := f.(EStructuralFeature)
-		if !o.EIsSet(feature) {
+		// A many-valued feature not set is skipped without making its list; a single-valued one
+		// is read at once: not set, its value is nil, which the read tells as well.
+		if feature.IsMany() && !o.EIsSet(feature) {
 			continue
 		}
 		value := o.EGetResolve(feature, resolve)
@@ -183,7 +185,8 @@ func (f *eAllContentsFrame) next() EObject {
 	for f.cursor < len(f.features) {
 		feature := f.features[f.cursor].(EStructuralFeature)
 		f.cursor++
-		if !o.EIsSet(feature) {
+		// as yieldContents: EIsSet only spares the list of a many-valued feature not set
+		if feature.IsMany() && !o.EIsSet(feature) {
 			continue
 		}
 		value := o.EGetResolve(feature, true)

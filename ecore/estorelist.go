@@ -60,7 +60,9 @@ type eStoreListState struct {
 	// its length are never changed: the next state appends past it, or uses a copy.
 	data  []any
 	store EStore
-	// size is the number of elements: an int32, so that the state fits in 48 bytes.
+	// size is the number of elements: an int32, so that the state fits in 48 bytes. It is
+	// negative in the state of an EStoreListSharedState, which the lists sharing it don't know:
+	// their store gives it.
 	size  int32
 	cache bool
 }
@@ -68,6 +70,41 @@ type eStoreListState struct {
 func (s *eStoreListState) clone() *eStoreListState {
 	result := *s
 	return &result
+}
+
+// EStoreListSharedState is the initial state of the lists of a store that don't cache their
+// elements and seldom change: the lists initialized with it (EStoreList.InitializeShared) share it
+// until their first change, instead of holding a state of their own each (48 bytes), and don't
+// ask their store for their size when they are made. A list sharing it asks its store for its
+// size at each Size. It is never changed: a change of a list gives the list a state of its own.
+type EStoreListSharedState struct {
+	state eStoreListState
+}
+
+// NewEStoreListSharedState returns the initial state of lists of store, which must not be nil.
+func NewEStoreListSharedState(store EStore) *EStoreListSharedState {
+	if store == nil {
+		panic("ecore: the shared state of store lists needs a store")
+	}
+	return &EStoreListSharedState{state: eStoreListState{store: store, size: -1}}
+}
+
+// cloneState returns a copy of s to change: the state of the list then, with its size if s is a
+// shared state, which does not know it.
+func (list *EStoreList) cloneState(s *eStoreListState) *eStoreListState {
+	result := s.clone()
+	if result.size < 0 {
+		result.size = int32(result.store.Size(list.owner, list.feature))
+	}
+	return result
+}
+
+// sizeOf returns the number of elements of the list in state s.
+func (list *EStoreList) sizeOf(s *eStoreListState) int {
+	if s.size < 0 {
+		return s.store.Size(list.owner, list.feature)
+	}
+	return int(s.size)
 }
 
 func NewEStoreList(owner EObject, feature EStructuralFeature, store EStore) *EStoreList {
@@ -78,9 +115,6 @@ func NewEStoreList(owner EObject, feature EStructuralFeature, store EStore) *ESt
 }
 
 func (list *EStoreList) Initialize(owner EObject, feature EStructuralFeature, store EStore) {
-	list.isUnique = feature.IsUnique()
-	list.owner = owner
-	list.feature = feature
 	state := &eStoreListState{store: store}
 	if store != nil {
 		// one store <=> no data
@@ -89,6 +123,20 @@ func (list *EStoreList) Initialize(owner EObject, feature EStructuralFeature, st
 		// no store <=> we need data
 		state.data = []any{}
 	}
+	list.initialize(owner, feature, state)
+}
+
+// InitializeShared initializes the list as Initialize does with the store of shared, without
+// cache, the list sharing the state shared with the other lists of the store until its first
+// change: see EStoreListSharedState.
+func (list *EStoreList) InitializeShared(owner EObject, feature EStructuralFeature, shared *EStoreListSharedState) {
+	list.initialize(owner, feature, &shared.state)
+}
+
+func (list *EStoreList) initialize(owner EObject, feature EStructuralFeature, state *eStoreListState) {
+	list.isUnique = feature.IsUnique()
+	list.owner = owner
+	list.feature = feature
 	list.state.Store(state)
 	list.proxies = false
 	list.flags = 0
@@ -178,7 +226,7 @@ func (list *EStoreList) SetEStore(newStore EStore) {
 func (list *EStoreList) SetEStoreLocked(newStore EStore) {
 	current := list.state.Load()
 	if oldStore := current.store; oldStore != newStore {
-		state := current.clone()
+		state := list.cloneState(current)
 		state.store = newStore
 		if newStore == nil {
 			// unbind previous store
@@ -201,7 +249,7 @@ func (list *EStoreList) SetCache(cache bool) {
 	defer list.mutex.Unlock()
 	current := list.state.Load()
 	if current.cache != cache {
-		state := current.clone()
+		state := list.cloneState(current)
 		state.cache = cache
 		var data []any
 		if cache {
@@ -265,8 +313,7 @@ func removeData(data []any, fromIndex, toIndex int) []any {
 func (list *EStoreList) PerformAdd(object any) {
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
-	current := list.state.Load()
-	state := current.clone()
+	state := list.cloneState(list.state.Load())
 	index := int(state.size)
 	// add to data
 	if state.data != nil {
@@ -288,7 +335,7 @@ func (list *EStoreList) PerformAdd(object any) {
 func (list *EStoreList) PerformInsert(index int, object any) {
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
-	state := list.state.Load().clone()
+	state := list.cloneState(list.state.Load())
 	// add to cache
 	if state.data != nil {
 		state.data = insertData(state.data, index, object)
@@ -309,7 +356,7 @@ func (list *EStoreList) PerformInsert(index int, object any) {
 func (list *EStoreList) PerformInsertAll(index int, c Collection) bool {
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
-	state := list.state.Load().clone()
+	state := list.cloneState(list.state.Load())
 	elements := c.ToArray()
 	if len(elements) == 0 {
 		return false
@@ -338,7 +385,7 @@ func (list *EStoreList) PerformInsertAll(index int, c Collection) bool {
 func (list *EStoreList) PerformClear() []any {
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
-	state := list.state.Load().clone()
+	state := list.cloneState(list.state.Load())
 	var result []any
 
 	//cache
@@ -367,7 +414,7 @@ func (list *EStoreList) PerformClear() []any {
 func (list *EStoreList) PerformRemove(index int) any {
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
-	state := list.state.Load().clone()
+	state := list.cloneState(list.state.Load())
 	var result any
 
 	//cache
@@ -398,7 +445,7 @@ func (list *EStoreList) PerformRemove(index int) any {
 func (list *EStoreList) PerformRemoveRange(fromIndex int, toIndex int) []any {
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
-	state := list.state.Load().clone()
+	state := list.cloneState(list.state.Load())
 	var result []any
 
 	// cache
@@ -438,7 +485,7 @@ func (list *EStoreList) PerformRemoveRange(fromIndex int, toIndex int) []any {
 func (list *EStoreList) PerformSet(index int, object any) any {
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
-	state := list.state.Load().clone()
+	state := list.cloneState(list.state.Load())
 	// cache
 	var result any
 	if state.data != nil {
@@ -462,7 +509,7 @@ func (list *EStoreList) PerformSet(index int, object any) any {
 func (list *EStoreList) PerformMove(oldIndex, newIndex int) any {
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
-	state := list.state.Load().clone()
+	state := list.cloneState(list.state.Load())
 	var result any
 	if data := state.data; data != nil {
 		result = data[oldIndex]
@@ -543,7 +590,7 @@ func (list *EStoreList) cacheResolved(index int, object any, resolved any) bool 
 	if index >= len(current.data) || current.data[index] != object {
 		return false
 	}
-	state := current.clone()
+	state := list.cloneState(current)
 	state.data = slices.Clone(state.data)
 	state.data[index] = resolved
 	list.state.Store(state)
@@ -606,11 +653,11 @@ func (list *EStoreList) ToArray() []any {
 }
 
 func (list *EStoreList) Size() int {
-	return int(list.state.Load().size)
+	return list.sizeOf(list.state.Load())
 }
 
 func (list *EStoreList) Empty() bool {
-	return list.state.Load().size == 0
+	return list.Size() == 0
 }
 
 func (list *EStoreList) IndexOf(element any) int {
@@ -627,7 +674,7 @@ func (list *EStoreList) IndexOf(element any) int {
 			return result
 		}
 		if list.proxies {
-			for i := range int(state.size) {
+			for i := range list.sizeOf(state) {
 				eObject, _ := state.store.Get(list.owner, list.feature, i).(EObject)
 				eResolved := list.resolveProxy(eObject)
 				if element == eResolved {
@@ -647,7 +694,7 @@ func (list *EStoreList) Contains(element any) bool {
 		if state.store.Contains(list.owner, list.feature, element) {
 			return true
 		} else if list.proxies {
-			for i := range int(state.size) {
+			for i := range list.sizeOf(state) {
 				eObject, _ := state.store.Get(list.owner, list.feature, i).(EObject)
 				eResolved := list.resolveProxy(eObject)
 				if element == eResolved {

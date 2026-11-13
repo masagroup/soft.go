@@ -23,7 +23,8 @@ func EAllContentsWithTable(eObject EObject, table *EClassTransitionsTable) EIter
 //   - of a resource, each root then its contents: the objects GetAllContents iterates
 //   - of a resource set, the roots and contents of each of its resources
 //
-// Any other notifier has no contents.
+// A notifier both a resource and an object, as a resource stored as an object, is walked as a
+// resource: its roots then their contents. Any other notifier has no contents.
 func AllContents(notifier ENotifier) iter.Seq[EObject] {
 	return allContents(notifier, nil, true)
 }
@@ -53,7 +54,7 @@ func AllContentsWithTable(notifier ENotifier, table *EClassTransitionsTable) ite
 // table is nil, their proxies resolved when resolve is true.
 func allContents(notifier ENotifier, table *EClassTransitionsTable, resolve bool) iter.Seq[EObject] {
 	return func(yield func(EObject) bool) {
-		if eObject, _ := notifier.(EObject); eObject != nil {
+		if eObject := asObject(notifier); eObject != nil {
 			yieldContents(eObject, table.transitions(eObject.EClass()).features, table, resolve, yield)
 			return
 		}
@@ -65,8 +66,20 @@ func allContents(notifier ENotifier, table *EClassTransitionsTable, resolve bool
 	}
 }
 
+// asObject returns notifier if it is an object and neither a resource nor a resource set, nil
+// otherwise: a resource which is an object too is walked as a resource.
+func asObject(notifier ENotifier) EObject {
+	switch n := notifier.(type) {
+	case EResource, EResourceSet:
+		return nil
+	case EObject:
+		return n
+	}
+	return nil
+}
+
 // roots returns the object notifier, or the roots of a resource or of the resources of a resource
-// set.
+// set, a resource or a resource set first when it is an object too.
 func roots(notifier ENotifier) iter.Seq[EObject] {
 	return func(yield func(EObject) bool) {
 		yieldRoots := func(resource EResource) bool {
@@ -78,8 +91,6 @@ func roots(notifier ENotifier) iter.Seq[EObject] {
 			return true
 		}
 		switch n := notifier.(type) {
-		case EObject:
-			yield(n)
 		case EResource:
 			yieldRoots(n)
 		case EResourceSet:
@@ -88,6 +99,8 @@ func roots(notifier ENotifier) iter.Seq[EObject] {
 					return
 				}
 			}
+		case EObject:
+			yield(n)
 		}
 	}
 }

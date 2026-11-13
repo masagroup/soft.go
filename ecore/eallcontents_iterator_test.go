@@ -231,3 +231,41 @@ func TestEResourceImpl_GetAllContents_Prune(t *testing.T) {
 	}
 	assert.Equal(t, resource.GetContents().ToArray(), roots)
 }
+
+// objectResource is a resource which is an object too, as a resource stored as an object: its
+// notifier methods are the ones of the resource. The resource is embedded as a resourcePart, as
+// EObject has an EResource method.
+type objectResource struct {
+	resourcePart
+	EObject
+}
+
+type resourcePart interface{ EResource }
+
+func (r *objectResource) EAdapters() EList                   { return r.resourcePart.EAdapters() }
+func (r *objectResource) EDeliver() bool                     { return r.resourcePart.EDeliver() }
+func (r *objectResource) ESetDeliver(deliver bool)           { r.resourcePart.ESetDeliver(deliver) }
+func (r *objectResource) ENotify(notification ENotification) { r.resourcePart.ENotify(notification) }
+
+// TestAllContents_ObjectResource checks that a resource which is an object too is walked as a
+// resource: its roots then their contents, not the contents of the object.
+func TestAllContents_ObjectResource(t *testing.T) {
+	p := newEAllContentsBenchPackage()
+	resource, expected := newAllContentsResource(p, 2, 2, 1)
+	object, _ := p.newTree(2, 2, 1)
+	r := &objectResource{resourcePart: resource, EObject: object}
+	var notifier ENotifier = r
+	_, isObject := notifier.(EObject)
+	_, isResource := notifier.(EResource)
+	require.True(t, isObject && isResource)
+
+	assert.Equal(t, expected, slices.Collect(AllContents(r)))
+	class := expected[0].EClass()
+	var instances []EObject
+	for _, o := range expected {
+		if class.IsSuperTypeOf(o.EClass()) {
+			instances = append(instances, o)
+		}
+	}
+	assert.Equal(t, instances, slices.Collect(AllContentsWithClass(r, class)))
+}

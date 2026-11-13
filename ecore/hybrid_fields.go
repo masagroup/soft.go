@@ -46,6 +46,12 @@ type HybridRoot interface {
 	EBaseIsSetFromID(featureID int) bool
 }
 
+// LayoutProvider is implemented by the hybrid classes: ELayout returns the Layout of the typed
+// fields of the class, nil for a class without field.
+type LayoutProvider interface {
+	ELayout() *Layout
+}
+
 // FieldsHeader is the header of a block of typed fields, its first field: a bit per field,
 // claimed by the one writing it, then published.
 type FieldsHeader struct {

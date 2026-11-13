@@ -52,35 +52,41 @@ type LayoutProvider interface {
 	ELayout() *Layout
 }
 
-// FieldsHeader is the header of a block of typed fields, its first field: a bit per field,
-// claimed by the one writing it, then published.
+// FieldsHeader is the header of a block of typed fields of at most 32 fields, its first field: a
+// bit per field, claimed by the one writing it, then published. One word: the published bits in
+// its low half, the claimed bits in its high half.
+//
+// A block of more than 32 fields, up to 64, has a WideFieldsHeader instead: the published bits
+// take the whole word, and the claimed bits a word of their own. The published bits being the
+// first word in both, reading them (has, publish) does not depend on the header; claiming
+// (Level.claim) and the whole mask (Level.published, Level.init) do.
 type FieldsHeader struct {
+	word atomic.Uint64
+}
+
+// WideFieldsHeader is the header of a block of more than 32 typed fields, up to 64: see
+// FieldsHeader.
+type WideFieldsHeader struct {
+	FieldsHeader
 	claimed atomic.Uint64
-	mask    atomic.Uint64
 }
 
-func (h *FieldsHeader) has(bit uint64) bool { return h.mask.Load()&bit != 0 }
+// compactFields is the number of fields of a block with a FieldsHeader.
+const compactFields = 32
 
-// claim claims the field of bit for its caller, which writes it then publishes it. It returns
-// false when the field is claimed already.
-func (h *FieldsHeader) claim(bit uint64) bool { return h.claimed.Or(bit)&bit == 0 }
+func (h *FieldsHeader) has(bit uint64) bool { return h.word.Load()&bit != 0 }
 
-func (h *FieldsHeader) publish(bit uint64) { h.mask.Or(bit) }
-
-func (h *FieldsHeader) published() uint64 { return h.mask.Load() }
-
-// init publishes the fields of mask in a block nobody else holds yet.
-func (h *FieldsHeader) init(mask uint64) {
-	h.claimed.Store(mask)
-	h.mask.Store(mask)
-}
+func (h *FieldsHeader) publish(bit uint64) { h.word.Or(bit) }
 
 // await returns once the field of bit, claimed by another caller, is published.
 func (h *FieldsHeader) await(bit uint64) {
-	for h.mask.Load()&bit == 0 {
+	for h.word.Load()&bit == 0 {
 		runtime.Gosched()
 	}
 }
+
+// wide returns the WideFieldsHeader of h, the header of a block of a wide level.
+func (h *FieldsHeader) wide() *WideFieldsHeader { return (*WideFieldsHeader)(unsafe.Pointer(h)) }
 
 // BlockRef holds the block of the typed fields of a class of a hybrid object, a struct whose first
 // field is a FieldsHeader, by its header. A published field is never written again: a change
@@ -123,7 +129,7 @@ func (r *BlockRef) replace(l *Level, clear uint64, set func(*FieldsHeader)) {
 		next := l.without(b, clear)
 		if set != nil {
 			set(next)
-		} else if next.published() == 0 {
+		} else if l.published(next) == 0 {
 			next = nil
 		}
 		if r.p.CompareAndSwap(b, next) {
@@ -206,16 +212,22 @@ type Level struct {
 	newBlock func() *FieldsHeader
 	fields   []field
 	features func() []EStructuralFeature
+	// wide is set for a block with a WideFieldsHeader, of up to 64 fields, rather than a
+	// FieldsHeader, of up to 32.
+	wide bool
 }
 
 // NewLevel returns the level of the typed fields of class, in a block B held by a Fields at offset
-// from the hybrid root of the objects of the class. B must have FieldsHeader as its first
-// field.
+// from the hybrid root of the objects of the class. B must have as its first field a FieldsHeader,
+// for up to 32 fields, or a WideFieldsHeader, for up to 64.
 func NewLevel[B any](class func() EClass, offset uintptr) *Level {
-	if t := reflect.TypeFor[B](); t.Kind() != reflect.Struct || t.NumField() == 0 || t.Field(0).Type != reflect.TypeFor[FieldsHeader]() {
-		panic(fmt.Sprintf("ecore: %v does not have FieldsHeader as its first field", t))
+	t := reflect.TypeFor[B]()
+	if t.Kind() != reflect.Struct || t.NumField() == 0 ||
+		t.Field(0).Type != reflect.TypeFor[FieldsHeader]() && t.Field(0).Type != reflect.TypeFor[WideFieldsHeader]() {
+		panic(fmt.Sprintf("ecore: %v does not have FieldsHeader or WideFieldsHeader as its first field", t))
 	}
-	l := &Level{class: class, offset: offset, newBlock: func() *FieldsHeader { return (*FieldsHeader)(unsafe.Pointer(new(B))) }}
+	l := &Level{class: class, offset: offset, newBlock: func() *FieldsHeader { return (*FieldsHeader)(unsafe.Pointer(new(B))) },
+		wide: t.Field(0).Type == reflect.TypeFor[WideFieldsHeader]()}
 	l.features = sync.OnceValue(func() []EStructuralFeature {
 		c := l.class()
 		features := make([]EStructuralFeature, len(l.fields))
@@ -236,7 +248,37 @@ func (l *Level) add(f field, i *fieldInfo) {
 	if i.index != len(l.fields) || i.index >= 64 {
 		panic(fmt.Sprintf("ecore: field %d of a level registered as bit %d", len(l.fields), i.index))
 	}
+	if !l.wide && i.index >= compactFields {
+		panic(fmt.Sprintf("ecore: field %d of a level with a FieldsHeader, of at most %d fields: a WideFieldsHeader holds up to 64", i.index, compactFields))
+	}
 	l.fields = append(l.fields, f)
+}
+
+// claim claims the field of bit of block b for its caller, which writes it then publishes it. It
+// returns false when the field is claimed already.
+func (l *Level) claim(b *FieldsHeader, bit uint64) bool {
+	if l.wide {
+		return b.wide().claimed.Or(bit)&bit == 0
+	}
+	return b.word.Or(bit<<compactFields)&(bit<<compactFields) == 0
+}
+
+// published returns the bits of the fields published in block b.
+func (l *Level) published(b *FieldsHeader) uint64 {
+	if l.wide {
+		return b.word.Load()
+	}
+	return b.word.Load() & (1<<compactFields - 1)
+}
+
+// init claims and publishes the fields of mask in block b, which nobody else holds yet.
+func (l *Level) init(b *FieldsHeader, mask uint64) {
+	if l.wide {
+		b.wide().claimed.Store(mask)
+		b.word.Store(mask)
+		return
+	}
+	b.word.Store(mask | mask<<compactFields)
 }
 
 // without returns a new block holding the published fields of b but those of clear: a field is
@@ -246,11 +288,11 @@ func (l *Level) without(b *FieldsHeader, clear uint64) *FieldsHeader {
 	if b == nil {
 		return next
 	}
-	mask := b.published() &^ clear
+	mask := l.published(b) &^ clear
 	for m := mask; m != 0; m &= m - 1 {
 		l.fields[bits.TrailingZeros64(m)].copy(next, b)
 	}
-	next.init(mask)
+	l.init(next, mask)
 	return next
 }
 
@@ -291,13 +333,13 @@ func (d *ValueField[T]) Load(o HybridRoot, r *BlockRef) T {
 	if reference && isProxy(loaded) {
 		return value
 	}
-	if b.claim(d.bit) {
+	if d.level.claim(b, d.bit) {
 		*at[T](b, d.offset) = value
 		b.publish(d.bit)
 	} else if reference && b.has(d.bit) && isProxy(*at[T](b, d.offset)) {
 		r.replace(d.level, d.bit, func(next *FieldsHeader) {
 			*at[T](next, d.offset) = value
-			next.init(next.published() | d.bit)
+			d.level.init(next, d.level.published(next)|d.bit)
 		})
 	}
 	return value
@@ -356,14 +398,14 @@ func (d *ValueField[T]) replaceOf(r *BlockRef, value any) {
 	}
 	// a field nobody claimed is written in place: a load that read the store before the set
 	// fails to claim it, and returns its value without publishing it
-	if b := r.p.Load(); b != nil && b.claim(d.bit) {
+	if b := r.p.Load(); b != nil && d.level.claim(b, d.bit) {
 		*at[T](b, d.offset) = typed
 		b.publish(d.bit)
 		return
 	}
 	r.replace(d.level, d.bit, func(b *FieldsHeader) {
 		*at[T](b, d.offset) = typed
-		b.init(b.published() | d.bit)
+		d.level.init(b, d.level.published(b)|d.bit)
 	})
 }
 
@@ -390,7 +432,7 @@ func (d *ListField) copy(dst, src *FieldsHeader) {
 // Every reader gets the same list.
 func (d *ListField) Load(o HybridRoot, r *BlockRef) EList {
 	b := r.block(d.level)
-	if b.claim(d.bit) {
+	if d.level.claim(b, d.bit) {
 		*at[EList](b, d.offset) = o.ELoadList(d.id)
 		b.publish(d.bit)
 	} else {

@@ -25,12 +25,14 @@ type HybridEObjectImpl struct {
 	EStoreEObjectImpl
 }
 
+var _ LayoutProvider = (*HybridEObjectImpl)(nil)
+
 // ELayout returns nil: the root has no field. A generated class with fields overrides it.
 func (o *HybridEObjectImpl) ELayout() *Layout { return nil }
 
 // layout returns the layout of the class of the object.
 func (o *HybridEObjectImpl) layout() *Layout {
-	if h, ok := o.GetInterfaces().(interface{ ELayout() *Layout }); ok {
+	if h, ok := o.GetInterfaces().(LayoutProvider); ok {
 		return h.ELayout()
 	}
 	return nil

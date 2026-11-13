@@ -559,3 +559,217 @@ func TestNewLevel_HeaderFirst(t *testing.T) {
 	}
 	assert.Panics(t, func() { NewLevel[wrong](hybridTestClass, 0) })
 }
+
+func (s *hybridTestStore) AddAll(object EObject, feature EStructuralFeature, index int, c Collection) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.of(object)[feature] = slices.Insert(s.list(object, feature), index, c.ToArray()...)
+}
+
+func (s *hybridTestStore) Clear(object EObject, feature EStructuralFeature) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.of(object), feature)
+}
+
+type hybridTestAdapter struct {
+	AbstractEAdapter
+	notifications []ENotification
+}
+
+func (a *hybridTestAdapter) NotifyChanged(n ENotification) {
+	a.notifications = append(a.notifications, n)
+}
+
+func TestHybridEObjectImpl_SetNotifies(t *testing.T) {
+	o := newHybridTestObject(newHybridTestStore())
+	a := &hybridTestAdapter{}
+	o.EAdapters().Add(a)
+	o.SetName("a")
+	o.SetName("a")
+	o.SetName("b")
+	var values [][2]any
+	for _, n := range a.notifications {
+		values = append(values, [2]any{n.GetOldValue(), n.GetNewValue()})
+	}
+	assert.Equal(t, [][2]any{{"", "a"}, {"a", "a"}, {"a", "b"}}, values, "the same value too")
+	assert.Equal(t, "b", o.GetName())
+
+	o.EUnset(hybridTestClass().GetEStructuralFeature(hybridTestName))
+	assert.Len(t, a.notifications, 4)
+	assert.Equal(t, "", o.GetName())
+}
+
+func TestHybridEObjectImpl_DynamicSubclass(t *testing.T) {
+	sub := GetFactory().CreateEClass()
+	sub.SetName("Sub")
+	sub.GetESuperTypes().Add(hybridTestClass())
+	extra := GetFactory().CreateEAttribute()
+	extra.SetName("extra")
+	extra.SetEType(GetPackage().GetEString())
+	sub.GetEStructuralFeatures().Add(extra)
+	for _, withStore := range []bool{false, true} {
+		var store EStore
+		if withStore {
+			store = newHybridTestStore()
+		}
+		o := newHybridTestObject(store)
+		o.SetEClass(sub)
+		o.SetName("n")
+		o.ESet(extra, "e")
+		assert.Equal(t, "n", o.GetName(), "store %v", withStore)
+		assert.Equal(t, "n", o.EGet(sub.GetEStructuralFeatureFromName("name")), "store %v", withStore)
+		assert.Equal(t, "e", o.EGet(extra), "store %v", withStore)
+		assert.True(t, o.EIsSet(extra), "store %v", withStore)
+		o.EUnset(extra)
+		assert.False(t, o.EIsSet(extra), "store %v", withStore)
+		assert.Equal(t, "n", o.GetName(), "store %v: the static field is kept", withStore)
+	}
+}
+
+func TestHybridEObjectImpl_StoreRemoved(t *testing.T) {
+	store := newHybridTestStore()
+	o := newHybridTestObject(store)
+	o.SetName("a")
+	o.GetItems().Add(1)
+	assert.Equal(t, "a", o.GetName())
+
+	o.SetEStore(nil)
+	assert.Equal(t, "a", o.GetName(), "kept when the store goes")
+	assert.Equal(t, []any{1}, o.GetItems().ToArray())
+	o.SetName("b")
+	assert.Equal(t, "b", o.GetName())
+	assert.Equal(t, "a", store.values[o][hybridTestClass().GetEStructuralFeature(hybridTestName)], "the store is left")
+}
+
+func TestHybridEObjectImpl_ListUnsetAndSet(t *testing.T) {
+	o := newHybridTestObject(newHybridTestStore())
+	items := hybridTestClass().GetEStructuralFeature(hybridTestItems)
+	list := o.GetItems()
+	list.Add(1)
+	assert.True(t, o.EIsSet(items))
+	o.EUnset(items)
+	assert.False(t, o.EIsSet(items))
+	assert.Same(t, list, o.GetItems(), "the same list")
+	assert.Equal(t, 0, list.Size())
+	o.ESet(items, NewImmutableEList([]any{4, 5}))
+	assert.Equal(t, []any{4, 5}, o.GetItems().ToArray())
+}
+
+// TestHybridEObjectImpl_FieldsCacheWithoutObjectCache checks that the typed fields cache the
+// values when the object does not: a value changed in the store is read after ClearCache.
+func TestHybridEObjectImpl_FieldsCacheWithoutObjectCache(t *testing.T) {
+	store := newHybridTestStore()
+	o := newHybridTestObject(store)
+	require.False(t, o.IsCache())
+	o.SetName("a")
+	assert.Equal(t, "a", o.GetName())
+	store.values[o][hybridTestClass().GetEStructuralFeature(hybridTestName)] = "changed in the store"
+	assert.Equal(t, "a", o.GetName(), "the field")
+	o.ClearCache()
+	assert.Equal(t, "changed in the store", o.GetName())
+}
+
+// hybridTestNodeClass is a class of a containment, child, its container reference, parent, and
+// two opposite references, peer and peerOf.
+var hybridTestNodeClass = sync.OnceValue(func() EClass {
+	f := GetFactory()
+	c := f.CreateEClass()
+	c.SetName("Node")
+	ref := func(name string) EReference {
+		r := f.CreateEReference()
+		r.SetName(name)
+		r.SetEType(c)
+		return r
+	}
+	child, parent, peer, peerOf := ref("child"), ref("parent"), ref("peer"), ref("peerOf")
+	child.SetContainment(true)
+	child.SetEOpposite(parent)
+	parent.SetEOpposite(child)
+	peer.SetEOpposite(peerOf)
+	peerOf.SetEOpposite(peer)
+	c.GetEStructuralFeatures().AddAll(NewImmutableEList([]any{child, parent, peer, peerOf}))
+	return c
+})
+
+const (
+	hybridTestNodeChild = iota
+	hybridTestNodeParent
+	hybridTestNodePeer
+	hybridTestNodePeerOf
+)
+
+// hybridTestNode is hybridTestNodeClass as soft.gen generates it: a field per reference but the
+// container one, parent, read from the container of the object.
+type hybridTestNode struct {
+	HybridEObjectImpl
+	fields Fields[hybridTestNodeFields]
+}
+
+type hybridTestNodeFields struct {
+	FieldsHeader
+	child, peer, peerOf EObject
+}
+
+var (
+	hybridTestNodeLevel = NewLevel[hybridTestNodeFields](hybridTestNodeClass,
+		unsafe.Offsetof(hybridTestNode{}.fields)-unsafe.Offsetof(hybridTestNode{}.HybridEObjectImpl))
+	hybridTestNodeFieldsByID = map[int]*ValueField[EObject]{
+		hybridTestNodeChild:  Value[EObject](hybridTestNodeLevel, hybridTestNodeChild, 0, unsafe.Offsetof(hybridTestNodeFields{}.child), Reference),
+		hybridTestNodePeer:   Value[EObject](hybridTestNodeLevel, hybridTestNodePeer, 1, unsafe.Offsetof(hybridTestNodeFields{}.peer), Reference),
+		hybridTestNodePeerOf: Value[EObject](hybridTestNodeLevel, hybridTestNodePeerOf, 2, unsafe.Offsetof(hybridTestNodeFields{}.peerOf), Reference),
+	}
+	hybridTestNodeLayout = NewLayout(nil, hybridTestNodeLevel)
+)
+
+func newHybridTestNode(store EStore) *hybridTestNode {
+	o := new(hybridTestNode)
+	o.SetInterfaces(o)
+	o.Initialize()
+	o.SetEClass(hybridTestNodeClass())
+	if store != nil {
+		o.SetEStore(store)
+	}
+	return o
+}
+
+func (o *hybridTestNode) ELayout() *Layout { return hybridTestNodeLayout }
+
+func (o *hybridTestNode) get(featureID int) EObject {
+	return hybridTestNodeFieldsByID[featureID].Get(&o.HybridEObjectImpl, o.fields.Ref())
+}
+
+func (o *hybridTestNode) feature(featureID int) EStructuralFeature {
+	return hybridTestNodeClass().GetEStructuralFeature(featureID)
+}
+
+func TestHybridEObjectImpl_ContainmentsAndOpposites(t *testing.T) {
+	for _, withStore := range []bool{false, true} {
+		var store EStore
+		if withStore {
+			store = newHybridTestStore()
+		}
+		a, b, c := newHybridTestNode(store), newHybridTestNode(store), newHybridTestNode(store)
+		assert.Nil(t, a.get(hybridTestNodeChild))
+		assert.Nil(t, b.get(hybridTestNodeChild))
+		assert.Nil(t, b.get(hybridTestNodePeerOf))
+
+		a.ESet(a.feature(hybridTestNodeChild), c)
+		assert.Same(t, c, a.get(hybridTestNodeChild), "store %v", withStore)
+		assert.Same(t, a, c.EGet(c.feature(hybridTestNodeParent)), "store %v", withStore)
+		b.ESet(b.feature(hybridTestNodeChild), c)
+		assert.Same(t, c, b.get(hybridTestNodeChild), "store %v: moved", withStore)
+		assert.Same(t, b, c.EGet(c.feature(hybridTestNodeParent)), "store %v: moved", withStore)
+		assert.Nil(t, a.get(hybridTestNodeChild), "store %v: moved away", withStore)
+		assert.False(t, a.EIsSet(a.feature(hybridTestNodeChild)), "store %v", withStore)
+
+		a.ESet(a.feature(hybridTestNodePeer), b)
+		assert.Same(t, b, a.get(hybridTestNodePeer), "store %v", withStore)
+		assert.Same(t, a, b.get(hybridTestNodePeerOf), "store %v: inverse", withStore)
+		c.ESet(c.feature(hybridTestNodePeer), b)
+		assert.Same(t, c, b.get(hybridTestNodePeerOf), "store %v: inverse replaced", withStore)
+		assert.Nil(t, a.get(hybridTestNodePeer), "store %v: old end cleared", withStore)
+		b.EUnset(b.feature(hybridTestNodePeerOf))
+		assert.Nil(t, c.get(hybridTestNodePeer), "store %v: unset clears the other end", withStore)
+	}
+}

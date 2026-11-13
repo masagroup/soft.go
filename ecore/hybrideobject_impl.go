@@ -19,8 +19,12 @@ import "unsafe"
 // written once, then published, and never written again, so that the getters read it without
 // lock. A generated class declares its fields (NewLevel, Value, List) and its Layout, returned by
 // its ELayout. The changes of the values drop the fields they change: a set publishes the value
-// set, an unset drops its field, a new store or a cleared cache drops them all. A value changed
+// set, an unset drops its field, a new store, a cleared cache or a change of caching drops them
+// all. The fields cache the values whatever the caching of the object (SetCache): a value changed
 // in the store by another way is read again after ClearCache.
+//
+// The container of the object, and the reference to its container, are not in the fields: they
+// are kept by EStoreEObjectImpl, as the changes of the container do not set the feature.
 type HybridEObjectImpl struct {
 	EStoreEObjectImpl
 }

@@ -3,9 +3,9 @@ module github.com/masagroup/soft.go/codec/json
 go 1.27.0
 
 require (
-	github.com/masagroup/soft.go v1.14.1
-	github.com/masagroup/soft.go/codec/xmi v1.0.0
-	github.com/masagroup/soft.go/codec/xml v1.0.0
+	github.com/masagroup/soft.go v1.16.0
+	github.com/masagroup/soft.go/codec/xmi v1.1.1
+	github.com/masagroup/soft.go/codec/xml v1.2.0
 	github.com/stretchr/testify v1.12.1
 )
 
@@ -14,7 +14,7 @@ require (
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/stretchr/objx v0.8.0 // indirect
 	github.com/ugurcsen/gods-generic v0.10.4 // indirect
-	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/net v0.61.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.6 // indirect
+	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 )

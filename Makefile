@@ -23,6 +23,9 @@ SOFT_GEN_IMAGE ?= masagroup/soft.gen:$(SOFT_GEN_VERSION)
 # the golang image go runs in when it is not installed: its Go must support the go directive of go.work
 GOLANG_IMAGE ?= golang:1.27.3-alpine
 
+# the version of golangci-lint of make lint
+GOLANGCI_LINT_VERSION := v2.14.0
+
 # os detection
 ifeq (${OS},Windows_NT)
 MKDIR = mkdir $(subst /,\,$(1)) > nul 2>&1 || (exit 0)
@@ -95,10 +98,11 @@ fmt:
 	@echo "[fmt]"
 	@$(foreach m,$(MODULES),$(GO) -C $(m) fmt ./... &&) echo done
 
+# golangci-lint built by go run with the Go of make (the host, else the golang container)
 .PHONY: lint
 lint:
 	@echo "[lint]"
-	@docker run --rm -v $(CURDIR):/pwd -w /pwd golangci/golangci-lint:v2.14.0-alpine golangci-lint run --timeout=5m
+	@$(foreach m,$(MODULES),$(GO) -C $(m) run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION) run --timeout=5m &&) echo done
 
 .PHONY: build
 build:

@@ -554,7 +554,7 @@ func TestNewLayout_Parent(t *testing.T) {
 
 func TestNewLevel_HeaderFirst(t *testing.T) {
 	type wrong struct {
-		name string
+		_ string
 		FieldsHeader
 	}
 	assert.Panics(t, func() { NewLevel[wrong](hybridTestClass, 0) })

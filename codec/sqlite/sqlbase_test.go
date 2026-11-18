@@ -72,8 +72,8 @@ func TestSQLBase_Scheduler_WriteWaitsForRead(t *testing.T) {
 		writeDone <- s.executeQuery("UPDATE lendable SET copies=7 WHERE lendableID=6", nil)
 	}()
 	select {
-	case <-writeDone:
-		require.Fail(t, "the write was executed before the read of its table")
+	case err := <-writeDone:
+		require.Fail(t, "the write was executed before the read of its table", "error: %v", err)
 	case <-time.After(50 * time.Millisecond):
 	}
 	close(release)

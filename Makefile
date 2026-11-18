@@ -21,10 +21,10 @@ SOFT_GEN_VERSION = v2.0.0-alpha.5
 SOFT_GEN_IMAGE ?= masagroup/soft.gen:$(SOFT_GEN_VERSION)
 
 # the golang image go runs in when it is not installed: its Go must support the go directive of go.work
-GOLANG_IMAGE ?= golang:1.27.3-alpine
+GOLANG_IMAGE ?= golang:1.27.4-alpine
 
 # the version of golangci-lint of make lint
-GOLANGCI_LINT_VERSION := v2.14.0
+GOLANGCI_LINT_VERSION := v2.15.0
 
 # os detection
 ifeq (${OS},Windows_NT)

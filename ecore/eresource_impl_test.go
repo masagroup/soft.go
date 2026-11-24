@@ -203,3 +203,25 @@ func TestResourceListeners(t *testing.T) {
 	mockListener.EXPECT().Detached(mockObject).Once()
 	eResource.Detached(mockObject)
 }
+
+// The errors and the warnings of a resource are lists of diagnostics, not sets: one added is not
+// searched among those before it.
+func TestResourceDiagnosticsAreNotUnique(t *testing.T) {
+	r := NewEResourceImpl()
+	diagnostic := NewEDiagnosticImpl("Unresolved reference 'a'", "location", 1, 2)
+	for _, list := range []EList{r.GetErrors(), r.GetWarnings()} {
+		assert.True(t, list.Add(diagnostic))
+		assert.True(t, list.Add(diagnostic))
+		assert.Equal(t, 2, list.Size())
+	}
+}
+
+func BenchmarkResourceErrorsAdd(b *testing.B) {
+	const diagnostics = 50_000
+	for b.Loop() {
+		errors := NewEResourceImpl().GetErrors()
+		for i := range diagnostics {
+			errors.Add(NewEDiagnosticImpl("Unresolved reference", "location", i, 0))
+		}
+	}
+}

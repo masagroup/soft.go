@@ -141,11 +141,13 @@ type resourceDiagnostics struct {
 	featureID int
 }
 
+// newResourceDiagnostics returns the list of the errors or warnings of resource. It is not unique, as the
+// one of EMF: a decoder adds a diagnostic per unresolved reference, each compared with every one
+// before it in a unique list.
 func newResourceDiagnostics(resource *EResourceImpl, featureID int) *resourceDiagnostics {
 	rd := new(resourceDiagnostics)
 	rd.interfaces = rd
 	rd.data = []any{}
-	rd.isUnique = true
 	rd.resource = resource
 	rd.featureID = featureID
 	return rd
